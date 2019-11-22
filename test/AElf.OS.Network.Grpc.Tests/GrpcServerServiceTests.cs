@@ -36,12 +36,12 @@ namespace AElf.OS.Network
         private readonly OSTestHelper _osTestHelper;
         private readonly IHandshakeProvider _handshakeProvider;
         
-        private readonly GrpcServerService _service;
+        private readonly GrpcServerService _serverService;
 
         public GrpcServerServiceTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _service = GetRequiredService<GrpcServerService>();
+            _serverService = GetRequiredService<GrpcServerService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
@@ -62,32 +62,46 @@ namespace AElf.OS.Network
             var context = BuildServerCallContext();
             var request = new HandshakeRequest {Handshake = new Handshake {HandshakeData = new HandshakeData()}};
 
-            var result = await _service.DoHandshake(request, context);
+            var result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.InvalidConnection);
             
             context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
             
             //invalid handshake
-            result = await _service.DoHandshake(request, context);
+            result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.ChainMismatch);
 
             request.Handshake.HandshakeData.ChainId = _blockchainService.GetChainId();
-            result = await _service.DoHandshake(request, context);
+            result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.ProtocolMismatch);
 
             request.Handshake.HandshakeData.Version = KernelConstants.ProtocolVersion;
             request.Handshake.HandshakeData.Time = TimestampHelper.GetUtcNow();
-            result = await _service.DoHandshake(request, context);
+            result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.WrongSignature);
 
             var peerKeyPair = CryptoHelper.GenerateKeyPair();
             var handshake = NetworkTestHelper.CreateValidHandshake(peerKeyPair, 10, ChainHelper.ConvertBase58ToChainId("AELF"), 2000);
             request = new HandshakeRequest {Handshake = handshake};
-            result = await _service.DoHandshake(request, context);
+            result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.HandshakeOk);
         }
 
         #region Announce and transaction
+
+        [Fact]
+        public async Task Announce_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
+            var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
+            await _serverService.SendAnnouncement(announcement, BuildServerCallContext(metadata));
+            
+            peer.TryAddKnownBlock(hash).ShouldBeFalse();
+        }
 
         [Fact]
         public async Task Announce_ShouldPublishEvent_Test()
@@ -99,7 +113,7 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
             
-            await _service.SendAnnouncement(null, BuildServerCallContext());
+            await _serverService.SendAnnouncement(null, BuildServerCallContext());
             Assert.Null(received);
 
             var pubkey = _peerPool.GetPeers(true).First().Info.Pubkey;
@@ -109,7 +123,7 @@ namespace AElf.OS.Network
             }};
 
             Hash hash = Hash.FromRawBytes(new byte[]{3,6,9});
-            await _service.SendAnnouncement(new BlockAnnouncement
+            await _serverService.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext(metadata));
@@ -150,9 +164,25 @@ namespace AElf.OS.Network
             var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(announcements.ToArray());
             
             
-            var result = await _service.AnnouncementBroadcastStream(requestStream, context);
+            var result = await _serverService.AnnouncementBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             received.Count.ShouldBe(5);
+        }
+        
+        [Fact]
+        public async Task BroadcastBlockWithTxs_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block1"), 1, 
+                (await _osTestHelper.GenerateTransferTransactions(1)).ToList());
+            
+            var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(new List<BlockWithTransactions> { block });
+            await _serverService.BlockBroadcastStream(requestStream, BuildServerCallContext(metadata));
+            
+            peer.TryAddKnownBlock(block.GetHash()).ShouldBeFalse();
         }
 
         [Fact]
@@ -174,9 +204,29 @@ namespace AElf.OS.Network
             var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(blocks.ToArray());
             
             context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2));
-            var result = await _service.BlockBroadcastStream(requestStream, context);
+            var result = await _serverService.BlockBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             received.Count.ShouldBe(3);
+        }
+        
+        [Fact]
+        public async Task SendTx_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            var transaction = new Transaction
+            {
+                From = SampleAddress.AddressList[0], 
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
+            };
+
+            await _serverService.SendTransaction(transaction, BuildServerCallContext(metadata));
+            
+            peer.TryAddKnownTransaction(transaction.GetHash()).ShouldBeFalse();
         }
         
         [Fact]
@@ -192,10 +242,17 @@ namespace AElf.OS.Network
             var tx = new Transaction
             {
                 From = SampleAddress.AddressList[0], 
-                To = SampleAddress.AddressList[1]
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
             };
 
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var reqBlockCtxt = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
+            
+            await _serverService.SendTransaction(tx, reqBlockCtxt);
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
@@ -211,11 +268,15 @@ namespace AElf.OS.Network
                 received.Add(t);
                 return Task.CompletedTask;
             });
-            var context = BuildServerCallContext();
+            
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var context = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:500", context.GetPublicKey()));
             var transactions = await _osTestHelper.GenerateTransferTransactions(3);
             var requestStream = new TestAsyncStreamReader<Transaction>(transactions.ToArray());
             
-            var result = await _service.TransactionBroadcastStream(requestStream, context);
+            var result = await _serverService.TransactionBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             
             received.Count.ShouldBe(3);
@@ -238,7 +299,7 @@ namespace AElf.OS.Network
             var chain = await  _blockchainService.GetChainAsync();
             tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultInitialSyncOffset + 1;
             
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            await _serverService.SendTransaction(tx, BuildServerCallContext());
             
             received.ShouldBeNull();
         }
@@ -256,10 +317,17 @@ namespace AElf.OS.Network
             var tx = new Transaction
             {
                 From = SampleAddress.AddressList[0], 
-                To = SampleAddress.AddressList[1]
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
             };
 
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var reqBlockCtxt = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
+            
+            await _serverService.SendTransaction(tx, reqBlockCtxt);
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
@@ -269,13 +337,34 @@ namespace AElf.OS.Network
         #endregion Announce and transaction
         
         #region RequestBlock
+        
+        [Fact]
+        public async Task RequestBlock_WillAddToPeersBlockCache_Test()
+        {
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+
+            var reqBlockCtxt = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
+
+            var chain = await _blockchainService.GetChainAsync();
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, reqBlockCtxt);
+
+            _peerPool.FindPeerByPublicKey(reqBlockCtxt.GetPublicKey());
+            
+            Assert.NotNull(reply.Block);
+            Assert.True(reply.Block.GetHash() == chain.LongestChainHash);
+        }
 
         [Fact]
         public async Task RequestBlock_Random_ReturnsBlock_Test()
         {
-            var reqBlockCtxt = BuildServerCallContext();
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var context = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:500", context.GetPublicKey()));
             var chain = await _blockchainService.GetChainAsync();
-            var reply = await _service.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, reqBlockCtxt);
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, context);
             
             Assert.NotNull(reply.Block);
             Assert.True(reply.Block.GetHash() == chain.LongestChainHash);
@@ -284,7 +373,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.FromRawBytes(new byte[]{11,22}) }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = Hash.FromRawBytes(new byte[]{11,22}) }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -293,7 +382,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NoHash_ReturnsEmpty_Test()
         {
-            var reply = await _service.RequestBlock(new BlockRequest(), BuildServerCallContext());
+            var reply = await _serverService.RequestBlock(new BlockRequest(), BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -308,18 +397,18 @@ namespace AElf.OS.Network
         {
             var reqBlockCtxt = BuildServerCallContext();
             var chain = await _blockchainService.GetChainAsync();
-            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = chain.GenesisBlockHash, Count = 5 }, reqBlockCtxt);
+            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = chain.GenesisBlockHash, Count = 5 }, reqBlockCtxt);
             
             Assert.True(reply.Blocks.Count == 5);
 
-            reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("invalid"), Count = 5 }, reqBlockCtxt);
+            reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("invalid"), Count = 5 }, reqBlockCtxt);
             reply.ShouldBe(new BlockList());
         }
         
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromRawBytes(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromRawBytes(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);
@@ -328,7 +417,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlocks_NoHash_ReturnsEmpty_Test()
         {
-            var reply = await _service.RequestBlocks(new BlocksRequest(), BuildServerCallContext());
+            var reply = await _serverService.RequestBlocks(new BlocksRequest(), BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);
@@ -339,7 +428,7 @@ namespace AElf.OS.Network
         {
             var serverCallContext = BuildServerCallContext();
             var chain = await _blockchainService.GetChainAsync();
-            var reply = await _service.RequestBlocks(new BlocksRequest
+            var reply = await _serverService.RequestBlocks(new BlocksRequest
             {
                 PreviousBlockHash = chain.GenesisBlockHash,
                 Count = GrpcConstants.MaxSendBlockCountLimit + 1
@@ -355,7 +444,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer_Test()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}}));
+            await _serverService.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -435,7 +524,7 @@ namespace AElf.OS.Network
         public async Task GetNodes_Test()
         {
             var context = BuildServerCallContext();
-            var result = await _service.GetNodes(null, context);
+            var result = await _serverService.GetNodes(null, context);
             result.ShouldBe(new NodeList());
 
             var node = new NodeInfo
@@ -448,7 +537,7 @@ namespace AElf.OS.Network
             {
                 MaxCount = 1
             };
-            result = await _service.GetNodes(request, context);
+            result = await _serverService.GetNodes(request, context);
             result.Nodes.Count.ShouldBe(1);
             result.Nodes[0].ShouldBe(node);
         }
@@ -456,7 +545,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Ping_Test()
         {
-            var pingResult = await _service.Ping(new PingRequest(), BuildServerCallContext());
+            var pingResult = await _serverService.Ping(new PingRequest(), BuildServerCallContext());
             pingResult.ShouldBe(new PongReply());
         }
 
