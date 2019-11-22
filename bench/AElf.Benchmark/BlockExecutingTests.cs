@@ -37,6 +37,8 @@ namespace AElf.Benchmark
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
+            
+            await Task.CompletedTask;
         }
 
         [IterationSetup]

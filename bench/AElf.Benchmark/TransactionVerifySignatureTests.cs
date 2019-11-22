@@ -25,6 +25,7 @@ namespace AElf.Benchmark
         public async Task VerifySignatureTest()
         {
             _transaction.VerifySignature();
+            await Task.CompletedTask;
         }
     }
 }

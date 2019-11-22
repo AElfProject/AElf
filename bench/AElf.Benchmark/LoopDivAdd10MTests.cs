@@ -19,7 +19,6 @@ namespace AElf.Benchmark
         private OSTestHelper _osTestHelper;
 
         private Transaction _transaction;
-        private Block _block;
         private Address _contractAddress;
         private Chain _chain;
         private TransactionTrace _transactionTrace;
@@ -48,6 +47,8 @@ namespace AElf.Benchmark
                     K = 500,
                     N = 10000000
                 });
+
+            await Task.CompletedTask;
         }
 
         [Benchmark]
@@ -68,7 +69,7 @@ namespace AElf.Benchmark
             var calResult = DoubleValue.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
             if (calResult != executeResult)
             {
-                throw new Exception("execute fail");
+                await Task.FromException(new Exception("execute fail"));
             }
         }
     }

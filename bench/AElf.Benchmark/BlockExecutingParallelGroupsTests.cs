@@ -51,6 +51,8 @@ namespace AElf.Benchmark
             _systemTransactions = new List<Transaction>();
             _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
+            
+            await Task.CompletedTask;
         }
 
         [IterationSetup]
