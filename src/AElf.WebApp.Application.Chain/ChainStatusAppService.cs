@@ -1,5 +1,3 @@
-using System;
-using System.Globalization;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -7,7 +5,6 @@ using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
@@ -37,8 +34,6 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<ChainStatusDto> GetChainStatusAsync()
         {
-            var res = CultureInfo.CurrentCulture;
-            Console.WriteLine($"culture is : {res.NativeName} & {res.Name}");
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var chain = await _blockchainService.GetChainAsync();

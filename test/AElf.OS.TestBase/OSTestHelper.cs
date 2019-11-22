@@ -207,7 +207,7 @@ namespace AElf.OS
                 }
             }
 
-            return transactions;
+            return await Task.FromResult(transactions);
         }
         
         public async Task<List<Transaction>> GenerateApproveTransactions(List<ECKeyPair> keyPairs, int count = 1)
