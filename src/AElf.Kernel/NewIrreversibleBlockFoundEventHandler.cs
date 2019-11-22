@@ -16,18 +16,18 @@ namespace AElf.Kernel
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
-        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
+            ITransactionBlockIndexService transactionBlockIndexService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
-            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+            _transactionBlockIndexService = transactionBlockIndexService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -41,6 +41,7 @@ namespace AElf.Kernel
 
             _taskQueueManager.Enqueue(async () =>
             {
+                // Clean chain branch
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
 
@@ -50,10 +51,10 @@ namespace AElf.Kernel
                         async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
                         KernelConstants.UpdateChainQueueName);
                 }
-            }, KernelConstants.CleanChainBranchQueueName);
-
-            // If lib grows, then set it to package transactions
-            _transactionInclusivenessProvider.IsTransactionPackable = true;
+                
+                // Clean transaction block index cache
+                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
+            }, KernelConstants.ChainCleaningQueueName);
 
             return Task.CompletedTask;
         }

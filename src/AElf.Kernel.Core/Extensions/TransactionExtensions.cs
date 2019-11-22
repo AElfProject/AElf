@@ -23,10 +23,13 @@ namespace AElf.Kernel
             var recovered = CryptoHelper.RecoverPublicKey(transaction.Signature.ToByteArray(), 
                 transaction.GetHash().ToByteArray(), out var publicKey);
 
-            if (!recovered)
-                return false;
+            return recovered && Address.FromPublicKey(publicKey) == transaction.From;
+        }
 
-            return Address.FromPublicKey(publicKey).Equals(transaction.From);
+        public static bool VerifyExpiration(this Transaction transaction, long chainBranchBlockHeight)
+        {
+            return transaction.RefBlockNumber <= chainBranchBlockHeight &&
+                   transaction.GetExpiryBlockNumber() > chainBranchBlockHeight;
         }
     }
 }

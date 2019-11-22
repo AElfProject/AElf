@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -45,11 +46,14 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
-            services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+            services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
+            var transactionBlockIndexService =
+                context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
+            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
         }
     }
 

@@ -29,8 +29,8 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var chainId = crossChainClientDto.RemoteChainId;
             var uriStr = crossChainClientDto.IsClientToParentChain
-                ? GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                    _grpcCrossChainConfigOption.RemoteParentChainServerPort)
+                ? GetUriStr(_grpcCrossChainConfigOption.ParentChainServerIp,
+                    _grpcCrossChainConfigOption.ParentChainServerPort)
                 : GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
             
             if (TryGetClient(chainId, out var client) && client.TargetUriString.Equals(uriStr))
@@ -53,14 +53,13 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
                 LocalChainId = crossChainClientDto.LocalChainId,
-                LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
-                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost,
+                ListeningPort = _grpcCrossChainConfigOption.ListeningPort,
                 RemoteChainId = crossChainClientDto.RemoteChainId
             };
             if (crossChainClientDto.IsClientToParentChain)
             {
-                clientInitializationContext.UriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                    _grpcCrossChainConfigOption.RemoteParentChainServerPort);
+                clientInitializationContext.UriStr = GetUriStr(_grpcCrossChainConfigOption.ParentChainServerIp,
+                    _grpcCrossChainConfigOption.ParentChainServerPort);
                 return new ClientForParentChain(clientInitializationContext);
             }
 

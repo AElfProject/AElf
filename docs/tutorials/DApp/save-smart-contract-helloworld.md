@@ -4,7 +4,7 @@ This tutorial will guide you through the steps to create and deploy a simple con
 
 First, note that most of the steps involve the command line, but if you’re a C# developer and you recognize these steps you can use Visual Studio/Rider or any other IDE that supports csproj and nugget packages, feel free to use them.
 
-This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow [this](../Introduction/quickstart.md) guide).
+This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow [this](../introduction/run-node.md) guide).
 
 Open a terminal and create a new directory and navigate into it:
 
@@ -134,13 +134,13 @@ Open another terminal and navigate to AElfs root directory then enter **AElf.Lau
 
 ```bash
 cd AElf.Launcher/
-dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll
+dotnet bin/Release/netcoreapp3.0/AElf.Launcher.dll
 ```
 
 In the previous terminal, alias the cli:
 
 ```bash
-alias aelf-cli="dotnet path/to/aelf/src/AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+alias aelf-cli="dotnet path/to/aelf/src/AElf.CLI/bin/Release/netcoreapp3.0/AElf.CLI.dll"
 ```
 
 Start the CLI and execute the following command, note that here we explicitly specify the datadir (the directory where you keep your keys).
