@@ -7,7 +7,7 @@ namespace AElf.OS.Network
         public const int DefaultPeerDialTimeoutInMilliSeconds = 3000;
         public const int DefaultPeerRecoveryTimeoutInMilliSeconds = 3000;
         public const bool DefaultCompressBlocks = true;
-        public const int DefaultMaxRequestRetryCount = 1;
+        public const int DefaultRequestRetryCount = 1;
         public const int DefaultMaxPeers = 25;
         public const int DefaultMaxPeersPerIpAddress = 0;
 

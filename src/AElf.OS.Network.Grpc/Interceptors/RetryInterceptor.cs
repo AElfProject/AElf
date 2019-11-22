@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -8,25 +7,19 @@ namespace AElf.OS.Network.Grpc
 {
     public class RetryInterceptor : Interceptor
     {
-        private int _retryCount = NetworkConstants.DefaultMaxRequestRetryCount;
-
         public override AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(TRequest request,
             ClientInterceptorContext<TRequest, TResponse> context,
             AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
         {
-            var retryCount = 0;
+            var currentRetry = 0;
 
-            Metadata.Entry timeoutInMilliSecondsMetadataEntry = null;
-            if (context.Options.Headers != null && context.Options.Headers.Any())
-            {
-                timeoutInMilliSecondsMetadataEntry = context.Options.Headers.FirstOrDefault(m => 
-                    string.Equals(m.Key, GrpcConstants.TimeoutMetadataKey, StringComparison.Ordinal));
-            }
+            string headerTimeout = context.GetHeaderStringValue(GrpcConstants.TimeoutMetadataKey);
+            int timeout = headerTimeout == null ? GrpcConstants.DefaultRequestTimeout : int.Parse(headerTimeout);
+            var timeoutSpan = TimeSpan.FromMilliseconds(timeout);
 
-            var timeoutSpan = timeoutInMilliSecondsMetadataEntry == null
-                ? TimeSpan.FromMilliseconds(GrpcConstants.DefaultRequestTimeoutInMilliSeconds)
-                : TimeSpan.FromMilliseconds(int.Parse(timeoutInMilliSecondsMetadataEntry.Value)); 
-            
+            string headerRetryCount = context.GetHeaderStringValue(GrpcConstants.RetryCountMetadataKey);
+            int retryCount = headerRetryCount == null ? NetworkConstants.DefaultRequestRetryCount : int.Parse(headerRetryCount);
+
             async Task<TResponse> RetryCallback(Task<TResponse> responseTask)
             {
                 var response = responseTask;
@@ -38,12 +31,12 @@ namespace AElf.OS.Network.Grpc
                 }
 
                 // if a problem occured but reached the max retries
-                if (retryCount == _retryCount)
+                if (currentRetry == retryCount)
                 {
                     return response.Result;
                 }
                 
-                retryCount++;
+                currentRetry++;
                 
                 // try again
                 var retryContext = BuildNewContext(context, timeoutSpan);

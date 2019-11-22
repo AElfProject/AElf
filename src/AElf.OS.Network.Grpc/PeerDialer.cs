@@ -100,6 +100,7 @@ namespace AElf.OS.Network.Grpc
             {
                 var metadata = new Metadata
                 {
+                    {GrpcConstants.RetryCountMetadataKey, "0"},
                     {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds * 2).ToString()}
                 };
 
@@ -145,6 +146,7 @@ namespace AElf.OS.Network.Grpc
             {
                 var metadata = new Metadata
                 {
+                    {GrpcConstants.RetryCountMetadataKey, "0"},
                     {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
                 };
 
