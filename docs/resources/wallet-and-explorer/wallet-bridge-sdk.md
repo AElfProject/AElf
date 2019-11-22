@@ -86,7 +86,12 @@ res = {
   "msg": "success",
   "errors": [],
   "data": {
-    "accountName": "test",
+    "accounts": [
+      {
+        "name": "test",
+        "address": "XxajQQtYxnsgQp92oiSeENao9XkmqbEitDD8CJKfDctvAQmH6"
+      }
+     ],
     "address": "XxajQQtYxnsgQp92oiSeENao9XkmqbEitDD8CJKfDctvAQmH6",
     "chains": [
       {
