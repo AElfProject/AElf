@@ -11,7 +11,7 @@ The wallet App described here includes a mobile (iOS/Android) native app, deskto
 
 ## Installation
 
-aelf-bridge is part of the AElf ecosystem. Since dApps are mostly web applications, we provide a `JavaScript` SDK available using `Npm` or `yarn` as a version management tool or directly with the script tag.
+AElf-bridge is part of the AElf ecosystem. Since dApps are mostly web applications, we provide a `JavaScript` SDK available using `Npm` or `yarn` as a version management tool or directly with the script tag.
 
 ### Using version management tools
 
@@ -31,7 +31,7 @@ yarn add aelf-bridge
 
 ### demo
 
-[aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo)
+You can find a demo of AElf bridge here: [**aelf-bridge-demo**](https://github.com/AElfProject/aelf-bridge-demo)
 
 ### Initialization
 
