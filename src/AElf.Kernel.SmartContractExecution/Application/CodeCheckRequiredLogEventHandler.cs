@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -41,9 +42,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var _ = _codeCheckService.PerformCodeCheckAsync(transactionResult, logEvent);
-
-            return Task.CompletedTask;
+            return Task.Run(() => _codeCheckService.PerformCodeCheckAsync(transactionResult, logEvent));
         }
     }
 }

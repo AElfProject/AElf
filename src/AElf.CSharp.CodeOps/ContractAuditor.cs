@@ -53,9 +53,9 @@ namespace AElf.CSharp.CodeOps
 
             if (findings.Count > 0)
             {
-                throw new InvalidCodeException($"Audit failed for contract: {modDef.Assembly.MainModule.Name }\n"
-                                                        + string.Join("\n", findings)
-                                                        , findings);
+                throw new InvalidCodeException(
+                    $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
+                    string.Join("\n", findings), findings);
             }
         }
     }

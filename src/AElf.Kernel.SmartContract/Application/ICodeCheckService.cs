@@ -51,18 +51,20 @@ namespace AElf.Kernel.SmartContract.Application
             if (!_isEnabled)
                 return Task.CompletedTask;
             
+            Logger.LogTrace($"Start code check.");
+            
             var eventData = new CodeCheckRequired();
             eventData.MergeFrom(logEvent);
             
             try
             {
+                // Check contract code
+                _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
+                
                 // Approve proposal related to CodeCheckRequired event
                 var proposalId = ProposalCreated.Parser
                     .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                     .ProposalId;
-                
-                // Check contract code
-                _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
                 
                 // Cache proposal id to generate system approval transaction later
                 _readyToApproveProposalCacheProvider.TryCacheProposalToApprove(proposalId);
@@ -70,9 +72,11 @@ namespace AElf.Kernel.SmartContract.Application
             catch (InvalidCodeException e)
             {
                 // May do something else to indicate that the contract has an issue
-                Logger.LogError("Contract code did not pass audit.", e);
+                Logger.LogWarning(e.Message);
             }
             
+            Logger.LogTrace($"Finish code check.");
+
             return Task.CompletedTask;
         }
     }
