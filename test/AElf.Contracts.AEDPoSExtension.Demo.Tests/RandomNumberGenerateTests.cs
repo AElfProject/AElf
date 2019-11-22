@@ -31,7 +31,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             randomNumberOrder.MergeFrom(requestTrace.ReturnValue);
             var targetBlockNumber = randomNumberOrder.BlockHeight;
 
-            targetBlockNumber.ShouldBeLessThan(refBlockNumber - 100);
+            targetBlockNumber.ShouldBeLessThan(refBlockNumber + 100);
         }
     }
 }

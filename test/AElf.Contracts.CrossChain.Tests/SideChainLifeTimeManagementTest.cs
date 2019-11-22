@@ -183,7 +183,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
-            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainBalance.SendAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -240,7 +240,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
-            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainCreator.SendAsync(new SInt32Value
             {
                 Value = sideChainId
             });
