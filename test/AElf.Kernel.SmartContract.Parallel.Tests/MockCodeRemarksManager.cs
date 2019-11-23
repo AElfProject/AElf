@@ -29,12 +29,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public void RemoveContractRemarksCache(List<Hash> blockHashes)
+        public void RemoveContractRemarksCache(List<BlockIndex> blockIndexes)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task SetIrreversedCacheAsync(Hash blockHash)
+        public async Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
             throw new System.NotImplementedException();
         }
