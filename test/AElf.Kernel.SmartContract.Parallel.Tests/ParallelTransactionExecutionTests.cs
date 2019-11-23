@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             await BlockAttachService.AttachBlockAsync(Block);
 
             SystemTransactions = await OsTestHelper.GenerateTransferTransactions(1);
-            CancellableTransactions = await OsTestHelper.GenerateTransactionsWithoutConflict(KeyPairs);
+            CancellableTransactions = OsTestHelper.GenerateTransactionsWithoutConflict(KeyPairs);
             Block = OsTestHelper.GenerateBlock(Block.GetHash(), Block.Height,
                 SystemTransactions.Concat(CancellableTransactions));
 

@@ -25,7 +25,7 @@ namespace AElf
             Should.Throw<InvalidOperationException>(()=>testQueue.Start());
 
             testQueue.Dispose();
-            Should.Throw<InvalidOperationException>(() => testQueue.Enqueue(async () => { }));
+            Should.Throw<InvalidOperationException>(() => testQueue.Enqueue(() => Task.CompletedTask));
         }
 
         [Fact]
@@ -35,10 +35,11 @@ namespace AElf
             var testQueue = _taskQueueManager.CreateQueue("TestQueue");
             Parallel.For(0, 100, i =>
             {
-                testQueue.Enqueue(async () =>
+                testQueue.Enqueue(() =>
                 {
                     var value = result;
                     result = value + 1;
+                    return Task.CompletedTask;
                 });
             });
 
@@ -57,9 +58,9 @@ namespace AElf
 
             Parallel.For(0, 100, i =>
             {
-                testQueueA.Enqueue(async () => { testData[0]++; });
-                testQueueB.Enqueue(async () => { testData[1]++; });
-                testQueueC.Enqueue(async () => { testData[2]++; });
+                testQueueA.Enqueue(() => { testData[0]++; return Task.CompletedTask;});
+                testQueueB.Enqueue(() => { testData[1]++; return Task.CompletedTask;});
+                testQueueC.Enqueue(() => { testData[2]++; return Task.CompletedTask;});
             });
 
             testQueueA.Dispose();
@@ -91,7 +92,7 @@ namespace AElf
 
             result.ShouldBe(4);
 
-            Should.Throw<InvalidOperationException>(() => testQueue.Enqueue(async () => { result++; }));
+            Should.Throw<InvalidOperationException>(() => testQueue.Enqueue(() => { result++; return Task.CompletedTask;}));
         }
 
         [Fact]
@@ -123,10 +124,11 @@ namespace AElf
 
             var result = 1;
             Should.Throw<InvalidOperationException>(() =>
-                testQueue.Enqueue(async () =>
+                testQueue.Enqueue(() =>
                 {
                     var value = result;
                     result = value + 1;
+                    return Task.CompletedTask;
                 })
             );
         }

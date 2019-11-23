@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,7 +7,6 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -149,8 +147,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeTransaction", parameters,
                     expectedStatusCode: HttpStatusCode.Forbidden);
 
-            response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            response.Error.Code.ShouldBe(Error.InvalidParams.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
 
             //invalid signature
             var transaction = await GenerateViewTransaction(
@@ -170,8 +168,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             response =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeTransaction", parameters,
                     expectedStatusCode: HttpStatusCode.Forbidden);
-            response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            response.Error.Code.ShouldBe(Error.InvalidSignature.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidSignature]);
         }
 
         [Fact]
@@ -223,8 +221,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var wrongTransactionResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeRawTransaction",
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
-            wrongTransactionResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            wrongTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            wrongTransactionResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
+            wrongTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
 
             const string methodName = "GetBalance";
             var contractAddress =
@@ -253,8 +251,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var wrongSignatureResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeRawTransaction",
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
-            wrongSignatureResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            wrongSignatureResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            wrongSignatureResponse.Error.Code.ShouldBe(Error.InvalidSignature.ToString());
+            wrongSignatureResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidSignature]);
         }
 
         [Fact]
@@ -390,8 +388,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var response = await PostResponseAsObjectAsync<WebAppErrorResponse>(
                 "/api/blockChain/sendTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
-            response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            response.Error.Code.ShouldBe(Error.InvalidSignature.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidSignature]);
 
             var existTransaction = await _txHub.GetQueuedTransactionAsync(transaction.GetHash());
             existTransaction.ShouldBeNull();
