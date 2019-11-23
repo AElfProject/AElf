@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -41,7 +42,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public interface ICalculateFeeService
+    public interface ICalculateFeeService : ISingletonDependency
     {
         long GetCpuTokenCost(int readCount);
         long GetStoTokenCost(int writeCount);
@@ -55,10 +56,10 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class CalculateFeeService : ICalculateFeeService
     {
-        private static ICalCostService _cpuCal;
-        private static ICalCostService _netCal;
-        private static ICalCostService _stoCal;
-        private static ICalCostService _txCal;
+        private ICalCostService _cpuCal;
+        private ICalCostService _netCal;
+        private ICalCostService _stoCal;
+        private ICalCostService _txCal;
 
         private const int CpuExpectCount = 10;
         private const long CpuExpectCost = 900000000L;
@@ -74,7 +75,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         private const int TokenCountPerElf = 50;
 
-        static CalculateFeeService()
+        public CalculateFeeService()
         {
             _cpuCal = new CalCostService(CpuExpectCost, CpuExpectCount);
             _cpuCal.Add(10, x => new LinerCalService
@@ -96,7 +97,7 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 10,
                 Decimal = 100000000L // 1 token = 100000000
             }.GetCost(x));
-            _cpuCal.Prepare();
+            //_cpuCal.Prepare();
 
             _stoCal = new CalCostService(StoExpectCost, StoExpectCount);
             _stoCal.Add(10, x => new LinerCalService
@@ -117,19 +118,14 @@ namespace AElf.Kernel.SmartContract.Application
                 Weight = 333,
                 WeightBase = 5,
             }.GetCost(x));
-            _stoCal.Prepare();
+            //_stoCal.Prepare();
 
             _netCal = new CalCostService(NetExpectCost, NetExpectCount);
-            _netCal.Add(1000, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 30,
-                ConstantValue = 10000
-            }.GetCost(x));
             _netCal.Add(1000000, x => new LinerCalService
             {
                 Numerator = 1,
-                Denominator = 15,
+                Denominator = 32,
+                ConstantValue = 10000
             }.GetCost(x));
             _netCal.Add(int.MaxValue, x => new PowCalService
             {
@@ -139,29 +135,30 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 500,
                 Decimal = 100000000L
             }.GetCost(x));
-            _netCal.Prepare();
+            //_netCal.Prepare();
 
             _txCal = new CalCostService(TxExpectCost, TxExpectCount);
-            _txCal.Add(1000, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 15 * 50,
-                ConstantValue = 10000
-            }.GetCost(x));
+//            _txCal.Add(1000, x => new LinerCalService
+//            {
+//                Numerator = 1,
+//                Denominator = 15 * 50,
+//                ConstantValue = 10000
+//            }.GetCost(x));
             _txCal.Add(1000000, x => new LinerCalService
             {
                 Numerator = 1,
-                Denominator = 15 * 50,
+                Denominator = 16 * TokenCountPerElf,
+                ConstantValue = 10000
             }.GetCost(x));
             _txCal.Add(int.MaxValue, x => new PowCalService
             {
                 Power = 2,
-                ChangeSpanBase = 100,
+                ChangeSpanBase = 100.Mul(TokenCountPerElf),
                 Weight = 1,
                 WeightBase = 1,
-                Decimal = 100000000L.Div(TokenCountPerElf)
+                Decimal = 100000000L
             }.GetCost(x));
-            _txCal.Prepare();
+            //_txCal.Prepare();
         }
 
         public ICalCostService GetCpuCalculator => _cpuCal;
