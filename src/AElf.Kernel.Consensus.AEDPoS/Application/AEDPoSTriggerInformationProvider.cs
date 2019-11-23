@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
+    /// <summary>
+    /// 
+    /// </summary>
     public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;

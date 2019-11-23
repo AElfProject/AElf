@@ -29,7 +29,7 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int32Value;
             resultValue.ShouldBe(Int32.MaxValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
+            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
                 new Int32Input
                 {
                     Int32Value = 100
@@ -56,7 +56,7 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int32Value;
             resultValue.ShouldBe(int.MinValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
+            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
                 new Int32Input
                 {
                     Int32Value = -100
@@ -83,7 +83,7 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int64Value;
             resultValue.ShouldBe(Int64.MaxValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
+            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
                 new Int64Input
                 {
                     Int64Value = 100
@@ -110,7 +110,7 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int64Value;
             resultValue.ShouldBe(long.MinValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
+            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
                 new Int64Input
                 {
                     Int64Value = -100

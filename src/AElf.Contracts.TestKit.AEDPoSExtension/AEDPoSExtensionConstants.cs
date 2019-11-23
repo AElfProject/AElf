@@ -6,7 +6,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     public static class AEDPoSExtensionConstants
     {
         public const int InitialKeyPairCount = 5;
-        public const int CoreDataCenterKeyPairCount = 9; // Start from 9. AElf Main Chain will start from 17.
+        public const int CoreDataCenterKeyPairCount = 17;
         public const int ValidationDataCenterKeyPairCount = CoreDataCenterKeyPairCount * 5;
 
         public static readonly int CitizenKeyPairsCount =

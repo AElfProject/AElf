@@ -52,7 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             var triggerForCommand = TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
 
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
