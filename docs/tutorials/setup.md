@@ -7,7 +7,7 @@ For most of these dependencies we provide ready-to-use command line instructions
 
 # Pre-setup for Windows users
 
-A convenient tool for Windows users is **Chocolatey** for installing dependencies. Open this link and follow the installation instructions (see here for more details [**Chocolatey installation**](https://chocolatey.org/install)):
+A convenient tool for Windows users is **Chocolatey** for installing dependencies. Follow the installation instructions below (see here for more details [**Chocolatey installation**](https://chocolatey.org/install)):
 
 Open and [administrative Powershell](https://www.digitalcitizen.life/ways-launch-powershell-windows-admin) and enter the following commands:
 ```Powershell
