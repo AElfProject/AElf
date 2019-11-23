@@ -42,9 +42,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ExtraData = extraData
             };
 
-            Context.LogDebug(() => $"BaseRound: {baseRound.ToString()}");
-            Context.LogDebug(() => $"PreviousRound: {previousRound.ToString()}");
-
             /* Ask several questions: */
 
             // Add basic providers at first.
