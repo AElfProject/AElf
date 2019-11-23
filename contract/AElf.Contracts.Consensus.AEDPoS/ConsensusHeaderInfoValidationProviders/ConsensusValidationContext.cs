@@ -21,7 +21,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         public Round ProvidedRound => ExtraData.Round;
 
-        public MappedState<long, Round> Rounds { get; set; }
+        public Round PreviousRound { get; set; }
+
         public LatestProviderToTinyBlocksCount LatestProviderToTinyBlocksCount { get; set; }
         public AElfConsensusHeaderInformation ExtraData { get; set; }
     }

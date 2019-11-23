@@ -31,18 +31,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             //   Round Number
             //   In Values Should Be Null
             var extraData = validationContext.ExtraData;
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
-                currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
+            if (validationContext.BaseRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
             {
                 return new ValidationResult {Message = "Incorrect round number for next round."};
             }
 
-            if (extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
-            {
-                return new ValidationResult {Message = "Incorrect next round information."};
-            }
-
-            return new ValidationResult {Success = true};
+            return extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null)
+                ? new ValidationResult {Message = "Incorrect next round information."}
+                : new ValidationResult {Success = true};
         }
 
         private ValidationResult ValidationForNextTerm(ConsensusValidationContext validationContext)
@@ -56,27 +52,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Is next term information correct?
             //   Term Number
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
-                currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
-            {
-                return new ValidationResult {Message = "Incorrect term number for next round."};
-            }
-
-            return new ValidationResult {Success = true};
-        }
-
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext)
-        {
-            round = null;
-            if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-            round = validationContext.Rounds[roundNumber];
-            return !round.IsEmpty;
-        }
-
-        private bool TryToGetRoundNumber(out long roundNumber, long currentRoundNumber)
-        {
-            roundNumber = currentRoundNumber;
-            return roundNumber != 0;
+            return validationContext.BaseRound.TermNumber.Add(1) != extraData.Round.TermNumber
+                ? new ValidationResult {Message = "Incorrect term number for next round."}
+                : new ValidationResult {Success = true};
         }
     }
 }

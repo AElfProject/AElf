@@ -37,19 +37,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool CheckMinerTimeSlot(ConsensusValidationContext validationContext)
         {
-            var round = validationContext.ProvidedRound;
-            var pubkey = validationContext.SenderPubkey;
-
             if (IsFirstRoundOfCurrentTerm(out _, validationContext)) return true;
-            var minerInRound = round.RealTimeMinersInformation[pubkey];
+            var minerInRound = validationContext.BaseRound.RealTimeMinersInformation[validationContext.SenderPubkey];
             var latestActualMiningTime = minerInRound.ActualMiningTimes.OrderBy(t => t).LastOrDefault();
             if (latestActualMiningTime == null) return true;
             var expectedMiningTime = minerInRound.ExpectedMiningTime;
-            var endOfExpectedTimeSlot = expectedMiningTime.AddMilliseconds(round.GetMiningInterval());
+            var endOfExpectedTimeSlot =
+                expectedMiningTime.AddMilliseconds(validationContext.BaseRound.GetMiningInterval());
             if (latestActualMiningTime < expectedMiningTime)
             {
                 // Which means this miner is producing tiny blocks for previous extra block slot.
-                return latestActualMiningTime < round.GetRoundStartTime();
+                return latestActualMiningTime < validationContext.BaseRound.GetRoundStartTime();
             }
 
             return latestActualMiningTime < endOfExpectedTimeSlot;
@@ -57,34 +55,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsFirstRoundOfCurrentTerm(out long termNumber, ConsensusValidationContext validationContext)
         {
-            termNumber = 1;
-            return TryToGetTermNumber(out termNumber, validationContext.CurrentTermNumber) &&
-                   TryToGetPreviousRoundInformation(out var previousRound, validationContext) &&
-                   previousRound.TermNumber != termNumber ||
-                   TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber) && roundNumber == 1;
-        }
-
-        private bool TryToGetTermNumber(out long termNumber, long currentTermNumber)
-        {
-            termNumber = currentTermNumber;
-            return termNumber != 0;
-        }
-
-        private bool TryToGetRoundNumber(out long roundNumber, long currentRoundNumber)
-        {
-            roundNumber = currentRoundNumber;
-            return roundNumber != 0;
-        }
-
-        private bool TryToGetPreviousRoundInformation(out Round previousRound,
-            ConsensusValidationContext validationContext)
-        {
-            previousRound = new Round();
-            if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-            if (roundNumber < 2) return false;
-            var targetRoundNumber = roundNumber.Sub(1);
-            previousRound = validationContext.Rounds[targetRoundNumber];
-            return !previousRound.IsEmpty;
+            termNumber = validationContext.CurrentTermNumber;
+            return validationContext.PreviousRound.TermNumber != termNumber ||
+                   validationContext.CurrentRoundNumber == 1;
         }
     }
 }

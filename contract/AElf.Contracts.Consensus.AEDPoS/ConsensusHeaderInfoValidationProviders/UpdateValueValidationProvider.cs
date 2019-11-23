@@ -31,7 +31,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private bool NewConsensusInformationFilled(ConsensusValidationContext validationContext)
         {
-            var minerInRound = validationContext.ProvidedRound.RealTimeMinersInformation[validationContext.SenderPubkey];
+            var minerInRound =
+                validationContext.ProvidedRound.RealTimeMinersInformation[validationContext.SenderPubkey];
             return minerInRound.OutValue != null && minerInRound.Signature != null &&
                    minerInRound.OutValue.Value.Any() && minerInRound.Signature.Value.Any();
         }
@@ -41,35 +42,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var extraData = validationContext.ExtraData;
             var publicKey = validationContext.SenderPubkey;
 
-            if (!TryToGetPreviousRoundInformation(out var previousRound, validationContext)) return true;
+            if (!validationContext.PreviousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
 
-            if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
-
-            // TODO: Fix this in secret-sharing branch.
             if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
 
-            var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
+            var previousOutValue = validationContext.PreviousRound.RealTimeMinersInformation[publicKey].OutValue;
             var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
             if (previousInValue == Hash.Empty) return true;
 
             return Hash.FromMessage(previousInValue) == previousOutValue;
-        }
-
-        private bool TryToGetPreviousRoundInformation(out Round previousRound,
-            ConsensusValidationContext validationContext)
-        {
-            previousRound = new Round();
-            if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-            if (roundNumber < 2) return false;
-            var targetRoundNumber = roundNumber.Sub(1);
-            previousRound = validationContext.Rounds[targetRoundNumber];
-            return !previousRound.IsEmpty;
-        }
-
-        private bool TryToGetRoundNumber(out long roundNumber, long currentRoundNumber)
-        {
-            roundNumber = currentRoundNumber;
-            return roundNumber != 0;
         }
     }
 }

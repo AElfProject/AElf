@@ -23,12 +23,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsRoundIdMatched(ConsensusValidationContext validationContext)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext))
-            {
-                return currentRound.RoundId == validationContext.ProvidedRound.RoundIdForValidation;
-            }
-
-            return false;
+            return validationContext.BaseRound.RoundId == validationContext.ProvidedRound.RoundIdForValidation;
         }
 
         private bool ValidateProducedBlocksCount(ConsensusValidationContext validationContext)
@@ -36,20 +31,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var pubkey = validationContext.SenderPubkey;
             return validationContext.BaseRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1) ==
                    validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedBlocks;
-        }
-
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext)
-        {
-            round = null;
-            if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-            round = validationContext.Rounds[roundNumber];
-            return !round.IsEmpty;
-        }
-
-        private bool TryToGetRoundNumber(out long roundNumber, long currentRoundNumber)
-        {
-            roundNumber = currentRoundNumber;
-            return roundNumber != 0;
         }
     }
 }
