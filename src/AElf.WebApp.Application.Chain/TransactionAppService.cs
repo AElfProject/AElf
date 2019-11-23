@@ -75,6 +75,24 @@ namespace AElf.WebApp.Application.Chain
                 var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
             }
+            catch(UserFriendlyException e) when(e.Code == Error.InvalidSignature.ToString())
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                    Error.InvalidSignature.ToString());
+            }
+            catch(ArgumentOutOfRangeException e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
+            catch (FormatException e)
+            {
+                Logger.LogError(e, e.Message);
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
             catch(Exception e)
             {
                 Logger.LogError(e, e.Message); //for debug
@@ -92,12 +110,30 @@ namespace AElf.WebApp.Application.Chain
                 transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                        Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                        Error.InvalidSignature.ToString());
                 }
 
                 var response = await CallReadOnlyReturnReadableValueAsync(transaction);
                 return response;
+            }
+            catch (UserFriendlyException e) when (e.Code == Error.InvalidSignature.ToString())
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                    Error.InvalidSignature.ToString());
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
+            catch (FormatException e)
+            {
+                Logger.LogError(e, e.Message);
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
             }
             catch(Exception e)
             {
@@ -167,6 +203,10 @@ namespace AElf.WebApp.Application.Chain
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
 
             var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+            if (!IsValidMessage(parameters))
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+            }
 
             transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
             output.Transaction = transactionDto;
