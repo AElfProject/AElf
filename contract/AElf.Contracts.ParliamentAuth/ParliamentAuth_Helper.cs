@@ -17,23 +17,20 @@ namespace AElf.Contracts.ParliamentAuth
             return members;
         }
 
-        private void AssertSenderIsAuthorizedProposer(Organization organization)
+        private void AssertAuthorizedProposer()
         {
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
             // or sender is GenesisContract && origin is in proposer white list (for new contract deployment)
             // or sender is one of miners.
-            if (!organization.ProposerAuthorityRequired)
+            if (!State.ProposerAuthorityRequired.Value)
                 return;
             
-            var currentMinerList = GetCurrentMinerList();
-            if (ValidateAddressInWhiteList(organization, currentMinerList, Context.Sender))
+            if (ValidateAddressInWhiteList(Context.Sender))
                 return;
 
-            Assert(
-                Context.Sender == State.GenesisContract.Value &&
-                ValidateAddressInWhiteList(organization, currentMinerList, Context.Origin),
+            Assert(Context.Sender == State.GenesisContract.Value && ValidateAddressInWhiteList(Context.Origin),
                 "Not authorized to propose.");
         }
 
@@ -56,7 +53,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
-        private void AssertSenderIsParliementMember(List<Address> currentParliament)
+        private void AssertSenderIsParliamentMember(List<Address> currentParliament)
         {
             Assert(currentParliament.Any(r => r.Equals(Context.Sender)), "Not authorized approval.");
         }
@@ -90,9 +87,11 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(!proposal.ApprovedRepresentatives.Contains(Context.Sender), "Already approved.");
         }
 
-        private bool ValidateAddressInWhiteList(Organization organization, IEnumerable<Address> currentMinerList, Address address)
+        private bool ValidateAddressInWhiteList(Address address)
         {
-            return organization.ProposerWhiteList.Any(p => p == address) || currentMinerList.Any(m => m == address);
+            var currentMinerList = GetCurrentMinerList();
+            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address) ||
+                   currentMinerList.Any(m => m == address);
         }
     }
 }

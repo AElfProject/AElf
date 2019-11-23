@@ -240,7 +240,7 @@ namespace AElf.Contracts.Genesis
             
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (isGenesisOwnerAuthorityRequired)
-                AssertProposerAuthority(Context.Sender);
+                AssertProposerAuthority(Context.Origin);
 
             if (info.IsSystemContract)
             {
@@ -316,6 +316,10 @@ namespace AElf.Contracts.Genesis
             else
             {
                 AssertSenderAddressWith(State.GenesisOwner.Value);
+                RequireParliamentAuthAddressSet();
+                var organizationExist =
+                    State.ParliamentAuthContract.ValidateOrganizationExist.Call(newOwnerAddress).Value;
+                Assert(organizationExist, "Invalid genesis owner address.");
                 State.GenesisOwner.Value = newOwnerAddress;
             }
 
@@ -375,12 +379,8 @@ namespace AElf.Contracts.Genesis
         private void AssertProposerAuthority(Address proposer)
         {
             RequireParliamentAuthAddressSet();
-            var proposerAuthorityValidated = State.ParliamentAuthContract.ValidateAddressInOrganizationWhiteList.Call(
-                new ValidateAddressInOrganizationWhiteListInput
-                {
-                    AddressToBeValidated = proposer,
-                    OrganizationAddress = State.GenesisOwner.Value
-                }).Value;
+            var proposerAuthorityValidated = State.ParliamentAuthContract.ValidateAddressInProposerWhiteList
+                .Call(proposer).Value;
             Assert(proposerAuthorityValidated, "Proposer authority validation failed.");
         }
     }
