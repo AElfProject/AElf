@@ -57,7 +57,7 @@ message HelloReturn {
 }
 ```
 
-It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this GitBook.
+It's a simple contract that defines one method **Hello** and one type **HelloReturn**.
 
 Note: the definition contains **no logic**, at build time when running the ```dotnet build``` command this file is used to generate the C# classes that will be used to implement the service.
 

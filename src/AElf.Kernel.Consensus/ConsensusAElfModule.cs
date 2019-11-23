@@ -15,7 +15,7 @@ namespace AElf.Kernel.Consensus
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
-            context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+            context.Services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
         }
     }
 }

@@ -10,16 +10,16 @@ Make sure that you can run a single node. To sum the steps for one node:
 - use **aelf-command create** to create a keypair that is by default saved to the datadir.
 - modify the **NodeAccount**, **NodeAccountPassword** values in the **appsettings.json** (AElf.Launcher project).
 - add the key-pair public key as a miner in the **InitialMinerList**.
-- Launch the node.
+- launch the node.
 
-These are basically the step you need to repeat to form a network of nodes.
+These are basically the steps you need to repeat in order to form a network of nodes.
 
 ### Setup the environment
 
-In order to setup the environment for a multi-node network workflow is like this:
+In order to setup the environment for a multi-node network, the workflow is like this:
 - create/choose a folder that will be the target of your build.
 - create a folder for each node you want to setup.
-- add to every folder the configuration files (templates are located in the aelf/src/AElf.Launcher/ folder of the cloned repository).
+- add to each folder the configuration files (templates are located in the aelf/src/AElf.Launcher/ folder of the cloned repository).
 
 This section will walk you through these steps of creating this structure.
 
@@ -48,7 +48,7 @@ aelf-command create
 
 #### Miners
 
-Modify each miners configuration with their respective accounts like in the previous tutorial. Once this is done you should update both config files with both accounts, so the configuration for **InitialMinerList** will look something like this in **both** miner1 and miner2's configuration files:
+Modify each miner's configuration with their respective accounts like in the previous tutorial. Once this is done you should update both config files with both accounts, so the configuration for **InitialMinerList** will look something like this in **both** miner1 and miner2's configuration files:
 
 ```json
 "InitialMinerList" : [
