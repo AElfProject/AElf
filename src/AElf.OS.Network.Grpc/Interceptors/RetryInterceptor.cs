@@ -13,11 +13,11 @@ namespace AElf.OS.Network.Grpc
         {
             var currentRetry = 0;
 
-            string headerTimeout = context.GetHeaderStringValue(GrpcConstants.TimeoutMetadataKey);
+            string headerTimeout = context.GetHeaderStringValue(GrpcConstants.TimeoutMetadataKey, true);
             int timeout = headerTimeout == null ? GrpcConstants.DefaultRequestTimeout : int.Parse(headerTimeout);
             var timeoutSpan = TimeSpan.FromMilliseconds(timeout);
 
-            string headerRetryCount = context.GetHeaderStringValue(GrpcConstants.RetryCountMetadataKey);
+            string headerRetryCount = context.GetHeaderStringValue(GrpcConstants.RetryCountMetadataKey, true);
             int retryCount = headerRetryCount == null ? NetworkConstants.DefaultRequestRetryCount : int.Parse(headerRetryCount);
 
             async Task<TResponse> RetryCallback(Task<TResponse> responseTask)

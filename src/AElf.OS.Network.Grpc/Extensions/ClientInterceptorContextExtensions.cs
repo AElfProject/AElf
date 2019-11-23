@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Grpc.Core;
 using Grpc.Core.Interceptors;
 
 namespace AElf.OS.Network.Grpc
@@ -9,14 +10,20 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Returns the header with the given key. If the key is not found or there's no headers, returns null.
         /// </summary>
-        public static string GetHeaderStringValue<TRequest, TResponse>(this ClientInterceptorContext<TRequest, TResponse> context, string key) 
+        public static string GetHeaderStringValue<TRequest, TResponse>(
+            this ClientInterceptorContext<TRequest, TResponse> context, string key, bool clearHeader = false) 
             where TRequest : class 
             where TResponse : class
         {
             if (!AnyHeaders(context))
                 return null;
 
-            return context.Options.Headers.FirstOrDefault(m => string.Equals(m.Key, key, StringComparison.Ordinal))?.Value;
+            Metadata.Entry valueItem = context.Options.Headers.FirstOrDefault(m => string.Equals(m.Key, key, StringComparison.Ordinal));
+
+            if (clearHeader && valueItem != null)
+                context.Options.Headers.Remove(valueItem);
+
+            return valueItem?.Value;
         }
 
         /// <summary>
