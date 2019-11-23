@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             AsyncHelper.RunSync(InitializeContracts);
         }
 
-        [Fact]
+        [Fact(Skip = "Need to initial connector's balance.")]
         public async Task BuyResourceToken_Test()
         {
             var beforeElf = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -30,20 +30,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = DefaultSender,
                 Symbol = "ELF"
             })).Balance;
-            
-            var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
+
+            var approveResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 Symbol = "ELF",
-                Amount = beforeElf,
-                Spender = TokenConverterAddress
+                Amount = beforeElf / 2,
+                To = TestContractAddress
             });
             approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput
+
+            var buyResult = await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput
             {
                 Symbol = "CPU",
                 Amount = 100_00000000,
             });
+            buyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task AdvanceResourceToken()
@@ -205,7 +206,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         [Fact]
         public async Task CompareCpuTokenConsumption_WithoutResource()
         {
-            var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+            var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
             cpuConsumingResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             cpuConsumingResult.TransactionResult.Error.ShouldContain("is not enough");
         }
@@ -217,15 +218,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
             var (cpu, sto, net) =
                 await GetTransactionResourcesCost(DefaultTester.CpuConsumingMethod.SendAsync);
-            var (cpu1, sto1, net1) = 
+            var (cpu1, sto1, net1) =
                 await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
-            
+
             cpu.ShouldBeGreaterThan(cpu1);
             sto.ShouldBeGreaterThan(sto1);
             net.ShouldBe(net1);
         }
 
-        private async Task<(long cpu, long sto, long net)> GetTransactionResourcesCost(Func<Empty, Task<IExecutionResult<Empty>>> action)
+        private async Task<(long cpu, long sto, long net)> GetTransactionResourcesCost(
+            Func<Empty, Task<IExecutionResult<Empty>>> action)
         {
             var beforeCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

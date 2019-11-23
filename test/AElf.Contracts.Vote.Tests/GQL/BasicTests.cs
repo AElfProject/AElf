@@ -15,7 +15,7 @@ namespace AElf.Contracts.Vote
         public async Task VoteContract_Register_Again_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
-            var transactionResult = (await VoteContractStub.Register.SendAsync(new VotingRegisterInput
+            var transactionResult = (await VoteContractStub.Register.SendWithExceptionAsync(new VotingRegisterInput
             {
                 // Basically same as previous one.
                 TotalSnapshotNumber = votingItem.TotalSnapshotNumber,
@@ -45,7 +45,7 @@ namespace AElf.Contracts.Vote
                 AcceptedCurrency = "USDT",
                 IsLockToken = true
             };
-            var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
+            var transactionResult = (await VoteContractStub.Register.SendWithExceptionAsync(input)).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); 
             transactionResult.Error.Contains("Claimed accepted token is not available for voting").ShouldBeTrue();
@@ -61,7 +61,7 @@ namespace AElf.Contracts.Vote
                     VotingItemId = Hash.FromString("hash")
                 };
 
-                var transactionResult = (await VoteContractStub.Vote.SendAsync(input)).TransactionResult;
+                var transactionResult = (await VoteContractStub.Vote.SendWithExceptionAsync(input)).TransactionResult;
             
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Voting item not found").ShouldBeTrue();
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Vote
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);
                 
-                var transactionResult = (await otherVoteStub.Vote.SendAsync(input)).TransactionResult;
+                var transactionResult = (await otherVoteStub.Vote.SendWithExceptionAsync(input)).TransactionResult;
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain($"Option {input.Option} not found");
@@ -98,7 +98,7 @@ namespace AElf.Contracts.Vote
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);
                 
-                var transactionResult = (await otherVoteStub.Vote.SendAsync(input)).TransactionResult;
+                var transactionResult = (await otherVoteStub.Vote.SendWithExceptionAsync(input)).TransactionResult;
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Insufficient balance");

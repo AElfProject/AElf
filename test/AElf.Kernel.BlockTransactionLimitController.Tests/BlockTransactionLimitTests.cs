@@ -46,7 +46,8 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 Assert.Equal(0, limit.Value);
             }
 
-            await ConfigurationStub.SetBlockTransactionLimit.SendAsync(new Int32Value() {Value = 55});
+            // TODO: Figure out why To is null.
+            await ConfigurationStub.SetBlockTransactionLimit.SendWithExceptionAsync(new Int32Value {Value = 55});
             {
                 var limit = await ConfigurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(0, limit.Value);
