@@ -40,7 +40,8 @@ namespace AElf.Contracts.MultiToken
                 if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
                     out var amount, out var existingBalance))
                 {
-                    Assert(false, "Failed to charge first sufficient token.");
+                    Context.LogDebug(() => "Failed to charge first sufficient token.");
+                    return new TransactionFee {IsFailedToCharge = true};
                 }
 
                 bill.TokenToAmount.Add(symbol, amount);
@@ -78,11 +79,13 @@ namespace AElf.Contracts.MultiToken
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
 
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            Assert(
-                balanceAfterChargingBaseFee >=
-                input.TransactionSizeFee,
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
-                $"Primary token: {input.PrimaryTokenSymbol}");
+            if (balanceAfterChargingBaseFee < input.TransactionSizeFee)
+            {
+                Context.LogDebug(() =>
+                    $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
+                    $"Primary token: {input.PrimaryTokenSymbol}");
+                return new TransactionFee {IsFailedToCharge = true};
+            }
 
             if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
             {

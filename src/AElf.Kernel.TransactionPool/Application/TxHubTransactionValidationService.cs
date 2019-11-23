@@ -32,11 +32,9 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             foreach (var provider in _transactionValidationProviders)
             {
-                if (!await provider.ValidateTransactionAsync(transaction))
-                {
-                    Logger.LogDebug($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
-                    return false;
-                }
+                if (await provider.ValidateTransactionAsync(transaction)) continue;
+                Logger.LogDebug($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
+                return false;
             }
 
             return true;
@@ -45,17 +43,13 @@ namespace AElf.Kernel.TransactionPool.Application
         public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
         {
             return _constrainedTransactionValidationProviders.All(provider =>
-            {
-//                Logger.LogTrace($"Passing {provider.GetType().Name}");
-                return provider.ValidateTransaction(transaction, blockHash);
-            });
+                provider.ValidateTransaction(transaction, blockHash));
         }
 
         public void ClearConstrainedTransactionValidationProvider(Hash blockHash)
         {
             foreach (var provider in _constrainedTransactionValidationProviders)
             {
-//                Logger.LogTrace($"Clearing {provider.GetType().Name}");
                 provider.ClearBlockHash(blockHash);
             }
         }

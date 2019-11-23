@@ -22,7 +22,9 @@ namespace AElf.Kernel.TransactionPool
             //services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
 
             services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
+
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
 

@@ -316,6 +316,7 @@ namespace AElf.Kernel.SmartContract.Application
                         txFee.MergeFrom(preTrace.ReturnValue);
                         trace.TransactionFee = txFee;
                     }
+
                     if (!preTrace.IsSuccessful())
                     {
                         trace.ExecutionStatus = IsTransactionCanceled(preTrace)
@@ -330,6 +331,11 @@ namespace AElf.Kernel.SmartContract.Application
                     internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
+
+                    if (!trace.TransactionFee.IsFailedToCharge) continue;
+
+                    trace.ExecutionStatus = ExecutionStatus.InsufficientTransactionFees;
+                    return false;
                 }
             }
 

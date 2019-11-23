@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
-            Assert(triggerInformation.InValue != null, "Random hash should not be null.");
+            Assert(triggerInformation.InValue != null, "In value should not be null.");
 
             var outValue = Hash.FromMessage(triggerInformation.InValue);
             var signature =
