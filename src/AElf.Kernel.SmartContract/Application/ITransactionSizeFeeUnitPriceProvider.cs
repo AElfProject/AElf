@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -60,49 +61,53 @@ namespace AElf.Kernel.SmartContract.Application
         static CalculateFeeService()
         { 
             _cpuCal = new CalCostService();
-            _cpuCal.Add(10, x =>  5);
-            _cpuCal.Add(100, x =>  x / 2);
+            _cpuCal.Add(10, x =>  10000 + 100000000L.Div(8).Mul(x));
+            _cpuCal.Add(1000, x =>  100000000L.Div(4).Mul(x));
             _cpuCal.Add(-1, x => new PowCalService
             {
                 Power = 2,
-                ChangeSpanBase = 10,
-                Weight = 333,
+                ChangeSpanBase = 10,         // scale  x axis         
+                Weight = 333,   // unit weight,  means  (10 cpu count = 333 weight) 
                 WeightBase = 10,
+                Decimal = 100000000L  // 1 token = 100000000
             }.GetCost(x));
 
             _stoCal = new CalCostService();
-            _stoCal.Add(10, x => 5);
-            _stoCal.Add(100, x => x);
+            _stoCal.Add(10, x => 10000 + 100000000L.Div(8).Mul(x));
+            _stoCal.Add(1000, x => 100000000L.Div(4).Mul(x));
             _stoCal.Add(-1, x => new PowCalService
             {
                 Power = 2,
                 ChangeSpanBase = 5,
                 Weight = 333,
                 WeightBase = 5,
+                Decimal = 100000000L
             }.GetCost(x));
               
             _netCal = new CalCostService();
-            _netCal.Add(1000, x => x / 30);
-            _netCal.Add(1000000, x =>  x / 15);
+            _netCal.Add(1000, x =>  10000 + 100000000L.Div(30).Mul(x));
+            _netCal.Add(1000000, x =>  100000000L.Div(15).Mul(x));
             _netCal.Add(-1, x => new PowCalService
             {
                 Power = 2,
                 ChangeSpanBase = 100,
                 Weight = 333,
-                WeightBase = 500
+                WeightBase = 500,
+                Decimal = 100000000L
             }.GetCost(x));  
                    
             _txCal = new CalCostService();
-            _txCal.Add(1000, x => x * 2000000/ 15);
-            _txCal.Add(1000000, x => x * 2000000/ 15);
+            _txCal.Add(1000, x => 10000 + 100000000L.Div(50).Div(15).Mul(x));
+            _txCal.Add(1000000, x =>100000000L.Div(50).Div(15).Mul(x));
             _txCal.Add(-1, x => new PowCalService
             {
                 Power = 2,
                 ChangeSpanBase = 100,
-                Weight = 100000000,
-                WeightBase = 50
-            }.GetCost(x));  
-            
+                Weight = 1,
+                WeightBase = 1,
+                Decimal = 100000000L.Div(50)
+            }.GetCost(x));
+
         }
         public ICalCostService GetCpuCalculator => _cpuCal;
         public ICalCostService GetNetCalculator => _netCal;
@@ -177,8 +182,9 @@ namespace AElf.Kernel.SmartContract.Application
     public class LnCalService : ICalService
     {
         public int ChangeSpanBase { get; set; }
-        public int Weight { get; set;}
+        public long Weight { get; set;}
         public int WeightBase { get; set;}
+        public long Decimal { get; set; }
         public long GetCost(int cost)
         {
             int diff = cost + 1;
@@ -193,11 +199,12 @@ namespace AElf.Kernel.SmartContract.Application
     {
         public double Power { get; set; }
         public int ChangeSpanBase { get; set; }
-        public int Weight { get; set;}
+        public long Weight { get; set;}
         public int WeightBase { get; set;}
+        public long Decimal { get; set; }
         public long GetCost(int cost)
         {
-            return  (long)Math.Pow((double) cost / ChangeSpanBase, Power)* Weight/ WeightBase;
+            return  ((long)Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal).Mul(Weight).Div(WeightBase);
         }
     }
     public class BancorCalService: ICalService

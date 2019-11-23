@@ -5,7 +5,6 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -107,6 +106,13 @@ namespace AElf.Contracts.MultiToken
         public override Empty Transfer(TransferInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            if (!string.IsNullOrEmpty(input.TargetSymbol) && input.Symbol != input.TargetSymbol)
+            {
+                var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Select(m => m.Value);
+                Assert(systemContractAddresses.Contains(Context.Sender), "system contract has right to transfer between diff token");
+                Assert(!string.IsNullOrEmpty(input.TargetSymbol) & input.TargetSymbol.All(IsValidSymbolChar),
+                    "Invalid symbol.");
+            }
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
             return new Empty();
         }
@@ -257,7 +263,15 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-
+            if (!string.IsNullOrEmpty(input.TargetSymbol) && input.Symbol != input.TargetSymbol)
+            {
+                var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Select(m => m.Value);
+                Assert(systemContractAddresses.Contains(Context.Sender),
+                    "system contract has right to transfer between diff token");
+                Assert(!string.IsNullOrEmpty(input.TargetSymbol) & input.TargetSymbol.All(IsValidSymbolChar),
+                    "Invalid symbol.");
+            }
+            
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)

@@ -106,9 +106,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         protected async Task InitializeContracts()
         {
             await DeployContractsAsync();
+            await InitializeTreasuryContractAsync();
             await InitializeTokenAsync();
             await InitializeTokenConverterAsync();
-            await InitializeTreasuryContractAsync();
         }
         
         private async Task DeployContractsAsync()
@@ -202,37 +202,27 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             }
 
             {
-                foreach (var nativeToken in NativeToReourceToken)
+                foreach (var nativeDepositToken in NativeToReourceToken)
                 {
                     var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                     {
-                        Symbol = nativeToken,
+                        Symbol = nativeDepositToken,
                         Decimals = 8,
                         IsBurnable = true,
-                        TokenName = nativeToken + " elf token",
+                        TokenName = nativeDepositToken + " elf token",
                         TotalSupply = totalSupply,
                         Issuer = DefaultSender,
                         LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                     });
 
                     createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
                     {
                         var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                         {
-                            Symbol = nativeToken,
-                            Amount = issueAmount,
-                            To = DefaultSender,
-                        });
-                        issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    }
-                    {
-                        var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
-                        {
-                            Symbol = nativeToken,
+                            Symbol = nativeDepositToken,
                             Amount = issueAmountToConverter,
                             To = TokenConverterAddress,
-                            Memo = $"Set for  {nativeToken} elf token converter."
+                            Memo = $"Set for  {nativeDepositToken} elf token converter."
                         });
                         issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                     }
@@ -314,12 +304,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
+            var setResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
             {
                 CpuUnitPrice = CpuUnitPrice,
                 NetUnitPrice = NetUnitPrice,
                 StoUnitPrice = StoUnitPrice
             });
+            setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task InitializeTokenConverterAsync()
@@ -340,8 +331,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
         private async Task InitializeTreasuryContractAsync()
         {
-            await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
-            await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new Empty());
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
 // ReSharper disable InconsistentNaming
@@ -35,7 +36,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ITestDataProvider, TestDataProvider>();
             context.Services.AddSingleton<ITransactionTraceProvider, TransactionTraceProvider>();
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
-
+            context.Services.RemoveAll<IPreExecutionPlugin>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }

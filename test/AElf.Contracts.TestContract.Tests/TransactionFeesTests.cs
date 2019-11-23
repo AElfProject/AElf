@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -66,11 +67,11 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-
+            var calculator = new CalculateFeeService();
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + transactionSize * 0);
-            
-            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(transactionSize));   //according to the way to calculate
+
+           var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             
             acs8After["CPU"].ShouldBe(acs8Before["CPU"]);
@@ -117,9 +118,10 @@ namespace AElf.Contract.TestContract
                     Memo = "inline fail test"
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            
+            var txTxSize = transactionResult.Transaction.Size();
+            var calculator = new CalculateFeeService();
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(txTxSize));
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);

@@ -104,18 +104,11 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
-
-//            var symbolToAmount = new Dictionary<string, long>
-//            {
-//                {"CPU", State.CpuUnitPrice.Value.Mul(input.ReadsCount)},
-//                {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
-//                {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
-//            };
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", input.ReadsCount},
-                {"NET", input.TransactionSize},
-                {"STO", input.WritesCount}
+                {"CPU", input.CpuCost},
+                {"NET", input.NetCost},
+                {"STO", input.StoCost}
             };
             foreach (var pair in symbolToAmount)
             {

@@ -16,7 +16,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ICalculateFeeService _calService;
-        //private readonly IRecordBehavior _behavior = new RecordBehavior("./ResourceToken.txt");
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
@@ -76,25 +75,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction trace state set reads count related to CPU Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
-
-            var netCost = (int)_calService.GetNetTokenCost(transactionSize);
-            var cpuCost = (int)_calService.GetCpuTokenCost(readsCount);
-            var stoCost = (int)_calService.GetStoTokenCost(writesCount);
-//            var record = new RecordInfo{
-//                TransactionId = string.Empty,
-//                TransactionName = transactionContext.Transaction.MethodName,
-//            };               
-//            record.AddCostInfo("Net", transactionSize, netCost);
-//            record.AddCostInfo("Cpu", readsCount,cpuCost);
-//            record.AddCostInfo("Sto", writesCount, stoCost);
-//            _behavior.DealWithRecord(record);
-            
+            var netCost = _calService.GetNetTokenCost(transactionSize);
+            var cpuCost = _calService.GetCpuTokenCost(readsCount);
+            var stoCost = _calService.GetStoTokenCost(writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {
-                    TransactionSize = netCost,
-                    WritesCount = stoCost,
-                    ReadsCount = cpuCost,
+                    NetCost = netCost,
+                    StoCost = stoCost,
+                    CpuCost = cpuCost,
                     Caller = transactionContext.Transaction.From
                 })).Transaction;
 
