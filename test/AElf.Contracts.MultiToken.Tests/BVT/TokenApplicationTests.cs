@@ -44,7 +44,7 @@ namespace AElf.Contracts.MultiToken
         {
             await MultiTokenContract_Create_Test();
 
-            var result = (await TokenContractStub.Transfer.SendAsync(new TransferInput
+            var result = (await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
             {
                 Amount = AliceCoinTotalAmount + 1,
                 Memo = "transfer test",
@@ -251,7 +251,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_TransferFrom_WithErrorAccount_Test()
         {
             await MultiTokenContract_Approve_Test();
-            var wrongResult = (await TokenContractStub.TransferFrom.SendAsync(new TransferFromInput
+            var wrongResult = (await TokenContractStub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
             {
                 Amount = 1000L,
                 From = DefaultAddress,
@@ -418,7 +418,7 @@ namespace AElf.Contracts.MultiToken
             var defaultSenderStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             // Lock.
-            var lockResult = (await defaultSenderStub.Lock.SendAsync(new LockInput
+            var lockResult = (await defaultSenderStub.Lock.SendWithExceptionAsync(new LockInput
             {
                 Address = Address,
                 Amount = Amount,
@@ -454,7 +454,7 @@ namespace AElf.Contracts.MultiToken
 
             var lockId = Hash.FromString("lockId");
             // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput()
             {
                 Address = Address,
                 Symbol = SymbolForTest,
@@ -526,7 +526,7 @@ namespace AElf.Contracts.MultiToken
 
             // Cannot keep on unlocking.
             {
-                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(new UnlockTokenInput()
                 {
                     Address = Address,
                     Amount = 1,
@@ -565,7 +565,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(new UnlockTokenInput()
             {
                 Address = Address,
                 Amount = Amount + 1,
@@ -573,7 +573,6 @@ namespace AElf.Contracts.MultiToken
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
-
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
@@ -613,7 +612,7 @@ namespace AElf.Contracts.MultiToken
                 result.Balance.ShouldBe(0);
             }
 
-            var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(new UnlockTokenInput()
             {
                 Address = Address,
                 Amount = Amount,
@@ -621,7 +620,6 @@ namespace AElf.Contracts.MultiToken
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
-
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
@@ -652,7 +650,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(new UnlockTokenInput()
             {
                 Address = Address,
                 Amount = Amount,
@@ -660,7 +658,6 @@ namespace AElf.Contracts.MultiToken
                 LockId = Hash.FromString("lockId1"),
                 Usage = "Testing."
             })).TransactionResult;
-
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
@@ -690,7 +687,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(new UnlockTokenInput()
             {
                 Address = User2Address,
                 Amount = Amount,
@@ -698,7 +695,6 @@ namespace AElf.Contracts.MultiToken
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
-
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
@@ -725,7 +721,7 @@ namespace AElf.Contracts.MultiToken
         {
             await MultiTokenContract_Issue_Test();
             var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
-            var result = (await user1Stub.Burn.SendAsync(new BurnInput
+            var result = (await user1Stub.Burn.SendWithExceptionAsync(new BurnInput
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
                 Amount = 3000L
@@ -836,7 +832,7 @@ namespace AElf.Contracts.MultiToken
             //failed due to without permission
             {
                 var tokenTester = GetTester<TokenContractContainer.TokenContractStub>(TokenConverterContractAddress, User1KeyPair);
-                var transactionResult = await tokenTester.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
+                var transactionResult = await tokenTester.SetResourceTokenUnitPrice.SendWithExceptionAsync(new SetResourceTokenUnitPriceInput
                 {
                     CpuUnitPrice = 100,
                     NetUnitPrice = 100,

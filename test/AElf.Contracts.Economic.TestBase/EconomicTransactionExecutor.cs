@@ -10,6 +10,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Economic.TestBase
@@ -43,6 +44,11 @@ namespace AElf.Contracts.Economic.TestBase
             await blockAttachService.AttachBlockAsync(block);
         }
 
+        public Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<ByteString> ReadAsync(Transaction transaction)
         {
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
@@ -60,6 +66,11 @@ namespace AElf.Contracts.Economic.TestBase
                 blockTimeProvider.GetBlockTime());
 
             return transactionTrace.ReturnValue;
+        }
+
+        public Task<StringValue> ReadWithExceptionAsync(Transaction transaction)
+        {
+            throw new NotImplementedException();
         }
     }
 }

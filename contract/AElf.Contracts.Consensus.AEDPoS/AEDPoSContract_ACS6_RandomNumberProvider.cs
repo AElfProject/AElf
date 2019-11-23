@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 _currentRound = currentRound;
                 _currentHeight = currentHeight;
-                _minersCount = currentRound.RealTimeMinersInformation.Count;
+                _minersCount = currentRound.RealTimeMinersInformation.Keys.Count;
                 _minimumRequestMinersCount = _minersCount.Mul(2).Div(3).Add(1);
             }
 
@@ -122,10 +122,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var information = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
+                var requestInformation = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
 
-                State.RandomNumberInformationMap[tokenHash] = information;
+                State.RandomNumberInformationMap[tokenHash] = requestInformation;
 
                 // For clearing tokens of certain round number.
                 if (State.RandomNumberTokenMap[currentRound.RoundNumber] == null)
@@ -140,21 +140,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.Fire(new RandomNumberRequestHandled
                 {
                     Requester = Context.Sender,
-                    BlockHeight = information.ExpectedBlockHeight,
+                    BlockHeight = requestInformation.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 });
 
                 Context.LogDebug(() =>
-                    $"Handled a request of random number: {tokenHash}.current height: {Context.CurrentHeight}, target height: {information.ExpectedBlockHeight}");
+                    $"Handled a request of random number: {tokenHash}.current height: {Context.CurrentHeight}, target height: {requestInformation.ExpectedBlockHeight}");
 
                 return new RandomNumberOrder
                 {
-                    BlockHeight = information.ExpectedBlockHeight,
+                    BlockHeight = requestInformation.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 };
             }
 
-            // Not possible.
+            // Impossible.
             Assert(false, "Failed to get current round information");
 
             // Won't reach here anyway.
@@ -167,31 +167,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null)
+            if (randomNumberRequestInformation == null || 
+                randomNumberRequestInformation.TargetRoundNumber == 0 ||
+                randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight ||
+                !TryToGetRoundNumber(out var currentRoundNumber))
             {
-                Assert(false, "Random number token not found.");
-                // Won't reach here.
                 return Hash.Empty;
             }
 
-            if (randomNumberRequestInformation.TargetRoundNumber == 0)
-            {
-                Assert(false, "Random number token was cleared.");
-                // Won't reach here.
-                return Hash.Empty;
-            }
-
-            if (randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight)
-            {
-                Assert(false, "Still preparing random number.");
-            }
-
-            var roundNumber = randomNumberRequestInformation.TargetRoundNumber;
-            TryToGetRoundNumber(out var currentRoundNumber);
+            var targetRoundNumber = randomNumberRequestInformation.TargetRoundNumber;
             var provider = new RandomNumberProvider(randomNumberRequestInformation);
-            while (roundNumber <= currentRoundNumber)
+            while (targetRoundNumber <= currentRoundNumber)
             {
-                if (TryToGetRoundInformation(roundNumber, out var round))
+                if (TryToGetRoundInformation(targetRoundNumber, out var round))
                 {
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
@@ -201,17 +189,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         return finalRandomHash;
                     }
 
-                    roundNumber = roundNumber.Add(1);
-                }
-                else
-                {
-                    Assert(false, "Still preparing random number, try later.");
+                    targetRoundNumber = targetRoundNumber.Add(1);
                 }
             }
 
-            Assert(false, "Still preparing random number, try later.");
-
-            // Won't reach here.
             return Hash.Empty;
         }
 
