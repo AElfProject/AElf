@@ -388,8 +388,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var response = await PostResponseAsObjectAsync<WebAppErrorResponse>(
                 "/api/blockChain/sendTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
-            response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
-            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            response.Error.Code.ShouldBe(Error.InvalidSignature.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidSignature]);
 
             var existTransaction = await _txHub.GetQueuedTransactionAsync(transaction.GetHash());
             existTransaction.ShouldBeNull();

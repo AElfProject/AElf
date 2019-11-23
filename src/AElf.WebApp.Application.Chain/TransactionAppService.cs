@@ -68,20 +68,18 @@ namespace AElf.WebApp.Application.Chain
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
-                        Error.InvalidSignature.ToString());
+                    throw new InvalidSignatureException(string.Empty);
                 }
 
                 var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
             }
-            catch(UserFriendlyException e) when(e.Code == Error.InvalidSignature.ToString())
+            catch (InvalidSignatureException)
             {
-                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
                 {
@@ -89,6 +87,7 @@ namespace AElf.WebApp.Application.Chain
                     throw new UserFriendlyException(Error.Message[Error.InvalidParams],
                         Error.InvalidParams.ToString());
                 }
+
                 Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
@@ -104,20 +103,18 @@ namespace AElf.WebApp.Application.Chain
                 transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
-                        Error.InvalidSignature.ToString());
+                    throw new InvalidSignatureException(string.Empty);
                 }
 
                 var response = await CallReadOnlyReturnReadableValueAsync(transaction);
                 return response;
             }
-            catch (UserFriendlyException e) when (e.Code == Error.InvalidSignature.ToString())
+            catch (InvalidSignatureException)
             {
-                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
                 {
@@ -264,8 +261,8 @@ namespace AElf.WebApp.Application.Chain
 
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                        Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                        Error.InvalidSignature.ToString());
                 }
 
                 transactions.Add(transaction);
