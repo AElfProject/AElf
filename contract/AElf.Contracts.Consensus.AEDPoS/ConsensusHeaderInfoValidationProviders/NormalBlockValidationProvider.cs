@@ -38,22 +38,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                    validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedBlocks;
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext,
-            bool useCache = false)
+        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext)
         {
             round = null;
-            var rounds = validationContext.RoundsDict;
             if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-
-            if (useCache && rounds.ContainsKey(roundNumber))
-            {
-                round = rounds[roundNumber];
-            }
-            else
-            {
-                round = validationContext.Rounds[roundNumber];
-            }
-
+            round = validationContext.Rounds[roundNumber];
             return !round.IsEmpty;
         }
 

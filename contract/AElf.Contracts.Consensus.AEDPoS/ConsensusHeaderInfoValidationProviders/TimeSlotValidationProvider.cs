@@ -77,23 +77,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         private bool TryToGetPreviousRoundInformation(out Round previousRound,
-            ConsensusValidationContext validationContext, bool useCache = false)
+            ConsensusValidationContext validationContext)
         {
             previousRound = new Round();
-            var _rounds = validationContext.RoundsDict;
-
             if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
             if (roundNumber < 2) return false;
             var targetRoundNumber = roundNumber.Sub(1);
-            if (useCache && _rounds.ContainsKey(targetRoundNumber))
-            {
-                previousRound = _rounds[targetRoundNumber];
-            }
-            else
-            {
-                previousRound = validationContext.Rounds[targetRoundNumber];
-            }
-
+            previousRound = validationContext.Rounds[targetRoundNumber];
             return !previousRound.IsEmpty;
         }
     }

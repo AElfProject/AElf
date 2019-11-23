@@ -37,9 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 CurrentRoundNumber = State.CurrentRoundNumber.Value,
                 Rounds = State.Rounds,
                 LatestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value,
-                ExtraData = extraData,
-                RoundsDict = _rounds,
-                ProvidedRound = providedRound
+                ExtraData = extraData
             };
 
             /* Ask several questions: */

@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             //   Round Number
             //   In Values Should Be Null
             var extraData = validationContext.ExtraData;
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
+            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
                 currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
             {
                 return new ValidationResult {Message = "Incorrect round number for next round."};
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Is next term information correct?
             //   Term Number
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
+            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
                 currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
             {
                 return new ValidationResult {Message = "Incorrect term number for next round."};
@@ -65,22 +65,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new ValidationResult {Success = true};
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext,
-            bool useCache = false)
+        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext)
         {
             round = null;
-            var rounds = validationContext.RoundsDict;
             if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-
-            if (useCache && rounds.ContainsKey(roundNumber))
-            {
-                round = rounds[roundNumber];
-            }
-            else
-            {
-                round = validationContext.Rounds[roundNumber];
-            }
-
+            round = validationContext.Rounds[roundNumber];
             return !round.IsEmpty;
         }
 
