@@ -39,7 +39,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     }));
                     return mock.Object;
                 });
-            context.Services.AddSingleton<ICodeRemarksManager, MockCodeRemarksManager>();
+            context.Services.AddSingleton<IContractRemarksManager, MockContractRemarksManager>();
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 

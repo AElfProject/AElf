@@ -22,17 +22,18 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ICodeRemarksManager _codeRemarksManager;
+        private readonly IContractRemarksManager _contractRemarksManager;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
             new ConcurrentDictionary<Hash, TransactionResourceCache>();
 
         public ResourceExtractionService(IBlockchainService blockchainService,
-            ISmartContractExecutiveService smartContractExecutiveService, ICodeRemarksManager codeRemarksManager)
+            ISmartContractExecutiveService smartContractExecutiveService,
+            IContractRemarksManager contractRemarksManager)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _codeRemarksManager = codeRemarksManager;
+            _contractRemarksManager = contractRemarksManager;
             _blockchainService = blockchainService;
 
             Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -84,8 +85,19 @@ namespace AElf.Kernel.SmartContract.Parallel
             try
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
-                var codeRemarks = await _codeRemarksManager.GetCodeRemarksAsync(executive.ContractHash);
-                if (codeRemarks != null && codeRemarks.NonParallelizable)
+                if (!executive.IsParallelizable())
+                {
+                    return new TransactionResourceInfo
+                    {
+                        TransactionId = transaction.GetHash(),
+                        ParallelType = ParallelType.NonParallelizable,
+                        ContractHash = executive.ContractHash
+                    };
+                }
+                var contractRemarks =
+                    await _contractRemarksManager.GetContractRemarksAsync(chainContext, address,
+                        executive.ContractHash);
+                if (contractRemarks != null && contractRemarks.NonParallelizable)
                 {
                     return new TransactionResourceInfo
                     {

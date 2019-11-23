@@ -98,7 +98,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     GetPath(12345)
                 }
             });
-            MockCodeRemarksManager.NonParallelizable = true;
+            MockContractRemarksManager.NonParallelizable = true;
             var resourceInfos =
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
                 .ToList();
