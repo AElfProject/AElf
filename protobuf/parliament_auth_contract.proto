@@ -22,6 +22,9 @@ service ParliamentAuthContract {
     rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
+    rpc ValidateAddressInOrganizationWhiteList(ValidateAddressInOrganizationWhiteListInput) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateOrganizationInput {
@@ -53,6 +56,11 @@ message InitializeInput{
     int32 genesis_owner_releaseThreshold = 1;
     aelf.Address privileged_proposer = 2;
     bool proposer_authority_required = 3;
+}
+
+message ValidateAddressInOrganizationWhiteListInput{
+    aelf.Address organization_address = 1;
+    aelf.Address address_to_be_validated = 2;
 }
 
 message ProposalCreated{
