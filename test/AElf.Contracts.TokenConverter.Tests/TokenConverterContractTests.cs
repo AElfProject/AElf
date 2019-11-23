@@ -90,7 +90,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 input.FeeReceiverAddress = FeeReceiverAddress;
                 input.BaseTokenSymbol = "elf1";
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
             }
@@ -99,7 +99,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 input.BaseTokenSymbol = "ELF";
                 RamConnector.Symbol = "ram";
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Invalid symbol.").ShouldBeTrue();
             }
@@ -108,7 +108,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 RamConnector.Symbol = "RAM";
                 await InitializeTokenConverterContract();
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Already initialized.").ShouldBeTrue();
             }
@@ -122,7 +122,7 @@ namespace AElf.Contracts.TokenConverter
             
             //not authority user
             {
-                var connectorResult = (await DefaultStub.SetConnector.SendAsync(
+                var connectorResult = (await DefaultStub.SetConnector.SendWithExceptionAsync(
                     new Connector
                     {
                         Symbol = "RAM",
@@ -224,7 +224,7 @@ namespace AElf.Contracts.TokenConverter
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
 
-            var buyResultInvalidSymbol = (await DefaultStub.Buy.SendAsync(
+            var buyResultInvalidSymbol = (await DefaultStub.Buy.SendWithExceptionAsync(
                 new BuyInput
                 {
                     Symbol = "ram",
@@ -234,7 +234,7 @@ namespace AElf.Contracts.TokenConverter
             buyResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
             buyResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
 
-            var buyResultNotExistConnector = (await DefaultStub.Buy.SendAsync(
+            var buyResultNotExistConnector = (await DefaultStub.Buy.SendWithExceptionAsync(
                 new BuyInput
                 {
                     Symbol = "CPU",
@@ -244,7 +244,7 @@ namespace AElf.Contracts.TokenConverter
             buyResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Failed);
             buyResultNotExistConnector.Error.Contains("Can't find connector.").ShouldBeTrue();
 
-            var buyResultPriceNotGood = (await DefaultStub.Buy.SendAsync(
+            var buyResultPriceNotGood = (await DefaultStub.Buy.SendWithExceptionAsync(
                 new BuyInput
                 {
                     Symbol = RamConnector.Symbol,
@@ -328,7 +328,7 @@ namespace AElf.Contracts.TokenConverter
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var sellResultInvalidSymbol = (await DefaultStub.Sell.SendAsync(
+            var sellResultInvalidSymbol = (await DefaultStub.Sell.SendWithExceptionAsync(
                 new SellInput
                 {
                     Symbol = "ram",
@@ -338,7 +338,7 @@ namespace AElf.Contracts.TokenConverter
             sellResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
             sellResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
 
-            var sellResultNotExistConnector = (await DefaultStub.Sell.SendAsync(
+            var sellResultNotExistConnector = (await DefaultStub.Sell.SendWithExceptionAsync(
                 new SellInput()
                 {
                     Symbol = "CPU",
@@ -348,7 +348,7 @@ namespace AElf.Contracts.TokenConverter
             sellResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Failed);
             sellResultNotExistConnector.Error.Contains("Can't find connector.").ShouldBeTrue();
 
-            var sellResultPriceNotGood = (await DefaultStub.Sell.SendAsync(
+            var sellResultPriceNotGood = (await DefaultStub.Sell.SendWithExceptionAsync(
                 new SellInput
                 {
                     Symbol = RamConnector.Symbol,
@@ -368,7 +368,7 @@ namespace AElf.Contracts.TokenConverter
 
             //perform by non manager
             {
-                var transactionResult = (await DefaultStub.SetFeeRate.SendAsync(
+                var transactionResult = (await DefaultStub.SetFeeRate.SendWithExceptionAsync(
                     new StringValue
                     {
                         Value = "test value"
@@ -382,7 +382,7 @@ namespace AElf.Contracts.TokenConverter
             
             //invalid feeRate
             {
-                var transactionResult = (await testManager.SetFeeRate.SendAsync(
+                var transactionResult = (await testManager.SetFeeRate.SendWithExceptionAsync(
                     new StringValue
                     {
                         Value = "test value"
@@ -393,7 +393,7 @@ namespace AElf.Contracts.TokenConverter
             
             //feeRate not correct
             {
-                var transactionResult = (await testManager.SetFeeRate.SendAsync(
+                var transactionResult = (await testManager.SetFeeRate.SendWithExceptionAsync(
                     new StringValue
                     {
                         Value = "1.05"
@@ -427,7 +427,7 @@ namespace AElf.Contracts.TokenConverter
 
             //perform by non manager
             {
-                var transactionResult = (await DefaultStub.SetManagerAddress.SendAsync(
+                var transactionResult = (await DefaultStub.SetManagerAddress.SendWithExceptionAsync(
                     new Address()
                     )).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -440,7 +440,7 @@ namespace AElf.Contracts.TokenConverter
             
             //invalid address
             {
-                var transactionResult = (await testManager.SetManagerAddress.SendAsync(
+                var transactionResult = (await testManager.SetManagerAddress.SendWithExceptionAsync(
                     new Address()
                 )).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

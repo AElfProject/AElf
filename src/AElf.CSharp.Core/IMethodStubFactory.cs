@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CSharp.Core
 {
@@ -31,7 +32,9 @@ namespace AElf.CSharp.Core
     {
         Method<TInput, TOutput> Method { get; }
         Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
+        Func<TInput, Task<IExecutionResult<TOutput>>> SendWithExceptionAsync { get; }
         Func<TInput, Task<TOutput>> CallAsync { get; }
+        Func<TInput, Task<StringValue>> CallWithExceptionAsync { get; }
         Func<TInput, Transaction> GetTransaction { get; }
     }
 
@@ -40,16 +43,22 @@ namespace AElf.CSharp.Core
     {
         public Method<TInput, TOutput> Method { get; }
         public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
+        public Func<TInput, Task<IExecutionResult<TOutput>>> SendWithExceptionAsync { get; }
         public Func<TInput, Task<TOutput>> CallAsync { get; }
+        public Func<TInput, Task<StringValue>> CallWithExceptionAsync { get; }
         public Func<TInput, Transaction> GetTransaction { get; }
 
         public MethodStub(Method<TInput, TOutput> method, Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync,
-            Func<TInput, Task<TOutput>> callAsync, Func<TInput, Transaction> getTransaction = null)
+            Func<TInput, Task<TOutput>> callAsync, Func<TInput, Transaction> getTransaction = null,
+            Func<TInput, Task<IExecutionResult<TOutput>>> sendWithExceptionAsync = null,
+            Func<TInput, Task<StringValue>> callWithExceptionAsync = null)
         {
             Method = method;
             SendAsync = sendAsync;
             CallAsync = callAsync;
             GetTransaction = getTransaction;
+            SendWithExceptionAsync = sendWithExceptionAsync;
+            CallWithExceptionAsync = callWithExceptionAsync;
         }
     }
 

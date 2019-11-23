@@ -26,7 +26,7 @@ namespace AElf.Contract.TestContract
                     Int64Value = 100
                 })).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //call method
             var winData = (await TestBasicFunctionContractStub.QueryUserWinMoney.CallAsync(
                 DefaultSender)).Int64Value;
@@ -34,7 +34,7 @@ namespace AElf.Contract.TestContract
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBeGreaterThanOrEqualTo(100);
         }
-        
+
         [Fact]
         public async Task External_Execute_And_Call_Test()
         {
@@ -42,10 +42,10 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendAsync(
                 new Int64Input
                 {
-                  Int64Value  = 100
+                    Int64Value = 100
                 })).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //call method
             var winData = (await TestBasicFunctionContractStub.QueryUserWinMoney.CallAsync(
                 DefaultSender)).Int64Value;
@@ -54,20 +54,22 @@ namespace AElf.Contract.TestContract
                 winData.ShouldBeGreaterThanOrEqualTo(100);
                 return;
             }
+
             var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBeLessThan(100);
-            
+
         }
 
         [Fact]
         public async Task Internal_ExecuteFailed_Test()
         {
-            var transactionResult = (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendAsync(
-                new Int64Input
-                {
-                    Int64Value  = 5
-                })).TransactionResult;
+            var transactionResult =
+                (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendWithExceptionAsync(
+                    new Int64Input
+                    {
+                        Int64Value = 5
+                    })).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 
             var result = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(
@@ -83,19 +85,20 @@ namespace AElf.Contract.TestContract
                 {
                     Int64Value = Int64.MaxValue
                 });
-            
-            var transactionResult = (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendAsync(
-                new Int64Input
-                {
-                    Int64Value  = 500
-                })).TransactionResult;
-            
+
+            var transactionResult =
+                (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendWithExceptionAsync(
+                    new Int64Input
+                    {
+                        Int64Value = 500
+                    })).TransactionResult;
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            
+
             var winData = (await TestBasicFunctionContractStub.QueryUserWinMoney.CallAsync(
                 DefaultSender)).Int64Value;
             winData.ShouldBe(0);
-            
+
             var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             loseData.ShouldBe(0);

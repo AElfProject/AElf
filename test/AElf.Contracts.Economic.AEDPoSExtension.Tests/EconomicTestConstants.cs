@@ -9,5 +9,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         public const long MaximumLockTime = 1080;
 
         public const long TransactionFeeOfClaimProfit = 1_00000000;
+
+        public const int SupposedMinersCount = 17;
     }
 }

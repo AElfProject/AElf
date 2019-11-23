@@ -23,7 +23,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_WithoutPermission_Test()
         {
-            var transactionResult = (await TestBasicFunctionContractStub.UpdateBetLimit.SendAsync(
+            var transactionResult = (await TestBasicFunctionContractStub.UpdateBetLimit.SendWithExceptionAsync(
                 new BetLimitInput
                 {
                     MinValue = 50,
@@ -33,22 +33,22 @@ namespace AElf.Contract.TestContract
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_WithException_Test()
         {
             var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
-            var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
+            var transactionResult = (await managerStub.UpdateBetLimit.SendWithExceptionAsync(
                 new BetLimitInput
                 {
                     MinValue = 100,
                     MaxValue = 50
                 })).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Invalid min/max value input setting").ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_Success_Test()
         {
