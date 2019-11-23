@@ -168,14 +168,20 @@ namespace AElf.OS.Network.Grpc
         {
             var certificate = RetrieveServerCertificate(endpoint);
 
-            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
-                new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
-            var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            ChannelCredentials credentials = ChannelCredentials.Insecure;
 
-            var channelCredentials = new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+            if (certificate != null)
+            {
+                Logger.LogDebug("Upgrading connection to TLS.");
 
-            var channel = new Channel(endpoint.ToString(), channelCredentials, new List<ChannelOption>
+                var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+                var clientCertificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
+                    new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+                var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+                credentials = new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+            }
+
+            var channel = new Channel(endpoint.ToString(), credentials, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength),
@@ -213,8 +219,12 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                throw new PeerDialException($"Could not retrieve certificate from {endpoint}", ex);
+                // swallow exception because it's currently not a hard requirement to 
+                // upgrade the connection.
+                Logger.LogError(ex, $"Could not retrieve certificate from {endpoint}.");
             }
+            
+            return null;
         }
         
         public static X509Certificate FromX509Certificate(
