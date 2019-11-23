@@ -63,6 +63,7 @@ namespace AElf.OS.Network
                 cache.TryAdd(Hash.FromString($"hello_world_{i}")).ShouldBeTrue();
 
             cache.TryAdd(Hash.FromString($"hello_world_{cacheCapacity}")).ShouldBeFalse();
+            await Task.CompletedTask;
         }
     }
 }
