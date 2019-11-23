@@ -7,6 +7,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -40,7 +41,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
-            OptionalLogEventListeningService.Enabled = true;
+            OptionalLogEventListeningService<IBestChainFoundLogEventHandler>.Enabled = true;
             {
                 var limit = await ConfigurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(0, limit.Value);

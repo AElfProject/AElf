@@ -4,18 +4,8 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public interface ILogEventListeningService
+    public interface ILogEventListeningService<T> where T : ILogEventHandler
     {
         Task ApplyAsync(IEnumerable<Block> blocks);
-    }
-    
-    public interface IBlockAcceptedLogEventListeningService : ILogEventListeningService
-    {
-
-    }
-
-    public interface IBestChainFoundLogEventListeningService : ILogEventListeningService
-    {
-        
     }
 }
