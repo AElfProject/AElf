@@ -54,7 +54,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task Test_Max_Capacity()
+        public void Test_Max_Capacity()
         {
             int cacheCapacity = 2;
             BoundedExpirationCache cache = new BoundedExpirationCache(cacheCapacity, 10_000);

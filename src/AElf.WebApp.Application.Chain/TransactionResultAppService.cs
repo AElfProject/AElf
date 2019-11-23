@@ -92,8 +92,13 @@ namespace AElf.WebApp.Application.Chain
 
             if (methodDescriptor != null)
             {
-                output.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                    methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+                var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+                if (!IsValidMessage(parameters))
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                }
+
+                output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
             }
 
             output.TransactionFee = transactionResult.TransactionFee == null
@@ -259,9 +264,16 @@ namespace AElf.WebApp.Application.Chain
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
                     _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
-            if(methodDescriptor != null)
-                transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                    methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            if (methodDescriptor != null)
+            {
+                var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+                if (!IsValidMessage(parameters))
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                }
+
+                transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
+            }
 
             transactionResultDto.Status = transactionResult.Status.ToString();
 
@@ -318,6 +330,20 @@ namespace AElf.WebApp.Application.Chain
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
+        }
+        
+        private bool IsValidMessage(IMessage message)
+        {
+            try
+            {
+                JsonFormatter.ToDiagnosticString(message);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
