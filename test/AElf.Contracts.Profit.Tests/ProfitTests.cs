@@ -414,7 +414,7 @@ namespace AElf.Contracts.Profit
 
             // Current period: 2
             {
-                var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+                var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
                 {
                     SchemeId = schemeId,
                     BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
@@ -431,7 +431,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
 
-            var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
@@ -624,7 +624,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
 
-            var executionResult = await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
+            var executionResult = await creator.RemoveBeneficiary.SendWithExceptionAsync(new RemoveBeneficiaryInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
                 Beneficiary = SampleAddress.AddressList[0]
@@ -649,7 +649,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
             });
 
-            var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+            var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
                 Amount = amount,
@@ -678,7 +678,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
             });
 
-            var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+            var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
                 Amount = amount,
@@ -702,7 +702,7 @@ namespace AElf.Contracts.Profit
             // The actual creator is Creators[0]
             var anotherGuy = Creators[1];
 
-            var executionResult = await anotherGuy.DistributeProfits.SendAsync(new DistributeProfitsInput
+            var executionResult = await anotherGuy.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
                 Amount = amount,
@@ -721,7 +721,7 @@ namespace AElf.Contracts.Profit
 
             var user = Creators[0];
 
-            var executionResult = await user.DistributeProfits.SendAsync(new DistributeProfitsInput
+            var executionResult = await user.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
                 Amount = amount,
@@ -1075,7 +1075,7 @@ namespace AElf.Contracts.Profit
         {
             var beneficiary = Normal[0];
 
-            var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
@@ -1105,7 +1105,7 @@ namespace AElf.Contracts.Profit
                 Period = 1
             });
 
-            var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
@@ -1253,7 +1253,7 @@ namespace AElf.Contracts.Profit
 
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
-                var transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                var transactionResult = await ProfitContractStub.ContributeProfits.SendWithExceptionAsync(new ContributeProfitsInput
                 {
                     SchemeId = schemeId,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol,

@@ -22,13 +22,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             /// <summary>
-            /// In the first round, the blockchain start timestamp is incorrect,
-            /// thus we can return NextRound directly.
+            /// The blockchain start timestamp is incorrect during the first round,
+            /// don't worry, we can return NextRound without hesitation.
+            /// Besides, return only NextRound for single node running.
             /// </summary>
             /// <returns></returns>
             protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>
                 CurrentRound.RoundNumber == 1 || !CurrentRound.NeedToChangeTerm(_blockchainStartTimestamp,
-                    CurrentRound.TermNumber, _timeEachTerm)
+                    CurrentRound.TermNumber, _timeEachTerm) || CurrentRound.RealTimeMinersInformation.Keys.Count == 1
                     ? AElfConsensusBehaviour.NextRound
                     : AElfConsensusBehaviour.NextTerm;
         }
