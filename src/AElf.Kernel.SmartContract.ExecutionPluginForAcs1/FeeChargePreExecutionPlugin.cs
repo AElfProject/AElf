@@ -8,7 +8,6 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -116,6 +115,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 {
                     return new List<Transaction>();
                 }
+
                 var txSize = transactionContext.Transaction.Size();
                 var txCost = _calService.GetTransactionFee(txSize);
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
