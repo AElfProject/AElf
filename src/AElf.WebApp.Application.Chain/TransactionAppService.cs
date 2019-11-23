@@ -81,20 +81,14 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
-            catch(ArgumentOutOfRangeException e)
-            {
-                Logger.LogError(e, e.Message); //for debug
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                    Error.InvalidParams.ToString());
-            }
-            catch (FormatException e)
-            {
-                Logger.LogError(e, e.Message);
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                    Error.InvalidParams.ToString());
-            }
             catch(Exception e)
             {
+                if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
+                {
+                    Logger.LogError(e, e.Message); //for debug
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                        Error.InvalidParams.ToString());
+                }
                 Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
@@ -123,21 +117,16 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
-            catch (ArgumentOutOfRangeException e)
-            {
-                Logger.LogError(e, e.Message); //for debug
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                    Error.InvalidParams.ToString());
-            }
-            catch (FormatException e)
-            {
-                Logger.LogError(e, e.Message);
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                    Error.InvalidParams.ToString());
-            }
             catch(Exception e)
             {
-                Logger.LogError(e, e.Message); //for debug
+                if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
+                {
+                    Logger.LogError(e, e.Message); //for debug
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                        Error.InvalidParams.ToString());
+                }
+
+                Logger.LogError(e, e.Message);
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
             }

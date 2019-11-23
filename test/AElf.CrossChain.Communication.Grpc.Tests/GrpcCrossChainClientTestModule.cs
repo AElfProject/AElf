@@ -75,11 +75,11 @@ namespace AElf.CrossChain.Communication.Grpc
                 int i = 0;
                 mockCrossChainResponseService.Setup(b => b.ResponseSideChainBlockDataAsync(It.IsAny<long>()))
                     .Returns(
-                        () =>
+                        async () =>
                         {
                             if (i >= GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache.Count)
                                 return null;
-                            return Task.FromResult(GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache[i++]);
+                            return GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache[i++];
                         });
 
                 mockCrossChainResponseService
