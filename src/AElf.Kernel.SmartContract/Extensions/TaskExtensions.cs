@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AElf
+namespace AElf.Kernel.SmartContract
 {
     public static class TaskExtensions
     {
