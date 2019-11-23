@@ -37,7 +37,7 @@ namespace AElf.Benchmark
         }
 
         [IterationSetup]
-        public async Task IterationSetup()
+        public void IterationSetup()
         {
             _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.LoopDivAdd), new DivAddTestInput()
@@ -47,8 +47,6 @@ namespace AElf.Benchmark
                     K = 500,
                     N = 10000000
                 });
-
-            await Task.CompletedTask;
         }
 
         [Benchmark]
@@ -64,12 +62,12 @@ namespace AElf.Benchmark
         }
 
         [IterationCleanup]
-        public async Task IterationCleanup()
+        public void IterationCleanup()
         {
             var calResult = DoubleValue.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
             if (calResult != executeResult)
             {
-                await Task.FromException(new Exception("execute fail"));
+                throw new Exception("execute fail");
             }
         }
     }

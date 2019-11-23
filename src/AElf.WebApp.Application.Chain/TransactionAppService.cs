@@ -62,70 +62,70 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
         {
+            Transaction transaction;
+
             try
             {
                 var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(byteArray);
-                if (!transaction.VerifySignature())
-                {
-                    throw new InvalidSignatureException(string.Empty);
-                }
-
-                var response = await CallReadOnlyAsync(transaction);
-                return response?.ToHex();
+                transaction = Transaction.Parser.ParseFrom(byteArray);
             }
-            catch (InvalidSignatureException)
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
+
+            if (!transaction.VerifySignature())
             {
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
+
+            try
+            {
+                var response = await CallReadOnlyAsync(transaction);
+                return response?.ToHex();
+            }
             catch (Exception e)
             {
-                if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
-                {
-                    Logger.LogError(e, e.Message); //for debug
-                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                        Error.InvalidParams.ToString());
-                }
-
-                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString());
+                    Error.InvalidTransaction.ToString(), e.Message);
             }
         }
 
         public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
         {
+            Transaction transaction;
+
             try
             {
                 var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(byteArray);
+                transaction = Transaction.Parser.ParseFrom(byteArray);
                 transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
-                if (!transaction.VerifySignature())
-                {
-                    throw new InvalidSignatureException(string.Empty);
-                }
-
-                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
-                return response;
             }
-            catch (InvalidSignatureException)
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
+
+            if (!transaction.VerifySignature())
             {
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
             }
+
+            try
+            {
+                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
+                return response;
+            }
             catch (Exception e)
             {
-                if (e is ArgumentOutOfRangeException || e is FormatException || e is OverflowException)
-                {
-                    Logger.LogError(e, e.Message); //for debug
-                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                        Error.InvalidParams.ToString());
-                }
-
-                Logger.LogError(e, e.Message);
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString());
+                    Error.InvalidTransaction.ToString(), e.Message);
             }
         }
 

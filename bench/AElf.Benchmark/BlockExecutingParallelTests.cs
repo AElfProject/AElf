@@ -35,7 +35,7 @@ namespace AElf.Benchmark
         public int TransactionCount;
 
         [GlobalSetup]
-        public async Task GlobalSetup()
+        public void GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
@@ -48,8 +48,6 @@ namespace AElf.Benchmark
             _systemTransactions = new List<Transaction>();
             _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
-
-            await Task.CompletedTask;
         }
 
         [IterationSetup]
