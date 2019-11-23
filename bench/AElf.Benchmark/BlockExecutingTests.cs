@@ -30,7 +30,7 @@ namespace AElf.Benchmark
         public int TransactionCount;
 
         [GlobalSetup]
-        public async Task GlobalSetup()
+        public void GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();

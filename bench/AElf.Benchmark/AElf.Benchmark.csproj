@@ -4,6 +4,7 @@
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <NoWarn>0436</NoWarn>
+        <OutputType>Exe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>

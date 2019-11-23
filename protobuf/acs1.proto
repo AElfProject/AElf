@@ -35,6 +35,6 @@ message MethodFeeSet {
     option (aelf.is_event) = true;
     string method = 1;
     string symbol = 2;
-    sint64 oldFee = 3;
-    sint64 newFee = 4;
+    sint64 old_fee = 3;
+    sint64 new_fee = 4;
 }
