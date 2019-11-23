@@ -8,7 +8,9 @@ namespace AElf.OS.Network.Grpc
     public static class ClientInterceptorContextExtensions
     {
         /// <summary>
-        /// Returns the header with the given key. If the key is not found or there's no headers, returns null.
+        /// Returns the header with the given key. If the key is not found or there's no headers, returns null. If the
+        /// header is found and the <see cref="clearHeader"/> parameter is true, the parameter will be removed from the
+        /// headers.
         /// </summary>
         public static string GetHeaderStringValue<TRequest, TResponse>(
             this ClientInterceptorContext<TRequest, TResponse> context, string key, bool clearHeader = false) 
