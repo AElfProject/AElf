@@ -8,9 +8,14 @@ import "google/protobuf/empty.proto";
 option (aelf.identity) = "acs6";
 
 service RandomNumberProviderContract {
+
+    // Action
     rpc RequestRandomNumber (google.protobuf.Empty) returns (RandomNumberOrder) {
     }
+
+    // View
     rpc GetRandomNumber (aelf.Hash) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
     }
 }
 

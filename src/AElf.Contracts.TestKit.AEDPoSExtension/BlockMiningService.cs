@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +38,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             new List<AEDPoSContractImplContainer.AEDPoSContractImplStub>();
 
         private bool _isSystemContractsDeployed;
-        
+
         private bool _isSkipped;
 
         public BlockMiningService(IServiceProvider serviceProvider)
@@ -95,6 +96,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 {
                     //throw new Exception($"Failed to deploy contract {name}");
                 }
+
                 map.Add(name, address);
                 if (name == ConsensusSmartContractAddressNameProvider.Name)
                 {
@@ -161,7 +163,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 .ToTimestamp());
         }
 
-        public async Task MineBlockAsync(List<Transaction> transactions = null)
+        public async Task MineBlockAsync(List<Transaction> transactions = null, bool withException = false)
         {
             if (!_isSystemContractsDeployed)
             {
@@ -185,8 +187,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 }
             }
 
-            var (contractStub, pubkey) =
-                GetProperContractStub(currentBlockTime);
+            var maximumBlocksCount = (await _contractStubs.First().GetMaximumBlocksCount.CallAsync(new Empty())).Value;
+            var (contractStub, pubkey) = GetProperContractStub(currentBlockTime, maximumBlocksCount);
             currentBlockTime = _testDataProvider.GetBlockTime();
 
             {
@@ -212,8 +214,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Value = triggerInformation.ToByteString()
             });
+            var consensusHeaderInformation = new AElfConsensusHeaderInformation();
+            consensusHeaderInformation.MergeFrom(consensusExtraData.Value);
+            Debug.WriteLine($"Current header information: {consensusHeaderInformation}");
+
             // Validate consensus extra data.
-            if (consensusExtraData != null)
             {
                 var validationResult =
                     await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
@@ -224,16 +229,19 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             }
 
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
-                {Value = triggerInformation.ToByteString()});
-            await MineAsync(contractStub, consensusTransaction.Transactions.First());
+            {
+                Value = triggerInformation.ToByteString()
+            });
+            await MineAsync(contractStub, consensusTransaction.Transactions.First(), withException);
             _currentRound = await _contractStubs.First().GetCurrentRoundInformation.CallAsync(new Empty());
+            Debug.WriteLine($"Update current round information.{_currentRound}");
             if (!_isSkipped)
             {
                 if (_currentRound.RealTimeMinersInformation.Any(i => i.Value.MissedTimeSlots != 0))
                 {
                     var previousRound = await _contractStubs.First().GetPreviousRoundInformation.CallAsync(new Empty());
-                    //throw new BlockMiningException(
-                        //$"Someone missed time slot.\n{_currentRound}\n{previousRound}\nCurrent block time: {currentBlockTime}");
+                    throw new BlockMiningException(
+                        $"Someone missed time slot.\n{_currentRound}\n{previousRound}\nCurrent block time: {currentBlockTime}");
                 }
             }
 
@@ -268,6 +276,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 return;
             }
+
             var currentHeight = startHeight;
             while (currentHeight <= targetHeight)
             {
@@ -288,28 +297,62 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         }
 
         private async Task MineAsync(AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub,
-            Transaction transaction)
+            Transaction transaction, bool withException = false)
         {
             switch (transaction.MethodName)
             {
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateTinyBlockInformation):
-                    await contractStub.UpdateTinyBlockInformation.SendAsync(
-                        TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                    if (withException)
+                    {
+                        await contractStub.UpdateTinyBlockInformation.SendWithExceptionAsync(
+                            TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                    }
+                    else
+                    {
+                        await contractStub.UpdateTinyBlockInformation.SendAsync(
+                            TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                    }
+
                     break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateValue):
-                    await contractStub.UpdateValue.SendAsync(UpdateValueInput.Parser.ParseFrom(transaction.Params));
+                    if (withException)
+                    {
+                        await contractStub.UpdateValue.SendWithExceptionAsync(
+                            UpdateValueInput.Parser.ParseFrom(transaction.Params));
+                    }
+                    else
+                    {
+                        await contractStub.UpdateValue.SendAsync(UpdateValueInput.Parser.ParseFrom(transaction.Params));
+                    }
+
                     break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextRound):
-                    await contractStub.NextRound.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    if (withException)
+                    {
+                        await contractStub.NextRound.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    }
+                    else
+                    {
+                        await contractStub.NextRound.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    }
+
                     break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextTerm):
-                    await contractStub.NextTerm.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    if (withException)
+                    {
+                        await contractStub.NextTerm.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    }
+                    else
+                    {
+                        await contractStub.NextTerm.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    }
+
                     break;
             }
         }
 
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) GetProperContractStub(
-            Timestamp currentBlockTime)
+            Timestamp currentBlockTime, int maximumBlocksCount)
         {
             try
             {
@@ -320,19 +363,34 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
                 var roundStartTime = _currentRound.RealTimeMinersInformation.Single(i => i.Value.Order == 1).Value
                     .ExpectedMiningTime;
-                if (_currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
-                    currentBlockTime < roundStartTime)
+
+                var roundEndTime = _currentRound.RealTimeMinersInformation
+                    .Single(i => i.Value.Order == _currentRound.RealTimeMinersInformation.Count).Value
+                    .ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval);
+                if (currentBlockTime > roundEndTime)
                 {
-                    return ProperContractStub(_currentRound.RealTimeMinersInformation.Values.Single(i =>
-                        i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound));
+                    throw new BlockMiningException("Failed to find proper contract stub.");
+                }
+
+                var ebp = _currentRound.RealTimeMinersInformation.Values.FirstOrDefault(i =>
+                    i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound);
+                if (ebp != null && _currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
+                    currentBlockTime < roundStartTime && ebp.ActualMiningTimes.Count + 1 <= maximumBlocksCount)
+                {
+                    Debug.WriteLine("Tiny block before new round.");
+                    return ProperContractStub(ebp);
                 }
 
                 foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
                     .ToList())
                 {
                     if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <
-                        minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval))
+                        minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval) &&
+                        (minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount ||
+                         minerInRound.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound &&
+                         minerInRound.ActualMiningTimes.Count + 2 <= maximumBlocksCount * 2))
                     {
+                        Debug.WriteLine("Normal block or tiny block.");
                         return ProperContractStub(minerInRound);
                     }
 
@@ -340,6 +398,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     if (minerInRound.IsExtraBlockProducer &&
                         _currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == minersCount)
                     {
+                        Debug.WriteLine("End of current round.");
                         return ProperContractStub(minerInRound);
                     }
                 }
@@ -349,17 +408,19 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 throw new BlockMiningException("Failed to find proper contract stub.", e);
             }
 
-            //throw new BlockMiningException($"Proper contract stub not found.\n{_currentRound}\n{currentBlockTime}");
-
             _testDataProvider.SetBlockTime(AEDPoSExtensionConstants.ActualMiningInterval);
-            return GetProperContractStub(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval));
+            Debug.WriteLine("Move forward time.");
+            return GetProperContractStub(
+                currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval), maximumBlocksCount);
         }
 
-        private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) ProperContractStub(MinerInRound minerInRound)
+        private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) ProperContractStub(
+            MinerInRound minerInRound)
         {
             var pubkey = ByteArrayHelper.HexStringToByteArray(minerInRound.Pubkey);
             var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
             _testDataProvider.SetKeyPair(keyPair);
+            Debug.WriteLine($"Chosen miner: {keyPair.PublicKey.ToHex()}");
             return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
         }

@@ -74,12 +74,36 @@ namespace AElf.Contracts.Vote
             var withdrawResult = (await voterStub.Withdraw.SendAsync(input)).TransactionResult;
 
             return withdrawResult;
+        }
+        
+        private async Task<TransactionResult> WithdrawWithException(ECKeyPair owner, Hash voteId)
+        {
+            var voterStub = GetVoteContractTester(owner);
+            var input = new WithdrawInput
+            {
+                VoteId = voteId
+            };
+
+            var withdrawResult = (await voterStub.Withdraw.SendWithExceptionAsync(input)).TransactionResult;
+
+            return withdrawResult;
         } 
         
         private async Task<TransactionResult> Vote(ECKeyPair voterKeyPair, Hash votingItemId, string option,
             long amount)
         {
             return (await GetVoteContractTester(voterKeyPair).Vote.SendAsync(new VoteInput
+            {
+                VotingItemId = votingItemId,
+                Option = option,
+                Amount = amount
+            })).TransactionResult;
+        }
+        
+        private async Task<TransactionResult> VoteWithException(ECKeyPair voterKeyPair, Hash votingItemId, string option,
+            long amount)
+        {
+            return (await GetVoteContractTester(voterKeyPair).Vote.SendWithExceptionAsync(new VoteInput
             {
                 VotingItemId = votingItemId,
                 Option = option,

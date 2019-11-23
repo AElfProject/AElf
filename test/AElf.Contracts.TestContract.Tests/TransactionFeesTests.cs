@@ -109,7 +109,7 @@ namespace AElf.Contract.TestContract
             var beforeBalance = await GetBalance(DefaultSender);
             var feesBefore = await GetContractResourceBalance(TransactionFeesContractAddress);
 
-            var transactionResult = await TransactionFeesContractStub.FailInlineTransfer.SendAsync(
+            var transactionResult = await TransactionFeesContractStub.FailInlineTransfer.SendWithExceptionAsync(
                 new Contracts.TestContract.TransactionFees.TransferInput
                 {
                     To = OtherTester,
