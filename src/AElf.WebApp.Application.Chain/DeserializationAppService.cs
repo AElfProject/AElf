@@ -31,7 +31,7 @@ namespace AElf.WebApp.Application.Chain
                         Order = i.Value.Order,
                         OutValue = i.Value.OutValue?.ToHex(),
                         ProducedBlocks = i.Value.ProducedBlocks,
-                        ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
+                        ProducedTinyBlocks = i.Value.ActualMiningTimes?.Count ?? 0,
                         ImpliedIrreversibleBlockHeight = i.Value.ImpliedIrreversibleBlockHeight
                     }),
                 ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,

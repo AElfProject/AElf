@@ -43,9 +43,9 @@ message TransactionResult {
     int32 index = 8;
     Hash state_hash = 9;
     // Merkle proof path for this transaction
-    string Error = 10;
-    string ReadableReturnValue = 11;
-    TransactionFee TransactionFee = 12;
+    string error = 10;
+    string readable_return_value = 11;
+    TransactionFee transaction_fee = 12;
 }
 
 message TransactionFee {
@@ -95,12 +95,12 @@ message SInt64Value
 }
 
 message MerklePath {
-    repeated MerklePathNode merklePathNodes = 1;
+    repeated MerklePathNode merkle_path_nodes = 1;
 }
 
 message MerklePathNode{
     Hash hash = 1;
-    bool isLeftChildNode = 2;
+    bool is_left_child_node = 2;
 }
 
 message BinaryMerkleTree {

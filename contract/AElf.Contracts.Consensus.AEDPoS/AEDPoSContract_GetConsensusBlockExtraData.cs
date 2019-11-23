@@ -105,7 +105,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 outValue, signature);
 
             Context.LogDebug(
-                () => $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
+                () =>
+                    $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
 
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
@@ -199,14 +200,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
         }
 
-        private AElfConsensusHeaderInformation GetConsensusExtraDataForNextTerm(string publicKey,
+        private AElfConsensusHeaderInformation GetConsensusExtraDataForNextTerm(string pubkey,
             AElfConsensusTriggerInformation triggerInformation)
         {
-            var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey, State.MiningInterval.Value);
+            var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(pubkey, State.MiningInterval.Value);
             Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
+            if (firstRoundOfNextTerm.RealTimeMinersInformation.ContainsKey(pubkey))
+            {
+                firstRoundOfNextTerm.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = 1;
+            }
+
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = publicKey.ToByteString(),
+                SenderPubkey = pubkey.ToByteString(),
                 Round = firstRoundOfNextTerm,
                 Behaviour = triggerInformation.Behaviour
             };

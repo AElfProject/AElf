@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -72,6 +73,24 @@ namespace AElf.Contracts.TestKit
                 };
             }
 
+            async Task<IExecutionResult<TOutput>> SendWithExceptionAsync(TInput input)
+            {
+                var transaction = GetTransaction(input);
+                await _transactionExecutor.ExecuteWithExceptionAsync(transaction);
+                var transactionResult =
+                    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                if (transactionResult == null)
+                {
+                    return new ExecutionResult<TOutput> {Transaction = transaction};
+                }
+
+                return new ExecutionResult<TOutput>
+                {
+                    Transaction = transaction, TransactionResult = transactionResult,
+                    Output = method.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
+                };
+            }
+
             async Task<TOutput> CallAsync(TInput input)
             {
                 var transaction = new Transaction
@@ -85,7 +104,21 @@ namespace AElf.Contracts.TestKit
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
-            return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction);
+            async Task<StringValue> CallWithExceptionAsync(TInput input)
+            {
+                var transaction = new Transaction
+                {
+                    From = Sender,
+                    To = ContractAddress,
+                    MethodName = method.Name,
+                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
+                };
+                var returnValue = await _transactionExecutor.ReadWithExceptionAsync(transaction);
+                return new StringValue {Value = returnValue.Value};
+            }
+
+            return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction, SendWithExceptionAsync,
+                CallWithExceptionAsync);
         }
     }
 }

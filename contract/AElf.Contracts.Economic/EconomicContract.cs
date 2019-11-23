@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic
                         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
                         Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
                     },
-                    IsBurnable = true // TODO: TBD,
+                    IsBurnable = true
                 });
                 
                 State.TokenContract.Issue.Send(new IssueInput

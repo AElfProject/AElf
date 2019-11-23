@@ -41,7 +41,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Initialize_MultiTimesContract_Test()
         {
-            var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
+            var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendWithExceptionAsync(
                 new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput
                 {
                     ContractName = "Test initialize again",
@@ -137,7 +137,7 @@ namespace AElf.Contract.TestContract
         {
             //update with same code
             {
-                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendWithExceptionAsync(
                     new Acs0.ContractUpdateInput
                     {
                         Address = BasicFunctionContractAddress,
@@ -228,7 +228,7 @@ namespace AElf.Contract.TestContract
             {
                 var testUser = SampleECKeyPairs.KeyPairs[2];
                 var otherZeroStub = GetContractZeroTester(testUser);
-                var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendAsync(
+                var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendWithExceptionAsync(
                     new Acs0.ChangeContractAuthorInput()
                     {
                         ContractAddress = BasicFunctionContractAddress,
