@@ -56,109 +56,19 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class CalculateFeeService : ICalculateFeeService
     {
+        private ICalculatorInitService _calInitializer;
         private ICalCostService _cpuCal;
         private ICalCostService _netCal;
         private ICalCostService _stoCal;
         private ICalCostService _txCal;
 
-        private const int CpuExpectCount = 10;
-        private const long CpuExpectCost = 900000000L;
-
-        private const int StoExpectCount = 10;
-        private const long StoExpectCost = 900000000L;
-
-        private const int NetExpectCount = 270;
-        private const long NetExpectCost = 900000000L;
-
-        private const int TxExpectCount = 270;
-        private const long TxExpectCost = 50000000L;
-
-        private const int TokenCountPerElf = 50;
-
-        public CalculateFeeService()
+        public CalculateFeeService(ICalculatorInitService calInitializer)
         {
-            _cpuCal = new CalCostService(CpuExpectCost, CpuExpectCount);
-            _cpuCal.Add(10, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 8,
-                ConstantValue = 10000
-            }.GetCost(x));
-            _cpuCal.Add(100, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 4,
-            }.GetCost(x));
-            _cpuCal.Add(int.MaxValue, x => new PowCalService
-            {
-                Power = 2,
-                ChangeSpanBase = 10, // scale  x axis         
-                Weight = 333, // unit weight,  means  (10 cpu count = 333 weight) 
-                WeightBase = 10,
-                Decimal = 100000000L // 1 token = 100000000
-            }.GetCost(x));
-            //_cpuCal.Prepare();
-
-            _stoCal = new CalCostService(StoExpectCost, StoExpectCount);
-            _stoCal.Add(10, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 8,
-                ConstantValue = 10000
-            }.GetCost(x));
-            _stoCal.Add(100, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 4,
-            }.GetCost(x));
-            _stoCal.Add(int.MaxValue, x => new PowCalService
-            {
-                Power = 2,
-                ChangeSpanBase = 5,
-                Weight = 333,
-                WeightBase = 5,
-            }.GetCost(x));
-            //_stoCal.Prepare();
-
-            _netCal = new CalCostService(NetExpectCost, NetExpectCount);
-            _netCal.Add(1000000, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 32,
-                ConstantValue = 10000
-            }.GetCost(x));
-            _netCal.Add(int.MaxValue, x => new PowCalService
-            {
-                Power = 2,
-                ChangeSpanBase = 100,
-                Weight = 333,
-                WeightBase = 500,
-                Decimal = 100000000L
-            }.GetCost(x));
-            //_netCal.Prepare();
-
-            _txCal = new CalCostService(TxExpectCost, TxExpectCount);
-//            _txCal.Add(1000, x => new LinerCalService
-//            {
-//                Numerator = 1,
-//                Denominator = 15 * 50,
-//                ConstantValue = 10000
-//            }.GetCost(x));
-            _txCal.Add(1000000, x => new LinerCalService
-            {
-                Numerator = 1,
-                Denominator = 16 * TokenCountPerElf,
-                ConstantValue = 10000
-            }.GetCost(x));
-            _txCal.Add(int.MaxValue, x => new PowCalService
-            {
-                Power = 2,
-                ChangeSpanBase = 100.Mul(TokenCountPerElf),
-                Weight = 1,
-                WeightBase = 1,
-                Decimal = 100000000L
-            }.GetCost(x));
-            //_txCal.Prepare();
+            _calInitializer = calInitializer;
+            _cpuCal = _calInitializer.GetInitCalculator("CPU");
+            _netCal = _calInitializer.GetInitCalculator("NET");
+            _stoCal = _calInitializer.GetInitCalculator("STO");
+            _txCal = _calInitializer.GetInitCalculator("TX");
         }
 
         public ICalCostService GetCpuCalculator => _cpuCal;
@@ -187,61 +97,151 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
+    public interface ICalculatorInitService : ISingletonDependency
+    {
+        ICalCostService GetInitCalculator(string name);
+    }
+
+    public class CalculatorInitService : ICalculatorInitService
+    {
+        public CalculatorInitService()
+        {
+            CalDic = new Dictionary<string, ICalCostService>
+            {
+                ["CPU"] = GetCpuCalculator(),
+                ["STO"] = GetSTOCalculator(),
+                ["NET"] = GetNETCalculator(),
+                ["TX"] = GetTXCalculator()
+            };
+        }
+
+        public ICalCostService GetInitCalculator(string name)
+        {
+            CalDic.TryGetValue(name, out var cal);
+            return cal;
+        }
+
+        public Dictionary<string, ICalCostService> CalDic { get; set; }
+
+        private ICalCostService GetCpuCalculator()
+        {
+            return new CalCostService().Add(10, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 8,
+                ConstantValue = 10000
+            }.GetCost(x)).Add(100, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 4
+            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            {
+                Power = 2,
+                ChangeSpanBase = 10, // scale  x axis         
+                Weight = 333, // unit weight,  means  (10 cpu count = 333 weight) 
+                WeightBase = 10,
+                Numerator = 1,
+                Denominator = 4,
+                Decimal = 100000000L // 1 token = 100000000
+            }.GetCost(x)).Prepare();
+        }
+
+        private ICalCostService GetSTOCalculator()
+        {
+            return new CalCostService().Add(10, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 8,
+                ConstantValue = 10000
+            }.GetCost(x)).Add(100, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 4
+            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            {
+                Power = 2,
+                ChangeSpanBase = 5,
+                Weight = 333,
+                Numerator = 1,
+                Denominator = 4,
+                WeightBase = 5,
+            }.GetCost(x)).Prepare();
+        }
+
+        private ICalCostService GetNETCalculator()
+        {
+            return new CalCostService().Add(1000000, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 32,
+                ConstantValue = 10000
+            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            {
+                Power = 2,
+                ChangeSpanBase = 100,
+                Weight = 333,
+                WeightBase = 500,
+                Numerator = 1,
+                Denominator = 32,
+                Decimal = 100000000L
+            }.GetCost(x)).Prepare();
+        }
+
+        private ICalCostService GetTXCalculator()
+        {
+            return new CalCostService().Add(1000000, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 16 * 50,
+                ConstantValue = 10000
+            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            {
+                Power = 2,
+                ChangeSpanBase = 100,
+                Weight = 1,
+                WeightBase = 1,
+                Numerator = 1,
+                Denominator = 16 * 50,
+                Decimal = 100000000L
+            }.GetCost(x)).Prepare();
+        }
+    }
+
     public interface ICalCostService
     {
         Dictionary<int, Func<int, long>> PieceWise { get; set; }
-        long AimAvgCost { get; set; }
-        int AimKey { get; set; }
         long CalCost(int count);
-        void Add(int limit, Func<int, long> func);
-        void Prepare();
+        ICalCostService Add(int limit, Func<int, long> func);
+        ICalCostService Prepare();
     }
 
     public class CalCostService : ICalCostService
     {
         public ILogger<CalCostService> Logger { get; set; }
 
-        public CalCostService(long avgCost, int aimKey)
+        public CalCostService()
         {
-            AimAvgCost = avgCost;
-            AimKey = aimKey;
             Logger = new NullLogger<CalCostService>();
         }
 
-        public long AimAvgCost { get; set; }
-        public int AimKey { get; set; }
         public Dictionary<int, Func<int, long>> PieceWise { get; set; } = new Dictionary<int, Func<int, long>>();
 
-        public void Add(int limit, Func<int, long> func)
+        public ICalCostService Add(int limit, Func<int, long> func)
         {
             // to do
             PieceWise[limit] = func;
+            return this;
         }
 
-        public void Prepare()
+        public ICalCostService Prepare()
         {
-            if (!PieceWise.Any(x => x.Key >= AimKey))
+            if (!PieceWise.Any())
             {
                 Logger.LogError("piece count wrong");
             }
 
-            if (AimAvgCost == 0)
-                return;
             PieceWise = PieceWise.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
-
-            var firstPiece = PieceWise.FirstOrDefault();
-            if (firstPiece.Key <= 0 || firstPiece.Key == long.MaxValue)
-            {
-                return;
-            }
-
-            var midCost = CalCost(AimKey);
-            var coefficient = AimAvgCost.Div(midCost);
-            if (coefficient <= 0)
-                return;
-            var newPieceWise = PieceWise.ToDictionary(x => x.Key, x => x.Value);
-            foreach (var key in newPieceWise.Keys)
-                PieceWise[key] = x => newPieceWise[key].Invoke(x).Mul(coefficient);
+            return this;
         }
 
         public long CalCost(int count)
@@ -300,10 +300,13 @@ namespace AElf.Kernel.SmartContract.Application
         public long Weight { get; set; }
         public int WeightBase { get; set; }
         public long Decimal { get; set; } = 100000000L;
+        public int Numerator { get; set; }
+        public int Denominator { get; set; } = 1;
 
         public long GetCost(int cost)
         {
-            return ((long) Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal).Mul(Weight).Div(WeightBase);
+            return ((long) Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal).Mul(Weight).Div(WeightBase)
+                .Add(Decimal.Mul(Numerator).Div(Denominator).Mul(cost));
         }
     }
 
@@ -335,7 +338,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class LinerCalService : ICalService
     {
         public int Numerator { get; set; }
-        public int Denominator { get; set; }
+        public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
