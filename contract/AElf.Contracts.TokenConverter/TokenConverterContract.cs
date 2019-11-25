@@ -98,8 +98,6 @@ namespace AElf.Contracts.TokenConverter
 
             State.ConnectorCount.Value = count;
 
-            //CreateToken();
-
             return new Empty();
         }
         public override Empty UpdateConnector(Connector input)

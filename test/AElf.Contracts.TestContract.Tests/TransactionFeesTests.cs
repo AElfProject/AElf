@@ -67,7 +67,7 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var calculator = new CalculateFeeService();
+            var calculator = new CalculateFeeService(new CalculatorInitService());
             var afterBalance = await GetBalance(DefaultSender);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(transactionSize));   //according to the way to calculate
 
@@ -110,7 +110,7 @@ namespace AElf.Contract.TestContract
             var beforeBalance = await GetBalance(DefaultSender);
             var feesBefore = await GetContractResourceBalance(TransactionFeesContractAddress);
 
-            var transactionResult = await TransactionFeesContractStub.FailInlineTransfer.SendAsync(
+            var transactionResult = await TransactionFeesContractStub.FailInlineTransfer.SendWithExceptionAsync(
                 new Contracts.TestContract.TransactionFees.TransferInput
                 {
                     To = OtherTester,
@@ -119,7 +119,7 @@ namespace AElf.Contract.TestContract
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var txTxSize = transactionResult.Transaction.Size();
-            var calculator = new CalculateFeeService();
+            var calculator = new CalculateFeeService(new CalculatorInitService());
             var afterBalance = await GetBalance(DefaultSender);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(txTxSize));
             

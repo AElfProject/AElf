@@ -340,8 +340,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        
-
         public override Empty CheckThreshold(CheckThresholdInput input)
         {
             var meetThreshold = false;

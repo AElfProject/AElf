@@ -134,7 +134,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var size = dummy.Transaction.Size();
-            var calculator = new CalculateFeeService();
+            var calculator = new CalculateFeeService(new CalculatorInitService());
             var sizeFee = calculator.GetTransactionFee(size);
             dummy.TransactionResult.TransactionFee.Value["ELF"].ShouldBe(feeAmount + sizeFee);
             var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -168,15 +168,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 Amount = originalBalance - targetBalance
             });
             res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-//            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+
+//            var dummy = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty()); // This will deduct the fee
 //            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-//
-//            var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-//            {
-//                Owner = DefaultSender,
-//                Symbol = "ELF"
-//            })).Balance; 
+
+            var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
             // afterFee.ShouldBe(0); // TODO: Depends one another feature.
         }
 
@@ -207,7 +207,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            await TestContractStub.DummyMethod.SendAsync(new Empty());
+            //await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
 
             var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -215,9 +215,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 Symbol = "ELF"
             }); 
             // before.Balance.ShouldBe(feeAmount);
-
-            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            //dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
         }
     }
 }

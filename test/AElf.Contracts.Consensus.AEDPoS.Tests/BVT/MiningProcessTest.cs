@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [Fact]
+        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
         public async Task Candidates_NotEnough_Test()
         {
             //await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
-                    RandomHash = randomHashes[i]
+                    InValue = randomHashes[i]
                 }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             var voter = GetElectionContractTester(VoterKeyPairs[0]);
@@ -89,8 +89,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
-                    PreviousRandomHash = Hash.Empty,
-                    RandomHash = randomHash,
+                    PreviousInValue = Hash.Empty,
+                    InValue = randomHash,
                     Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             var updateResult = await oneCandidate.UpdateValue.SendAsync(
@@ -112,8 +112,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
-                    PreviousRandomHash = Hash.FromMessage(randomHash), // Not same as before.
-                    RandomHash = Hash.FromString("RandomHash"), // Don't care this value in current test case.
+                    PreviousInValue = Hash.FromMessage(randomHash), // Not same as before.
+                    InValue = Hash.FromString("InValue"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(

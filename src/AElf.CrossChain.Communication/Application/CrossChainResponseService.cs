@@ -34,7 +34,7 @@ namespace AElf.CrossChain.Communication.Application
             {
                 Height = block.Height,
                 BlockHeaderHash = block.GetHash(),
-                TransactionMerkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus,
+                TransactionStatusMerkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus,
                 ChainId = block.Header.ChainId
             };
         }
@@ -73,7 +73,7 @@ namespace AElf.CrossChain.Communication.Application
 
         private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
         {
-            parentChainBlockData.TransactionStatusMerkleRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
+            parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
             var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader, "CrossChain");
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
@@ -98,7 +98,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(
                 indexedSideChainBlockDataResult.Select(sideChainBlockData =>
-                    sideChainBlockData.TransactionMerkleTreeRoot));
+                    sideChainBlockData.TransactionStatusMerkleTreeRoot));
             
             // This is to tell side chain the merkle path for one side chain block,
             // which could be removed with subsequent improvement.

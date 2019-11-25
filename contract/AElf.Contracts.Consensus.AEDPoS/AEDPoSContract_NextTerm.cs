@@ -122,7 +122,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.TreasuryContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
-            
+
             var amount = previousRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock());
 
             if (amount > 0)
@@ -130,6 +130,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = Context.Variables.NativeSymbol,
+                    Amount = amount
+                });
+
+                Context.Fire(new MiningRewardGenerated
+                {
+                    TermNumber = previousRound.TermNumber,
                     Amount = amount
                 });
             }

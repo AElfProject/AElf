@@ -29,13 +29,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
             var behaviour = IsMainChain
-                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
+                        GetMaximumBlocksCount(),
                         Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
                     .GetConsensusBehaviour()
-                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
+                    GetMaximumBlocksCount(),
                     Context.CurrentBlockTime).GetConsensusBehaviour();
 
-            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
+            Context.LogDebug(() =>
+                $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProvider.InvalidConsensusCommand
@@ -58,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
-            var transactionList = GenerateTransactionListByInfo(consensusInformation, pubkey);
+            var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey);
             return transactionList;
         }
 
@@ -68,16 +71,31 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return ValidateBeforeExecution(extraData);
         }
 
-        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
+        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input)
         {
-            var input = new AElfConsensusHeaderInformation();
-            input.MergeFrom(input1.Value);
+            var headerInformation = new AElfConsensusHeaderInformation();
+            headerInformation.MergeFrom(input.Value);
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
-                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                if (headerInformation.Behaviour == AElfConsensusBehaviour.UpdateValue)
                 {
-                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
+                    headerInformation.Round =
+                        currentRound.RecoverFromUpdateValue(headerInformation.Round,
+                            headerInformation.SenderPubkey.ToHex());
+                }
+
+                if (headerInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
+                {
+                    headerInformation.Round =
+                        currentRound.RecoverFromTinyBlock(headerInformation.Round,
+                            headerInformation.SenderPubkey.ToHex());
+                }
+
+                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
+                if (headerInformation.Round.GetHash(isContainPreviousInValue) !=
+                    currentRound.GetHash(isContainPreviousInValue))
+                {
+                    Context.LogDebug(() => $"Round information of block header:\n{headerInformation.Round}");
                     Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
                     return new ValidationResult
                     {
@@ -89,13 +107,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new ValidationResult {Success = true};
         }
 
-        private TransactionList GenerateTransactionListByInfo(AElfConsensusHeaderInformation consensusInformation, ByteString pubkey)
+        private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
+            ByteString pubkey)
         {
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    Context.LogDebug(() => $"Previous in value in extra data:{round.RealTimeMinersInformation[pubkey.ToHex()].PreviousInValue}");
                     return new TransactionList
                     {
                         Transactions =
@@ -115,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                                 {
                                     ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                     ProducedBlocks = minerInRound.ProducedBlocks,
-                                    RoundId = round.RoundId
+                                    RoundId = round.RoundIdForValidation
                                 })
                         }
                     };
@@ -136,7 +156,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         }
                     };
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return new TransactionList();
             }
         }
     }

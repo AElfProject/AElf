@@ -91,6 +91,12 @@ namespace AElf.OS.BlockSync.Application
         {
             foreach (var transaction in blockWithTransactions.Transactions)
             {
+                if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
+                {
+                    Logger.LogWarning($"Transaction {transaction.GetHash()} expired.");
+                    return false;
+                }
+
                 // No need to validate again if this tx already in local database.
                 if (await _txHub.IsTransactionExistsAsync(transaction.GetHash()))
                 {
@@ -109,6 +115,7 @@ namespace AElf.OS.BlockSync.Application
                     .GetHash());
                 if (!constrainedTransactionValidationResult)
                 {
+                    Logger.LogWarning($"Transaction {transaction} validation failed for constraint.");
                     return false;
                 }
             }

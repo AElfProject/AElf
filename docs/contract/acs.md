@@ -1,95 +1,145 @@
 # AElf Contract Standard (ACS)
 
-Description
-
-Think about **Interface Segregation Principle**. In AElf, one smart contract can choose to inherit from one or more *ACS*s. For each ACS, just add two lines of code.
+Think about **Interface Segregation Principle**. In AElf, smart contract can choose to inherit from one or more **ACSs**. To implement an ACS a contract must specify the ACS as a base, you can see in the code snippet below how to do this:
 
 ```Proto
 
 import "acs1.proto";
 
-...
+service EconomicContract {
 
-// service
     option (aelf.base) = "acs1.proto";
 
+    // Actions, views...
+
+}
 ```
-Thus you can `override` the methods defined in corresponding proto file in your contract implementation in C#.
 
-## ACS0
+When doing this you can `override` (implement) the ACS's methods in your contract implementation in C#.
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs0.proto)
+## ACS0 - Genesis
 
-Description
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs0.proto)
 
-For Contract Zero to deploy, update and maintain other smart contracts.
+**Description:** For Contract Zero to deploy, update and maintain other smart contracts. This is implemented by the Genesis contract (BasicContractZero) in AElf.
 
-## ACS1
+``` Protobuf
+    rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) { }
+    rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) { }
+    rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty { }
+    ...
+```
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs1.proto)
+As you can see it is mainly used for managing smart contracts.
 
-Description
+## ACS1 - Fee information
 
-For smart contracts to set and provide method fee information.
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs1.proto)
 
-The `GetMethodFee` method will take effects before executing related transactions.
+**Description:** For smart contracts to set and provide method fee information. Most of the genesis contracts in AElf take this as a base.
 
-## ACS2
+```Protobuf
+    rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty) { }
+    rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) { }
+```
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs2.proto)
+This ACS is essential for the economic system as it defines chargeable method. The `GetMethodFee` method will take effects before executing related transactions.
 
-Description
+## ACS2 - Parallel resource information
 
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs2.proto)
+
+**Description:**
 For smart contracts to set and provide resource information to support parallel executing.
 
-## ACS3
+```Protobuf
+    rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) { }
+```
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs3.proto)
+## ACS3 - Proposal and approval
 
-Description
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs3.proto)
 
-For smart contract to implement proposal and approval functionalities. With ACS3, contract can design specific multi-sign mechanism.
+**Description:** This ACS defines proposal and approval functionalities. With ACS3, contract can design specific multi-sign mechanisms.
 
-## ACS4
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs4.proto)
+``` Protobuf
+    rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) { }
+    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) { }
+    rpc Release(aelf.Hash) returns (google.protobuf.Empty){ }
+    rpc GetProposal(aelf.Hash) returns (ProposalOutput) { }
+```
 
-Description
+As you can see in the code snippet above, the standard defines creation, approval and release functionality. In AElf three contracts implement this functionality, the referendum, association and parliament contract. 
 
-For anyone who wants to customize a new blockchain to implement a new consensus.
 
-If one system contract deployed with it's contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of current blockchain will use the logic provided by this system contract.
+## ACS4 - Consensus
 
-## ACS5
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs4.proto)
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs5.proto)
+**Description:** For anyone who wants to customize a new blockchain to implement a new consensus.
 
-Description
+```Protobuf
+    rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) { }
+    rpc GetConsensusExtraData (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) { }
+    rpc GenerateConsensusTransactions (google.protobuf.BytesValue) returns (TransactionList) { }
+    rpc ValidateConsensusBeforeExecution (google.protobuf.BytesValue) returns (ValidationResult) { }
+    rpc ValidateConsensusAfterExecution (google.protobuf.BytesValue) returns (ValidationResult) { }
+```
 
-For one contract to check the threshold for others of calling himself, either the sender's balance or sender's allowance to this contract.
+For now only AElf's AEDPoSContract implements this interface. If one system contract deployed with it's contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of current blockchain will use the logic provided by this system contract.
 
-## ACS6
+## ACS5 - Method calling threshold
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs6.proto)
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs5.proto)
 
-Description
+**Description:** For one contract to check the threshold for others of calling himself, either the sender's balance or sender's allowance to this contract.
 
-ACS6 is aiming at providing two standard interfaces for requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces.
-In the commit-reveal schema, the user needs to call `RequestRandomNumberInput` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 needs to return 1) a hash value as the token for querying random number and 2) a negotiated block height to enable related query. When the block height reaches, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
-The implementation of ACS6 in the `AEDPoS Contract` shows how commit-reveal schema works.
+```Protobuf
+    rpc SetMethodCallingThreshold (SetMethodCallingThresholdInput) returns (google.protobuf.Empty) { }
+    rpc GetMethodCallingThreshold (google.protobuf.StringValue) returns (MethodCallingThreshold) { }
+```
 
-## ACS7
+## ACS6 - Random number generation
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs7.proto)
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs6.proto)
 
-Description
+**Description:** ACS6 is aiming at providing two standard interfaces for requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces. For now only AEDPoSContract implements this in AElf.
 
-ACS7 defines methods for cross chain contract to provide cross chain data and indexing functionalities.
+```Protobuf
+    rpc RequestRandomNumber (google.protobuf.Empty) returns (RandomNumberOrder) { }
+    rpc GetRandomNumber (aelf.Hash) returns (aelf.Hash) { }
+```
 
-## ACS8
+In the **commit-reveal schema**, the user needs to call `RequestRandomNumberInput` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 needs to returns:
+1) a hash value as the token for querying random number.
+2) a negotiated block height to enable related query. When the chain reaches the block height, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
 
-[standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs8.proto)
+The implementation of ACS6 in the `AEDPoS Contract` shows how **commit-reveal schema** works.
 
-Description
+## ACS7 - Cross-chain
 
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs7.proto)
+
+**Description:**
+ACS7 defines methods for cross chain contract to provide cross chain data and indexing functionalities, currently used by AElfs CrossChainContract.
+
+```Protobuf
+    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) { }
+    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) { }
+    rpc Recharge (RechargeInput) returns (google.protobuf.Empty) { }
+    rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) { }
+```
+
+The cross-chain ACS is mainly used for managing side-chains.
+
+## ACS8 - Contract fee
+
+[standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs8.proto)
+
+**Description:**
 If one contract choose to inherit from ACS8, the execution of every transaction of this contract will consume resource tokens of current contract.
+
+``` Protobuf
+    rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) { }
+```

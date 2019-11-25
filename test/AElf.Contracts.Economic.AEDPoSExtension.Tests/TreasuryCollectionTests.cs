@@ -10,75 +10,75 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
     public partial class EconomicTests : EconomicTestBase
     {
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact]
         public async Task TreasuryCollection_FirstTerm_Test()
         {
             var distributedAmount = await TreasuryDistribution_FirstTerm_Test();
 
-            // First 5 core data centers can profit from backup subsidy
-            var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
-            var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+            // First 7 core data centers can profit from backup subsidy
+            var firstSevenCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7).ToList();
+            var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                 AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = Address.FromPublicKey(k.PublicKey),
                     Symbol = EconomicTestConstants.TokenSymbol
                 })).Balance);
-            await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-            await CheckBalancesAsync(firstFiveCoreDataCenters,
-                distributedAmount / 5 / 5 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
+            await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
+            await CheckBalancesAsync(firstSevenCoreDataCenters,
+                distributedAmount / 5 / 7 , balancesBefore);
         }
 
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact(Skip = "Save time.")]
         public async Task TreasuryCollection_SecondTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
             var distributionInformationOfSecondTerm = await TreasuryDistribution_SecondTerm_Test();
 
-            // First 5 core data centers can profit from backup subsidy of term 1 and term 2.
-            var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
+            // First 7 core data centers can profit from backup subsidy of term 1 and term 2.
+            var firstSevenCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7).ToList();
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 5;
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
                 var subsidyInformation = distributionInformationOfSecondTerm[SchemeType.BackupSubsidy];
                 var subsidyInSecondTerm = subsidyInformation.Amount / subsidyInformation.TotalShares;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     subsidyInFirstTerm + subsidyInSecondTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // First 5 core data centers can profit from miner basic reward because they acted as miners during second term.
+            // First 7 core data centers can profit from miner basic reward because they acted as miners during second term.
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
                 var basicRewardInSecondTerm =
-                    distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount / 9;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                    distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount / 12;
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     basicRewardInSecondTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // First 5 core data centers can profit from votes weight reward.
+            // First 7 core data centers can profit from votes weight reward.
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
-                var votesWeightReward = distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 5;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
+                var votesWeightReward = distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 7;
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     votesWeightReward - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact(Skip = "Save time.")]
         public async Task TreasuryCollection_ThirdTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
@@ -110,29 +110,29 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var subsidyInformationOfSecondTerm = distributionInformationOfSecondTerm[SchemeType.BackupSubsidy];
             var subsidyInformationOfThirdTerm = distributionInformationOfThirdTerm[SchemeType.BackupSubsidy];
 
-            // First 5 core data centers can profit from backup subsidy of term 1, term 2 and term 3.
-            var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
+            // First 7 core data centers can profit from backup subsidy of term 1, term 2 and term 3.
+            var firstSevenCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7).ToList();
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 5;
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
                 var subsidyInSecondTerm =
                     subsidyInformationOfSecondTerm.Amount / subsidyInformationOfSecondTerm.TotalShares;
                 var subsidyInThirdTerm =
                     subsidyInformationOfThirdTerm.Amount / subsidyInformationOfThirdTerm.TotalShares;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     subsidyInFirstTerm + subsidyInSecondTerm + subsidyInThirdTerm -
                     EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // Last 4 core data centers can profit from backup subsidy of term 2 and term 3.
-            var lastFourCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(5).Take(4).ToList();
+            // Last 12 core data centers can profit from backup subsidy of term 2 and term 3.
+            var lastFourCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).Take(12).ToList();
             {
                 var balancesBefore = lastFourCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
@@ -151,26 +151,26 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     balancesBefore);
             }
 
-            // First 5 core data centers can profit from miner basic reward of term 2 and term 3.
+            // First 7 core data centers can profit from miner basic reward of term 2 and term 3.
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
                 var basicRewardInSecondTerm =
-                    distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount / 9;
+                    distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount / 12;
                 var basicRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount / 9;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                    distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount / 17;
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     basicRewardInSecondTerm + basicRewardInThirdTerm -
                     EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // Last 4 core data centers can profit from miner basic reward of term 3.
+            // Last 10 core data centers can profit from miner basic reward of term 3.
             {
                 var balancesBefore = lastFourCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
@@ -180,32 +180,32 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     })).Balance);
                 await ClaimProfits(lastFourCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
                 var basicRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount / 9;
+                    distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount / 17;
                 await CheckBalancesAsync(lastFourCoreDataCenters,
                     basicRewardInThirdTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // First 5 core data centers can profit from votes weight reward.
+            // First 7 core data centers can profit from votes weight reward.
             {
-                var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
+                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
                 var votesWeightRewardInSecondTerm =
-                    distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 5;
+                    distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 7; // amount / 14 * 2
                 var votesWeightRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 7;
-                await CheckBalancesAsync(firstFiveCoreDataCenters,
+                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 12; // amount / (7 + 17) * 2
+                await CheckBalancesAsync(firstSevenCoreDataCenters,
                     votesWeightRewardInSecondTerm + votesWeightRewardInThirdTerm -
                     EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 
-            // Last 4 core data centers can also profit from votes weight reward. (But less.)
+            // Last 10 core data centers can also profit from votes weight reward. (But less.)
             {
                 var balancesBefore = lastFourCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
@@ -215,7 +215,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     })).Balance);
                 await ClaimProfits(lastFourCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
                 var votesWeightRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 14;
+                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 24; // amount / (7 + 17)
                 await CheckBalancesAsync(lastFourCoreDataCenters,
                     votesWeightRewardInThirdTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);

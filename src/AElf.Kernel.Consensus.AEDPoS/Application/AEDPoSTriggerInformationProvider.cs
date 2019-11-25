@@ -1,105 +1,69 @@
-using System.Threading.Tasks;
-using Acs4;
 using AElf.Kernel.Account.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
+    // ReSharper disable once InconsistentNaming
+    /// <summary>
+    /// 
+    /// </summary>
+    public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
-        private readonly IRandomHashCacheService _randomHashCacheService;
-        private readonly IBlockchainService _blockchainService;
+        private readonly IInValueCacheService _inValueCacheService;
+        private readonly ISecretSharingService _secretSharingService;
 
-        private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
+        private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            IRandomHashCacheService randomHashCacheService, IBlockchainService blockchainService)
+            ISecretSharingService secretSharingService, IInValueCacheService inValueCacheService)
         {
             _accountService = accountService;
-            _randomHashCacheService = randomHashCacheService;
-            _blockchainService = blockchainService;
+            _secretSharingService = secretSharingService;
+            _inValueCacheService = inValueCacheService;
+            
+            Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
         }
 
         public BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes)
         {
-            return new BytesValue {Value = PublicKey};
+            return new BytesValue {Value = Pubkey};
         }
 
-        public async Task<BytesValue> GetTriggerInformationForBlockHeaderExtraDataAsync(BytesValue consensusCommandBytes)
+        public BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes)
         {
             if (consensusCommandBytes == null)
             {
                 return new AElfConsensusTriggerInformation
                 {
-                    Pubkey = PublicKey,
+                    Pubkey = Pubkey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
                 }.ToBytesValue();
             }
 
             var command = consensusCommandBytes.ToConsensusCommand();
-            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
- 
-            if (behaviour == AElfConsensusBehaviour.UpdateValue)
+            var hint = command.Hint.ToAElfConsensusHint();
+
+            if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-                var bestChainLastBlockHash = bestChainLastBlockHeader.GetHash();
-
-                _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(bestChainLastBlockHash,
-                    bestChainLastBlockHeader.Height);
-                
-                var newRandomHash = GetRandomHash(command);
-                _randomHashCacheService.SetRandomHash(bestChainLastBlockHash, newRandomHash);
-
-                return new AElfConsensusTriggerInformation
-                {
-                    Pubkey = PublicKey,
-                    RandomHash = newRandomHash,
-                    PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
-                    Behaviour = behaviour
-                }.ToBytesValue();
-            }
-
-            return new AElfConsensusTriggerInformation
-            {
-                Pubkey = PublicKey,
-                Behaviour = behaviour
-            }.ToBytesValue();
-        }
-
-        public async Task<BytesValue> GetTriggerInformationForConsensusTransactionsAsync(BytesValue consensusCommandBytes)
-        {
-            if (consensusCommandBytes == null)
-            {
-                return new AElfConsensusTriggerInformation
-                {
-                    Pubkey = PublicKey,
-                    Behaviour = AElfConsensusBehaviour.UpdateValue
-                }.ToBytesValue();
-            }
-
-            var command = consensusCommandBytes.ToConsensusCommand();
-            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
-            var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-
-            if (behaviour == AElfConsensusBehaviour.UpdateValue)
-            {
+                var newInValue = _inValueCacheService.GetInValue(hint.RoundId);
+                var previousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId);
+                Logger.LogTrace($"New in value {newInValue} for round of id {hint.RoundId}");
+                Logger.LogTrace($"Previous in value {previousInValue} for round of id {hint.PreviousRoundId}");
                 var trigger = new AElfConsensusTriggerInformation
                 {
-                    Pubkey = PublicKey,
-                    RandomHash = _randomHashCacheService.GetRandomHash(bestChainLastBlockHeader.GetHash()),
-                    PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
-                    Behaviour = behaviour
+                    Pubkey = Pubkey,
+                    InValue = newInValue,
+                    PreviousInValue = previousInValue,
+                    Behaviour = hint.Behaviour
                 };
 
                 return trigger.ToBytesValue();
@@ -107,20 +71,62 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             return new AElfConsensusTriggerInformation
             {
-                Pubkey = PublicKey,
-                Behaviour = behaviour
+                Pubkey = Pubkey,
+                Behaviour = hint.Behaviour
             }.ToBytesValue();
         }
 
-        /// <summary>
-        /// For generating in_value.
-        /// </summary>
-        /// <returns></returns>
-        private Hash GetRandomHash(ConsensusCommand consensusCommand)
+        public BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes)
         {
-            var data = Hash.FromRawBytes(consensusCommand.ArrangedMiningTime.ToByteArray());
-            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
-            return Hash.FromRawBytes(bytes);
+            if (consensusCommandBytes == null)
+            {
+                return new AElfConsensusTriggerInformation
+                {
+                    Pubkey = Pubkey,
+                    Behaviour = AElfConsensusBehaviour.UpdateValue
+                }.ToBytesValue();
+            }
+
+            var command = consensusCommandBytes.ToConsensusCommand();
+            var hint = command.Hint.ToAElfConsensusHint();
+
+            if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
+            {
+                var inValue = _inValueCacheService.GetInValue(hint.RoundId);
+                var trigger = new AElfConsensusTriggerInformation
+                {
+                    Pubkey = Pubkey,
+                    InValue = inValue,
+                    PreviousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId),
+                    Behaviour = hint.Behaviour,
+                };
+
+                var secretPieces = _secretSharingService.GetEncryptedPieces(hint.RoundId);
+                foreach (var secretPiece in secretPieces)
+                {
+                    trigger.EncryptedPieces.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
+                }
+
+                var decryptedPieces = _secretSharingService.GetDecryptedPieces(hint.RoundId);
+                foreach (var decryptedPiece in decryptedPieces)
+                {
+                    trigger.DecryptedPieces.Add(decryptedPiece.Key, ByteString.CopyFrom(decryptedPiece.Value));
+                }
+
+                var revealedInValues = _secretSharingService.GetRevealedInValues(hint.RoundId);
+                foreach (var revealedInValue in revealedInValues)
+                {
+                    trigger.RevealedInValues.Add(revealedInValue.Key, revealedInValue.Value);
+                }
+
+                return trigger.ToBytesValue();
+            }
+
+            return new AElfConsensusTriggerInformation
+            {
+                Pubkey = Pubkey,
+                Behaviour = hint.Behaviour
+            }.ToBytesValue();
         }
     }
 }

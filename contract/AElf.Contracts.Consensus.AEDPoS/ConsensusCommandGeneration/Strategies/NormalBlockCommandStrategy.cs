@@ -11,9 +11,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public class NormalBlockCommandStrategy : CommandStrategyBase
         {
-            public NormalBlockCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime) : base(
+            private readonly long _previousRoundId;
+
+            public NormalBlockCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime,
+                long previousRoundId) : base(
                 currentRound, pubkey, currentBlockTime)
             {
+                _previousRoundId = previousRoundId;
             }
 
             public override ConsensusCommand GetAEDPoSConsensusCommand()
@@ -25,7 +29,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Hint = new AElfConsensusHint
                     {
-                        Behaviour = AElfConsensusBehaviour.UpdateValue
+                        Behaviour = AElfConsensusBehaviour.UpdateValue,
+                        RoundId = CurrentRound.RoundId,
+                        PreviousRoundId = _previousRoundId
                     }.ToByteString(),
                     ArrangedMiningTime = arrangedMiningTime,
                     // Cancel mining after time slot of current miner because of the task queue.

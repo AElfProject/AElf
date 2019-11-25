@@ -275,7 +275,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
         public async Task MultiTokenContract_Create_UseCustomAddress_Test()
         {
-            var transactionResult = (await TokenContractStub.Create.SendAsync(new CreateInput
+            var transactionResult = (await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
                 Decimals = 2,
@@ -376,7 +376,7 @@ namespace AElf.Contracts.MultiToken
         {
             await MultiTokenContract_Create_Test();
             //issue AliceToken amount of 1000L to User1Address 
-            var result = (await TokenContractStub.Issue.SendAsync(new IssueInput()
+            var result = (await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
                 Amount = AliceCoinTokenInfo.TotalSupply + 1,

@@ -32,16 +32,19 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPreExecutionPlugin, ResourceConsumptionPreExecutionPlugin>();
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
-            context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+            context.Services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
+
+            context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
+            context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services
                 .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
         }
     }
-    
+
     public class MockRandomHashCacheService : IRandomHashCacheService
     {
-        public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
+        public void SetRandomHash(Hash bestChainHash, Hash randomHash)
         {
         }
 
@@ -50,7 +53,7 @@ namespace AElf.Contracts.Economic.TestBase
             return Hash.FromMessage(bestChainBlockHash);
         }
 
-        public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
+        public void SetGeneratedBlockBestChainHash(Hash blockHash, long blockHeight)
         {
         }
 
@@ -59,8 +62,9 @@ namespace AElf.Contracts.Economic.TestBase
             return Hash.FromString("LatestGeneratedBlockRandomHash");
         }
     }
-    
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
+
+    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider,
+        ITransientDependency
     {
         public List<string> GetSystemTransactionMethodNameList()
         {
@@ -75,7 +79,7 @@ namespace AElf.Contracts.Economic.TestBase
                 "ClaimTransactionFees",
                 "DonateResourceToken",
                 "RecordCrossChainData",
-                
+
                 //acs5 check tx
                 "CheckThreshold",
                 //acs8 check tx

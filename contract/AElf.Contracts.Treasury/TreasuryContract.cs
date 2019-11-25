@@ -138,12 +138,13 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
-            Assert(input.Amount > 0, "Invalid amount of donating.");
+            Assert(input.Amount > 0, "Invalid amount of donating. Amount need to greater than 0.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
+
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
@@ -155,11 +156,20 @@ namespace AElf.Contracts.Treasury
                 Amount = input.Amount,
                 Memo = "Donate to treasury.",
                 TargetSymbol = isNativeSymbol
-                                ?Context.Variables.NativeSymbol
-                                :input.Symbol
+                    ? Context.Variables.NativeSymbol
+                    : input.Symbol
             });
-
-            if (!isNativeSymbol)
+            Context.Fire(new DonationReceived
+            {
+                From = Context.Sender,
+                To = isNativeSymbol
+                    ? State.TreasuryVirtualAddress.Value
+                    : Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = "Donate to treasury."
+            });
+            if (input.Symbol != Context.Variables.NativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);
             }
@@ -174,6 +184,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
+
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Symbol = input.Symbol,
@@ -196,6 +207,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenConverterContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             }
+
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,

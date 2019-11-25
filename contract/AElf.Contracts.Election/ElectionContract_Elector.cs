@@ -353,6 +353,7 @@ namespace AElf.Contracts.Election
                 Usage = "Withdraw votes for Main Chain Miner Election."
             });
         }
+
         private void CallTokenContractTransferFrom(long amount)
         {
             State.TokenContract.TransferFrom.Send(new TransferFromInput

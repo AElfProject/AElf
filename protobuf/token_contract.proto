@@ -407,5 +407,5 @@ message ChainPrimaryTokenSymbolSet {
 
 message TransactionSizeFeeUnitPriceUpdated {
     option (aelf.is_event) = true;
-    sint64 UnitPrice = 1;
+    sint64 unit_price = 1;
 }

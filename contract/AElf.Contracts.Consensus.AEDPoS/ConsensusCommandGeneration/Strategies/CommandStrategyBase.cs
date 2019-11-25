@@ -13,7 +13,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             protected readonly Timestamp CurrentBlockTime;
 
             protected const int TinyBlocksCount = 8;
-            protected const int TinyBlockMinimumInterval = 100;
+            protected const int TinyBlockMinimumInterval = 50;
 
             protected MinerInRound MinerInRound => CurrentRound.RealTimeMinersInformation[Pubkey];
             protected int Order => CurrentRound.GetMiningOrder(Pubkey);
