@@ -81,7 +81,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public async Task ApplyAsync(ITransactionContext transactionContext)
+        public void Apply(ITransactionContext transactionContext)
         {
             try
             {

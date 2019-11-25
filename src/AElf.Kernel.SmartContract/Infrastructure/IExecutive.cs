@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         IReadOnlyList<ServiceDescriptor> Descriptors { get; }
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
-        Task ApplyAsync(ITransactionContext transactionContext);
+        void Apply(ITransactionContext transactionContext);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         byte[] GetFileDescriptorSet();
         IEnumerable<FileDescriptor> GetFileDescriptors();

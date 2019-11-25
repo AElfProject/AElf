@@ -95,43 +95,43 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionBlockIndexService = transactionBlockIndexService;
         }
 
-        public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
+        public Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
             {
                 Logger.LogWarning("Block header or body is null.");
-                return false;
+                return Task.FromResult(false);
             }
 
             if (block.Body.TransactionsCount == 0)
             {
                 Logger.LogWarning("Block transactions is empty");
-                return false;
+                return Task.FromResult(false);
             }
 
             var hashSet = new HashSet<Hash>();
             if (block.Body.TransactionIds.Select(item => hashSet.Add(item)).Any(addResult => !addResult))
             {
                 Logger.LogWarning("Block contains duplicates transaction");
-                return false;
+                return Task.FromResult(false);
             }
 
             if (_blockchainService.GetChainId() != block.Header.ChainId)
             {
                 Logger.LogWarning($"Block chain id mismatch {block.Header.ChainId}");
-                return false;
+                return Task.FromResult(false);
             }
 
             if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
                 Logger.LogWarning("Block verify signature failed.");
-                return false;
+                return Task.FromResult(false);
             }
 
             if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
                 Logger.LogWarning("Block merkle tree root mismatch.");
-                return false;
+                return Task.FromResult(false);
             }
 
             if (block.Header.Height != Constants.GenesisBlockHeight &&
@@ -139,10 +139,10 @@ namespace AElf.Kernel.Blockchain.Application
                 KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
-                return false;
+                return Task.FromResult(false);
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -169,9 +169,9 @@ namespace AElf.Kernel.Blockchain.Application
             return true;
         }
 
-        public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
+        public Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

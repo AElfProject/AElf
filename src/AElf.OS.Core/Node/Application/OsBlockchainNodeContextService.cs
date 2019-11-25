@@ -131,7 +131,7 @@ namespace AElf.OS.Node.Application
         {
             await _networkServer.StopAsync(false);
 
-            await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
+            _blockchainNodeContextService.Stop(blockchainNodeContext.BlockchainNodeContext);
 
             foreach (var nodePlugin in _nodePlugins)
             {

@@ -26,7 +26,7 @@ namespace AElf.Kernel.Node.Application
     {
         Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto);
 
-        Task StopAsync(BlockchainNodeContext blockchainNodeContext);
+        void Stop(BlockchainNodeContext blockchainNodeContext);
 
         Task FinishInitialSyncAsync();
     }
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Node.Application
             await EventBus.PublishAsync(new InitialSyncFinishedEvent());
         }
 
-        public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
+        public void Stop(BlockchainNodeContext blockchainNodeContext)
         {
         }
     }

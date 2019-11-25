@@ -43,10 +43,10 @@ namespace AElf.CrossChain.Communication.Application
                 b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
         }
 
-        public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
+        public Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
-//            _ = ConnectAsync(crossChainClient);
+            return Task.CompletedTask;
         }
 
         public async Task CloseClientsAsync()

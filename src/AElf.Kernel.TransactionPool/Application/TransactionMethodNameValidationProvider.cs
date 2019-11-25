@@ -20,13 +20,13 @@ namespace AElf.Kernel.TransactionPool.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             if (transaction.To != tokenContractAddress)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             TokenContractContainer.TokenContractStub tokenStub; // No need to instantiate.
@@ -37,7 +37,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 nameof(tokenStub.CheckThreshold),
                 nameof(tokenStub.CheckResourceToken)
             };
-            return !txsGeneratedByPlugins.Contains(transaction.MethodName);
+            return Task.FromResult(!txsGeneratedByPlugins.Contains(transaction.MethodName));
         }
     }
 }
