@@ -37,7 +37,7 @@ namespace AElf.Benchmark
         public int TransactionCount = 200;
 
         [GlobalSetup]
-        public Task GlobalSetup()
+        public void GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
@@ -50,8 +50,6 @@ namespace AElf.Benchmark
             _systemTransactions = new List<Transaction>();
             _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
-            
-            return Task.CompletedTask;
         }
 
         [IterationSetup]
@@ -67,7 +65,7 @@ namespace AElf.Benchmark
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
 
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
-            _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
+            _cancellableTransactions = _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
             chain = await _blockchainService.GetChainAsync();
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 _systemTransactions.Concat(_cancellableTransactions));

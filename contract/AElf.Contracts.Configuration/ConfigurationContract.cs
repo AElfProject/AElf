@@ -8,6 +8,7 @@ namespace AElf.Contracts.Configuration
     {
         public override Empty SetBlockTransactionLimit(Int32Value input)
         {
+            Assert(input.Value > 0, "Invalid input.");
             CheckOwnerAuthority();
             
             var oldValue = State.BlockTransactionLimit.Value;

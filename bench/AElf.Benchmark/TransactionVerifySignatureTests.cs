@@ -22,10 +22,9 @@ namespace AElf.Benchmark
         }
 
         [Benchmark]
-        public Task VerifySignatureTest()
+        public void VerifySignatureTest()
         {
             _transaction.VerifySignature();
-            return Task.CompletedTask;
         }
     }
 }
