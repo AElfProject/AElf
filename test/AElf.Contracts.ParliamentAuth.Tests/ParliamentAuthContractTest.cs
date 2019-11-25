@@ -190,13 +190,6 @@ namespace AElf.Contracts.ParliamentAuth
                 var transactionResult2 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-            {
-                var privilegeOrganizationAddress = await CreatePrivilegeOrganizationAsync();
-                createProposalInput.OrganizationAddress = privilegeOrganizationAddress;
-                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Not authorized to propose.").ShouldBeTrue();
-            }
         }
 
         [Fact]
@@ -398,19 +391,6 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         private async Task<Address> CreateOrganizationAsync()
-        {
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = 20000 / MinersCount
-            };
-            var transactionResult =
-                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            return transactionResult.Output;
-        }
-
-        private async Task<Address> CreatePrivilegeOrganizationAsync()
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
