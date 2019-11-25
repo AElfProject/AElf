@@ -4,16 +4,16 @@ using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
-using AElf.Runtime.CSharp.Validators;
 using Mono.Cecil;
 
-using AElf.Runtime.CSharp.Validators.Method;
-using AElf.Runtime.CSharp.Validators.Whitelist;
 using AElf.Types;
 
 
-namespace AElf.Runtime.CSharp.Policies
+namespace AElf.CSharp.CodeOps.Policies
 {
     public class DefaultPolicy : AbstractPolicy
     {
@@ -88,7 +88,8 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied))
+                        .Constructor(Permission.Denied)
+                        .Member(nameof(string.Concat), Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
@@ -128,10 +129,6 @@ namespace AElf.Runtime.CSharp.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
-
-                // TODO: Allow System.Text only for system contracts
-                // Used for logging and other string operations, conversions
-                .Namespace("System.Text", Permission.Allowed)
                 ;
         }
 

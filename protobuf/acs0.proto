@@ -15,6 +15,12 @@ service ACS0 {
     }
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
+    rpc ProposeNewContract (ContractDeploymentInput) returns (google.protobuf.Empty) {
+    }
+    rpc ProposeUpdateContract (ContractUpdateInput) returns (google.protobuf.Empty) {
+    }
+    rpc ReleaseApprovedContract (aelf.Hash) returns (google.protobuf.Empty) {
+    }
     rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
@@ -98,6 +104,12 @@ message ContractDeployed
     aelf.Address creator = 1 [(aelf.is_indexed) = true];
     aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
+}
+
+message CodeCheckRequired
+{
+    option (aelf.is_event) = true;
+    bytes code = 1;
 }
 
 message CodeUpdated

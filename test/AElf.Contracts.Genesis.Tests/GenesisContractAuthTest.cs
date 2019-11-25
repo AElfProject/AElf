@@ -1,11 +1,14 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -68,6 +71,73 @@ namespace AElf.Contracts.Genesis
             var codeHash = Hash.FromRawBytes(code);
             var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[1].NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
+        }
+        
+        
+        [Fact]
+        public async Task DeploySmartContractWithCodeCheck_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(
+                BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract),
+                new ContractDeploymentInput
+                {
+                    Category = KernelConstants.DefaultRunnerCategory,
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                });
+            
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            // Transaction logs should contain below two events
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(CodeCheckRequired));
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(ProposalCreated));
+
+            // Wait for contract code check event handler to finish its job
+            await Task.Run(async () => 
+            {
+                await Task.Delay(10000);
+            });
+            
+            // Mine a block, should include approval transaction
+            var block  = await Tester.MineEmptyBlockAsync();
+
+            var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
+
+            txs.First(tx => tx.To == ParliamentAddress).MethodName
+                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve));
+        }
+        
+        [Fact]
+        public async Task UpdateSmartContractWithCodeCheck_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(
+                BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeUpdateContract),
+                new ContractUpdateInput
+                {
+                    Address = BasicContractZeroAddress,
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("GenesisUpdate")).Value)
+                });
+            
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            // Transaction logs should contain below two events
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(CodeCheckRequired));
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(ProposalCreated));
+
+            // Wait for contract code check event handler to finish its job
+            await Task.Run(async () => 
+            {
+                await Task.Delay(10000);
+            });
+            
+            // Mine a block, should include approval transaction
+            var block  = await Tester.MineEmptyBlockAsync();
+
+            var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
+
+            txs.First(tx => tx.To == ParliamentAddress).MethodName
+                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve));
         }
         
         [Fact]

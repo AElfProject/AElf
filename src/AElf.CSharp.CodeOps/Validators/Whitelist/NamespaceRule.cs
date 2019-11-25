@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AElf.Runtime.CSharp.Validators.Whitelist
+namespace AElf.CSharp.CodeOps.Validators.Whitelist
 {
     public class NamespaceRule
     {

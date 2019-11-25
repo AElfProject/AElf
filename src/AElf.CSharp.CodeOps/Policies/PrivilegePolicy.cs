@@ -1,6 +1,6 @@
-using AElf.Runtime.CSharp.Validators.Whitelist;
+using AElf.CSharp.CodeOps.Validators.Whitelist;
 
-namespace AElf.Runtime.CSharp.Policies
+namespace AElf.CSharp.CodeOps.Policies
 {
     public class PrivilegePolicy : DefaultPolicy
     {

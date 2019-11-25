@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -27,7 +28,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
-            await Task.Run(() => runner.CodeCheck(contractDto.SmartContractRegistration.Code.ToByteArray(), contractDto.IsPrivileged));
 
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
@@ -44,8 +44,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
-            await Task.Run(() => runner.CodeCheck(contractDto.SmartContractRegistration.Code.ToByteArray(),
-                contractDto.IsPrivileged));
 
             await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
                 contractDto.BlockHeight);

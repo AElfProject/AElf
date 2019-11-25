@@ -8,6 +8,7 @@
     <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
     <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
@@ -18,5 +19,14 @@
     <ContractMessage Include="..\..\protobuf\acs0.proto">
       <Link>Protobuf\Proto\acs0.proto</Link>
     </ContractMessage>
+    <ContractStub Include="..\..\protobuf\acs1.proto">
+      <Link>Protobuf/Proto/acs1.proto</Link>
+    </ContractStub>
+    <ContractStub Include="..\..\protobuf\acs3.proto">
+      <Link>Protobuf/Proto/acs3.proto</Link>
+    </ContractStub>
+    <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+      <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+    </ContractStub>
   </ItemGroup>
 </Project>

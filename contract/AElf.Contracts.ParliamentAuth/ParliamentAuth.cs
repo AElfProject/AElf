@@ -44,7 +44,7 @@ namespace AElf.Contracts.ParliamentAuth
         public override Address GetGenesisOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
-            return State.GenesisOwnerAddress.Value;
+            return State.DefaultOrganizationAddress.Value;
         }
 
         #endregion view
@@ -55,29 +55,33 @@ namespace AElf.Contracts.ParliamentAuth
             State.Initialized.Value = true;
             var organizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = input.GenesisOwnerReleaseThreshold,
-                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                ReleaseThreshold = input.GenesisOwnerReleaseThreshold
             };
+
+            State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
+            var proposerWhiteList = new ProposerWhiteList();
+
             if (input.PrivilegedProposer != null)
-                organizationInput.ProposerWhiteList.Add(input.PrivilegedProposer);
+                proposerWhiteList.Proposers.Add(input.PrivilegedProposer);
+
+            State.ProposerWhiteList.Value = proposerWhiteList;
             
-            State.GenesisOwnerAddress.Value = CreateOrganization(organizationInput);
+            State.DefaultOrganizationAddress.Value = CreateOrganization(organizationInput);
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-            State.GenesisContract.ChangeGenesisOwner.Send(State.GenesisOwnerAddress.Value);
+            State.GenesisContract.ChangeGenesisOwner.Send(State.DefaultOrganizationAddress.Value);
             return new Empty();
         }
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            AssertAuthorizedProposer();
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             var organization = new Organization
             {
                 ReleaseThreshold = input.ReleaseThreshold,
                 OrganizationAddress = organizationAddress,
-                OrganizationHash = organizationHash,
-                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
-                ProposerWhiteList = {input.ProposerWhiteList}
+                OrganizationHash = organizationHash
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organisations[organizationAddress] == null)
@@ -92,7 +96,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
-            AssertSenderIsAuthorizedProposer(organization);
+            AssertAuthorizedProposer();
 
             Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
             var proposal = new ProposalInfo
@@ -118,7 +122,7 @@ namespace AElf.Contracts.ParliamentAuth
             var proposal = GetValidProposal(approvalInput.ProposalId);
             AssertProposalNotYetApprovedBySender(proposal);
             var currentParliament = GetCurrentMinerList();
-            AssertSenderIsParliementMember(currentParliament);
+            AssertSenderIsParliamentMember(currentParliament);
 
             proposal.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposal;
@@ -139,6 +143,16 @@ namespace AElf.Contracts.ParliamentAuth
             State.Proposals.Remove(proposalId);
             
             return new Empty();
+        }
+
+        public override BoolValue ValidateAddressInProposerWhiteList(Address address)
+        {
+            return new BoolValue {Value = ValidateAddressInWhiteList(address)};
+        }
+
+        public override BoolValue ValidateOrganizationExist(Address input)
+        {
+            return new BoolValue {Value = State.Organisations[input] != null};
         }
     }
 }

@@ -12,6 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -23,19 +24,22 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly ContractOptions _contractOptions;
         public ILogger<LocalTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
+            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot
         )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
+            _contractOptions = contractOptionsSnapshot.Value;
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -71,7 +75,12 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         var task = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
-                        trace = await task.WithCancellation(cancellationToken);
+
+                        if (!_contractOptions.IsTxExecutionTimeoutEnabled || cancellationToken == CancellationToken.None)
+                            trace = await task;
+                        else
+                            trace = await task.WithCancellation(cancellationToken,
+                                new CancellationTokenSource(_contractOptions.TransactionExecutionTimePeriodLimitInMilliSeconds).Token);
                     }
                     catch (OperationCanceledException)
                     {
@@ -251,11 +260,13 @@ namespace AElf.Kernel.SmartContract.Application
                             CurrentBlockTime = currentBlockTime,
                             Origin = txContext.Origin
                         };
-                        inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken).WithCancellation(cancellationToken);    
+                        inlineTrace = await Task
+                            .Run(() => ExecuteOneAsync(singleTxExecutingDto, cancellationToken), cancellationToken)
+                            .WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        Logger.LogTrace("execute transaction timeout");
+                        Logger.LogWarning("Inline transaction canceled.");
                         break;
                     }
 
@@ -297,12 +308,12 @@ namespace AElf.Kernel.SmartContract.Application
                             Transaction = preTx,
                             CurrentBlockTime = currentBlockTime
                         };
-                        preTrace = await ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken).WithCancellation(cancellationToken);
+                        preTrace = await Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
+                            cancellationToken), cancellationToken).WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        Logger.LogTrace("execute transaction timeout");
+                        Logger.LogWarning($"Transaction canceled during pre stage: {txContext.Transaction.GetHash()}");
                         return false;
                     }
 
@@ -355,6 +366,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 internalChainContext.StateCache = internalStateCache;
             }
+            
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
@@ -371,12 +383,12 @@ namespace AElf.Kernel.SmartContract.Application
                             CurrentBlockTime = currentBlockTime,
                             IsCancellable = false
                         };
-                        postTrace = await ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken).WithCancellation(cancellationToken);
+                        postTrace = await Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
+                            cancellationToken), cancellationToken).WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        Logger.LogTrace("execute transaction timeout");
+                        Logger.LogWarning($"Transaction canceled during post stage: {txContext.Transaction.GetHash()}");
                         return false;
                     }
 

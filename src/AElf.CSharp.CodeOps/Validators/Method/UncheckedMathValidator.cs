@@ -3,7 +3,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace AElf.Runtime.CSharp.Validators.Method
+namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class UncheckedMathValidator : IValidator<MethodDefinition>
     {

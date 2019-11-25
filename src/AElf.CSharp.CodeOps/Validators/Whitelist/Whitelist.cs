@@ -6,7 +6,7 @@ using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace AElf.Runtime.CSharp.Validators.Whitelist
+namespace AElf.CSharp.CodeOps.Validators.Whitelist
 {
     public class Whitelist
     {
@@ -225,7 +225,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                         : WhitelistSearchResult.DeniedMember;
     
                 // Check without the prefix as well
-                member = member.Split("_", 2)[1];
+                member = member.Split(new []{'_'}, 2)[1];
                 if (!typeRule.Members.TryGetValue(member, out memberRule))
                 {
                     return typeRule.Permission == Permission.Allowed
