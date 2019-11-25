@@ -103,7 +103,7 @@ namespace AElf.OS.BlockSync.Application
                     continue;
                 }
 
-                if (!await _transactionValidationService.ValidateTransactionAsync(transaction))
+                if (!await _transactionValidationService.ValidateTransactionWhileSyncingAsync(transaction))
                 {
                     return false;
                 }

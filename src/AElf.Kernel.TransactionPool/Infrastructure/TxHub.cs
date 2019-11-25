@@ -227,7 +227,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return;
 
             var validationResult =
-                await _transactionValidationService.ValidateTransactionAsync(queuedTransaction.Transaction);
+                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction.Transaction);
             if (!validationResult)
                 return;
 

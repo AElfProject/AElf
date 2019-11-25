@@ -9,30 +9,42 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class TxHubTransactionValidationService : ITransactionValidationService, ITransientDependency
+    public class TransactionValidationService : ITransactionValidationService, ITransientDependency
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
         private readonly IEnumerable<IConstrainedTransactionValidationProvider>
             _constrainedTransactionValidationProviders;
 
-        public ILogger<TxHubTransactionValidationService> Logger { get; set; }
+        public ILogger<TransactionValidationService> Logger { get; set; }
 
-        public TxHubTransactionValidationService(
+        public TransactionValidationService(
             IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
             IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
             _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
 
-            Logger = NullLogger<TxHubTransactionValidationService>.Instance;
+            Logger = NullLogger<TransactionValidationService>.Instance;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionWhileCollectingAsync(Transaction transaction)
         {
             foreach (var provider in _transactionValidationProviders)
             {
                 if (await provider.ValidateTransactionAsync(transaction)) continue;
+                Logger.LogDebug($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction)
+        {
+            foreach (var provider in _transactionValidationProviders)
+            {
+                if (provider.ValidateWhileSyncing || await provider.ValidateTransactionAsync(transaction)) continue;
                 Logger.LogDebug($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                 return false;
             }

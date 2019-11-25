@@ -445,6 +445,20 @@ namespace AElf.Kernel.SmartContract.Application
                 return txRes;
             }
 
+            if (trace.TransactionFee.IsFailedToCharge)
+            {
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Failed,
+                    ReturnValue = trace.ReturnValue,
+                    ReadableReturnValue = trace.ReadableReturnValue,
+                    BlockNumber = blockHeight,
+                    Logs = {trace.FlattenedLogs},
+                    Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                };
+            }
+
             return new TransactionResult
             {
                 TransactionId = trace.TransactionId,

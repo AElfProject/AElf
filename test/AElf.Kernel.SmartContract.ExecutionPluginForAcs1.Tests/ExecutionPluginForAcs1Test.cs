@@ -169,14 +169,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var dummy = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
 
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
                 Symbol = "ELF"
             })).Balance; 
-            // afterFee.ShouldBe(0); // TODO: Depends one another feature.
+            afterFee.ShouldBe(0);
         }
 
         [Fact]
@@ -206,17 +207,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
+            var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
+            dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
 
-            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = DefaultSender,
                 Symbol = "ELF"
             }); 
-            // before.Balance.ShouldBe(feeAmount);
-
-            var dummy = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            balance.Balance.ShouldBe(0);
         }
     }
 }

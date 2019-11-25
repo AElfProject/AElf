@@ -41,6 +41,8 @@ namespace AElf.Kernel.TransactionPool.Application
             _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
         }
 
+        public bool ValidateWhileSyncing => false;
+
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             // Skip if the sender is a contract.

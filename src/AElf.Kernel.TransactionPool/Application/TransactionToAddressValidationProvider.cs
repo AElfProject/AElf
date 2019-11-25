@@ -7,6 +7,8 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     internal class TransactionToAddressValidationProvider : ITransactionValidationProvider
     {
+        public bool ValidateWhileSyncing => false;
+
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
 
         public ILogger<TransactionToAddressValidationProvider> Logger { get; set; }
