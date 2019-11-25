@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -26,8 +27,7 @@ namespace AElf.Benchmark
         private List<Transaction> _transactions;
         private Block _block;
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] 
-        public int TransactionCount;
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -58,12 +58,10 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _transactions)
-            {
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
-                    _block.Header.GetPreMiningHash());
-            }
+            var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
+                _block.Header.GetPreMiningHash());
         }
     }
 }

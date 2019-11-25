@@ -130,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var processResult = await TryProcessBlockAsync(linkedBlock);
                     if (!processResult)
                     {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                        await _chainManager.SetChainBlockLinkExecutionStatusAsync(blockLink,
                             ChainBlockLinkExecutionStatus.ExecutionFailed);
                         await _chainManager.RemoveLongestBranchAsync(chain);
                         return null;
@@ -170,22 +170,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             await SetBestChainAsync(successLinks, chain);
-            await ProcessChainBlockLinkAsync(successLinks);
+            await _chainManager.SetChainBlockLinkExecutionStatusesAsync(successLinks,
+                ChainBlockLinkExecutionStatus.ExecutionSuccess);
             await PublishBestChainFoundEventAsync(chain, successBlocks);
 
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 
             return blockLinks;
-        }
-
-        private async Task ProcessChainBlockLinkAsync(List<ChainBlockLink> successLinks)
-        {
-            foreach (var blockLink in successLinks)
-            {
-                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            }
         }
 
         private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
