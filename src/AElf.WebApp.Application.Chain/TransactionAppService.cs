@@ -62,48 +62,70 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
         {
+            Transaction transaction;
+
             try
             {
                 var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(byteArray);
-                if (!transaction.VerifySignature())
-                {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
-                        Error.InvalidSignature.ToString());
-                }
+                transaction = Transaction.Parser.ParseFrom(byteArray);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
 
+            if (!transaction.VerifySignature())
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                    Error.InvalidSignature.ToString());
+            }
+
+            try
+            {
                 var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString());
+                    Error.InvalidTransaction.ToString(), e.Message);
             }
         }
 
         public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
         {
+            Transaction transaction;
+
             try
             {
                 var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(byteArray);
+                transaction = Transaction.Parser.ParseFrom(byteArray);
                 transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
-                if (!transaction.VerifySignature())
-                {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                        Error.InvalidTransaction.ToString());
-                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message); //for debug
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                    Error.InvalidParams.ToString());
+            }
 
+            if (!transaction.VerifySignature())
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                    Error.InvalidSignature.ToString());
+            }
+
+            try
+            {
                 var response = await CallReadOnlyReturnReadableValueAsync(transaction);
                 return response;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString());
+                    Error.InvalidTransaction.ToString(), e.Message);
             }
         }
 
@@ -167,6 +189,10 @@ namespace AElf.WebApp.Application.Chain
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
 
             var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+            if (!IsValidMessage(parameters))
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+            }
 
             transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
             output.Transaction = transactionDto;
@@ -235,8 +261,8 @@ namespace AElf.WebApp.Application.Chain
 
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                        Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                        Error.InvalidSignature.ToString());
                 }
 
                 transactions.Add(transaction);

@@ -18,5 +18,5 @@ service BasicContractZero {
 }
 
 message AddressList {
-    repeated aelf.Address Value = 1;
+    repeated aelf.Address value = 1;
 }

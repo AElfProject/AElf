@@ -31,6 +31,20 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             Assert.True(newLimit == 100);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-2)]
+        public async Task Set_Block_Transaction_Limit_InvalidInput(int amount)
+        {
+            var proposalId = await SetBlockTransactionLimitProposalAsync(amount);
+            await ApproveWithMinersAsync(proposalId);
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+
+            Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
+            Assert.Contains("Invalid input.", transactionResult.Error);
+        }
+
         [Fact]
         public async Task Set_Block_Transaction_Limit_NotAuthorized()
         {
