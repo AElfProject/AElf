@@ -332,7 +332,7 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (!trace.TransactionFee.IsFailedToCharge) continue;
+                    if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
 
                     trace.ExecutionStatus = ExecutionStatus.InsufficientTransactionFees;
                     return false;
@@ -445,7 +445,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return txRes;
             }
 
-            if (trace.TransactionFee.IsFailedToCharge)
+            if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
             {
                 return new TransactionResult
                 {
