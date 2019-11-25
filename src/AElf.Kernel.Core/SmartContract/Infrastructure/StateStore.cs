@@ -65,9 +65,48 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             await _stateStoreImplementation.RemoveAsync(key);
         }
 
-        public Task<bool> IsExistsAsync(string key)
+        public async Task<bool> IsExistsAsync(string key)
         {
-            return Task.FromResult(_cache.ContainsKey(key));
+            if (_cache.ContainsKey(key))
+                return true;
+
+            return await _stateStoreImplementation.IsExistsAsync(key);
+        }
+
+        public async Task<List<T>> GetAllAsync(List<string> keys)
+        {
+            var notInCacheKeys = new List<string>();
+            var result = new List<T>();
+            foreach (var key in keys)
+            {
+                if (_cache.TryGetValue(key, out var item))
+                {
+                    result.Add(item);
+                }
+                else
+                {
+                    notInCacheKeys.Add(key);
+                }
+            }
+
+            if (notInCacheKeys.Count > 0)
+            {
+                var resultFromDb = await _stateStoreImplementation.GetAllAsync(notInCacheKeys);
+                if (resultFromDb != null)
+                    result.AddRange(resultFromDb);
+            }
+
+            return result;
+        }
+
+        public async Task RemoveAllAsync(List<string> keys)
+        {
+            foreach (var key in keys)
+            {
+                _cache.TryRemove(key, out _);
+            }
+
+            await _stateStoreImplementation.RemoveAllAsync(keys);
         }
     }
 }
