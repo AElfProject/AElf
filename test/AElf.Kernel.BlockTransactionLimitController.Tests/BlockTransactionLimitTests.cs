@@ -35,13 +35,15 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             ConfigurationStub =
                 GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
                     DefaultSenderKeyPair);
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
         }
 
         [Fact]
         public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
-            OptionalLogEventListeningService<IBestChainFoundLogEventHandler>.Enabled = true;
+            OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>.Enabled = true;
             {
                 var limit = await ConfigurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(0, limit.Value);
@@ -55,7 +57,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             }
             var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
             var chain = await _blockchainService.GetChainAsync();
-            var limitNum = provider.GetLimit(new ChainContext
+            var limitNum = await provider.GetLimitAsync(new ChainContext
                 {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight});
             Assert.Equal(0, limitNum);
         }

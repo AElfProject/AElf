@@ -37,7 +37,7 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
-            var limit = _blockTransactionLimitProvider.GetLimit(new ChainContext
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
                 {BlockHash = previousBlockHash, BlockHeight = previousBlockHeight});
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_transactionPackingService.IsTransactionPackingEnabled()
