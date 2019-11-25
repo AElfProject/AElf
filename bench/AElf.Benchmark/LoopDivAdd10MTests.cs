@@ -23,8 +23,8 @@ namespace AElf.Benchmark
         private Chain _chain;
         private TransactionTrace _transactionTrace;
 
-        private const double executeResult = 501.67224080267556; 
-        
+        private const double ExecuteResult = 501.67224080267556;
+
         [GlobalSetup]
         public async Task GlobalSetup()
         {
@@ -65,7 +65,7 @@ namespace AElf.Benchmark
         public void IterationCleanup()
         {
             var calResult = DoubleValue.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
-            if (calResult != executeResult)
+            if (calResult != ExecuteResult)
             {
                 throw new Exception("execute fail");
             }

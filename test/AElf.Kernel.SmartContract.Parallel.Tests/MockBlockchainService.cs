@@ -33,6 +33,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             return Task.FromResult(_data.Where(d => transactionHashes.Contains(d.GetHash())).ToList());
         }
 
+        public Task<bool> HasTransactionAsync(Hash transactionId)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public async Task AddBlockAsync(Block block)
         {
             await Task.FromException(new System.NotImplementedException());

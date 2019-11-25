@@ -45,8 +45,9 @@ namespace AElf.Contracts.TestKit
             foreach (var transaction in eventData.Transactions)
             {
                 _allTransactions.Add(transaction.GetHash(), transaction);
-                await _transactionManager.AddTransactionAsync(transaction);
             }
+
+            await _blockchainService.AddTransactionsAsync(eventData.Transactions);
         }
 
         public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)

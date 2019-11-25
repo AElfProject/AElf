@@ -24,8 +24,7 @@ namespace AElf.Benchmark
         private Chain _chain;
         private List<Transaction> _transactions;
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] 
-        public int TransactionCount;
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -65,10 +64,7 @@ namespace AElf.Benchmark
                 BlockHeight = _chain.BestChainHeight
             });
 
-            foreach (var transaction in _transactions)
-            {
-                _transactionManager.RemoveTransactionAsync(transaction.GetHash());
-            }
+            await _transactionManager.RemoveTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
         }
     }
 }

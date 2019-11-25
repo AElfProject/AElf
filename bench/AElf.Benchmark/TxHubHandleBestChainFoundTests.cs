@@ -26,8 +26,7 @@ namespace AElf.Benchmark
         private Chain _chain;
         private Block _block;
 
-        [Params(1, 10, 100, 1000, 3000, 5000)]
-        public int TransactionCount;
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -84,18 +83,14 @@ namespace AElf.Benchmark
             {
                 Block = _block
             });
-            
+
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight
             });
-            
-            foreach (var transactionId in _block.Body.TransactionIds)
-            {
-                await _transactionManager.RemoveTransactionAsync(transactionId);
-            }
-            
+
+            await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
