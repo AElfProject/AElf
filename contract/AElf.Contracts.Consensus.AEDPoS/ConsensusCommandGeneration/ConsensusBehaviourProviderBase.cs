@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else if (!IsTimeSlotPassed)
                 {
-                    if (MinerInRound.ProducedTinyBlocks < MaximumBlocksCount)
+                    if (MinerInRound.ActualMiningTimes.Count < MaximumBlocksCount)
                     {
                         return AElfConsensusBehaviour.TinyBlock;
                     }
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     if (CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
                         !CurrentRound.IsMinerListJustChanged &&
-                        MinerInRound.ProducedTinyBlocks < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
+                        MinerInRound.ActualMiningTimes.Count.Add(1) < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
                     {
                         return AElfConsensusBehaviour.TinyBlock;
                     }
@@ -93,7 +93,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // and currently the time is ahead of current round,
                     CurrentBlockTime < CurrentRound.GetRoundStartTime() &&
                     // make this miner produce some tiny blocks.
-                    MinerInRound.ProducedTinyBlocks < MaximumBlocksCount
+                    MinerInRound.ActualMiningTimes.Count < MaximumBlocksCount
                 )
                 {
                     return AElfConsensusBehaviour.TinyBlock;

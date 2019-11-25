@@ -8,7 +8,11 @@ namespace AElf.Contracts.MultiToken
     {
         public override MethodFees GetMethodFee(StringValue input)
         {
-            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
+            var officialTokenContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            var primaryTokenSymbol =
+                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
+                    .Value;
             if (primaryTokenSymbol == string.Empty)
             {
                 return new MethodFees();

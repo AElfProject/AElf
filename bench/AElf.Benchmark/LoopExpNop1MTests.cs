@@ -19,7 +19,6 @@ namespace AElf.Benchmark
         private OSTestHelper _osTestHelper;
 
         private Transaction _transaction;
-        private Block _block;
         private Address _contractAddress;
         private Chain _chain;
         private TransactionTrace _transactionTrace;
@@ -38,7 +37,7 @@ namespace AElf.Benchmark
         }
 
         [IterationSetup]
-        public async Task IterationSetup()
+        public void IterationSetup()
         {
             _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.LoopExpNop), new PerformanceTesteInput()
@@ -62,7 +61,7 @@ namespace AElf.Benchmark
         }
 
         [IterationCleanup]
-        public async Task IterationCleanup()
+        public void IterationCleanup()
         {
             var calResult = UInt64Value.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
             if (calResult != _executeResult)

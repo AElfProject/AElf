@@ -94,7 +94,7 @@ message ChangeContractAuthorInput {
 }
 
 message InitializeInput{
-    bool contractDeploymentAuthorityRequired = 1;
+    bool contract_deployment_authority_required = 1;
 }
 
 // Events
