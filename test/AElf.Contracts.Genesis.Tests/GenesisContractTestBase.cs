@@ -82,11 +82,11 @@ namespace AElf.Contracts.Genesis
             return txResult;
         }
 
-        protected async Task<Hash> CreateProposalAsync(string methodName, IMessage input)
+        protected async Task<Hash> CreateProposalAsync(string methodName, IMessage input, Address organizationAddress = null)
         {
-            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
+            organizationAddress ??= Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,

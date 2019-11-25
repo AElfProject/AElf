@@ -26,7 +26,6 @@ namespace AElf.Contracts.ParliamentAuth
             
             var organization = State.Organisations[proposal.OrganizationAddress];
             var minerList = GetCurrentMinerList();
-            var readyToRelease = IsReleaseThresholdReached(proposal, organization, minerList);
 
             return new ProposalOutput
             {
@@ -37,11 +36,11 @@ namespace AElf.Contracts.ParliamentAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                ToBeReleased = readyToRelease
+                ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization, minerList)
             };
         }
 
-        public override Address GetGenesisOwnerAddress(Empty input)
+        public override Address GetDefaultOrganizationAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
             return State.DefaultOrganizationAddress.Value;
@@ -58,7 +57,6 @@ namespace AElf.Contracts.ParliamentAuth
                 ReleaseThreshold = input.GenesisOwnerReleaseThreshold
             };
 
-            State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
             var proposerWhiteList = new ProposerWhiteList();
 
             if (input.PrivilegedProposer != null)
@@ -66,9 +64,12 @@ namespace AElf.Contracts.ParliamentAuth
 
             State.ProposerWhiteList.Value = proposerWhiteList;
             
-            State.DefaultOrganizationAddress.Value = CreateOrganization(organizationInput);
+            var defaultOrganizationAddress = CreateOrganization(organizationInput);
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-            State.GenesisContract.ChangeGenesisOwner.Send(State.DefaultOrganizationAddress.Value);
+            State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
+            State.GenesisContract.ChangeGenesisOwner.Send(defaultOrganizationAddress);
+            State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
+
             return new Empty();
         }
 

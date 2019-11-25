@@ -523,7 +523,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
         {
-            var genesisOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var genesisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = genesisOwner,
