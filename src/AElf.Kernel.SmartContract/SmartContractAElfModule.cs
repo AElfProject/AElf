@@ -20,15 +20,6 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, DefaultTransactionSizeFeeUnitPriceProvider>();
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var smartContractExecutiveProvider = context.ServiceProvider.GetService<ISmartContractExecutiveProvider>();
-            var blockchainService = context.ServiceProvider.GetService<IBlockchainService>();
-            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
-            if (chain == null) return;
-            smartContractExecutiveProvider.Init(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight);
-        }
         
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {

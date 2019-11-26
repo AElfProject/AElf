@@ -10,10 +10,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var baseRound = validationContext.BaseRound;
             var providedRound = validationContext.ProvidedRound;
             var pubkey = validationContext.SenderPubkey;
-            if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
-                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber)
+            if (providedRound.ConfirmedIrreversibleBlockHeight != 0 &&
+                providedRound.ConfirmedIrreversibleBlockRoundNumber != 0 &&
+                (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
+                 baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber))
             {
-                validationResult.Message = "Incorrect lib information.";
+                validationResult.Message = $"Incorrect lib information.\n" +
+                                           $"{baseRound.ConfirmedIrreversibleBlockHeight} > {providedRound.ConfirmedIrreversibleBlockHeight}\n" +
+                                           $"{baseRound.ConfirmedIrreversibleBlockRoundNumber} > {providedRound.ConfirmedIrreversibleBlockRoundNumber}";
                 return validationResult;
             }
 

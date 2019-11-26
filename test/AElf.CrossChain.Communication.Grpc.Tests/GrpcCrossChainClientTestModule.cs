@@ -79,17 +79,17 @@ namespace AElf.CrossChain.Communication.Grpc
                         {
                             if (i >= GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache.Count)
                                 return null;
-                            return GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache[i++];
+                            return await Task.FromResult(GrpcCrossChainCommunicationTestHelper.ServerBlockDataEntityCache[i++]);
                         });
 
                 mockCrossChainResponseService
-                    .Setup(m => m.ResponseChainInitializationDataFromParentChainAsync(It.IsAny<int>())).Returns(() =>
+                    .Setup(m => m.ResponseChainInitializationDataFromParentChainAsync(It.IsAny<int>())).Returns(async () =>
                     {
                         var chainInitializationData = new ChainInitializationData
                         {
                             CreationHeightOnParentChain = 1
                         };
-                        return Task.FromResult(chainInitializationData);
+                        return await Task.FromResult(chainInitializationData);
                     });
                 return mockCrossChainResponseService.Object;
             });

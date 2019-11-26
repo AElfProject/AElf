@@ -5,7 +5,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
@@ -158,12 +157,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services
                 .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
                 >();
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IBlockTransactionLimitProvider>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 }

@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
-        Task PutExecutiveAsync(IExecutive executive);
+        Task PutExecutiveAsync(Address address, IExecutive executive);
 
         Task<bool> CheckContractHash(IChainContext chainContext, Address address, Hash contractHash);
     }

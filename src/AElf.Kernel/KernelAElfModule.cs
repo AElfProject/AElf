@@ -38,11 +38,5 @@ namespace AElf.Kernel
             taskQueueManager.CreateQueue(KernelConstants.UpdateChainQueueName);
             taskQueueManager.CreateQueue(KernelConstants.ChainCleaningQueueName);
         }
-        
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var blockTransactionLimitProvider = context.ServiceProvider.GetService<IBlockTransactionLimitProvider>();
-            AsyncHelper.RunSync(() => blockTransactionLimitProvider.InitAsync());
-        }
     }
 }

@@ -70,7 +70,7 @@ namespace AElf.Parallel.Tests
             
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             var cancellableTransactions =
-                await _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
+                _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
             var allTransaction = systemTransactions.Concat(cancellableTransactions).ToList();
             await _parallelTestHelper.BroadcastTransactions(allTransaction);
 
@@ -384,7 +384,7 @@ namespace AElf.Parallel.Tests
             transactionResult.Error.ShouldContain("Invalid contract address");
             
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
-            cancellableTransactions = await _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
+            cancellableTransactions = _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
             
             transactionWithoutContract = _parallelTestHelper.GenerateTransaction(accountAddress,
                 SampleAddress.AddressList[0], "Transfer", new Empty());

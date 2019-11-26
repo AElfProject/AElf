@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
@@ -10,7 +12,7 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionBlockIndexService
     {
         Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId);
-        Task UpdateTransactionBlockIndexAsync(Hash txId, BlockIndex blockIndex);
+        Task UpdateTransactionBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex);
         Task<BlockIndex> GetCachedTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null);
         Task InitializeTransactionBlockIndexCacheAsync();
         Task CleanTransactionBlockIndexCacheAsync(long blockHeight);
@@ -38,34 +40,40 @@ namespace AElf.Kernel.Blockchain.Application
             return await GetBlockIndexAsync(transactionBlockIndex);
         }
 
-        public async Task UpdateTransactionBlockIndexAsync(Hash txId, BlockIndex blockIndex)
+        public async Task UpdateTransactionBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
         {
-            var preTransactionBlockIndex =
-                await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
-
-            var transactionBlockIndex = new TransactionBlockIndex
+            var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
+            foreach (var txId in txIds)
             {
-                BlockHash = blockIndex.BlockHash,
-                BlockHeight = blockIndex.BlockHeight
-            };
+                var preTransactionBlockIndex =
+                    await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
 
-            if (preTransactionBlockIndex != null)
-            {
-                if (preTransactionBlockIndex.BlockHash.Equals(blockIndex.BlockHash) ||
-                    preTransactionBlockIndex.PreviousExecutionBlockIndexList.Count(l =>
-                        l.BlockHash.Equals(blockIndex.BlockHash)) != 0)
+                var transactionBlockIndex = new TransactionBlockIndex
                 {
-                    return;
+                    BlockHash = blockIndex.BlockHash,
+                    BlockHeight = blockIndex.BlockHeight
+                };
+
+                if (preTransactionBlockIndex != null)
+                {
+                    if (preTransactionBlockIndex.BlockHash.Equals(blockIndex.BlockHash) ||
+                        preTransactionBlockIndex.PreviousExecutionBlockIndexList.Count(l =>
+                            l.BlockHash.Equals(blockIndex.BlockHash)) != 0)
+                    {
+                        return;
+                    }
+
+                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
+                        .PreviousExecutionBlockIndexList);
+                    var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
+                        preTransactionBlockIndex.BlockHeight);
+                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(previousBlockIndex);
                 }
 
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
-                    .PreviousExecutionBlockIndexList);
-                var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
-                    preTransactionBlockIndex.BlockHeight);
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(previousBlockIndex);
+                transactionBlockIndexes.Add(txId, transactionBlockIndex);
             }
 
-            await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
+            await _transactionBlockIndexManager.SetTransactionBlockIndexesAsync(transactionBlockIndexes);
         }
 
         public async Task<BlockIndex> GetCachedTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null)

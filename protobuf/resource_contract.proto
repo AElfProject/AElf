@@ -49,11 +49,11 @@ service ResourceContract {
 }
 
 enum ResourceType {
-    UndefinedResourceType = 0;
-    Ram = 1;
-    Cpu = 2;
-    Net = 3;
-    Sto = 4;
+    UNDEFINED_RESOURCE_TYPE = 0;
+    RAM = 1;
+    CPU = 2;
+    NET = 3;
+    STO = 4;
 }
 
 message Converter {
