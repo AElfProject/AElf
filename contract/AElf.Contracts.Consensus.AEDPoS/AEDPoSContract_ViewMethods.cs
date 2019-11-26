@@ -498,6 +498,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
                 if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
                     return new SInt64Value(); // Unlikely.
+                if (firstRoundOfCurrentTerm.RealTimeMinersInformation.Count == 1)
+                    return new SInt64Value(); // Return 0 for single node.
                 currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
             }
 
