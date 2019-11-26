@@ -70,14 +70,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             }
 
             // Transaction size related to NET Token.
-            var transactionSize = transactionContext.Transaction.Size();
+            var netSize = transactionContext.Transaction.Size();
             // Transaction trace state set writes count related to STO Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction trace state set reads count related to CPU Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
-            var netCost = _calService.GetNetTokenCost(transactionSize);
-            var cpuCost = _calService.GetCpuTokenCost(readsCount);
-            var stoCost = _calService.GetStoTokenCost(writesCount);
+            var netCost = _calService.GetFee(FeeType.NET, netSize);
+            var cpuCost = _calService.GetFee(FeeType.CPU, readsCount);
+            var stoCost = _calService.GetFee(FeeType.STO, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {

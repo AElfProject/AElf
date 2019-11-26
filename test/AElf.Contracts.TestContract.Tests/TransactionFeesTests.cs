@@ -67,9 +67,9 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var calculator = new CalculateFeeService();
+            var calculator = new CalculateFeeService(new CalProvider());
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(transactionSize));   //according to the way to calculate
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetFee(FeeType.TX, transactionSize));   //according to the way to calculate
 
            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
@@ -119,9 +119,9 @@ namespace AElf.Contract.TestContract
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var txTxSize = transactionResult.Transaction.Size();
-            var calculator = new CalculateFeeService();
+            var calculator = new CalculateFeeService(new CalProvider());
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetTransactionFee(txTxSize));
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.GetFee(FeeType.TX, txTxSize));
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);

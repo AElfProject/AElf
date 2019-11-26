@@ -42,86 +42,57 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
+    public enum FeeType
+    {
+        TX = 0,
+        CPU,
+        STO,
+        RAM,
+        NET
+    }
     public interface ICalculateFeeService : ISingletonDependency
     {
-        long GetCpuTokenCost(int readCount);
-        long GetStoTokenCost(int writeCount);
-        long GetNetTokenCost(int neeCost);
-        long GetTransactionFee(int txSize);
-        ICalCostService GetCpuCalculator { get; }
-        ICalCostService GetNetCalculator { get; }
-        ICalCostService GetStoCalculator { get; }
-        ICalCostService GetTxCalculator { get; }
+        long GetFee(FeeType feeType, int cost);
     }
 
     public class CalculateFeeService : ICalculateFeeService
     {
-        private ICalCostService _cpuCal;
-        private ICalCostService _netCal;
-        private ICalCostService _stoCal;
-        private ICalCostService _txCal;
+        private ICalProvider _calProvider;
 
-        public CalculateFeeService()
+        public CalculateFeeService(ICalProvider calProvider)
         {
-            var calInitializer = new CalculatorInitService();
-            _cpuCal = calInitializer.GetInitCalculator("CPU");
-            _netCal = calInitializer.GetInitCalculator("NET");
-            _stoCal = calInitializer.GetInitCalculator("STO");
-            _txCal = calInitializer.GetInitCalculator("TX");
+            _calProvider = calProvider;
         }
-
-        public ICalCostService GetCpuCalculator => _cpuCal;
-        public ICalCostService GetNetCalculator => _netCal;
-        public ICalCostService GetStoCalculator => _stoCal;
-        public ICalCostService GetTxCalculator => _txCal;
-
-        public long GetCpuTokenCost(int readCount)
+        public long GetFee(FeeType feeType, int cost)
         {
-            return _cpuCal.CalCost(readCount);
-        }
-
-        public long GetStoTokenCost(int writeCount)
-        {
-            return _stoCal.CalCost(writeCount);
-        }
-
-        public long GetNetTokenCost(int netCost)
-        {
-            return _netCal.CalCost(netCost);
-        }
-
-        public long GetTransactionFee(int txSize)
-        {
-            return _txCal.CalCost(txSize);
+            return _calProvider.GetCalculator(feeType).CalCost(cost);
         }
     }
 
-    public interface ICalculatorInitService : ISingletonDependency
+    public interface ICalProvider : ISingletonDependency
     {
-        ICalCostService GetInitCalculator(string name);
+        ICalCostService GetCalculator(FeeType feeType);
     }
 
-    public class CalculatorInitService : ICalculatorInitService
+    public class CalProvider : ICalProvider
     {
-        public CalculatorInitService()
+        private Dictionary<FeeType, ICalCostService> CalDic { get; set; }
+        public CalProvider()
         {
-            CalDic = new Dictionary<string, ICalCostService>
+            CalDic = new Dictionary<FeeType, ICalCostService>
             {
-                ["CPU"] = GetCpuCalculator(),
-                ["STO"] = GetSTOCalculator(),
-                ["NET"] = GetNETCalculator(),
-                ["TX"] = GetTXCalculator()
+                [FeeType.CPU] = GetCpuCalculator(),
+                [FeeType.STO] = GetSTOCalculator(),
+                [FeeType.NET] = GetNETCalculator(),
+                [FeeType.TX] = GetTXCalculator()
             };
         }
 
-        public ICalCostService GetInitCalculator(string name)
+        public ICalCostService GetCalculator(FeeType feeType)
         {
-            CalDic.TryGetValue(name, out var cal);
+            CalDic.TryGetValue(feeType, out var cal);
             return cal;
         }
-
-        public Dictionary<string, ICalCostService> CalDic { get; set; }
-
         private ICalCostService GetCpuCalculator()
         {
             return new CalCostService().Add(10, x => new LinerCalService
