@@ -82,7 +82,7 @@ namespace AElf.Contracts.MultiToken
                 balanceAfterChargingBaseFee >=
                 input.TransactionSizeFee,
                 $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
-                $"Primary token: {input.PrimaryTokenSymbol}");
+                $"Primary token: {input.PrimaryTokenSymbol}" + $" from address:  {fromAddress}");
 
             if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
             {

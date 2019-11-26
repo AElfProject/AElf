@@ -56,19 +56,18 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class CalculateFeeService : ICalculateFeeService
     {
-        private ICalculatorInitService _calInitializer;
         private ICalCostService _cpuCal;
         private ICalCostService _netCal;
         private ICalCostService _stoCal;
         private ICalCostService _txCal;
 
-        public CalculateFeeService(ICalculatorInitService calInitializer)
+        public CalculateFeeService()
         {
-            _calInitializer = calInitializer;
-            _cpuCal = _calInitializer.GetInitCalculator("CPU");
-            _netCal = _calInitializer.GetInitCalculator("NET");
-            _stoCal = _calInitializer.GetInitCalculator("STO");
-            _txCal = _calInitializer.GetInitCalculator("TX");
+            var calInitializer = new CalculatorInitService();
+            _cpuCal = calInitializer.GetInitCalculator("CPU");
+            _netCal = calInitializer.GetInitCalculator("NET");
+            _stoCal = calInitializer.GetInitCalculator("STO");
+            _txCal = calInitializer.GetInitCalculator("TX");
         }
 
         public ICalCostService GetCpuCalculator => _cpuCal;
@@ -213,6 +212,8 @@ namespace AElf.Kernel.SmartContract.Application
         long CalCost(int count);
         ICalCostService Add(int limit, Func<int, long> func);
         ICalCostService Prepare();
+        void Delete();
+        void Update();
     }
 
     public class CalCostService : ICalCostService
@@ -235,9 +236,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         public ICalCostService Prepare()
         {
-            if (!PieceWise.Any())
+            if (!PieceWise.Any() || PieceWise.Any(x => x.Key <= 0))
             {
-                Logger.LogError("piece count wrong");
+                Logger.LogError("piece key wrong");
             }
 
             PieceWise = PieceWise.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
@@ -264,6 +265,15 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return totalCost;
+        }
+
+        public void Delete()
+        {
+            
+        }
+        public void Update()
+        {
+            
         }
     }
 
@@ -305,7 +315,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public long GetCost(int cost)
         {
-            return ((long) Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal).Mul(Weight).Div(WeightBase)
+            return ((long) (Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal)).Mul(Weight).Div(WeightBase)
                 .Add(Decimal.Mul(Numerator).Div(Denominator).Mul(cost));
         }
     }
