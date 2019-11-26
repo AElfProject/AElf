@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel.Domain
@@ -34,6 +35,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             new ConcurrentDictionary<IBlockIndex, List<CodeHashCache>>();
 
         private readonly IChainBlockLinkCacheProvider _chainBlockLinkCacheProvider;
+        
+        public ILogger<ContractRemarksCacheProvider> Logger { get; set; }
 
         public ContractRemarksCacheProvider(IChainBlockLinkCacheProvider chainBlockLinkCacheProvider)
         {
@@ -78,6 +81,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
 
         public void SetContractRemarks(Address address, Hash codeHash, BlockHeader blockHeader)
         {
+            Logger.LogTrace($"Set contract remarks Address: {address}, CodeHash:{codeHash}, BlockHeader:{blockHeader}");
             if (!_forkCache.TryGetValue(address, out var contractRemarksCaches))
             {
                 contractRemarksCaches = new List<ContractRemarksCache>();
