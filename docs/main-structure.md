@@ -2,9 +2,9 @@
 
 * [Tutorials](tutorials/main.md)
     * [Environment setup](tutorials/setup/main.md)
-        * [Environment setup](tutorials/setup.md)
-        * [Running a node](tutorials/run-node.md)
-        * [Running multiple nodes](introduction/multi-nodes.md)
+        * [Environment setup](tutorials/setup/setup.md)
+        * [Running a node](tutorials/setup/run-node.md)
+        * [Running multiple nodes](introduction/setup/multi-nodes.md)
     * [Smart contract development](tutorials/developing-smart-contracts/main.md)
         * [Setup Boilerplate](tutorials/developing-smart-contracts/setup.md)
         * [First contract](tutorials/developing-smart-contracts/first-contract.md)
