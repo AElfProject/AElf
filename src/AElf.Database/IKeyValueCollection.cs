@@ -13,7 +13,8 @@ namespace AElf.Database
         Task<bool> IsExistsAsync(string key);
 
         Task SetAllAsync(IDictionary<string, byte[]> cache);
-
+        Task<List<byte[]>> GetAllAsync(IList<string> keys);
+        Task RemoveAllAsync(IList<string> keys);
     }
 
     public class KeyValueCollection<TKeyValueDbContext> : IKeyValueCollection
@@ -50,13 +51,23 @@ namespace AElf.Database
 
         public async Task<bool> IsExistsAsync(string key)
         {
-            return await _keyValueDatabase.IsExists(key);
+            return await _keyValueDatabase.IsExistsAsync(GetKey(key));
         }
 
         public async Task SetAllAsync(IDictionary<string, byte[]> cache)
         {
             var dic =  cache.ToDictionary(k=> GetKey(k.Key),v => v.Value);
             await _keyValueDatabase.SetAllAsync(dic);
+        }
+
+        public async Task<List<byte[]>> GetAllAsync(IList<string> keys)
+        {
+            return await _keyValueDatabase.GetAllAsync(keys.Select(GetKey).ToList());
+        }
+
+        public async Task RemoveAllAsync(IList<string> keys)
+        {
+            await _keyValueDatabase.RemoveAllAsync(keys.Select(GetKey).ToList());
         }
     }
 }

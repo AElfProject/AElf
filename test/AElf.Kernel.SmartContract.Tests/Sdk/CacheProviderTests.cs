@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         {
             GenerateStateProvider();
             
-            var result = await _scopedProvider.GetAsync(new StatePath
+            var result = _scopedProvider.Get(new StatePath
             {
                 Parts = {"test1"}
             });

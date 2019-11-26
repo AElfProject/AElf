@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using AElf.Types;
@@ -15,22 +14,23 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IBlockValidationService _blockValidationService;
-        private readonly ITxHub _txHub;
+        private readonly IBlockchainService _blockchainService;
 
         public ILogger<BlockSyncValidationService> Logger { get; set; }
 
         private readonly ITransactionValidationService _transactionValidationService;
 
         public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
-            IBlockValidationService blockValidationService, ITxHub txHub,
-            ITransactionValidationService transactionValidationService)
+            IBlockValidationService blockValidationService,
+            ITransactionValidationService transactionValidationService,
+            IBlockchainService blockchainService)
         {
             Logger = NullLogger<BlockSyncValidationService>.Instance;
 
             _announcementCacheProvider = announcementCacheProvider;
             _blockValidationService = blockValidationService;
-            _txHub = txHub;
             _transactionValidationService = transactionValidationService;
+            _blockchainService = blockchainService;
         }
 
         public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
@@ -98,7 +98,7 @@ namespace AElf.OS.BlockSync.Application
                 }
 
                 // No need to validate again if this tx already in local database.
-                if (await _txHub.IsTransactionExistsAsync(transaction.GetHash()))
+                if (await _blockchainService.HasTransactionAsync(transaction.GetHash()))
                 {
                     continue;
                 }

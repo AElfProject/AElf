@@ -194,10 +194,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
                 await _versionedStates.SetAllAsync(dic);
 
-                foreach (var key in blockState.Deletes)
-                {
-                    await _versionedStates.RemoveAsync(key);
-                }
+                await _versionedStates.RemoveAllAsync(blockState.Deletes.ToList());
 
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;
