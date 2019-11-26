@@ -195,7 +195,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 #endregion
 
-                executive.Apply(txContext);
+                await executive.ApplyAsync(txContext);
 
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime, txContext, internalStateCache,
                     internalChainContext, cancellationToken);

@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private static Address FromAddress => Address.FromBytes(new byte[] { }.ComputeHash());
 
-        public static Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
+        public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
             var generatedTxn = new Transaction
@@ -27,7 +27,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var txId = input.GetHash();
             if (!IsParallelizable(executive))
             {
-                return Task.FromResult(NotParallelizable(txId));
+                return NotParallelizable(txId);
             }
 
             var trace = new TransactionTrace
@@ -46,16 +46,16 @@ namespace AElf.Kernel.SmartContract.Parallel
                 StateCache = chainContext.StateCache
             };
 
-            executive.Apply(transactionContext);
+            await executive.ApplyAsync(transactionContext);
             if (!trace.IsSuccessful())
             {
-                return Task.FromResult(NotParallelizable(txId));
+                return NotParallelizable(txId);
             }
 
             try
             {
                 var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
-                return Task.FromResult(new TransactionResourceInfo
+                return new TransactionResourceInfo
                 {
                     TransactionId = txId,
                     Paths =
@@ -65,11 +65,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                     ParallelType = resourceInfo.NonParallelizable
                         ? ParallelType.NonParallelizable
                         : ParallelType.Parallelizable
-                });
+                };
             }
             catch (Exception)
             {
-                return Task.FromResult(NotParallelizable(txId));
+                return NotParallelizable(txId);
             }
         }
 

@@ -81,7 +81,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public void Apply(ITransactionContext transactionContext)
+        public Task ApplyAsync(ITransactionContext transactionContext)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace AElf.Runtime.CSharp
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
                     CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 Execute();
@@ -107,6 +107,8 @@ namespace AElf.Runtime.CSharp
             {
                 _hostSmartContractBridgeContext.TransactionContext = null;
             }
+
+            return Task.CompletedTask;
         }
 
         public void Execute()

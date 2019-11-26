@@ -219,7 +219,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        private Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IExecutive executiveZero, IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
@@ -246,11 +246,11 @@ namespace AElf.Kernel.SmartContract.Application
                 StateCache = chainContext.StateCache
             };
 
-            executiveZero.Apply(txCtxt);
+            await executiveZero.ApplyAsync(txCtxt);
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {
-                return Task.FromResult(SmartContractRegistration.Parser.ParseFrom(returnBytes));
+                return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
             throw new SmartContractFindRegistrationException(

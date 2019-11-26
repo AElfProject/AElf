@@ -29,13 +29,12 @@ namespace AElf.Kernel.TransactionPool.Application
                 return Task.FromResult(true);
             }
 
-            TokenContractContainer.TokenContractStub tokenStub; // No need to instantiate.
             var txsGeneratedByPlugins = new List<string>
             {
-                nameof(tokenStub.ChargeTransactionFees),
-                nameof(tokenStub.ChargeResourceToken),
-                nameof(tokenStub.CheckThreshold),
-                nameof(tokenStub.CheckResourceToken)
+                nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
+                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
+                nameof(TokenContractContainer.TokenContractStub.CheckThreshold),
+                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken)
             };
             return Task.FromResult(!txsGeneratedByPlugins.Contains(transaction.MethodName));
         }

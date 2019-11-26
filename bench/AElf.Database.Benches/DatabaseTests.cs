@@ -8,7 +8,6 @@ using Xunit.Abstractions;
 
 namespace AElf.Database.Benches
 {
-    #pragma warning disable xUnit1013 // Public method should be marked as test
     public class DatabaseTests : BenchBaseTest<DatabaseBenchAElfModule>
     {
         public DatabaseTests(ITestOutputHelper output)

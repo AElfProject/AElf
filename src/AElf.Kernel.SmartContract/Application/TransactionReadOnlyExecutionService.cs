@@ -41,7 +41,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                executive.Apply(transactionContext);
+                await executive.ApplyAsync(transactionContext);
             }
             finally
             {
