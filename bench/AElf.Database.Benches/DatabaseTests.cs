@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AElf.BenchBase;
 using Microsoft.Extensions.Logging;
 using NBench;
@@ -11,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace AElf.Database.Benches
 {
+    #pragma warning disable xUnit1013 // Public method should be marked as test
     public class DatabaseTests : BenchBaseTest<DatabaseBenchAElfModule>
     {
         public DatabaseTests(ITestOutputHelper output)

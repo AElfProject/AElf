@@ -6,9 +6,10 @@ using Xunit.Abstractions;
 
 namespace AElf.Database.Benches
 {
-    public class Class1
+    #pragma warning disable xUnit1013 // Public method should be marked as test
+    public class ThroughPutTest
     {
-        public Class1(ITestOutputHelper output)
+        public ThroughPutTest(ITestOutputHelper output)
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
