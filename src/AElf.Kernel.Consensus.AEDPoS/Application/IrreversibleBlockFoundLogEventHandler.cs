@@ -63,11 +63,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 if (chain.LastIrreversibleBlockHeight > irreversibleBlockFound.IrreversibleBlockHeight)
                     return;
-                if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight)
-                {
-                    _transactionPackingService.EnableTransactionPacking();
-                    return;
-                }
 
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
@@ -75,6 +70,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 
                 // enable transaction packing
                 _transactionPackingService.EnableTransactionPacking();
+
+                if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight)
+                    return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
                 Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +
