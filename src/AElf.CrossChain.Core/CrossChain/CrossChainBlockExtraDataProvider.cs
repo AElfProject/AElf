@@ -31,11 +31,11 @@ namespace AElf.CrossChain
             if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
             
-            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
+            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
             Logger.LogTrace("Cross chain extra data generated.");
-            return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
+            return new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();
         }
     }

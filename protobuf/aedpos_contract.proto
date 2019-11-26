@@ -103,8 +103,8 @@ message UpdateValueInput {
     google.protobuf.Timestamp actual_mining_time = 6;
     sint32 supposed_order_of_next_round = 7;
     map<string, int32> tune_order_information = 8;
-    map<string, bytes> encrypted_in_values = 9; // For others to recover his in value of current round.
-    map<string, bytes> decrypted_previous_in_values = 10;
+    map<string, bytes> encrypted_pieces = 9; // For others to recover his in value of current round.
+    map<string, bytes> decrypted_pieces = 10;
     sint64 produced_blocks = 11;
     map<string, aelf.Hash> miners_previous_in_values = 12;
     sint64 implied_irreversible_block_height = 13;
@@ -140,6 +140,7 @@ message Round {
     sint64 confirmed_irreversible_block_height = 9;
     sint64 confirmed_irreversible_block_round_number = 10;
     bool is_miner_list_just_changed = 11;
+    sint64 round_id_for_validation = 12;
 }
 
 // The information of a miner in a specific round.
@@ -157,8 +158,8 @@ message MinerInRound {
     sint32 supposed_order_of_next_round = 13;
     sint32 final_order_of_next_round = 14;
     repeated google.protobuf.Timestamp actual_mining_times = 15;// Miners must fill actual mining time when they do the mining.
-    map<string, bytes> encrypted_in_values = 16;
-    map<string, bytes> decrypted_previous_inValues = 17;
+    map<string, bytes> encrypted_pieces = 16;
+    map<string, bytes> decrypted_pieces = 17;
     sint32 produced_tiny_blocks = 18;
     sint64 implied_irreversible_block_height = 19;
 }
@@ -171,6 +172,8 @@ message AElfConsensusHeaderInformation {
 
 message AElfConsensusHint {
     AElfConsensusBehaviour behaviour = 1;
+    sint64 round_id = 2;
+    sint64 previous_round_id = 3;
 }
 
 enum AElfConsensusBehaviour {
@@ -183,9 +186,12 @@ enum AElfConsensusBehaviour {
 
 message AElfConsensusTriggerInformation {
     bytes pubkey = 1;// A must-have.
-    aelf.Hash random_hash = 2;// To calculate In Value.
-    aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
+    aelf.Hash in_value = 2;
+    aelf.Hash previous_in_value = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
+    map<string, bytes> encrypted_pieces = 5;
+    map<string, bytes> decrypted_pieces = 6;
+    map<string, aelf.Hash> revealed_in_values = 7;
 }
 
 message TermInfo {
@@ -250,4 +256,17 @@ message MiningInformationUpdated {
     string behaviour = 3 [(aelf.is_indexed) = true];
     sint64 block_height = 4 [(aelf.is_indexed) = true];
     aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
+}
+
+message SecretSharingInformation {
+    option (aelf.is_event) = true;
+    Round previous_round = 1 [(aelf.is_indexed) = true];
+    sint64 current_round_id = 2;
+    sint64 previous_round_id = 3;
+}
+
+message MiningRewardGenerated {
+    option (aelf.is_event) = true;
+    sint64 term_number = 1 [(aelf.is_indexed) = true];
+    sint64 amount = 2;
 }

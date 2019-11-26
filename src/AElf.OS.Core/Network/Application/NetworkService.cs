@@ -23,20 +23,18 @@ namespace AElf.OS.Network.Application
         private readonly IPeerPool _peerPool;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAElfNetworkServer _networkServer;
-        private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
         private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
         private readonly IBlackListedPeerProvider _blackListedPeerProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
         public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer,
-            IKnownBlockCacheProvider knownBlockCacheProvider, IBlackListedPeerProvider blackListedPeerProvider,
+            IBlackListedPeerProvider blackListedPeerProvider, 
             IBroadcastPrivilegedPubkeyListProvider broadcastPrivilegedPubkeyListProvider)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
             _networkServer = networkServer;
-            _knownBlockCacheProvider = knownBlockCacheProvider;
             _broadcastPrivilegedPubkeyListProvider = broadcastPrivilegedPubkeyListProvider;
             _blackListedPeerProvider = blackListedPeerProvider;
 
@@ -109,30 +107,9 @@ namespace AElf.OS.Network.Application
 
             return false;
         }
-        
-        /// <summary>
-        /// returns false if the block was unknown, false if already known.
-        /// </summary>
-        private bool TryAddKnownBlock(BlockHeader blockHeader)
-        {
-            var blockHash = blockHeader.GetHash();
-            if (_knownBlockCacheProvider.TryGetBlockByHeight(blockHeader.Height, out var recentBlockHash) &&
-                recentBlockHash == blockHash)
-            {
-                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
-                return false;
-            }
-            
-            _knownBlockCacheProvider.AddKnownBlock(blockHeader.Height, blockHash, false);
-
-            return true;
-        }
 
         public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
-            if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return;
-
             if (IsOldBlock(blockWithTransactions.Header))
                 return;
             
@@ -140,23 +117,30 @@ namespace AElf.OS.Network.Application
             
             var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
             if (nextPeer != null)
-                await SendBlockAsync(nextPeer, blockWithTransactions);
+                EnqueueBlock(nextPeer, blockWithTransactions);
 
             foreach (var peer in _peerPool.GetPeers())
             {
                 if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
                     continue;
 
-                await SendBlockAsync(peer, blockWithTransactions);
+                EnqueueBlock(peer, blockWithTransactions);
             }
         }
         
-        private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
+        private void EnqueueBlock(IPeer peer, BlockWithTransactions blockWithTransactions)
         {
             try
             {
+                var blockHash = blockWithTransactions.GetHash();
+
+                if (peer.KnowsBlock(blockHash))
+                    return; // block already known to this peer
+
                 peer.EnqueueBlock(blockWithTransactions, async ex =>
                 {
+                    peer.TryAddKnownBlock(blockHash);
+
                     if (ex != null)
                     {
                         Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
@@ -179,10 +163,7 @@ namespace AElf.OS.Network.Application
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
-            
-            if (!TryAddKnownBlock(blockHeader))
-                return Task.CompletedTask;
-            
+
             if (IsOldBlock(blockHeader))
                 return Task.CompletedTask;
             
@@ -197,8 +178,12 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
+                    if (peer.KnowsBlock(blockHash))
+                        return Task.CompletedTask; // block already known to this peer
+
                     peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
                     {
+                        peer.TryAddKnownBlock(blockHash);
                         if (ex != null)
                         {
                             Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
@@ -217,12 +202,17 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
+            var txHash = transaction.GetHash();
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
+                    if (peer.KnowsTransaction(txHash)) 
+                        return Task.CompletedTask; // transaction already known to this peer
+                    
                     peer.EnqueueTransaction(transaction, async ex =>
                     {
+                        peer.TryAddKnownTransaction(txHash);
                         if (ex != null)
                         {
                             Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");

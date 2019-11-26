@@ -92,6 +92,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return false;
             }
 
+            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+                block.Body.TransactionIds.ToList());
+
             return true;
         }
 
@@ -127,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var processResult = await TryProcessBlockAsync(linkedBlock);
                     if (!processResult)
                     {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                        await _chainManager.SetChainBlockLinkExecutionStatusAsync(blockLink,
                             ChainBlockLinkExecutionStatus.ExecutionFailed);
                         await _chainManager.RemoveLongestBranchAsync(chain);
                         return null;
@@ -138,7 +141,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     Logger.LogInformation(
                         $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
                     
-                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {BlockHeader = linkedBlock.Header});
+                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {Block = linkedBlock});
                 }
             }
             catch (BlockValidationException ex)
@@ -167,8 +170,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             await SetBestChainAsync(successLinks, chain);
-            await ProcessChainBlockLinkAsync(successLinks);
-            await ProcessTransactionResultAsync(successBlocks);
+            await _chainManager.SetChainBlockLinkExecutionStatusesAsync(successLinks,
+                ChainBlockLinkExecutionStatus.ExecutionSuccess);
             await PublishBestChainFoundEventAsync(chain, successBlocks);
 
             Logger.LogInformation(
@@ -177,31 +180,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return blockLinks;
         }
 
-        private async Task ProcessChainBlockLinkAsync(List<ChainBlockLink> successLinks)
-        {
-            foreach (var blockLink in successLinks)
-            {
-                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            }
-        }
-
-        private async Task ProcessTransactionResultAsync(List<Block> successBlocks)
-        {
-            foreach (var block in successBlocks)
-            {
-                await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-                    block.Body.TransactionIds.ToList());
-            }
-        }
-
         private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
         {
             await LocalEventBus.PublishAsync(new BestChainFoundEventData
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks.Select(p => p.GetHash()).ToList()
+                ExecutedBlocks = successBlocks
             });
         }
     }

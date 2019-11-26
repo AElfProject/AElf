@@ -84,7 +84,7 @@ message SchemeBeneficiaryShare {
 
 message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
-    BeneficiaryShare BeneficiaryShare = 2;
+    BeneficiaryShare beneficiary_share = 2;
     sint64 end_period = 3;
 }
 
@@ -95,12 +95,12 @@ message RemoveBeneficiaryInput {
 
 message AddBeneficiariesInput {
     aelf.Hash scheme_id = 1;
-    repeated BeneficiaryShare BeneficiaryShares = 2;
+    repeated BeneficiaryShare beneficiary_shares = 2;
     sint64 end_period = 4;
 }
 
 message RemoveBeneficiariesInput {
-    repeated aelf.Address Beneficiaries = 1;
+    repeated aelf.Address beneficiaries = 1;
     aelf.Hash scheme_id = 2;
 }
 
@@ -122,7 +122,7 @@ message DistributeProfitsInput {
 }
 
 message ProfitDetails {
-    repeated ProfitDetail Details = 1;
+    repeated ProfitDetail details = 1;
 }
 
 message ProfitDetail {

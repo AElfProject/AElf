@@ -30,12 +30,14 @@ namespace AElf.Contracts.TestKit
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
         {
-            return new ExecutableTransactionSet
+            var executableTransactionSet = await Task.FromResult(new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight,
                 Transactions = _allTransactions.Values.ToList()
-            };
+            });
+
+            return executableTransactionSet;
         }
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
@@ -43,14 +45,16 @@ namespace AElf.Contracts.TestKit
             foreach (var transaction in eventData.Transactions)
             {
                 _allTransactions.Add(transaction.GetHash(), transaction);
-                await _transactionManager.AddTransactionAsync(transaction);
             }
+
+            await _blockchainService.AddTransactionsAsync(eventData.Transactions);
         }
 
-        public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+            
+            return Task.CompletedTask;
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)

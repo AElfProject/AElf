@@ -187,7 +187,7 @@ namespace AElf.OS
             return (transactions, keyPairs);
         }
 
-        public async Task<List<Transaction>> GenerateTransactionsWithoutConflict(List<ECKeyPair> keyPairs, int count = 1)
+        public List<Transaction> GenerateTransactionsWithoutConflict(List<ECKeyPair> keyPairs, int count = 1)
         {
             var transactions = new List<Transaction>();
             foreach (var keyPair in keyPairs)

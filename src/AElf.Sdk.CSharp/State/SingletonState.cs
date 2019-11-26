@@ -1,4 +1,3 @@
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -61,7 +60,7 @@ namespace AElf.Sdk.CSharp.State
 
         private void Load()
         {
-            var bytes = Provider.GetAsync(Path).Result;
+            var bytes = Provider.Get(Path);
             _originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
             _value = SerializationHelper.Deserialize<TEntity>(bytes);
             Loaded = true;

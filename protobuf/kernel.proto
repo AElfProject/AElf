@@ -62,7 +62,7 @@ message TransactionTrace {
     ExecutionStatus execution_status = 12;
     TransactionExecutingStateSet state_set = 13;
     string readable_return_value = 14;
-    TransactionFee TransactionFee = 15;
+    TransactionFee transaction_fee = 15;
 }
 
 message ExecutionReturnSet {

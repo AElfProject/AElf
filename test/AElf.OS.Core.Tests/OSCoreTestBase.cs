@@ -2,9 +2,14 @@
 
 namespace AElf.OS
 {
-    public class OSCoreNetworkServiceTestBase: AElfIntegratedTest<NetworkServiceTestModule>
+    public class OSCoreNetworkServiceTestBase : AElfIntegratedTest<NetworkServiceTestModule>
     {
     
+    }
+
+    public class NetworkServicePropagationTestBase : AElfIntegratedTest<NetworkServicePropagationTestModule>
+    {
+        
     }
 
     public class SyncFlagTestBase : AElfIntegratedTest<OSCoreSyncFlagTestModule>

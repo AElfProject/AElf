@@ -9,10 +9,6 @@ namespace AElf.CrossChain
 {
     public class IndexedCrossChainBlockDataDiscoveryService : IIndexedCrossChainBlockDataDiscoveryService, ITransientDependency
     {
-        private Bloom _parentChainBlockIndexedEventBloom;
-        private Bloom _sideChainBlockDataIndexedEventBloom;
-        private Address _crossChainContractAddress;
-
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         public IndexedCrossChainBlockDataDiscoveryService(ISmartContractAddressService smartContractAddressService)
@@ -22,28 +18,22 @@ namespace AElf.CrossChain
         
         public bool TryDiscoverIndexedParentChainBlockDataAsync(IBlock block)
         {
-            SetEventBloom();
-            return _parentChainBlockIndexedEventBloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
+            var crossChainContractAddress = GetCrossChainContractAddress();
+            return new ParentChainBlockDataIndexed().ToLogEvent(crossChainContractAddress).GetBloom()
+                .IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
         }
 
         public bool TryDiscoverIndexedSideChainBlockDataAsync(IBlock block)
         {
-            SetEventBloom();
-            return _sideChainBlockDataIndexedEventBloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
+            var crossChainContractAddress = GetCrossChainContractAddress();
+            return new SideChainBlockDataIndexed().ToLogEvent(crossChainContractAddress).GetBloom()
+                .IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
         }
 
-        private void SetEventBloom()
+        private Address GetCrossChainContractAddress()
         {
-            if (_crossChainContractAddress == null)
-                _crossChainContractAddress =
-                    _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider
-                        .Name);
-            if (_parentChainBlockIndexedEventBloom == null)
-                _parentChainBlockIndexedEventBloom = new ParentChainBlockDataIndexed()
-                    .ToLogEvent(_crossChainContractAddress).GetBloom();
-            if (_sideChainBlockDataIndexedEventBloom == null)
-                _sideChainBlockDataIndexedEventBloom =
-                    new SideChainBlockDataIndexed().ToLogEvent(_crossChainContractAddress).GetBloom();
+            return _smartContractAddressService.GetAddressByContractName(
+                CrossChainSmartContractAddressNameProvider.Name);
         }
     }
 }

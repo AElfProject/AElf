@@ -98,30 +98,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
-            string publicKey)
-        {
-            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
-            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
-            {
-                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
-                    .Add(publicKey, decryptedPreviousInValue.Value);
-            }
-        }
-
-        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
-        {
-            foreach (var previousInValue in input.MinersPreviousInValues)
-            {
-                if (previousInValue.Key == publicKey || previousInValue.Value == null)
-                {
-                    continue;
-                }
-
-                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
-            }
-        }
-
         #endregion
 
         #region UpdateTinyBlockInformation

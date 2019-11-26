@@ -35,11 +35,9 @@ namespace AElf.Benchmark
         private List<BlockStateSet> _blockStateSets;
         private List<Block> _blocks;
 
-        [Params(1, 10, 50)] 
-        public int BlockCount;
-        
-        [Params(1, 10, 100, 1000, 3000, 5000)]
-        public int TransactionCount;
+        [Params(1, 10, 50)] public int BlockCount;
+
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -55,10 +53,10 @@ namespace AElf.Benchmark
             _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _txHub = GetRequiredService<ITxHub>();
-            
+
             _blockStateSets = new List<BlockStateSet>();
             _blocks = new List<Block>();
-            
+
             _chain = await _blockchainService.GetChainAsync();
 
             var blockHash = _chain.BestChainHash;
@@ -66,7 +64,7 @@ namespace AElf.Benchmark
             {
                 var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
                 _blockStateSets.Add(blockState);
-                
+
                 var blockHeader = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
                 blockHash = blockHeader.PreviousBlockHash;
                 if (blockHash == _chain.LastIrreversibleBlockHash)
@@ -76,7 +74,7 @@ namespace AElf.Benchmark
             }
 
             await _blockchainStateService.MergeBlockStateAsync(_chain.BestChainHeight, _chain.BestChainHash);
-            
+
             for (var i = 0; i < BlockCount; i++)
             {
                 var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
@@ -118,25 +116,24 @@ namespace AElf.Benchmark
             {
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    BlockHeader = block.Header
+                    Block = block
                 });
-                
-                foreach (var tx in block.Body.TransactionIds)
-                {
-                    await _transactionManager.RemoveTransactionAsync(tx);
-                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
-                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
-                }
+
+                await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);
+                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
+                    block.GetHash());
+                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
+                    block.Header.GetPreMiningHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
-            
+
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight
             });
-            
+
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
         }
     }

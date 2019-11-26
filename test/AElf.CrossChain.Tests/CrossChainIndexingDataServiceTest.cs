@@ -360,7 +360,7 @@ namespace AElf.CrossChain
             {
                 Height = 1,
                 ChainId = chainId,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1
+                TransactionStatusMerkleTreeRoot = fakeMerkleTreeRoot1
             };
             
             var fakeIndexedCrossChainBlockData = new CrossChainBlockData();

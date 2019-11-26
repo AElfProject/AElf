@@ -35,7 +35,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
-        
+
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
@@ -61,7 +61,7 @@ namespace AElf.Blockchains.BasicBaseChain
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
                 .SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
                 .Build();
-            
+
             hostBuilderContext.Configuration = newConfig;
         }
 
@@ -84,7 +84,7 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
                     .GetConfiguration().GetValue("Economic:ResourceTokenSymbolList", "RAM,STO,CPU,NET");
             });
-            
+
             Configure<ContractOptions>(configuration.GetSection("Contract"));
             Configure<ContractOptions>(options =>
             {
@@ -109,7 +109,7 @@ namespace AElf.Blockchains.BasicBaseChain
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
-            
+
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

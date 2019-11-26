@@ -819,7 +819,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
+            await _chainManager.SetChainBlockLinkExecutionStatusAsync(firstBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
@@ -832,7 +832,7 @@ namespace AElf.Kernel.Blockchain.Domain
             };
 
             _chainManager
-                .SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
+                .SetChainBlockLinkExecutionStatusAsync(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
                 .ShouldThrow<InvalidOperationException>();
         }
 
@@ -846,7 +846,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
+            await _chainManager.SetChainBlockLinkExecutionStatusAsync(firstBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionFailed);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -858,7 +858,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
             };
 
-            _chainManager.SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
+            _chainManager.SetChainBlockLinkExecutionStatusAsync(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
                 .ShouldThrow<InvalidOperationException>();
         }
 

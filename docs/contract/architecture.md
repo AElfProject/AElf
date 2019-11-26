@@ -6,13 +6,13 @@ In aelf, a smart contract essentially has three parts: the interface, the state,
 
 1. the interface - aelf supports smart contracts coded in multiple languages. Protobuf format is adopted as the cross-language definition of the contract.
 
-2. the state - the language specific SDKs provide some prototypes for the state of different types.
+2. the state - the language specific SDK's provide some prototypes for the state of different types.
 
-3. the buisness logic - aelf provides protobuf plugins to generate the smart contract skeleton from the contract's proto definition. Developers just need to fill the logics for each method.
+3. the business logic - aelf provides protobuf plugins to generate the smart contract skeleton from the contract's proto definition. Developers just need to fill the logics for each method.
 
-Smart contracts in AElf are spread across the Kernel, the runtim and the SDK. The kernel defines the fundamental components and infrastructure associated with smart contracts. It also defines the abstractions for execution. Smart contract also heavily rely on the runtime modules and the sdk project.
+Smart contracts in AElf are spread across the Kernel, the runtime and the SDK. The kernel defines the fundamental components and infrastructure associated with smart contracts. It also defines the abstractions for execution. Smart contract also heavily rely on the runtime modules and the sdk project.
 
-Smart contracts, along with the blockchains data, form the heart of a blockchain system. They define through some predefined logic how and according to what rules the state of the blockchain is modified. 
+Smart contracts, along with the blockchain's data, form the heart of a blockchain system. They define through some predefined logic how and according to what rules the state of the blockchain is modified. 
 A smart contract is a collection of methods that each act upon a certain set of state variables.
 
 The logic contained in smart contracts is triggered by transactions. If a user of the blockchain wants to modify some state, he needs to build a transaction that will call a specific methods on some contract. When the transaction is included in a block and this block is executed, the modifications will be executed.
@@ -35,7 +35,7 @@ As showed in the diagram above, smart contracts functionality is defined within 
 
 ### Chain interactions
 
-Smart contract need to interact with the chain and have access to contexutal information. For this AElf defines a bridge and a bridge host. Usually the programming SDK corresponding to specific language will implement features to communicate with/through the bridge.
+Smart contract need to interact with the chain and have access to contextual information. For this AElf defines a bridge and a bridge host. Usually the programming SDK corresponding to specific language will implement features to communicate with/through the bridge.
 
 One of the major functionalities provided by the bridge is the ability to provide contextual information to the smart contract being executed. Here are a few:
 * the **Self** field represents the address of the current contract being called.
@@ -48,19 +48,19 @@ The bridge also exposes extra functionality:
 
 #### State 
 
-The main point of a smart contract is to read and/or modify state. The language SDKs implement state helpers and through the bridge's **StateProvider**. 
+The main point of a smart contract is to read and/or modify state. The language SDK's implement state helpers and through the bridge's **StateProvider**. 
 
 ### Runtime and execution
 
 When a block's transactions are executed, every transaction will generate a trace. Amongst other things, it contains:
-* the return value of the called method, this can be anything defined in protobuf format and is deefined in the service definition.
+* the return value of the called method, this can be anything defined in protobuf format and is defined in the service definition.
 * error outputs, if execution encountered a problem.
 * the results from inner calls in **InlineTraces** field.
 * the **Logs** field will contain the events launched from the called method.
 
 ### Sdk
 
-AElf comes with a native C# SDK that give smart contract developpers the necessary tools to develop smart contracts in C#. It contains helpers to communcate with the bridge. By using the SDK you can also take advantage of the type infrastructure defined in the library:
+AElf comes with a native C# SDK that give smart contract developers the necessary tools to develop smart contracts in C#. It contains helpers to communicate with the bridge. By using the SDK you can also take advantage of the type infrastructure defined in the library:
 * ContractState: an interface that is implemented by a classes that are destined to be containers for state field.
 * MappedState: a base type that defines **collections** a key-value mapping, generic subclasses are available to enable multi-key scenarios.
 * SingletonState: this defines **non-collection** types with a 

@@ -41,4 +41,4 @@ The **signature** field is destined to host the signature of the producer of tha
 
 #### Merkle tree
 
-The header contains the merkle tree of the transactions that where included in the block. It also contains the merkle tree of the state which is the merkle tree formed by the hash of the txid and the status of its transaction result.
+The header contains the merkle tree of the transactions that where included in the block. It also contains the merkle tree of the state which is the merkle tree formed by the hash of the transaction ID and the status of its transaction result.

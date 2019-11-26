@@ -30,12 +30,14 @@ namespace AElf.OS
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
         {
-            return new ExecutableTransactionSet
+            var executableTransactionSet = await Task.FromResult(new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight,
                 Transactions = _allTransactions.Values.ToList()
-            };
+            });
+
+            return executableTransactionSet;
         }
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
@@ -49,10 +51,11 @@ namespace AElf.OS
             }
         }
 
-        public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+            
+            return Task.CompletedTask;
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -80,11 +83,13 @@ namespace AElf.OS
                 return null;
             }
 
-            return new QueuedTransaction
+            var queuedTransaction = await Task.FromResult(new QueuedTransaction
             {
                 TransactionId = transactionId,
-                Transaction = transaction,
-            };
+                Transaction = transaction
+            });
+
+            return queuedTransaction;
         }
 
         public Task<int> GetAllTransactionCountAsync()

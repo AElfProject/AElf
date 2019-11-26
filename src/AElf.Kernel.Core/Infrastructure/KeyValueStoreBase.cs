@@ -98,5 +98,19 @@ namespace AElf.Kernel.Infrastructure
         {
             return await _collection.IsExistsAsync(key);
         }
+
+        public virtual async Task<List<T>> GetAllAsync(List<string> keys)
+        {
+            var result = await _collection.GetAllAsync(keys);
+
+            return result == null || result.Count == 0
+                ? default
+                : result.Select(r => r == null ? default : Deserialize(r)).ToList();
+        }
+
+        public virtual async Task RemoveAllAsync(List<string> keys)
+        {
+            await _collection.RemoveAllAsync(keys);
+        }
     }
 }
