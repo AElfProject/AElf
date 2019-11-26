@@ -237,7 +237,7 @@ namespace AElf.Contract.TestContract
                 )).TransactionResult;
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("no permission").ShouldBeTrue();
+                transactionResult.Error.Contains("No permission.").ShouldBeTrue();
             }
             
             //with permission
