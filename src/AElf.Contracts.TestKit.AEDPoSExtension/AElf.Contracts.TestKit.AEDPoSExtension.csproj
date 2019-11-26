@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.Contracts.TestKet.AEDPoSExtension</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
