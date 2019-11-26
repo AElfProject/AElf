@@ -138,7 +138,7 @@ namespace AElf.Contracts.TestKit
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
-                .SetKeyPair(CryptoHelper.GenerateKeyPair());
+                .SetKeyPair(SampleECKeyPairs.KeyPairs[0]);
 
             var dto = new OsBlockchainNodeContextStartDto
             {
