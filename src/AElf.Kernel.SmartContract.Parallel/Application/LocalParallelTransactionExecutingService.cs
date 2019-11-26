@@ -120,6 +120,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
             BlockHeader blockHeader)
         {
+            var transactionResults = new List<TransactionResult>();
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
             {
@@ -130,7 +131,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Error = "Invalid contract address."
                 };
                 Logger.LogError(result.Error);
-                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+                transactionResults.Add(result);
 
                 var returnSet = new ExecutionReturnSet
                 {
@@ -140,6 +141,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
                 returnSets.Add(returnSet);
             }
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
+
 
             return returnSets;
         }
@@ -147,6 +150,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictionSets,
             List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
         {
+            var transactionResults = new List<TransactionResult>();
             foreach (var conflictionSet in conflictionSets)
             {
                 var result = new TransactionResult
@@ -156,9 +160,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Error = ExecutionStatus.Canceled.ToString()
                 };
                 conflictionSet.Status = result.Status;
-                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+                transactionResults.Add(result);
                 returnSets.Add(conflictionSet);
             }
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
+
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
