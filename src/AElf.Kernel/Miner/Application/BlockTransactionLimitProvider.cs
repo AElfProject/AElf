@@ -85,8 +85,7 @@ namespace AElf.Kernel.Miner.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex,out _)) continue;
-                var limit = _forkCache[blockIndex];
+                if(!_forkCache.TryGetValue(blockIndex,out var limit)) continue;
                 _limit = limit;
                 _forkCache.TryRemove(blockIndex, out _);
             }

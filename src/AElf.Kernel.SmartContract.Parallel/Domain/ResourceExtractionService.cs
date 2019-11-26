@@ -111,7 +111,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }
         }

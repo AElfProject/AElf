@@ -25,9 +25,9 @@ namespace AElf.Kernel.SmartContract.Application
             return await _smartContractExecutiveProvider.GetExecutiveAsync(chainContext, address);
         }
 
-        public virtual async Task PutExecutiveAsync(IExecutive executive)
+        public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            await _smartContractExecutiveProvider.PutExecutiveAsync(executive);
+            await _smartContractExecutiveProvider.PutExecutiveAsync(address, executive);
         }
 
         public async Task<bool> CheckContractHash(IChainContext chainContext, Address address, Hash contractHash)
