@@ -9,7 +9,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     /// </summary>
     public partial class AEDPoSContract
     {
-        private readonly Dictionary<long, Round> _rounds = new Dictionary<long, Round>();
         private string _processingBlockMinerPubkey;
         private bool? _isMainChain;
     }
