@@ -8,9 +8,9 @@
     * [Smart contract development](tutorials/developing-smart-contracts/main.md)
         * [Setup Boilerplate](tutorials/developing-smart-contracts/setup.md)
         * [First contract](tutorials/developing-smart-contracts/first-contract.md)
-        * [Issue tokens](tutorials/developing-smart-contracts/token-issue.md)
-        * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md)
-        * [More about state](tutorials/developing-smart-contracts/complex-state.md)
+        <!-- * [Issue tokens](tutorials/developing-smart-contracts/token-issue.md) -->
+        <!-- * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md) -->
+        <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
     * [Enterprise development](tutorials/enterprise.md)
     * [Running on Google cloud](tutorials/GCP.md)
