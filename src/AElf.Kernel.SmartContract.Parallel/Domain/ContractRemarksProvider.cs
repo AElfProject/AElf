@@ -156,8 +156,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                     };
                     _cache[address] = contractRemarks;
                     contractRemarksList.Add(contractRemarks);
-                    caches.Remove(cache);
                 }
+                caches.RemoveAll(c => blockHashes.Contains(c.BlockHash));
                 if (caches.Count != 0) continue;
                 _forkCache.TryRemove(address, out _);
             }
