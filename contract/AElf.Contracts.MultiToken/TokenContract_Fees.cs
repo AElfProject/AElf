@@ -43,15 +43,20 @@ namespace AElf.Contracts.MultiToken
                     out var amount, out existingBalance))
                 {
                     Context.LogDebug(() => "Failed to charge first sufficient token.");
+                    var txFee = new TransactionFee
+                    {
+                        IsFailedToCharge = true
+                    };
                     if (symbol != null)
                     {
                         State.Balances[fromAddress][symbol] = 0;
                         bill.TokenToAmount.Add(symbol, existingBalance);
                         var feeBill = State.ChargedFees[fromAddress];
                         State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
+                        txFee.Value.Add(symbol, existingBalance);
                     }
                     // If symbol == null, then charge nothing.
-                    return new TransactionFee {IsFailedToCharge = true};
+                    return txFee;
                 }
 
                 bill.TokenToAmount.Add(symbol, amount);
@@ -94,6 +99,10 @@ namespace AElf.Contracts.MultiToken
                 Context.LogDebug(() =>
                     $"Insufficient balance to pay tx size fee: {primaryTokenBalanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
                     $"Primary token: {input.PrimaryTokenSymbol}");
+                var txFee = new TransactionFee
+                {
+                    IsFailedToCharge = true
+                };
                 if (symbol != null)
                 {
                     State.Balances[fromAddress][symbol] = 0;
@@ -102,6 +111,8 @@ namespace AElf.Contracts.MultiToken
                     bill.TokenToAmount.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
                     var feeBill = State.ChargedFees[fromAddress];
                     State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
+                    txFee.Value.Add(symbol, existingBalance);
+                    txFee.Value.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
                 }
  
                 return new TransactionFee {IsFailedToCharge = true};
@@ -225,8 +236,9 @@ namespace AElf.Contracts.MultiToken
 
             if (existingBalance >= amount) return true;
 
-            if (symbolToAmountMap.Keys.Contains(Context.Variables.NativeSymbol))
-                symbol = Context.Variables.NativeSymbol;
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
+            if (symbolToAmountMap.Keys.Contains(primaryTokenSymbol))
+                symbol = primaryTokenSymbol;
             else
             {
                 // symbol is potentially set to null.

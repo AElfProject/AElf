@@ -270,6 +270,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                if (chargedSymbol != null)
+                {
+                    dummyResult.TransactionResult.TransactionFee.Value.Keys.First().ShouldBe(chargedSymbol);
+                    dummyResult.TransactionResult.TransactionFee.Value.Values.First().ShouldBeGreaterThan(0);
+                }
             }
 
             var finalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
