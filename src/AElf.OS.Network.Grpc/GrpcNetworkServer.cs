@@ -102,7 +102,7 @@ namespace AElf.OS.Network.Grpc
                 {
                     bool dialed = false;
                     
-                    if (!IpEndPointHelper.TryParse(node, out IPEndPoint endpoint))
+                    if (!AElfPeerEndpointHelper.TryParse(node, out DnsEndPoint endpoint))
                         return;
                     
                     try
@@ -127,7 +127,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
+        public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             return await _connectionService.ConnectAsync(endpoint);
         }

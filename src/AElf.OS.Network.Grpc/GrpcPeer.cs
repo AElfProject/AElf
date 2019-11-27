@@ -92,7 +92,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public byte[] OutboundSessionId => Info.SessionId;
 
-        public IPEndPoint RemoteEndpoint { get; }
+        public DnsEndPoint RemoteEndpoint { get; }
         public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
@@ -114,7 +114,7 @@ namespace AElf.OS.Network.Grpc
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
-        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
+        public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
             _channel = client.Channel;
             _client = client.Client;

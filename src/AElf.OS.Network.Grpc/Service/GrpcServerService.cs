@@ -9,6 +9,8 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
+using AElf.OS.Network.Grpc.Helpers;
+using AElf.OS.Network.Helpers;
 using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Utils;
@@ -59,8 +61,8 @@ namespace AElf.OS.Network.Grpc
                     foreach (var authProperty in context.AuthContext.Properties)
                         Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
                 }
-            
-                if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+
+                if(!GrpcEndPointHelpers.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
                     return new HandshakeReply { Error = HandshakeError.InvalidConnection};
             
                 return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);

@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(IPEndPoint remoteEndPoint)
+        public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndPoint)
         {
             var handshake = await _handshakeProvider.GetHandshakeAsync();
             var client = CreateClient(remoteEndPoint);
@@ -91,7 +91,7 @@ namespace AElf.OS.Network.Grpc
         /// Calls the server side DoHandshake RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, IPEndPoint remoteEndPoint,
+        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, DnsEndPoint remoteEndPoint,
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
@@ -117,7 +117,7 @@ namespace AElf.OS.Network.Grpc
             return handshakeReply;
         }
 
-        public async Task<GrpcPeer> DialBackPeerAsync(IPEndPoint endpoint, Handshake handshake)
+        public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint endpoint, Handshake handshake)
         {
             var client = CreateClient(endpoint);
             await PingNodeAsync(client, endpoint);
@@ -140,7 +140,7 @@ namespace AElf.OS.Network.Grpc
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(GrpcClient client, IPEndPoint ipAddress)
+        private async Task PingNodeAsync(GrpcClient client, DnsEndPoint ipAddress)
         {
             try
             {
@@ -164,7 +164,7 @@ namespace AElf.OS.Network.Grpc
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        private GrpcClient CreateClient(IPEndPoint endpoint)
+        private GrpcClient CreateClient(DnsEndPoint endpoint)
         {
             var certificate = RetrieveServerCertificate(endpoint);
 
@@ -180,7 +180,7 @@ namespace AElf.OS.Network.Grpc
                 var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
                 credentials = new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
             }
-
+            
             var channel = new Channel(endpoint.ToString(), credentials, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
@@ -201,15 +201,15 @@ namespace AElf.OS.Network.Grpc
             return new GrpcClient(channel, client);
         }
         
-        private X509Certificate RetrieveServerCertificate(IPEndPoint endpoint)
+        private X509Certificate RetrieveServerCertificate(DnsEndPoint endpoint)
         {
             try
             {
-                var client = new TcpClient(endpoint.Address.ToString(), endpoint.Port);
+                var client = new TcpClient(endpoint.Host, endpoint.Port);
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {
-                    sslStream.AuthenticateAsClient(endpoint.Address.ToString());
+                    sslStream.AuthenticateAsClient(endpoint.Host);
                     
                     if (sslStream.RemoteCertificate == null)
                         throw new PeerDialException($"Certificate from {endpoint} is null");

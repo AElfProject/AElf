@@ -56,9 +56,16 @@ namespace AElf.OS.Worker
             foreach (var peerToConnect in peersToConnect)
             {
                 string peerEndpoint = peerToConnect.Endpoint;
-                
+                if (!AElfPeerEndpointHelper.TryParse(peerEndpoint, out var parsed))
+                {
+                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
+                        Logger.LogWarning($"Invalid {peerEndpoint}.");
+
+                    continue;
+                }
+
                 // check that we haven't already reconnected to this node
-                if (_peerPool.FindPeerByEndpoint(IpEndPointHelper.Parse(peerEndpoint)) != null)
+                if (_peerPool.FindPeerByEndpoint(parsed) != null)
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
