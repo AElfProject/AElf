@@ -60,6 +60,6 @@
     * [Command line interface](resources/cli/cli.md)
       * [Introduction](resources/cli/introduction.md)
       * [Commands](resources/cli/methods.md)
-    * [Running AElf on the cloud](resources/gcp/GCP.md)
-      * [Google cloud](resources/gcp/GCP.md)
+    * [Running AElf on the cloud](resources/cloud/main.md)
+      * [Google cloud](resources/cloud/gcp/GCP.md)
     * [Browser Extension](resources/browser-extension.md)
