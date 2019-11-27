@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,
-                    MiningRewardTotalAmount = 2_000_000_000_00000000,
+                    MiningRewardTotalAmount = 1_200_000_000_00000000,
                     NativeTokenDecimals = 8,
                     NativeTokenSymbol = EconomicTestConstants.TokenSymbol,
                     NativeTokenTotalSupply = 10_000_000_000_00000000,
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 issueTransactions.Add(EconomicStub.IssueNativeToken.GetTransaction(new IssueNativeTokenInput
                 {
                     To = Address.FromPublicKey(coreDataCenterKeyPair.PublicKey),
-                    Amount = 8_000_000_000_00000000 / 100,
+                    Amount = 8_800_000_000_00000000 / SampleECKeyPairs.KeyPairs.Count,
                 }));
             }
 

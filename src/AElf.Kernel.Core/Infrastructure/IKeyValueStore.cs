@@ -12,5 +12,7 @@ namespace AElf.Kernel.Infrastructure
         Task<T> GetAsync(string key);
         Task RemoveAsync(string key);
         Task<bool> IsExistsAsync(string key);
+        Task<List<T>> GetAllAsync(List<string> keys);
+        Task RemoveAllAsync(List<string> keys);
     }
 }

@@ -173,6 +173,7 @@ namespace AElf.OS.Network.Grpc
             if (certificate != null)
             {
                 Logger.LogDebug("Upgrading connection to TLS.");
+                Logger.LogDebug($"Certificate {certificate}.");
 
                 var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
                 var clientCertificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),

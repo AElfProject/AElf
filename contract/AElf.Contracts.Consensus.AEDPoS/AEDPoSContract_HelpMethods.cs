@@ -45,53 +45,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return roundNumber != 0;
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round, bool useCache = false)
+        private bool TryToGetCurrentRoundInformation(out Round round)
         {
             round = null;
             if (!TryToGetRoundNumber(out var roundNumber)) return false;
-
-            if (useCache && _rounds.ContainsKey(roundNumber))
-            {
-                round = _rounds[roundNumber];
-            }
-            else
-            {
-                round = State.Rounds[roundNumber];
-            }
-
+            round = State.Rounds[roundNumber];
             return !round.IsEmpty;
         }
 
-        private bool TryToGetPreviousRoundInformation(out Round previousRound, bool useCache = false)
+        private bool TryToGetPreviousRoundInformation(out Round previousRound)
         {
             previousRound = new Round();
             if (!TryToGetRoundNumber(out var roundNumber)) return false;
             if (roundNumber < 2) return false;
             var targetRoundNumber = roundNumber.Sub(1);
-            if (useCache && _rounds.ContainsKey(targetRoundNumber))
-            {
-                previousRound = _rounds[targetRoundNumber];
-            }
-            else
-            {
-                previousRound = State.Rounds[targetRoundNumber];
-            }
-
+            previousRound = State.Rounds[targetRoundNumber];
             return !previousRound.IsEmpty;
         }
 
-        private bool TryToGetRoundInformation(long roundNumber, out Round round, bool useCache = false)
+        private bool TryToGetRoundInformation(long roundNumber, out Round round)
         {
-            if (useCache && _rounds.ContainsKey(roundNumber))
-            {
-                round = _rounds[roundNumber];
-            }
-            else
-            {
-                round = State.Rounds[roundNumber];
-                _rounds[roundNumber] = round;
-            }
-
+            round = State.Rounds[roundNumber];
             return !round.IsEmpty;
         }
 

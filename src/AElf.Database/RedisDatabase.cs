@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
 using Volo.Abp;
@@ -19,7 +20,7 @@ namespace AElf.Database
             _pooledRedisLite = new PooledRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
         }
 
-        public async Task<bool> IsExists(string key)
+        public async Task<bool> IsExistsAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
             return _pooledRedisLite.Exists(key);
@@ -48,11 +49,39 @@ namespace AElf.Database
             _pooledRedisLite.Remove(key);
         }
 
-        public async Task SetAllAsync(Dictionary<string, byte[]> cache)
+        public async Task SetAllAsync(IDictionary<string, byte[]> values)
         {
-            if (cache.Count == 0)
+            if (values.Count == 0)
                 return;
-            _pooledRedisLite.SetAll(cache);
+            foreach (var key in values.Keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+            _pooledRedisLite.SetAll(values);
+        }
+        
+        public async Task<List<byte[]>> GetAllAsync(IList<string> keys)
+        {
+            if (keys.Count == 0)
+                return null;
+            foreach (var key in keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+
+            return _pooledRedisLite.GetAll(keys.ToArray()).ToList();
+        }
+        
+        public async Task RemoveAllAsync(IList<string> keys)
+        {
+            if (keys.Count == 0)
+                return;
+            foreach (var key in keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+
+            _pooledRedisLite.RemoveAll(keys.ToArray());
         }
     }
 }

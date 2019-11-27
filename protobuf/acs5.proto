@@ -31,6 +31,6 @@ message SetMethodCallingThresholdInput {
 }
 
 enum ThresholdCheckType {
-    Balance = 0;
-    Allowance = 1;
+    BALANCE = 0;
+    ALLOWANCE = 1;
 }

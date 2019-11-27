@@ -24,16 +24,17 @@ namespace AElf.OS.Network
             {
                 var mockService = new Mock<IConnectionService>();
                 mockService.Setup(m => m.DoHandshakeAsync(It.IsAny<DnsEndPoint>(), It.IsAny<Handshake>()))
-                    .Returns<DnsEndPoint, Handshake>(async (pe, hsk) =>
+                    .Returns<DnsEndPoint, Handshake>((pe, hsk) =>
                     {
                         var handshake = NetworkTestHelper.CreateValidHandshake(CryptoHelper.GenerateKeyPair(), 10, hsk.HandshakeData.ChainId);
                         netTestContext.GeneratedHandshakes[pe.Host.ToString()] = handshake;
 
-                        return new HandshakeReply
+                        var handShakeReply = Task.FromResult(new HandshakeReply
                         {
                             Error = HandshakeError.HandshakeOk,
                             Handshake = handshake
-                        };
+                        });
+                        return handShakeReply;
                     });
 
                 return mockService.Object;

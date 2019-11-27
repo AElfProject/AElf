@@ -25,7 +25,16 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             ITransactionContext transactionContext)
         {
             return transactionContext.Transaction.To ==
-                   _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name)
+                   _smartContractAddressService.GetAddressByContractName(
+                       ConsensusSmartContractAddressNameProvider.Name) &&
+                   new List<string>
+                   {
+                       "FirstRound",
+                       "UpdateValue",
+                       "UpdateTinyBlockInformation",
+                       "NextRound",
+                       "NextTerm"
+                   }.Contains(transactionContext.Transaction.MethodName)
                 ? await _transactionListProvider.GetTransactionListAsync()
                 : new List<Transaction>();
         }

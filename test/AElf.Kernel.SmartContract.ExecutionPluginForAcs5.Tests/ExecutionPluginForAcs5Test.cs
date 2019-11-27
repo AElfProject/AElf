@@ -83,7 +83,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             });
             burnResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
+            var dummy = await DefaultTester.DummyMethod.SendWithExceptionAsync(new Empty());
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
         }
 
@@ -189,7 +189,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 });
                 transferRamResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
-                var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
+                var dummy = await DefaultTester.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             }
         }

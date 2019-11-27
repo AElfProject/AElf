@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -26,6 +27,7 @@ namespace AElf.Contracts.TestKit
 
         public void SetBlockTime(Timestamp blockTime)
         {
+            Debug.WriteLine($"Update block time: {blockTime}");
             _blockTime = blockTime;
         }
 

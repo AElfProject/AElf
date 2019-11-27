@@ -15,6 +15,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<Block> GetBlockAsync(Hash blockHash);
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
         Task RemoveBlockAsync(Hash blockHash);
+        Task<bool> HasBlockAsync(Hash blockHash);
     }
     
     public class BlockManager : IBlockManager
@@ -79,6 +80,11 @@ namespace AElf.Kernel.Blockchain.Domain
             var blockKey = blockHash.ToStorageKey();
             await _blockHeaderStore.RemoveAsync(blockKey);
             await _blockBodyStore.RemoveAsync(blockKey);
+        }
+
+        public async Task<bool> HasBlockAsync(Hash blockHash)
+        {
+            return await _blockHeaderStore.IsExistsAsync(blockHash.ToStorageKey());
         }
     }
 }
