@@ -236,14 +236,12 @@ namespace AElf.Contracts.MultiToken
 
             if (existingBalance >= amount) return true;
 
-            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
-            if (symbolToAmountMap.Keys.Contains(primaryTokenSymbol))
-                symbol = primaryTokenSymbol;
-            else
-            {
-                // symbol is potentially set to null.
-                symbol = symbolOfValidBalance;
-            }
+            var officialTokenContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            var primaryTokenSymbol =
+                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
+                    .Value;
+            symbol = symbolToAmountMap.Keys.Contains(primaryTokenSymbol) ? primaryTokenSymbol : symbolOfValidBalance;
 
             return false;
         }
