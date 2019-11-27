@@ -75,9 +75,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction trace state set reads count related to CPU Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
-            var netCost = _calService.GetFee(FeeType.NET, netSize);
-            var cpuCost = _calService.GetFee(FeeType.CPU, readsCount);
-            var stoCost = _calService.GetFee(FeeType.STO, writesCount);
+            var netCost = _calService.GetFee(FeeType.Net, netSize);
+            var cpuCost = _calService.GetFee(FeeType.Cpu, readsCount);
+            var stoCost = _calService.GetFee(FeeType.Sto, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {

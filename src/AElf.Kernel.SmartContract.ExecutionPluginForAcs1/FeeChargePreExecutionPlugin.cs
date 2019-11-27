@@ -117,7 +117,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
 
                 var txSize = transactionContext.Transaction.Size();
-                var txCost = _calService.GetFee(FeeType.TX, txSize);
+                var txCost = _calService.GetFee(FeeType.Tx, txSize);
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {

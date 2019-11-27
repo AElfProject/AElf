@@ -44,11 +44,11 @@ namespace AElf.Kernel.SmartContract.Application
 
     public enum FeeType
     {
-        TX = 0,
-        CPU,
-        STO,
-        RAM,
-        NET
+        Tx = 0,
+        Cpu,
+        Sto,
+        Ram,
+        Net
     }
     public interface ICalculateFeeService : ISingletonDependency
     {
@@ -57,45 +57,54 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class CalculateFeeService : ICalculateFeeService
     {
-        private ICalProvider _calProvider;
+        private readonly ICalStradegyProvider _calStradegyProvider;
 
-        public CalculateFeeService(ICalProvider calProvider)
+        public CalculateFeeService(ICalStradegyProvider calStradegyProvider)
         {
-            _calProvider = calProvider;
+            _calStradegyProvider = calStradegyProvider;
         }
         public long GetFee(FeeType feeType, int cost)
         {
-            return _calProvider.GetCalculator(feeType).CalCost(cost);
+            return _calStradegyProvider.GetCalculator(feeType).GetCost(cost);
         }
     }
 
-    public interface ICalProvider : ISingletonDependency
+    public interface ICalStradegyProvider : ISingletonDependency
     {
-        ICalCostService GetCalculator(FeeType feeType);
+        ICalCostStrategy GetCalculator(FeeType feeType);
     }
 
-    public class CalProvider : ICalProvider
+    public class CalStradegyProvider : ICalStradegyProvider
     {
-        private Dictionary<FeeType, ICalCostService> CalDic { get; set; }
-        public CalProvider()
+        private Dictionary<FeeType, ICalCostStrategy> CalDic { get; set; }
+        public CalStradegyProvider()
         {
-            CalDic = new Dictionary<FeeType, ICalCostService>
+            CalDic = new Dictionary<FeeType, ICalCostStrategy>
             {
-                [FeeType.CPU] = GetCpuCalculator(),
-                [FeeType.STO] = GetSTOCalculator(),
-                [FeeType.NET] = GetNETCalculator(),
-                [FeeType.TX] = GetTXCalculator()
+                [FeeType.Cpu] = new CpuCalCostStrategy(),
+                [FeeType.Sto] = new StoCalCostStrategy(),
+                [FeeType.Net] = new NetCalCostStrategy(),
+                [FeeType.Tx] = new TxCalCostStrategy()
             };
         }
 
-        public ICalCostService GetCalculator(FeeType feeType)
+        public ICalCostStrategy GetCalculator(FeeType feeType)
         {
             CalDic.TryGetValue(feeType, out var cal);
             return cal;
         }
-        private ICalCostService GetCpuCalculator()
+    }
+    public interface ICalCostStrategy
+    {
+        long GetCost(int cost);
+    }
+    public class CpuCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalAlgorithm { get; set; }
+
+        public CpuCalCostStrategy()
         {
-            return new CalCostService().Add(10, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(10, x => new LinerCalService
             {
                 Numerator = 1,
                 Denominator = 8,
@@ -107,18 +116,26 @@ namespace AElf.Kernel.SmartContract.Application
             }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
             {
                 Power = 2,
-                ChangeSpanBase = 10, // scale  x axis         
+                ChangeSpanBase = 4, // scale  x axis         
                 Weight = 333, // unit weight,  means  (10 cpu count = 333 weight) 
-                WeightBase = 10,
+                WeightBase = 40,
                 Numerator = 1,
                 Denominator = 4,
                 Decimal = 100000000L // 1 token = 100000000
             }.GetCost(x)).Prepare();
         }
-
-        private ICalCostService GetSTOCalculator()
+        public long GetCost(int cost)
         {
-            return new CalCostService().Add(10, x => new LinerCalService
+            return CalAlgorithm.Calculate(cost);
+        }
+    }
+    public class StoCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalAlgorithm { get; set; }
+
+        public StoCalCostStrategy()
+        {
+            CalAlgorithm = new CalAlgorithm().Add(10, x => new LinerCalService
             {
                 Numerator = 1,
                 Denominator = 8,
@@ -130,17 +147,33 @@ namespace AElf.Kernel.SmartContract.Application
             }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
             {
                 Power = 2,
-                ChangeSpanBase = 5,
+                ChangeSpanBase = 2,
                 Weight = 333,
                 Numerator = 1,
                 Denominator = 4,
-                WeightBase = 5,
+                WeightBase = 40,
             }.GetCost(x)).Prepare();
         }
-
-        private ICalCostService GetNETCalculator()
+        public long GetCost(int cost)
         {
-            return new CalCostService().Add(1000000, x => new LinerCalService
+            return CalAlgorithm.Calculate(cost);
+        }
+    }
+    public class RamCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalCostService { get; set; }
+        public long GetCost(int cost)
+        {
+            return CalCostService.Calculate(cost);
+        }
+    }
+    public class NetCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalAlgorithm { get; set; }
+
+        public NetCalCostStrategy()
+        {
+            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
             {
                 Numerator = 1,
                 Denominator = 32,
@@ -156,10 +189,18 @@ namespace AElf.Kernel.SmartContract.Application
                 Decimal = 100000000L
             }.GetCost(x)).Prepare();
         }
-
-        private ICalCostService GetTXCalculator()
+        public long GetCost(int cost)
         {
-            return new CalCostService().Add(1000000, x => new LinerCalService
+            return CalAlgorithm.Calculate(cost);
+        }
+    }
+    public class TxCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalAlgorithm { get; set; }
+
+        public TxCalCostStrategy()
+        {
+            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
             {
                 Numerator = 1,
                 Denominator = 16 * 50,
@@ -175,37 +216,41 @@ namespace AElf.Kernel.SmartContract.Application
                 Decimal = 100000000L
             }.GetCost(x)).Prepare();
         }
+        public long GetCost(int cost)
+        {
+            return CalAlgorithm.Calculate(cost);
+        }
     }
 
-    public interface ICalCostService
+    public interface ICalAlgorithm
     {
         Dictionary<int, Func<int, long>> PieceWise { get; set; }
-        long CalCost(int count);
-        ICalCostService Add(int limit, Func<int, long> func);
-        ICalCostService Prepare();
+        long Calculate(int count);
+        ICalAlgorithm Add(int limit, Func<int, long> func);
+        ICalAlgorithm Prepare();
         void Delete();
         void Update();
     }
 
-    public class CalCostService : ICalCostService
+    public class CalAlgorithm : ICalAlgorithm
     {
-        public ILogger<CalCostService> Logger { get; set; }
+        public ILogger<CalAlgorithm> Logger { get; set; }
 
-        public CalCostService()
+        public CalAlgorithm()
         {
-            Logger = new NullLogger<CalCostService>();
+            Logger = new NullLogger<CalAlgorithm>();
         }
 
         public Dictionary<int, Func<int, long>> PieceWise { get; set; } = new Dictionary<int, Func<int, long>>();
 
-        public ICalCostService Add(int limit, Func<int, long> func)
+        public ICalAlgorithm Add(int limit, Func<int, long> func)
         {
             // to do
             PieceWise[limit] = func;
             return this;
         }
 
-        public ICalCostService Prepare()
+        public ICalAlgorithm Prepare()
         {
             if (!PieceWise.Any() || PieceWise.Any(x => x.Key <= 0))
             {
@@ -216,7 +261,7 @@ namespace AElf.Kernel.SmartContract.Application
             return this;
         }
 
-        public long CalCost(int count)
+        public long Calculate(int count)
         {
             long totalCost = 0;
             int prePieceKey = 0;
@@ -247,7 +292,6 @@ namespace AElf.Kernel.SmartContract.Application
             
         }
     }
-
     #region cal imp     
 
     public interface ICalService
