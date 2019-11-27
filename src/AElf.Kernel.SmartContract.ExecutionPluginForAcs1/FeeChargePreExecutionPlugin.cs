@@ -73,6 +73,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                         nameof(TokenContractContainer.TokenContractStub.Issue),
                         nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
                         nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken),
+                        nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
+                        nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
                         "IssueNativeToken"
                     };
 
