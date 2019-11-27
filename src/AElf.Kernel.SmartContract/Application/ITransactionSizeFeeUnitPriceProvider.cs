@@ -84,6 +84,7 @@ namespace AElf.Kernel.SmartContract.Application
                 [FeeType.Cpu] = new CpuCalCostStrategy(),
                 [FeeType.Sto] = new StoCalCostStrategy(),
                 [FeeType.Net] = new NetCalCostStrategy(),
+                [FeeType.Ram] = new RamCalCostStrategy(),
                 [FeeType.Tx] = new TxCalCostStrategy()
             };
         }
@@ -117,7 +118,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 Power = 2,
                 ChangeSpanBase = 4, // scale  x axis         
-                Weight = 333, // unit weight,  means  (10 cpu count = 333 weight) 
+                Weight = 250, // unit weight,  means  (10 cpu count = 333 weight) 
                 WeightBase = 40,
                 Numerator = 1,
                 Denominator = 4,
@@ -135,6 +136,32 @@ namespace AElf.Kernel.SmartContract.Application
 
         public StoCalCostStrategy()
         {
+            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
+            {
+                Numerator = 1,
+                Denominator = 64,
+                ConstantValue = 10000
+            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            {
+                Power = 2,
+                ChangeSpanBase = 100,
+                Weight = 250,
+                WeightBase = 500,
+                Numerator = 1,
+                Denominator = 64,
+                Decimal = 100000000L
+            }.GetCost(x)).Prepare();
+        }
+        public long GetCost(int cost)
+        {
+            return CalAlgorithm.Calculate(cost);
+        }
+    }
+    public class RamCalCostStrategy : ICalCostStrategy
+    {
+        public  ICalAlgorithm CalAlgorithm { get; set; }
+        public RamCalCostStrategy()
+        {
             CalAlgorithm = new CalAlgorithm().Add(10, x => new LinerCalService
             {
                 Numerator = 1,
@@ -148,7 +175,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 Power = 2,
                 ChangeSpanBase = 2,
-                Weight = 333,
+                Weight = 250,
                 Numerator = 1,
                 Denominator = 4,
                 WeightBase = 40,
@@ -157,14 +184,6 @@ namespace AElf.Kernel.SmartContract.Application
         public long GetCost(int cost)
         {
             return CalAlgorithm.Calculate(cost);
-        }
-    }
-    public class RamCalCostStrategy : ICalCostStrategy
-    {
-        public  ICalAlgorithm CalCostService { get; set; }
-        public long GetCost(int cost)
-        {
-            return CalCostService.Calculate(cost);
         }
     }
     public class NetCalCostStrategy : ICalCostStrategy
@@ -176,16 +195,16 @@ namespace AElf.Kernel.SmartContract.Application
             CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
             {
                 Numerator = 1,
-                Denominator = 32,
+                Denominator = 64,
                 ConstantValue = 10000
             }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
             {
                 Power = 2,
                 ChangeSpanBase = 100,
-                Weight = 333,
+                Weight = 250,
                 WeightBase = 500,
                 Numerator = 1,
-                Denominator = 32,
+                Denominator = 64,
                 Decimal = 100000000L
             }.GetCost(x)).Prepare();
         }

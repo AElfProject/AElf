@@ -85,6 +85,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             IsVirtualBalanceEnabled = true,// For testing
             RelatedSymbol = "NET"
         };
+        internal Connector RamConnector = new Connector
+        {
+            Symbol = "RAM",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NTRAM"
+        };
+        internal Connector NativeToRamConnector = new Connector
+        {
+            Symbol = "NTRAM",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "RAM"
+        };
 
         internal Address TestContractAddress { get; set; }
         internal Address TokenContractAddress { get; set; }
@@ -303,7 +321,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+            //init resource token - RAM
+            {
+                var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = "RAM",
+                    Decimals = 2,
+                    IsBurnable = true,
+                    TokenName = "ram token",
+                    TotalSupply = totalSupply,
+                    Issuer = DefaultSender,
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
+                });
 
+                createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = "RAM",
+                    Amount = issueAmount,
+                    To = DefaultSender,
+                    Memo = "Set for ram token converter."
+                });
+                issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
             var setResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
             {
                 CpuUnitPrice = CpuUnitPrice,
@@ -322,7 +363,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 ManagerAddress = ManagerAddress,
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
-                Connectors = { ElfConnector, CpuConnector, StoConnector, NetConnector , NativeToCpuConnector, NativeToStoConnector, NativeToNetConnector}
+                Connectors =
+                {
+                    ElfConnector, CpuConnector, StoConnector, NetConnector, NativeToCpuConnector, NativeToStoConnector,
+                    NativeToNetConnector, RamConnector, NativeToRamConnector
+                }
             };
 
             var initializeResult = await TokenConverterContractStub.Initialize.SendAsync(input);

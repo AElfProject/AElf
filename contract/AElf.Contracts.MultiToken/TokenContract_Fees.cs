@@ -108,7 +108,8 @@ namespace AElf.Contracts.MultiToken
             {
                 {"CPU", input.CpuCost},
                 {"NET", input.NetCost},
-                {"STO", input.StoCost}
+                {"STO", input.StoCost},
+                {"RAM", input.RamCost}
             };
             foreach (var pair in symbolToAmount)
             {
@@ -224,7 +225,7 @@ namespace AElf.Contracts.MultiToken
             var transactions = Context.GetPreviousBlockTransactions();
 
             Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var totalAmount = 0L;
                 foreach (var transaction in transactions)

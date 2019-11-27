@@ -226,6 +226,7 @@ message ChargeResourceTokenInput {
     sint64 net_cost = 5;
     sint64 sto_cost = 6;
     sint64 cpu_cost = 7;
+    sint64 ram_cost = 8;
 }
 
 message GetTokenInfoInput {
