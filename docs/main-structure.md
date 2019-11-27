@@ -1,7 +1,7 @@
 # Summary
 
 * [Tutorials](tutorials/main.md)
-    * [Environment setup](tutorials/setup/main.md)
+    * [Getting started](tutorials/setup/main.md)
         * [Environment setup](tutorials/setup/setup.md)
         * [Running a node](tutorials/setup/run-node.md)
         * [Running multiple nodes](tutorials/setup/multi-nodes.md)
