@@ -9,6 +9,7 @@ message TransactionResourceInfo {
     ParallelType parallel_type = 2;
     aelf.Hash transaction_id = 3;
     aelf.Hash contract_hash = 4;
+    bool is_contract_remarks = 5;
 }
 
 enum ParallelType {

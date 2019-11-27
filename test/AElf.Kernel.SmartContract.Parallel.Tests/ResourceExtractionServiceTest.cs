@@ -109,8 +109,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 TransactionId = txn.GetHash(),
                 ParallelType = ParallelType.NonParallelizable,
-                ContractHash = executive.ContractHash
+                ContractHash = executive.ContractHash,
+                IsContractRemarks = true
             });
+            MockContractRemarksManager.NonParallelizable = false;
         }
 
         [Fact]

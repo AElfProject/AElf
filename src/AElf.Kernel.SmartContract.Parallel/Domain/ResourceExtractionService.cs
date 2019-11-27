@@ -45,9 +45,10 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
             var transactionResourceList = new List<(Transaction, TransactionResourceInfo)>();
+            var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
             foreach (var t in transactions)
             {
-                var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct);
+                var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
                 transactionResourceList.Add(transactionResourcePair);
             }
 
@@ -56,7 +57,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(
             IChainContext chainContext,
-            Transaction transaction, CancellationToken ct)
+            Transaction transaction, CancellationToken ct,Dictionary<Address,ContractResourceInfo> contractResourceInfoCache)
         {
             if (ct.IsCancellationRequested)
                 return (transaction, new TransactionResourceInfo()
@@ -67,13 +68,27 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
             {
-                resourceCache.ResourceUsedBlockHeight = chainContext.BlockHeight;
-                if (await _smartContractExecutiveService.CheckContractHash(chainContext, resourceCache.Address,
-                    resourceCache.ResourceInfo.ContractHash))
-                    return (transaction, resourceCache.ResourceInfo);
+                if (contractResourceInfoCache.TryGetValue(transaction.To, out var contractResourceInfo))
+                {
+                    if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
+                        resourceCache.ResourceInfo.IsContractRemarks == contractResourceInfo.IsContractRemarks)
+                    {
+                        return (transaction, resourceCache.ResourceInfo);
+                    }
+                }
             }
 
-            return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
+            var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, ct);
+            if (!contractResourceInfoCache.TryGetValue(transaction.To, out _))
+            {
+                contractResourceInfoCache[transaction.To] = new ContractResourceInfo
+                {
+                    CodeHash = resourceInfo.ContractHash,
+                    IsContractRemarks = resourceInfo.IsContractRemarks
+                };
+            }
+
+            return (transaction, resourceInfo);
         }
 
         private async Task<TransactionResourceInfo> GetResourcesForOneAsync(IChainContext chainContext,
@@ -103,10 +118,17 @@ namespace AElf.Kernel.SmartContract.Parallel
                     {
                         TransactionId = transaction.GetHash(),
                         ParallelType = ParallelType.NonParallelizable,
-                        ContractHash = executive.ContractHash
+                        ContractHash = executive.ContractHash,
+                        IsContractRemarks = true
                     };
                 }
 
+                if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
+                    executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
+                    resourceCache.ResourceInfo.IsContractRemarks == false)
+                {
+                    return resourceCache.ResourceInfo;
+                }
                 var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
                 // Try storing in cache here
                 return resourceInfo;
@@ -209,6 +231,13 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = chain.BestChainHeight
             };
             return chainContext;
+        }
+        
+        private class ContractResourceInfo
+        {
+            public Hash CodeHash { get; set; }
+            
+            public bool IsContractRemarks { get; set; }
         }
     }
 
