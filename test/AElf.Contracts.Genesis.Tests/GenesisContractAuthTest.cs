@@ -36,7 +36,8 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
             };
 
-            var releaseApprovedContractInput = await ProposeContractDeploymentAsync(contractDeploymentInput);
+            var releaseApprovedContractInput = await ProposeContractAsync(
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput);
 
             var approveResult0 =
                 await ApproveWithKeyPairAsync(releaseApprovedContractInput.ProposalId, Tester.InitialMinerList[0]);
@@ -74,7 +75,8 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(code)
             };
 
-            var releaseApprovedContractInput = await ProposeContractUpdateAsync(contractUpdateInput);
+            var releaseApprovedContractInput = await ProposeContractAsync(
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeUpdateContract), contractUpdateInput);
             var approveResult0 =
                 await ApproveWithKeyPairAsync(releaseApprovedContractInput.ProposalId, Tester.InitialMinerList[0]);
             approveResult0.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -97,15 +99,14 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var result = await Tester.ExecuteContractWithMiningAsync(
-                BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract),
-                new ContractDeploymentInput
+            var proposalId = await CreateProposalAsync(
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), new ContractDeploymentInput
                 {
                     Category = KernelConstants.DefaultRunnerCategory,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 });
-            
+            await ApproveWithMinersAsync(proposalId);
+            var result = await ReleaseProposalAsync(proposalId);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             
             // Transaction logs should contain below two events
@@ -113,8 +114,6 @@ namespace AElf.Contracts.Genesis
             result.Logs.Select(l => l.Name).ShouldContain(nameof(ProposalCreated));
 
             // Wait for contract code check event handler to finish its job
-            await Task.Delay(10000);
-            
             // Mine a block, should include approval transaction
             var block = await Tester.MineEmptyBlockAsync();
 
@@ -142,21 +141,17 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(code)
             };
 
-            var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            var proposalId = await CreateProposalAsync(
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeUpdateContract), contractUpdateInput);
+            await ApproveWithMinersAsync(proposalId);
+            var result = await ReleaseProposalAsync(proposalId);
             
             result.Status.ShouldBe(TransactionResultStatus.Mined);
-            
             // Transaction logs should contain below two events
             result.Logs.Select(l => l.Name).ShouldContain(nameof(CodeCheckRequired));
             result.Logs.Select(l => l.Name).ShouldContain(nameof(ProposalCreated));
 
             // Wait for contract code check event handler to finish its job
-            await Task.Run(async () => 
-            {
-                await Task.Delay(10000);
-            });
-            
             // Mine a block, should include approval transaction
             var block = await Tester.MineEmptyBlockAsync();
 
@@ -195,14 +190,10 @@ namespace AElf.Contracts.Genesis
             var approveResult1 = await ApproveWithKeyPairAsync(codeCheckProposalId, Tester.InitialMinerList[1]);
             approveResult1.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            const string releaseMethodName = nameof(BasicContractZero.ReleaseApprovedContract);
-            var releaseContractProposalId = await CreateProposalAsync(releaseMethodName, new ReleaseApprovedContractInput
-            {
-                ProposedContractInputHash = proposedContractInputHash,
-                ProposalId = codeCheckProposalId
-            });
-            await ApproveWithMinersAsync(releaseContractProposalId);
-            var result = await ReleaseProposalAsync(releaseContractProposalId);
+            var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseApprovedContract),
+                new ReleaseApprovedContractInput
+                    {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
         
@@ -241,7 +232,8 @@ namespace AElf.Contracts.Genesis
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
             };
-            var releaseApprovedContractInput = await ProposeContractDeploymentAsync(contractDeploymentInput);
+            var releaseApprovedContractInput = await ProposeContractAsync(
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput, organizationAddress);
             await ApproveWithKeyPairAsync(releaseApprovedContractInput.ProposalId, Tester.InitialMinerList[0]);
 
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
