@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Application
             var blockHashes = blockIndexes.Select(b => b.BlockHash).ToList();
             foreach (var address in addresses)
             {
-                var caches = _forkCache[address];
+                var caches = _forkCache[address].OrderBy(c => c.BlockHeight).ToList();
                 var oldCodeHashes = new List<Hash>();
                 foreach (var cache in caches)
                 {
@@ -102,7 +102,8 @@ namespace AElf.Kernel.SmartContract.Application
                         oldCodeHashes.Add(registrationCache.SmartContractRegistration.CodeHash);
                     _addressSmartContractRegistrationMappingCache[cache.Address] = cache;
                 }
-                caches.RemoveAll(cache => blockHashes.Contains(cache.BlockHash));
+
+                _forkCache[address].RemoveAll(cache => blockHashes.Contains(cache.BlockHash));
                 ClearExecutives(address, oldCodeHashes);
                 if (caches.Count != 0) continue;
                 _forkCache.TryRemove(address, out _);
