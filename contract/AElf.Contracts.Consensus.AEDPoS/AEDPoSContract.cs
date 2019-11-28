@@ -124,6 +124,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
+            Context.LogDebug(() => "Entered UpdateConsensusInformation.");
             if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
             {
                 return new Empty();
@@ -135,6 +136,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
+            Context.LogDebug(() => $"Consensus information ready to update: \n{consensusInformation}");
+            Context.LogDebug(() => $"Current main chain round number: {State.MainChainRoundNumber.Value}");
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
                 return new Empty();
@@ -146,11 +149,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
+            Context.LogDebug(() => "Finished UpdateConsensusInformation.");
             return new Empty();
         }
 
         private void DistributeResourceTokensToPreviousMiners()
         {
+            Context.LogDebug(() => "Entered DistributeResourceTokensToPreviousMiners.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -165,8 +170,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Owner = Context.Self,
                     Symbol = symbol
                 }).Balance;
-                if (balance <= 0) continue;
                 var amount = balance.Div(minerList.Count);
+                if (amount <= 0) break;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
@@ -178,6 +183,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
+            Context.LogDebug(() => "Finished DistributeResourceTokensToPreviousMiners.");
         }
 
         #endregion
