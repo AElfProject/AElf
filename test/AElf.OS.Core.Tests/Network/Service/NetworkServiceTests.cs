@@ -32,7 +32,7 @@ namespace AElf.OS.Network
         public async Task RemovePeerByPubkeyAsync_BlackListTest()
         {
             var peerPubKey = "blacklistpeer";
-            var endpoint = AElfPeerEndpointHelper.Parse("127.0.0.1:5000");
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
             await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
@@ -45,7 +45,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerAsync_CannotAddBlacklistedPeer()
         {
-            var endpoint = AElfPeerEndpointHelper.Parse("127.0.0.1:5000");
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
             _blackListProvider.AddIpToBlackList(host);

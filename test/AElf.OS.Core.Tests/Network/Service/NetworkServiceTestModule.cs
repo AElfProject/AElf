@@ -37,7 +37,7 @@ namespace AElf.OS
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "blacklistpeer")))
                 .Returns<string>(adr =>
             {
-                var endpoint = AElfPeerEndpointHelper.Parse("127.0.0.1:5000");
+                AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             
                 var peer = new Mock<IPeer>();
                 peer.Setup(p => p.RemoteEndpoint).Returns(endpoint);
