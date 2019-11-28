@@ -31,7 +31,7 @@ namespace AElf.OS.Network.Grpc
         private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
-        private const int StreamRecoveryWaitTimeInMilliseconds = 500;
+        private const int StreamRecoveryWaitTime = 500;
 
         private const int BlockCacheMaxItems = 1024;
         private const int TransactionCacheMaxItems = 10_000;
@@ -333,7 +333,7 @@ namespace AElf.OS.Network.Grpc
             catch (RpcException ex)
             {
                 job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
-                await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
+                await Task.Delay(StreamRecoveryWaitTime);
                 return;
             }
             catch (Exception ex)
@@ -554,7 +554,7 @@ namespace AElf.OS.Network.Grpc
                 return false;
 
             await _channel.TryWaitForStateChangedAsync(_channel.State,
-                DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds));
+                DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerRecoveryTimeout));
 
             // Either we connected again or the state change wait timed out.
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)

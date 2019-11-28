@@ -101,7 +101,7 @@ namespace AElf.OS.Network.Grpc
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
-                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds * 2).ToString()}
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeout * 2).ToString()}
                 };
 
                 handshakeReply =
@@ -147,7 +147,7 @@ namespace AElf.OS.Network.Grpc
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeout.ToString()}
                 };
 
                 await client.Client.PingAsync(new PingRequest(), metadata);

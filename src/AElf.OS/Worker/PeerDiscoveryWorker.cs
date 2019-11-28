@@ -22,7 +22,7 @@ namespace AElf.OS.Worker
             INetworkService networkService) : base(timer)
         {
             _peerDiscoveryService = peerDiscoveryService;
-            Timer.Period = NetworkConstants.DefaultDiscoveryPeriodInMilliSeconds;
+            Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
 
             _networkService = networkService;
 
