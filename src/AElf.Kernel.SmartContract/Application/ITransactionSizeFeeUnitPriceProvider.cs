@@ -50,9 +50,14 @@ namespace AElf.Kernel.SmartContract.Application
         Ram,
         Net
     }
+
     public interface ICalculateFeeService : ISingletonDependency
     {
-        long GetFee(FeeType feeType, int cost);
+        long CalculateFee(FeeType feeType, int cost);
+        void UpdateFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> para);
+        void DeleteFeeCal(FeeType feeType, int pieceKey);
+        void AddFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param);
+        void RemoveStradegy(FeeType feeType);
     }
 
     public class CalculateFeeService : ICalculateFeeService
@@ -63,9 +68,30 @@ namespace AElf.Kernel.SmartContract.Application
         {
             _calStradegyProvider = calStradegyProvider;
         }
-        public long GetFee(FeeType feeType, int cost)
+
+        public long CalculateFee(FeeType feeType, int cost)
         {
             return _calStradegyProvider.GetCalculator(feeType).GetCost(cost);
+        }
+
+        public void RemoveStradegy(FeeType feeType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param)
+        {
+            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.UpdateFunc, pieceKey, param);
+        }
+
+        public void DeleteFeeCal(FeeType feeType, int pieceKey)
+        {
+            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
+        }
+
+        public void AddFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param)
+        {
+            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.AddFunc, pieceKey, param);
         }
     }
 
@@ -77,6 +103,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class CalStradegyProvider : ICalStradegyProvider
     {
         private Dictionary<FeeType, ICalCostStrategy> CalDic { get; set; }
+
         public CalStradegyProvider()
         {
             CalDic = new Dictionary<FeeType, ICalCostStrategy>
@@ -95,26 +122,51 @@ namespace AElf.Kernel.SmartContract.Application
             return cal;
         }
     }
+
+    public enum AlgorithmOpCode
+    {
+        AddFunc,
+        DeleteFunc,
+        UpdateFunc
+    }
+
     public interface ICalCostStrategy
     {
         long GetCost(int cost);
-    }
-    public class CpuCalCostStrategy : ICalCostStrategy
-    {
-        public  ICalAlgorithm CalAlgorithm { get; set; }
 
+        //ICalAlgorithm CalAlgorithm { get; set; }
+        void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, Dictionary<string, string> param = null);
+    }
+
+    abstract class CalCostStrategyBase : ICalCostStrategy
+    {
+        protected ICalAlgorithm CalAlgorithm { get; set; }
+
+        public long GetCost(int cost)
+        {
+            return CalAlgorithm.Calculate(cost);
+        }
+
+        public void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, Dictionary<string, string> param = null)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class CpuCalCostStrategy : CalCostStrategyBase
+    {
         public CpuCalCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(10, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(10, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 8,
                 ConstantValue = 10000
-            }.GetCost(x)).Add(100, x => new LinerCalService
+            }).Add(100, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 4
-            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            }).Add(int.MaxValue, new PowCalWay
             {
                 Power = 2,
                 ChangeSpanBase = 4, // scale  x axis         
@@ -123,25 +175,20 @@ namespace AElf.Kernel.SmartContract.Application
                 Numerator = 1,
                 Denominator = 4,
                 Decimal = 100000000L // 1 token = 100000000
-            }.GetCost(x)).Prepare();
-        }
-        public long GetCost(int cost)
-        {
-            return CalAlgorithm.Calculate(cost);
+            }).Prepare();
         }
     }
-    public class StoCalCostStrategy : ICalCostStrategy
-    {
-        public  ICalAlgorithm CalAlgorithm { get; set; }
 
+    class StoCalCostStrategy : CalCostStrategyBase
+    {
         public StoCalCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 64,
                 ConstantValue = 10000
-            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            }).Add(int.MaxValue, new PowCalWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -150,28 +197,24 @@ namespace AElf.Kernel.SmartContract.Application
                 Numerator = 1,
                 Denominator = 64,
                 Decimal = 100000000L
-            }.GetCost(x)).Prepare();
-        }
-        public long GetCost(int cost)
-        {
-            return CalAlgorithm.Calculate(cost);
+            }).Prepare();
         }
     }
-    public class RamCalCostStrategy : ICalCostStrategy
+
+    class RamCalCostStrategy : CalCostStrategyBase
     {
-        public  ICalAlgorithm CalAlgorithm { get; set; }
         public RamCalCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(10, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(10, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 8,
                 ConstantValue = 10000
-            }.GetCost(x)).Add(100, x => new LinerCalService
+            }).Add(100, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 4
-            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            }).Add(int.MaxValue, new PowCalWay
             {
                 Power = 2,
                 ChangeSpanBase = 2,
@@ -179,25 +222,20 @@ namespace AElf.Kernel.SmartContract.Application
                 Numerator = 1,
                 Denominator = 4,
                 WeightBase = 40,
-            }.GetCost(x)).Prepare();
-        }
-        public long GetCost(int cost)
-        {
-            return CalAlgorithm.Calculate(cost);
+            }).Prepare();
         }
     }
-    public class NetCalCostStrategy : ICalCostStrategy
-    {
-        public  ICalAlgorithm CalAlgorithm { get; set; }
 
+    class NetCalCostStrategy : CalCostStrategyBase
+    {
         public NetCalCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 64,
                 ConstantValue = 10000
-            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            }).Add(int.MaxValue, new PowCalWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -206,25 +244,20 @@ namespace AElf.Kernel.SmartContract.Application
                 Numerator = 1,
                 Denominator = 64,
                 Decimal = 100000000L
-            }.GetCost(x)).Prepare();
-        }
-        public long GetCost(int cost)
-        {
-            return CalAlgorithm.Calculate(cost);
+            }).Prepare();
         }
     }
-    public class TxCalCostStrategy : ICalCostStrategy
-    {
-        public  ICalAlgorithm CalAlgorithm { get; set; }
 
+    class TxCalCostStrategy : CalCostStrategyBase
+    {
         public TxCalCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, x => new LinerCalService
+            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
             {
                 Numerator = 1,
                 Denominator = 16 * 50,
                 ConstantValue = 10000
-            }.GetCost(x)).Add(int.MaxValue, x => new PowCalService
+            }).Add(int.MaxValue, new PowCalWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -233,22 +266,19 @@ namespace AElf.Kernel.SmartContract.Application
                 Numerator = 1,
                 Denominator = 16 * 50,
                 Decimal = 100000000L
-            }.GetCost(x)).Prepare();
-        }
-        public long GetCost(int cost)
-        {
-            return CalAlgorithm.Calculate(cost);
+            }).Prepare();
         }
     }
 
     public interface ICalAlgorithm
     {
-        Dictionary<int, Func<int, long>> PieceWise { get; set; }
+        Dictionary<int, ICalWay> PieceWise { get; set; }
         long Calculate(int count);
-        ICalAlgorithm Add(int limit, Func<int, long> func);
+        ICalAlgorithm Add(int limit, ICalWay func);
         ICalAlgorithm Prepare();
-        void Delete();
-        void Update();
+        void Delete(int pieceKey);
+        void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
+        void AddPieceFunction(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
     }
 
     public class CalAlgorithm : ICalAlgorithm
@@ -260,9 +290,9 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = new NullLogger<CalAlgorithm>();
         }
 
-        public Dictionary<int, Func<int, long>> PieceWise { get; set; } = new Dictionary<int, Func<int, long>>();
+        public Dictionary<int, ICalWay> PieceWise { get; set; } = new Dictionary<int, ICalWay>();
 
-        public ICalAlgorithm Add(int limit, Func<int, long> func)
+        public ICalAlgorithm Add(int limit, ICalWay func)
         {
             // to do
             PieceWise[limit] = func;
@@ -288,12 +318,12 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (count < piece.Key)
                 {
-                    totalCost = piece.Value.Invoke(count.Sub(prePieceKey)).Add(totalCost);
+                    totalCost = piece.Value.GetCost(count.Sub(prePieceKey)).Add(totalCost);
                     break;
                 }
 
                 var span = piece.Key.Sub(prePieceKey);
-                totalCost = piece.Value.Invoke(span).Add(totalCost);
+                totalCost = piece.Value.GetCost(span).Add(totalCost);
                 prePieceKey = piece.Key;
                 if (count == piece.Key)
                     break;
@@ -302,29 +332,53 @@ namespace AElf.Kernel.SmartContract.Application
             return totalCost;
         }
 
-        public void Delete()
+        public void Delete(int pieceKey)
         {
-            
+            if (PieceWise.ContainsKey(pieceKey))
+                PieceWise.Remove(pieceKey);
         }
-        public void Update()
+
+        public void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
+        {
+            Delete(pieceKey);
+            AddPieceFunction(pieceKey, funcType, parameters);
+        }
+
+        public void AddPieceFunction(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
         {
             
         }
     }
+
     #region cal imp     
 
-    public interface ICalService
+    public enum CalFunctionType
+    {
+        Constrant = 0,
+        Liner,
+        Power,
+        Ln,
+        Bancor
+    }
+
+    public interface ICalWay
     {
         long GetCost(int initValue);
         long Decimal { get; set; }
+        void UpdateParameter(Dictionary<string, string> param);
     }
 
-    public class LnCalService : ICalService
+    public class LnCalWay : ICalWay
     {
         public int ChangeSpanBase { get; set; }
         public long Weight { get; set; }
         public int WeightBase { get; set; }
         public long Decimal { get; set; } = 100000000L;
+
+        public void UpdateParameter(Dictionary<string, string> param)
+        {
+            throw new NotImplementedException();
+        }
 
         public long GetCost(int cost)
         {
@@ -337,13 +391,19 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public class PowCalService : ICalService
+    public class PowCalWay : ICalWay
     {
         public double Power { get; set; }
         public int ChangeSpanBase { get; set; }
         public long Weight { get; set; }
         public int WeightBase { get; set; }
         public long Decimal { get; set; } = 100000000L;
+
+        public void UpdateParameter(Dictionary<string, string> param)
+        {
+            throw new NotImplementedException();
+        }
+
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
 
@@ -354,7 +414,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public class BancorCalService : ICalService
+    public class BancorCalWay : ICalWay
     {
         public decimal ResourceWeight { get; set; }
         public decimal TokenWeight { get; set; }
@@ -362,15 +422,30 @@ namespace AElf.Kernel.SmartContract.Application
         public long TokenConnectorBalance { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
+        public void UpdateParameter(Dictionary<string, string> param)
+        {
+            throw new NotImplementedException();
+        }
+
         public long GetCost(int cost)
         {
             throw new NotImplementedException();
         }
     }
 
-    public class ConstCalService : ICalService
+    public class ConstCalWay : ICalWay
     {
         public long Decimal { get; set; } = 100000000L;
+
+        public void UpdateParameter(Dictionary<string, string> param)
+        {
+            if (param.TryGetValue(nameof(ConstantValue), out var constValue))
+            {
+                
+            }
+                
+        }
+
         public int ConstantValue { get; set; }
 
         public long GetCost(int cost)
@@ -379,12 +454,17 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public class LinerCalService : ICalService
+    public class LinerCalWay : ICalWay
     {
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Decimal { get; set; } = 100000000L;
+
+        public void UpdateParameter(Dictionary<string, string> param)
+        {
+            throw new NotImplementedException();
+        }
 
         public long GetCost(int cost)
         {
