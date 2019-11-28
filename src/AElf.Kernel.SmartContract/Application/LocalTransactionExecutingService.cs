@@ -91,12 +91,6 @@ namespace AElf.Kernel.SmartContract.Application
                     
                     if (trace == null)
                         break;
-                    // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
-                    /*
-                    Logger.LogTrace(transaction.MethodName);
-                    Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().ComputeHash().ToHex())
-                        .JoinAsString("\n"));
-                    */
 
                     if (!trace.IsSuccessful())
                     {
@@ -161,7 +155,7 @@ namespace AElf.Kernel.SmartContract.Application
         private static bool IsTransactionCanceled(TransactionTrace trace)
         {
             return trace.ExecutionStatus == ExecutionStatus.Canceled ||
-                   trace.InlineTraces.ToList().Any(IsTransactionCanceled);
+                   trace.PreTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled);
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
@@ -198,6 +192,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
+                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
                         return trace;
                     }
                 }
@@ -216,6 +211,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
+                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
                         return trace;
                     }
                 }
@@ -269,7 +265,12 @@ namespace AElf.Kernel.SmartContract.Application
                     catch (OperationCanceledException)
                     {
                         Logger.LogWarning("Inline transaction canceled.");
-                        break;
+                        inlineTrace = new TransactionTrace
+                        {
+                            TransactionId = txContext.Transaction.GetHash(),
+                            ExecutionStatus = ExecutionStatus.Canceled,
+                            Error = "Execution cancelled"
+                        };
                     }
 
                     if (inlineTrace == null)
@@ -277,7 +278,7 @@ namespace AElf.Kernel.SmartContract.Application
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
-                        Logger.LogError($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
+                        Logger.LogWarning($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
                         // Already failed, no need to execute remaining inline transactions
                         break;
                     }
@@ -316,7 +317,12 @@ namespace AElf.Kernel.SmartContract.Application
                     catch (OperationCanceledException)
                     {
                         Logger.LogWarning($"Transaction canceled during pre stage: {txContext.Transaction.GetHash()}");
-                        return false;
+                        preTrace = new TransactionTrace
+                        {
+                            TransactionId = txContext.Transaction.GetHash(),
+                            ExecutionStatus = ExecutionStatus.Canceled,
+                            Error = "Execution cancelled"
+                        };
                     }
 
                     if (preTrace == null)
@@ -329,13 +335,9 @@ namespace AElf.Kernel.SmartContract.Application
                         txFee.MergeFrom(preTrace.ReturnValue);
                         trace.TransactionFee = txFee;
                     }
+                    
                     if (!preTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = IsTransactionCanceled(preTrace)
-                            ? ExecutionStatus.Canceled
-                            : ExecutionStatus.Prefailed;
-                        preTrace.SurfaceUpError();
-                        trace.Error += preTrace.Error;
                         return false;
                     }
 
@@ -374,35 +376,23 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var postTx in transactions)
                 {
-                    TransactionTrace postTrace;
-                    try
+                    var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        var singleTxExecutingDto = new SingleTransactionExecutingDto
-                        {
-                            Depth = 0,
-                            ChainContext = internalChainContext,
-                            Transaction = postTx,
-                            CurrentBlockTime = currentBlockTime,
-                            IsCancellable = false
-                        };
-                        postTrace = await Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken), cancellationToken).WithCancellation(cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Logger.LogWarning($"Transaction canceled during post stage: {txContext.Transaction.GetHash()}");
-                        return false;
-                    }
-
+                        Depth = 0,
+                        ChainContext = internalChainContext,
+                        Transaction = postTx,
+                        CurrentBlockTime = currentBlockTime,
+                        IsCancellable = false
+                    };
+                    var postTrace = await Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
+                        cancellationToken), cancellationToken).WithCancellation(cancellationToken);
+                    
                     if (postTrace == null)
                         return false;
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
-                        postTrace.SurfaceUpError();
-                        trace.Error += postTrace.Error;
                         return false;
                     }
 
