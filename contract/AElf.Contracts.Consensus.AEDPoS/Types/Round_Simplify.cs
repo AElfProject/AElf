@@ -10,6 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = RealTimeMinersInformation[pubkey];
             var result = new Round
             {
+                RoundNumber = RoundNumber,
                 RoundIdForValidation = RoundId,
                 RealTimeMinersInformation =
                 {
@@ -58,6 +59,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = RealTimeMinersInformation[pubkey];
             return new Round
             {
+                RoundNumber = RoundNumber,
                 RoundIdForValidation = RoundId,
                 RealTimeMinersInformation =
                 {
