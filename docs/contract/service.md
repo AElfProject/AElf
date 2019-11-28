@@ -8,7 +8,6 @@ As an example, here is part of the definition of our multi-token contract. Each 
 syntax = "proto3";
 
 package token;
-import "common.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
