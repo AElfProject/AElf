@@ -63,3 +63,4 @@
     * [Running AElf on the cloud](resources/cloud/main.md)
       * [Google cloud](resources/cloud/gcp/GCP.md)
     * [Browser Extension](resources/browser-extension.md)
+    * [Joining AElf's testnet](resources/testnet.md)
