@@ -160,6 +160,17 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        private SslCredentials CreateSecureCredentials(X509Certificate certificate)
+        {
+            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
+            
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
+                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
+            var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            return new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+        }
+
         /// <summary>
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
@@ -175,11 +186,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogDebug("Upgrading connection to TLS.");
                 Logger.LogDebug($"Certificate {certificate}.");
 
-                var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-                var clientCertificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
-                    new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
-                var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
-                credentials = new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+                credentials = CreateSecureCredentials(certificate);
             }
             
             var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>

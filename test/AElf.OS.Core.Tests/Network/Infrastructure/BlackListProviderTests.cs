@@ -22,7 +22,7 @@ namespace AElf.OS.Network
         {
             var ipAddress = "127.0.0.1";
 
-            _blackListProvider.AddIpToBlackList(ipAddress);
+            _blackListProvider.AddHostToBlackList(ipAddress);
             _blackListProvider.IsIpBlackListed(ipAddress).ShouldBeTrue();
             
             await Task.Delay(TimeSpan.FromSeconds(2));

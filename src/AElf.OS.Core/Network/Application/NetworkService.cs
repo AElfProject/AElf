@@ -77,7 +77,7 @@ namespace AElf.OS.Network.Application
             
             if (blacklistPeer)
             {
-                _blackListedPeerProvider.AddIpToBlackList(peer.RemoteEndpoint.Host);
+                _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host);
                 Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Host} ({peerPubKey})");
             }
             

@@ -48,7 +48,7 @@ namespace AElf.OS.Network
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
-            _blackListProvider.AddIpToBlackList(host);
+            _blackListProvider.AddHostToBlackList(host);
             
             (await _networkService.AddPeerAsync(endpoint.ToString())).ShouldBeFalse();
         }

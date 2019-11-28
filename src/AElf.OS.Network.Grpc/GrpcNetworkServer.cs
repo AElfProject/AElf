@@ -72,18 +72,25 @@ namespace AElf.OS.Network.Grpc
             _server = new Server(serverOptions);
             _server.Services.Add(serviceDefinition);
 
-            // Generate the servers rsa key pair and self-signed certificate.
-            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var certificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
-                new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
-            
-            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
-            var serverCredentials = new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
+            var serverCredentials = CreateCredentials();
 
             // setup encrypted endpoint
             _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, serverCredentials));
 
             return Task.Run(() => _server.Start());
+        }
+
+        private SslServerCredentials CreateCredentials()
+        {
+            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
+
+            // Generate the servers rsa key pair and self-signed certificate.
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var certificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName), 
+                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
+
+            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            return new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
         }
 
         /// <summary>

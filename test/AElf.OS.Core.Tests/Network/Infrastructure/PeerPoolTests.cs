@@ -29,7 +29,7 @@ namespace AElf.OS.Network
         public void AddBlacklistedPeer_ShouldReturnFalse()
         {
             var host = "12.34.56.67";
-            _blackListProvider.AddIpToBlackList(host);
+            _blackListProvider.AddHostToBlackList(host);
             _peerPool.AddHandshakingPeer(host, "somePubKey").ShouldBeFalse();
         }
         

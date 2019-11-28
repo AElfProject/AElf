@@ -12,7 +12,7 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IBlackListedPeerProvider
     {
-        bool AddIpToBlackList(string host);
+        bool AddHostToBlackList(string host);
         bool IsIpBlackListed(string host);
     }
     
@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Infrastructure
             _blackListedPeers = new ConcurrentDictionary<string, Timestamp>();
         }
 
-        public bool AddIpToBlackList(string host)
+        public bool AddHostToBlackList(string host)
         {
             return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow());
         }
