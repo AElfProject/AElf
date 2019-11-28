@@ -150,7 +150,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (announcement?.BlockHash == null)
             {
-                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
 
@@ -245,7 +245,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (announcement?.LibHash == null)
             {
-                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null or empty announcement from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
 

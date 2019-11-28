@@ -125,7 +125,7 @@ namespace AElf.Kernel.Miner.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed while mining block.", e);
+                Logger.LogError(e, "Failed while mining block.");
                 throw;
             }
         }
