@@ -136,13 +136,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
-            Context.LogDebug(() => $"Consensus information ready to update: \n{consensusInformation}");
             Context.LogDebug(() => $"Current main chain round number: {State.MainChainRoundNumber.Value}");
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
                 return new Empty();
-            Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
+            Context.LogDebug(() =>
+                $"Shared miner list of round {consensusInformation.Round.RoundNumber}:" +
+                $"{consensusInformation.Round.ToString("M")}");
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
             DistributeResourceTokensToPreviousMiners();
             State.MainChainCurrentMinerList.Value = new MinerList

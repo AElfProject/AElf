@@ -109,8 +109,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
 
-                Logger.LogTrace($"Final secret sharing information: {secretSharingInformation}");
-
             }
             catch (Exception e)
             {

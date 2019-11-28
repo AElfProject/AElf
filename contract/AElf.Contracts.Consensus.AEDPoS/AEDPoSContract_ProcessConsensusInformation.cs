@@ -61,6 +61,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
 
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                Context.LogDebug(() =>
+                    $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
+            }
+
             // Clear cache.
             _processingBlockMinerPubkey = null;
         }

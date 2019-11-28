@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
 
-            Assert(triggerInformation.Pubkey.Any(), "Invalid public key.");
+            Assert(triggerInformation.Pubkey.Any(), "Invalid pubkey.");
 
             if (!TryToGetCurrentRoundInformation(out var currentRound))
             {
