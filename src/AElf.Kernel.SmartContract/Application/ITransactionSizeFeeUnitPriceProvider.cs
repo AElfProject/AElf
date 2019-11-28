@@ -54,10 +54,9 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ICalculateFeeService : ISingletonDependency
     {
         long CalculateFee(FeeType feeType, int cost);
-        void UpdateFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> para);
+        void UpdateFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> para);
         void DeleteFeeCal(FeeType feeType, int pieceKey);
-        void AddFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param);
-        void RemoveStradegy(FeeType feeType);
+        void AddFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> param);
     }
 
     class CalculateFeeService : ICalculateFeeService
@@ -74,14 +73,11 @@ namespace AElf.Kernel.SmartContract.Application
             return _calStradegyProvider.GetCalculator(feeType).GetCost(cost);
         }
 
-        public void RemoveStradegy(FeeType feeType)
+        public void UpdateFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe,
+            Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param)
-        {
-            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.UpdateFunc, pieceKey, param);
+            _calStradegyProvider.GetCalculator(feeType)
+                .UpdateAlgorithm(AlgorithmOpCode.UpdateFunc, pieceKey, funcTyoe, param);
         }
 
         public void DeleteFeeCal(FeeType feeType, int pieceKey)
@@ -89,9 +85,10 @@ namespace AElf.Kernel.SmartContract.Application
             _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
         }
 
-        public void AddFeeCal(FeeType feeType, int pieceKey, Dictionary<string, string> param)
+        public void AddFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> param)
         {
-            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.AddFunc, pieceKey, param);
+            _calStradegyProvider.GetCalculator(feeType)
+                .UpdateAlgorithm(AlgorithmOpCode.AddFunc, pieceKey, funcTyoe, param);
         }
     }
 
@@ -134,8 +131,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         long GetCost(int cost);
 
-        //ICalAlgorithm CalAlgorithm { get; set; }
-        void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, Dictionary<string, string> param = null);
+        void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, CalFunctionType funcType = CalFunctionType.Default,
+            Dictionary<string, string> param = null);
     }
 
     abstract class CalCostStrategyBase : ICalCostStrategy
@@ -147,9 +144,21 @@ namespace AElf.Kernel.SmartContract.Application
             return CalAlgorithm.Calculate(cost);
         }
 
-        public void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, Dictionary<string, string> param = null)
+        public void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, CalFunctionType funcType,
+            Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
+            switch (opCode)
+            {
+                case AlgorithmOpCode.AddFunc:
+                    CalAlgorithm.AddByParam(pieceKey, funcType, param);
+                    break;
+                case AlgorithmOpCode.DeleteFunc:
+                    CalAlgorithm.Delete(pieceKey);
+                    break;
+                case AlgorithmOpCode.UpdateFunc:
+                    CalAlgorithm.Update(pieceKey, funcType, param);
+                    break;
+            }
         }
     }
 
@@ -278,7 +287,7 @@ namespace AElf.Kernel.SmartContract.Application
         ICalAlgorithm Prepare();
         void Delete(int pieceKey);
         void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
-        void AddPieceFunction(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
+        void AddByParam(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
     }
 
     class CalAlgorithm : ICalAlgorithm
@@ -340,21 +349,51 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
         {
-            Delete(pieceKey);
-            AddPieceFunction(pieceKey, funcType, parameters);
+            if (parameters.TryGetValue("piecekey", out var newPieceKeyStr))
+            {
+                if (int.TryParse(newPieceKeyStr, out var newPieceKey))
+                {
+                    Delete(pieceKey);
+                    AddByParam(newPieceKey, funcType, parameters);
+                }
+            }
+            else
+                AddByParam(pieceKey, funcType, parameters);
         }
 
-        public void AddPieceFunction(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
+        public void AddByParam(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
         {
-            
+            ICalWay newCalWay = null;
+            switch (funcType)
+            {
+                case CalFunctionType.Constrant:
+                    newCalWay = new ConstCalWay();
+                    break;
+                case CalFunctionType.Liner:
+                    newCalWay = new LinerCalWay();
+                    break;
+                case CalFunctionType.Power:
+                    newCalWay = new PowCalWay();
+                    break;
+                case CalFunctionType.Ln:
+                    newCalWay = new LnCalWay();
+                    break;
+                case CalFunctionType.Bancor:
+                    newCalWay = new BancorCalWay();
+                    break;
+            }
+
+            if (newCalWay != null && newCalWay.InitParameter(parameters))
+                PieceWise[pieceKey] = newCalWay;
         }
     }
 
     #region cal imp     
 
-    enum CalFunctionType
+    public enum CalFunctionType
     {
-        Constrant = 0,
+        Default = 0,
+        Constrant,
         Liner,
         Power,
         Ln,
@@ -365,7 +404,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         long GetCost(int initValue);
         long Decimal { get; set; }
-        void UpdateParameter(Dictionary<string, string> param);
+        bool InitParameter(Dictionary<string, string> param);
     }
 
     public class LnCalWay : ICalWay
@@ -375,7 +414,7 @@ namespace AElf.Kernel.SmartContract.Application
         public int WeightBase { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
-        public void UpdateParameter(Dictionary<string, string> param)
+        public bool InitParameter(Dictionary<string, string> param)
         {
             throw new NotImplementedException();
         }
@@ -399,7 +438,7 @@ namespace AElf.Kernel.SmartContract.Application
         public int WeightBase { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
-        public void UpdateParameter(Dictionary<string, string> param)
+        public bool InitParameter(Dictionary<string, string> param)
         {
             throw new NotImplementedException();
         }
@@ -422,7 +461,7 @@ namespace AElf.Kernel.SmartContract.Application
         public long TokenConnectorBalance { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
-        public void UpdateParameter(Dictionary<string, string> param)
+        public bool InitParameter(Dictionary<string, string> param)
         {
             throw new NotImplementedException();
         }
@@ -437,13 +476,9 @@ namespace AElf.Kernel.SmartContract.Application
     {
         public long Decimal { get; set; } = 100000000L;
 
-        public void UpdateParameter(Dictionary<string, string> param)
+        public bool InitParameter(Dictionary<string, string> param)
         {
-            if (param.TryGetValue(nameof(ConstantValue), out var constValue))
-            {
-                
-            }
-                
+            throw new NotImplementedException();
         }
 
         public int ConstantValue { get; set; }
@@ -461,7 +496,7 @@ namespace AElf.Kernel.SmartContract.Application
         public int ConstantValue { get; set; }
         public long Decimal { get; set; } = 100000000L;
 
-        public void UpdateParameter(Dictionary<string, string> param)
+        public bool InitParameter(Dictionary<string, string> param)
         {
             throw new NotImplementedException();
         }
