@@ -7,7 +7,8 @@ namespace AElf.OS.Network.Helpers
 {
     public static class AElfPeerEndpointHelper
     {
-        public static bool TryParse(string endpointString, out DnsEndPoint endpoint, int defaultPort = 6800)
+        public static bool TryParse(string endpointString, out DnsEndPoint endpoint, 
+            int defaultPort = NetworkConstants.DefaultPeerPort)
         {
             endpoint = null;
 
@@ -26,12 +27,19 @@ namespace AElf.OS.Network.Helpers
                 // ipv4 or hostname
                 host = values[0];
 
-                var parsedPort = GetPort(values[1]);
+                if (values.Length == 1)
+                {
+                    port = defaultPort;
+                }
+                else
+                {
+                    var parsedPort = GetPort(values[1]);
 
-                if (parsedPort == 0)
-                    return false;
-                
-                port = values.Length == 1 ? defaultPort : parsedPort;
+                    if (parsedPort == 0)
+                        return false;
+
+                    port = parsedPort;
+                }
             }
             else if (values.Length > 2) 
             {
