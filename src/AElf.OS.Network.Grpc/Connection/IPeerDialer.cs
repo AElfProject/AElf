@@ -6,7 +6,7 @@ namespace AElf.OS.Network.Grpc
 {
     public interface IPeerDialer
     {
-        Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndPoint);
-        Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint endpoint, Handshake handshake);
+        Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint);
+        Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake);
     }
 }

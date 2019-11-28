@@ -25,19 +25,5 @@ namespace AElf.OS.Network
             if (isValid)
                 endpoint.Port.ShouldBe(expectedPort);
         }
-        
-//        [Theory]
-//        [InlineData("aelf.bp1.cn8907", false, 8907)]
-//        [InlineData("aelf.bp1.cn=", true,  NetworkConstants.DefaultPeerPort)]
-//        [InlineData("ipv4:127.0.0.1:13000", true, 13000)]
-//        [InlineData("0.0.0.0:100", true, 100)]
-//        [InlineData("0.0.0.0", true, NetworkConstants.DefaultPeerPort)]
-//        [InlineData("::1", true, NetworkConstants.DefaultPeerPort)]
-//        [InlineData("::", true, NetworkConstants.DefaultPeerPort)]
-//        public void ParsingTest(string endpointToParse, bool isValid, int expectedPort)
-//        {
-//            AElfPeerEndpointHelper.TryParse(endpointToParse, out var endpoint).ShouldBe(isValid);
-//            endpoint.Port.ShouldBe(expectedPort);
-//        }
     }
 }
