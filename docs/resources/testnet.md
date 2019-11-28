@@ -22,7 +22,7 @@ Enter the following commands (see here for more details [SSDB](http://ssdb.io/?l
 
 ### Import the snapshot data
 
-After you’ve finished setting up the database, download the latest snapshots. The following gives you the template for the download URL, but you have to specify the snapshot date. We recommend you get the latest: 
+After you’ve finished setting up the database, download the latest snapshots. The following gives you the template for the download URL, but you have to specify the snapshot date. We recommend you get the latest. 
 
 Restore the chain database from snapshot:
 ```bash
@@ -67,7 +67,7 @@ After installing the package, you can use the following command to create an acc
 The command prompts for a password, enter it and don't forget it. The output of the command should look something like this:
 
 <p align="center">
-  <img src="testnet-create-account.png" width="300">
+  <img src="testnet-create-account.png" width="200">
 </p>
 
 In the next steps of the tutorial you will need the Public Key and the Address for the account you just created. You'll notice the last line of the commands output will show you the path to the newly created key. The aelf directory is the data directory (datadir) and this is where the node will read the keys from.
