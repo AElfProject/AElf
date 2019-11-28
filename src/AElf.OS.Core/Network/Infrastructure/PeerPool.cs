@@ -49,8 +49,6 @@ namespace AElf.OS.Network.Infrastructure
 
         private bool IsOverIpLimit(string host)
         {
-            
-            // todo - host - loopback detection + rename option
             if (NetworkOptions.MaxPeersPerIpAddress == 0 || host.Equals(IPAddress.Loopback.ToString()))
                 return false;
                 
