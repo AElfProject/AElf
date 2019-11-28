@@ -9,7 +9,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingInformationLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class SecretSharingInformationLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;

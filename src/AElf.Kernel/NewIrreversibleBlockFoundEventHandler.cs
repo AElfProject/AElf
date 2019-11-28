@@ -17,17 +17,20 @@ namespace AElf.Kernel
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
+        private readonly IForkCacheService _forkCacheService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
-            ITransactionBlockIndexService transactionBlockIndexService)
+            ITransactionBlockIndexService transactionBlockIndexService, 
+            IForkCacheService forkCacheService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
+            _forkCacheService = forkCacheService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -45,12 +48,17 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
 
-                if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
-                {
-                    _taskQueueManager.Enqueue(
-                        async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
-                        KernelConstants.UpdateChainQueueName);
-                }
+                _taskQueueManager.Enqueue(
+                    async () =>
+                    {
+                        if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
+                        {
+                            await _blockchainService.CleanChainBranchAsync(discardedBranch);
+                        }
+
+                        _forkCacheService.MergeAndCleanForkCache(eventData.BlockHash, eventData.BlockHeight);
+                    },
+                    KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
                 await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
