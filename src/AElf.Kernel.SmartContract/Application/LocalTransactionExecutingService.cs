@@ -201,8 +201,10 @@ namespace AElf.Kernel.SmartContract.Application
 
                 await executive.ApplyAsync(txContext);
 
-                await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime, txContext, internalStateCache,
-                    internalChainContext, cancellationToken);
+                if (txContext.Trace.IsSuccessful())
+                    await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
+                        txContext, internalStateCache,
+                        internalChainContext, cancellationToken);
 
                 #region PostTransaction
 
@@ -242,49 +244,46 @@ namespace AElf.Kernel.SmartContract.Application
             IChainContext internalChainContext, CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
-            if (txContext.Trace.IsSuccessful())
+            internalStateCache.Update(txContext.Trace.GetStateSets());
+            foreach (var inlineTx in txContext.Trace.InlineTransactions)
             {
-                internalStateCache.Update(txContext.Trace.GetStateSets());
-                foreach (var inlineTx in txContext.Trace.InlineTransactions)
+                TransactionTrace inlineTrace;
+                try
                 {
-                    TransactionTrace inlineTrace;
-                    try
+                    var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        var singleTxExecutingDto = new SingleTransactionExecutingDto
-                        {
-                            Depth = depth + 1,
-                            ChainContext = internalChainContext,
-                            Transaction = inlineTx,
-                            CurrentBlockTime = currentBlockTime,
-                            Origin = txContext.Origin
-                        };
-                        inlineTrace = await Task
-                            .Run(() => ExecuteOneAsync(singleTxExecutingDto, cancellationToken), cancellationToken)
-                            .WithCancellation(cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Logger.LogWarning("Inline transaction canceled.");
-                        inlineTrace = new TransactionTrace
-                        {
-                            TransactionId = txContext.Transaction.GetHash(),
-                            ExecutionStatus = ExecutionStatus.Canceled,
-                            Error = "Execution cancelled"
-                        };
-                    }
-
-                    if (inlineTrace == null)
-                        break;
-                    trace.InlineTraces.Add(inlineTrace);
-                    if (!inlineTrace.IsSuccessful())
-                    {
-                        Logger.LogWarning($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
-                        // Already failed, no need to execute remaining inline transactions
-                        break;
-                    }
-
-                    internalStateCache.Update(inlineTrace.GetStateSets());
+                        Depth = depth + 1,
+                        ChainContext = internalChainContext,
+                        Transaction = inlineTx,
+                        CurrentBlockTime = currentBlockTime,
+                        Origin = txContext.Origin
+                    };
+                    inlineTrace = await Task
+                        .Run(() => ExecuteOneAsync(singleTxExecutingDto, cancellationToken), cancellationToken)
+                        .WithCancellation(cancellationToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    Logger.LogWarning("Inline transaction canceled.");
+                    inlineTrace = new TransactionTrace
+                    {
+                        TransactionId = txContext.Transaction.GetHash(),
+                        ExecutionStatus = ExecutionStatus.Canceled,
+                        Error = "Execution cancelled"
+                    };
+                }
+
+                if (inlineTrace == null)
+                    break;
+                trace.InlineTraces.Add(inlineTrace);
+                if (!inlineTrace.IsSuccessful())
+                {
+                    Logger.LogWarning($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
+                    // Already failed, no need to execute remaining inline transactions
+                    break;
+                }
+
+                internalStateCache.Update(inlineTrace.GetStateSets());
             }
         }
 

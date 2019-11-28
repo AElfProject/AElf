@@ -148,7 +148,9 @@ namespace AElf.Contracts.ParliamentAuth
 
         public override BoolValue ValidateAddressInProposerWhiteList(Address address)
         {
-            return new BoolValue {Value = ValidateAddressInWhiteList(address)};
+            return State.ProposerAuthorityRequired.Value
+                ? new BoolValue {Value = ValidateAddressInWhiteList(address)}
+                : new BoolValue {Value = true};
         }
 
         public override BoolValue ValidateOrganizationExist(Address input)
