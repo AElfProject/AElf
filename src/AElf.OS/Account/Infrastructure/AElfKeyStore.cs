@@ -9,13 +9,15 @@ using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.Exceptions;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Nethereum.KeyStore;
 using Nethereum.KeyStore.Crypto;
 
 namespace AElf.OS.Account.Infrastructure
 {
-    public class AElfKeyStore : IKeyStore,ISingletonDependency
+    public class AElfKeyStore : IKeyStore, ISingletonDependency
     {
         private readonly INodeEnvironmentService _nodeEnvironmentService;
 
@@ -26,6 +28,8 @@ namespace AElf.OS.Account.Infrastructure
         private readonly KeyStoreService _keyStoreService;
 
         public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
+        
+        public ILogger<AElfKeyStore> Logger { get; set; }
 
         public enum Errors
         {
@@ -41,6 +45,8 @@ namespace AElf.OS.Account.Infrastructure
             _nodeEnvironmentService = nodeEnvironmentService;
             _unlockedAccounts = new List<Account>();
             _keyStoreService = new KeyStoreService();
+            
+            Logger = NullLogger<AElfKeyStore>.Instance;
         }
 
         private async Task UnlockAccountAsync(string address, string password, TimeSpan? timeoutToClose)
@@ -73,12 +79,14 @@ namespace AElf.OS.Account.Infrastructure
                     await UnlockAccountAsync(address, password, null);
                 }
             }
-            catch (InvalidPasswordException)
+            catch (InvalidPasswordException ex)
             {
+                Logger.LogError(ex, "Invalid password: ");
                 return Errors.WrongPassword;
             }
-            catch (KeyStoreNotFoundException)
+            catch (KeyStoreNotFoundException ex)
             {
+                Logger.LogError(ex, "Could not load account:");
                 return Errors.AccountFileNotFound;
             }
 
