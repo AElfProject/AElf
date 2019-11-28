@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
         void RemoveStradegy(FeeType feeType);
     }
 
-    public class CalculateFeeService : ICalculateFeeService
+    class CalculateFeeService : ICalculateFeeService
     {
         private readonly ICalStradegyProvider _calStradegyProvider;
 
@@ -95,12 +95,12 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public interface ICalStradegyProvider : ISingletonDependency
+    interface ICalStradegyProvider : ISingletonDependency
     {
         ICalCostStrategy GetCalculator(FeeType feeType);
     }
 
-    public class CalStradegyProvider : ICalStradegyProvider
+    class CalStradegyProvider : ICalStradegyProvider
     {
         private Dictionary<FeeType, ICalCostStrategy> CalDic { get; set; }
 
@@ -123,14 +123,14 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public enum AlgorithmOpCode
+    enum AlgorithmOpCode
     {
         AddFunc,
         DeleteFunc,
         UpdateFunc
     }
 
-    public interface ICalCostStrategy
+    interface ICalCostStrategy
     {
         long GetCost(int cost);
 
@@ -270,7 +270,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public interface ICalAlgorithm
+    interface ICalAlgorithm
     {
         Dictionary<int, ICalWay> PieceWise { get; set; }
         long Calculate(int count);
@@ -281,7 +281,7 @@ namespace AElf.Kernel.SmartContract.Application
         void AddPieceFunction(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
     }
 
-    public class CalAlgorithm : ICalAlgorithm
+    class CalAlgorithm : ICalAlgorithm
     {
         public ILogger<CalAlgorithm> Logger { get; set; }
 
@@ -352,7 +352,7 @@ namespace AElf.Kernel.SmartContract.Application
 
     #region cal imp     
 
-    public enum CalFunctionType
+    enum CalFunctionType
     {
         Constrant = 0,
         Liner,

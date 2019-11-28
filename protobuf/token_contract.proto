@@ -162,7 +162,6 @@ message TransferInput {
     string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
-    string target_symbol = 5;
 }
 
 message LockInput {
@@ -187,7 +186,6 @@ message TransferFromInput {
     string symbol = 3;
     sint64 amount = 4;
     string memo = 5;
-    string target_symbol = 6;
 }
 
 message ApproveInput {

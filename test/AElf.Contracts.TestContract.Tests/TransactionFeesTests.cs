@@ -10,6 +10,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -67,7 +68,7 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var calculator = new CalculateFeeService(new CalStradegyProvider());
+            var calculator = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
             var afterBalance = await GetBalance(DefaultSender);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.CalculateFee(FeeType.Tx, transactionSize));   //according to the way to calculate
 
@@ -119,7 +120,7 @@ namespace AElf.Contract.TestContract
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var txTxSize = transactionResult.Transaction.Size();
-            var calculator = new CalculateFeeService(new CalStradegyProvider());
+            var calculator = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
             var afterBalance = await GetBalance(DefaultSender);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.CalculateFee(FeeType.Tx, txTxSize));
             

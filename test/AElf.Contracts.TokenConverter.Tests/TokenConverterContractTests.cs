@@ -33,7 +33,19 @@ namespace AElf.Contracts.TokenConverter
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = false,
-            RelatedSymbol = NativeSymbol
+            RelatedSymbol = "NT" + RamSymbol,
+            IsDepositAccount = false
+        };
+        
+        private Connector NtRamConnector = new Connector
+        {
+            Symbol = "NT" + RamSymbol,
+            VirtualBalance = 100_0000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,
+            RelatedSymbol = RamSymbol,
+            IsDepositAccount = true
         };
 
         #region Views Test
@@ -524,7 +536,6 @@ namespace AElf.Contracts.TokenConverter
             resourceConnector.ShouldNotBeNull();
             nativeToResourceConnector.ShouldNotBeNull();
         }
-
         #endregion
 
         #region Private Task
@@ -564,7 +575,7 @@ namespace AElf.Contracts.TokenConverter
                 ManagerAddress = Address.FromPublicKey(ManagerKeyPair.PublicKey),
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
-                Connectors = {ELFConnector, RamConnector}
+                Connectors = {ELFConnector, RamConnector, NtRamConnector}
             };
             return (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
         }

@@ -309,7 +309,8 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",
                     VirtualBalance = EconomicContractConstants.ResourceTokenInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol
+                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    IsDepositAccount = false
                 };
                 var nativeTokenConnector = new Connector
                 {
@@ -318,7 +319,8 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",
                     VirtualBalance = EconomicContractConstants.NativeTokenToResourceBalance,
-                    RelatedSymbol = resourceTokenSymbol
+                    RelatedSymbol = resourceTokenSymbol,
+                    IsDepositAccount = true
                 };
                 connectors.Add(resourceTokenConnector);
                 connectors.Add(nativeTokenConnector);

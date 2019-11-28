@@ -106,7 +106,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Transfer(TransferInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-            DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
+            DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
 
@@ -262,14 +262,14 @@ namespace AElf.Contracts.MultiToken
             {
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
-                    DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
+                    DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
 
                 Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
-            DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
+            DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }

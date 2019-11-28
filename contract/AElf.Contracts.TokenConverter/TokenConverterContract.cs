@@ -191,9 +191,8 @@ namespace AElf.Contracts.TokenConverter
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = amountToPay,
-                    TargetSymbol = fromConnector.Symbol
                 });
-
+            State.DepositBalance[fromConnector.Symbol] = State.DepositBalance[fromConnector.Symbol].Add(amountToPay);
             // Transfer bought token
             State.TokenContract.Transfer.Send(
                 new TransferInput
@@ -218,9 +217,6 @@ namespace AElf.Contracts.TokenConverter
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "Can't find from connector.");
-//            var relatedSymbol = string.IsNullOrEmpty(fromConnector.RelatedSymbol)
-//                ? State.BaseTokenSymbol.Value
-//                : fromConnector.RelatedSymbol;
             Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "Can't find to connector.");
@@ -250,12 +246,12 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.Transfer.Send(
                 new TransferInput()
                 {
-                    Symbol = toConnector.Symbol,
+                    Symbol = State.BaseTokenSymbol.Value,
                     To = Context.Sender,
-                    Amount = amountToReceiveLessFee,
-                    TargetSymbol = State.BaseTokenSymbol.Value
+                    Amount = amountToReceiveLessFee
                 });
-
+            State.DepositBalance[toConnector.Symbol] =
+                State.DepositBalance[toConnector.Symbol].Sub(amountToReceiveLessFee);
             // Transfer sold token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
@@ -358,12 +354,21 @@ namespace AElf.Contracts.TokenConverter
 
         private long GetSelfBalance(Connector connector)
         {
-            var realBalance = State.TokenContract.GetBalance.Call(
-                new GetBalanceInput()
-                {
-                    Owner = Context.Self,
-                    Symbol = connector.Symbol
-                }).Balance;
+            long realBalance;
+            if (connector.IsDepositAccount)
+            {
+                realBalance = State.DepositBalance[connector.Symbol];
+            }
+            else
+            {
+                realBalance = State.TokenContract.GetBalance.Call(
+                    new GetBalanceInput()
+                    {
+                        Owner = Context.Self,
+                        Symbol = connector.Symbol
+                    }).Balance;
+            }
+
             if (connector.IsVirtualBalanceEnabled)
             {
                 return connector.VirtualBalance.Add(realBalance);
