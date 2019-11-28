@@ -25,7 +25,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_DefaultOrganizationAddressFailed_Test()
         {
             var transactionResult =
-                await OtherParliamentAuthContractStub.GetDefaultOrganizationAddress.SendWithExceptionAsync(new Empty());
+                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.SendWithExceptionAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }

@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
@@ -58,6 +59,7 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
             context.Services.AddSingleton<ITxHub, MockTxHub>();
+            context.Services.AddTransient<IDeployedContractAddressService, DeployedContractAddressService>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

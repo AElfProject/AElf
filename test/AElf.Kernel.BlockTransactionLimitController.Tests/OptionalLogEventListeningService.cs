@@ -7,11 +7,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class OptionalLogEventListeningService : ILogEventListeningService, ISingletonDependency
+    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventHandler
     {
-        private LogEventListeningService _inner;
+        private LogEventListeningService<T> _inner;
 
-        public OptionalLogEventListeningService(LogEventListeningService inner)
+        public OptionalLogEventListeningService(LogEventListeningService<T> inner)
         {
             _inner = inner;
         }
