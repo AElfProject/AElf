@@ -85,7 +85,6 @@ namespace AElf.OS.Worker
                 }
                 catch (Exception ex)
                 {
-                    // todo consider different handling of the exception in dialer 
                     // down the stack the AddPeerAsync rethrows any exception,
                     // in order to continue this job, Exception has to be catched for now.
                     Logger.LogError(ex, $"Could not re-connect to {peerEndpoint}.");
