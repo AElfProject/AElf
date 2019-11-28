@@ -4,7 +4,6 @@ Transactions ultimately are what will change the state of the blockchain, by cal
 
 ```Proto
 option csharp_namespace = "AElf.Types";
-import "common.proto";
 
 message Transaction {
     Address from = 1;
