@@ -20,6 +20,12 @@ enum ParallelType {
 
 message ContractRemarks {
     aelf.Address contract_address = 1;
-    aelf.Hash code_hash = 2;
-    bool non_parallelizable = 3;
+    repeated CodeRemark code_remarks = 2; 
+}
+
+message CodeRemark{
+    aelf.Hash code_hash = 1;
+    bool non_parallelizable = 2;
+    aelf.Hash block_hash = 3;
+    int64 block_height = 4;
 }

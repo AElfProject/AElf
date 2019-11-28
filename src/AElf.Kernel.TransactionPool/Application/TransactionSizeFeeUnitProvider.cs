@@ -100,8 +100,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex,out _)) continue;
-                _unitPrice = _forkCache[blockIndex];
+                if(!_forkCache.TryGetValue(blockIndex,out var unitPrice)) continue;
+                _unitPrice = unitPrice;
                 _forkCache.TryRemove(blockIndex, out _);
             }
         }

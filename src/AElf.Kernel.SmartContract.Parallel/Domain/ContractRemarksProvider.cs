@@ -4,15 +4,16 @@ using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public interface IContractRemarksCacheProvider
     {
-        ContractRemarks GetContractRemarks(IChainContext chainContext, Address address);
-        void SetContractRemarks(ContractRemarks contractRemarks);
-        void SetContractRemarks(Address address, Hash codeHash, BlockHeader blockHeader);
+        CodeRemark GetCodeRemark(IChainContext chainContext, Address address);
+        void SetCodeRemark(Address address, CodeRemark codeRemark);
+        void AddCodeRemark(Address address, CodeRemark codeRemark);
 
         void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash);
 
@@ -20,16 +21,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
 
         bool MayHasContractRemarks(IBlockIndex previousBlockIndex);
         
-        void RemoveForkCache(List<BlockIndex> blockIndexes);
-        List<ContractRemarks> SetIrreversedCache(List<BlockIndex> blockIndexes);
+        Dictionary<Address,List<CodeRemark>> RemoveForkCache(List<BlockIndex> blockIndexes);
+        Dictionary<Address,CodeRemark> SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
     public class ContractRemarksCacheProvider : IContractRemarksCacheProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<Address, ContractRemarks> _cache =
-            new ConcurrentDictionary<Address, ContractRemarks>();
-        private readonly ConcurrentDictionary<Address, List<ContractRemarksCache>> _forkCache =
-            new ConcurrentDictionary<Address, List<ContractRemarksCache>>();
+        private readonly ConcurrentDictionary<Address, CodeRemark> _cache =
+            new ConcurrentDictionary<Address, CodeRemark>();
+        private readonly ConcurrentDictionary<Address, List<CodeRemark>> _forkCache =
+            new ConcurrentDictionary<Address, List<CodeRemark>>();
 
         private readonly ConcurrentDictionary<IBlockIndex, List<CodeHashCache>> _codeHashCacheMappings =
             new ConcurrentDictionary<IBlockIndex, List<CodeHashCache>>();
@@ -41,27 +42,22 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
         public ContractRemarksCacheProvider(IChainBlockLinkCacheProvider chainBlockLinkCacheProvider)
         {
             _chainBlockLinkCacheProvider = chainBlockLinkCacheProvider;
+            Logger = NullLogger<ContractRemarksCacheProvider>.Instance;
         }
 
-        public ContractRemarks GetContractRemarks(IChainContext chainContext, Address address)
+        public CodeRemark GetCodeRemark(IChainContext chainContext, Address address)
         {
             var blockHash = chainContext.BlockHash;
             var blockHeight = chainContext.BlockHeight;
-            if(_forkCache.TryGetValue(address, out var caches))
+            if(_forkCache.TryGetValue(address, out var codeRemarks))
             {
-                var blockHashes = caches.Select(c => c.BlockHash).ToList();
-                var minHeight = caches.Select(s => s.BlockHeight).Min();
+                var blockHashes = codeRemarks.Select(c => c.BlockHash).ToList();
+                var minHeight = codeRemarks.Select(s => s.BlockHeight).Min();
                 do
                 {
                     if (blockHashes.Contains(blockHash))
                     {
-                        var cache = caches.First(c => c.BlockHash == blockHash);
-                        return new ContractRemarks
-                        {
-                            ContractAddress = address,
-                            CodeHash = cache.CodeHash,
-                            NonParallelizable = cache.NonParallelizable
-                        };
+                        return codeRemarks.First(c => c.BlockHash == blockHash);
                     }
 
                     var block = _chainBlockLinkCacheProvider.GetChainBlockLink(blockHash);
@@ -70,32 +66,25 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 } while (blockHash != null && blockHeight >= minHeight);
             }
 
-            _cache.TryGetValue(address, out var contractRemarks);
-            return contractRemarks;
+            _cache.TryGetValue(address, out var codeRemark);
+            return codeRemark;
         }
         
-        public void SetContractRemarks(ContractRemarks contractRemarks)
+        public void SetCodeRemark(Address address,CodeRemark codeRemark)
         {
-            _cache[contractRemarks.ContractAddress] = contractRemarks;
+            _cache[address] = codeRemark;
         }
 
-        public void SetContractRemarks(Address address, Hash codeHash, BlockHeader blockHeader)
+        public void AddCodeRemark(Address address,CodeRemark codeRemark)
         {
-            Logger.LogTrace($"Set contract remarks Address: {address}, CodeHash:{codeHash}, BlockHeader:{blockHeader}");
-            if (!_forkCache.TryGetValue(address, out var contractRemarksCaches))
+            Logger.LogTrace($"Set contract remarks Address: {address}, CodeRemark:{codeRemark}");
+            if (!_forkCache.TryGetValue(address, out var codeRemarks))
             {
-                contractRemarksCaches = new List<ContractRemarksCache>();
-                _forkCache[address] = contractRemarksCaches;
+                codeRemarks = new List<CodeRemark>();
+                _forkCache[address] = codeRemarks;
             }
 
-            contractRemarksCaches.Add(new ContractRemarksCache
-            {
-                Address = address,
-                CodeHash = codeHash,
-                BlockHash = blockHeader.GetHash(),
-                BlockHeight = blockHeader.Height,
-                NonParallelizable = true
-            });
+            codeRemarks.AddIfNotContains(codeRemark);
         }
 
         public void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash)
@@ -106,7 +95,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 _codeHashCacheMappings[blockIndex] = caches;
             }
 
-            caches.Add(new CodeHashCache
+            caches.AddIfNotContains(new CodeHashCache
             {
                 Address = address,
                 CodeHash = codeHash
@@ -124,59 +113,45 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             return _codeHashCacheMappings.TryGetValue(previousBlockIndex, out _);
         }
 
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        public Dictionary<Address,List<CodeRemark>> RemoveForkCache(List<BlockIndex> blockIndexes)
         {
+            var codeRemarkDic = new Dictionary<Address,List<CodeRemark>>();
             var addresses = _forkCache.Keys.ToList();
             var blockHashes = blockIndexes.Select(b => b.BlockHash).ToList();
             foreach (var address in addresses)
             {
-                var caches = _forkCache[address];
-                caches?.RemoveAll(c => blockHashes.Contains(c.BlockHash));
-                if (caches?.Count != 0) continue;
+                var codeRemarks = _forkCache[address];
+                codeRemarkDic[address] = codeRemarks.Where(c => blockHashes.Contains(c.BlockHash)).ToList();
+                codeRemarks.RemoveAll(c => blockHashes.Contains(c.BlockHash));
+                if (codeRemarks.Count != 0) continue;
                 _forkCache.TryRemove(address, out _);
             }
+
+            return codeRemarkDic;
         }
 
-        public List<ContractRemarks> SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public Dictionary<Address,CodeRemark> SetIrreversedCache(List<BlockIndex> blockIndexes)
         {
-            var contractRemarksList = new List<ContractRemarks>();
+            var codeRemarkDic = new Dictionary<Address, CodeRemark>();
             var addresses = _forkCache.Keys.ToList();
             var blockHashes = blockIndexes.Select(b => b.BlockHash).ToList();
             foreach (var address in addresses)
             {
-                var caches = _forkCache[address];
-                foreach (var cache in caches)
+                var codeRemarks = _forkCache[address].OrderBy(c => c.BlockHeight).ToList();
+                foreach (var codeRemark in codeRemarks)
                 {
-                    if(!blockHashes.Contains(cache.BlockHash)) continue;
-                    var contractRemarks = new ContractRemarks
-                    {
-                        ContractAddress = address,
-                        CodeHash = cache.CodeHash,
-                        NonParallelizable = true
-                    };
-                    _cache[address] = contractRemarks;
-                    contractRemarksList.Add(contractRemarks);
+                    if(!blockHashes.Contains(codeRemark.BlockHash)) continue;
+                    _cache[address] = codeRemark;
+                    _forkCache[address].Remove(codeRemark);
+                    codeRemarkDic[address] = codeRemark;
                 }
-                caches.RemoveAll(c => blockHashes.Contains(c.BlockHash));
-                if (caches.Count != 0) continue;
+
+                if (_forkCache[address].Count != 0) continue;
                 _forkCache.TryRemove(address, out _);
             }
 
-            return contractRemarksList;
+            return codeRemarkDic;
         }
-    }
-    
-    public class ContractRemarksCache
-    {
-        public Address Address { get; set; }
-        
-        public Hash CodeHash { get; set; }
-        
-        public Hash BlockHash { get; set; }
-        
-        public long BlockHeight { get; set; } 
-        
-        public bool NonParallelizable { get; set; }
     }
     
     public class CodeHashCache

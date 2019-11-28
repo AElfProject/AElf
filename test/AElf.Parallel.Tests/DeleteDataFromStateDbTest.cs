@@ -901,15 +901,14 @@ namespace AElf.Parallel.Tests
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
                 var codeHash = Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode);
-                var contractRemarks =
-                    await _contractRemarksManager.GetContractRemarksAsync(new ChainContext
+                var codeRemark =
+                    await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
                     }, ParallelTestHelper.BasicFunctionWithParallelContractAddress, codeHash);
-                contractRemarks.NonParallelizable.ShouldBeFalse();
-                contractRemarks.CodeHash.ShouldBe(codeHash);
-                contractRemarks.ContractAddress.ShouldBe(ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+                codeRemark.NonParallelizable.ShouldBeFalse();
+                codeRemark.CodeHash.ShouldBe(codeHash);
                     
                 messageValue = new MessageValue
                 {
@@ -1050,14 +1049,13 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var contractRemarks =
-                    await _contractRemarksManager.GetContractRemarksAsync(
+                var codeRemark =
+                    await _contractRemarksManager.GetCodeRemarkAsync(
                         new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                         Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-                contractRemarks.NonParallelizable.ShouldBeFalse();
-                contractRemarks.ContractAddress.ShouldBe(ParallelTestHelper.BasicFunctionWithParallelContractAddress);
-                contractRemarks.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+                codeRemark.NonParallelizable.ShouldBeFalse();
+                codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
                 messageValue = new MessageValue
                 {

@@ -13,15 +13,15 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly IContractRemarksCacheProvider _contractRemarksCacheProvider;
+        private readonly IContractRemarksManager _contractRemarksManager;
 
         public BlockAcceptedEventDataHandler(IBlockchainService blockchainService, 
             ITransactionResultQueryService transactionReadOnlyExecutionService, 
-            IContractRemarksCacheProvider contractRemarksCacheProvider)
+            IContractRemarksManager contractRemarksManager)
         {
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionReadOnlyExecutionService;
-            _contractRemarksCacheProvider = contractRemarksCacheProvider;
+            _contractRemarksManager = contractRemarksManager;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHash = eventData.Block.Header.PreviousBlockHash, 
                 BlockHeight = eventData.Block.Height - 1
             };
-            if (!_contractRemarksCacheProvider.MayHasContractRemarks(previousBlockIndex)) return;
+            if (!_contractRemarksManager.MayHasContractRemarks(previousBlockIndex)) return;
             var transactions = await _blockchainService.GetTransactionsAsync(eventData.Block.TransactionIds);
             var conflictContractAddresses = new List<Address>();
             var blockHash = eventData.Block.GetHash();
@@ -47,8 +47,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             foreach (var address in conflictContractAddresses)
             {
-                var codeHash = _contractRemarksCacheProvider.GetCodeHash(previousBlockIndex, address);
-                _contractRemarksCacheProvider.SetContractRemarks(address, codeHash, eventData.Block.Header);
+                var codeHash = _contractRemarksManager.GetCodeHashByBlockIndex(previousBlockIndex, address);
+                await _contractRemarksManager.SetCodeRemarkAsync(address, codeHash, eventData.Block.Header);
             }
         }
     }

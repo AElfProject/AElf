@@ -9,22 +9,21 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public static bool NonParallelizable = false;
 
-        public async Task<ContractRemarks> GetContractRemarksAsync(IChainContext chainContext, Address address, Hash codeHash)
+        public async Task<CodeRemark> GetCodeRemarkAsync(IChainContext chainContext, Address address, Hash codeHash)
         {
-            return await Task.FromResult(new ContractRemarks
+            return await Task.FromResult(new CodeRemark
             {
                 CodeHash = codeHash,
-                ContractAddress = address,
                 NonParallelizable = NonParallelizable
             });
         }
 
-        public async Task SetContractRemarksAsync(Address address, ContractRemarks contractRemarks)
+        public void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash)
         {
             throw new System.NotImplementedException();
         }
 
-        public void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash)
+        public async Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader)
         {
             throw new System.NotImplementedException();
         }
@@ -35,6 +34,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         public async Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool MayHasContractRemarks(BlockIndex previousBlockIndex)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Hash GetCodeHashByBlockIndex(BlockIndex previousBlockIndex, Address address)
         {
             throw new System.NotImplementedException();
         }

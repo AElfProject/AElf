@@ -109,10 +109,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                         ContractHash = executive.ContractHash
                     };
                 }
-                var contractRemarks =
-                    await _contractRemarksManager.GetContractRemarksAsync(chainContext, address,
+                var codeRemark =
+                    await _contractRemarksManager.GetCodeRemarkAsync(chainContext, address,
                         executive.ContractHash);
-                if (contractRemarks != null && contractRemarks.NonParallelizable)
+                if (codeRemark != null && codeRemark.NonParallelizable)
                 {
                     return new TransactionResourceInfo
                     {
