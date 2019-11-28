@@ -72,7 +72,7 @@ The command prompts for a password, enter it and don't forget it. The output of 
 
 In the next steps of the tutorial you will need the Public Key and the Address for the account you just created. You'll notice the last line of the commands output will show you the path to the newly created key. The aelf directory is the data directory (datadir) and this is where the node will read the keys from.
 
-Note that a more detailed section about the CLI can be found command line interface.
+Note that a more detailed section about the CLI can be found [here](cli/introduction.md).
 
 ### Prepare node configuration
 
@@ -143,7 +143,7 @@ to stop the node you can run:
 
 ## Running a full node with the binary release
 
-Most of AElf is developed with dotnet core, so to run the binaries you will need to download and install the .NET Core SDK before you start: Download .NET Core 3.0. For now AElf depends on version 3.0 of the SDK, on the provided link find the download for your platform, and install it.
+Most of AElf is developed with dotnet core, so to run the binaries you will need to download and install the .NET Core SDK before you start: [Download .NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0). For now AElf depends on version 3.0 of the SDK, on the provided link find the download for your platform, and install it.
 
 Get the latest release with the following commands:
 ```bash
