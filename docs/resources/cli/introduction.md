@@ -1,18 +1,7 @@
 # Introduction to the CLI
 
-<p align="center">
-  <img alt="Node" src="https://img.shields.io/badge/node->=10.9.0-brightgreen">
-  <img alt="NPM" src="https://img.shields.io/npm/l/aelf-command">
-  <a href="http://commitizen.github.io/cz-cli/">
-    <img alt="Commitizen friendly" src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg">
-  </a>
-</p>
 
-[Github Link](https://github.com/AElfProject/aelf-command)
-
-## Descriptions
-
-_A CLI tools built for AElf_
+The **aelf-command** tool is a CLI tools built for interacting with an AElf node. This section will walk you through some of the most commonly used features and show you how to install the tool.
 
 ## Features
 
@@ -45,6 +34,7 @@ $ npm i aelf-command -g
 You need to create a new account or load a account by a `private key` or `mnemonic` you already have.
 
 * Create a new wallet
+
 ```bash
 $ aelf-command create
 
