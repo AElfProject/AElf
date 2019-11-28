@@ -54,68 +54,72 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ICalculateFeeService : ISingletonDependency
     {
         long CalculateFee(FeeType feeType, int cost);
-        void UpdateFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> para);
+
+        void UpdateFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe,
+            Dictionary<string, string> para);
+
         void DeleteFeeCal(FeeType feeType, int pieceKey);
-        void AddFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> param);
+        void AddFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe, Dictionary<string, string> param);
     }
 
     class CalculateFeeService : ICalculateFeeService
     {
-        private readonly ICalStradegyProvider _calStradegyProvider;
+        private readonly ICalculateStradegyProvider _calculateStradegyProvider;
 
-        public CalculateFeeService(ICalStradegyProvider calStradegyProvider)
+        public CalculateFeeService(ICalculateStradegyProvider calculateStradegyProvider)
         {
-            _calStradegyProvider = calStradegyProvider;
+            _calculateStradegyProvider = calculateStradegyProvider;
         }
 
         public long CalculateFee(FeeType feeType, int cost)
         {
-            return _calStradegyProvider.GetCalculator(feeType).GetCost(cost);
+            return _calculateStradegyProvider.GetCalculator(feeType).GetCost(cost);
         }
 
-        public void UpdateFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe,
+        public void UpdateFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe,
             Dictionary<string, string> param)
         {
-            _calStradegyProvider.GetCalculator(feeType)
+            _calculateStradegyProvider.GetCalculator(feeType)
                 .UpdateAlgorithm(AlgorithmOpCode.UpdateFunc, pieceKey, funcTyoe, param);
         }
 
         public void DeleteFeeCal(FeeType feeType, int pieceKey)
         {
-            _calStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
+            _calculateStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
         }
 
-        public void AddFeeCal(FeeType feeType, int pieceKey, CalFunctionType funcTyoe, Dictionary<string, string> param)
+        public void AddFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe,
+            Dictionary<string, string> param)
         {
-            _calStradegyProvider.GetCalculator(feeType)
+            _calculateStradegyProvider.GetCalculator(feeType)
                 .UpdateAlgorithm(AlgorithmOpCode.AddFunc, pieceKey, funcTyoe, param);
         }
     }
 
-    interface ICalStradegyProvider : ISingletonDependency
+    interface ICalculateStradegyProvider : ISingletonDependency
     {
-        ICalCostStrategy GetCalculator(FeeType feeType);
+        ICalculateCostStrategy GetCalculator(FeeType feeType);
     }
 
-    class CalStradegyProvider : ICalStradegyProvider
+    class CalculateStradegyProvider : ICalculateStradegyProvider
     {
-        private Dictionary<FeeType, ICalCostStrategy> CalDic { get; set; }
+        private Dictionary<FeeType, ICalculateCostStrategy> CalculatorDic { get; set; }
 
-        public CalStradegyProvider()
+        public CalculateStradegyProvider()
         {
-            CalDic = new Dictionary<FeeType, ICalCostStrategy>
+            CalculatorDic = new Dictionary<FeeType, ICalculateCostStrategy>
             {
-                [FeeType.Cpu] = new CpuCalCostStrategy(),
-                [FeeType.Sto] = new StoCalCostStrategy(),
-                [FeeType.Net] = new NetCalCostStrategy(),
-                [FeeType.Ram] = new RamCalCostStrategy(),
-                [FeeType.Tx] = new TxCalCostStrategy()
+                [FeeType.Cpu] = new CpuCalculateCostStrategy(),
+                [FeeType.Sto] = new StoCalculateCostStrategy(),
+                [FeeType.Net] = new NetCalculateCostStrategy(),
+                [FeeType.Ram] = new RamCalculateCostStrategy(),
+                [FeeType.Tx] = new TxCalculateCostStrategy()
             };
         }
 
-        public ICalCostStrategy GetCalculator(FeeType feeType)
+        public ICalculateCostStrategy GetCalculator(FeeType feeType)
         {
-            CalDic.TryGetValue(feeType, out var cal);
+            CalculatorDic.TryGetValue(feeType, out var cal);
             return cal;
         }
     }
@@ -127,55 +131,58 @@ namespace AElf.Kernel.SmartContract.Application
         UpdateFunc
     }
 
-    interface ICalCostStrategy
+    interface ICalculateCostStrategy
     {
         long GetCost(int cost);
 
-        void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, CalFunctionType funcType = CalFunctionType.Default,
+        void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey,
+            CalculateFunctionType funcType = CalculateFunctionType.Default,
             Dictionary<string, string> param = null);
     }
 
-    abstract class CalCostStrategyBase : ICalCostStrategy
+    abstract class CalculateCostStrategyBase : ICalculateCostStrategy
     {
-        protected ICalAlgorithm CalAlgorithm { get; set; }
+        protected ICalculateAlgorithm CalculateAlgorithm { get; set; }
 
         public long GetCost(int cost)
         {
-            return CalAlgorithm.Calculate(cost);
+            return CalculateAlgorithm.Calculate(cost);
         }
 
-        public void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, CalFunctionType funcType,
+        public void UpdateAlgorithm(AlgorithmOpCode opCode, int pieceKey, CalculateFunctionType funcType,
             Dictionary<string, string> param)
         {
             switch (opCode)
             {
                 case AlgorithmOpCode.AddFunc:
-                    CalAlgorithm.AddByParam(pieceKey, funcType, param);
+                    CalculateAlgorithm.AddByParam(pieceKey, funcType, param);
                     break;
                 case AlgorithmOpCode.DeleteFunc:
-                    CalAlgorithm.Delete(pieceKey);
+                    CalculateAlgorithm.Delete(pieceKey);
                     break;
                 case AlgorithmOpCode.UpdateFunc:
-                    CalAlgorithm.Update(pieceKey, funcType, param);
+                    CalculateAlgorithm.Update(pieceKey, funcType, param);
                     break;
             }
         }
     }
 
-    class CpuCalCostStrategy : CalCostStrategyBase
+    #region concrete stradegys
+
+    class CpuCalculateCostStrategy : CalculateCostStrategyBase
     {
-        public CpuCalCostStrategy()
+        public CpuCalculateCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(10, new LinerCalWay
+            CalculateAlgorithm = new CalculateAlgorithm().Add(10, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 8,
                 ConstantValue = 10000
-            }).Add(100, new LinerCalWay
+            }).Add(100, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 4
-            }).Add(int.MaxValue, new PowCalWay
+            }).Add(int.MaxValue, new PowerCalculateWay
             {
                 Power = 2,
                 ChangeSpanBase = 4, // scale  x axis         
@@ -183,21 +190,21 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 40,
                 Numerator = 1,
                 Denominator = 4,
-                Decimal = 100000000L // 1 token = 100000000
+                Precision = 100000000L // 1 token = 100000000
             }).Prepare();
         }
     }
 
-    class StoCalCostStrategy : CalCostStrategyBase
+    class StoCalculateCostStrategy : CalculateCostStrategyBase
     {
-        public StoCalCostStrategy()
+        public StoCalculateCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
+            CalculateAlgorithm = new CalculateAlgorithm().Add(1000000, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 64,
                 ConstantValue = 10000
-            }).Add(int.MaxValue, new PowCalWay
+            }).Add(int.MaxValue, new PowerCalculateWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -205,25 +212,25 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 500,
                 Numerator = 1,
                 Denominator = 64,
-                Decimal = 100000000L
+                Precision = 100000000L
             }).Prepare();
         }
     }
 
-    class RamCalCostStrategy : CalCostStrategyBase
+    class RamCalculateCostStrategy : CalculateCostStrategyBase
     {
-        public RamCalCostStrategy()
+        public RamCalculateCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(10, new LinerCalWay
+            CalculateAlgorithm = new CalculateAlgorithm().Add(10, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 8,
                 ConstantValue = 10000
-            }).Add(100, new LinerCalWay
+            }).Add(100, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 4
-            }).Add(int.MaxValue, new PowCalWay
+            }).Add(int.MaxValue, new PowerCalculateWay
             {
                 Power = 2,
                 ChangeSpanBase = 2,
@@ -235,16 +242,16 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    class NetCalCostStrategy : CalCostStrategyBase
+    class NetCalculateCostStrategy : CalculateCostStrategyBase
     {
-        public NetCalCostStrategy()
+        public NetCalculateCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
+            CalculateAlgorithm = new CalculateAlgorithm().Add(1000000, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 64,
                 ConstantValue = 10000
-            }).Add(int.MaxValue, new PowCalWay
+            }).Add(int.MaxValue, new PowerCalculateWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -252,21 +259,21 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 500,
                 Numerator = 1,
                 Denominator = 64,
-                Decimal = 100000000L
+                Precision = 100000000L
             }).Prepare();
         }
     }
 
-    class TxCalCostStrategy : CalCostStrategyBase
+    class TxCalculateCostStrategy : CalculateCostStrategyBase
     {
-        public TxCalCostStrategy()
+        public TxCalculateCostStrategy()
         {
-            CalAlgorithm = new CalAlgorithm().Add(1000000, new LinerCalWay
+            CalculateAlgorithm = new CalculateAlgorithm().Add(1000000, new LinerCalculateWay
             {
                 Numerator = 1,
                 Denominator = 16 * 50,
                 ConstantValue = 10000
-            }).Add(int.MaxValue, new PowCalWay
+            }).Add(int.MaxValue, new PowerCalculateWay
             {
                 Power = 2,
                 ChangeSpanBase = 100,
@@ -274,41 +281,45 @@ namespace AElf.Kernel.SmartContract.Application
                 WeightBase = 1,
                 Numerator = 1,
                 Denominator = 16 * 50,
-                Decimal = 100000000L
+                Precision = 100000000L
             }).Prepare();
         }
     }
 
-    interface ICalAlgorithm
+    #endregion
+
+    interface ICalculateAlgorithm
     {
-        Dictionary<int, ICalWay> PieceWise { get; set; }
+        Dictionary<int, ICalculateWay> PieceWise { get; set; }
         long Calculate(int count);
-        ICalAlgorithm Add(int limit, ICalWay func);
-        ICalAlgorithm Prepare();
+        ICalculateAlgorithm Add(int limit, ICalculateWay func);
+        ICalculateAlgorithm Prepare();
         void Delete(int pieceKey);
-        void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
-        void AddByParam(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters);
+        void Update(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters);
+        void AddByParam(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters);
     }
 
-    class CalAlgorithm : ICalAlgorithm
-    {
-        public ILogger<CalAlgorithm> Logger { get; set; }
+    #region ICalculateAlgorithm implemention
 
-        public CalAlgorithm()
+    class CalculateAlgorithm : ICalculateAlgorithm
+    {
+        public ILogger<CalculateAlgorithm> Logger { get; set; }
+
+        public CalculateAlgorithm()
         {
-            Logger = new NullLogger<CalAlgorithm>();
+            Logger = new NullLogger<CalculateAlgorithm>();
         }
 
-        public Dictionary<int, ICalWay> PieceWise { get; set; } = new Dictionary<int, ICalWay>();
+        public Dictionary<int, ICalculateWay> PieceWise { get; set; } = new Dictionary<int, ICalculateWay>();
 
-        public ICalAlgorithm Add(int limit, ICalWay func)
+        public ICalculateAlgorithm Add(int limit, ICalculateWay func)
         {
             // to do
             PieceWise[limit] = func;
             return this;
         }
 
-        public ICalAlgorithm Prepare()
+        public ICalculateAlgorithm Prepare()
         {
             if (!PieceWise.Any() || PieceWise.Any(x => x.Key <= 0))
             {
@@ -347,7 +358,7 @@ namespace AElf.Kernel.SmartContract.Application
                 PieceWise.Remove(pieceKey);
         }
 
-        public void Update(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
+        public void Update(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
         {
             if (parameters.TryGetValue("piecekey", out var newPieceKeyStr))
             {
@@ -361,36 +372,34 @@ namespace AElf.Kernel.SmartContract.Application
                 AddByParam(pieceKey, funcType, parameters);
         }
 
-        public void AddByParam(int pieceKey, CalFunctionType funcType, Dictionary<string, string> parameters)
+        public void AddByParam(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
         {
-            ICalWay newCalWay = null;
+            ICalculateWay newCalculateWay = null;
             switch (funcType)
             {
-                case CalFunctionType.Constrant:
-                    newCalWay = new ConstCalWay();
+                case CalculateFunctionType.Constrant:
+                    newCalculateWay = new ConstCalculateWay();
                     break;
-                case CalFunctionType.Liner:
-                    newCalWay = new LinerCalWay();
+                case CalculateFunctionType.Liner:
+                    newCalculateWay = new LinerCalculateWay();
                     break;
-                case CalFunctionType.Power:
-                    newCalWay = new PowCalWay();
+                case CalculateFunctionType.Power:
+                    newCalculateWay = new PowerCalculateWay();
                     break;
-                case CalFunctionType.Ln:
-                    newCalWay = new LnCalWay();
-                    break;
-                case CalFunctionType.Bancor:
-                    newCalWay = new BancorCalWay();
+                case CalculateFunctionType.Ln:
+                    newCalculateWay = new LnCalculateWay();
                     break;
             }
 
-            if (newCalWay != null && newCalWay.InitParameter(parameters))
-                PieceWise[pieceKey] = newCalWay;
+            if (newCalculateWay != null && newCalculateWay.InitParameter(parameters))
+                PieceWise[pieceKey] = newCalculateWay;
         }
     }
 
-    #region cal imp     
+    #endregion
 
-    public enum CalFunctionType
+
+    public enum CalculateFunctionType
     {
         Default = 0,
         Constrant,
@@ -400,23 +409,42 @@ namespace AElf.Kernel.SmartContract.Application
         Bancor
     }
 
-    public interface ICalWay
+    public interface ICalculateWay
     {
         long GetCost(int initValue);
-        long Decimal { get; set; }
         bool InitParameter(Dictionary<string, string> param);
     }
 
-    public class LnCalWay : ICalWay
+    #region ICalculateWay implemention   
+
+    public class LnCalculateWay : ICalculateWay
     {
         public int ChangeSpanBase { get; set; }
-        public long Weight { get; set; }
+        public int Weight { get; set; }
         public int WeightBase { get; set; }
-        public long Decimal { get; set; } = 100000000L;
+        public long Precision { get; set; } = 100000000L;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
+            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBaseStr);
+            int.TryParse(changeSpanBaseStr, out var changeSpanBase);
+            if (changeSpanBase <= 0)
+                return false;
+            param.TryGetValue(nameof(Weight).ToLower(), out var weightStr);
+            int.TryParse(weightStr, out var weight);
+            if (weight <= 0)
+                return false;
+            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBaseStr);
+            int.TryParse(weightBaseStr, out var weightBase);
+            if (weightBase <= 0)
+                return false;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
+            ChangeSpanBase = changeSpanBase;
+            Weight = weight;
+            WeightBase = weightBase;
+            return true;
         }
 
         public long GetCost(int cost)
@@ -426,21 +454,44 @@ namespace AElf.Kernel.SmartContract.Application
             double unitValue = (double) Weight / WeightBase;
             if (weightChange <= 1)
                 return 0;
-            return Decimal.Mul((long) (weightChange * unitValue * Math.Log(weightChange, Math.E)));
+            return Precision.Mul((long) (weightChange * unitValue * Math.Log(weightChange, Math.E)));
         }
     }
 
-    public class PowCalWay : ICalWay
+    public class PowerCalculateWay : ICalculateWay
     {
         public double Power { get; set; }
         public int ChangeSpanBase { get; set; }
-        public long Weight { get; set; }
+        public int Weight { get; set; }
         public int WeightBase { get; set; }
-        public long Decimal { get; set; } = 100000000L;
+        public long Precision { get; set; } = 100000000L;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
+            param.TryGetValue(nameof(Power).ToLower(), out var powerStr);
+            double.TryParse(powerStr, out var power);
+            if (power <= 0)
+                return false;
+            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBaseStr);
+            int.TryParse(changeSpanBaseStr, out var changeSpanBase);
+            if (changeSpanBase <= 0)
+                return false;
+            param.TryGetValue(nameof(Weight).ToLower(), out var weightStr);
+            int.TryParse(weightStr, out var weight);
+            if (weight <= 0)
+                return false;
+            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBaseStr);
+            int.TryParse(weightBaseStr, out var weightBase);
+            if (weightBase <= 0)
+                return false;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
+            Power = power;
+            ChangeSpanBase = changeSpanBase;
+            Weight = weight;
+            WeightBase = weightBase;
+            return true;
         }
 
         public int Numerator { get; set; }
@@ -448,18 +499,18 @@ namespace AElf.Kernel.SmartContract.Application
 
         public long GetCost(int cost)
         {
-            return ((long) (Math.Pow((double) cost / ChangeSpanBase, Power) * Decimal)).Mul(Weight).Div(WeightBase)
-                .Add(Decimal.Mul(Numerator).Div(Denominator).Mul(cost));
+            return ((long) (Math.Pow((double) cost / ChangeSpanBase, Power) * Precision)).Mul(Weight).Div(WeightBase)
+                .Add(Precision.Mul(Numerator).Div(Denominator).Mul(cost));
         }
     }
 
-    public class BancorCalWay : ICalWay
+    public class BancorCalculateWay : ICalculateWay
     {
         public decimal ResourceWeight { get; set; }
         public decimal TokenWeight { get; set; }
         public long ResourceConnectorBalance { get; set; }
         public long TokenConnectorBalance { get; set; }
-        public long Decimal { get; set; } = 100000000L;
+        public long Precision { get; set; } = 100000000L;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
@@ -472,38 +523,64 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public class ConstCalWay : ICalWay
+    public class ConstCalculateWay : ICalculateWay
     {
-        public long Decimal { get; set; } = 100000000L;
+        public long Precision { get; set; } = 100000000L;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
+            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
+            int.TryParse(constantValueStr, out var constantValue);
+            if (constantValue <= 0)
+                return false;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
+            ConstantValue = constantValue;
+            return true;
         }
 
         public int ConstantValue { get; set; }
 
         public long GetCost(int cost)
         {
-            return Decimal.Mul(ConstantValue);
+            return Precision.Mul(ConstantValue);
         }
     }
 
-    public class LinerCalWay : ICalWay
+    public class LinerCalculateWay : ICalculateWay
     {
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
-        public long Decimal { get; set; } = 100000000L;
+        public long Precision { get; set; } = 100000000L;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
-            throw new NotImplementedException();
+            param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr);
+            int.TryParse(numeratorStr, out var numerator);
+            if (numerator <= 0)
+                return false;
+            param.TryGetValue(nameof(Denominator).ToLower(), out var denominatorStr);
+            int.TryParse(denominatorStr, out var denominator);
+            if (denominator <= 0)
+                return false;
+            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
+            int.TryParse(constantValueStr, out var constantValue);
+            if (constantValue <= 0)
+                return false;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
+            Numerator = numerator;
+            Denominator = denominator;
+            ConstantValue = constantValue;
+            return true;
         }
 
         public long GetCost(int cost)
         {
-            return Decimal.Mul(cost).Mul(Numerator).Div(Denominator).Add(ConstantValue);
+            return Precision.Mul(cost).Mul(Numerator).Div(Denominator).Add(ConstantValue);
         }
     }
 
