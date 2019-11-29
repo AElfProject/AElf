@@ -493,6 +493,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentTermNumber == 1)
             {
                 currentTermStartTime = State.BlockchainStartTimestamp.Value;
+                if (TryToGetRoundInformation(1, out var firstRound) &&
+                    firstRound.RealTimeMinersInformation.Count == 1)
+                    return new SInt64Value(); // Return 0 for single node.
             }
             else
             {
