@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     /// <summary>
@@ -8,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Round GetUpdateValueRound(string pubkey)
         {
             var minerInRound = RealTimeMinersInformation[pubkey];
-            var result = new Round
+            var round = new Round
             {
                 RoundNumber = RoundNumber,
                 RoundIdForValidation = RoundId,
@@ -33,13 +36,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 if (information.Key == pubkey)
                 {
-                    result.RealTimeMinersInformation[pubkey].SupposedOrderOfNextRound =
+                    round.RealTimeMinersInformation[pubkey].SupposedOrderOfNextRound =
                         minerInRound.SupposedOrderOfNextRound;
-                    result.RealTimeMinersInformation[pubkey].FinalOrderOfNextRound = minerInRound.FinalOrderOfNextRound;
+                    round.RealTimeMinersInformation[pubkey].FinalOrderOfNextRound = minerInRound.FinalOrderOfNextRound;
                 }
                 else
                 {
-                    result.RealTimeMinersInformation.Add(information.Key, new MinerInRound
+                    round.RealTimeMinersInformation.Add(information.Key, new MinerInRound
                     {
                         Pubkey = information.Value.Pubkey,
                         SupposedOrderOfNextRound = information.Value.SupposedOrderOfNextRound,
@@ -51,13 +54,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            return result;
+            return round;
         }
 
         public Round GetTinyBlockRound(string pubkey)
         {
             var minerInRound = RealTimeMinersInformation[pubkey];
-            return new Round
+            var round = new Round
             {
                 RoundNumber = RoundNumber,
                 RoundIdForValidation = RoundId,
@@ -73,6 +76,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }
                 }
             };
+
+            foreach (var otherPubkey in RealTimeMinersInformation.Keys.Except(new List<string> {pubkey}))
+            {
+                round.RealTimeMinersInformation.Add(otherPubkey, new MinerInRound());
+            }
+
+            return round;
         }
     }
 }
