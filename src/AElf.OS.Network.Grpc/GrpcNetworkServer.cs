@@ -108,10 +108,13 @@ namespace AElf.OS.Network.Grpc
                 .Select(async node =>
                 {
                     bool dialed = false;
-                    
+
                     if (!AElfPeerEndpointHelper.TryParse(node, out DnsEndPoint endpoint))
+                    {
+                        Logger.LogWarning($"Could not parse endpoint {node}.");
                         return;
-                    
+                    }
+
                     try
                     {
                         dialed = await _connectionService.ConnectAsync(endpoint);

@@ -45,6 +45,8 @@ namespace AElf.OS.Network.Application
         {
             if (AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint))
                 return await _networkServer.ConnectAsync(endpoint);
+            
+            Logger.LogWarning($"Could not parse endpoint {address}.");
 
             return false;
         }
