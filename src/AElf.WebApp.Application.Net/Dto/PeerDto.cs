@@ -14,6 +14,7 @@ namespace AElf.WebApp.Application.Net.Dto
         public int BufferedTransactionsCount { get; set; }
         public int BufferedBlocksCount { get; set; }
         public int BufferedAnnouncementsCount { get; set; }
+        public bool IsSecure { get; set; }
         public List<RequestMetric> RequestMetrics { get; set; }
     }
 }

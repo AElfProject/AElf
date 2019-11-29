@@ -1,6 +1,5 @@
 using System.Net;
 using System.Threading.Tasks;
-using AElf.Kernel.Helper;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -17,7 +16,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             Logger.LogTrace($"Received shake from chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}.");
 
-            if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+            if (!GrpcUriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
                 return Task.FromResult(new HandShakeReply
                     {Status = HandShakeReply.Types.HandShakeStatus.InvalidHandshakeRequest});
             

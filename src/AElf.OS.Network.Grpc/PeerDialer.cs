@@ -77,6 +77,7 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
                 IsInbound = false,
+                IsSecure = client.IsSecure
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
@@ -128,7 +129,8 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 SessionId = handshake.SessionId.ToByteArray(),
                 ProtocolVersion = handshake.HandshakeData.Version,
-                IsInbound = true
+                IsInbound = true,
+                IsSecure = client.IsSecure
             });
 
             peer.UpdateLastReceivedHandshake(handshake);
@@ -183,9 +185,7 @@ namespace AElf.OS.Network.Grpc
 
             if (certificate != null)
             {
-                Logger.LogDebug("Upgrading connection to TLS.");
-                Logger.LogDebug($"Certificate {certificate}.");
-
+                Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
                 credentials = CreateSecureCredentials(certificate);
             }
             
@@ -206,7 +206,7 @@ namespace AElf.OS.Network.Grpc
 
             var client = new PeerService.PeerServiceClient(interceptedChannel);
 
-            return new GrpcClient(channel, client);
+            return new GrpcClient(channel, client, certificate);
         }
         
         private X509Certificate RetrieveServerCertificate(DnsEndPoint remoteEndpoint)
