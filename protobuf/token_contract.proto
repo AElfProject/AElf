@@ -217,14 +217,11 @@ message TransactionFeeBill {
 }
 
 message ChargeResourceTokenInput {
-    sint32 transaction_size = 1;
-    sint32 writes_count = 2;
-    sint32 reads_count = 3;
-    aelf.Address caller = 4;
-    sint64 net_cost = 5;
-    sint64 sto_cost = 6;
-    sint64 cpu_cost = 7;
-    sint64 ram_cost = 8;
+    sint64 net_cost = 1;
+    sint64 sto_cost = 2;
+    sint64 cpu_cost = 3;
+    sint64 ram_cost = 4;
+    aelf.Address caller = 5;
 }
 
 message GetTokenInfoInput {

@@ -290,7 +290,6 @@ namespace AElf.Kernel.SmartContract.Application
 
     interface ICalculateAlgorithm
     {
-        Dictionary<int, ICalculateWay> PieceWise { get; set; }
         long Calculate(int count);
         ICalculateAlgorithm Add(int limit, ICalculateWay func);
         ICalculateAlgorithm Prepare();
@@ -360,19 +359,25 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void Update(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
         {
-            if (parameters.TryGetValue("piecekey", out var newPieceKeyStr))
-            {
-                if (int.TryParse(newPieceKeyStr, out var newPieceKey))
-                {
-                    Delete(pieceKey);
-                    AddByParam(newPieceKey, funcType, parameters);
-                }
-            }
-            else
-                AddByParam(pieceKey, funcType, parameters);
+            if (!parameters.TryGetValue("piecekey", out var newPieceKeyStr))
+                return;
+            if (!int.TryParse(newPieceKeyStr, out var newPieceKey))
+                return;
+            Delete(pieceKey);
+            AddByParam(newPieceKey, funcType, parameters);
         }
 
         public void AddByParam(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
+        {
+            if (pieceKey <= 0)
+                return;
+            if (PieceWise.ContainsKey(pieceKey))
+                return;
+            AddPieceFunction(pieceKey, funcType, parameters);
+        }
+
+        private void AddPieceFunction(int pieceKey, CalculateFunctionType funcType,
+            Dictionary<string, string> parameters)
         {
             ICalculateWay newCalculateWay = null;
             switch (funcType)
@@ -465,6 +470,8 @@ namespace AElf.Kernel.SmartContract.Application
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
+        public int Numerator { get; set; }
+        public int Denominator { get; set; } = 1;
 
         public bool InitParameter(Dictionary<string, string> param)
         {
@@ -484,6 +491,16 @@ namespace AElf.Kernel.SmartContract.Application
             int.TryParse(weightBaseStr, out var weightBase);
             if (weightBase <= 0)
                 return false;
+            if (param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr))
+            {
+                int.TryParse(numeratorStr, out var numerator);
+                Numerator = numerator;
+            }
+
+            param.TryGetValue(nameof(Denominator).ToLower(), out var denominatorStr);
+            int.TryParse(denominatorStr, out var denominator);
+            if (denominator != 0)
+                Denominator = denominator;
             param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
             long.TryParse(precisionStr, out var precision);
             Precision = precision > 0 ? precision : Precision;
@@ -491,11 +508,9 @@ namespace AElf.Kernel.SmartContract.Application
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
+
             return true;
         }
-
-        public int Numerator { get; set; }
-        public int Denominator { get; set; } = 1;
 
         public long GetCost(int cost)
         {
@@ -567,7 +582,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return false;
             param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
             int.TryParse(constantValueStr, out var constantValue);
-            if (constantValue <= 0)
+            if (constantValue < 0)
                 return false;
             param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
             long.TryParse(precisionStr, out var precision);
