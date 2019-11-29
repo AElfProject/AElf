@@ -76,12 +76,8 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
-
-                        if (!_contractOptions.IsTxExecutionTimeoutEnabled)
-                            trace = await transactionExecutionTask.WithCancellation(cancellationToken);
-                        else
-                            trace = await transactionExecutionTask.WithCancellation(cancellationToken,
-                                new CancellationTokenSource(_contractOptions.TransactionExecutionTimePeriodLimitInMilliSeconds).Token);
+                        
+                        trace = await transactionExecutionTask.WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
