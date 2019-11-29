@@ -3,6 +3,7 @@
 There’s two ways to run a AElf node: you can either use Docker (recommended method) or run the binaries available on Github. Before you jump into the guides and tutorials you'll need to install the following tools and frameworks. For most of these dependencies we provide ready-to-use command line instructions. In case of problems or if you have more complex needs, we provide more information in the [Environment setup](../tutorials/setup/setup.md) section of this GitBook.
 
 Summary of the steps to set up a node:
+
 1. Execute the snapshot download script and load the snapshot into the database. 
 2. Download our template setting files and docker run script. 
 3. Modify the appsettings according to your needs. 
@@ -171,9 +172,10 @@ aelf-command get-blk-height -e http://127.0.0.1:8000
 ## Run side-chains
 
 This section explains how to set up a sidechain node, you will have to repeat these steps for all side chains, essentially following these steps for each side-chain (currently five):
-1. Fetch the appsettings and the docker run script.
-2. Download and restore the snapshot data with the URLs provided below (steps are the same as in A - Setup the database).
-3. Run the sidechain node.
+
+1. Fetch the appsettings and the docker run script. 
+2. Download and restore the snapshot data with the URLs provided below (steps are the same as in A - Setup the database). 
+3. Run the sidechain node. 
 
 Running a side chain is very much like running a mainchain node, only configuration will change. Here you can find the instructions for sidechain1:
 ```bash
