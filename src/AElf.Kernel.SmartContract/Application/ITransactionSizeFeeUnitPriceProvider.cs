@@ -139,6 +139,7 @@ namespace AElf.Kernel.SmartContract.Application
             CalculateFunctionType funcType = CalculateFunctionType.Default,
             Dictionary<string, string> param = null);
     }
+
     abstract class CalculateCostStrategyBase : ICalculateCostStrategy
     {
         protected ICalculateAlgorithm CalculateAlgorithm { get; set; }
@@ -321,6 +322,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (!PieceWise.Any() || PieceWise.Any(x => x.Key <= 0))
             {
+                PieceWise.Clear();
                 Logger.LogError("piece key wrong");
             }
 
@@ -390,8 +392,9 @@ namespace AElf.Kernel.SmartContract.Application
                     break;
             }
 
-            if (newCalculateWay != null && newCalculateWay.InitParameter(parameters))
-                PieceWise[pieceKey] = newCalculateWay;
+            if (newCalculateWay == null || !newCalculateWay.InitParameter(parameters)) return;
+            PieceWise[pieceKey] = newCalculateWay;
+            Prepare();
         }
     }
 
@@ -437,12 +440,12 @@ namespace AElf.Kernel.SmartContract.Application
             int.TryParse(weightBaseStr, out var weightBase);
             if (weightBase <= 0)
                 return false;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
-            Precision = precision > 0 ? precision : Precision;
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
             return true;
         }
 
@@ -485,6 +488,9 @@ namespace AElf.Kernel.SmartContract.Application
             int.TryParse(weightBaseStr, out var weightBase);
             if (weightBase <= 0)
                 return false;
+            ChangeSpanBase = changeSpanBase;
+            Weight = weight;
+            WeightBase = weightBase;
             if (param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr))
             {
                 int.TryParse(numeratorStr, out var numerator);
@@ -499,10 +505,6 @@ namespace AElf.Kernel.SmartContract.Application
             long.TryParse(precisionStr, out var precision);
             Precision = precision > 0 ? precision : Precision;
             Power = power;
-            ChangeSpanBase = changeSpanBase;
-            Weight = weight;
-            WeightBase = weightBase;
-
             return true;
         }
 
@@ -542,10 +544,10 @@ namespace AElf.Kernel.SmartContract.Application
             int.TryParse(constantValueStr, out var constantValue);
             if (constantValue <= 0)
                 return false;
+            ConstantValue = constantValue;
             param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
             long.TryParse(precisionStr, out var precision);
             Precision = precision > 0 ? precision : Precision;
-            ConstantValue = constantValue;
             return true;
         }
 
@@ -578,12 +580,12 @@ namespace AElf.Kernel.SmartContract.Application
             int.TryParse(constantValueStr, out var constantValue);
             if (constantValue < 0)
                 return false;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
-            Precision = precision > 0 ? precision : Precision;
             Numerator = numerator;
             Denominator = denominator;
             ConstantValue = constantValue;
+            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
+            long.TryParse(precisionStr, out var precision);
+            Precision = precision > 0 ? precision : Precision;
             return true;
         }
 
