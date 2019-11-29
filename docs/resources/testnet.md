@@ -27,17 +27,14 @@ Restore the chain database from snapshot:
 ## execute the script, you can optionally specify a date by appending “yyyymmdd” as parameter
 >> sh download-mainchain-db.sh
 
-## decompress and load the chain database snapshot
+## chain database: decompress and load the chain database snapshot
 >> tar xvzf aelf-testnet-mainchain-chaindb-*.tar.gz
 >> stop your chain database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-chaindb-*/* /path/to/install/chaindb/ssdb/var/
 >> start your chain database instance
 >> enter ssdb console (ssdb-cli) to verify the imported data
-```
 
-Restore the state database from snapshot:
-```bash
-## decompress and load the state database
+## state database : decompress and load the state database
 >> tar xvzf aelf-testnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/ssdb/var/
