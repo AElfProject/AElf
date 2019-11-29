@@ -64,48 +64,48 @@ namespace AElf.Kernel.SmartContract.Application
 
     class CalculateFeeService : ICalculateFeeService
     {
-        private readonly ICalculateStradegyProvider _calculateStradegyProvider;
+        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
 
-        public CalculateFeeService(ICalculateStradegyProvider calculateStradegyProvider)
+        public CalculateFeeService(ICalculateStrategyProvider calculateStrategyProvider)
         {
-            _calculateStradegyProvider = calculateStradegyProvider;
+            _calculateStrategyProvider = calculateStrategyProvider;
         }
 
         public long CalculateFee(FeeType feeType, int cost)
         {
-            return _calculateStradegyProvider.GetCalculator(feeType).GetCost(cost);
+            return _calculateStrategyProvider.GetCalculator(feeType).GetCost(cost);
         }
 
         public void UpdateFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe,
             Dictionary<string, string> param)
         {
-            _calculateStradegyProvider.GetCalculator(feeType)
+            _calculateStrategyProvider.GetCalculator(feeType)
                 .UpdateAlgorithm(AlgorithmOpCode.UpdateFunc, pieceKey, funcTyoe, param);
         }
 
         public void DeleteFeeCal(FeeType feeType, int pieceKey)
         {
-            _calculateStradegyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
+            _calculateStrategyProvider.GetCalculator(feeType).UpdateAlgorithm(AlgorithmOpCode.DeleteFunc, pieceKey);
         }
 
         public void AddFeeCal(FeeType feeType, int pieceKey, CalculateFunctionType funcTyoe,
             Dictionary<string, string> param)
         {
-            _calculateStradegyProvider.GetCalculator(feeType)
+            _calculateStrategyProvider.GetCalculator(feeType)
                 .UpdateAlgorithm(AlgorithmOpCode.AddFunc, pieceKey, funcTyoe, param);
         }
     }
 
-    interface ICalculateStradegyProvider : ISingletonDependency
+    interface ICalculateStrategyProvider : ISingletonDependency
     {
         ICalculateCostStrategy GetCalculator(FeeType feeType);
     }
 
-    class CalculateStradegyProvider : ICalculateStradegyProvider
+    class CalculateStrategyProvider : ICalculateStrategyProvider
     {
         private Dictionary<FeeType, ICalculateCostStrategy> CalculatorDic { get; set; }
 
-        public CalculateStradegyProvider()
+        public CalculateStrategyProvider()
         {
             CalculatorDic = new Dictionary<FeeType, ICalculateCostStrategy>
             {
@@ -139,7 +139,6 @@ namespace AElf.Kernel.SmartContract.Application
             CalculateFunctionType funcType = CalculateFunctionType.Default,
             Dictionary<string, string> param = null);
     }
-
     abstract class CalculateCostStrategyBase : ICalculateCostStrategy
     {
         protected ICalculateAlgorithm CalculateAlgorithm { get; set; }
@@ -167,7 +166,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    #region concrete stradegys
+    #region concrete strategys
 
     class CpuCalculateCostStrategy : CalculateCostStrategyBase
     {
@@ -359,19 +358,14 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void Update(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
         {
-            if (!parameters.TryGetValue("piecekey", out var newPieceKeyStr))
+            if (!PieceWise.ContainsKey(pieceKey))
                 return;
-            if (!int.TryParse(newPieceKeyStr, out var newPieceKey))
-                return;
-            Delete(pieceKey);
-            AddByParam(newPieceKey, funcType, parameters);
+            AddPieceFunction(pieceKey, funcType, parameters);
         }
 
         public void AddByParam(int pieceKey, CalculateFunctionType funcType, Dictionary<string, string> parameters)
         {
-            if (pieceKey <= 0)
-                return;
-            if (PieceWise.ContainsKey(pieceKey))
+            if (PieceWise.ContainsKey(pieceKey) || pieceKey <= 0)
                 return;
             AddPieceFunction(pieceKey, funcType, parameters);
         }
