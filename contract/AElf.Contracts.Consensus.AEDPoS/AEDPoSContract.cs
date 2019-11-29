@@ -124,39 +124,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            Context.LogDebug(() => "Entered UpdateConsensusInformation.");
             if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
             {
                 return new Empty();
             }
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
+
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if (input == null || input.Value.IsEmpty) return new Empty();
 
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
-            Context.LogDebug(() => $"Current main chain round number: {State.MainChainRoundNumber.Value}");
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
                 return new Empty();
-            var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
+
             Context.LogDebug(() =>
                 $"Shared miner list of round {consensusInformation.Round.RoundNumber}:" +
                 $"{consensusInformation.Round.ToString("M")}");
-            State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+
             DistributeResourceTokensToPreviousMiners();
+
+            State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+
+            var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
                 Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
-            Context.LogDebug(() => "Finished UpdateConsensusInformation.");
+
             return new Empty();
         }
 
         private void DistributeResourceTokensToPreviousMiners()
         {
-            Context.LogDebug(() => "Entered DistributeResourceTokensToPreviousMiners.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -184,7 +186,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
-            Context.LogDebug(() => "Finished DistributeResourceTokensToPreviousMiners.");
         }
 
         #endregion
