@@ -3,7 +3,6 @@
 There’s two ways to run a AElf node: you can either use Docker (recommended method) or run the binaries available on Github. Before you jump into the guides and tutorials you'll need to install the following tools and frameworks. For most of these dependencies we provide ready-to-use command line instructions. In case of problems or if you have more complex needs, we provide more information in the [Environment setup](../tutorials/setup/setup.md) section of this GitBook.
 
 Summary of the steps to set up a node:
-
 1. Execute the snapshot download script and load the snapshot into the database. 
 2. Download our template setting files and docker run script. 
 3. Modify the appsettings according to your needs. 
