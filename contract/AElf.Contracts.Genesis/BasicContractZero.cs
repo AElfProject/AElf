@@ -103,6 +103,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
+            Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been used");
 
             var info = new ContractInfo
             {
@@ -180,6 +181,7 @@ namespace AElf.Contracts.Genesis
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
+            Assert(State.SmartContractRegistrations[newCodeHash] == null, "contract code has already been used");
 
             info.CodeHash = newCodeHash;
             State.ContractInfos[contractAddress] = info;

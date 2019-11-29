@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
@@ -53,10 +55,14 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_AnnounceElection_Twice_Test()
         {
+            var s = Stopwatch.StartNew();
+            s.Start();
             var candidateKeyPair = (await ElectionContract_AnnounceElection_Test())[0];
             var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("This public key already announced election.");
+            s.Stop();
+            _testOutputHelper.WriteLine(s.ElapsedMilliseconds.ToString());
         }
 
         #endregion

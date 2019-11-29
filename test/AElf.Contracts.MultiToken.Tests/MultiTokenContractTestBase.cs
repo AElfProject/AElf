@@ -68,7 +68,8 @@ namespace AElf.Contracts.MultiToken
         internal BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
-        protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
+        protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value;
+        protected byte[] OtherBasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunctionWithParallel")).Value;
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 

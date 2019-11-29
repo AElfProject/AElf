@@ -68,6 +68,12 @@ namespace AElf.Kernel.TransactionPool
             });
             
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IDeployedContractAddressService>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

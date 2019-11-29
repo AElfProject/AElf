@@ -49,7 +49,7 @@ namespace AElf.Contracts.ParliamentAuth
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub { get; set; }
+        
 
         protected void InitializeContracts()
         {
@@ -66,16 +66,6 @@ namespace AElf.Contracts.ParliamentAuth
                     DefaultSenderKeyPair
                 ));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
-
-            var otherParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
-                DeployContractAsync(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    ParliamentAuthCode,
-                    Hash.FromString("ParliamentAuth"),
-                    DefaultSenderKeyPair));
-            OtherParliamentAuthContractStub =
-                GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
-                    otherParliamentAuthContractAddress, DefaultSenderKeyPair);
 
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>

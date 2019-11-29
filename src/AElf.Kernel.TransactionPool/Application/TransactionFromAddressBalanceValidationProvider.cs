@@ -45,14 +45,6 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            // Skip if the sender is a contract.
-            var deployedContractAddressList =
-                await _deployedContractAddressProvider.GetDeployedContractAddressListAsync();
-            if (deployedContractAddressList.Value.Contains(transaction.From))
-            {
-                return true;
-            }
-
             // Skip if this is a system transaction.
             if (IsSystemTransaction(transaction))
             {
@@ -61,17 +53,25 @@ namespace AElf.Kernel.TransactionPool.Application
 
             var chain = await _blockchainService.GetChainAsync();
 
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            }; 
+            
+            // Skip if the sender is a contract.
+            if (_deployedContractAddressProvider.CheckContractAddress(chainContext, transaction.From))
+            {
+                return true;
+            }
+
             // Skip this validation at the very beginning of current chain.
             if (chain.LastIrreversibleBlockHeight == Constants.GenesisBlockHeight)
             {
                 return true;
             }
 
-            var tokenStub = _tokenContractReaderFactory.Create(new ChainContext
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            });
+            var tokenStub = _tokenContractReaderFactory.Create(chainContext);
             var balance = (await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = transaction.From,
