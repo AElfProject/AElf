@@ -1,8 +1,7 @@
-using AElf.Kernel.Helper;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Types.Tests
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class UriHelperTests
     {
