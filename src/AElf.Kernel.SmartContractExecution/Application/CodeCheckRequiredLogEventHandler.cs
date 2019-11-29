@@ -1,15 +1,12 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-using Volo.Abp.DependencyInjection;
 using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-
-    public class CodeCheckRequiredLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class CodeCheckRequiredLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         

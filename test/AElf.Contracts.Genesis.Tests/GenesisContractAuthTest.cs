@@ -63,12 +63,12 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
             };
 
             var newAddress = await DeployAsync(contractDeploymentInput);
             
-            var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = newAddress,
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
 
             txs.First(tx => tx.To == ParliamentAddress).MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve));
+                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
         }
         
         [Fact]
@@ -129,12 +129,12 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
             };
 
             var newAddress = await DeployAsync(contractDeploymentInput);
             
-            var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("ReferendumAuth")).Value;
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = newAddress,
@@ -158,7 +158,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
 
             txs.First(tx => tx.To == ParliamentAddress).MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve));
+                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
         }
         
         [Fact]
@@ -230,7 +230,7 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
             };
             var releaseApprovedContractInput = await ProposeContractAsync(
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput, organizationAddress);
