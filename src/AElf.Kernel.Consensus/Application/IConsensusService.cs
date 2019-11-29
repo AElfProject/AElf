@@ -43,6 +43,6 @@ namespace AElf.Kernel.Consensus.Application
         /// Generate consensus transactions from consensus contract.
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext);
+        Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext);
     }
 }
