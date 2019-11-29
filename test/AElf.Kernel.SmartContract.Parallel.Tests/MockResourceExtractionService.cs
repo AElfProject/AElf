@@ -6,7 +6,6 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
@@ -39,18 +38,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds,
-            IEnumerable<Address> contractAddresses)
+        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
         {
             throw new System.NotImplementedException();
-        }
-
-        public static Transaction GetTransactionContainingResources(TransactionResourceInfo resourceInfo)
-        {
-            return new Transaction
-            {
-                Params = resourceInfo.ToByteString()
-            };
         }
     }
 }

@@ -21,6 +21,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
 
-        void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds, IEnumerable<Address> contractAddresses);
+        void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds);
     }
 }

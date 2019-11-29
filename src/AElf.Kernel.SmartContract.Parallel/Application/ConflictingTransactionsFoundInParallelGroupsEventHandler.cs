@@ -48,8 +48,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     address, wrongAddressAndCodeHashMap[address]);
             }
 
-            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds,
-                wrongAddresses);
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }
     }
 }
