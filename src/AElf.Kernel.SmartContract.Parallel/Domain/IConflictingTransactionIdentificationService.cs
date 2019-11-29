@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public interface IConflictingTransactionIdentificationService
     {
-        Task<List<(Transaction, TransactionResourceInfo)>> IdentifyConflictingTransactionsAsync(
+        Task<List<TransactionWithResourceInfo>> IdentifyConflictingTransactionsAsync(
             IChainContext chainContext, List<ExecutionReturnSet> returnSets,
             List<ExecutionReturnSet> conflictingSets);
     }

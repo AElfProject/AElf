@@ -11,11 +11,14 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class MockResourceExtractionService : IResourceExtractionService
     {
-        public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
+        public async Task<IEnumerable<TransactionWithResourceInfo>> GetResourcesAsync(IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
-            return await Task.FromResult(transactions.Select(tx =>
-                (tx, TransactionResourceInfo.Parser.ParseFrom(tx.Params))));
+            return await Task.FromResult(transactions.Select(tx => new TransactionWithResourceInfo
+            {
+                Transaction = tx,
+                TransactionResourceInfo = TransactionResourceInfo.Parser.ParseFrom(tx.Params)
+            }));
         }
 
         public Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData)

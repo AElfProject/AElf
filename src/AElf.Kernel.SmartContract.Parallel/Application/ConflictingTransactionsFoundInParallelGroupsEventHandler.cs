@@ -31,14 +31,14 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHash = eventData.PreviousBlockHash,
                 BlockHeight = eventData.PreviousBlockHeight
             };
-            var wrong = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
+            var wrongTxWithResources = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
                 chainContext, eventData.ExistingSets, eventData.ConflictingSets);
             
-            var wrongTransactionIds = wrong.Select(t => t.Item1.GetHash()).ToArray();
+            var wrongTransactionIds = wrongTxWithResources.Select(t => t.Transaction.GetHash()).ToArray();
             eventData.ConflictingSets.RemoveAll(t => !t.TransactionId.IsIn(wrongTransactionIds));
 
-            var wrongAddressAndCodeHashMap = wrong.GroupBy(t => t.Item1.To)
-                .ToDictionary(g => g.Key, g => g.First().Item2.ContractHash);
+            var wrongAddressAndCodeHashMap = wrongTxWithResources.GroupBy(t => t.Transaction.To)
+                .ToDictionary(g => g.Key, g => g.First().TransactionResourceInfo.ContractHash);
             var wrongAddresses = wrongAddressAndCodeHashMap.Keys;
             foreach (var address in wrongAddresses)
             {

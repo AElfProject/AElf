@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 includedInBlock.Select(x => x.Item1).ToList(),
                 conflicting.Concat(okTxnInConflictingSet).Select(x => x.Item1).ToList());
             Assert.Single(wrong);
-            Assert.Equal(conflicting.First().Item2, wrong.First().Item1);
+            Assert.Equal(conflicting.First().Item2, wrong.First().Transaction);
         }
 
         private (ExecutionReturnSet, Transaction) GetFakePairs(Address destination, int[] expectedKeys,

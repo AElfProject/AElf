@@ -39,12 +39,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<ResourceExtractionService>.Instance;
         }
 
-        public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(
+        public async Task<IEnumerable<TransactionWithResourceInfo>> GetResourcesAsync(
             IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
-            var transactionResourceList = new List<(Transaction, TransactionResourceInfo)>();
+            var transactionResourceList = new List<TransactionWithResourceInfo>();
             var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
             foreach (var t in transactions)
             {
@@ -55,16 +55,20 @@ namespace AElf.Kernel.SmartContract.Parallel
             return transactionResourceList;
         }
 
-        private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(
+        private async Task<TransactionWithResourceInfo> GetResourcesForOneWithCacheAsync(
             IChainContext chainContext,
             Transaction transaction, CancellationToken ct,Dictionary<Address,ContractResourceInfo> contractResourceInfoCache)
         {
             if (ct.IsCancellationRequested)
-                return (transaction, new TransactionResourceInfo()
+                return new TransactionWithResourceInfo
                 {
-                    TransactionId = transaction.GetHash(),
-                    ParallelType = ParallelType.NonParallelizable
-                });
+                    Transaction = transaction,
+                    TransactionResourceInfo = new TransactionResourceInfo()
+                    {
+                        TransactionId = transaction.GetHash(),
+                        ParallelType = ParallelType.NonParallelizable
+                    }
+                };
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
             {
@@ -73,7 +77,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                     if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
                         resourceCache.ResourceInfo.IsContractRemarks == contractResourceInfo.IsContractRemarks)
                     {
-                        return (transaction, resourceCache.ResourceInfo);
+                        return new TransactionWithResourceInfo
+                        {
+                            Transaction = transaction,
+                            TransactionResourceInfo = resourceCache.ResourceInfo
+                        };
                     }
                 }
             }
@@ -88,7 +96,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
             }
 
-            return (transaction, resourceInfo);
+            return new TransactionWithResourceInfo
+            {
+                Transaction = transaction,
+                TransactionResourceInfo = resourceInfo
+            };
         }
 
         private async Task<TransactionResourceInfo> GetResourcesForOneAsync(IChainContext chainContext,
@@ -232,6 +244,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             public bool IsContractRemarks { get; set; }
         }
+    }
+
+    public class TransactionWithResourceInfo
+    {
+        public Transaction Transaction { get; set; }
+        public TransactionResourceInfo TransactionResourceInfo { get; set; }
     }
 
     internal class TransactionResourceCache

@@ -25,12 +25,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             Logger = NullLogger<ConflictingTransactionIdentificationService>.Instance;
         }
 
-        public async Task<List<(Transaction, TransactionResourceInfo)>> IdentifyConflictingTransactionsAsync(IChainContext chainContext,
+        public async Task<List<TransactionWithResourceInfo>> IdentifyConflictingTransactionsAsync(IChainContext chainContext,
             List<ExecutionReturnSet> returnSets, List<ExecutionReturnSet> conflictingSets)
         {
             var possibleConflicting = FindPossibleConflictingReturnSets(returnSets, conflictingSets);
-            var wrong = await FindContractOfWrongResourcesAsync(chainContext, possibleConflicting);
-            return wrong;
+            var wrongTxnWithResources = await FindContractOfWrongResourcesAsync(chainContext, possibleConflicting);
+            return wrongTxnWithResources;
         }
 
         private List<ExecutionReturnSet> FindPossibleConflictingReturnSets(List<ExecutionReturnSet> returnSets,
@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 .Where(rs => rs.StateAccesses.Any(a => possibleConflictingKeys.Contains(a.Key))).ToList();
         }
 
-        private async Task<List<(Transaction, TransactionResourceInfo)>> FindContractOfWrongResourcesAsync(IChainContext chainContext,
+        private async Task<List<TransactionWithResourceInfo>> FindContractOfWrongResourcesAsync(IChainContext chainContext,
             List<ExecutionReturnSet> returnSets)
         {
             var transactionIds = returnSets.Select(rs => rs.TransactionId);
@@ -53,20 +53,20 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 await _resourceExtractionService.GetResourcesAsync(chainContext, transactions, CancellationToken.None);
 
             var returnSetLookup = returnSets.ToDictionary(rs => rs.TransactionId, rs => rs);
-            var wrongTxns = new List<(Transaction, TransactionResourceInfo)>();
+            var wrongTxnWithResources = new List<TransactionWithResourceInfo>();
             foreach (var txnWithResource in txnWithResources)
             {
-                var extracted = new HashSet<string>(txnWithResource.Item2.Paths.Select(p => p.ToStateKey()));
-                var actual = GetKeys(returnSetLookup[txnWithResource.Item1.GetHash()]);
+                var extracted = new HashSet<string>(txnWithResource.TransactionResourceInfo.Paths.Select(p => p.ToStateKey()));
+                var actual = GetKeys(returnSetLookup[txnWithResource.Transaction.GetHash()]);
                 actual.ExceptWith(extracted);
                 if (actual.Count > 0)
                 {
                     Logger.LogWarning($"Conflict keys:{string.Join(";", actual)}");
-                    wrongTxns.Add(txnWithResource);
+                    wrongTxnWithResources.Add(txnWithResource);
                 }
             }
 
-            return wrongTxns;
+            return wrongTxnWithResources;
         }
 
         private HashSet<string> GetKeys(ExecutionReturnSet returnSet)
