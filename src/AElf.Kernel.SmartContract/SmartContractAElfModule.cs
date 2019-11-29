@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -18,11 +20,11 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, DefaultTransactionSizeFeeUnitPriceProvider>();
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            var smartContractExecutiveService = context.ServiceProvider.GetService<ISmartContractExecutiveService>();
-            AsyncHelper.RunSync(() => smartContractExecutiveService.InitContractInfoCacheAsync());
+            var deployedContractAddressService = context.ServiceProvider.GetService<IDeployedContractAddressService>();
+            AsyncHelper.RunSync(() => deployedContractAddressService.InitAsync());
         }
     }
 }

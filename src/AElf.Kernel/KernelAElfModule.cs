@@ -1,12 +1,15 @@
 ﻿using AElf.Kernel.ChainController;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Threading;
 
 
 namespace AElf.Kernel
@@ -23,6 +26,7 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

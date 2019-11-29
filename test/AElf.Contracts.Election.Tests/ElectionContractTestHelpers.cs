@@ -7,13 +7,17 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
-        public ElectionContractTests()
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public ElectionContractTests(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             InitializeContracts();
         }
 

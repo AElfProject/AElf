@@ -29,7 +29,7 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
             };
             string methodName = "DeploySmartContract";
             //create proposal to deploy
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task UpdateSmartContract_Test()
         {
-            var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = TokenContractAddress,
@@ -109,7 +109,7 @@ namespace AElf.Contracts.Genesis
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
                     Category = KernelConstants.DefaultRunnerCategory,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
                 }));
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }

@@ -5,13 +5,12 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class LogEventListeningService : ILogEventListeningService, ISingletonDependency
+    public class LogEventListeningService<T> : ILogEventListeningService<T>
+        where T : ILogEventHandler
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private Dictionary<LogEvent, Bloom> _blooms;
 
@@ -19,15 +18,13 @@ namespace AElf.Kernel.Miner.Application
             _blooms ??
             (_blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
 
-        private readonly List<ILogEventHandler> _eventHandlers;
-        
-        public ILogger<LogEventListeningService> Logger { get; set; }
+        private readonly List<T> _eventHandlers;
 
-        public LogEventListeningService(IBlockchainService blockchainService,
-            ITransactionResultQueryService transactionResultQueryService,
-            IServiceContainer<ILogEventHandler> eventHandlers)
+        public ILogger<LogEventListeningService<T>> Logger { get; set; }
+
+        public LogEventListeningService(ITransactionResultQueryService transactionResultQueryService,
+            IServiceContainer<T> eventHandlers)
         {
-            _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;
             _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
@@ -46,7 +43,8 @@ namespace AElf.Kernel.Miner.Application
 
                 foreach (var transactionId in block.Body.TransactionIds)
                 {
-                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
+                    var result =
+                        await _transactionResultQueryService.GetTransactionResultAsync(transactionId, block.GetHash());
                     if (result == null)
                     {
                         continue;
@@ -85,7 +83,7 @@ namespace AElf.Kernel.Miner.Application
                     }
                 }
             }
-            
+
             Logger.LogTrace("Finish apply log event handler.");
         }
     }
