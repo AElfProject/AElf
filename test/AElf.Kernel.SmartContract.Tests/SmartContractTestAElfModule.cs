@@ -42,6 +42,12 @@ namespace AElf.Kernel.SmartContract
 
                     return service.Object;
                 });
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IDeployedContractAddressService>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

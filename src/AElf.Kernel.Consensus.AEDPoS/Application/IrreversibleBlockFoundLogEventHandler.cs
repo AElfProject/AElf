@@ -13,7 +13,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class IrreversibleBlockFoundLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 var chain = await _blockchainService.GetChainAsync();
 
-                if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight)
+                if (chain.LastIrreversibleBlockHeight > irreversibleBlockFound.IrreversibleBlockHeight)
                     return;
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
@@ -69,6 +69,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 
                 // enable transaction packing
                 _transactionPackingService.EnableTransactionPacking();
+                if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
                 Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +

@@ -9,7 +9,7 @@ This article will guide you through how to use **AElf Boilerplate** project to i
 To easily follow this tutorial you will need to open the the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
 
 <p align="center">
-  <img src="aelf-root.png" width="100">
+  <img src="boilerplate-structure.png" width="100">
 </p>
 
 In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder. Every path in the following tutorial will be relative to this folder.

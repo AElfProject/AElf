@@ -12,7 +12,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain.Application
 {
-    public class MiningInformationUpdatedLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class MiningInformationUpdatedLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IMiningSequenceRepository _miningSequenceRepository;

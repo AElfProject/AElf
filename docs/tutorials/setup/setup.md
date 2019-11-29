@@ -25,7 +25,7 @@ Another dependency needed to build **AElf** from the command line under Windows 
 If you already have an edition of **Visual Studio** installed, open the **Visual Studio Installer** and add the **Desktop development with C++** workload:
 
 <p align="center">
-    <img src="setup-vs-cpp-dep.png" height="300">
+    <img src="setup-vs-install-workload.png" height="300">
 </p>
 
 If you don't have any of the Visual Studio editions installed:
