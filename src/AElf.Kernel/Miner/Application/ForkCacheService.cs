@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.Miner.Application
             _forkCacheHandlers = forkCacheHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public void MergeAndCleanForkCache(Hash irreversibleBlockHash, long irreversibleBlockHeight)
+        public async Task MergeAndCleanForkCacheAsync(Hash irreversibleBlockHash, long irreversibleBlockHeight)
         {
             var chainBlockLinks = _chainBlockLinkService.GetCachedChainBlockLinks()
                 .Where(b => b.Height <= irreversibleBlockHeight)
@@ -52,7 +53,7 @@ namespace AElf.Kernel.Miner.Application
                     chainBlockLinks.FirstOrDefault(b => b.BlockHash == irreversibleLink.PreviousBlockHash);
             }
 
-            RemoveByBlockHash(deletedBlockIndexes);
+            await RemoveByBlockHashAsync(deletedBlockIndexes);
 
             chainBlockLinks.Reverse();
 
@@ -61,7 +62,7 @@ namespace AElf.Kernel.Miner.Application
                 BlockHash = c.BlockHash,
                 BlockHeight = c.Height
             }).ToList();
-            SetIrreversible(blockIndexes);
+            await SetIrreversibleAsync(blockIndexes);
 
             foreach (var chainBlockLink in chainBlockLinks)
             {
@@ -69,19 +70,19 @@ namespace AElf.Kernel.Miner.Application
             }
         }
         
-        private void RemoveByBlockHash(List<BlockIndex> blockIndexes)
+        private async Task RemoveByBlockHashAsync(List<BlockIndex> blockIndexes)
         {
             foreach (var forkCacheHandler in _forkCacheHandlers)
             {
-                forkCacheHandler.RemoveForkCache(blockIndexes);
+                await forkCacheHandler.RemoveForkCacheAsync(blockIndexes);
             }
         }
 
-        private void SetIrreversible(List<BlockIndex> blockIndexes)
+        private async Task SetIrreversibleAsync(List<BlockIndex> blockIndexes)
         {
             foreach (var forkCacheHandler in _forkCacheHandlers)
             {
-                forkCacheHandler.SetIrreversedCache(blockIndexes);
+                await forkCacheHandler.SetIrreversedCacheAsync(blockIndexes);
             }
         }
     }
