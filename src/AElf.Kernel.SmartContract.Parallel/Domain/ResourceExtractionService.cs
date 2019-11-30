@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IContractRemarksManager _contractRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
@@ -30,10 +30,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IContractRemarksManager contractRemarksManager)
+            IContractRemarksService contractRemarksService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _contractRemarksManager = contractRemarksManager;
+            _contractRemarksService = contractRemarksService;
             _blockchainService = blockchainService;
 
             Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -122,7 +122,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     };
                 }
                 var codeRemark =
-                    await _contractRemarksManager.GetCodeRemarkAsync(chainContext, address,
+                    await _contractRemarksService.GetCodeRemarkAsync(chainContext, address,
                         executive.ContractHash);
                 if (codeRemark != null && codeRemark.NonParallelizable)
                 {

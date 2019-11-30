@@ -5,7 +5,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class MockContractRemarksManager : IContractRemarksManager
+    public class MockContractRemarksService : IContractRemarksService
     {
         public static bool NonParallelizable = false;
 
@@ -28,7 +28,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public void RemoveContractRemarksCache(List<BlockIndex> blockIndexes)
+        public async Task RemoveContractRemarksCacheAsync(List<BlockIndex> blockIndexes)
         {
             throw new System.NotImplementedException();
         }

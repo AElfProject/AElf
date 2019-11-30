@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -73,7 +72,7 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        _forkCacheService.MergeAndCleanForkCache(irreversibleBlockHash, irreversibleBlockHeight);
+                        await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
                 

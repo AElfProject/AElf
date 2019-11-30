@@ -29,7 +29,7 @@ namespace AElf.Parallel.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionGrouper _grouper;
-        private readonly IContractRemarksManager _contractRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
         private readonly ITxHub _txHub;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IAccountService _accountService;
@@ -45,7 +45,7 @@ namespace AElf.Parallel.Tests
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _grouper = GetRequiredService<ITransactionGrouper>();
-            _contractRemarksManager = GetRequiredService<IContractRemarksManager>();
+            _contractRemarksService = GetRequiredService<IContractRemarksService>();
             _txHub = GetRequiredService<ITxHub>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _accountService = GetRequiredService<IAccountService>();
@@ -90,7 +90,7 @@ namespace AElf.Parallel.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
             var codeRemark =
-                await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
+                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -152,7 +152,7 @@ namespace AElf.Parallel.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
             var codeRemark =
-                await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
+                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -189,7 +189,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             codeRemark =
-                await _contractRemarksManager.GetCodeRemarkAsync(
+                await _contractRemarksService.GetCodeRemarkAsync(
                     new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, tokenContractAddress,
                     Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
             codeRemark.NonParallelizable.ShouldBeFalse();
@@ -297,7 +297,7 @@ namespace AElf.Parallel.Tests
             }
 
             var codeRemark =
-                await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
+                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
@@ -409,7 +409,7 @@ namespace AElf.Parallel.Tests
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
-            var codeRemark = await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
+            var codeRemark = await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height

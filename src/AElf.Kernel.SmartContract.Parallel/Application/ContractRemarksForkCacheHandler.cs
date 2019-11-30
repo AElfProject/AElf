@@ -1,28 +1,28 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ContractRemarksForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
-        private readonly IContractRemarksManager _contractRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
 
-        public ContractRemarksForkCacheHandler(IContractRemarksManager contractRemarksManager)
+        public ContractRemarksForkCacheHandler(IContractRemarksService contractRemarksService)
         {
-            _contractRemarksManager = contractRemarksManager;
+            _contractRemarksService = contractRemarksService;
         }
 
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        public async Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
-            _contractRemarksManager.RemoveContractRemarksCache(blockIndexes);
+            await _contractRemarksService.RemoveContractRemarksCacheAsync(blockIndexes);
         }
 
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public async Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
-            AsyncHelper.RunSync(() => _contractRemarksManager.SetIrreversedCacheAsync(blockIndexes));
+            await _contractRemarksService.SetIrreversedCacheAsync(blockIndexes);
         }
     }
 }

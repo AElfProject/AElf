@@ -98,7 +98,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     GetPath(12345)
                 }
             });
-            MockContractRemarksManager.NonParallelizable = true;
+            MockContractRemarksService.NonParallelizable = true;
             var resourceInfos =
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
                 .ToList();
@@ -112,7 +112,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 ContractHash = executive.ContractHash,
                 IsContractRemarks = true
             });
-            MockContractRemarksManager.NonParallelizable = false;
+            MockContractRemarksService.NonParallelizable = false;
         }
 
         [Fact]

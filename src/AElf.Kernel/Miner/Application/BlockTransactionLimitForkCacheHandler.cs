@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -14,14 +15,16 @@ namespace AElf.Kernel.Miner.Application
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
         }
         
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
             _blockTransactionLimitProvider.RemoveForkCache(blockIndexes);
+            return Task.CompletedTask;
         }
 
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
             _blockTransactionLimitProvider.SetIrreversedCache(blockIndexes);
+            return Task.CompletedTask;
         }
     }
 }

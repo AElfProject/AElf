@@ -34,7 +34,7 @@ namespace AElf.Parallel.Tests
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionGrouper _transactionGrouper;
-        private readonly IContractRemarksManager _contractRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
         private readonly ParallelTestHelper _parallelTestHelper;
 
         public DeleteDataFromStateDbTest()
@@ -48,7 +48,7 @@ namespace AElf.Parallel.Tests
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _transactionGrouper = GetRequiredService<ITransactionGrouper>();
-            _contractRemarksManager = GetRequiredService<IContractRemarksManager>();
+            _contractRemarksService = GetRequiredService<IContractRemarksService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
         }
 
@@ -902,7 +902,7 @@ namespace AElf.Parallel.Tests
 
                 var codeHash = Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode);
                 var codeRemark =
-                    await _contractRemarksManager.GetCodeRemarkAsync(new ChainContext
+                    await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
@@ -1050,7 +1050,7 @@ namespace AElf.Parallel.Tests
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
                 var codeRemark =
-                    await _contractRemarksManager.GetCodeRemarkAsync(
+                    await _contractRemarksService.GetCodeRemarkAsync(
                         new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                         Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
