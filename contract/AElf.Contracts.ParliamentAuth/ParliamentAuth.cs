@@ -58,7 +58,21 @@ namespace AElf.Contracts.ParliamentAuth
             return new BoolValue {Value = State.Organisations[input] != null};
         }
         
-        public override ProposalIdList FilterNotApprovedProposal(ProposalIdList input)
+        public override ProposalIdList GetValidProposals(ProposalIdList input)
+        {
+            var result = new ProposalIdList();
+            foreach (var proposalId in input.ProposalIds)
+            {
+                var proposal = State.Proposals[proposalId];
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal)) 
+                    continue;
+                result.ProposalIds.Add(proposalId);
+            }
+
+            return result;
+        }
+        
+        public override ProposalIdList GetNotApprovedProposals(ProposalIdList input)
         {
             var result = new ProposalIdList();
             var currentParliament = GetCurrentMinerList();
@@ -72,7 +86,7 @@ namespace AElf.Contracts.ParliamentAuth
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
-
+            
             return result;
         }
 

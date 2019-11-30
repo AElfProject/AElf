@@ -30,7 +30,10 @@ service ParliamentAuthContract {
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
     }
-    rpc FilterNotApprovedProposal(ProposalIdList) returns (ProposalIdList){
+    rpc GetNotApprovedProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
+    rpc GetValidProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
 }
