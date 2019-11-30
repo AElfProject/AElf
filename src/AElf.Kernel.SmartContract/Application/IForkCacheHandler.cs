@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface IForkCacheHandler
     {
-        void RemoveForkCache(List<BlockIndex> blockIndexes);
+        Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes);
         
-        void SetIrreversedCache(List<BlockIndex> blockIndexes);
+        Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes);
     }
 }
