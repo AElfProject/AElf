@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
@@ -13,14 +14,16 @@ namespace AElf.Kernel.TransactionPool.Application
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
         }
 
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
             _transactionSizeFeeUnitPriceProvider.RemoveForkCache(blockIndexes);
+            return Task.CompletedTask;
         }
 
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
             _transactionSizeFeeUnitPriceProvider.SetIrreversedCache(blockIndexes);
+            return Task.CompletedTask;
         }
     }
 }

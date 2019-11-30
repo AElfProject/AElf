@@ -12,16 +12,16 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly IResourceExtractionService _resourceExtractionService;
-        private readonly IContractRemarksManager _contractRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
  
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
             IResourceExtractionService resourceExtractionService, 
-            IContractRemarksManager contractRemarksManager)
+            IContractRemarksService contractRemarksService)
         {
             _conflictingTransactionIdentificationService = conflictingTransactionIdentificationService;
             _resourceExtractionService = resourceExtractionService;
-            _contractRemarksManager = contractRemarksManager;
+            _contractRemarksService = contractRemarksService;
         }
 
         public async Task HandleEventAsync(ConflictingTransactionsFoundInParallelGroupsEvent eventData)
@@ -42,7 +42,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var wrongAddresses = wrongAddressAndCodeHashMap.Keys;
             foreach (var address in wrongAddresses)
             {
-                _contractRemarksManager.AddCodeHashCache(
+                _contractRemarksService.AddCodeHashCache(
                     new BlockIndex
                         {BlockHash = eventData.PreviousBlockHash, BlockHeight = eventData.PreviousBlockHeight},
                     address, wrongAddressAndCodeHashMap[address]);

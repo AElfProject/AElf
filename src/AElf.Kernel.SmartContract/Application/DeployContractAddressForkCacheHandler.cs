@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
@@ -13,14 +14,16 @@ namespace AElf.Kernel.SmartContract.Application
             _deployedContractAddressProvider = deployedContractAddressProvider;
         }
 
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
             _deployedContractAddressProvider.RemoveForkCache(blockIndexes);
+            return Task.CompletedTask;
         }
 
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
             _deployedContractAddressProvider.SetIrreversedCache(blockIndexes);
+            return Task.CompletedTask;
         }
     }
 }
