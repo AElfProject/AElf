@@ -14,6 +14,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash);
         
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
+
+        Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
     }
 
     public class BlockchainStateService : IBlockchainStateService
@@ -79,6 +81,11 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
         {
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+        }
+        
+        public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
+        {
+            await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
         }
     }
 }

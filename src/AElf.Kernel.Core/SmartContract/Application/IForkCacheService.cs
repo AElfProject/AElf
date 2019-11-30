@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface IForkCacheService
     {
-        void MergeAndCleanForkCache(Hash irreversibleBlockHash, long irreversibleBlockHeight);
+        Task MergeAndCleanForkCacheAsync(Hash irreversibleBlockHash, long irreversibleBlockHeight);
     }
 }

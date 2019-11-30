@@ -11,16 +11,17 @@ namespace AElf.Kernel.SmartContract.Parallel
         ILocalEventHandler<ConflictingTransactionsFoundInParallelGroupsEvent>, ITransientDependency
     {
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
-        private readonly ICodeRemarksService _codeRemarksService;
         private readonly IResourceExtractionService _resourceExtractionService;
+        private readonly IContractRemarksService _contractRemarksService;
  
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
-            ICodeRemarksService codeRemarksService,IResourceExtractionService resourceExtractionService)
+            IResourceExtractionService resourceExtractionService, 
+            IContractRemarksService contractRemarksService)
         {
             _conflictingTransactionIdentificationService = conflictingTransactionIdentificationService;
-            _codeRemarksService = codeRemarksService;
             _resourceExtractionService = resourceExtractionService;
+            _contractRemarksService = contractRemarksService;
         }
 
         public async Task HandleEventAsync(ConflictingTransactionsFoundInParallelGroupsEvent eventData)
@@ -30,20 +31,24 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHash = eventData.PreviousBlockHash,
                 BlockHeight = eventData.PreviousBlockHeight
             };
-            var wrong = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
+            var wrongTxWithResources = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
                 chainContext, eventData.ExistingSets, eventData.ConflictingSets);
             
-            var wrongTransactionIds = wrong.Select(t => t.GetHash()).ToArray();
+            var wrongTransactionIds = wrongTxWithResources.Select(t => t.Transaction.GetHash()).ToArray();
             eventData.ConflictingSets.RemoveAll(t => !t.TransactionId.IsIn(wrongTransactionIds));
 
-            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct().ToList();
-            foreach (var address in wrongTransactionAddresses)
+            var wrongAddressAndCodeHashMap = wrongTxWithResources.GroupBy(t => t.Transaction.To)
+                .ToDictionary(g => g.Key, g => g.First().TransactionResourceInfo.ContractHash);
+            var wrongAddresses = wrongAddressAndCodeHashMap.Keys;
+            foreach (var address in wrongAddresses)
             {
-                await _codeRemarksService.MarkUnparallelizableAsync(chainContext, address);
+                _contractRemarksService.AddCodeHashCache(
+                    new BlockIndex
+                        {BlockHash = eventData.PreviousBlockHash, BlockHeight = eventData.PreviousBlockHeight},
+                    address, wrongAddressAndCodeHashMap[address]);
             }
 
-            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds,
-                wrongTransactionAddresses);
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }
     }
 }
