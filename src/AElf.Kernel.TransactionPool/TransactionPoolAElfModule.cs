@@ -14,19 +14,12 @@ namespace AElf.Kernel.TransactionPool
         {
             var services = context.Services;
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
-
-            // TODO: Temporarily remove the transaction contract address verification
-            // Switching branches depends on block validation passing and attaching successfully,
-            // but validation depends on the execution of the block where the deployment contract is located,
-            // so it causes a deadlock.
-            //services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
-
+//            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
-            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+//            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
-
-            services.AddSingleton<NewIrreversibleBlockFoundEventHandler>();
+            services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));

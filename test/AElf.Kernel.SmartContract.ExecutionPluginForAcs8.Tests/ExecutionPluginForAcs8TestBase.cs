@@ -124,8 +124,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         protected async Task InitializeContracts()
         {
             await DeployContractsAsync();
-            await InitializeTreasuryContractAsync();
             await InitializeTokenAsync();
+            await InitializeTreasuryContractAsync();
             await InitializeTokenConverterAsync();
         }
         

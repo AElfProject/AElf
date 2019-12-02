@@ -11,8 +11,10 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ITransactionSizeFeeUnitPriceProvider
     {
-        void SetUnitPrice(long unitPrice);
-        Task<long> GetUnitPriceAsync();
+        void SetUnitPrice(long unitPrice,BlockIndex blockIndex);
+        Task<long> GetUnitPriceAsync(IChainContext chainContext);
+        void RemoveForkCache(List<BlockIndex> blockIndexes);
+        void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
     /// <summary>
@@ -29,16 +31,26 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = new NullLogger<DefaultTransactionSizeFeeUnitPriceProvider>();
         }
 
-        public void SetUnitPrice(long unitPrice)
+        public void SetUnitPrice(long unitPrice,BlockIndex blockIndex)
         {
             Logger.LogError("Set tx size unit price wrongly.");
             _unitPrice = unitPrice;
         }
 
-        public Task<long> GetUnitPriceAsync()
+        public Task<long> GetUnitPriceAsync(IChainContext chainContext)
         {
             Logger.LogError("Get tx size unit price wrongly.");
             return Task.FromResult(_unitPrice);
+        }
+
+        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        {
+            throw new System.NotImplementedException();
         }
     }
 

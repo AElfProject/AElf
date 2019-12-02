@@ -13,6 +13,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
+
 namespace AElf.Benchmark
 {
     [MarkdownExporterAttribute.GitHub]
@@ -31,8 +32,7 @@ namespace AElf.Benchmark
         private List<ECKeyPair> _keyPairs;
         private Block _block;
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] 
-        public int TransactionCount;
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -43,7 +43,7 @@ namespace AElf.Benchmark
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+
             _prepareTransactions = new List<Transaction>();
             _systemTransactions = new List<Transaction>();
             _cancellableTransactions = new List<Transaction>();
@@ -61,18 +61,18 @@ namespace AElf.Benchmark
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
-            
+
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
             _cancellableTransactions = _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs);
             chain = await _blockchainService.GetChainAsync();
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 _systemTransactions.Concat(_cancellableTransactions));
         }
-        
+
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, 
+            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header,
                 _systemTransactions, _cancellableTransactions, CancellationToken.None);
         }
 
@@ -80,12 +80,11 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _systemTransactions.Concat(_cancellableTransactions))
-            {
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
-                    _block.Header.GetPreMiningHash());
-            }
+
+            var transactionIds = _systemTransactions.Concat(_cancellableTransactions).Select(t => t.GetHash()).ToList();
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
+                _block.Header.GetPreMiningHash());
         }
     }
 }

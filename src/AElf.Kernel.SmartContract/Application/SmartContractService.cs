@@ -4,22 +4,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
-    public class SmartContractService : ISmartContractService, ISingletonDependency
+    public class SmartContractService : ISmartContractService, ITransientDependency
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractAddressService smartContractAddressService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ISmartContractAddressService smartContractAddressService)
         {
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _smartContractAddressService = smartContractAddressService;
-            _smartContractExecutiveService = smartContractExecutiveService;
         }
 
         /// <inheritdoc/>
@@ -31,9 +27,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
-            await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
-                contractDto.BlockHeight);
-
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);
 //            var contractTemplate = runner.ExtractMetadata(contractType);
@@ -46,9 +39,6 @@ namespace AElf.Kernel.SmartContract.Application
             var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
             await Task.Run(() => runner.CodeCheck(contractDto.SmartContractRegistration.Code.ToByteArray(),
                 contractDto.IsPrivileged));
-
-            await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
-                contractDto.BlockHeight);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);

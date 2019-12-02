@@ -140,7 +140,7 @@ namespace AElf.Contracts.MultiToken
                         DefaultKeyPair);
 
                 OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, BasicFunctionContractCode,
+                    category, OtherBasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(

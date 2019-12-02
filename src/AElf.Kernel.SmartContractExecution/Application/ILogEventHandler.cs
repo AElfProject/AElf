@@ -8,4 +8,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
         LogEvent InterestedEvent { get; }
         Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent);
     }
+    
+    public interface IBlockAcceptedLogEventHandler : ILogEventHandler
+    {
+
+    }
+
+    public interface IBestChainFoundLogEventHandler : ILogEventHandler
+    {
+        
+    }
 }

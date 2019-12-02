@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -120,6 +119,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
             BlockHeader blockHeader)
         {
+            var transactionResults = new List<TransactionResult>();
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
             {
@@ -130,7 +130,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Error = "Invalid contract address."
                 };
                 Logger.LogError(result.Error);
-                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+                transactionResults.Add(result);
 
                 var returnSet = new ExecutionReturnSet
                 {
@@ -140,25 +140,28 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
                 returnSets.Add(returnSet);
             }
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
             return returnSets;
         }
 
-        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictionSets,
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets,
             List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
         {
-            foreach (var conflictionSet in conflictionSets)
+            var transactionResults = new List<TransactionResult>();
+            foreach (var conflictingSet in conflictingSets)
             {
                 var result = new TransactionResult
                 {
-                    TransactionId = conflictionSet.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    Error = ExecutionStatus.Canceled.ToString()
+                    TransactionId = conflictingSet.TransactionId,
+                    Status = TransactionResultStatus.Conflict,
+                    Error = "Parallel conflict",
                 };
-                conflictionSet.Status = result.Status;
-                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
-                returnSets.Add(conflictionSet);
+                conflictingSet.Status = result.Status;
+                transactionResults.Add(result);
+                returnSets.Add(conflictingSet);
             }
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Acs4;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -13,21 +14,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private ValidationResult ValidateBeforeExecution(AElfConsensusHeaderInformation extraData)
         {
+            Context.LogDebug(extraData.ToString);
+
             // According to current round information:
             if (!TryToGetCurrentRoundInformation(out var baseRound))
             {
                 return new ValidationResult {Success = false, Message = "Failed to get current round information."};
             }
 
-            var providedRound = extraData.Round;
             if (extraData.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                providedRound = baseRound.RecoverFromUpdateValue(extraData.Round, extraData.SenderPubkey.ToHex());
+                baseRound.RecoverFromUpdateValue(extraData.Round, extraData.SenderPubkey.ToHex());
             }
 
             if (extraData.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
-                providedRound = baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
+                baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
             }
 
             var validationContext = new ConsensusValidationContext
@@ -35,11 +37,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BaseRound = baseRound,
                 CurrentTermNumber = State.CurrentTermNumber.Value,
                 CurrentRoundNumber = State.CurrentRoundNumber.Value,
-                Rounds = State.Rounds,
+                PreviousRound = TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round(),
                 LatestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value,
-                ExtraData = extraData,
-                RoundsDict = _rounds,
-                ProvidedRound = providedRound
+                ExtraData = extraData
             };
 
             /* Ask several questions: */
@@ -54,16 +54,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new TimeSlotValidationProvider(),
 
                 // Is sender produced too many blocks at one time?
-                new ContinuousBlocksValidationProvider(),
-
-                // Is confirmed lib height and lib round number went down? (Which should not happens.)
-                new LibInformationValidationProvider(),
+                new ContinuousBlocksValidationProvider()
             };
 
             switch (extraData.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
                     validationProviders.Add(new UpdateValueValidationProvider());
+                    // Is confirmed lib height and lib round number went down? (Which should not happens.)
+                    validationProviders.Add(new LibInformationValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     // Is sender's order of next round correct?

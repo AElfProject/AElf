@@ -34,7 +34,7 @@ namespace AElf.Parallel.Tests
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionGrouper _transactionGrouper;
-        private readonly ICodeRemarksManager _codeRemarksManager;
+        private readonly IContractRemarksService _contractRemarksService;
         private readonly ParallelTestHelper _parallelTestHelper;
 
         public DeleteDataFromStateDbTest()
@@ -48,7 +48,7 @@ namespace AElf.Parallel.Tests
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _transactionGrouper = GetRequiredService<ITransactionGrouper>();
-            _codeRemarksManager = GetRequiredService<ICodeRemarksManager>();
+            _contractRemarksService = GetRequiredService<IContractRemarksService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
         }
 
@@ -900,10 +900,15 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var codeRemarks =
-                    await _codeRemarksManager.GetCodeRemarksAsync(
-                        Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-                codeRemarks.ShouldBeNull();
+                var codeHash = Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode);
+                var codeRemark =
+                    await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, ParallelTestHelper.BasicFunctionWithParallelContractAddress, codeHash);
+                codeRemark.NonParallelizable.ShouldBeFalse();
+                codeRemark.CodeHash.ShouldBe(codeHash);
                     
                 messageValue = new MessageValue
                 {
@@ -1043,11 +1048,14 @@ namespace AElf.Parallel.Tests
 
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
-                
-                var codeRemarks =
-                    await _codeRemarksManager.GetCodeRemarksAsync(
+
+                var codeRemark =
+                    await _contractRemarksService.GetCodeRemarkAsync(
+                        new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                         Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-                codeRemarks.ShouldBeNull();
+                codeRemark.NonParallelizable.ShouldBeFalse();
+                codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
                 messageValue = new MessageValue
                 {

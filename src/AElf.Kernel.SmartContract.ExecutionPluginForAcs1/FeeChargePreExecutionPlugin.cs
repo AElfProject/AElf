@@ -112,14 +112,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
-                if (transactionContext.Transaction.MethodName == "InitialTreasuryContract" ||
-                    transactionContext.Transaction.MethodName == "InitialMiningRewardProfitItem")
-                {
-                    return new List<Transaction>();
-                }
-
                 var txSize = transactionContext.Transaction.Size();
                 var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
+                var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
+                {
+                    BlockHash = transactionContext.PreviousBlockHash,
+                    BlockHeight = transactionContext.BlockHeight - 1
+                });
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {
