@@ -18,9 +18,6 @@ namespace AElf.CSharp.CodeOps
     {
         private static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
         {
-            //OpCodes.Call,
-            //OpCodes.Calli,
-            //OpCodes.Callvirt,
             OpCodes.Beq,
             OpCodes.Beq_S,
             OpCodes.Bge,
@@ -183,9 +180,12 @@ namespace AElf.CSharp.CodeOps
                 return;
 
             var il = method.Body.GetILProcessor();
+            
+            // Insert counter in the beginning of each method
+            il.InsertBefore(method.Body.Instructions[0], Instruction.Create(OpCodes.Call, counterMethodRef));
 
+            // Insert before every branching instruction
             var branchingInstructions = method.Body.Instructions.Where(i => JumpingOps.Contains(i.OpCode)).ToList();
-
             il.Body.SimplifyMacros();
             foreach (var instruction in branchingInstructions)
             {
@@ -203,6 +203,8 @@ namespace AElf.CSharp.CodeOps
                 var il = method.Body.GetILProcessor();
                 
                 // Insert reset call as the first instruction
+                // It may be better to invoke this outside the contract,
+                // otherwise there will be a limitation that public method cannot call public method
                 il.InsertBefore(method.Body.Instructions[0], Instruction.Create(OpCodes.Call, resetMethodRef));
             }
         }
