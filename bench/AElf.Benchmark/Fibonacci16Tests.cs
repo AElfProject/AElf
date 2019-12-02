@@ -21,8 +21,8 @@ namespace AElf.Benchmark
         private Address _contractAddress;
         private Chain _chain;
         private TransactionTrace _transactionTrace;
-        
-        private const ulong _fibonacci16Result =987;
+
+        private const ulong Fibonacci16Result = 987;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -61,7 +61,7 @@ namespace AElf.Benchmark
         public void IterationCleanup()
         {
             var calResult = UInt64Value.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
-            if (calResult != _fibonacci16Result)
+            if (calResult != Fibonacci16Result)
             {
                 throw new Exception("execute fail");
             }

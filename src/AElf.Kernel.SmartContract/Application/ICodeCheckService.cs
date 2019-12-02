@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class CodeCheckService : ICodeCheckService, ISingletonDependency
     {
-        private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
+        private readonly IProposalService _proposalService;
         
         private readonly ContractAuditor _contractAuditor = new ContractAuditor(null, null);
         
@@ -29,9 +29,9 @@ namespace AElf.Kernel.SmartContract.Application
         
         private volatile bool _isEnabled = false;
 
-        public CodeCheckService(IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider)
+        public CodeCheckService(IProposalService proposalService)
         {
-            _readyToApproveProposalCacheProvider = readyToApproveProposalCacheProvider;
+            _proposalService = proposalService;
             
             Logger = NullLogger<CodeCheckService>.Instance;
         }
@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Application
                     .ProposalId;
                 
                 // Cache proposal id to generate system approval transaction later
-                _readyToApproveProposalCacheProvider.TryCacheProposalToApprove(proposalId);
+                _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
             }
             catch (InvalidCodeException e)
             {

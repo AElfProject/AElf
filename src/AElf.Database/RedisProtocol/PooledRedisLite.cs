@@ -92,6 +92,15 @@ namespace AElf.Database.RedisProtocol
                 return success == RedisLite.Success;
             }
         }
+        
+        public bool RemoveAll(string[] key)
+        {
+            using (var client = GetRedisClient())
+            {
+                var success = client.Del(key);
+                return success == RedisLite.Success;
+            }
+        }
 
         public byte[] Get(string key)
         {
@@ -106,6 +115,14 @@ namespace AElf.Database.RedisProtocol
             using (var client = GetRedisClient(true))
             {
                 return client.Get(key).FromUtf8Bytes();
+            }
+        }
+        
+        public byte[][] GetAll(string[] keys)
+        {
+            using (var client = GetRedisClient())
+            {
+                return client.MGet(keys.ToMultiByteArray());
             }
         }
 

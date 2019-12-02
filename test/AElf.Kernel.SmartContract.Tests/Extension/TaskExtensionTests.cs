@@ -49,10 +49,10 @@ namespace AElf.Kernel.SmartContract.Extension
         [Fact]
         public async Task Task_Extensions_Test_Two_Cancellations_NotCanceled()
         {
-            var ct1 = new CancellationTokenSource(300);
-            var ct2 = new CancellationTokenSource(300);
+            var ct1 = new CancellationTokenSource(3000);
+            var ct2 = new CancellationTokenSource(3000);
             int times = 2;
-            var task = CountAsync(times, 100);
+            var task = CountAsync(times, 1000);
             var res = await task.WithCancellation(ct1.Token, ct2.Token);
             Assert.Equal(times, res);
         }

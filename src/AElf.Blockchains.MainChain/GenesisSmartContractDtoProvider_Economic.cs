@@ -43,10 +43,9 @@ namespace AElf.Blockchains.MainChain
             economicContractMethodCallList.Add(
                 nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                 {
-                    Amount =
-                        Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
+                    Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
                     To = Address.FromPublicKey(
-                        ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList[0])),
+                        ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
                     Memo = "Issue native token"
                 });
 

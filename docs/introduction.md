@@ -12,13 +12,12 @@ AElf will improve overall blockchain performance by executing transactions in pa
 
 ## This GitBook
 
-This GitBook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
-- [**how to start a node**](tutorials/run-node.md)
-- [**how to develop dApp**](tutorials/DApp/main.md)
+This GitBook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started.
 
 #### Guides and tutorials
 
-- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
+- [**Getting started**](tutorials/setup/setup.md) - setting up dependencies and running a node.
+- [**Smart contract development**](tutorials/developing-smart-contracts/first-contract.md) - developing smart contract for AElf.
 
 #### AElf concepts
 
@@ -32,7 +31,7 @@ This GitBook contains various different types of documentation and depending on 
 
 This section provides links to API references for the Command Line Interface, the js-sdk and the nodes RPC interface.
 
-- [**command line**](cli/cli.md) - a reference for the available commands on AElf's CLI.
+- [**command line**](resources/cli/introduction.md) - a reference for the available commands on AElf's CLI.
 - [**web api**](web-api-reference/reference.md) - a reference for the available methods on AElf's web api.
 - [**js sdk**](sdk/javascript/js-sdk.md) - a reference for the available APIs in the js SDK.
 

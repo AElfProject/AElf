@@ -36,10 +36,10 @@ namespace AElf.OS.BlockSync.Application
 
         public async Task<bool> FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
         {
-            var localBlock = await _blockchainService.GetBlockByHashAsync(blockHash);
-            if (localBlock != null)
+            var hasBlock = await _blockchainService.HasBlockAsync(blockHash);
+            if (hasBlock)
             {
-                Logger.LogDebug($"Block {localBlock} already know.");
+                Logger.LogDebug($"Block {blockHash} already know.");
                 return true;
             }
 

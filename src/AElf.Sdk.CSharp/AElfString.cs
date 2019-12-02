@@ -44,7 +44,12 @@ namespace AElf.Sdk.CSharp
 
         public static string ValidatedString(string str)
         {
-            if (str.Length > 15360)
+            var limit = SmartContractConstants.AElfStringLengthLimitInContract;
+#if DEBUG
+            // for debug logs
+            limit = int.MaxValue;
+#endif
+            if (str.Length > limit)
                 throw new AssertionException($"String size {str.Length} is too big to concatenate further!");
             return str;
         }

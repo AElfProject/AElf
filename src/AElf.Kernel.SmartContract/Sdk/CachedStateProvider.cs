@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         public IStateCache Cache { get; set; } = new InMemoryStateCache();
 
-        public async Task<byte[]> GetAsync(StatePath path)
+        public byte[] Get(StatePath path)
         {
             var scoped = new ScopedStatePath()
             {
@@ -30,7 +30,7 @@ namespace AElf.Kernel.SmartContract.Sdk
                 return value;
             }
 
-            var bytes = await _inner.GetAsync(path);
+            var bytes = _inner.Get(path);
 
             Cache[scoped] = bytes;
 

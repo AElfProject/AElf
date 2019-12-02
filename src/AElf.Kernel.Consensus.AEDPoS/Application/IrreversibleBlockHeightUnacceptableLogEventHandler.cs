@@ -11,7 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class IrreversibleBlockHeightUnacceptableLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly ITransactionPackingService _transactionPackingService;
         private readonly ISmartContractAddressService _smartContractAddressService;

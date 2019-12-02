@@ -10,7 +10,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public interface IResourceExtractionService
     {
-        Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
+        Task<IEnumerable<TransactionWithResourceInfo>> GetResourcesAsync(IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct);
 
         Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData);
@@ -21,6 +21,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
 
-        void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds, IEnumerable<Address> contractAddresses);
+        void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds);
     }
 }

@@ -16,10 +16,12 @@ service ParliamentAuthContract {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
+    rpc ApproveMultiProposals(ProposalIdList) returns (google.protobuf.Empty){
+    }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc ValidateAddressInProposerWhiteList(aelf.Address) returns (google.protobuf.BoolValue){
@@ -27,6 +29,12 @@ service ParliamentAuthContract {
     }
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
+    }
+    rpc GetNotApprovedProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
+    rpc GetValidProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
     }
 }
 
@@ -69,4 +77,8 @@ message ProposalReleased{
 
 message ProposerWhiteList{
     repeated aelf.Address proposers = 1;
+}
+
+message ProposalIdList{
+    repeated aelf.Hash proposal_ids = 1;
 }

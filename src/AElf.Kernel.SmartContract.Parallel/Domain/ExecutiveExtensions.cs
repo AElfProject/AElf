@@ -25,10 +25,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
             var txId = input.GetHash();
-            if (!IsParallelizable(executive))
-            {
-                return NotParallelizable(txId);
-            }
 
             var trace = new TransactionTrace
             {
@@ -49,7 +45,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             await executive.ApplyAsync(transactionContext);
             if (!trace.IsSuccessful())
             {
-                return NotParallelizable(txId);
+                return NotParallelizable(txId, executive.ContractHash);
             }
 
             try
@@ -64,26 +60,28 @@ namespace AElf.Kernel.SmartContract.Parallel
                     },
                     ParallelType = resourceInfo.NonParallelizable
                         ? ParallelType.NonParallelizable
-                        : ParallelType.Parallelizable
+                        : ParallelType.Parallelizable,
+                    ContractHash = executive.ContractHash
                 };
             }
             catch (Exception)
             {
-                return NotParallelizable(txId);
+                return NotParallelizable(txId, executive.ContractHash);
             }
         }
 
-        private static bool IsParallelizable(this IExecutive executive)
+        internal static bool IsParallelizable(this IExecutive executive)
         {
             return executive.Descriptors.Any(service => service.File.GetIndentity() == "acs2");
         }
 
-        private static TransactionResourceInfo NotParallelizable(Hash transactionId)
+        private static TransactionResourceInfo NotParallelizable(Hash transactionId,Hash codeHash)
         {
             return new TransactionResourceInfo
             {
                 TransactionId = transactionId,
-                ParallelType = ParallelType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable,
+                ContractHash = codeHash
             };
         }
     }

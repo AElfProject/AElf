@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddStoreKeyPrefixProvide<CodeRemarks>("cr");
+            context.Services.AddStoreKeyPrefixProvide<ContractRemarks>("cr");
         }
     }
 }

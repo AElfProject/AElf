@@ -26,9 +26,8 @@ namespace AElf.Benchmark
 
         private Chain _chain;
         private Block _block;
-                
-        [Params(1, 10, 100, 1000, 3000, 5000)]
-        public int TransactionCount;
+
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -42,7 +41,7 @@ namespace AElf.Benchmark
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+
             _chain = await _blockchainService.GetChainAsync();
         }
 
@@ -52,7 +51,7 @@ namespace AElf.Benchmark
             var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
             await _blockchainService.AddTransactionsAsync(transactions);
             _block = _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, transactions);
-            
+
             await _blockchainService.AddBlockAsync(_block);
         }
 
@@ -66,13 +65,10 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transactionId in _block.Body.TransactionIds)
-            {
-                await _transactionManager.RemoveTransactionAsync(transactionId);
-                await _transactionResultManager.RemoveTransactionResultAsync(transactionId, _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultAsync(transactionId,_block.Header.GetPreMiningHash());
-            }
-            
+            await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
+            await _transactionResultManager.RemoveTransactionResultsAsync(_block.Body.TransactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(_block.Body.TransactionIds,
+                _block.Header.GetPreMiningHash());
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);

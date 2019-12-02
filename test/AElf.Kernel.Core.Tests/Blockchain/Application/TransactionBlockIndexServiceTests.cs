@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -25,18 +26,18 @@ namespace AElf.Kernel.Blockchain.Application
             var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash"));
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block);
-            
-            var txId = Hash.FromString("Transaction"); 
+
+            var txId = Hash.FromString("Transaction");
             var blockIndex = new BlockIndex
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
-            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex);
+
             var actual = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
             Assert.Null(actual);
-            
+
             var cacheInBestBranch = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId);
             Assert.Null(cacheInBestBranch);
 
@@ -44,30 +45,30 @@ namespace AElf.Kernel.Blockchain.Application
                 await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block.GetHash());
             Assert.NotNull(cacheInForkBranch);
         }
-        
+
         [Fact]
         public async Task UpdateOneBlockIndexWithBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
             var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash"));
-            var txId = Hash.FromString("Transaction"); 
+            var txId = Hash.FromString("Transaction");
             var blockIndex = new BlockIndex
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex);
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block);
             await SetBestChain(chain, block);
 
             var actual = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
             Assert.Equal(blockIndex, actual);
-            
+
             var cacheInBestBranch = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId);
             Assert.Equal(blockIndex, cacheInBestBranch);
         }
-        
+
         [Fact]
         public async Task UpdateTwoBlockIndexesWithoutBestChain()
         {
@@ -77,38 +78,40 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
-            
-            var txId = Hash.FromString("Transaction"); 
+
+            var txId = Hash.FromString("Transaction");
             var blockIndex1 = new BlockIndex
             {
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
-            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
+
             chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block2);
-            
+
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
-            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
+
             var actual = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
             Assert.Null(actual);
-            
+
             var cacheInBestBranch = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId);
             Assert.Null(cacheInBestBranch);
-            
-            var cacheBlockIndex1 = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block1.GetHash());
+
+            var cacheBlockIndex1 =
+                await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block1.GetHash());
             Assert.Equal(blockIndex1, cacheBlockIndex1);
-            
-            var cacheBlockIndex2 = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block2.GetHash());
-            Assert.Equal(blockIndex2,cacheBlockIndex2);
+
+            var cacheBlockIndex2 =
+                await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block2.GetHash());
+            Assert.Equal(blockIndex2, cacheBlockIndex2);
         }
-        
+
         [Fact]
         public async Task UpdateTwoBlockIndexesWithFirstBestChain()
         {
@@ -116,26 +119,26 @@ namespace AElf.Kernel.Blockchain.Application
             var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash1"));
             var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash2"));
 
-            var txId = Hash.FromString("Transaction"); 
-            
+            var txId = Hash.FromString("Transaction");
+
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
             await SetBestChain(chain, block1);
-            
+
             var blockIndex1 = new BlockIndex
             {
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
-            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
+
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
-            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
+
             chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block2);
 
@@ -145,8 +148,9 @@ namespace AElf.Kernel.Blockchain.Application
             var cacheBlockIndex1 = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId);
             Assert.Equal(blockIndex1, cacheBlockIndex1);
 
-            var cacheBlockIndex2 = await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block2.GetHash());
-            Assert.Equal(blockIndex2,cacheBlockIndex2);
+            var cacheBlockIndex2 =
+                await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(txId, block2.GetHash());
+            Assert.Equal(blockIndex2, cacheBlockIndex2);
         }
 
         [Fact]
@@ -165,14 +169,14 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
 
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
 
             chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block2);
@@ -193,7 +197,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task InitializeTransactionBlockIndexCache_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
-            
+
             var blockHash = chain.LastIrreversibleBlockHash;
             var blockHeight = chain.LastIrreversibleBlockHeight;
             while (true)
@@ -201,11 +205,12 @@ namespace AElf.Kernel.Blockchain.Application
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
                 foreach (var txId in block.TransactionIds)
                 {
-                    await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, new BlockIndex
-                    {
-                        BlockHash = block.GetHash(),
-                        BlockHeight = block.Height
-                    });
+                    await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId},
+                        new BlockIndex
+                        {
+                            BlockHash = block.GetHash(),
+                            BlockHeight = block.Height
+                        });
                 }
 
                 if (blockHeight == Constants.GenesisBlockHeight)
@@ -214,9 +219,9 @@ namespace AElf.Kernel.Blockchain.Application
                 blockHash = block.Header.PreviousBlockHash;
                 blockHeight--;
             }
-            
+
             await _transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync();
-            
+
             blockHeight = chain.LastIrreversibleBlockHeight;
             blockHash = chain.LastIrreversibleBlockHash;
             while (true)

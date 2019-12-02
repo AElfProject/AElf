@@ -5,6 +5,7 @@ using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Node.Events;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -40,6 +41,7 @@ namespace AElf.Kernel.Node.Application
         private readonly IChainCreationService _chainCreationService;
         private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
+        private readonly IDeployedContractAddressService _deployedContractAddressService;
         private readonly IConsensusService _consensusService;
         
         public ILocalEventBus EventBus { get; set; }
@@ -47,7 +49,8 @@ namespace AElf.Kernel.Node.Application
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
             ISmartContractAddressUpdateService smartContractAddressUpdateService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService,
+            IDeployedContractAddressService deployedContractAddressService)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
@@ -55,7 +58,8 @@ namespace AElf.Kernel.Node.Application
             _smartContractAddressUpdateService = smartContractAddressUpdateService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
-            
+            _deployedContractAddressService = deployedContractAddressService;
+
             EventBus = NullLocalEventBus.Instance;
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
@@ -20,6 +21,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
         Task<ChainContractInfo> GetChainContractInfoAsync();
         Task SetChainContractInfoAsync(ChainContractInfo chainContractInfo);
+        Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -194,10 +196,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
                 await _versionedStates.SetAllAsync(dic);
 
-                foreach (var key in blockState.Deletes)
-                {
-                    await _versionedStates.RemoveAsync(key);
-                }
+                await _versionedStates.RemoveAllAsync(blockState.Deletes.ToList());
 
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;
@@ -238,6 +237,11 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task SetChainContractInfoAsync(ChainContractInfo chainContractInfo)
         {
             await _chainContractInfoCollection.SetAsync(chainContractInfo.ChainId.ToStorageKey(), chainContractInfo);
+        }
+
+        public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
+        {
+            await _blockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
         }
 
         private string GetKey(BlockStateSet blockStateSet)
