@@ -171,7 +171,7 @@ Previously we defined the contract in a protobuf file, now let's take a look at 
 
 #### Project and generated code
 
-Smart contracts in AElf are built with normal C# projects files (csproj format). We highly recommend that you create a folder for your contract in Boilerplate's **contract** folder and add the csproj to it:
+Smart contracts in AElf are built with normal C# projects files (csproj format). We highly recommend that you create a folder for your contract inside Boilerplate's **contract** folder and add the csproj in it:
 
 <!--
 Boilerplate
