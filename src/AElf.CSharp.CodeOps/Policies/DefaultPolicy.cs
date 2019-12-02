@@ -89,8 +89,7 @@ namespace AElf.CSharp.CodeOps.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied)
-                        .Member(nameof(string.Concat), Permission.Denied))
+                        .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
