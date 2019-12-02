@@ -1,6 +1,7 @@
 using AElf.Kernel.SmartContract.Application;
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
@@ -21,6 +22,7 @@ namespace AElf.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
             context.Services.RemoveAll<IPreExecutionPlugin>();

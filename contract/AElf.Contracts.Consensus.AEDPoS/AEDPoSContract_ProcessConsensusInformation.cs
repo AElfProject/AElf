@@ -263,10 +263,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             TryToGetCurrentRoundInformation(out var currentRound);
 
-            Context.LogDebug(() =>
-                $"Processing tiny block:\n {currentRound}\n" +
-                $"Current height: {Context.CurrentHeight}\nPrevious block hash: {Context.PreviousBlockHash.ToHex()}");
-
             currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ActualMiningTimes
                 .Add(tinyBlockInput.ActualMiningTime);
             currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ProducedBlocks =

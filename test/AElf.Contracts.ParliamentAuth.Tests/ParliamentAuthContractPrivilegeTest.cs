@@ -12,7 +12,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task CreateProposal_WithPrivileged_Test()
         {
-            var organizationAddress = await GetGenesisOwnerAddressAsync();
+            var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
@@ -28,7 +28,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task CreateProposal_Creator_Test()
         {
-            var organizationAddress = await GetGenesisOwnerAddressAsync();
+            var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
@@ -43,7 +43,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task CreateProposal_Miner_Test()
         {
-            var organizationAddress = await GetGenesisOwnerAddressAsync();
+            var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var miner = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
             var transferInput = TransferInput(miner.GetCallOwnerAddress());
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
@@ -66,15 +66,14 @@ namespace AElf.Contracts.ParliamentAuth
             var result = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
                 createProposalInput);
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
         private async Task<Address> CreateOrganizationAsync()
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = 20000 / Tester.InitialMinerList.Count,
-                ProposerAuthorityRequired = false
+                ReleaseThreshold = 20000 / Tester.InitialMinerList.Count
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -85,13 +84,13 @@ namespace AElf.Contracts.ParliamentAuth
             return Address.Parser.ParseFrom(transactionResult.ReturnValue);
         }
 
-        private async Task<Address> GetGenesisOwnerAddressAsync()
+        private async Task<Address> GetDefaultOrganizationAddressAsync()
         {
-            return Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
-                    ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
-                    new Empty()))
-                .ReturnValue);
+            var result = (await Tester.ExecuteContractWithMiningAsync(
+                ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                new Empty()));
+            return Address.Parser.ParseFrom(result.ReturnValue);
         }
     }
 }

@@ -4,6 +4,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Acs0;
+using Acs3;
+using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.Genesis
 {
@@ -74,7 +76,8 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            RequireAuthority(State.GenesisOwner?.Value);
+            RequireSenderAuthority(State.GenesisOwner?.Value);
+            ValidateProposerAuthority(Context.Origin, true);
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -125,7 +128,7 @@ namespace AElf.Contracts.Genesis
 
             Context.DeployContract(contractAddress, reg, name);
 
-            Context.Fire(new ContractDeployed()
+            Context.Fire(new ContractDeployed
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
@@ -151,11 +154,97 @@ namespace AElf.Contracts.Genesis
 
             return contractAddress;
         }
+        
+        public override Hash ProposeNewContract(ContractDeploymentInput input)
+        {
+            RequireSenderAuthority();
+            ValidateProposerAuthority(Context.Origin, false);
+            var proposedContractInputHash = CalculateHashFromInput(input);
+            Assert(State.ContractProposingInfoMap[proposedContractInputHash] == null, "Already proposed.");
+            State.ContractProposingInfoMap.Set(proposedContractInputHash,
+                new ContractProposingInfo
+                {
+                    Proposer = Context.Origin
+                });
+            
+            
+            RequireParliamentAuthAddressSet();
+            
+            // Create proposal for deployment
+            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
+                Params = input.ToByteString(),
+                OrganizationAddress = State.GenesisOwner.Value,
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+            });
+            
+            // Fire event to trigger BPs checking contract code
+            Context.Fire(new CodeCheckRequired
+            {
+                Code = input.Code,
+                ProposedContractInputHash = proposedContractInputHash
+            });
+    
+            return proposedContractInputHash;
+        }
+        
+        public override Empty ReleaseApprovedContract(ReleaseApprovedContractInput input)
+        {
+            var contractProposingInfo = State.ContractProposingInfoMap[input.ProposedContractInputHash];
+            Assert(contractProposingInfo != null && contractProposingInfo.Proposer == Context.Origin,
+                "Contract proposing info not found or inconsistent with proposer.");
+            contractProposingInfo.IsReleased = true;
+            State.ContractProposingInfoMap.Set(input.ProposedContractInputHash, contractProposingInfo);
+            State.ParliamentAuthContract.Release.Send(input.ProposalId);
+            return new Empty();
+        }
+
+        public override Hash ProposeUpdateContract(ContractUpdateInput input)
+        {
+            RequireSenderAuthority();
+            var proposedContractInputHash = CalculateHashFromInput(input);
+            Assert(State.ContractProposingInfoMap[proposedContractInputHash] == null, "Already proposed.");
+            State.ContractProposingInfoMap.Set(proposedContractInputHash,
+                new ContractProposingInfo
+                {
+                    Proposer = Context.Origin
+                });
+            
+            var contractAddress = input.Address;
+            var info = State.ContractInfos[contractAddress];
+            Assert(info != null, "Contract does not exist.");
+            AssertAuthorityByContractInfo(info);
+            ValidateProposerAuthority(Context.Origin, info.IsSystemContract);
+
+            // Create proposal for deployment
+            RequireParliamentAuthAddressSet();
+            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                Params = input.ToByteString(),
+                OrganizationAddress = State.GenesisOwner.Value,
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+            });
+
+            // Fire event to trigger BPs checking contract code
+            Context.Fire(new CodeCheckRequired
+            {
+                Code = input.Code,
+                ProposedContractInputHash = proposedContractInputHash
+            });
+    
+            return proposedContractInputHash;
+        }
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            RequireAuthority();
-
+            RequireSenderAuthority();
+            ValidateProposerAuthority(Context.Origin, false);
+            var inputHash = CalculateHashFromInput(input);
+            RemoveContractProposingInfo(inputHash);
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false);
             return address;
         }
@@ -165,17 +254,22 @@ namespace AElf.Contracts.Genesis
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
-            Assert(info != null, "Contract does not exist.");
-
+            Assert(info != null, "Contract not found.");
+            
             if (info.IsSystemContract)
             {
-                RequireAuthority(State.GenesisOwner.Value);
+                RequireSenderAuthority(State.GenesisOwner.Value);
             }
             else
             {
-                RequireAuthority();
-                Assert(info.Author == Context.Origin, "Only author can propose contract update.");
+                RequireSenderAuthority(info.Author);
             }
+            
+            AssertAuthorityByContractInfo(info);
+            ValidateProposerAuthority(Context.Origin, info.IsSystemContract);
+
+            var inputHash = CalculateHashFromInput(input);
+            RemoveContractProposingInfo(inputHash);
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
@@ -210,8 +304,8 @@ namespace AElf.Contracts.Genesis
         {
             var contractAddress = input.ContractAddress;
             var info = State.ContractInfos[contractAddress];
-            Assert(info != null && info.Author.Equals(Context.Sender), "no permission.");
-
+            Assert(info != null, "Contract not found.");
+            AssertAuthorityByContractInfo(info);
             var oldAuthor = info.Author;
             info.Author = input.NewAuthor;
             State.ContractInfos[contractAddress] = info;
@@ -241,6 +335,10 @@ namespace AElf.Contracts.Genesis
             else
             {
                 AssertSenderAddressWith(State.GenesisOwner.Value);
+                RequireParliamentAuthAddressSet();
+                var organizationExist =
+                    State.ParliamentAuthContract.ValidateOrganizationExist.Call(newOwnerAddress).Value;
+                Assert(organizationExist, "Invalid genesis owner address.");
                 State.GenesisOwner.Value = newOwnerAddress;
             }
 
@@ -249,22 +347,35 @@ namespace AElf.Contracts.Genesis
 
         #endregion Actions
 
-        public void RequireAuthority(Address requiredAddress = null)
+        private void RequireSenderAuthority(Address requiredAddress = null)
         {
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!State.Initialized.Value)
             {
-                // only authority of contract zero is valid before initialization 
+                // only authority of contract zero is valid before initialization
                 AssertSenderAddressWith(Context.Self);
+                return;
             }
-            else if (isGenesisOwnerAuthorityRequired)
+            
+            if (isGenesisOwnerAuthorityRequired)
             {
                 // genesis owner authority check is required
                 AssertSenderAddressWith(State.GenesisOwner.Value);
+                return;
             }
-            else if (requiredAddress != null)
+
+            if (requiredAddress == null) 
+                return;
+            
+            AssertSenderAddressWith(requiredAddress);
+        }
+
+        private void RequireParliamentAuthAddressSet()
+        {
+            if (State.ParliamentAuthContract.Value == null)
             {
-                AssertSenderAddressWith(requiredAddress);
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
         }
 
@@ -280,6 +391,46 @@ namespace AElf.Contracts.Genesis
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;
+        }
+
+        private Hash CalculateHashFromInput(IMessage input)
+        {
+            return Hash.FromMessage(input);
+        }
+
+        private void ValidateProposerAuthority(Address proposer, bool parliamentMemberNeeded)
+        {
+            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (!isGenesisOwnerAuthorityRequired)
+                return;
+            
+            RequireParliamentAuthAddressSet();
+            var proposerAuthorityValidated = parliamentMemberNeeded
+                ? State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(proposer).Value
+                : State.ParliamentAuthContract.ValidateProposerAuthority.Call(proposer).Value;
+            Assert(proposerAuthorityValidated, "Proposer authority validation failed.");
+        }
+
+        private void RemoveContractProposingInfo(Hash inputHash)
+        {
+            var contractProposingInfo = State.ContractProposingInfoMap[inputHash];
+            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (isGenesisOwnerAuthorityRequired)
+                Assert(contractProposingInfo != null, "Contract proposing info not found.");
+            
+            if (contractProposingInfo == null) 
+                return;
+            Assert(contractProposingInfo.Proposer == Context.Origin && contractProposingInfo.IsReleased,
+                "Unable to remove contract proposing info.");
+            State.ContractProposingInfoMap.Remove(inputHash);
+        }
+
+        private void AssertAuthorityByContractInfo(ContractInfo contractInfo)
+        {
+            if (contractInfo.IsSystemContract)
+                Assert(Context.Sender == State.GenesisOwner.Value, "No permission.");
+            else
+                Assert(Context.Origin == contractInfo.Author, "No permission.");
         }
     }
 

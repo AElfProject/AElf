@@ -375,7 +375,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var ecKeyPair = SampleECKeyPairs.KeyPairs[1];
             var parliamentAuthContractStub2 = GetParliamentAuthContractTester(ecKeyPair);
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = await parliamentAuthContractStub2.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "DisposeSideChain",
@@ -452,7 +452,7 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeOwnerAddress()
         {
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalRes = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "ChangOwnerAddress",
