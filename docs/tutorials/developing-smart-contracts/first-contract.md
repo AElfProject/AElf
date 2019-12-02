@@ -197,11 +197,11 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.HelloWorld";
 ```
 
-The first line specifies the syntax that this protobuf file uses, we recommend you always use **proto3** for this. Next we see that this contract specifies some imports, let's analyze them briefly:
+The first line specifies the syntax that this protobuf file uses, we recommend you always use **proto3** for your contracts. Next you'll notice that this contract specifies some imports, let's analyze them briefly:
 - **aelf/options.proto** : contracts can use AElf specific options, this file contains the definitions. One example is the **is_view** options that we will use later.
-- **empty.proto, timestamp.proto and wrappers.proto** : these are all definitions imported from Protobuf's library. They are usefull for defining things like an empty return value, time and wrappers around strings... 
+- **empty.proto, timestamp.proto and wrappers.proto** : these are all definitions imported from Protobuf's library. They are usefull for defining things like an empty return value, time and wrappers around some common types such as string. 
 
-The last line specifies an option that determines the namespace of the generated code. Here the code will be in the ```Aelf.Contracts.HelloWorld``` namespace.
+The last line specifies an option that determines the namespace of the generated code. Here the generated code will be in the ```Aelf.Contracts.HelloWorld``` namespace.
 
 
 #### The service definition
@@ -224,9 +224,9 @@ service HelloWorldContract {
 
 The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```HelloWorldContractState``` class under the ```Aelf.Contracts.HelloWorld``` namespace.
 
-Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A service method is defined by three things: the **method name**, the **input type** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` (used to specify that this method takes no arguments) and the output type will be a google.protobuf.StringValue (a traditional string). As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
+Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A service method is defined by three things: the **method name**, the **input type** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` that is used to specify that this method takes no arguments and the output type will be a google.protobuf.StringValue which is a traditional string. As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
 
-The service also defines a view methods, that is, methods used to query the contracts state and that have no side effects on the state. For example, the definition of ```GetGreetedList``` uses the **aelf.is_view** option to make it a view method.
+The service also defines a **view** method, that is, a method used only to query the contracts state and that has no side effect on the state. For example, the definition of ```GetGreetedList``` uses the **aelf.is_view** option to make it a view method.
 
 **Best practice:**
 - use **google.protobuf.Empty** to specify that a method takes no arguments (import ```google/protobuf/empty.proto```).
@@ -247,8 +247,79 @@ message GreetedList {
 }
 ```
 
-The protobuf files also includes the definition of two custom types. The **GreetToOutput** is the type returned by the ```GreetTo``` method and ```GreetedList``` is the return type of the ```GetGreetedList``` view method. You'll notice the **repeated** keyword the the ```GreetedList``` message. This is protobuf syntax to represent a collection.
+The protobuf file also includes the definition of two custom types. The **GreetToOutput** is the type returned by the ```GreetTo``` method and ```GreetedList``` is the return type of the ```GetGreetedList``` view method. You'll notice the **repeated** keyword the the ```GreetedList``` message. This is protobuf syntax to represent a collection.
 
 **Best practice:**
 - use **google.protobuf.Timestamp** to represent a point in time (import ```google/protobuf/timestamp.proto```).
-- use **repeated** to represent a collection of items of the same type.,
+- use **repeated** to represent a collection of items of the same type.
+
+## Implementation
+
+Now let's take a look at the implementation of the contract methods defined above. This section explains how to extend the generated code and implement the logic in you smart contract that will modify the state.
+
+Below are the files that contain the implementation of the smart contract (logic and state implementation):
+
+**Method implementation:**
+```csharp 
+using Google.Protobuf.WellKnownTypes;
+
+namespace AElf.Contracts.HelloWorld
+{
+    public class HelloWorldContract : HelloWorldContractContainer.HelloWorldContractBase 
+    {
+        public override StringValue Greet(Empty input)
+        {
+            Context.LogDebug(() => "Hello World!");
+            return new StringValue {Value = "Hello World!"};
+        }
+
+        public override GreetToOutput GreetTo(StringValue input)
+        {
+            // Should not greet to empty string or white space.
+            Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
+
+            // State.GreetedList.Value is null if not initialized.
+            var greetList = State.GreetedList.Value ?? new GreetedList();
+
+            // Add input.Value to State.GreetedList.Value if it's new to this list.
+            if (!greetList.Value.Contains(input.Value))
+            {
+                greetList.Value.Add(input.Value);
+            }
+
+            // Update State.GreetedList.Value by setting it's value directly.
+            State.GreetedList.Value = greetList;
+
+            Context.LogDebug(() => $"Hello {input.Value}!");
+
+            return new GreetToOutput
+            {
+                GreetTime = Context.CurrentBlockTime,
+                Name = input.Value
+            };
+        }
+
+        public override GreetedList GetGreetedList(Empty input)
+        {
+            return State.GreetedList.Value ?? new GreetedList();
+        }
+    }
+}
+```
+
+**State implementation:**
+
+```csharp
+using AElf.Sdk.CSharp.State;
+ 
+ namespace AElf.Contracts.HelloWorld
+ {
+    public class HelloWorldContractState : ContractState
+    {
+        public SingletonState<GreetedList> GreetedList { get; set; }
+    }
+ }
+```
+
+#### Asserting 
+
