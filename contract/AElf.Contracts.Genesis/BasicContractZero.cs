@@ -77,7 +77,7 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
             RequireSenderAuthority(State.GenesisOwner?.Value);
-            ValidateProposerAuthority(Context.Origin);
+            ValidateProposerAuthority(Context.Origin, true);
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -158,7 +158,7 @@ namespace AElf.Contracts.Genesis
         public override Hash ProposeNewContract(ContractDeploymentInput input)
         {
             RequireSenderAuthority();
-            ValidateProposerAuthority(Context.Origin);
+            ValidateProposerAuthority(Context.Origin, false);
             var proposedContractInputHash = CalculateHashFromInput(input);
             Assert(State.ContractProposingInfoMap[proposedContractInputHash] == null, "Already proposed.");
             State.ContractProposingInfoMap.Set(proposedContractInputHash,
@@ -204,7 +204,6 @@ namespace AElf.Contracts.Genesis
         public override Hash ProposeUpdateContract(ContractUpdateInput input)
         {
             RequireSenderAuthority();
-            ValidateProposerAuthority(Context.Origin);
             var proposedContractInputHash = CalculateHashFromInput(input);
             Assert(State.ContractProposingInfoMap[proposedContractInputHash] == null, "Already proposed.");
             State.ContractProposingInfoMap.Set(proposedContractInputHash,
@@ -217,7 +216,8 @@ namespace AElf.Contracts.Genesis
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract does not exist.");
             AssertAuthorityByContractInfo(info);
-            
+            ValidateProposerAuthority(Context.Origin, info.IsSystemContract);
+
             // Create proposal for deployment
             RequireParliamentAuthAddressSet();
             State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
@@ -242,7 +242,7 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             RequireSenderAuthority();
-            ValidateProposerAuthority(Context.Origin);
+            ValidateProposerAuthority(Context.Origin, false);
             var inputHash = CalculateHashFromInput(input);
             RemoveContractProposingInfo(inputHash);
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false);
@@ -266,7 +266,7 @@ namespace AElf.Contracts.Genesis
             }
             
             AssertAuthorityByContractInfo(info);
-            ValidateProposerAuthority(Context.Origin);
+            ValidateProposerAuthority(Context.Origin, info.IsSystemContract);
 
             var inputHash = CalculateHashFromInput(input);
             RemoveContractProposingInfo(inputHash);
@@ -398,15 +398,16 @@ namespace AElf.Contracts.Genesis
             return Hash.FromMessage(input);
         }
 
-        private void ValidateProposerAuthority(Address proposer)
+        private void ValidateProposerAuthority(Address proposer, bool parliamentMemberNeeded)
         {
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!isGenesisOwnerAuthorityRequired)
                 return;
             
             RequireParliamentAuthAddressSet();
-            var proposerAuthorityValidated = State.ParliamentAuthContract.ValidateAddressInProposerWhiteList
-                .Call(proposer).Value;
+            var proposerAuthorityValidated = parliamentMemberNeeded
+                ? State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(proposer).Value
+                : State.ParliamentAuthContract.ValidateProposerAuthority.Call(proposer).Value;
             Assert(proposerAuthorityValidated, "Proposer authority validation failed.");
         }
 
