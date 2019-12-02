@@ -50,7 +50,7 @@ message TransactionResult {
 }
 
 message TransactionFee {
-    map<string, sint64> Value = 1;// symbol -> amount
+    map<string, sint64> value = 1;// symbol -> amount
     bool is_failed_to_charge = 2;
 }
 
