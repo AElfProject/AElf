@@ -24,7 +24,10 @@ service ParliamentAuthContract {
     rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateAddressInProposerWhiteList(aelf.Address) returns (google.protobuf.BoolValue){
+    rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
+         option (aelf.is_view) = true;
+    }
+    rpc ValidateProposerAuthority(aelf.Address) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
