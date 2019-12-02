@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -143,28 +142,26 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
             await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
-
             return returnSets;
         }
 
-        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictionSets,
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets,
             List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
         {
             var transactionResults = new List<TransactionResult>();
-            foreach (var conflictionSet in conflictionSets)
+            foreach (var conflictingSet in conflictingSets)
             {
                 var result = new TransactionResult
                 {
-                    TransactionId = conflictionSet.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    Error = ExecutionStatus.Canceled.ToString()
+                    TransactionId = conflictingSet.TransactionId,
+                    Status = TransactionResultStatus.Conflict,
+                    Error = "Parallel conflict",
                 };
-                conflictionSet.Status = result.Status;
+                conflictingSet.Status = result.Status;
                 transactionResults.Add(result);
-                returnSets.Add(conflictionSet);
+                returnSets.Add(conflictingSet);
             }
             await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
-
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(

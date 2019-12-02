@@ -30,6 +30,7 @@ enum TransactionResultStatus {
     FAILED = 2;
     MINED = 3;
     UNEXECUTABLE = 4;
+    CONFLICT = 5;
 }
 
 message TransactionResult {

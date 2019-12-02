@@ -25,10 +25,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
             var txId = input.GetHash();
-            if (!IsParallelizable(executive))
-            {
-                return NotParallelizable(txId, executive.ContractHash);
-            }
 
             var trace = new TransactionTrace
             {
@@ -74,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
         }
 
-        private static bool IsParallelizable(this IExecutive executive)
+        internal static bool IsParallelizable(this IExecutive executive)
         {
             return executive.Descriptors.Any(service => service.File.GetIndentity() == "acs2");
         }

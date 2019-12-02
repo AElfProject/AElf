@@ -4,8 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
-    public class SmartContractService : ISmartContractService, ISingletonDependency
+    public class SmartContractService : ISmartContractService, ITransientDependency
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
