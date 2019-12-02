@@ -108,26 +108,6 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<ITxHub, MockTxHub>();
-
-            context.Services
-                .AddTransient(provider =>
-                {
-                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
-                    service.Setup(m => m.GetSystemTransactionMethodNameList())
-                        .Returns(new List<string>
-                            {
-                                "InitialAElfConsensusContract",
-                                "FirstRound",
-                                "NextRound",
-                                "NextTerm",
-                                "UpdateValue",
-                                "UpdateTinyBlockInformation"
-                            }
-                        );
-
-                    return service.Object;
-                });
-
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
         }

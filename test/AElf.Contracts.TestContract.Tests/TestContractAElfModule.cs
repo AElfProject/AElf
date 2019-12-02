@@ -28,35 +28,6 @@ namespace AElf.Contract.TestContract
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-            context.Services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
         } 
-    }
-    
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
-    {
-        public List<string> GetSystemTransactionMethodNameList()
-        {
-            return new List<string>
-            {
-                "InitialAElfConsensusContract",
-                "FirstRound",
-                "NextRound",
-                "NextTerm",
-                "UpdateValue",
-                "UpdateTinyBlockInformation",
-                "ClaimTransactionFees",
-                "DonateResourceToken",
-                "RecordCrossChainData",
-                
-                //acs5 check tx
-                "CheckThreshold",
-                //acs8 check tx
-                "CheckResourceToken",
-                "ChargeResourceToken",
-                //genesis deploy
-                "DeploySmartContract",
-                "DeploySystemSmartContract"
-            };
-        }
     }
 }

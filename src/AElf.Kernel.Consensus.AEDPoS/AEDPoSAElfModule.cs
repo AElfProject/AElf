@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
@@ -48,6 +49,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
             context.Services.AddSingleton<IBestChainFoundLogEventHandler, SecretSharingInformationLogEventHandler>();
+
+            context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.

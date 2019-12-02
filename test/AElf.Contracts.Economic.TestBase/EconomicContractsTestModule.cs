@@ -35,9 +35,6 @@ namespace AElf.Contracts.Economic.TestBase
                         
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
-
-            context.Services
-                .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
         }
     }
     
@@ -59,34 +56,6 @@ namespace AElf.Contracts.Economic.TestBase
         public Hash GetLatestGeneratedBlockRandomHash()
         {
             return Hash.FromString("LatestGeneratedBlockRandomHash");
-        }
-    }
-    
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
-    {
-        public List<string> GetSystemTransactionMethodNameList()
-        {
-            return new List<string>
-            {
-                "InitialAElfConsensusContract",
-                "FirstRound",
-                "NextRound",
-                "NextTerm",
-                "UpdateValue",
-                "UpdateTinyBlockInformation",
-                "ClaimTransactionFees",
-                "DonateResourceToken",
-                "RecordCrossChainData",
-                
-                //acs5 check tx
-                "CheckThreshold",
-                //acs8 check tx
-                "CheckResourceToken",
-                "ChargeResourceToken",
-                //genesis deploy
-                "DeploySmartContract",
-                "DeploySystemSmartContract"
-            };
         }
     }
 }

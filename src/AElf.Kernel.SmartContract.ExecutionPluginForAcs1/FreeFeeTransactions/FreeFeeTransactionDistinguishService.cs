@@ -16,11 +16,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
 
         public bool IsFree(Transaction transaction)
         {
-            return _chargeFeeStrategies
-                .Where(chargeFeeStrategy => transaction.To == chargeFeeStrategy.ContractAddress &&
-                                            (transaction.MethodName == chargeFeeStrategy.MethodName ||
-                                             chargeFeeStrategy.MethodName == string.Empty))
-                .All(chargeFeeStrategy => chargeFeeStrategy.IsFree(transaction));
+            var usefulStrategies = _chargeFeeStrategies.Where(chargeFeeStrategy =>
+                transaction.To == chargeFeeStrategy.ContractAddress &&
+                (transaction.MethodName == chargeFeeStrategy.MethodName ||
+                 chargeFeeStrategy.MethodName == string.Empty)).ToList();
+            return usefulStrategies.Any() &&
+                   usefulStrategies.All(chargeFeeStrategy => chargeFeeStrategy.IsFree(transaction));
         }
     }
 }

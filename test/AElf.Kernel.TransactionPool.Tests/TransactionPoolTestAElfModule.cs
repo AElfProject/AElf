@@ -38,25 +38,6 @@ namespace AElf.Kernel.TransactionPool
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<ISystemTransactionMethodNameListProvider>();
-                mockService.Setup(m => m.GetSystemTransactionMethodNameList())
-                    .Returns(new List<string>
-                {
-                    "InitialAElfConsensusContract",
-                    "FirstRound",
-                    "NextRound",
-                    "NextTerm",
-                    "UpdateValue",
-                    "UpdateTinyBlockInformation",
-                    "ClaimTransactionFees",
-                    "DonateResourceToken",
-                    "RecordCrossChainData"
-                });
-                
-                return mockService.Object;
-            });
 
             services.AddSingleton(provider =>
             {

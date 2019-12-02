@@ -82,22 +82,6 @@ namespace AElf.WebApp.Application
                 return mockService.Object;
             });
 
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<ISystemTransactionMethodNameListProvider>();
-                mockService.Setup(m => m.GetSystemTransactionMethodNameList())
-                    .Returns(new List<string>
-                    {
-                        "InitialAElfConsensusContract",
-                        "FirstRound",
-                        "NextRound",
-                        "NextTerm",
-                        "UpdateValue",
-                        "UpdateTinyBlockInformation"
-                    });
-                return mockService.Object;
-            });
-
             context.Services
                 .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();

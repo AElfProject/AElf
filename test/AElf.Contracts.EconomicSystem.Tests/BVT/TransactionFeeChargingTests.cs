@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Types;
@@ -49,17 +50,18 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                MethodName = "SupposedToFail",
+                MethodName = nameof(TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
+                    .SupposedToFail),
                 Fees =
                 {
                     new MethodFee {Symbol = "ELF", BasicFee = 2_0000_0000}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var tester = InitialCoreDataCenterKeyPairs.First();
             var beforeBalance = await GetUserBalance(tester);
-            
+
             var transactionStub = GetTransactionFeeChargingContractTester(tester);
             var transactionResult = await transactionStub.SupposedToFail.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

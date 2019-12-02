@@ -5,11 +5,11 @@ using AElf.Types;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainContractFeeChargeStrategy : IChargeFeeStrategy
+    public class CrossChainContractChargeFeeStrategy : IChargeFeeStrategy
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public CrossChainContractFeeChargeStrategy(ISmartContractAddressService smartContractAddressService)
+        public CrossChainContractChargeFeeStrategy(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }
