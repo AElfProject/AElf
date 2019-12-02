@@ -1,120 +1,24 @@
 # Smart Contract
 
-This article will guide you through how to use **AElf Boilerplate** project to implement and test a smart contract. This guide assumes you have completed the previous [Setup](setup.md) tutorial.
-
-## Introduction
-
-### Setup
-
-To easily follow this tutorial you will need to open the the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
-
-<p align="center">
-  <img src="boilerplate-structure-autox200.png">
-</p>
-
-In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder. Every path in the following tutorial will be relative to this folder.
-
-### Folder structure
-
-This section will introduce you to the structure of a smart contract developed with **Boilerplate** by introducing the *Hello World*  contract example. Here's an overview of the folders and files you will find in the **chain** folder:
-
-- **protobuf**: contains some protobuf message definitions, some common to all contracts, some for specific contracts.
-- scripts: build scripts - not important for this guide.
-- **src**:
-  - AElf.Boilerplate.Launcher: console project to launch the node.
-  - AElf.Boilerplate.Mainchain: a library for the node.
-  - **HelloWorldContract**: the implementation of the Hello World contract.
-- **test**:
-  - **HelloWorldContract.Test**: the tests for the Hello World contract.
-
-This guide will focus on the **HelloWorldContract** and **HelloWorldContract.Test** folders since the code we will modify is located in these.
-
-
-
-
-
-```protobuf
-syntax = "proto3";
-
-import "aelf_options.proto";
-import "google/protobuf/empty.proto";
-
-option csharp_namespace = "HelloWorldContract";
-
-service HelloWorldContract {
-
-    option (aelf.csharp_state) = "HelloWorldContractState";
-
-    rpc Hello (google.protobuf.Empty) returns (HelloReturn) { }
-}
-
-message HelloReturn {
-    string Value = 1;
-}
-```
-
-It's a simple contract that defines one method **Hello** and one type **HelloReturn**.
-
-
-
-**Implementation**: the implementation of the contract is located in the **src/HelloWorldContract/** folder, it contains two important files: **HelloWorldContract.cs** and **HelloWorldContractState.cs** that implement respectively the contract's **implementation** and its **state**.
-
-```csharp
-using Google.Protobuf.WellKnownTypes;
-
-namespace HelloWorldContract
-{
-    public partial class HelloWorldContract : HelloWorldContractContainer.HelloWorldContractBase
-    {
-        public override HelloReturn Hello(Empty input)
-        {
-            return new HelloReturn {Value = "Hello world!"};
-        }
-    }
-}
-```
-
-The above code, represents the implementation of the **Hello** method of the smart contract. It returns a **HelloReturn** object that holds an "Hello world!" string.
-
-```csharp
-using AElf.Sdk.CSharp.State;
-namespace HelloWorldContract
-{
-    public class HelloWorldContractState : ContractState
-    {
-    }
-}
-```
-
-This class represents the state of the contract. It is empty now, but you'll find out how to add some code in here in **Adding some methods** (below).
-
-### Testing
-
-Now lets look at the test :
-
-```csharp
-public class HelloWorldContractTest : HelloWorldContractTestBase
-{
-    [Fact]
-    public async Task HelloCall_ReturnsHelloWorldMessage()
-    {
-        var result = await HelloWorldContractStub.Hello.CallAsync(new Empty());
-        result.Value.ShouldBe("Hello world!");
-    }
-}
-```
-
-This is a simple test that uses AElf's test framework to validate that the method does what it's supposed to - in this case return an "Hello world!" string.
+This article will guide you through how to use **AElf Boilerplate** project to implement and test a smart contract. It takes example on the Greeter contract that's already included in Boilerplate.
 
 ## Greeter contract
 
-The following content will walk you through the basics of writing a smart contract; you can find the full contract on the Github repo.
-Writing a smart contract contains essentially three steps:
+The following content will walk you through the basics of writing a smart contract; the process contains essentially four steps:
+- **create the project and files**: you can use other contract in Boilerplate as a template.
 - **define the contract and its types**: the methods and types needed in your contract should be defined in a protobuf file, following protobuf syntax. 
 - **generate the code**: build the project to generate the base contract code from the proto definition.
 - **extend the generated code**: implement the logic of the contract methods.
 
-### Defining a contract
+The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greet message as well as the time of the greeting.
+
+This tutorial will describe the process of authoring a contract with Boilerplate, this includes the following steps:
+- adding a protobuf definition file in order to define a smart contract.
+- organizing the contract folder and editing the csproj project file.
+- 
+
+
+### Defining the contract
 
 As stated above the first step when writing a smart contract on AElf is to define the methods and types of your contract. AElf defines smart contracts as services and are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.
 
@@ -269,11 +173,93 @@ The protobuf file also includes the definition of two custom types. The **GreetT
 
 ### Implementation
 
-Now let's take a look at the implementation of the contract methods defined above. This section explains how to extend the generated code and implement the logic in you smart contract that will modify the state.
+Previously we defined the contract in a protobuf file, now let's take a look at the implementation of the contract methods defined above. This section explains how to extend the generated code and implement the logic in you smart contract.
+
+#### Project and generated code
+
+Smart contracts in AElf are built with normal C# projects files (csproj format). We highly recommend that you create a folder for your contract in Boilerplate's **contract** folder and add the csproj to it:
+
+<!--
+Boilerplate
+## contract
+### AElf.Contracts.HelloWorld
+#### AElf.Contracts.HelloWorld.csproj
+### AElf.Contracts.SomeOtherContract
+#### ...
+-->
+```
+.
+└── Boilerplate
+    └── contract
+        ├── AElf.Contracts.HelloWorld             // project folder
+        │   └── AElf.Contracts.HelloWorld.csproj  // project file
+        └── AElf.Contracts.SomeOtherContract
+            └── ...
+```
+
+In order for the code generation to work, you'll have to add two elements to the csproj: ```IsContract```  and ```ContractCode``` like in the following code snippet:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        // ...
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\hello_world_contract.proto">
+            <Link>Protobuf\Proto\hello_world_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
+```
+
+
+Because we included this, the build process will use the ```hello_world_contract.proto``` file to generate the code. After building, the complete project folder should look like this:
+
+<!--
+AElf.Contracts.HelloWorld
+## Protobuf
+### Generated
+#### HelloWorldContract.c.cs // generated contract base
+#### HelloWorldContract.g.cs // generated type definitions
+### Protobuf
+#### aelf
+##### core.proto
+##### options.proto
+#### hello_world_contract.proto
+## HelloWorldContractState.cs  // Added by the contract author
+## HelloWorldContract.cs       // Added by the contract author
+## AElf.Contracts.HelloWorld.csproj
+ -->
+
+
+```
+.
+└── AElf.Contracts.HelloWorld
+    ├── Protobuf
+    │   ├── Generated
+    │   │   ├── HelloWorldContract.c.cs // generated contract base
+    │   │   └── HelloWorldContract.g.cs // generated type definitions
+    │   └── Protobuf
+    │       ├── aelf
+    │       │   ├── core.proto
+    │       │   └── options.proto
+    │       └── hello_world_contract.proto
+    ├── HelloWorldContractState.cs  // Added by the contract author
+    ├── HelloWorldContract.cs       // Added by the contract author
+    └── AElf.Contracts.HelloWorld.csproj // The project file
+```
+
+As you can see in the above folder hierarchy, the **Generated** folder contains two generated files ".g.cs" and ".c.cs". The first contains the generated C# types that where defined in the proto (here ```GreetToOutput``` and ```GreetedList```). The second contains C# types related to the contract, like the base class for the contract ```HelloWorldContractBase``` (this file also contains other generated code that relates to the C# SDK which are not explained in this tutorial).
 
 Below are the files that contain the implementation of the smart contract (logic and state implementation). Remember that this code is not generated and needs to be created by the contract author.
 
-**Method implementation:**
+#### Extend the generated code
+
+**Method implementation: HelloWorldContract.cs**
 ```csharp 
 using Google.Protobuf.WellKnownTypes;
 
@@ -321,7 +307,7 @@ namespace AElf.Contracts.HelloWorld
 }
 ```
 
-**State implementation:**
+**State implementation: HelloWorldContract.cs**
 
 ```csharp
 using AElf.Sdk.CSharp.State;
