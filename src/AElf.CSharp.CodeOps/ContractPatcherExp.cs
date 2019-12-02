@@ -2,19 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using FieldAttributes = Mono.Cecil.FieldAttributes;
+using MethodAttributes = Mono.Cecil.MethodAttributes;
+using TypeAttributes = Mono.Cecil.TypeAttributes;
 
 namespace AElf.CSharp.CodeOps
 {
-    public class ContractPatcherExp
+    public static class ContractPatcherExp
     {
         private static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
         {
-            OpCodes.Call,
-            OpCodes.Calli,
-            OpCodes.Callvirt,
+            //OpCodes.Call,
+            //OpCodes.Calli,
+            //OpCodes.Callvirt,
             OpCodes.Beq,
             OpCodes.Beq_S,
             OpCodes.Bge,
@@ -45,37 +51,14 @@ namespace AElf.CSharp.CodeOps
 
             // ReSharper disable once IdentifierTypo
             var nmspace = contractAsmDef.MainModule.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
-            
-            var counterType = new TypeDefinition(
-                nmspace, "InternalInstructionCounter",
-                TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.Public | TypeAttributes.Class,
-                mainModule.ImportReference(typeof(object))
-            );
-            
-            var instanceField = new FieldDefinition(
-                "_counter",
-                FieldAttributes.Private | FieldAttributes.Static,
-                mainModule.ImportReference(typeof(int))
-            );
-            
-            counterType.Fields.Add(instanceField);
-            
-            var constructor = new MethodDefinition(
-                ".cctor", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.Static,
-                mainModule.ImportReference(typeof(void))
-            );
 
-            ILProcessor il;
-            il = constructor.Body.GetILProcessor();
-            il.Emit(OpCodes.Nop);
-            il.Emit(OpCodes.Ldc_I4_0); // Set default value of counter to 0
-            il.Emit(OpCodes.Stsfld, instanceField);
-            il.Emit(OpCodes.Ret);
+            var (counterType, instanceField) = ConstructCounterType(contractAsmDef.MainModule, nmspace);
 
-            var countMethod = ConstructCountMethod(mainModule, instanceField, 1000);
+            var countMethod = ConstructCountMethod(mainModule, instanceField, 100000);
+            var resetMethod = ConstructResetMethod(mainModule, instanceField);
 
-            counterType.Methods.Add(constructor);
             counterType.Methods.Add(countMethod);
+            counterType.Methods.Add(resetMethod);
 
             // Check if already injected
             if (!mainModule.Types.Select(t => t.Name).Contains(counterType.Name))
@@ -85,6 +68,8 @@ namespace AElf.CSharp.CodeOps
                 {
                     PatchType(contractAsmDef, typ, countMethod);
                 }
+
+                PatchEntryPointsWithReset(mainModule, resetMethod);
             
                 mainModule.Types.Add(counterType);
             }
@@ -92,6 +77,44 @@ namespace AElf.CSharp.CodeOps
             var newCode = new MemoryStream();
             contractAsmDef.Write(newCode);
             return newCode.ToArray();
+        }
+
+        private static (TypeDefinition, FieldDefinition) ConstructCounterType(ModuleDefinition module, string nmspace)
+        {
+            var counterType = new TypeDefinition(
+                nmspace, "InternalInstructionCounter",
+                TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.Public | TypeAttributes.Class,
+                module.ImportReference(typeof(object))
+            );
+            
+            var counterField = new FieldDefinition(
+                "_counter",
+                FieldAttributes.Private | FieldAttributes.Static, 
+                module.ImportReference(typeof(int)
+                )
+            );
+            
+            // Counter field should be thread static (at least for the test cases)
+            counterField.CustomAttributes.Add(new CustomAttribute(
+                module.ImportReference(typeof(ThreadStaticAttribute).GetConstructor(new Type[]{}))));
+
+            counterType.Fields.Add(counterField);
+            
+            var constructor = new MethodDefinition(
+                ".cctor", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.Static,
+                module.ImportReference(typeof(void))
+            );
+            
+            var il = constructor.Body.GetILProcessor();
+            il.Emit(OpCodes.Nop);
+            il.Emit(OpCodes.Ldc_I4_0); // Set default value of counter to 0
+            il.Emit(OpCodes.Volatile);
+            il.Emit(OpCodes.Stsfld, counterField);
+            il.Emit(OpCodes.Ret);
+            
+            counterType.Methods.Add(constructor);
+            
+            return (counterType, counterField);
         }
 
         private static MethodDefinition ConstructCountMethod(ModuleDefinition module, FieldDefinition counterField, int threshold)
@@ -105,11 +128,12 @@ namespace AElf.CSharp.CodeOps
             var il = counterMethod.Body.GetILProcessor();
             
             var ret = il.Create(OpCodes.Ret);
-            il.Emit(OpCodes.Nop);
+            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Ldsfld, counterField);
             il.Emit(OpCodes.Dup);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Add_Ovf);
+            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Stsfld, counterField);
             il.Emit(OpCodes.Ldc_I4, threshold);
             il.Emit(OpCodes.Ceq);
@@ -126,13 +150,28 @@ namespace AElf.CSharp.CodeOps
 
             return counterMethod;
         }
+        
+        private static MethodDefinition ConstructResetMethod(ModuleDefinition module, FieldDefinition counterField)
+        {
+            var resetMethod = new MethodDefinition(
+                "Reset", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static,
+                module.ImportReference(typeof(void))
+            );
+            
+            var il = resetMethod.Body.GetILProcessor();
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Volatile);
+            il.Emit(OpCodes.Stsfld, counterField);
+            il.Emit(OpCodes.Ret);
+            return resetMethod;
+        }
 
         private static void PatchType(AssemblyDefinition contractAsmDef, TypeDefinition typ, MethodReference counterMethodRef)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                PatchMethod(method, counterMethodRef);
+                PatchMethodsWithCounter(method, counterMethodRef);
             }
 
             // Patch if there is any nested type within the type
@@ -142,21 +181,49 @@ namespace AElf.CSharp.CodeOps
             }
         }
 
-        private static void PatchMethod(MethodDefinition method, MethodReference counterMethodRef)
+        private static void PatchMethodsWithCounter(MethodDefinition method, MethodReference counterMethodRef)
         {
             if (!method.HasBody)
                 return;
 
-            var ilProcessor = method.Body.GetILProcessor();
+            var il = method.Body.GetILProcessor();
 
             var branchingInstructions = method.Body.Instructions.Where(i => JumpingOps.Contains(i.OpCode)).ToList();
 
-            ilProcessor.Body.SimplifyMacros();
+            il.Body.SimplifyMacros();
             foreach (var instruction in branchingInstructions)
             {
-                ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Call, counterMethodRef));
+                il.InsertBefore(instruction, il.Create(OpCodes.Call, counterMethodRef));
             }
-            ilProcessor.Body.OptimizeMacros();
+            il.Body.OptimizeMacros();
+        }
+
+        private static void PatchEntryPointsWithReset(ModuleDefinition module, MethodReference resetMethodRef)
+        {
+            var contractImplementation = module.Types.Where(t => t.BaseType is TypeDefinition).SingleOrDefault(IsContractImplementation);
+
+            foreach (var method in contractImplementation.Methods.Where(m => m.IsPublic))
+            {
+                var il = method.Body.GetILProcessor();
+                
+                // Insert reset call as the first instruction
+                il.InsertBefore(method.Body.Instructions[0], Instruction.Create(OpCodes.Call, resetMethodRef));
+            }
+        }
+
+        private static bool IsContractImplementation(TypeDefinition typeDefinition)
+        {
+            while (true)
+            {
+                var baseType = typeDefinition.BaseType.Resolve();
+                
+                if (baseType.BaseType == null) // Reached the type before object type (the most base type)
+                {
+                    return typeDefinition.FullName == typeof(CSharpSmartContract).FullName;
+                }
+
+                typeDefinition = baseType;
+            }
         }
     }
 }

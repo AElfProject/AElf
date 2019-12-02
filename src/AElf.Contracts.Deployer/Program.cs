@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using AElf.CSharp.CodeOps;
 
 namespace AElf.Contracts.Deployer
@@ -12,7 +11,7 @@ namespace AElf.Contracts.Deployer
             var code = File.ReadAllBytes(sourceDllPath);
             
             // Overwrite
-            File.WriteAllBytes(sourceDllPath, ContractPatcher.Patch(code));
+            File.WriteAllBytes(sourceDllPath, ContractPatcherExp.Patch(code));
         }
     }
 }
