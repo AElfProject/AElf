@@ -321,5 +321,33 @@ using AElf.Sdk.CSharp.State;
  }
 ```
 
+Let's briefly explain what is happening in this method:
+
 #### Asserting 
+
+```csharp
+Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
+```
+
+When writing a smart contract it is often useful (and recommended) to validate the input. AElf smart contract can use the ```Assert``` method defined in the base smart contract class to implement this pattern. For example here, the method validates that the input string is not no null or composed only of white spaces. If the condition is false, this line will abort the execution of the transaction.
+
+#### Accessing state 
+
+```csharp
+var greetList = State.GreetedList.Value ?? new GreetedList();
+...
+State.GreetedList.Value = greetList;
+```
+
+From within the contract methods you can easily access the contracts state through the ```State``` property of the contract. Here the state property refers to the ```HelloWorldContractState``` class in which is defined the ```GreetedList``` collection. The second effectively updates the state.
+
+**Note** that because the ```GreetedList``` type is wrapped in a ```SingletonState``` you have to use the ```Value``` property to access the data (more on this later).
+
+#### Logging
+
+```csharp
+Context.LogDebug(() => $"Hello {input.Value}!");
+```
+
+It is also possible to log from smart contract methods. The above example will log "Hello" and the value of the input. It also prints useful information like the ID of the transaction. 
 
