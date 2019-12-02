@@ -108,7 +108,6 @@ namespace AElf.CSharp.CodeOps
             var il = constructor.Body.GetILProcessor();
             il.Emit(OpCodes.Nop);
             il.Emit(OpCodes.Ldc_I4_0); // Set default value of counter to 0
-            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Stsfld, counterField);
             il.Emit(OpCodes.Ret);
             
@@ -128,12 +127,10 @@ namespace AElf.CSharp.CodeOps
             var il = counterMethod.Body.GetILProcessor();
             
             var ret = il.Create(OpCodes.Ret);
-            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Ldsfld, counterField);
             il.Emit(OpCodes.Dup);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Add_Ovf);
-            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Stsfld, counterField);
             il.Emit(OpCodes.Ldc_I4, threshold);
             il.Emit(OpCodes.Ceq);
@@ -160,7 +157,6 @@ namespace AElf.CSharp.CodeOps
             
             var il = resetMethod.Body.GetILProcessor();
             il.Emit(OpCodes.Ldc_I4_0);
-            il.Emit(OpCodes.Volatile);
             il.Emit(OpCodes.Stsfld, counterField);
             il.Emit(OpCodes.Ret);
             return resetMethod;
