@@ -1,28 +1,22 @@
 # Smart Contract
 
-This article will guide you through how to use **AElf Boilerplate** project to implement and test a smart contract. It takes example on the Greeter contract that's already included in Boilerplate.
+This article will guide you through how to use **AElf Boilerplate** to implement a smart contract. It takes example on the **Greeter** contract that's already included in Boilerplate.
 
 ## Greeter contract
 
-The following content will walk you through the basics of writing a smart contract; the process contains essentially four steps:
-- **create the project and files**: you can use other contract in Boilerplate as a template.
+The following content will walk you through the basics of writing a smart contract. This process contains essentially four steps:
 - **define the contract and its types**: the methods and types needed in your contract should be defined in a protobuf file, following protobuf syntax. 
+- **create the project**: you can use other contract in Boilerplate as a template.
 - **generate the code**: build the project to generate the base contract code from the proto definition.
 - **extend the generated code**: implement the logic of the contract methods.
 
 The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greet message as well as the time of the greeting.
 
-This tutorial will describe the process of authoring a contract with Boilerplate, this includes the following steps:
-- adding a protobuf definition file in order to define a smart contract.
-- organizing the contract folder and editing the csproj project file.
-- 
-
-
 ### Defining the contract
 
-As stated above the first step when writing a smart contract on AElf is to define the methods and types of your contract. AElf defines smart contracts as services and are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.
+As stated above the first step when writing a smart contract on AElf Boilerplate is to define the methods and types of your contract. AElf defines smart contracts as services and are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.
 
-We recommend putting the contract's definition in Boilerplate's the **protobuf** folder so that is can easily be included in the build/generation process and that you name the contract with the following syntax **contract_name_contract.proto**:
+We recommend putting the contract's definition in Boilerplate's **protobuf** folder so that is can easily be included in the build/generation process and that you name the contract with the following syntax **contract_name_contract.proto**:
 
 <!-- 
 Boilerplate
