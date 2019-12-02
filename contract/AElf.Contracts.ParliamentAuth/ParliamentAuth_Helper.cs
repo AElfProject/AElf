@@ -17,18 +17,21 @@ namespace AElf.Contracts.ParliamentAuth
             return members;
         }
 
-        private void AssertSenderIsAuthorizedProposer(Organization organization)
+        private void AssertAuthorizedProposer()
         {
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
+            // or sender is GenesisContract && origin is in proposer white list (for new contract deployment)
             // or sender is one of miners.
-            if (!organization.ProposerAuthorityRequired)
-                return; 
-            if (organization.ProposerWhiteList.Any(p => p == Context.Sender))
+            if (!State.ProposerAuthorityRequired.Value)
                 return;
-            var minerList = GetCurrentMinerList();
-            Assert(minerList.Any(m => m == Context.Sender), "Not authorized to propose.");
+            
+            if (ValidateAddressInWhiteList(Context.Sender))
+                return;
+
+            Assert(Context.Sender == State.GenesisContract.Value && ValidateAddressInWhiteList(Context.Origin),
+                "Not authorized to propose.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
@@ -50,11 +53,17 @@ namespace AElf.Contracts.ParliamentAuth
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
-        private void AssertSenderIsParliementMember(List<Address> currentParliament)
+        private void AssertSenderIsParliamentMember()
         {
-            Assert(currentParliament.Any(r => r.Equals(Context.Sender)), "Not authorized approval.");
+            var currentParliament = GetCurrentMinerList();
+            Assert(CheckSenderIsParliamentMember(currentParliament), "Not authorized approval.");
         }
 
+        private bool CheckSenderIsParliamentMember(IEnumerable<Address> currentParliament)
+        {
+            return currentParliament.Any(r => r.Equals(Context.Sender));
+        }
+        
         private const int MaxThreshold = 10000;
 
         private bool Validate(Organization organization)
@@ -66,9 +75,14 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var validDestinationAddress = proposal.ToAddress != null;
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
-            var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
+            var validExpiredTime = CheckProposalNotExpired(proposal);
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
             return validDestinationAddress && validDestinationMethodName && validExpiredTime & hasOrganizationAddress;
+        }
+
+        private bool CheckProposalNotExpired(ProposalInfo proposal)
+        {
+            return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)
@@ -81,7 +95,27 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
         {
-            Assert(!proposal.ApprovedRepresentatives.Contains(Context.Sender), "Already approved.");
+            Assert(!CheckSenderAlreadyApproved(proposal), "Already approved.");
+        }
+
+        private bool CheckSenderAlreadyApproved(ProposalInfo proposal)
+        {
+            return proposal.ApprovedRepresentatives.Contains(Context.Sender);
+        }
+
+        private bool ValidateAddressInWhiteList(Address address)
+        {
+            var currentMinerList = GetCurrentMinerList();
+            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address) ||
+                   currentMinerList.Any(m => m == address);
+        }
+        
+        private void AssertCurrentMiner()
+        {
+            MaybeLoadConsensusContractAddress();
+            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+            Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+            Assert(isCurrentMiner, "No permission.");
         }
     }
 }
