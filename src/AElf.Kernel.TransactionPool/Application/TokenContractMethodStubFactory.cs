@@ -52,14 +52,21 @@ namespace AElf.Kernel.TransactionPool.Application
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
                 };
+                try
+                {
+                    var trace =
+                        await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
+                            TimestampHelper.GetUtcNow());
 
-                var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
-                        TimestampHelper.GetUtcNow());
-
-                return trace.IsSuccessful()
-                    ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())
-                    : default;
+                    return trace.IsSuccessful()
+                        ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())
+                        : default;
+                }
+                catch (SmartContractFindRegistrationException)
+                {
+                    // Which means token contract hasn't deployed yet.
+                    return default;
+                }
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
