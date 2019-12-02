@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract;
 using Microsoft.AspNetCore.Builder;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -11,6 +12,7 @@ namespace AElf.WebApp.Application
         {
             services.AddSingleton<ITxHub, MockTxHub>();
             services.AddApplication<WebAppTestAElfModule>();
+            services.Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
 
         public void Configure(IApplicationBuilder app)

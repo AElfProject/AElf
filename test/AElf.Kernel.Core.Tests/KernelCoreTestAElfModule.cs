@@ -32,8 +32,7 @@ namespace AElf.Kernel
         typeof(KernelCoreTestAElfModule))]
     public class KernelMinerTestAElfModule : AElfModule
     {
-        delegate void MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
-            ref List<Transaction> generatedTransactions);
+        delegate Task<List<Transaction>> MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash);
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
@@ -47,11 +46,9 @@ namespace AElf.Kernel
                     new Transaction() {From = SampleAddress.AddressList[1], To = SampleAddress.AddressList[3], MethodName = "OutValue"},
                 };
                 var consensusTransactionGenerator = new Mock<ISystemTransactionGenerator>();
-                consensusTransactionGenerator.Setup(m => m.GenerateTransactions(It.IsAny<Address>(), It.IsAny<long>(),
-                        It.IsAny<Hash>(), ref It.Ref<List<Transaction>>.IsAny))
-                    .Callback(
-                        new MockGenerateTransactions((Address from, long preBlockHeight, Hash previousBlockHash,
-                            ref List<Transaction> generatedTransactions) => generatedTransactions = transactionList));
+                consensusTransactionGenerator
+                    .Setup(m => m.GenerateTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                    .Returns(Task.FromResult(transactionList));
                     
                 return consensusTransactionGenerator.Object;
             });
