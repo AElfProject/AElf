@@ -4,6 +4,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Account.Infrastructure;
 using AElf.Types;
@@ -25,6 +26,7 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -15,7 +16,6 @@ namespace AElf.Kernel.SmartContract.Application
         Task DeployContractAsync(ContractDto contractDto);
 
         Task UpdateContractAsync(ContractDto contractDto);
-
 
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, );
 //        Task PutExecutiveAsync(Address account, IExecutive executive);

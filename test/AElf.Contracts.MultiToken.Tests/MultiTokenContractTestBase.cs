@@ -307,7 +307,7 @@ namespace AElf.Contracts.MultiToken
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
             var organizationAddress = Address.Parser.ParseFrom((await MainChainTester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -375,7 +375,7 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await MainChainTester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -397,7 +397,7 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await SideChainTester.ExecuteContractWithMiningAsync(
                     SideParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await SideChainTester.ExecuteContractWithMiningAsync(SideParliamentAddress,

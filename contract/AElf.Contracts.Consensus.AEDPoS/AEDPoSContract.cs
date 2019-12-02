@@ -200,7 +200,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
 
-            var genesisOwnerAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
+            var genesisOwnerAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();

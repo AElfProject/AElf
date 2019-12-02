@@ -82,7 +82,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = new Int32Value {Value = 55}.ToByteString(),
                 ToAddress = ConfigurationContractAddress,
-                OrganizationAddress = await _parliamentAuthStub.GetGenesisOwnerAddress.CallAsync(new Empty())
+                OrganizationAddress = await _parliamentAuthStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
             })).Output;
             await _parliamentAuthStub.Approve.SendAsync(new ApproveInput
             {

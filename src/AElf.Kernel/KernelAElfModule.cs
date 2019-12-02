@@ -2,6 +2,7 @@
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;

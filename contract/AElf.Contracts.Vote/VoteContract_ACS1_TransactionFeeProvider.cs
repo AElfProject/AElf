@@ -43,7 +43,7 @@ namespace AElf.Contracts.Vote
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
 
-            Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
+            Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();

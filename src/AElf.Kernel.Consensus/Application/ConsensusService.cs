@@ -160,7 +160,7 @@ namespace AElf.Kernel.Consensus.Application
                 .ToByteArray();
         }
 
-        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
+        public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
