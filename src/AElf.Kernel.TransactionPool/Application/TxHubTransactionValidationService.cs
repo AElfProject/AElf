@@ -45,17 +45,13 @@ namespace AElf.Kernel.TransactionPool.Application
         public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
         {
             return _constrainedTransactionValidationProviders.All(provider =>
-            {
-//                Logger.LogTrace($"Passing {provider.GetType().Name}");
-                return provider.ValidateTransaction(transaction, blockHash);
-            });
+                provider.ValidateTransaction(transaction, blockHash));
         }
 
         public void ClearConstrainedTransactionValidationProvider(Hash blockHash)
         {
             foreach (var provider in _constrainedTransactionValidationProviders)
             {
-//                Logger.LogTrace($"Clearing {provider.GetType().Name}");
                 provider.ClearBlockHash(blockHash);
             }
         }

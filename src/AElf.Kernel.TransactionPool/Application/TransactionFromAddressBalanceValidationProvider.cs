@@ -3,13 +3,14 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
+
 namespace AElf.Kernel.TransactionPool.Application
 {
     /// <summary>
@@ -21,8 +22,7 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISystemTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
+        private readonly IFreeFeeTransactionDistinguishService _feeTransactionDistinguishService;
 
         public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
 
@@ -30,21 +30,19 @@ namespace AElf.Kernel.TransactionPool.Application
             ITokenContractReaderFactory tokenContractReaderFactory,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             IDeployedContractAddressProvider deployedContractAddressProvider,
-            ISmartContractAddressService smartContractAddressService,
-            ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
+            IFreeFeeTransactionDistinguishService feeTransactionDistinguishService)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _deployedContractAddressProvider = deployedContractAddressProvider;
-            _smartContractAddressService = smartContractAddressService;
-            _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
+            _feeTransactionDistinguishService = feeTransactionDistinguishService;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             // Skip if this is a system transaction.
-            if (IsSystemTransaction(transaction))
+            if (_feeTransactionDistinguishService.IsFree(transaction))
             {
                 return true;
             }
@@ -55,8 +53,8 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
-            }; 
-            
+            };
+
             // Skip if the sender is a contract.
             if (_deployedContractAddressProvider.CheckContractAddress(chainContext, transaction.From))
             {
@@ -79,39 +77,6 @@ namespace AElf.Kernel.TransactionPool.Application
             if (balance == null || balance > 0) return true;
 
             Logger.LogError($"Empty balance of tx from address: {transaction}");
-            return false;
-        }
-
-        private bool IsSystemTransaction(Transaction transaction)
-        {
-            var systemTransactionMethodNameList =
-                _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList();
-            var consensusContractAddress =
-                _smartContractAddressService.GetAddressByContractName(
-                    SmartContractConstants.ConsensusContractSystemName);
-            if (transaction.To == consensusContractAddress &&
-                systemTransactionMethodNameList.Contains(transaction.MethodName))
-            {
-                return true;
-            }
-
-            var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(SmartContractConstants.TokenContractSystemName);
-            if (transaction.To == tokenContractAddress &&
-                systemTransactionMethodNameList.Contains(transaction.MethodName))
-            {
-                return true;
-            }
-
-            var crossChainContractAddress =
-                _smartContractAddressService.GetAddressByContractName(SmartContractConstants
-                    .CrossChainContractSystemName);
-            if (transaction.To == crossChainContractAddress &&
-                systemTransactionMethodNameList.Contains(transaction.MethodName))
-            {
-                return true;
-            }
-
             return false;
         }
     }

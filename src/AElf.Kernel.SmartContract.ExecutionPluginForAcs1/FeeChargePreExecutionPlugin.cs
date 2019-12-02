@@ -19,7 +19,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
         private readonly IFreeFeeTransactionDistinguishService _freeFeeTransactionDistinguishService;
@@ -27,13 +26,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
             IFreeFeeTransactionDistinguishService freeFeeTransactionDistinguishService)
         {
             _contextService = contextService;
-            _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
             _freeFeeTransactionDistinguishService = freeFeeTransactionDistinguishService;
@@ -53,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 var context = _contextService.Create();
 
-                if (_freeFeeTransactionDistinguishService.IsChargeFee(transactionContext.Transaction))
+                if (_freeFeeTransactionDistinguishService.IsFree(transactionContext.Transaction))
                 {
                     return new List<Transaction>();
                 }

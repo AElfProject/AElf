@@ -7,7 +7,8 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Blockchains.SideChain
 {
-    public class SideChainSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
+    public class SideChainSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider,
+        ITransientDependency
     {
         public List<string> GetSystemTransactionMethodNameList()
         {

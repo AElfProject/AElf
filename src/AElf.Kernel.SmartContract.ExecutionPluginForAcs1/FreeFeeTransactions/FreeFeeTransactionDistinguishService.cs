@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
 {
-    public class FreeFeeTransactionDistinguishService : IFreeFeeTransactionDistinguishService
+    public class FreeFeeTransactionDistinguishService : IFreeFeeTransactionDistinguishService, ISingletonDependency
     {
         private readonly IEnumerable<IChargeFeeStrategy> _chargeFeeStrategies;
 
@@ -13,7 +14,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
             _chargeFeeStrategies = chargeFeeStrategies;
         }
 
-        public bool IsChargeFee(Transaction transaction)
+        public bool IsFree(Transaction transaction)
         {
             return _chargeFeeStrategies
                 .Where(chargeFeeStrategy => transaction.To == chargeFeeStrategy.ContractAddress &&
