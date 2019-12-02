@@ -141,7 +141,7 @@ namespace AElf.CSharp.CodeOps
             //il.Emit(OpCodes.Ldsflda, instanceField);
             //il.Emit(OpCodes.Call, mainModule.ImportReference(typeof(int).GetMethod("ToString", new Type[]{})));
             //il.Emit(OpCodes.Call,mainModule.ImportReference(typeof(string).GetMethod("Concat", new []{typeof(string), typeof(string)})));
-            il.Emit(OpCodes.Newobj, module.ImportReference(typeof(Exception).GetConstructor(new []{typeof(string)})));
+            il.Emit(OpCodes.Newobj, module.ImportReference(typeof(RuntimeBranchingThresholdExceededException).GetConstructor(new []{typeof(string)})));
             il.Emit(OpCodes.Throw);
             il.Append(ret);
 
