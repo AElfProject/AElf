@@ -77,7 +77,14 @@ namespace AElf.OS.Network.Grpc
             // setup encrypted endpoint
             _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, serverCredentials));
 
-            return Task.Run(() => _server.Start());
+            return Task.Run(() =>
+            {
+                _server.Start();
+                foreach (var port in _server.Ports)
+                {
+                    Logger.LogDebug($"Server listening on {port.Host}:{port.BoundPort}, credentials: {port.Credentials}");
+                }
+            });
         }
 
         private SslServerCredentials CreateCredentials()
