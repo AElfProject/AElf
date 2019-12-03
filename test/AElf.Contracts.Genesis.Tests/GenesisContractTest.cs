@@ -123,7 +123,7 @@ namespace AElf.Contracts.Genesis
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            resultUpdate.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+            resultUpdate.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
 
         [Fact]

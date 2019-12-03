@@ -75,7 +75,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            RequireSenderAuthority(State.GenesisOwner?.Value);
+            RequireSenderAuthority();
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -199,7 +199,6 @@ namespace AElf.Contracts.Genesis
 
         public override Hash ProposeUpdateContract(ContractUpdateInput input)
         {
-            RequireSenderAuthority();
             var proposedContractInputHash = CalculateHashFromInput(input);
             Assert(State.ContractProposingInfoMap[proposedContractInputHash] == null, "Already proposed.");
             State.ContractProposingInfoMap[proposedContractInputHash] = new ContractProposingInfo
@@ -250,7 +249,7 @@ namespace AElf.Contracts.Genesis
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract not found.");
 
-            RequireSenderAuthority(info.IsSystemContract ? State.GenesisOwner.Value : info.Author);
+            RequireSenderAuthority();
             AssertAuthorByContractInfo(info);
 
             var inputHash = CalculateHashFromInput(input);

@@ -107,14 +107,12 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return ValidateAddressInWhiteList(address) || ValidateParliamentMemberAuthority(address);
         }
-        
+
         private bool ValidateAddressInWhiteList(Address address)
         {
-            var currentMinerList = GetCurrentMinerList();
-            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address) ||
-                   currentMinerList.Any(m => m == address);
+            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address);
         }
-        
+
         private bool ValidateParliamentMemberAuthority(Address address)
         {
             var currentMinerList = GetCurrentMinerList();

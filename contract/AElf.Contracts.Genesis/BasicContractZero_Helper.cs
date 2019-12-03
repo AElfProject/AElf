@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Acs0;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -9,9 +11,8 @@ namespace AElf.Contracts.Genesis
 {
     public partial class BasicContractZero
     {
-        private void RequireSenderAuthority(Address requiredAddress = null)
+        private void RequireSenderAuthority()
         {
-            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!State.Initialized.Value)
             {
                 // only authority of contract zero is valid before initialization
@@ -19,17 +20,11 @@ namespace AElf.Contracts.Genesis
                 return;
             }
 
-            if (isGenesisOwnerAuthorityRequired)
-            {
-                // genesis owner authority check is required
-                AssertSenderAddressWith(State.GenesisOwner.Value);
+            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (!isGenesisOwnerAuthorityRequired)
                 return;
-            }
-
-            if (requiredAddress == null)
-                return;
-
-            AssertSenderAddressWith(requiredAddress);
+            
+            AssertSenderAddressWith(State.GenesisOwner.Value);
         }
 
         private void RequireParliamentAuthAddressSet()
@@ -65,24 +60,29 @@ namespace AElf.Contracts.Genesis
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!isGenesisOwnerAuthorityRequired)
                 return;
-
-            var validationResult = CheckProposerAuthorityRequiredValue()
-                ? State.ParliamentAuthContract.ValidateAddressInProposerWhiteList.Call(proposer).Value
-                : State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(proposer).Value;
+            var validationResult = ValidateProposer(proposer);
             Assert(validationResult, "Proposer authority validation failed.");
         }
-
-        private bool CheckProposerInWhiteList(Address proposer)
+        
+        private bool ValidateProposer(Address address)
         {
-            RequireParliamentAuthAddressSet();
-            return !CheckProposerAuthorityRequiredValue() ||
-                   State.ParliamentAuthContract.ValidateAddressInProposerWhiteList.Call(proposer).Value;
+            var proposerWhiteListContext = GetProposerWhiteListContext();
+            if (proposerWhiteListContext.ProposerAuthorityRequired)
+                return proposerWhiteListContext.Proposers.Any(p => p == address);
+
+            return proposerWhiteListContext.Proposers.Count != 0 || CheckAddressIsParliamentMember(address);
         }
 
-        private bool CheckProposerAuthorityRequiredValue()
+        private bool CheckAddressIsParliamentMember(Address address)
         {
             RequireParliamentAuthAddressSet();
-            return State.ParliamentAuthContract.GetProposerAuthorityRequiredValue.Call(new Empty()).Value;
+            return State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(address).Value;
+        }
+        
+        private GetProposerWhiteListContextOutput GetProposerWhiteListContext()
+        {
+            RequireParliamentAuthAddressSet();
+            return State.ParliamentAuthContract.GetProposerWhiteListContext.Call(new Empty());
         }
 
         private void RemoveContractProposingInfo(Hash inputHash)
@@ -109,8 +109,13 @@ namespace AElf.Contracts.Genesis
 
         private Address DecideContractAuthor()
         {
-            if (!State.Initialized.Value || !State.ContractDeploymentAuthorityRequired.Value ||
-                CheckProposerInWhiteList(Context.Origin))
+            if (!State.Initialized.Value || !State.ContractDeploymentAuthorityRequired.Value)
+                return Context.Origin;
+            var proposerWhiteListContext = GetProposerWhiteListContext();
+            if (!proposerWhiteListContext.ProposerAuthorityRequired && proposerWhiteListContext.Proposers.Count > 0)
+                return Context.Origin;
+            if (proposerWhiteListContext.ProposerAuthorityRequired 
+                && proposerWhiteListContext.Proposers.Any(p => p == Context.Origin))
                 return Context.Origin;
             return State.GenesisOwner.Value;
         }
@@ -123,7 +128,7 @@ namespace AElf.Contracts.Genesis
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        private static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
