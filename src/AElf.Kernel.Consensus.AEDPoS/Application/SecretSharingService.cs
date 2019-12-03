@@ -11,7 +11,6 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -39,22 +38,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<SecretSharingService>.Instance;
         }
 
-        public Task AddSharingInformationAsync(LogEvent logEvent)
+        public async Task AddSharingInformationAsync(LogEvent logEvent)
         {
             try
             {
                 var secretSharingInformation = new SecretSharingInformation();
                 secretSharingInformation.MergeFrom(logEvent);
 
-                var newInValue = GenerateInValue(secretSharingInformation);
+                var newInValue = await GenerateInValueAsync(secretSharingInformation);
                 _inValueCacheService.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
-
-                //Logger.LogTrace(
-                    //$"Handling sharing information: {secretSharingInformation}. New in value: {newInValue}");
 
                 if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 var encryptedPieces = new Dictionary<string, byte[]>();
@@ -64,7 +60,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var minimumCount = minersCount.Mul(2).Div(3);
                 var secretShares =
                     SecretSharingHelper.EncodeSecret(newInValue.ToByteArray(), minimumCount, minersCount);
-                var selfPubkey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
+                var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
                 foreach (var pair in secretSharingInformation.PreviousRound.RealTimeMinersInformation
                     .OrderBy(m => m.Value.Order).ToDictionary(m => m.Key, m => m.Value.Order))
                 {
@@ -73,8 +69,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                     var plainMessage = secretShares[order - 1];
                     var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
-                    var encryptedPiece = AsyncHelper.RunSync(() =>
-                        _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
+                    var encryptedPiece = await _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage);
                     encryptedPieces[pubkey] = encryptedPiece;
                     if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey) &&
                         secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces
@@ -97,8 +92,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     var interestingMessage = encryptedShares[selfPubkey];
                     var senderPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
 
-                    var decryptedPiece = AsyncHelper.RunSync(() =>
-                        _accountService.DecryptMessageAsync(senderPublicKey, interestingMessage.ToByteArray()));
+                    var decryptedPiece =
+                        await _accountService.DecryptMessageAsync(senderPublicKey, interestingMessage.ToByteArray());
                     decryptedPieces[pubkey] = decryptedPiece;
                     secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].DecryptedPieces[selfPubkey]
                         = ByteString.CopyFrom(decryptedPiece);
@@ -116,8 +111,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 Logger.LogError($"Error in AddSharingInformationAsync.\n{e.Message}\n{e.StackTrace}");
             }
-
-            return Task.CompletedTask;
         }
 
         private void RevealPreviousInValues(SecretSharingInformation secretSharingInformation, string selfPubkey)
@@ -201,10 +194,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return revealedInValues ?? new Dictionary<string, Hash>();
         }
 
-        private Hash GenerateInValue(IMessage message)
+        private async Task<Hash> GenerateInValueAsync(IMessage message)
         {
             var data = Hash.FromRawBytes(message.ToByteArray());
-            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
+            var bytes = await _accountService.SignAsync(data.ToByteArray());
             return Hash.FromRawBytes(bytes);
         }
     }
