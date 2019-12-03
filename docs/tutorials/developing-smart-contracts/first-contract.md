@@ -1,6 +1,6 @@
 # Smart Contract
 
-This article will guide you through how to use **AElf Boilerplate** to implement a smart contract. It takes example on the **Greeter** contract that's already included in Boilerplate.
+This article will guide you through how to use **AElf Boilerplate** to implement a smart contract. It takes example on the **Greeter** contract that's already included in Boilerplate. Based on the concepts this article presents you'll be able to create your own basic contract.
 
 ## Greeter contract
 
@@ -25,7 +25,7 @@ Boilerplate
 #### aelf
 ##### options.proto // contract options
 ##### core.proto    // core blockchain types
-#### my_contract.proto
+#### greeter_contract.proto
 #### another_contract.proto
 #### token_contract.proto // system contracts
 #### acs0.proto // AElf contract standard
@@ -40,7 +40,7 @@ Boilerplate
             ├── aelf
             │   ├── options.proto // contract options
             │   └── core.proto    // core blockchain types
-            ├── my_contract.proto
+            ├── greeter_contract.proto
             ├── another_contract.proto
             ├── token_contract.proto // system contracts
             ├── acs0.proto // AElf contract standard
@@ -64,15 +64,15 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-option csharp_namespace = "AElf.Contracts.HelloWorld";
+option csharp_namespace = "AElf.Contracts.Greeter";
 
-service HelloWorldContract { 
-    option (aelf.csharp_state) = "AElf.Contracts.HelloWorld.HelloWorldContractState";
+service GreeterContract { 
+    option (aelf.csharp_state) = "AElf.Contracts.Greeter.GreeterContractState";
 
     // Actions
     rpc Greet (google.protobuf.Empty) returns (google.protobuf.StringValue) { }
     rpc GreetTo (google.protobuf.StringValue) returns (GreetToOutput) { }
-    
+
     // Views
     rpc GetGreetedList (google.protobuf.Empty) returns (GreetedList) {
         option (aelf.is_view) = true;
@@ -87,7 +87,6 @@ message GreetToOutput {
 message GreetedList {
     repeated string value = 1;
 }
-
 ```
 
 Above is the full definition of the contract, it is mainly composed of three parts:
@@ -106,27 +105,27 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-option csharp_namespace = "AElf.Contracts.HelloWorld";
+option csharp_namespace = "AElf.Contracts.Greeter";
 ```
 
 The first line specifies the syntax that this protobuf file uses, we recommend you always use **proto3** for your contracts. Next you'll notice that this contract specifies some imports, let's analyze them briefly:
 - **aelf/options.proto** : contracts can use AElf specific options, this file contains the definitions. One example is the **is_view** options that we will use later.
 - **empty.proto, timestamp.proto and wrappers.proto** : these are all definitions imported from Protobuf's library. They are useful for defining things like an empty return value, time and wrappers around some common types such as string. 
 
-The last line specifies an option that determines the namespace of the generated code. Here the generated code will be in the ```Aelf.Contracts.HelloWorld``` namespace.
+The last line specifies an option that determines the namespace of the generated code. Here the generated code will be in the ```Aelf.Contracts.Greeter``` namespace.
 
 
 #### The service definition
 
 
 ```Protobuf
-service HelloWorldContract { 
-    option (aelf.csharp_state) = "AElf.Contracts.HelloWorld.HelloWorldContractState";
+service GreeterContract { 
+    option (aelf.csharp_state) = "AElf.Contracts.Greeter.GreeterContractState";
 
     // Actions
     rpc Greet (google.protobuf.Empty) returns (google.protobuf.StringValue) { }
     rpc GreetTo (google.protobuf.StringValue) returns (GreetToOutput) { }
-    
+
     // Views
     rpc GetGreetedList (google.protobuf.Empty) returns (GreetedList) {
         option (aelf.is_view) = true;
@@ -134,7 +133,7 @@ service HelloWorldContract {
 }
 ```
 
-The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```HelloWorldContractState``` class under the ```Aelf.Contracts.HelloWorld``` namespace.
+The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```GreeterContractState``` class under the ```Aelf.Contracts.Greeter``` namespace.
 
 Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A service method is defined by three things: the **method name**, the **input type** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` that is used to specify that this method takes no arguments and the output type will be a google.protobuf.StringValue which is a traditional string. As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
 
@@ -176,8 +175,8 @@ Smart contracts in AElf are built with normal C# projects files (csproj format).
 <!--
 Boilerplate
 ## contract
-### AElf.Contracts.HelloWorld
-#### AElf.Contracts.HelloWorld.csproj
+### AElf.Contracts.GreeterContract
+#### AElf.Contracts.GreeterContract.csproj
 ### AElf.Contracts.SomeOtherContract
 #### ...
 -->
@@ -185,8 +184,8 @@ Boilerplate
 .
 └── Boilerplate
     └── contract
-        ├── AElf.Contracts.HelloWorld             // project folder
-        │   └── AElf.Contracts.HelloWorld.csproj  // project file
+        ├── AElf.Contracts.GreeterContract             // project folder
+        │   └── AElf.Contracts.GreeterContract.csproj  // project file
         └── AElf.Contracts.SomeOtherContract
             └── ...
 ```
@@ -202,8 +201,8 @@ In order for the code generation to work, you'll have to add two elements to the
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\hello_world_contract.proto">
-            <Link>Protobuf\Proto\hello_world_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\greeter_contract.proto">
+            <Link>Protobuf\Proto\greeter_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 
@@ -211,55 +210,55 @@ In order for the code generation to work, you'll have to add two elements to the
 ```
 
 
-Because we included this, the build process will use the ```hello_world_contract.proto``` file to generate the code. After building, the complete project folder should look like this:
+Because we included this, the build process will use the ```greeter_contract.proto``` file to generate the code. After building, the complete project folder should look like this:
 
 <!--
-AElf.Contracts.HelloWorld
+AElf.Contracts.Greeter
 ## Protobuf
 ### Generated
-#### HelloWorldContract.c.cs // generated contract base
-#### HelloWorldContract.g.cs // generated type definitions
+#### GreeterContract.c.cs // generated contract base
+#### GreeterContract.g.cs // generated type definitions
 ### Protobuf
 #### aelf
 ##### core.proto
 ##### options.proto
-#### hello_world_contract.proto
-## HelloWorldContractState.cs  // Added by the contract author
-## HelloWorldContract.cs       // Added by the contract author
-## AElf.Contracts.HelloWorld.csproj
+#### greeter_contract.proto
+## GreeterContractState.cs  // Added by the contract author
+## GreeterContract.cs       // Added by the contract author
+## AElf.Contracts.Greeter.csproj
  -->
 
 
 ```
 .
-└── AElf.Contracts.HelloWorld
+└── AElf.Contracts.Greeter
     ├── Protobuf
     │   ├── Generated
-    │   │   ├── HelloWorldContract.c.cs // generated contract base
-    │   │   └── HelloWorldContract.g.cs // generated type definitions
+    │   │   ├── GreeterContract.c.cs // generated contract base
+    │   │   └── GreeterContract.g.cs // generated type definitions
     │   └── Protobuf
     │       ├── aelf
     │       │   ├── core.proto
     │       │   └── options.proto
-    │       └── hello_world_contract.proto
-    ├── HelloWorldContractState.cs  // Added by the contract author
-    ├── HelloWorldContract.cs       // Added by the contract author
-    └── AElf.Contracts.HelloWorld.csproj // The project file
+    │       └── greeter_contract.proto
+    ├── GreeterContractState.cs  // Added by the contract author
+    ├── GreeterContract.cs       // Added by the contract author
+    └── AElf.Contracts.Greeter.csproj // The project file
 ```
 
-As you can see in the above folder hierarchy, the **Generated** folder contains two generated files ".g.cs" and ".c.cs". The first contains the generated C# types that where defined in the proto (here ```GreetToOutput``` and ```GreetedList```). The second contains C# types related to the contract, like the base class for the contract ```HelloWorldContractBase``` (this file also contains other generated code that relates to the C# SDK which are not explained in this tutorial).
+As you can see in the above folder hierarchy, the **Generated** folder contains two generated files ".g.cs" and ".c.cs". The first contains the generated C# types that where defined in the proto (here ```GreetToOutput``` and ```GreetedList```). The second contains C# types related to the contract, like the base class for the contract ```GreeterContractBase``` (this file also contains other generated code that relates to the C# SDK which are not explained in this tutorial).
 
 Below are the files that contain the implementation of the smart contract (logic and state implementation). Remember that this code is not generated and needs to be created by the contract author.
 
 #### Extend the generated code
 
-**Method implementation: HelloWorldContract.cs**
+**Method implementation: GreeterContract.cs**
 ```csharp 
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.HelloWorld
+namespace AElf.Contracts.Greeter
 {
-    public class HelloWorldContract : HelloWorldContractContainer.HelloWorldContractBase 
+    public class GreeterContract : GreeterContractContainer.GreeterContractBase
     {
         public override StringValue Greet(Empty input)
         {
@@ -289,7 +288,7 @@ namespace AElf.Contracts.HelloWorld
             return new GreetToOutput
             {
                 GreetTime = Context.CurrentBlockTime,
-                Name = input.Value
+                Name = input.Value.Trim()
             };
         }
 
@@ -298,17 +297,17 @@ namespace AElf.Contracts.HelloWorld
             return State.GreetedList.Value ?? new GreetedList();
         }
     }
-}
+} 
 ```
 
-**State implementation: HelloWorldContract.cs**
+**State implementation: GreeterContract.cs**
 
 ```csharp
 using AElf.Sdk.CSharp.State;
  
- namespace AElf.Contracts.HelloWorld
+ namespace AElf.Contracts.Greeter
  {
-    public class HelloWorldContractState : ContractState
+    public class GreeterContractState : ContractState
     {
         public SingletonState<GreetedList> GreetedList { get; set; }
     }
@@ -333,7 +332,7 @@ var greetList = State.GreetedList.Value ?? new GreetedList();
 State.GreetedList.Value = greetList;
 ```
 
-From within the contract methods you can easily access the contracts state through the ```State``` property of the contract. Here the state property refers to the ```HelloWorldContractState``` class in which is defined the ```GreetedList``` collection. The second effectively updates the state (this is needed otherwise the method would have no effect on the state).
+From within the contract methods you can easily access the contracts state through the ```State``` property of the contract. Here the state property refers to the ```GreeterContractState``` class in which is defined the ```GreetedList``` collection. The second effectively updates the state (this is needed otherwise the method would have no effect on the state).
 
 **Note** that because the ```GreetedList``` type is wrapped in a ```SingletonState``` you have to use the ```Value``` property to access the data (more on this later).
 
@@ -349,8 +348,8 @@ It is also possible to log from smart contract methods. The above example will l
 
 As a reminder, here is the state definition in the contract (we specified the name of the class and a type):
 ```protobuf
-service HelloWorldContract { 
-    option (aelf.csharp_state) = "AElf.Contracts.HelloWorld.HelloWorldContractState";
+service GreeterContract { 
+    option (aelf.csharp_state) = "AElf.Contracts.Greeter.GreeterContractState";
     ...
 }
 
@@ -370,9 +369,9 @@ Below is the state class that we saw previously:
 ```csharp
 using AElf.Sdk.CSharp.State;
  
- namespace AElf.Contracts.HelloWorld
+ namespace AElf.Contracts.Greeter
  {
-    public class HelloWorldContractState : ContractState
+    public class GreeterContractState : ContractState
     {
         public SingletonState<GreetedList> GreetedList { get; set; }
     }
@@ -385,3 +384,6 @@ The ```SingletonState``` is part of the C# SDK and is used to represent exactly 
 
 **Note** that you have to wrap you state types in a type like ```SingletonState``` (others are also available like ```MappedState```) because behind the scene they implement the state read and write operations.
 
+### Deployment
+
+After implementing the contract's logic and building the contract you can find the dll (the compiled code) in the ```bin/obj/netstandard``` folder of the contract project. You can deploy this with aelf-command and start interacting with the contract. Later in this series of tutorials we will see how to test directly within Boilerplate.
