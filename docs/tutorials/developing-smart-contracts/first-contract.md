@@ -132,7 +132,7 @@ service GreeterContract {
 }
 ```
 
-The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```GreeterContractState``` class under the ```Aelf.Contracts.Greeter``` namespace.
+The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```GreeterContractState``` class under the ```AElf.Contracts.Greeter``` namespace.
 
 Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A contract method is defined by three things: the **method name**, the **input argument(s) type(s)** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` that is used to specify that this method takes no arguments and the output type will be a google.protobuf.StringValue which is a traditional string. As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
 
