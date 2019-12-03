@@ -82,7 +82,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return block;
         }
         
-        private async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
+        protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
             ReturnSetCollection returnSetCollection)
         {
             Logger.LogTrace("Start block field filling after execution.");

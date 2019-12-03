@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
-            returnSets.AddRange(MergeResults(results, out var conflictingSets).Item1);
+            returnSets.AddRange(MergeResults(results, out var conflictingSets));
             Logger.LogTrace("Merged results from parallelizables.");
 
             var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
@@ -106,12 +106,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             if (conflictingSets.Count > 0)
             {
-                await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                    blockHeader.Height - 1,
-                    blockHeader.PreviousBlockHash,
-                    returnSets, conflictingSets
-                ));
-                await ProcessConflictingSetsAsync(conflictingSets, returnSets, blockHeader);
+                await ProcessConflictingSetsAsync(conflictingSets, blockHeader);
+                returnSets.AddRange(conflictingSets);
             }
 
             return returnSets;
@@ -145,8 +141,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             return returnSets;
         }
 
-        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets,
-            List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets, BlockHeader blockHeader)
         {
             var transactionResults = new List<TransactionResult>();
             foreach (var conflictingSet in conflictingSets)
@@ -159,12 +154,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
                 conflictingSet.Status = result.Status;
                 transactionResults.Add(result);
-                returnSets.Add(conflictingSet);
             }
             await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
         }
 
-        private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
+        private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
             TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
             bool throwException = false)
         {
@@ -173,34 +167,45 @@ namespace AElf.Kernel.SmartContract.Parallel
                     throwException);
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
-            return (executionReturnSets, keys);
+            return new GroupedExecutionReturnSets
+            {
+                ReturnSets = executionReturnSets,
+                Keys = keys
+            };
+        }
+        
+        private class GroupedExecutionReturnSets
+        {
+            public List<ExecutionReturnSet> ReturnSets { get; set; }
+            
+            public HashSet<string> Keys { get; set; }
         }
 
-        private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(
-            IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results,
+        private List<ExecutionReturnSet> MergeResults(
+            IEnumerable<GroupedExecutionReturnSets> groupedExecutionReturnSetsList,
             out List<ExecutionReturnSet> conflictingSets)
         {
             // TODO: Throw exception upon conflicts
             var returnSets = new List<ExecutionReturnSet>();
             conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();
-            foreach (var (sets, keys) in results)
+            foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsList)
             {
-                if (!existingKeys.Overlaps(keys))
+                if (!existingKeys.Overlaps(groupedExecutionReturnSets.Keys))
                 {
-                    returnSets.AddRange(sets);
-                    foreach (var key in keys)
+                    returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
+                    foreach (var key in groupedExecutionReturnSets.Keys)
                     {
                         existingKeys.Add(key);
                     }
                 }
                 else
                 {
-                    conflictingSets.AddRange(sets);
+                    conflictingSets.AddRange(groupedExecutionReturnSets.ReturnSets);
                 }
             }
 
-            return (returnSets, existingKeys);
+            return returnSets;
         }
     }
 }
