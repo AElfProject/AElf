@@ -25,7 +25,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_DefaultOrganizationAddressFailed_Test()
         {
             var transactionResult =
-                await ParliamentAuthContractStub.GetGenesisOwnerAddress.SendWithExceptionAsync(new Empty());
+                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.SendWithExceptionAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }
@@ -66,7 +66,6 @@ namespace AElf.Contracts.ParliamentAuth
             getOrganization.ReleaseThreshold.ShouldBe(10000 / MinersCount);
             getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
                 Hash.FromMessage(ParliamentAuthContractAddress), Hash.FromMessage(createOrganizationInput)));
-            getOrganization.ProposerAuthorityRequired.ShouldBe(false);
         }
 
         [Fact]
@@ -190,14 +189,6 @@ namespace AElf.Contracts.ParliamentAuth
 
                 var transactionResult2 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-            //"Not authorized to propose."
-            {
-                var privilegeOrganizationAddress = await CreatePrivilegeOrganizationAsync();
-                createProposalInput.OrganizationAddress = privilegeOrganizationAddress;
-                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Not authorized to propose.").ShouldBeTrue();
             }
         }
 
@@ -355,7 +346,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Change_GenesisContractOwner_Test()
         {
-            var callResult = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallWithExceptionAsync(new Empty());
+            var callResult = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallWithExceptionAsync(new Empty());
             callResult.Value.ShouldContain("Not initialized.");
             
             var initializeParliament = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
@@ -364,7 +355,7 @@ namespace AElf.Contracts.ParliamentAuth
                 ProposerAuthorityRequired = false
             });
             initializeParliament.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var contractOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var contractOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             contractOwner.ShouldNotBe(new Address());
             
             //no permission
@@ -404,21 +395,6 @@ namespace AElf.Contracts.ParliamentAuth
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ReleaseThreshold = 20000 / MinersCount
-            };
-            var transactionResult =
-                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            return transactionResult.Output;
-        }
-
-        private async Task<Address> CreatePrivilegeOrganizationAsync()
-        {
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = 20000 / MinersCount,
-                ProposerAuthorityRequired = true,
-                ProposerWhiteList = {Tester}
             };
             var transactionResult =
                 await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);

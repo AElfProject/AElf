@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 
@@ -22,7 +23,6 @@ namespace AElf.Runtime.CSharp
             new ConcurrentDictionary<Hash, Type>();
 
         private readonly string _sdkDir;
-        private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
 
@@ -34,7 +34,6 @@ namespace AElf.Runtime.CSharp
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
-            _contractAuditor = new ContractAuditor(blackList, whiteList);
             _executivePlugins = executivePlugins ?? ServiceContainerFactory<IExecutivePlugin>.Empty;
         }
 
@@ -68,19 +67,6 @@ namespace AElf.Runtime.CSharp
             var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
 
             return await Task.FromResult(executive);
-        }
-
-        /// <summary>
-        /// Performs code checks.
-        /// </summary>
-        /// <param name="code">The code to be checked.</param>
-        /// <param name="isPrivileged">Is the contract deployed by system user.</param>
-        /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
-        public void CodeCheck(byte[] code, bool isPrivileged)
-        {
-#if !UNIT_TEST
-            _contractAuditor.Audit(code, isPrivileged);
-#endif
         }
     }
 }

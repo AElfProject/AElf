@@ -2,6 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
+        <PatcherDir>..\..\scripts\patcher</PatcherDir>
+        <PatcherProjectName>AElf.Contracts.Deployer</PatcherProjectName>
     </PropertyGroup>
 
     <ItemGroup>
@@ -55,7 +57,22 @@
             <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
-    <Target Name="CopyNonInjectedContractDll" AfterTargets="AfterBuild">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts" />
+    <!-- Build patcher before building the contract -->
+    <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
+        <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+                 Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
+    </Target>
+    <!-- Patch the contract dll after building the contract -->
+    <Target Name="PatchContractCode" AfterTargets="AfterBuild">
+        <Exec Condition="'$(IsContract)' != '' AND '$(IsContract)'"
+              WorkingDirectory = "$(PatcherDir)"
+              Command="dotnet $(PatcherProjectName).dll $(TargetDir)$(TargetName).dll" />
+    </Target>
+    <!-- Move dlls before codecov injection in travis -->
+    <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+              SourceFiles="$(TargetDir)$(TargetName).dll" 
+              DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
+              SkipUnchangedFiles="true" />
     </Target>
 </Project>

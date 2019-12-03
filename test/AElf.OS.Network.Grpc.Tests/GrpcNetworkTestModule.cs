@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
@@ -38,6 +39,8 @@ namespace AElf.OS.Network
                 mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
                 return mockService.Object;
             });
+            
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

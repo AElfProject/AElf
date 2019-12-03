@@ -1,6 +1,7 @@
 ﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs3;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -14,6 +15,7 @@ namespace AElf.Kernel.SmartContractExecution
     [DependsOn(typeof(SmartContractAElfModule),
         typeof(ExecutionPluginForAcs8Module),
         typeof(ExecutionPluginForAcs5Module),
+        typeof(ExecutionPluginForAcs3Module),
         typeof(ExecutionPluginForAcs1Module))]
     public class SmartContractExecutionAElfModule : AElfModule
     {
@@ -21,6 +23,7 @@ namespace AElf.Kernel.SmartContractExecution
         {
             context.Services.AddSingleton<IBlockAcceptedLogEventHandler, ContractDeployedLogEventHandler>();
             context.Services.AddSingleton<IBlockAcceptedLogEventHandler, CodeUpdatedLogEventHandler>();
+            context.Services.AddSingleton<IBestChainFoundLogEventHandler, CodeCheckRequiredLogEventHandler>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

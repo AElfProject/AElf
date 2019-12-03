@@ -39,7 +39,7 @@ namespace AElf.Contracts.Profit
         {
             ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
 
-            Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
+            Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));
             Assert(input.Fees.Count <= ProfitContractConstants.TokenAmountLimit, "Invalid input.");
             State.TransactionFees[input.MethodName] = input;
 

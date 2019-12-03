@@ -45,7 +45,7 @@ namespace AElf.Kernel.Miner.Application
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address,
+            var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
                 previousBlockHeight, previousBlockHash);
 
             foreach (var transaction in systemTransactions)
