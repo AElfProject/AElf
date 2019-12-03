@@ -6,17 +6,17 @@ This article will guide you through how to use **AElf Boilerplate** to implement
 
 The following content will walk you through the basics of writing a smart contract. This process contains essentially four steps:
 - **define the contract and its types**: the methods and types needed in your contract should be defined in a protobuf file, following protobuf syntax. 
-- **create the project**: you can use other contract in Boilerplate as a template.
+- **create the project**: you can use other contracts in Boilerplate as a template.
 - **generate the code**: build the project to generate the base contract code from the proto definition.
 - **extend the generated code**: implement the logic of the contract methods.
 
-The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greet message as well as the time of the greeting.
+The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" message and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greet message as well as the time of the greeting.
 
 ### Defining the contract
 
-As stated above the first step when writing a smart contract on AElf Boilerplate is to define the methods and types of your contract. AElf defines smart contracts as services and are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.
+As stated above the first step when writing a smart contract on AElf Boilerplate is to define the methods and types of your contract. AElf defines smart contracts as services that are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.
 
-We recommend putting the contract's definition in Boilerplate's **protobuf** folder so that is can easily be included in the build/generation process and that you name the contract with the following syntax **contract_name_contract.proto**:
+We recommend putting the contract's definition in Boilerplate's **protobuf** folder so that it can easily be included in the build/generation process and also that you name the contract with the following syntax **contract_name_contract.proto**:
 
 <!-- 
 Boilerplate
@@ -50,11 +50,10 @@ Boilerplate
 **Note:** this folder already contains a certain amount of contract definitions, including tutorial examples, system contracts. You'll also notice it contains AElf Contract Standard definitions that are also defined the same way as contracts. Lastly it also contains **options.proto** and **core.proto** that contain fundamental types for developing smart contracts, more on this later. 
 
 **Best practices:**
-- place your contract definition in Boilerplate's protobuf folder.
+- place your contract definition in Boilerplate's **protobuf** folder.
 - name your contract with **contractname_contract.proto**, all lower case.
 
 Now let's take a look a the definition itself:
-
 ``` Protobuf
 syntax = "proto3";
 
@@ -90,9 +89,9 @@ message GreetedList {
 ```
 
 Above is the full definition of the contract, it is mainly composed of three parts:
-- imports: the dependencies of your contract.
-- service definition: the methods of your contract.
-- types: some custom defined types used by the contract.
+- **imports**: the dependencies of your contract.
+- **the service definition**: the methods of your contract.
+- **types**: some custom defined types used by the contract.
 
 #### Syntax, imports and namespace
 
@@ -110,9 +109,9 @@ option csharp_namespace = "AElf.Contracts.Greeter";
 
 The first line specifies the syntax that this protobuf file uses, we recommend you always use **proto3** for your contracts. Next you'll notice that this contract specifies some imports, let's analyze them briefly:
 - **aelf/options.proto** : contracts can use AElf specific options, this file contains the definitions. One example is the **is_view** options that we will use later.
-- **empty.proto, timestamp.proto and wrappers.proto** : these are all definitions imported from Protobuf's library. They are useful for defining things like an empty return value, time and wrappers around some common types such as string. 
+- **empty.proto, timestamp.proto and wrappers.proto** : these are proto files imported directly from protobuf's library. They are useful for defining things like an empty return value, time and wrappers around some common types such as string. 
 
-The last line specifies an option that determines the namespace of the generated code. Here the generated code will be in the ```Aelf.Contracts.Greeter``` namespace.
+The last line specifies an option that determines the target namespace of the generated code. Here the generated code will be in the ```AElf.Contracts.Greeter``` namespace.
 
 
 #### The service definition
@@ -135,7 +134,7 @@ service GreeterContract {
 
 The first line here uses the ```aelf.csharp_state``` option to specify the name (full name) of the state class. This means that the state of the contract should be defined in the ```GreeterContractState``` class under the ```Aelf.Contracts.Greeter``` namespace.
 
-Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A service method is defined by three things: the **method name**, the **input type** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` that is used to specify that this method takes no arguments and the output type will be a google.protobuf.StringValue which is a traditional string. As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
+Next, two **action** methods are defined: ```Greet``` and ```GreetTo```. A contract method is defined by three things: the **method name**, the **input argument(s) type(s)** and the **output type**. For example ```Greet``` requires that the input type is ```google.protobuf.Empty``` that is used to specify that this method takes no arguments and the output type will be a google.protobuf.StringValue which is a traditional string. As you can see with the ```GreetTo``` method, you can use custom types as input and output of contract methods.
 
 The service also defines a **view** method, that is, a method used only to query the contracts state and that has no side effect on the state. For example, the definition of ```GetGreetedList``` uses the **aelf.is_view** option to make it a view method.
 
@@ -246,7 +245,7 @@ AElf.Contracts.Greeter
     └── AElf.Contracts.Greeter.csproj // The project file
 ```
 
-As you can see in the above folder hierarchy, the **Generated** folder contains two generated files ".g.cs" and ".c.cs". The first contains the generated C# types that where defined in the proto (here ```GreetToOutput``` and ```GreetedList```). The second contains C# types related to the contract, like the base class for the contract ```GreeterContractBase``` (this file also contains other generated code that relates to the C# SDK which are not explained in this tutorial).
+As you can see in the above folder hierarchy, the **Generated** folder contains two generated files ".g.cs" and ".c.cs". The first contains the generated C# types that correspond to the custom types defined in the proto (here ```GreetToOutput``` and ```GreetedList```). The second contains C# types related to the contract service, like the base class for the contract ```GreeterContractBase``` (this file also contains other generated code that relates to the C# SDK which are not explained in this tutorial).
 
 Below are the files that contain the implementation of the smart contract (logic and state implementation). Remember that this code is not generated and needs to be created by the contract author.
 
@@ -322,7 +321,7 @@ Let's briefly explain what is happening in this method:
 Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
 ```
 
-When writing a smart contract it is often useful (and recommended) to validate the input. AElf smart contract can use the ```Assert``` method defined in the base smart contract class to implement this pattern. For example here, the method validates that the input string is not no null or composed only of white spaces. If the condition is false, this line will abort the execution of the transaction.
+When writing a smart contract it is often useful (and recommended) to validate the input. AElf smart contracts can use the ```Assert``` method defined in the base smart contract class to implement this pattern. For example here, the method validates that the input string is null or composed only of white spaces. If the condition is false, this line will abort the execution of the transaction.
 
 #### Accessing and saving state 
 
@@ -346,11 +345,11 @@ It is also possible to log from smart contract methods. The above example will l
 
 #### More on state
 
-As a reminder, here is the state definition in the contract (we specified the name of the class and a type):
+As a reminder, here is the state definition in the contract (we specified the name of the class and a type) as well as the custom type ```GreetedList```:
 ```protobuf
 service GreeterContract { 
     option (aelf.csharp_state) = "AElf.Contracts.Greeter.GreeterContractState";
-    ...
+    ... 
 }
 
 // ...
