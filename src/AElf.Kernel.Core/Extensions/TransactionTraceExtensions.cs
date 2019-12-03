@@ -1,4 +1,6 @@
 
+using System.Linq;
+
 namespace AElf.Kernel
 {
     public static class TransactionTraceExtensions
@@ -40,13 +42,41 @@ namespace AElf.Kernel
 
         public static void SurfaceUpError(this TransactionTrace txTrace)
         {
+            if (txTrace.ExecutionStatus == ExecutionStatus.Postfailed)
+            {
+                foreach (var trace in txTrace.PostTraces)
+                {
+                    trace.SurfaceUpError();
+                    if (!trace.IsSuccessful())
+                    {
+                        txTrace.Error += $"Post-Error: {trace.Error}";
+                    }
+                }
+                
+                return;
+            }
+            
+            if (txTrace.ExecutionStatus == ExecutionStatus.Prefailed)
+            {
+                foreach (var trace in txTrace.PreTraces)
+                {
+                    trace.SurfaceUpError();
+                    if (!trace.IsSuccessful())
+                    {
+                        txTrace.Error += $"Pre-Error: {trace.Error}";
+                    }
+                }
+
+                return;
+            }
+            
             foreach (var inline in txTrace.InlineTraces)
             {
                 inline.SurfaceUpError();
                 if (inline.ExecutionStatus < txTrace.ExecutionStatus)
                 {
                     txTrace.ExecutionStatus = inline.ExecutionStatus;
-                    txTrace.Error = $"InlineError: {inline.Error}";
+                    txTrace.Error = $"Inline-Error: {inline.Error}";
                 }
             }
         }
