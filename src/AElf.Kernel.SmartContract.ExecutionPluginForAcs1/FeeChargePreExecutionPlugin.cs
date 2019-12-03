@@ -21,19 +21,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
-        private readonly IFreeFeeTransactionDistinguishService _freeFeeTransactionDistinguishService;
+        private readonly ITransactionFeeExemptingService _ifTransactionFeeExemptingService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
-            IFreeFeeTransactionDistinguishService freeFeeTransactionDistinguishService)
+            ITransactionFeeExemptingService ifTransactionFeeExemptingService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
-            _freeFeeTransactionDistinguishService = freeFeeTransactionDistinguishService;
+            _ifTransactionFeeExemptingService = ifTransactionFeeExemptingService;
 
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 var context = _contextService.Create();
 
-                if (_freeFeeTransactionDistinguishService.IsFree(transactionContext.Transaction))
+                if (_ifTransactionFeeExemptingService.IsFree(transactionContext.Transaction))
                 {
                     return new List<Transaction>();
                 }
