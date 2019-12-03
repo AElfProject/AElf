@@ -187,7 +187,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "CreateSideChain",
@@ -248,7 +248,7 @@ namespace AElf.Contracts.CrossChain.Tests
         internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
         {
             var disposalInput = chainId;
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "DisposeSideChain",

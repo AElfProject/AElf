@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
@@ -15,12 +16,14 @@ namespace AElf.Kernel.Miner.Application
             _systemTransactionGenerators = systemTransactionGenerators;
         }
 
-        public List<Transaction> GenerateSystemTransactions(Address from, long preBlockHeight, Hash preBlockHash)
+        public async Task<List<Transaction>> GenerateSystemTransactionsAsync(Address @from, long preBlockHeight,
+            Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)
             {
-                generator.GenerateTransactions(@from, preBlockHeight, preBlockHash, ref generatedTransactions);
+                generatedTransactions.AddRange(
+                    await generator.GenerateTransactionsAsync(@from, preBlockHeight, preBlockHash));
             }
 
             return generatedTransactions;
