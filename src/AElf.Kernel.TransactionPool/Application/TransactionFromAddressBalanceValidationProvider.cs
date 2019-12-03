@@ -22,7 +22,7 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
-        private readonly ITransactionFeeExemptingService _feeExemptingService;
+        private readonly ITransactionFeeExemptionService _feeExemptionService;
 
         public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
 
@@ -30,19 +30,19 @@ namespace AElf.Kernel.TransactionPool.Application
             ITokenContractReaderFactory tokenContractReaderFactory,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             IDeployedContractAddressProvider deployedContractAddressProvider,
-            ITransactionFeeExemptingService feeExemptingService)
+            ITransactionFeeExemptionService feeExemptionService)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _deployedContractAddressProvider = deployedContractAddressProvider;
-            _feeExemptingService = feeExemptingService;
+            _feeExemptionService = feeExemptionService;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             // Skip if this is a system transaction.
-            if (_feeExemptingService.IsFree(transaction))
+            if (_feeExemptionService.IsFree(transaction))
             {
                 return true;
             }
