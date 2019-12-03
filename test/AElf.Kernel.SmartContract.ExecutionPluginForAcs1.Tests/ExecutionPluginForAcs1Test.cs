@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                TestContractAddress = await DeploySystemSmartContract(category, code, Hash.FromString("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
@@ -234,9 +234,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         {
             await DeployContractsAsync();
 
-            await CreateAndIssueTokenAsync("ELF", balance1);
             await CreateAndIssueTokenAsync("TSA", balance2);
             await CreateAndIssueTokenAsync("TSB", balance3);
+            await CreateAndIssueTokenAsync("ELF", balance1);
 
             var methodFee = new MethodFees
             {

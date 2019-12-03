@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -97,6 +95,8 @@ namespace AElf.Contracts.MultiToken
             var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
                 ? txSizeFeeAmount
                 : availableBalance;
+
+            if (input.PrimaryTokenSymbol == null) return availableBalance > txSizeFeeAmount;
 
             if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
             {
