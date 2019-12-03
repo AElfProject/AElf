@@ -18,20 +18,20 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            var consensusContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            if (transaction.To != consensusContractAddress)
-            {
-                return true;
-            }
-            
             var economicContractAddress = 
                 _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
             if (transaction.To == economicContractAddress)
             {
-                return false;
+                return Task.FromResult(false);
+            }
+
+            var consensusContractAddress =
+                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            if (transaction.To != consensusContractAddress)
+            {
+                return Task.FromResult(true);
             }
 
             var systemTxs = new List<string>
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateConsensusInformation),
             };
-            return !systemTxs.Contains(transaction.MethodName);
+            return Task.FromResult(!systemTxs.Contains(transaction.MethodName));
         }
     }
 }
