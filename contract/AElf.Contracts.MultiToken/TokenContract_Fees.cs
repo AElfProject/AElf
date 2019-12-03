@@ -54,7 +54,7 @@ namespace AElf.Contracts.MultiToken
                 transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
             }
 
-            transactionFee.IsFailedToCharge = successToChargeBaseFee && successToChargeSizeFee;
+            transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
             return transactionFee;
         }
 
