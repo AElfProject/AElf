@@ -79,6 +79,7 @@ enum HandshakeError {
     REPEATED_CONNECTION = 4;
     CONNECTION_REFUSED = 5;
     INVALID_CONNECTION = 6;
+    SIGNATURE_TIMEOUT = 7;
 }
 
 message ConfirmHandshakeRequest {

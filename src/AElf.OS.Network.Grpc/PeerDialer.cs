@@ -50,9 +50,9 @@ namespace AElf.OS.Network.Grpc
         /// <returns>The created peer</returns>
         public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint)
         {
-            var handshake = await _handshakeProvider.GetHandshakeAsync();
             var client = CreateClient(remoteEndpoint);
-
+            
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
             var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
             // verify handshake

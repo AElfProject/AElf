@@ -261,6 +261,8 @@ namespace AElf.OS.Network.Grpc.Connection
                     handshakeError = HandshakeError.ProtocolMismatch;
                     break;
                 case HandshakeValidationResult.HandshakeTimeout:
+                    handshakeError = HandshakeError.SignatureTimeout;
+                    break;
                 case HandshakeValidationResult.InvalidSignature:
                     handshakeError = HandshakeError.WrongSignature;
                     break;

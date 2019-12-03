@@ -527,7 +527,7 @@ namespace AElf.OS.Network
                 Endpoint = "127.0.0.1:2001",
                 Pubkey = ByteString.CopyFromUtf8("pubkey1")
             };
-            await _nodeManager.AddNodeAsync(node);
+            await _nodeManager.AddOrUpdateNodeAsync(node);
             var request = new NodesRequest
             {
                 MaxCount = 1
