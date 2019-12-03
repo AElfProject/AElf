@@ -61,6 +61,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
 
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                Context.LogDebug(() =>
+                    $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
+            }
+
             // Clear cache.
             _processingBlockMinerPubkey = null;
         }
@@ -262,10 +268,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)
         {
             TryToGetCurrentRoundInformation(out var currentRound);
-
-            Context.LogDebug(() =>
-                $"Processing tiny block:\n {currentRound}\n" +
-                $"Current height: {Context.CurrentHeight}\nPrevious block hash: {Context.PreviousBlockHash.ToHex()}");
 
             currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ActualMiningTimes
                 .Add(tinyBlockInput.ActualMiningTime);

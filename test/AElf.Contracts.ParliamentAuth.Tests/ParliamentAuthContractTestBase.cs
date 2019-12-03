@@ -158,7 +158,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         public ParliamentAuthContractPrivilegeTestBase()
         {
-        var mainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+            var mainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
             Tester = new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule>(mainChainId,SampleECKeyPairs.KeyPairs[1]);
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContract(

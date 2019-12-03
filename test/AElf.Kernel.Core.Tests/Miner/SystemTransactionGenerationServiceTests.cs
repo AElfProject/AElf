@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using Shouldly;
@@ -17,17 +18,18 @@ namespace AElf.Kernel.Miner
         }
 
         [Fact]
-        public void Generate_SystemTransactions()
+        public async Task Generate_SystemTransactions()
         {
-            var transactions = new List<Transaction>();
-            _systemTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0], 0L, Hash.Empty, ref transactions);
+            var transactions =
+                await _systemTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0], 0L,
+                    Hash.Empty);
             transactions.Count.ShouldBe(2);
         }
         
         [Fact]
-        public void Generate_SystemTransactions_Test()
+        public async Task Generate_SystemTransactions_Test()
         {
-            var transactionList = _systemTransactionGenerationService.GenerateSystemTransactions(
+            var transactionList = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(
                 SampleAddress.AddressList[0], 1L, Hash.FromString("hash"));
             transactionList.ShouldNotBeNull();
             transactionList.Count.ShouldBe(2);

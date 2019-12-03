@@ -12,7 +12,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            Assert(Context.Sender == GetGenesisOwnerAddress(new Empty()));
+            Assert(Context.Sender == GetDefaultOrganizationAddress(new Empty()));
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();
