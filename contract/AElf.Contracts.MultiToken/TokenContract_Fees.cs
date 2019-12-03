@@ -35,12 +35,28 @@ namespace AElf.Contracts.MultiToken
 
             var fromAddress = Context.Sender;
 
+            string symbol = null;
+            long existingBalance = 0;
             if (fee != null && fee.Fees.Any())
             {
-                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
-                    out var amount, out var existingBalance))
+                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out symbol,
+                    out var amount, out existingBalance))
                 {
-                    Assert(false, "Failed to charge first sufficient token.");
+                    Context.LogDebug(() => "Failed to charge first sufficient token.");
+                    var txFee = new TransactionFee
+                    {
+                        IsFailedToCharge = true
+                    };
+                    if (symbol != null)
+                    {
+                        State.Balances[fromAddress][symbol] = 0;
+                        bill.TokenToAmount.Add(symbol, existingBalance);
+                        var feeBill = State.ChargedFees[fromAddress];
+                        State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
+                        txFee.Value.Add(symbol, existingBalance);
+                    }
+                    // If symbol == null, then charge nothing.
+                    return txFee;
                 }
 
                 bill.TokenToAmount.Add(symbol, amount);
@@ -49,14 +65,14 @@ namespace AElf.Contracts.MultiToken
                 result.Value.Add(symbol, amount);
             }
 
-            var balanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
+            var primaryTokenBalanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
-            txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
+            txSizeFeeAmount = primaryTokenBalanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
                 ? txSizeFeeAmount
                 // It's safe to convert from long to int here because
                 // balanceAfterChargingBaseFee <= txSizeFeeAmount and
                 // typeof(txSizeFeeAmount) == int
-                : (int) balanceAfterChargingBaseFee;
+                : (int) primaryTokenBalanceAfterChargingBaseFee;
 
             bill += new TransactionFeeBill
             {
@@ -70,7 +86,7 @@ namespace AElf.Contracts.MultiToken
             };
 
             // Charge tx size fee.
-            var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
+            var finalBalanceOfNativeSymbol = primaryTokenBalanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
             State.Balances[fromAddress][input.PrimaryTokenSymbol] = finalBalanceOfNativeSymbol;
 
             // Record the bill finally.
@@ -78,11 +94,29 @@ namespace AElf.Contracts.MultiToken
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
 
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            Assert(
-                balanceAfterChargingBaseFee >=
-                input.TransactionSizeFee,
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
-                $"Primary token: {input.PrimaryTokenSymbol}");
+            if (primaryTokenBalanceAfterChargingBaseFee < input.TransactionSizeFee)
+            {
+                Context.LogDebug(() =>
+                    $"Insufficient balance to pay tx size fee: {primaryTokenBalanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
+                    $"Primary token: {input.PrimaryTokenSymbol}");
+                var txFee = new TransactionFee
+                {
+                    IsFailedToCharge = true
+                };
+                if (symbol != null)
+                {
+                    State.Balances[fromAddress][symbol] = 0;
+                    State.Balances[fromAddress][input.PrimaryTokenSymbol] = 0;
+                    bill.TokenToAmount.Add(symbol, existingBalance);
+                    bill.TokenToAmount.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
+                    var feeBill = State.ChargedFees[fromAddress];
+                    State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
+                    txFee.Value.Add(symbol, existingBalance);
+                    txFee.Value.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
+                }
+ 
+                return new TransactionFee {IsFailedToCharge = true};
+            }
 
             if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
             {
@@ -126,6 +160,55 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Example 1:
+        /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
+        ///
+        /// [Charge successful]
+        /// Sender's balance:
+        /// ELF - 9
+        /// TSA - 0
+        /// TSB - 3
+        /// Then charge 2 TSBs.
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 9
+        /// TSA - 0
+        /// TSB - 1
+        /// Then charge 9 ELFs
+        ///
+        /// Example 2:
+        /// symbolToAmountMap: {{"TSA", 1}, {"TSB", 2}}
+        /// which means the charging token symbol list doesn't contain the native symbol.
+        ///
+        /// [Charge successful]
+        /// Sender's balance:
+        /// ELF - 1
+        /// TSA - 2
+        /// TSB - 2
+        /// Then charge 1 TSA
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 1
+        /// TSA - 0
+        /// TSB - 1
+        /// Then charge 1 TSB
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 1000000000
+        /// TSA - 0
+        /// TSB - 0
+        /// Then charge nothing.
+        /// (Contract developer should be suggested to implement acs5 to check certain balance or allowance of sender.)
+        /// </summary>
+        /// <param name="symbolToAmountMap"></param>
+        /// <param name="symbol"></param>
+        /// <param name="amount"></param>
+        /// <param name="existingBalance"></param>
+        /// <returns></returns>
         private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
@@ -133,6 +216,7 @@ namespace AElf.Contracts.MultiToken
             amount = 0L;
             existingBalance = 0L;
             var fromAddress = Context.Sender;
+            string symbolOfValidBalance = null;
 
             // Traverse available token symbols, check balance one by one
             // until there's balance of one certain token is enough to pay the fee.
@@ -142,19 +226,24 @@ namespace AElf.Contracts.MultiToken
                 symbol = symbolToAmount.Key;
                 amount = symbolToAmount.Value;
 
-                //Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
-
-                if (existingBalance >= amount)
+                if (existingBalance > 0)
                 {
-                    break;
+                    symbolOfValidBalance = symbol;
                 }
+
+                if (existingBalance >= amount) break;
             }
 
-            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount,
-                $"Insufficient balance to pay transaction fee. {existingBalance} < {amount}");
+            if (existingBalance >= amount) return true;
 
-            return symbol != null;
+            var officialTokenContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            var primaryTokenSymbol =
+                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
+                    .Value;
+            symbol = symbolToAmountMap.Keys.Contains(primaryTokenSymbol) ? primaryTokenSymbol : symbolOfValidBalance;
+
+            return false;
         }
 
         public override Empty ClaimTransactionFees(Empty input)
@@ -347,7 +436,7 @@ namespace AElf.Contracts.MultiToken
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx size unit price.");
 

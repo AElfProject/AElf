@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -10,15 +11,16 @@ namespace AElf.Contracts.MultiToken
     {
         public Func<Address, long, Hash, Transaction> GenerateTransactionFunc { get; set; }
 
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
-            ref List<Transaction> generatedTransactions)
+        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
+            var res = new List<Transaction>();
             if (GenerateTransactionFunc == null)
             {
-                return;
+                return Task.FromResult(res);
             }
 
-            generatedTransactions.Add(GenerateTransactionFunc(from, preBlockHeight, preBlockHash));
+            res.Add(GenerateTransactionFunc(from, preBlockHeight, preBlockHash));
+            return Task.FromResult(res);
         }
     }
 }

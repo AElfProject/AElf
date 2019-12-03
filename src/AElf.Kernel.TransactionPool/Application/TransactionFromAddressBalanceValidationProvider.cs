@@ -39,6 +39,8 @@ namespace AElf.Kernel.TransactionPool.Application
             _feeExemptionService = feeExemptionService;
         }
 
+        public bool ValidateWhileSyncing => false;
+
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             // Skip if this is a system transaction.

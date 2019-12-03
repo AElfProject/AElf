@@ -51,6 +51,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
+            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.
             // (ConsensusOption itself can support all kinds of consensus protocol via adding more properties.)

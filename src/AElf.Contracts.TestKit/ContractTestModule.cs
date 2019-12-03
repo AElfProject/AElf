@@ -71,6 +71,8 @@ namespace AElf.Contracts.TestKit
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
             });
 
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             #region Infra
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());

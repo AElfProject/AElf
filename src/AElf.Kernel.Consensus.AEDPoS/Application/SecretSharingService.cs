@@ -103,9 +103,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _decryptedPieces[secretSharingInformation.CurrentRoundId] = decryptedPieces;
 
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
-
-                Logger.LogTrace($"Final secret sharing information: {secretSharingInformation}");
-
             }
             catch (Exception e)
             {
