@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -20,115 +22,93 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
-            var result = new TransactionFee();
+            var transactionFee = new TransactionFee();
 
-            if (input.PrimaryTokenSymbol == string.Empty)
+            // Primary token not created yet.
+            if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                // Primary token not created yet.
-                return result;
+                return transactionFee;
             }
 
-            var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-                new StringValue {Value = input.MethodName});
-
+            // Record tx fee bill during current charging process.
             var bill = new TransactionFeeBill();
 
             var fromAddress = Context.Sender;
-
-            string symbol = null;
-            long existingBalance = 0;
-            if (fee != null && fee.Fees.Any())
+            var methodFee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
+                new StringValue {Value = input.MethodName});
+            var successToChargeBaseFee = true;
+            if (methodFee != null && methodFee.Fees.Any())
             {
-                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out symbol,
-                    out var amount, out existingBalance))
-                {
-                    Context.LogDebug(() => "Failed to charge first sufficient token.");
-                    var txFee = new TransactionFee
-                    {
-                        IsFailedToCharge = true
-                    };
-                    if (symbol != null)
-                    {
-                        State.Balances[fromAddress][symbol] = 0;
-                        bill.TokenToAmount.Add(symbol, existingBalance);
-                        var feeBill = State.ChargedFees[fromAddress];
-                        State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
-                        txFee.Value.Add(symbol, existingBalance);
-                    }
-                    // If symbol == null, then charge nothing.
-                    return txFee;
-                }
-
-                bill.TokenToAmount.Add(symbol, amount);
-                // Charge base fee.
-                State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-                result.Value.Add(symbol, amount);
+                successToChargeBaseFee = ChargeBaseFee(methodFee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), ref bill);
             }
 
-            var primaryTokenBalanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
-            var txSizeFeeAmount = input.TransactionSizeFee;
-            txSizeFeeAmount = primaryTokenBalanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
-                ? txSizeFeeAmount
-                // It's safe to convert from long to int here because
-                // balanceAfterChargingBaseFee <= txSizeFeeAmount and
-                // typeof(txSizeFeeAmount) == int
-                : (int) primaryTokenBalanceAfterChargingBaseFee;
+            var successToChargeSizeFee = ChargeSizeFee(input, ref bill);
 
-            bill += new TransactionFeeBill
-            {
-                TokenToAmount =
-                {
-                    {
-                        input.PrimaryTokenSymbol,
-                        txSizeFeeAmount
-                    }
-                }
-            };
-
-            // Charge tx size fee.
-            var finalBalanceOfNativeSymbol = primaryTokenBalanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
-            State.Balances[fromAddress][input.PrimaryTokenSymbol] = finalBalanceOfNativeSymbol;
-
-            // Record the bill finally.
+            // Update the bill.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
 
-            // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            if (primaryTokenBalanceAfterChargingBaseFee < input.TransactionSizeFee)
+            // Update balances.
+            foreach (var tokenToAmount in bill.TokenToAmount)
             {
-                Context.LogDebug(() =>
-                    $"Insufficient balance to pay tx size fee: {primaryTokenBalanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
-                    $"Primary token: {input.PrimaryTokenSymbol}");
-                var txFee = new TransactionFee
-                {
-                    IsFailedToCharge = true
-                };
-                if (symbol != null)
-                {
-                    State.Balances[fromAddress][symbol] = 0;
-                    State.Balances[fromAddress][input.PrimaryTokenSymbol] = 0;
-                    bill.TokenToAmount.Add(symbol, existingBalance);
-                    bill.TokenToAmount.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
-                    var feeBill = State.ChargedFees[fromAddress];
-                    State.ChargedFees[fromAddress] = feeBill == null ? bill : feeBill + bill;
-                    txFee.Value.Add(symbol, existingBalance);
-                    txFee.Value.Add(input.PrimaryTokenSymbol, primaryTokenBalanceAfterChargingBaseFee);
-                }
- 
-                return new TransactionFee {IsFailedToCharge = true};
+                State.Balances[fromAddress][tokenToAmount.Key] =
+                    State.Balances[fromAddress][tokenToAmount.Key].Sub(tokenToAmount.Value);
+                transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
             }
 
-            if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
+            transactionFee.IsFailedToCharge = successToChargeBaseFee && successToChargeSizeFee;
+            return transactionFee;
+        }
+
+        private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
+        {
+            if (!ChargeFirstSufficientToken(methodFeeMap, out var symbolToChargeBaseFee,
+                out var amountToChargeBaseFee, out var existingBalance))
             {
-                result.Value[input.PrimaryTokenSymbol] =
-                    result.Value[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
+                Context.LogDebug(() => "Failed to charge first sufficient token.");
+                if (symbolToChargeBaseFee != null)
+                {
+                    bill.TokenToAmount.Add(symbolToChargeBaseFee, existingBalance);
+                } // If symbol == null, then charge nothing in base fee part.
+
+                return false;
+            }
+
+            bill.TokenToAmount.Add(symbolToChargeBaseFee, amountToChargeBaseFee);
+
+            return true;
+        }
+
+        private bool ChargeSizeFee(ChargeTransactionFeesInput input, ref TransactionFeeBill bill)
+        {
+            string symbolChargedForBaseFee = null;
+            var amountChargedForBaseFee = 0L;
+            if (bill.TokenToAmount.Any())
+            {
+                symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
+                amountChargedForBaseFee = bill.TokenToAmount.First().Value;
+            }
+
+            var availableBalance = symbolChargedForBaseFee == input.PrimaryTokenSymbol
+                // Available balance need to deduct amountChargedForBaseFee
+                ? State.Balances[Context.Sender][input.PrimaryTokenSymbol].Sub(amountChargedForBaseFee)
+                : State.Balances[Context.Sender][input.PrimaryTokenSymbol];
+            var txSizeFeeAmount = input.TransactionSizeFee;
+            var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
+                ? txSizeFeeAmount
+                : availableBalance;
+
+            if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
+            {
+                bill.TokenToAmount[input.PrimaryTokenSymbol] =
+                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
             }
             else
             {
-                result.Value.Add(input.PrimaryTokenSymbol, txSizeFeeAmount);
+                bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
             }
 
-            return result;
+            return availableBalance > txSizeFeeAmount;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
