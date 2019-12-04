@@ -101,7 +101,7 @@ namespace AElf.OS.Network.Grpc
 
                 await requestStream.ForEachAsync(block =>
                 {
-                    Logger.LogDebug(
+                    Logger.LogInformation(
                         $"Received full block announce, block: {block} from {context.GetPeerInfo()}.");
                     peer.TryAddKnownBlock(block.GetHash());
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
