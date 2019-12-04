@@ -86,7 +86,7 @@ namespace AElf.OS.Network.Grpc.Connection
         /// <returns>True if the connection was successful, false otherwise</returns>
         public async Task<bool> ConnectAsync(IPEndPoint endpoint)
         {
-            Logger.LogTrace($"Attempting to reach {endpoint}.");
+            Logger.LogDebug($"Attempting to reach {endpoint}.");
 
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {

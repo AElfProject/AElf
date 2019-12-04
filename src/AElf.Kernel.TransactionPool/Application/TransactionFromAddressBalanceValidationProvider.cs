@@ -78,7 +78,7 @@ namespace AElf.Kernel.TransactionPool.Application
             // balance == null means token contract hasn't deployed.
             if (balance == null || balance > 0) return true;
 
-            Logger.LogError($"Empty balance of tx from address: {transaction}");
+            Logger.LogWarning($"Empty balance of tx from address: {transaction}");
             return false;
         }
 

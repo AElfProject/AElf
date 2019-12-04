@@ -35,7 +35,7 @@ namespace AElf.Kernel.Consensus.Application
                 return ByteString.Empty;
             }
 
-            Logger.LogTrace($"Consensus extra data generated. Of size {consensusInformation.Length}");
+            Logger.LogInformation($"Consensus extra data generated. Of size {consensusInformation.Length}");
             return ByteString.CopyFrom(consensusInformation);
         }
     }

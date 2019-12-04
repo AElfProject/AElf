@@ -34,7 +34,7 @@ namespace AElf.CrossChain
             var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
-            Logger.LogTrace("Cross chain extra data generated.");
+            Logger.LogInformation("Cross chain extra data generated.");
             return new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();
         }

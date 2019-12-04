@@ -49,8 +49,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 }
 
                 _alreadyHas.TryRemove(blockHash, out var oldTransaction);
-                Logger.LogError(
-                    $"Only allow one AEDPoS Contract core transaction.\nNew tx: {transaction}\nOld tx: {oldTransaction}");
+                Logger.LogWarning(
+                    $"Only allow one AEDPoS Contract core transaction. New tx: {transaction}, Old tx: {oldTransaction}");
                 return false;
             }
 

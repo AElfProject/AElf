@@ -18,15 +18,16 @@ namespace AElf.Blockchains.SideChain
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
-        
+
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
         public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
 
-        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions, 
-            IOptionsSnapshot<ContractOptions> contractOptions, ISideChainInitializationDataProvider sideChainInitializationDataProvider)
+        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions,
+            IOptionsSnapshot<ContractOptions> contractOptions,
+            ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
             _consensusOptions = consensusOptions.Value;
@@ -44,40 +45,40 @@ namespace AElf.Blockchains.SideChain
 
             if (chainInitializationData == null)
             {
-                Logger.LogWarning("Chain initialization data is null.");
                 return genesisSmartContractDtoList;
             }
-            
+
             // chainInitializationData cannot be null if it is first time side chain startup. 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("Consensus.AEDPoS")).Value,
+                _codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(chainInitializationData));
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
-                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(chainInitializationData));
+                _codes.Single(kv => kv.Key.Contains("MultiToken")).Value,
+                TokenSmartContractAddressNameProvider.Name,
+                GenerateTokenInitializationCallList(chainInitializationData));
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
+                _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationData));
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
+                _codes.Single(kv => kv.Key.Contains("ParliamentAuth")).Value,
                 ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList(chainInitializationData));
-                
+
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
                 ConfigurationSmartContractAddressNameProvider.Name);
-            
+
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("ReferendumAuth")).Value,
                 ReferendumAuthSmartContractAddressNameProvider.Name,
                 GenerateReferendumfInitializationCallList()
-                );
-            
+            );
+
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("AssociationAuth")).Value,
                 AssociationAuthSmartContractAddressNameProvider.Name

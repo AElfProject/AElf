@@ -34,7 +34,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 return true;
             }
 
-            Logger.LogError($"Invalid contract address: {transaction}");
+            Logger.LogWarning($"Invalid contract address: {transaction}");
             return false;
         }
     }

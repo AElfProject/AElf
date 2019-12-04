@@ -34,7 +34,7 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 if (!await provider.ValidateTransactionAsync(transaction))
                 {
-                    Logger.LogDebug($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
+                    Logger.LogWarning($"Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                     return false;
                 }
             }

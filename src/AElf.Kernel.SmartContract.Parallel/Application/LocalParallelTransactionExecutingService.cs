@@ -13,7 +13,8 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService, ISingletonDependency
+    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService,
+        ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ILocalTransactionExecutingService _plainExecutingService;
@@ -35,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false)
         {
-            Logger.LogTrace($"Entered parallel ExecuteAsync.");
+            Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
             // TODO: Is it reasonable to allow throwing exception here
@@ -51,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = blockHeader.Height - 1
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
-            
+
             var returnSets = new List<ExecutionReturnSet>();
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
@@ -64,13 +65,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
-            
+
             var returnSetCollection = new ReturnSetCollection(returnSets);
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
             if (transactionExecutingDto.PartialBlockStateSet != null)
             {
                 var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
-                foreach ( var change in partialBlockStateSet.Changes)
+                foreach (var change in partialBlockStateSet.Changes)
                 {
                     if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
                     if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
@@ -84,7 +85,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     updatedPartialBlockStateSet.Deletes.Add(delete);
                 }
             }
-            
+
             var tasks = groupedTransactions.Parallelizables.Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
@@ -100,10 +101,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
                 groupedTransactions.TransactionsWithoutContract, blockHeader);
-            
+
             Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
-            
+
             if (conflictingSets.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
@@ -116,6 +117,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             return returnSets;
         }
+
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
             BlockHeader blockHeader)
         {
@@ -140,6 +142,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
                 returnSets.Add(returnSet);
             }
+
             await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
             return returnSets;
@@ -161,6 +164,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 transactionResults.Add(result);
                 returnSets.Add(conflictingSet);
             }
+
             await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
         }
 
@@ -172,7 +176,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
                     throwException);
             var keys = new HashSet<string>(
-                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
+                executionReturnSets.SelectMany(s =>
+                    s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
             return (executionReturnSets, keys);
         }
 

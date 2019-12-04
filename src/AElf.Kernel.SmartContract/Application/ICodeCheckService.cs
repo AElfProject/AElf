@@ -50,8 +50,8 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (!_isEnabled)
                 return Task.CompletedTask;
-            
-            Logger.LogTrace($"Start code check.");
+
+            Logger.LogTrace("Start code check.");
             
             var eventData = new CodeCheckRequired();
             eventData.MergeFrom(logEvent);
@@ -74,8 +74,8 @@ namespace AElf.Kernel.SmartContract.Application
                 // May do something else to indicate that the contract has an issue
                 Logger.LogWarning(e.Message);
             }
-            
-            Logger.LogTrace($"Finish code check.");
+
+            Logger.LogTrace("Finish code check.");
 
             return Task.CompletedTask;
         }

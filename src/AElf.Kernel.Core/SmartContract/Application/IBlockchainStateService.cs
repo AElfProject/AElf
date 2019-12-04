@@ -59,14 +59,14 @@ namespace AElf.Kernel.SmartContract.Application
 
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Start merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
 
             foreach (var blockIndex in blockIndexes)
             {
                 try
                 {
-                    Logger.LogDebug($"Merging state {chainStateInfo} for block {blockIndex}");
+                    Logger.LogTrace($"Merging state {chainStateInfo} for block {blockIndex}");
                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
                 }
                 catch (Exception e)

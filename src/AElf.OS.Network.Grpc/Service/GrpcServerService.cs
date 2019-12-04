@@ -113,7 +113,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
             
-            Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -133,7 +133,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -176,7 +176,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -228,7 +228,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogDebug($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
