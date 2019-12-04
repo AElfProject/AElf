@@ -69,7 +69,10 @@ service TokenContract {
     }
     rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
-
+    rpc UpdateCalculateFeeAlgorithmParameters (CalculateFeeParameter) returns (google.protobuf.Empty) {
+    }
+    rpc SetCalculateFeeAlgorithmParameters (AllCalculateFeeParameter) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -105,6 +108,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCalculateFeeAllParameters (aelf.SInt32Value) returns (AllCalculateFeeParameter) {
         option (aelf.is_view) = true;
     }
 }
@@ -366,10 +372,9 @@ message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
     aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string from_symbol = 3 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
     string memo = 5;
-    string to_symbol = 6[(aelf.is_indexed) = true];
 }
 
 message Approved {
@@ -404,4 +409,23 @@ message ChainPrimaryTokenSymbolSet {
 message TransactionSizeFeeUnitPriceUpdated {
     option (aelf.is_event) = true;
     sint64 unit_price = 1;
+}
+
+message CalculateFeeParameter {
+    sint32 function_type = 1;
+    sint32 piece_key = 2;
+    sint32 operation_type = 3;
+    sint32 fee_type = 4;
+    map<string, string> parameterDic = 5;
+}
+
+message AllCalculateFeeParameter{
+    repeated CalculateFeeParameter all_parameter= 1;
+}
+
+message NoticeUpdateCalculateFeeAlgorithm {
+    option (aelf.is_event) = true;
+    CalculateFeeParameter parameter = 1;
+    aelf.Hash pre_block_hash = 2;
+    sint64 block_heigh = 3;
 }

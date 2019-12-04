@@ -113,7 +113,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
 
                 var txSize = transactionContext.Transaction.Size();
-                var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
+                var chainContext = new ChainContext
+                {
+                    BlockHash = transactionContext.PreviousBlockHash,
+                    BlockHeight = transactionContext.BlockHeight - 1
+                };
+                var txCost = await _calService.CalculateFee(chainContext, FeeType.Tx, txSize);
                 var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
                 {
                     BlockHash = transactionContext.PreviousBlockHash,

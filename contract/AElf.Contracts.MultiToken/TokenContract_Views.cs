@@ -106,6 +106,159 @@ namespace AElf.Contracts.MultiToken
             return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
         }
 
+        public override AllCalculateFeeParameter GetCalculateFeeAllParameters(SInt32Value input)
+        {
+            IntialParameters();
+            switch (input.Value)
+            {
+                case 0:
+                    return State.CalculateCoefficient[(int) FeeType.Tx];
+                case 1:
+                    return State.CalculateCoefficient[(int) FeeType.Cpu];
+                case 2:
+                    return State.CalculateCoefficient[(int) FeeType.Sto];
+                case 3:
+                    return State.CalculateCoefficient[(int) FeeType.Ram];
+                case 4:
+                    return State.CalculateCoefficient[(int) FeeType.Net];
+                default:
+                    return null;
+            }
+        }
+        private AllCalculateFeeParameter GetCpuFeeParameter()
+        {
+            var totalParameter = new AllCalculateFeeParameter();
+            var cpuFeeParameter1 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 10,
+                ParameterDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
+                
+            };
+            var cpuFeeParameter2 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 100,
+                ParameterDic = { {"numerator","1"},{"denominator","4"}}
+            };
+            var cpuFeeParameter3 = new CalculateFeeParameter
+            {
+                FunctionType =3,
+                PieceKey = int.MaxValue,
+                ParameterDic =
+                {
+                    {"numerator","1"},{"denominator","4"},{"power","2"},{"changeSpanBase","4"},{"weight","250"},
+                    {"weightBase", "40"}
+                }
+            };
+            totalParameter.AllParameter.Add(cpuFeeParameter1);
+            totalParameter.AllParameter.Add(cpuFeeParameter2);
+            totalParameter.AllParameter.Add(cpuFeeParameter3);
+            return totalParameter;
+        }
+        private AllCalculateFeeParameter GetStoFeeParameter()
+        {
+            var totalParameter = new AllCalculateFeeParameter();
+            var stoFeeParameter1 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 1000000,
+                ParameterDic = { {"numerator","1"},{"denominator","4"},{"constantValue", "10000"}}
+                
+            };
+            var stoFeeParameter2 = new CalculateFeeParameter
+            {
+                FunctionType = 3,
+                PieceKey = int.MaxValue,
+                ParameterDic =
+                {
+                    {"numerator","1"},{"denominator","64"},{"power","2"},{"changeSpanBase","100"},{"weight","250"},
+                    {"weightBase", "500"}
+                }
+            };
+            totalParameter.AllParameter.Add(stoFeeParameter1);
+            totalParameter.AllParameter.Add(stoFeeParameter2);
+            return totalParameter;
+        }
+        private AllCalculateFeeParameter GetRamFeeParameter()
+        {
+            var totalParameter = new AllCalculateFeeParameter();
+            var ramFeeParameter1 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 10,
+                ParameterDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
+                
+            };
+            var ramFeeParameter2 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 100,
+                ParameterDic = { {"numerator","1"},{"denominator","4"}}
+            };
+            var ramFeeParameter3 = new CalculateFeeParameter
+            {
+                FunctionType = 3,
+                PieceKey = int.MaxValue,
+                ParameterDic =
+                {
+                    {"numerator","1"},{"denominator","4"},{"power","2"},{"changeSpanBase","2"},{"weight","250"},
+                    {"weightBase", "40"}
+                }
+            };
+            totalParameter.AllParameter.Add(ramFeeParameter1);
+            totalParameter.AllParameter.Add(ramFeeParameter2);
+            totalParameter.AllParameter.Add(ramFeeParameter3);
+            return totalParameter;
+        }
+        private AllCalculateFeeParameter GetNetFeeParameter()
+        {
+            var totalParameter = new AllCalculateFeeParameter();
+            var netFeeParameter1 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 1000000,
+                ParameterDic = { {"numerator","1"},{"denominator","64"},{"constantValue","10000"}}
+                
+            };
+            var netFeeParameter2 = new CalculateFeeParameter
+            {
+                FunctionType = 3,
+                PieceKey = int.MaxValue,
+                ParameterDic =
+                {
+                    {"numerator","1"},{"denominator","64"},{"power","2"},{"changeSpanBase","100"},{"weight","250"},
+                    {"weightBase", "500"}
+                }
+            };
+            totalParameter.AllParameter.Add(netFeeParameter1);
+            totalParameter.AllParameter.Add(netFeeParameter2);
+            return totalParameter;
+        }
+        private AllCalculateFeeParameter GetTxFeeParameter()
+        {
+            var totalParameter = new AllCalculateFeeParameter();
+            var txFeeParameter1 = new CalculateFeeParameter
+            {
+                FunctionType = 2,
+                PieceKey = 1000000,
+                ParameterDic = { {"numerator","1"},{"denominator",(16 * 50).ToString()},{"constantValue","10000"}}
+            };
+            var txFeeParameter2 = new CalculateFeeParameter
+            {
+                FunctionType = 3,
+                PieceKey = int.MaxValue,
+                ParameterDic =
+                {
+                    {"numerator","1"},{"denominator",(16 * 50).ToString()},{"power","2"},{"changeSpanBase","100"},{"weight","1"},
+                    {"weightBase", "1"}
+                }
+            };
+            totalParameter.AllParameter.Add(txFeeParameter1);
+            totalParameter.AllParameter.Add(txFeeParameter2);
+            return totalParameter;
+        }
+
         #region ForTests
 
         /*

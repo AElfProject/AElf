@@ -43,7 +43,7 @@ namespace AElf.Contracts.MultiToken
             {
                 From = from,
                 To = to,
-                FromSymbol = symbol,
+                Symbol = symbol,
                 Amount = amount,
                 Memo = memo,
             });

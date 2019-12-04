@@ -7,5 +7,7 @@ namespace AElf.Contracts.MultiToken
     {
         internal MappedState<string, MethodFees> MethodFees { get; set; }
         public Int64State TransactionFeeUnitPrice { get; set; }
+        public MappedState<int, AllCalculateFeeParameter> CalculateCoefficient { get; set; }
+        
     }
 }

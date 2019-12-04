@@ -508,7 +508,7 @@ namespace AElf.Contracts.TokenConverter
             await AuthorizedStub.UpdateConnector.SendAsync(updateConnector);
             var ramConnectorAfter =
                 await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
-            ramConnectorAfter.RelatedSymbol.ShouldBe("change");
+            ramConnectorAfter.RelatedSymbol.ShouldBe(ramConnectorBefore.RelatedSymbol); // can not modify related symbol
         }
 
         [Fact]

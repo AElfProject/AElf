@@ -108,15 +108,14 @@ namespace AElf.Contracts.TokenConverter
             Assert(targetConnector != null, "Can't find target connector.");
             if (!string.IsNullOrEmpty(input.Weight))
             {
-                AssertedDecimal(input.Weight);
-                targetConnector.Weight = input.Weight;
+                var weight = AssertedDecimal(input.Weight);
+                Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
+                targetConnector.Weight = input.Weight.ToString(CultureInfo.InvariantCulture);
             }
             if(input.VirtualBalance > 0)
                 targetConnector.VirtualBalance = input.VirtualBalance;
             targetConnector.IsVirtualBalanceEnabled = input.IsVirtualBalanceEnabled;
             targetConnector.IsPurchaseEnabled = input.IsPurchaseEnabled;
-            if(!string.IsNullOrEmpty(input.RelatedSymbol))
-                targetConnector.RelatedSymbol = input.RelatedSymbol;
             return new Empty();
         }
 
@@ -167,7 +166,7 @@ namespace AElf.Contracts.TokenConverter
             Assert(toConnector != null, "Can't find to connector.");
             Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
-            Assert(toConnector != null, "Can't find from connector.");
+            Assert(fromConnector != null, "Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),

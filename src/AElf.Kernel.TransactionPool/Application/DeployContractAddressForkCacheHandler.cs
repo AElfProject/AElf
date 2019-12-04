@@ -26,4 +26,26 @@ namespace AElf.Kernel.TransactionPool.Application
             return Task.CompletedTask;
         }
     }
+    
+    public class TransactionFeeCalculatorCoefficientForkCacheHandler : IForkCacheHandler, ITransientDependency
+    {
+        private readonly ICalculateFeeService _calculateFeeService;
+
+        public TransactionFeeCalculatorCoefficientForkCacheHandler(ICalculateFeeService calculateFeeService)
+        {
+            _calculateFeeService = calculateFeeService;
+        }
+
+        public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
+        {
+            _calculateFeeService.RemoveForkCache(blockIndexes);
+            return Task.CompletedTask;
+        }
+
+        public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
+        {
+            _calculateFeeService.SetIrreversedCache(blockIndexes);
+            return Task.CompletedTask;
+        }
+    }
 }

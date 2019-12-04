@@ -5,7 +5,9 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
+using Enum = System.Enum;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -509,6 +511,68 @@ namespace AElf.Contracts.MultiToken
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 advancedAmount.Sub(input.Amount);
             return new Empty();
+        }
+        
+        public override Empty UpdateCalculateFeeAlgorithmParameters(CalculateFeeParameter updateInfo)
+        {
+            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
+                {
+                    Parameter = updateInfo,
+                    PreBlockHash = Context.PreviousBlockHash,
+                    BlockHeigh = Context.CurrentHeight
+                }
+            );
+            return new Empty();
+        }
+
+        public override Empty SetCalculateFeeAlgorithmParameters(AllCalculateFeeParameter input)
+        {
+            var allParameter = input.AllParameter;
+            if(!allParameter.Any())
+                return new Empty();
+            var feeType = allParameter.First().FeeType;
+            State.CalculateCoefficient[feeType] = input;
+            return new Empty();
+        }
+
+        private void IntialParameters()
+        {
+            if (State.CalculateCoefficient[(int) FeeType.Cpu] == null)
+                State.CalculateCoefficient[(int) FeeType.Cpu] = GetCpuFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeType.Sto] == null)
+                State.CalculateCoefficient[(int) FeeType.Sto] = GetStoFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeType.Ram] == null)
+                State.CalculateCoefficient[(int) FeeType.Ram] = GetRamFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeType.Net] == null)
+                State.CalculateCoefficient[(int) FeeType.Net] = GetNetFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeType.Tx] == null)
+                State.CalculateCoefficient[(int) FeeType.Tx] = GetTxFeeParameter();
+        }
+
+        public enum FeeType
+        {
+            Tx = 0,
+            Cpu,
+            Sto,
+            Ram,
+            Net
+        }
+
+        public enum AlgorithmOpCode
+        {
+            AddFunc,
+            DeleteFunc,
+            UpdateFunc
+        }
+
+        public enum CalculateFunctionType
+        {
+            Default = 0,
+            Constant,
+            Liner,
+            Power,
+            Ln,
+            Bancor
         }
     }
 }
