@@ -33,7 +33,7 @@ namespace AElf.Kernel.TransactionPool.Application
             foreach (var provider in _transactionValidationProviders)
             {
                 if (await provider.ValidateTransactionAsync(transaction)) continue;
-                Logger.LogDebug(
+                Logger.LogWarning(
                     $"[ValidateTransactionWhileCollectingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                 return false;
             }
@@ -46,7 +46,7 @@ namespace AElf.Kernel.TransactionPool.Application
             foreach (var provider in _transactionValidationProviders)
             {
                 if (!provider.ValidateWhileSyncing || await provider.ValidateTransactionAsync(transaction)) continue;
-                Logger.LogDebug(
+                Logger.LogWarning(
                     $"[ValidateTransactionWhileSyncingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                 return false;
             }
