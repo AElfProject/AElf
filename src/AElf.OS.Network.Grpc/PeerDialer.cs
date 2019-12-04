@@ -214,11 +214,12 @@ namespace AElf.OS.Network.Grpc
             TcpClient client = null;
             try
             {
-
                 client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {
+                    sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
+                    sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
                     sslStream.AuthenticateAsClient(remoteEndpoint.Host);
 
                     if (sslStream.RemoteCertificate == null)
