@@ -192,11 +192,11 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var codeHash in codeHashes)
             {
                 dictionary.TryRemove(codeHash, out var executives);
-                
-                foreach (var exec in executives)
+
+                while (executives.TryTake(out var executive))
                 {
                     Logger.LogDebug($"Unloaded executive for address {address.Value.ToHex()}");
-                    exec.Unload();
+                    executive.Unload();
                 }
             }
         }
