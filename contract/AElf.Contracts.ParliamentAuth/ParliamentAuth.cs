@@ -60,11 +60,6 @@ namespace AElf.Contracts.ParliamentAuth
             };
         }
 
-        public override BoolValue GetProposerAuthorityRequiredValue(Empty input)
-        {
-            return new BoolValue {Value = State.ProposerAuthorityRequired.Value};
-        }
-
         public override BoolValue ValidateOrganizationExist(Address input)
         {
             return new BoolValue {Value = State.Organisations[input] != null};

@@ -66,17 +66,25 @@ namespace AElf.Contracts.Genesis
         
         private bool ValidateProposer(Address address)
         {
+            if (!State.ContractProposerAuthorityRequired.Value)
+                return true;
             var proposerWhiteListContext = GetProposerWhiteListContext();
-            if (proposerWhiteListContext.ProposerAuthorityRequired)
-                return proposerWhiteListContext.Proposers.Any(p => p == address);
-
-            return proposerWhiteListContext.Proposers.Count != 0 || CheckAddressIsParliamentMember(address);
+            return proposerWhiteListContext.ProposerAuthorityRequired
+                ? proposerWhiteListContext.Proposers.Any(p => p == address)
+                : CheckAddressIsParliamentMember(address);
         }
 
         private bool CheckAddressIsParliamentMember(Address address)
         {
             RequireParliamentAuthAddressSet();
             return State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(address).Value;
+        }
+
+        private bool CheckProposerInWhiteList(Address address)
+        {
+            var proposerWhiteListContext = GetProposerWhiteListContext();
+            return proposerWhiteListContext.ProposerAuthorityRequired &&
+                   proposerWhiteListContext.Proposers.Any(p => p == address);
         }
         
         private GetProposerWhiteListContextOutput GetProposerWhiteListContext()
@@ -109,14 +117,12 @@ namespace AElf.Contracts.Genesis
 
         private Address DecideContractAuthor()
         {
-            if (!State.Initialized.Value || !State.ContractDeploymentAuthorityRequired.Value)
+            if (!State.Initialized.Value // if not initialized
+                || !State.ContractProposerAuthorityRequired.Value // of if proposer authority not required
+                || CheckProposerInWhiteList(Context.Origin) // or if proposer in whitelist
+            )
                 return Context.Origin;
-            var proposerWhiteListContext = GetProposerWhiteListContext();
-            if (!proposerWhiteListContext.ProposerAuthorityRequired && proposerWhiteListContext.Proposers.Count > 0)
-                return Context.Origin;
-            if (proposerWhiteListContext.ProposerAuthorityRequired 
-                && proposerWhiteListContext.Proposers.Any(p => p == Context.Origin))
-                return Context.Origin;
+
             return State.GenesisOwner.Value;
         }
     }

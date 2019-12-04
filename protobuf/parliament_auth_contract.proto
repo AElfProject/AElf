@@ -29,9 +29,6 @@ service ParliamentAuthContract {
     }
     rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
         option (aelf.is_view) = true;
-    }    
-    rpc GetProposerAuthorityRequiredValue(google.protobuf.Empty) returns (google.protobuf.BoolValue){
-        option (aelf.is_view) = true;
     }
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;

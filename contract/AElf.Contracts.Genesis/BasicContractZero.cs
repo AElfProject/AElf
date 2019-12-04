@@ -329,6 +329,15 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
+        public override Empty SetContractProposerRequiredState(BoolValue input)
+        {
+            Assert(!State.Initialized.Value, "Genesis contract already initialized.");
+            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+            Assert(Context.Sender.Equals(address), "Unauthorized to set genesis contract state.");
+            State.ContractProposerAuthorityRequired.Value = input.Value;
+            return new Empty();
+        }
+
         #endregion Actions
     }
 }

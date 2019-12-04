@@ -23,6 +23,8 @@ namespace AElf.Contracts.Genesis
         
         public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; } 
         
+        public SingletonState<bool> ContractProposerAuthorityRequired { get; set; } 
+        
         public SingletonState<bool> Initialized { get; set; }
 
         public SingletonState<AddressList> DeployedContractAddressList { get; set; }
