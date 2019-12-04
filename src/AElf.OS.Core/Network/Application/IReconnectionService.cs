@@ -5,7 +5,6 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.Cms;
 
 namespace AElf.OS.Network.Application
 {
