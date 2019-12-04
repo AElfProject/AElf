@@ -5,6 +5,7 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace AElf.OS.Network.Application
 {
@@ -13,6 +14,7 @@ namespace AElf.OS.Network.Application
         bool SchedulePeerForReconnection(string endpoint);
         bool CancelReconnection(string endpoint);
         List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime);
+        ReconnectingPeer GetReconnectingPeer(string endpoint);
     }
 
     public class ReconnectionService : IReconnectionService
@@ -32,6 +34,11 @@ namespace AElf.OS.Network.Application
         public List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime)
         {
             return _reconnectionStateProvider.GetPeersReadyForReconnection(maxTime);
+        }
+
+        public ReconnectingPeer GetReconnectingPeer(string endpoint)
+        {
+            return _reconnectionStateProvider.GetReconnectingPeer(endpoint);
         }
 
         public bool SchedulePeerForReconnection(string endpoint)

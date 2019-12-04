@@ -5,6 +5,7 @@ using AElf.OS.Network.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Crypto.Engines;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -15,16 +16,18 @@ namespace AElf.OS.Worker
     {
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly INetworkService _networkService;
+        private readonly IReconnectionService _reconnectionService;
 
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
         public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
-            INetworkService networkService) : base(timer)
+            INetworkService networkService, IReconnectionService reconnectionService) : base(timer)
         {
             _peerDiscoveryService = peerDiscoveryService;
             Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
 
             _networkService = networkService;
+            _reconnectionService = reconnectionService;
 
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
         }
@@ -50,19 +53,26 @@ namespace AElf.OS.Worker
             {
                 try
                 {
+                    var reconnectingPeer = _reconnectionService.GetReconnectingPeer(node.Endpoint);
+
+                    if (reconnectingPeer != null)
+                    {
+                        Logger.LogDebug($"Peer {node.Endpoint} is already in the reconnection queue.");
+                        continue;
+                    }
+                    
                     if (_networkService.IsPeerPoolFull())
                     {
                         Logger.LogDebug("Peer pool is full, aborting add.");
                         break;
                     }
+                    
+                    await _networkService.AddPeerAsync(node.Endpoint);
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e, "Exception in discovery worker.");
-                    continue;
+                    Logger.LogError(e, $"Exception connecting to {node.Endpoint}.");
                 }
-
-                await _networkService.AddPeerAsync(node.Endpoint);
             }
         }
     }

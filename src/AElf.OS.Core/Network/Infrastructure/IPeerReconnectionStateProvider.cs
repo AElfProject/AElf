@@ -18,6 +18,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool AddReconnectingPeer(string peerEndpoint, ReconnectingPeer reconnectingPeer);
         List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime);
+        ReconnectingPeer GetReconnectingPeer(string peerEndpoint);
         bool RemoveReconnectionPeer(string peerEndpoint);
     }
 
@@ -38,6 +39,12 @@ namespace AElf.OS.Network.Infrastructure
         public bool RemoveReconnectionPeer(string peerEndpoint)
         {
             return _reconnectingPeers.TryRemove(peerEndpoint, out _);
+        }
+
+        public ReconnectingPeer GetReconnectingPeer(string peerEndpoint)
+        {
+            _reconnectingPeers.TryGetValue(peerEndpoint, out var reconnectingPeer);
+            return reconnectingPeer;
         }
 
         public List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime)

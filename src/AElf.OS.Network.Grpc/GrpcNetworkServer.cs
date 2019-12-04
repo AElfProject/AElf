@@ -9,6 +9,7 @@ using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -47,6 +48,9 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
+            GrpcEnvironment.SetLogger(new ConsoleLogger());
+            
             await StartListeningAsync();
             await DialBootNodesAsync();
 
