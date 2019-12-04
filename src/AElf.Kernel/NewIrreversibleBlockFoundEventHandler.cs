@@ -17,7 +17,6 @@ namespace AElf.Kernel
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
@@ -26,7 +25,6 @@ namespace AElf.Kernel
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
-            ISmartContractExecutiveService smartContractExecutiveService,
             ITransactionBlockIndexService transactionBlockIndexService, 
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService)
@@ -34,7 +32,6 @@ namespace AElf.Kernel
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
-            _smartContractExecutiveService = smartContractExecutiveService;
             _transactionBlockIndexService = transactionBlockIndexService;
             _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
@@ -81,9 +78,6 @@ namespace AElf.Kernel
                 
                 // Clean transaction block index cache
                 await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(irreversibleBlockHeight);
-                
-                // Clean up long unused executive
-                _smartContractExecutiveService.ClearExecutive();
             }, KernelConstants.ChainCleaningQueueName);
         }
     }
