@@ -173,7 +173,7 @@ namespace AElf.OS.Network.Grpc.Connection
             currentPeer.IsConnected = true;
             currentPeer.SyncState = SyncState.Syncing;
             
-            Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
+            Logger.LogInformation($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {currentPeer.LastKnownLibHeight}" +
                               $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");

@@ -53,10 +53,10 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Peer {context.Peer} has requested a handshake.");
-            
-                if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
-                    return new HandshakeReply { Error = HandshakeError.InvalidConnection};
-            
+
+                if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+                    return new HandshakeReply {Error = HandshakeError.InvalidConnection};
+
                 return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
             }
             catch (Exception e)
@@ -87,20 +87,22 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> BlockBroadcastStream(
             IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
         {
-            Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
-            
+            Logger.LogTrace($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
+
             try
             {
                 var peerPubkey = context.GetPublicKey();
                 var peer = _connectionService.GetPeerByPubkey(peerPubkey);
-                
+
                 if (peer.SyncState != SyncState.Finished)
                 {
                     peer.SyncState = SyncState.Finished;
                 }
-                
+
                 await requestStream.ForEachAsync(block =>
                 {
+                    Logger.LogDebug(
+                        $"Received full block announce, block: {block} from {context.GetPeerInfo()}.");
                     peer.TryAddKnownBlock(block.GetHash());
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
 
@@ -112,7 +114,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, $"Block stream error - {context.GetPeerInfo()}: ");
                 throw;
             }
-            
+
             Logger.LogTrace($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
@@ -121,7 +123,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> AnnouncementBroadcastStream(
             IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogDebug($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -146,7 +148,8 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             }
 
-            Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
+            Logger.LogDebug(
+                $"Received announce, block hash: {announcement.BlockHash}, block height: {announcement.BlockHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
             peer.TryAddKnownBlock(announcement.BlockHash);
@@ -164,7 +167,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream,
             ServerCallContext context)
         {
-            Logger.LogDebug($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogTrace($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -207,17 +210,18 @@ namespace AElf.OS.Network.Grpc
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return;
-            
+
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
             peer.TryAddKnownTransaction(tx.GetHash());
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
-        
-        public override async Task<VoidReply> LibAnnouncementBroadcastStream(IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
+
+        public override async Task<VoidReply> LibAnnouncementBroadcastStream(
+            IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogDebug($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
-            
+            Logger.LogTrace($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+
             try
             {
                 await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
@@ -328,7 +332,8 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+                var blocks =
+                    await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
 
                 if (blocks == null)
                     return blockList;
@@ -341,8 +346,9 @@ namespace AElf.OS.Network.Grpc
                         {new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
                     await context.WriteResponseHeadersAsync(headers);
                 }
-                
-                Logger.LogTrace($"Replied to {context.GetPeerInfo()} with {blockList.Blocks.Count}, request was {request}");
+
+                Logger.LogTrace(
+                    $"Replied to {context.GetPeerInfo()} with {blockList.Blocks.Count}, request was {request}");
             }
             catch (Exception e)
             {
