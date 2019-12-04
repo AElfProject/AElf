@@ -60,8 +60,8 @@ namespace AElf.OS.Network.Grpc
             while (!_expiryHashQueue.IsEmpty && _expiryHashQueue.TryPeek(out var queuedHash)
                                              && queuedHash.EnqueueTime.AddMilliseconds(_timeout) < TimestampHelper.GetUtcNow())
             {
-                if (_hashLookup.TryRemove(queuedHash.ItemHash, out _))
-                    _expiryHashQueue.TryDequeue(out _);
+                _expiryHashQueue.TryDequeue(out _);
+                _hashLookup.TryRemove(queuedHash.ItemHash, out _);
             }
         }
     }
