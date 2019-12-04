@@ -8,6 +8,8 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -27,7 +29,7 @@ namespace AElf.Kernel.SmartContract.Application
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
-    public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider,ISingletonDependency
+    public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
     {
         private readonly ConcurrentDictionary<Address, SmartContractRegistrationCache>
             _addressSmartContractRegistrationMappingCache =
@@ -50,7 +52,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly IBlockchainService _blockchainService;
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-
+        
+        public ILogger<SmartContractExecutiveProvider> Logger { get; set; }
 
         public SmartContractExecutiveProvider(IDeployedContractAddressProvider deployedContractAddressProvider,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -64,6 +67,8 @@ namespace AElf.Kernel.SmartContract.Application
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _chainBlockLinkService = chainBlockLinkService;
             _blockchainService = blockchainService;
+            
+            Logger = new NullLogger<SmartContractExecutiveProvider>();
         }
         
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
@@ -166,18 +171,33 @@ namespace AElf.Kernel.SmartContract.Application
                 if (dictionary.TryGetValue(executive.ContractHash, out var pool))
                 {
                     pool.Add(executive);
+                    return;
                 }
+                
+                Logger.LogDebug($"Lost an executive (no registration {address})");
             }
+            else
+            {
+                Logger.LogDebug($"Lost an executive (no pool {address})");
+            }
+            
+            executive.Unload();
 
             await Task.CompletedTask;
         }
 
-        private void ClearExecutives(Address address,IEnumerable<Hash> codeHashes)
+        private void ClearExecutives(Address address, IEnumerable<Hash> codeHashes)
         {
             if (!_executivePools.TryGetValue(address, out var dictionary)) return;
             foreach (var codeHash in codeHashes)
             {
-                dictionary.TryRemove(codeHash, out _);
+                dictionary.TryRemove(codeHash, out var executives);
+                
+                foreach (var exec in executives)
+                {
+                    Logger.LogDebug($"Unloaded executive for address {address.Value.ToHex()}");
+                    exec.Unload();
+                }
             }
         }
 
