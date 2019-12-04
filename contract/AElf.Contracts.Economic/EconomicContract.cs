@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic
                         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
                         Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
                     },
-                    IsBurnable = true // TODO: TBD,
+                    IsBurnable = true
                 });
                 
                 State.TokenContract.Issue.Send(new IssueInput
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Economic
         {
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            return State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
+            return State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()

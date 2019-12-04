@@ -2,13 +2,12 @@
 
 When writing a smart contract in AElf the first thing that need to be done is to define it so it can then be generate by our tools. AElf contracts are defined as services that are currently defined and generated with gRPC and protobuf.
 
-As an example, here is part of the definition of our multitoken contract. Each functionality will be explained more in detail in their respective sections. Note that for simplicity, the contract has been simplified to show only the essential.
+As an example, here is part of the definition of our multi-token contract. Each functionality will be explained more in detail in their respective sections. Note that for simplicity, the contract has been simplified to show only the essential.
 
 ```json
 syntax = "proto3";
 
 package token;
-import "common.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {

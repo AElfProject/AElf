@@ -24,6 +24,7 @@ using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -56,8 +57,7 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule),
-        typeof(TransactionExecutingDependencyTestModule)
+        typeof(CSharpRuntimeAElfModule)
     )]
     public class ContractTestModule : AbpModule
     {
@@ -70,6 +70,8 @@ namespace AElf.Contracts.TestKit
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
             });
+
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
 
             #region Infra
 
@@ -129,6 +131,7 @@ namespace AElf.Contracts.TestKit
                 });
 
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
         }
 
         public int ChainId { get; } = 500;
@@ -137,7 +140,7 @@ namespace AElf.Contracts.TestKit
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
-                .SetKeyPair(CryptoHelper.GenerateKeyPair());
+                .SetKeyPair(SampleECKeyPairs.KeyPairs[0]);
 
             var dto = new OsBlockchainNodeContextStartDto
             {

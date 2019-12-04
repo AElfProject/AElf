@@ -101,7 +101,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0)
+            int parentChainId = 0, bool withException = false)
         {
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
@@ -110,13 +110,13 @@ namespace AElf.Contracts.CrossChain.Tests
                     ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
                     CreationHeightOnParentChain = parentChainHeightOfCreation
                 })
-            });
+            }, withException);
         }
 
         protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0, long lockedTokenAmount = 10)
+            int parentChainId = 0, long lockedTokenAmount = 10, bool withException = false)
         {
-            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
+            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId, withException);
             await ApproveBalanceAsync(lockedTokenAmount);
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             await ApproveWithMinersAsync(proposalId);
@@ -187,7 +187,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "CreateSideChain",
@@ -204,6 +204,12 @@ namespace AElf.Contracts.CrossChain.Tests
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
             var transaction = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
+            return transaction.TransactionResult;
+        }
+        
+        protected async Task<TransactionResult> ReleaseProposalWithExceptionAsync(Hash proposalId)
+        {
+            var transaction = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
             return transaction.TransactionResult;
         }
 
@@ -242,7 +248,7 @@ namespace AElf.Contracts.CrossChain.Tests
         internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
         {
             var disposalInput = chainId;
-            var organizationAddress = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "DisposeSideChain",

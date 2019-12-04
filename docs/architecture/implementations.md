@@ -12,7 +12,7 @@ The OS layer implements the application and infrastructure layer for the network
 
 ### Kernel
 
-The kernel contains the smart contract and execution primitives and definitions. The kernel also defines the components necessary for accessing the blockchains data. Various managers will use the storage layer to access the underlying database.
+The kernel contains the smart contract and execution primitives and definitions. The kernel also defines the components necessary for accessing the blockchain's data. Various managers will use the storage layer to access the underlying database.
 
 The kernel also defines the notion of plugins. The diagram show that the side chain modules are implemented as plugins.
 
@@ -22,9 +22,9 @@ To help follow AElf’s structure this section will present you with an overview
 
 Conceptually, AElf is built on two main layers: OS and Kernel. The OS contains the high level definition for a node and the endpoints like RPC and p2p, whereas the kernel mainly contains logic and definitions for smart contracts and consensus. 
 
-AElf has a native runtime for smart contracts which is implemented in C# and for contracts written in C#. The implementation is the aelf.Runtime.Csharp.* projects.
+AElf has a native runtime for smart contracts which is implemented in C# and for contracts written in C#. The implementation is the AElf.Runtime.CSharp.* projects.
 
-A big part of AElf is the side chain framework. It is mainly implemented in the AElf.CrossChain namespace and defines the main abstractions in the **core** project and an implementation with grpc in the AElf.Crosschain.Grpc project.
+A big part of AElf is the side chain framework. It is mainly implemented in the AElf.CrossChain namespace and defines the main abstractions in the **core** project and an implementation with grpc in the AElf.Crosschain.Communication.Grpc project.
 
 The AElf.Test solution folder contains all the tests, coverage of the main functional aspects must be at a maximum to ensure the quality of our system.
 

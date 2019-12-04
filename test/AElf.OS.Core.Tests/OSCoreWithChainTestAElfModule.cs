@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
@@ -24,12 +26,14 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
                 mockService.Setup(s =>
-                        s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(new List<Transaction>());
+                        s.GenerateSystemTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                    .Returns(Task.FromResult(new List<Transaction>()));
                 return mockService.Object;
             });
 
@@ -55,6 +59,7 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
             context.Services.AddSingleton<ITxHub, MockTxHub>();
+            context.Services.AddTransient<IDeployedContractAddressService, DeployedContractAddressService>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

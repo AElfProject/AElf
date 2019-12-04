@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;

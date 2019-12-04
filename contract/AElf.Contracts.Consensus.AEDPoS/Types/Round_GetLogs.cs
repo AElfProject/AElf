@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using System.Text;
+using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -8,10 +8,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private string GetLogs(string publicKey)
         {
-            var logs = new StringBuilder($"\n[Round {RoundNumber}](Round Id: {RoundId})[Term {TermNumber}]");
+            var logs = $"\n[Round {RoundNumber}](Round Id: {RoundId})[Term {TermNumber}]";
             foreach (var minerInRound in RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                var minerInformation = new StringBuilder("\n");
+                var minerInformation = "\n";
                 minerInformation.Append($"[{minerInRound.Pubkey.Substring(0, 10)}]");
                 minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
                 minerInformation.AppendLine(minerInRound.Pubkey == publicKey
@@ -43,14 +43,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
                 minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation.AppendLine($"Tiny:\t {minerInRound.ProducedTinyBlocks}");
+                minerInformation.AppendLine($"Tiny:\t {minerInRound.ActualMiningTimes?.Count ?? 0}");
                 minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
                 minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
 
                 logs.Append(minerInformation);
             }
 
-            return logs.ToString();
+            return logs;
         }
 
         public string ToString(string format, IFormatProvider formatProvider = null)

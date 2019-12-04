@@ -15,6 +15,12 @@ service ACS0 {
     }
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
+    rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {
+    }
+    rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {
+    }
+    rpc ReleaseApprovedContract (ReleaseApprovedContractInput) returns (google.protobuf.Empty) {
+    }
     rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
@@ -88,7 +94,7 @@ message ChangeContractAuthorInput {
 }
 
 message InitializeInput{
-    bool contractDeploymentAuthorityRequired = 1;
+    bool contract_deployment_authority_required = 1;
 }
 
 // Events
@@ -98,6 +104,13 @@ message ContractDeployed
     aelf.Address creator = 1 [(aelf.is_indexed) = true];
     aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
+}
+
+message CodeCheckRequired
+{
+    option (aelf.is_event) = true;
+    bytes code = 1;
+    aelf.Hash proposed_contract_input_hash = 2;
 }
 
 message CodeUpdated
@@ -119,4 +132,9 @@ message AuthorChanged
 message ValidateSystemContractAddressInput{
     aelf.Hash system_contract_hash_name = 1;
     aelf.Address address = 2;
+}
+
+message ReleaseApprovedContractInput{
+    aelf.Hash proposal_id = 1;
+    aelf.Hash proposed_contract_input_hash = 2;
 }

@@ -5,7 +5,7 @@ The consensus protocol is split into two parts: election and scheduling. Electio
 
 ### Timeline:
 
-During the history of block production time is divided into **terms**, **rounds** and **timeslots**. A **term** is the largest of the time chunks, it corresponds to a potential change in block producers. The **round** corresponds to a shuffling in the order the producers produce. Finally a timeslot is the smallest unit of time, it refers to the time in which a producer should - according to the schedule - produce a block.
+During the history of block production time is divided into **terms**, **rounds** and **timeslots**. A **term** is the largest of the time chunks, it corresponds to a potential change in block producers. The **round** corresponds to a shuffling in the order the producers produce. Finally a time slot is the smallest unit of time, it refers to the time in which a producer should - according to the schedule - produce a block.
 
 ### Election (terms):
 

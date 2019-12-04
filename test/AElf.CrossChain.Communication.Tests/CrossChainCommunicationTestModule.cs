@@ -8,6 +8,7 @@ using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -36,11 +37,9 @@ namespace AElf.CrossChain.Communication
 
             Configure<GrpcCrossChainConfigOption>(option =>
             {
-                option.ListeningHost = "127.0.0.1";
-                option.LocalServerPort = 5001;
-                option.LocalServerHost = "127.0.0.1";
-                option.RemoteParentChainServerHost = "127.0.0.1";
-                option.RemoteParentChainServerPort = 5000;
+                option.ListeningPort = 5001;
+                option.ParentChainServerIp = "127.0.0.1";
+                option.ParentChainServerPort = 5000;
             });
 
             Configure<CrossChainConfigOptions>(option =>
@@ -90,8 +89,7 @@ namespace AElf.CrossChain.Communication
                         {
                             var crossExtraData = new CrossChainExtraData
                             {
-                                SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot"),
-                                SideChainTransactionsRoot = Hash.FromString("SideChainTransactionsRoot")
+                                TransactionStatusMerkleTreeRoot = Hash.FromString("SideChainBlockHeadersRoot"),
                             };
                             return ByteString.CopyFrom(crossExtraData.ToByteArray());
                         });
@@ -112,7 +110,7 @@ namespace AElf.CrossChain.Communication
                                 new SideChainBlockData
                                 {
                                     ChainId = 123, Height = 1,
-                                    TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                    TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
                                 }
                             }
                         };
@@ -129,7 +127,7 @@ namespace AElf.CrossChain.Communication
                                     new SideChainBlockData
                                     {
                                         ChainId = 123, Height = 1,
-                                        TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                        TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
                                     }
                                 }
                             };
@@ -167,6 +165,12 @@ namespace AElf.CrossChain.Communication
             });
 
             context.Services.AddSingleton<CrossChainPlugin>();
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IDeployedContractAddressService>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

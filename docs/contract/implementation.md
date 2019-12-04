@@ -19,7 +19,7 @@ service TokenContract {
 }
 ```
 
-When inputing this to our protobuf plugin it will generate the corresponding C# classes. Note that this guide will use C# as an example, but the message and service definitions can be used to generate code in many different languages. The plugin will produce a base class that is destined to be overriden by the contract writer to implement the necessary logic. 
+When inputting this to our protobuf plugin it will generate the corresponding C# classes. Note that this guide will use C# as an example, but the message and service definitions can be used to generate code in many different languages. The plugin will produce a base class that is destined to be overridden by the contract writer to implement the necessary logic. 
 
 So in our example, it will generate a base class the we can override with our own logic:
 
@@ -39,7 +39,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 }
 ```
 
-The **TokenContractImplContainer.TokenContractImplBase** class is the generated class that contains unimplement methods that correspond those defined in the proto file. You'll also find that the messages that where defined are also accessible like **CreateInput**.
+The **TokenContractImplContainer.TokenContractImplBase** class is the generated class that contains non implemented methods that correspond to those defined in the proto file. You'll also find that the messages that where defined are also accessible like **CreateInput**.
 
 #### Using contract state
 
@@ -49,7 +49,7 @@ The following option, presented previously, defines which type the contract will
 option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
 ```
 
-This class needs to be created by the implementor of the smart contract and has to inherite the **ContractState** class of the C# SDK.
+This class needs to be created by the implementor of the smart contract and has to inherit the **ContractState** class of the C# SDK.
 
 ```csharp
 public class TokenContractState : ContractState

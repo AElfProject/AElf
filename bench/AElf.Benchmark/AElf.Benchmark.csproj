@@ -4,11 +4,12 @@
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <NoWarn>0436</NoWarn>
+        <OutputType>Exe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
-        <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.0" />
+        <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.5" />
     </ItemGroup>
 
     <ItemGroup>

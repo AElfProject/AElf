@@ -12,6 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -23,19 +24,22 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly ContractOptions _contractOptions;
         public ILogger<LocalTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
+            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot
         )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
+            _contractOptions = contractOptionsSnapshot.Value;
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -53,6 +57,7 @@ namespace AElf.Kernel.SmartContract.Application
                     transactionExecutingDto.BlockHeader.PreviousBlockHash,
                     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
+                var transactionResults = new List<TransactionResult>();
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
@@ -69,24 +74,21 @@ namespace AElf.Kernel.SmartContract.Application
                     };
                     try
                     {
-                        var task = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
+                        var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
-                        trace = await task.WithCancellation(cancellationToken);
+                        
+                        trace = await transactionExecutionTask.WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        Logger.LogTrace($"transaction canceled");
-                        break;
+                        Logger.LogTrace("Transaction canceled.");
+                        if (cancellationToken.IsCancellationRequested)
+                            break;
+                        continue;
                     }
                     
                     if (trace == null)
                         break;
-                    // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
-                    /*
-                    Logger.LogTrace(transaction.MethodName);
-                    Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().ComputeHash().ToHex())
-                        .JoinAsString("\n"));
-                    */
 
                     if (!trace.IsSuccessful())
                     {
@@ -130,14 +132,15 @@ namespace AElf.Kernel.SmartContract.Application
                     if (result != null)
                     {
                         result.TransactionFee = trace.TransactionFee;
-                        await _transactionResultService.AddTransactionResultAsync(result,
-                            transactionExecutingDto.BlockHeader);
+                        transactionResults.Add(result);
                     }
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
                 }
 
+                await _transactionResultService.AddTransactionResultsAsync(transactionResults,
+                    transactionExecutingDto.BlockHeader);
                 return returnSets;
             }
             catch (Exception e)
@@ -150,14 +153,15 @@ namespace AElf.Kernel.SmartContract.Application
         private static bool IsTransactionCanceled(TransactionTrace trace)
         {
             return trace.ExecutionStatus == ExecutionStatus.Canceled ||
-                   trace.InlineTraces.ToList().Any(IsTransactionCanceled);
+                   trace.PreTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled) ||
+                   trace.PostTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled);
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
             CancellationToken cancellationToken)
         {
-            var validationResult = ValidateCancellationRequest(singleTxExecutingDto, cancellationToken.IsCancellationRequested);
-            if (validationResult != null) return validationResult;
+            if (singleTxExecutingDto.IsCancellable)
+                cancellationToken.ThrowIfCancellationRequested();
 
             var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
 
@@ -187,6 +191,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
+                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
                         return trace;
                     }
                 }
@@ -195,8 +200,10 @@ namespace AElf.Kernel.SmartContract.Application
 
                 await executive.ApplyAsync(txContext);
 
-                await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime, txContext, internalStateCache,
-                    internalChainContext, cancellationToken);
+                if (txContext.Trace.IsSuccessful())
+                    await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
+                        txContext, internalStateCache,
+                        internalChainContext, cancellationToken);
 
                 #region PostTransaction
 
@@ -205,6 +212,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
+                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
                         return trace;
                     }
                 }
@@ -221,10 +229,12 @@ namespace AElf.Kernel.SmartContract.Application
             finally
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.Transaction.To, executive);
+#if DEBUG                
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
                     TransactionTrace = trace
                 });
+#endif
             }
 
             return trace;
@@ -235,42 +245,30 @@ namespace AElf.Kernel.SmartContract.Application
             IChainContext internalChainContext, CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
-            if (txContext.Trace.IsSuccessful())
+            internalStateCache.Update(txContext.Trace.GetStateSets());
+            foreach (var inlineTx in txContext.Trace.InlineTransactions)
             {
-                internalStateCache.Update(txContext.Trace.GetStateSets());
-                foreach (var inlineTx in txContext.Trace.InlineTransactions)
+                var singleTxExecutingDto = new SingleTransactionExecutingDto
                 {
-                    TransactionTrace inlineTrace;
-                    try
-                    {
-                        var singleTxExecutingDto = new SingleTransactionExecutingDto
-                        {
-                            Depth = depth + 1,
-                            ChainContext = internalChainContext,
-                            Transaction = inlineTx,
-                            CurrentBlockTime = currentBlockTime,
-                            Origin = txContext.Origin
-                        };
-                        inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken).WithCancellation(cancellationToken);    
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Logger.LogTrace("execute transaction timeout");
-                        break;
-                    }
-
-                    if (inlineTrace == null)
-                        break;
-                    trace.InlineTraces.Add(inlineTrace);
-                    if (!inlineTrace.IsSuccessful())
-                    {
-                        Logger.LogError($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
-                        // Already failed, no need to execute remaining inline transactions
-                        break;
-                    }
-
-                    internalStateCache.Update(inlineTrace.GetStateSets());
+                    Depth = depth + 1,
+                    ChainContext = internalChainContext,
+                    Transaction = inlineTx,
+                    CurrentBlockTime = currentBlockTime,
+                    Origin = txContext.Origin
+                };
+                var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
+                
+                if (inlineTrace == null)
+                    break;
+                trace.InlineTraces.Add(inlineTrace);
+                if (!inlineTrace.IsSuccessful())
+                {
+                    Logger.LogWarning($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
+                    // Already failed, no need to execute remaining inline transactions
+                    break;
                 }
+
+                internalStateCache.Update(inlineTrace.GetStateSets());
             }
         }
 
@@ -287,25 +285,14 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var preTx in transactions)
                 {
-                    TransactionTrace preTrace;
-                    try
+                    var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        var singleTxExecutingDto = new SingleTransactionExecutingDto
-                        {
-                            Depth = 0,
-                            ChainContext = internalChainContext,
-                            Transaction = preTx,
-                            CurrentBlockTime = currentBlockTime
-                        };
-                        preTrace = await ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken).WithCancellation(cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Logger.LogTrace("execute transaction timeout");
-                        return false;
-                    }
-
+                        Depth = 0,
+                        ChainContext = internalChainContext,
+                        Transaction = preTx,
+                        CurrentBlockTime = currentBlockTime
+                    };
+                    var preTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
                     if (preTrace == null)
                         return false;
                     trace.PreTransactions.Add(preTx);
@@ -316,13 +303,9 @@ namespace AElf.Kernel.SmartContract.Application
                         txFee.MergeFrom(preTrace.ReturnValue);
                         trace.TransactionFee = txFee;
                     }
+                    
                     if (!preTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = IsTransactionCanceled(preTrace)
-                            ? ExecutionStatus.Canceled
-                            : ExecutionStatus.Prefailed;
-                        preTrace.SurfaceUpError();
-                        trace.Error += preTrace.Error;
                         return false;
                     }
 
@@ -355,40 +338,27 @@ namespace AElf.Kernel.SmartContract.Application
 
                 internalChainContext.StateCache = internalStateCache;
             }
+            
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var postTx in transactions)
                 {
-                    TransactionTrace postTrace;
-                    try
+                    var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        var singleTxExecutingDto = new SingleTransactionExecutingDto
-                        {
-                            Depth = 0,
-                            ChainContext = internalChainContext,
-                            Transaction = postTx,
-                            CurrentBlockTime = currentBlockTime,
-                            IsCancellable = false
-                        };
-                        postTrace = await ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken).WithCancellation(cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Logger.LogTrace("execute transaction timeout");
-                        return false;
-                    }
-
+                        Depth = 0,
+                        ChainContext = internalChainContext,
+                        Transaction = postTx,
+                        CurrentBlockTime = currentBlockTime
+                    };
+                    var postTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
+                    
                     if (postTrace == null)
                         return false;
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
-                        postTrace.SurfaceUpError();
-                        trace.Error += postTrace.Error;
                         return false;
                     }
 
@@ -497,6 +467,7 @@ namespace AElf.Kernel.SmartContract.Application
                     returnSet.StateChanges[write.Key] = write.Value;
                     returnSet.StateDeletes.Remove(write.Key);
                 }
+                
                 foreach (var delete in transactionExecutingStateSet.Deletes)
                 {
                     returnSet.StateDeletes[delete.Key] = delete.Value;
@@ -517,22 +488,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
-        }
-
-        private TransactionTrace ValidateCancellationRequest(SingleTransactionExecutingDto singleTxExecutingDto,
-            bool isCancellationRequested)
-        {
-            if (singleTxExecutingDto.IsCancellable && isCancellationRequested)
-            {
-                return new TransactionTrace
-                {
-                    TransactionId = singleTxExecutingDto.Transaction.GetHash(),
-                    ExecutionStatus = ExecutionStatus.Canceled,
-                    Error = "Execution cancelled"
-                };
-            }
-
-            return null;
         }
 
         private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,

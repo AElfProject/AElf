@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 
         public async Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<Chain>(new System.NotImplementedException());
         }
 
         public Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
@@ -33,59 +33,64 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             return Task.FromResult(_data.Where(d => transactionHashes.Contains(d.GetHash())).ToList());
         }
 
-        public async Task AddBlockAsync(Block block)
+        public Task<bool> HasTransactionAsync(Hash transactionId)
         {
             throw new System.NotImplementedException();
+        }
+
+        public async Task AddBlockAsync(Block block)
+        {
+            await Task.FromException(new System.NotImplementedException());
         }
 
         public async Task<bool> HasBlockAsync(Hash blockId)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<bool>(new System.NotImplementedException());
         }
 
         public async Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<Block>(new System.NotImplementedException());
         }
 
         public async Task<BlockHeader> GetBlockHeaderByHashAsync(Hash blockId)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<BlockHeader>(new System.NotImplementedException());
         }
 
         public async Task<Chain> GetChainAsync()
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<Chain>(new System.NotImplementedException());
         }
 
         public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<List<IBlockIndex>>(new System.NotImplementedException());
         }
 
         public async Task<List<Hash>> GetBlockHashesAsync(Chain chain, Hash firstHash, int count, Hash chainBranchBlockHash = null)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<List<Hash>>(new System.NotImplementedException());
         }
 
         public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<Hash>(new System.NotImplementedException());
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block)
         {
-            throw new System.NotImplementedException();
+            return await Task.FromException<BlockAttachOperationStatus>(new System.NotImplementedException());
         }
 
         public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
         {
-            throw new System.NotImplementedException();
+            await Task.FromException(new System.NotImplementedException());
         }
 
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash)
         {
-            throw new System.NotImplementedException();
+            await Task.FromException(new System.NotImplementedException());
         }
 
         public Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain)

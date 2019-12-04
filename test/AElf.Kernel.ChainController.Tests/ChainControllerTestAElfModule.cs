@@ -5,6 +5,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -12,8 +13,8 @@ namespace AElf.Kernel.ChainController
 {
     [DependsOn(
         typeof(ChainControllerAElfModule),
-        typeof(KernelCoreTestAElfModule),
-        typeof(TransactionExecutingDependencyTestModule))]
+        typeof(KernelCoreTestAElfModule)
+        )]
     public class ChainControllerTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -23,6 +24,7 @@ namespace AElf.Kernel.ChainController
             services.AddTransient<ChainCreationService>();
             services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
             services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
+            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
         }
     }
     

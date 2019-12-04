@@ -105,7 +105,7 @@ namespace AElf.Contracts.Genesis
         {
             //without permission
             {
-                var changeResult = await DefaultTester.ChangeGenesisOwner.SendAsync(AnotherUser);
+                var changeResult = await DefaultTester.ChangeGenesisOwner.SendWithExceptionAsync(AnotherUser);
                 changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 changeResult.TransactionResult.Error.ShouldContain("Unauthorized to initialize");
             }
@@ -116,14 +116,14 @@ namespace AElf.Contracts.Genesis
         {
             var contractAddress = await Deploy_SmartContracts_Test();
 
-            var resultUpdate = await AnotherTester.UpdateSmartContract.SendAsync(
+            var resultUpdate = await AnotherTester.UpdateSmartContract.SendWithExceptionAsync(
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            resultUpdate.TransactionResult.Error.Contains("Only author can propose contract update.").ShouldBeTrue();
+            resultUpdate.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace AElf.Contracts.Genesis
         {
             var contractAddress = await Deploy_SmartContracts_Test();
 
-            var result = await DefaultTester.UpdateSmartContract.SendAsync(
+            var result = await DefaultTester.UpdateSmartContract.SendWithExceptionAsync(
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
@@ -162,14 +162,14 @@ namespace AElf.Contracts.Genesis
         public async Task Change_Contract_Author_Without_Permission_Test()
         {
             var contractAddress = await Deploy_SmartContracts_Test();
-            var result = await AnotherTester.ChangeContractAuthor.SendAsync(
+            var result = await AnotherTester.ChangeContractAuthor.SendWithExceptionAsync(
                 new ChangeContractAuthorInput()
                 {
                     ContractAddress = contractAddress,
                     NewAuthor = AnotherUser
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();
+            result.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
     }
 }

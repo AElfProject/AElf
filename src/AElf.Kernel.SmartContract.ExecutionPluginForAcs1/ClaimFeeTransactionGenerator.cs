@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -15,30 +16,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly ITransactionPackingService _transactionPackingService;
         public ILogger<ClaimFeeTransactionGenerator> Logger { get; set; }
 
         public ClaimFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
+            ITransactionPackingService transactionPackingService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+            _transactionPackingService = transactionPackingService;
         }
 
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
-            ref List<Transaction> generatedTransactions)
+        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
-            if (!_transactionInclusivenessProvider.IsTransactionPackable)
-                return;
+            var generatedTransactions = new List<Transaction>();
+            if (!_transactionPackingService.IsTransactionPackingEnabled())
+                return Task.FromResult(generatedTransactions);
 
             if (preBlockHeight < Constants.GenesisBlockHeight)
-                return;
+                return Task.FromResult(generatedTransactions);
 
             var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
                 TokenSmartContractAddressNameProvider.Name);
 
             if (tokenContractAddress == null)
-                return;
+                return Task.FromResult(generatedTransactions);
 
             generatedTransactions.AddRange(new List<Transaction>
             {
@@ -54,6 +55,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             });
             
             Logger.LogTrace("FeeClaim transaction generated.");
+            return Task.FromResult(generatedTransactions);
         }
     }
 }

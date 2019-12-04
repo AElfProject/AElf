@@ -106,7 +106,7 @@ namespace AElf.Contracts.AssociationAuth
             {
                 createOrganizationInput.Reviewers[0].Weight = -1;
                 var transactionResult =
-                    await AssociationAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                    await AssociationAuthContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -115,7 +115,7 @@ namespace AElf.Contracts.AssociationAuth
                 createOrganizationInput.Reviewers[0].Weight = 1;
                 createOrganizationInput.ProposerThreshold = 10;
                 var transactionResult =
-                    await AssociationAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                    await AssociationAuthContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -124,7 +124,7 @@ namespace AElf.Contracts.AssociationAuth
                 createOrganizationInput.ProposerThreshold = 2;
                 createOrganizationInput.ReleaseThreshold = 10;
                 var transactionResult =
-                    await AssociationAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                    await AssociationAuthContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -146,7 +146,7 @@ namespace AElf.Contracts.AssociationAuth
             //"Invalid proposal."
             //ContractMethodName is null or white space
             {
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
@@ -155,7 +155,7 @@ namespace AElf.Contracts.AssociationAuth
                 createProposalInput.ContractMethodName = "Test";
                 createProposalInput.ToAddress = null;
 
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
@@ -164,7 +164,7 @@ namespace AElf.Contracts.AssociationAuth
                 createProposalInput.ExpiredTime = null;
                 createProposalInput.ToAddress = SampleAddress.AddressList[0];
 
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
@@ -173,7 +173,7 @@ namespace AElf.Contracts.AssociationAuth
                 createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
 
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
             //"No registered organization."
@@ -181,7 +181,7 @@ namespace AElf.Contracts.AssociationAuth
                 createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 createProposalInput.OrganizationAddress = SampleAddress.AddressList[1];
 
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
@@ -192,13 +192,13 @@ namespace AElf.Contracts.AssociationAuth
                 AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
 
                 var transactionResult =
-                    await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                    await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
             //Reviewer is not permission to propose
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
-                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                var transactionResult = await AssociationAuthContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
             }
@@ -218,7 +218,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_NotFoundProposal_Test()
         {
-            var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+            var transactionResult = await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput
             {
                 ProposalId = Hash.FromString("Test")
             });
@@ -231,7 +231,7 @@ namespace AElf.Contracts.AssociationAuth
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
-            var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+            var transactionResult = await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput
             {
                 ProposalId = proposalId
             });
@@ -245,11 +245,11 @@ namespace AElf.Contracts.AssociationAuth
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-            var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
+            var error = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
             {
                 ProposalId = proposalId
             });
-            transactionResult.Value.ShouldBe(false);
+            error.Value.ShouldContain("Invalid proposal.");
         }
 
         [Fact]
@@ -265,7 +265,7 @@ namespace AElf.Contracts.AssociationAuth
             transactionResult1.Output.Value.ShouldBe(true);
 
             var transactionResult2 =
-                await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+                await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
@@ -274,7 +274,7 @@ namespace AElf.Contracts.AssociationAuth
         {
             //not found
             {
-                var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+                var transactionResult = await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput
                 {
                     ProposalId = Hash.FromString("Test")
                 });
@@ -287,7 +287,7 @@ namespace AElf.Contracts.AssociationAuth
             //not authorize
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
-                var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+                var transactionResult = await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput
                 {
                     ProposalId = proposalId
                 });
@@ -298,11 +298,11 @@ namespace AElf.Contracts.AssociationAuth
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
                 BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-                var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
+                var error = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
                 {
                     ProposalId = proposalId
                 });
-                transactionResult.Value.ShouldBe(false);
+                error.Value.ShouldContain("Invalid proposal.");
             }
             
             //already exist
@@ -315,7 +315,7 @@ namespace AElf.Contracts.AssociationAuth
                 transactionResult1.Output.Value.ShouldBe(true);
 
                 var transactionResult2 =
-                    await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+                    await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput {ProposalId = proposalId});
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
         }
@@ -327,7 +327,7 @@ namespace AElf.Contracts.AssociationAuth
             {
                 var fakeId = Hash.FromString("test");
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-                var result = await AssociationAuthContractStub.Release.SendAsync(fakeId);
+                var result = await AssociationAuthContractStub.Release.SendWithExceptionAsync(fakeId);
                 //Proposal not found
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
@@ -342,7 +342,7 @@ namespace AElf.Contracts.AssociationAuth
                 await ApproveAsync(Reviewer1KeyPair,proposalId);
                 
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-                var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+                var result = await AssociationAuthContractStub.Release.SendWithExceptionAsync(proposalId);
                 //Reviewer weight < ReleaseThreshold, release failed
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
@@ -353,7 +353,7 @@ namespace AElf.Contracts.AssociationAuth
                 await ApproveAsync(Reviewer3KeyPair,proposalId);
   
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
-                var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+                var result = await AssociationAuthContractStub.Release.SendWithExceptionAsync(proposalId);
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
             }
@@ -401,13 +401,13 @@ namespace AElf.Contracts.AssociationAuth
             //approve the same proposal again
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
             var transactionResult =
-                await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+                await AssociationAuthContractStub.Approve.SendWithExceptionAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Invalid proposal");
             
             //release the same proposal again
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-            var transactionResult2 = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+            var transactionResult2 = await AssociationAuthContractStub.Release.SendWithExceptionAsync(proposalId);
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult2.TransactionResult.Error.ShouldContain("Proposal not found.");
         }

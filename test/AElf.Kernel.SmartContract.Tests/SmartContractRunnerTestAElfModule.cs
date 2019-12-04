@@ -24,7 +24,6 @@ namespace AElf.Kernel.SmartContract
 
                 var mockSmartContractRunner = new Mock<ISmartContractRunner>();
                 mockSmartContractRunner.SetupGet(m => m.Category).Returns(KernelConstants.DefaultRunnerCategory);
-                mockSmartContractRunner.Setup(m => m.CodeCheck(It.IsAny<byte[]>(), It.IsAny<bool>()));
                 mockSmartContractRunner.Setup(m => m.RunAsync(It.IsAny<SmartContractRegistration>()))
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;

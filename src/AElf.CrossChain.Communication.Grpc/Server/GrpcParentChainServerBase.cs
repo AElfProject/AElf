@@ -21,9 +21,9 @@ namespace AElf.CrossChain.Communication.Grpc
             IServerStreamWriter<ParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
-                $"Parent Chain Server received IndexedInfo message from chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
+                $"Parent Chain Server received IndexedInfo message from chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)}.");
             var requestedHeight = crossChainRequest.NextHeight;
-            var remoteChainId = crossChainRequest.FromChainId;
+            var remoteChainId = crossChainRequest.ChainId;
             while (requestedHeight - crossChainRequest.NextHeight < CrossChainCommunicationConstants.MaximalIndexingCount)
             {
                 var parentChainBlockData =
@@ -33,7 +33,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 if (context.Status.StatusCode != Status.DefaultSuccess.StatusCode)
                 {
                     Logger.LogTrace(
-                        $"Disconnected with side chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.FromChainId)} node.");
+                        $"Disconnected with side chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)} node.");
                     return;
                 }
                 
@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Communication.Grpc
         public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
         {
             Logger.LogTrace(
-                $"Received initialization data request from  chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
+                $"Received initialization data request from chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             var sideChainInitializationResponse =
                 await _crossChainResponseService.ResponseChainInitializationDataFromParentChainAsync(request.ChainId);
             Logger.LogTrace(

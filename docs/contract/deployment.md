@@ -1,6 +1,6 @@
 ## Smart contract deployment
 
-After the contract has been compiled, the user must register this contract with the blockchain. To deploy a contract there must be a deployment transaction sent to Smart contract zero, which is one of AElfs genesis contracts. The node will then broadcast this transaction and it will eventually get included in a block, when the block gets executed the smart contract will be deployed.
+After the contract has been compiled, the user must register this contract with the blockchain. To deploy a contract there must be a deployment transaction sent to Smart contract zero, which is one of AElf's genesis contracts. The node will then broadcast this transaction and it will eventually get included in a block, when the block gets executed the smart contract will be deployed.
 
 #### the deploy command
 
