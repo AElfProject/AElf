@@ -37,14 +37,6 @@ namespace AElf.OS
 
             var afterDiscoveryPeers = _networkService.GetPeers().Count;
             beforePeers.ShouldBe(afterDiscoveryPeers);
-
-            var peer = CreateNewPeer();
-            peer.IsConnected = true;
-            _peerPool.TryAddPeer(peer);
-            
-            await _peerDiscoveryWorker.ProcessPeerDiscoveryJob();
-            afterDiscoveryPeers = _networkService.GetPeers().Count;
-            afterDiscoveryPeers.ShouldBe(beforePeers + 1);
         }
 
         private GrpcPeer CreateNewPeer()

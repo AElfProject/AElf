@@ -211,17 +211,19 @@ namespace AElf.OS.Network.Grpc
         
         private X509Certificate RetrieveServerCertificate(DnsEndPoint remoteEndpoint)
         {
+            TcpClient client = null;
             try
             {
-                var client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
+
+                client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {
                     sslStream.AuthenticateAsClient(remoteEndpoint.Host);
-                    
+
                     if (sslStream.RemoteCertificate == null)
                         throw new PeerDialException($"Certificate from {remoteEndpoint} is null");
-                    
+
                     return FromX509Certificate(sslStream.RemoteCertificate);
                 }
             }
@@ -230,6 +232,10 @@ namespace AElf.OS.Network.Grpc
                 // swallow exception because it's currently not a hard requirement to 
                 // upgrade the connection.
                 Logger.LogError(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
+            }
+            finally
+            {
+                client?.Close();
             }
             
             return null;
