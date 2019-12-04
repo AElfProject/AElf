@@ -32,12 +32,12 @@ namespace AElf.Contracts.MultiToken
             var bill = new TransactionFeeBill();
 
             var fromAddress = Context.Sender;
-            var methodFee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
+            var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
             var successToChargeBaseFee = true;
-            if (methodFee != null && methodFee.Fees.Any())
+            if (methodFees != null && methodFees.Fees.Any())
             {
-                successToChargeBaseFee = ChargeBaseFee(methodFee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), ref bill);
+                successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
 
             var successToChargeSizeFee = ChargeSizeFee(input, ref bill);
@@ -56,6 +56,24 @@ namespace AElf.Contracts.MultiToken
 
             transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
             return transactionFee;
+        }
+
+        private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
+        {
+            var dict = new Dictionary<string, long>();
+            foreach (var methodFee in methodFees.Fees)
+            {
+                if (dict.ContainsKey(methodFee.Symbol))
+                {
+                    dict[methodFee.Symbol] = dict[methodFee.Symbol].Add(methodFee.BasicFee);
+                }
+                else
+                {
+                    dict[methodFee.Symbol] = methodFee.BasicFee;
+                }
+            }
+
+            return dict;
         }
 
         private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
@@ -96,19 +114,19 @@ namespace AElf.Contracts.MultiToken
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (input.PrimaryTokenSymbol == null) return availableBalance > txSizeFeeAmount;
+            if (input.PrimaryTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
 
             if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
             {
                 bill.TokenToAmount[input.PrimaryTokenSymbol] =
-                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
+                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(chargeAmount);
             }
             else
             {
                 bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
             }
 
-            return availableBalance > txSizeFeeAmount;
+            return availableBalance >= txSizeFeeAmount;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
