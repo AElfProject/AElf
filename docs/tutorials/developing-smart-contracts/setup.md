@@ -83,23 +83,3 @@ The output should look somewhat like this:
 ```bash 
 Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
 ```
-
-## Next
-
-You've just seen a simple example of a smart contract run with our Boilerplate tutorial. When launching (with dotnet run) the contract was automatically deployed and ready to interact with. You also discovered how to navigate to the test folder and run the tests.
-
-Next you will see how AElf's js sdk is used to interact with the contract.
-
-## Run the JS SDK Demo
-
-To run this demo you'll need to install [Nodejs](https://nodejs.org/) first. ([Nodjs image in China](http://nodejs.cn/download/))
-
-The following commands will navigate to the SDK's folder and demonstrate the capabilities of the js sdk, execute them in order:
-
-```bash
-cd ../../../web/JSSDK/
-npm install
-npm start
-```
-
-You should see the results in the terminal or in the browser dev tool.
