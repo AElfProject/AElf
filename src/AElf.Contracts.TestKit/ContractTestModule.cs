@@ -11,6 +11,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
@@ -112,6 +113,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
+            context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
         }
 
         public int ChainId { get; } = 500;

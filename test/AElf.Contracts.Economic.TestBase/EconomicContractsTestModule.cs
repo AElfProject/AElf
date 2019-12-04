@@ -6,11 +6,13 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -35,6 +37,8 @@ namespace AElf.Contracts.Economic.TestBase
                         
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
+            
+            context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }
     

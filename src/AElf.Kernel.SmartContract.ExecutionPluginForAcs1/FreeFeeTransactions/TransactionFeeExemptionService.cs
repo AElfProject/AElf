@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
                 (transaction.MethodName == chargeFeeStrategy.MethodName ||
                  chargeFeeStrategy.MethodName == string.Empty)).ToList();
             return usefulStrategies.Any() &&
-                   usefulStrategies.All(chargeFeeStrategy => chargeFeeStrategy.IsFree(transaction));
+                   usefulStrategies.Any(chargeFeeStrategy => chargeFeeStrategy.IsFree(transaction));
         }
     }
 }

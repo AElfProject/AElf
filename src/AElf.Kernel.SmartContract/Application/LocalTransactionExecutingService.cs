@@ -316,7 +316,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
 
-                    trace.ExecutionStatus = ExecutionStatus.InsufficientTransactionFees;
+                    preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
             }
@@ -388,6 +388,19 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
+                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
+                {
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Failed,
+                        ReturnValue = trace.ReturnValue,
+                        ReadableReturnValue = trace.ReadableReturnValue,
+                        BlockNumber = blockHeight,
+                        Logs = {trace.FlattenedLogs},
+                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                    };
+                }
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
@@ -412,20 +425,6 @@ namespace AElf.Kernel.SmartContract.Application
                 txRes.UpdateBloom();
 
                 return txRes;
-            }
-
-            if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
-            {
-                return new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Failed,
-                    ReturnValue = trace.ReturnValue,
-                    ReadableReturnValue = trace.ReadableReturnValue,
-                    BlockNumber = blockHeight,
-                    Logs = {trace.FlattenedLogs},
-                    Error = ExecutionStatus.InsufficientTransactionFees.ToString()
-                };
             }
 
             return new TransactionResult

@@ -16,7 +16,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task CheckTreasuryProfitsDistribution_Test()
         {
-            const long txFee = 1_00000000L;
+            const long txFee = 0;
             const long txSizeFeeUnitPrice = 0;
             long rewardAmount;
             var updatedBackupSubsidy = 0L;

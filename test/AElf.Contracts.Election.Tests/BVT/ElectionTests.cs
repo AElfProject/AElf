@@ -375,7 +375,7 @@ namespace AElf.Contracts.Election
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
+                balance.ShouldBe(beforeBalance - txSize * 0);
             }
 
             // Check VOTE token balance.

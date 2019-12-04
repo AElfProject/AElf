@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                TestContractAddress = await DeploySystemSmartContract(category, code, Hash.FromString("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
@@ -242,11 +242,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 MethodName = nameof(TestContractStub.DummyMethod)
             };
-            if (fee1 != 0)
+            if (fee1 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "ELF", BasicFee = fee1});
-            if (fee2 != 0)
+            if (fee2 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "TSA", BasicFee = fee2});
-            if (fee3 != 0)
+            if (fee3 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "TSB", BasicFee = fee3});
             await TestContractStub.SetMethodFee.SendAsync(methodFee);
 
@@ -270,6 +270,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
                 if (chargedSymbol != null)
                 {
                     dummyResult.TransactionResult.TransactionFee.Value.Keys.First().ShouldBe(chargedSymbol);
