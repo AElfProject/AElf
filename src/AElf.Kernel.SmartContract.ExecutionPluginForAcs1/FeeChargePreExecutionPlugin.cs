@@ -103,7 +103,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed to generate ChargeTransactionFees tx.", e);
+                Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
                 throw;
             }
         }

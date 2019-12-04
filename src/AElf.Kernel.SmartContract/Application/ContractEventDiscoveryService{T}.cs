@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Application
                         }
                         catch (Exception e)
                         {
-                            Logger.LogError($"Failed to generate message of type {message.GetType().FullName}. {e}");
+                            Logger.LogError(e, $"Failed to generate message of type {message.GetType().FullName}.");
                             throw;
                         }
                     }
@@ -74,9 +74,9 @@ namespace AElf.Kernel.SmartContract.Application
 
                 return messages;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Logger.LogError($"Failed to resolve event {typeof(T).FullName}");
+                Logger.LogError(e, $"Failed to resolve event {typeof(T).FullName}");
                 throw;
             }
         }
@@ -97,13 +97,13 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (transactionExecutingResult == null)
             {
-                Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
+                Logger.LogWarning($"Transaction result is null, transactionId: {transactionId}");
                 return false;
             }
 
             if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
             {
-                Logger.LogTrace(
+                Logger.LogWarning(
                     $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
                 return false;
             }

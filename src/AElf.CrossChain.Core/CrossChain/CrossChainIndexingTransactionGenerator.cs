@@ -29,19 +29,21 @@ namespace AElf.CrossChain
         {
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
-            
+
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
-                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMining(previousBlockHash, refBlockNumber);
-            
+                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMining(previousBlockHash,
+                    refBlockNumber);
+
             // filledCrossChainBlockData == null means no cross chain data filled in this block.
             if (filledCrossChainBlockData != null)
             {
-                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConstants.CrossChainIndexingMethodName, refBlockNumber,
+                generatedTransactions.Add(GenerateNotSignedTransaction(from,
+                    CrossChainConstants.CrossChainIndexingMethodName, refBlockNumber,
                     previousBlockPrefix, filledCrossChainBlockData));
             }
-            
-            Logger.LogTrace($"{generatedTransactions.Count} Cross chain transaction generated.");
+
+            Logger.LogInformation("Cross chain transaction generated.");
             return generatedTransactions;
         }
 

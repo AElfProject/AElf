@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
 
         public ILogger<ProposalService> Logger { get; set; }
 
-        public ProposalService(IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider, 
+        public ProposalService(IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider,
             IParliamentContractReaderFactory parliamentContractReaderFactory)
         {
             _readyToApproveProposalCacheProvider = readyToApproveProposalCacheProvider;
@@ -31,11 +31,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
         public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Hash blockHash, long blockHeight)
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotApprovedProposals.CallAsync(
-                new ProposalIdList
-                {
-                    ProposalIds = {proposalIdList}
-                });
+            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotApprovedProposals
+                .CallAsync(
+                    new ProposalIdList
+                    {
+                        ProposalIds = {proposalIdList}
+                    });
 
             return result?.ProposalIds.ToList();
         }
@@ -43,14 +44,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
         public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetValidProposals.CallAsync(
-                new ProposalIdList
-                {
-                    ProposalIds = {proposalIdList}
-                });
+            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetValidProposals
+                .CallAsync(
+                    new ProposalIdList
+                    {
+                        ProposalIds = {proposalIdList}
+                    });
             if (result == null)
                 return;
-            
+
             foreach (var proposalId in proposalIdList.Except(result.ProposalIds))
             {
                 if (!_readyToApproveProposalCacheProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
