@@ -12,13 +12,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
                 var minerInformation = "\n";
-                minerInformation.Append($"[{minerInRound.Pubkey.Substring(0, 10)}]");
-                minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
-                minerInformation.AppendLine(minerInRound.Pubkey == publicKey
+                minerInformation = minerInformation.Append($"[{minerInRound.Pubkey.Substring(0, 10)}]");
+                minerInformation = minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
+                minerInformation = minerInformation.AppendLine(minerInRound.Pubkey == publicKey
                     ? "(This Node)"
                     : "");
-                minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
-                minerInformation.AppendLine(
+                minerInformation = minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
+                minerInformation = minerInformation.AppendLine(
                     $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
                 var roundStartTime = GetRoundStartTime();
                 var actualMiningTimes = minerInRound.ActualMiningTimes.OrderBy(t => t).Select(t =>
@@ -33,21 +33,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 });
                 var actualMiningTimesStr =
                     minerInRound.ActualMiningTimes.Any() ? string.Join("\n\t ", actualMiningTimes) : "";
-                minerInformation.AppendLine($"Actual:\t {actualMiningTimesStr}");
-                minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
+                minerInformation = minerInformation.AppendLine($"Actual:\t {actualMiningTimesStr}");
+                minerInformation = minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (RoundNumber != 1)
                 {
-                    minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
+                    minerInformation = minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
 
-                minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
-                minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
-                minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation.AppendLine($"Tiny:\t {minerInRound.ActualMiningTimes?.Count ?? 0}");
-                minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
-                minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
+                minerInformation = minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
+                minerInformation = minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
+                minerInformation = minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
+                minerInformation = minerInformation.AppendLine($"Tiny:\t {minerInRound.ActualMiningTimes?.Count ?? 0}");
+                minerInformation = minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
+                minerInformation = minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
 
-                logs.Append(minerInformation);
+                logs = logs.Append(minerInformation);
             }
 
             return logs;

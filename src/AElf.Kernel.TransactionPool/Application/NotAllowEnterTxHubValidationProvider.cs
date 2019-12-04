@@ -8,16 +8,13 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    /// <summary>
-    /// We need to prevent some txs from adding them to either tx hub or block bodies.
-    /// </summary>
-    internal class TransactionMethodNameValidationProvider : ITransactionValidationProvider
+    internal class NotAllowEnterTxHubValidationProvider : ITransactionValidationProvider
     {
-        public bool ValidateWhileSyncing => true;
+        public bool ValidateWhileSyncing => false;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public TransactionMethodNameValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public NotAllowEnterTxHubValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }
@@ -31,15 +28,12 @@ namespace AElf.Kernel.TransactionPool.Application
                 return true;
             }
 
-            TokenContractContainer.TokenContractStub tokenStub; // No need to instantiate.
-            var txsGeneratedByPlugins = new List<string>
+            var systemTxs = new List<string>
             {
-                nameof(tokenStub.ChargeTransactionFees),
-                nameof(tokenStub.ChargeResourceToken),
-                nameof(tokenStub.CheckThreshold),
-                nameof(tokenStub.CheckResourceToken)
+                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
+                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
             };
-            return !txsGeneratedByPlugins.Contains(transaction.MethodName);
+            return !systemTxs.Contains(transaction.MethodName);
         }
     }
 }

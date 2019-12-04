@@ -26,8 +26,7 @@ namespace AElf.Contracts.TestKit
     {
         private IReadOnlyDictionary<string, byte[]> _codes;
 
-        public IReadOnlyDictionary<string, byte[]> Codes =>
-            _codes ?? (_codes = ContractsDeployer.GetContractCodes<TModule>());
+        public IReadOnlyDictionary<string, byte[]> Codes => _codes ??= ContractsDeployer.GetContractCodes<TModule>();
 
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
@@ -44,7 +43,7 @@ namespace AElf.Contracts.TestKit
 
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
-        protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash hashName, ECKeyPair senderKey)
+        protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash name, ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
@@ -70,6 +69,9 @@ namespace AElf.Contracts.TestKit
             {
                 throw new Exception($"DeploySystemSmartContract failed: {res.TransactionResult}");
             }
+
+            var address = await zeroStub.GetContractAddressByName.CallAsync(name);
+            ContractAddressService.SetAddress(name, address);
 
             return res.Output;
         }

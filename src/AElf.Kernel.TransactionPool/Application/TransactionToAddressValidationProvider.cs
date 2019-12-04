@@ -9,6 +9,8 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     internal class TransactionToAddressValidationProvider : ITransactionValidationProvider
     {
+        public bool ValidateWhileSyncing => false;
+
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IBlockchainService _blockchainService;
 
