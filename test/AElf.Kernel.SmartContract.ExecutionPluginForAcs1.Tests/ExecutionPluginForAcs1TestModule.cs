@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();
+            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
         }
     }
 }

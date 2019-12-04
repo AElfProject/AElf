@@ -221,7 +221,19 @@ namespace AElf.Contracts.MultiToken
             var primaryTokenSymbol =
                 Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
                     .Value;
-            symbol = symbolToAmountMap.Keys.Contains(primaryTokenSymbol) ? primaryTokenSymbol : symbolOfValidBalance;
+            if (symbolToAmountMap.Keys.Contains(primaryTokenSymbol))
+            {
+                symbol = primaryTokenSymbol;
+                existingBalance = State.Balances[fromAddress][primaryTokenSymbol];
+            }
+            else
+            {
+                symbol = symbolOfValidBalance;
+                if (symbol != null)
+                {
+                    existingBalance = State.Balances[fromAddress][symbolOfValidBalance];
+                }
+            }
 
             return false;
         }

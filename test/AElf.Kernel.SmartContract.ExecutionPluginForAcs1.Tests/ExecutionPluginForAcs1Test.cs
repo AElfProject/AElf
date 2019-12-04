@@ -234,19 +234,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         {
             await DeployContractsAsync();
 
+            await CreateAndIssueTokenAsync("ELF", balance1);
             await CreateAndIssueTokenAsync("TSA", balance2);
             await CreateAndIssueTokenAsync("TSB", balance3);
-            await CreateAndIssueTokenAsync("ELF", balance1);
 
             var methodFee = new MethodFees
             {
                 MethodName = nameof(TestContractStub.DummyMethod)
             };
-            if (fee1 != 0)
+            if (fee1 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "ELF", BasicFee = fee1});
-            if (fee2 != 0)
+            if (fee2 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "TSA", BasicFee = fee2});
-            if (fee3 != 0)
+            if (fee3 > 0)
                 methodFee.Fees.Add(new MethodFee {Symbol = "TSB", BasicFee = fee3});
             await TestContractStub.SetMethodFee.SendAsync(methodFee);
 
@@ -270,6 +270,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
                 if (chargedSymbol != null)
                 {
                     dummyResult.TransactionResult.TransactionFee.Value.Keys.First().ShouldBe(chargedSymbol);

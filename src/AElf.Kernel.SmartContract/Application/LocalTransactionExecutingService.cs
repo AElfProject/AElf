@@ -316,8 +316,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
 
-                    // Though won't reflected in transaction result.
-                    preTrace.ExecutionStatus = ExecutionStatus.InsufficientTransactionFees;
+                    preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
             }
