@@ -9,6 +9,8 @@ Summary of the steps to set up a node:
 3. Modify the appsettings according to your needs. 
 4. Run and check the node. 
 
+Hardware suggestion: for the AElf testnet we use the following Amazon configuration: c5.large instance with 2 vCPUs, 4GiB RAM and a 200GiB hard drive for each node we run. We recommend using something similar per node that you want to run (one for the mainchain node and one per side chain node).
+
 ## Setup the database
 
 We currently support two key-value databases to store our nodes data: Redis and SSDB, but for the testnet we only provide snapshots for SSDB. We will configure two SSDB instances, one for chain database and one for the state database (run these on different machines for better performances).
