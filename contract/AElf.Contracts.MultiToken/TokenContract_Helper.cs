@@ -33,7 +33,7 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertValidMemo(string memo)
         {
-            Assert(System.Text.Encoding.Unicode.GetByteCount(memo) <= 256, "memo has more than 256 bytes");
+            Assert(memo.Length <= 128, "memo's length is more than 128.");
         }
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
