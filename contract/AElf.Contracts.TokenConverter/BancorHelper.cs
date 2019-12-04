@@ -36,7 +36,7 @@ namespace AElf.Contracts.TokenConverter
             if (wf == wt)
             {
                 // if both weights are the same, the formula can be reduced
-                return (long) (bt * a / (bf + a));
+                return (long) (bt / (bf + a) * a);
             }
 
             decimal x = bf / (bf + a);
@@ -75,7 +75,7 @@ namespace AElf.Contracts.TokenConverter
             if (wf == wt)
             {
                 // if both weights are the same, the formula can be reduced
-                return (long) (bf * a / (bt - a));
+                return (long) (bf / (bt - a) * a);
             }
 
             decimal x = bt / (bt - a);

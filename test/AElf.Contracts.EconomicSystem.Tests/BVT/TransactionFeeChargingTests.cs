@@ -27,7 +27,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 MethodName = "SendForFun",
                 Fees =
                 {
-                    new MethodFee {Symbol = "ELF", BasicFee = 1_0000_0000}
+                    new MethodFee {Symbol = "ELF", BasicFee = 0}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -41,7 +41,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var afterBalance = await GetUserBalance(tester);
-            beforeBalance.ShouldBe(afterBalance + 1_0000_0000 + transactionSize * 0);
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 MethodName = "SupposedToFail",
                 Fees =
                 {
-                    new MethodFee {Symbol = "ELF", BasicFee = 2_0000_0000}
+                    new MethodFee {Symbol = "ELF", BasicFee = 0}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -65,7 +65,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 
             var afterBalance = await GetUserBalance(tester);
-            beforeBalance.ShouldBe(afterBalance + 2_0000_0000);
+            beforeBalance.ShouldBe(afterBalance + 0);
         }
 
         private async Task<long> GetUserBalance(ECKeyPair keyPair)

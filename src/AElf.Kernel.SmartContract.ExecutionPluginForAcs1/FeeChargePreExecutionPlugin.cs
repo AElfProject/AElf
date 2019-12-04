@@ -8,7 +8,6 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -21,19 +20,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
+        private readonly ICalculateFeeService _calService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider)
+            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
+            ICalculateFeeService calService)
         {
             _contextService = contextService;
             _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
-
+            _calService = calService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -72,6 +73,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                         nameof(TokenContractContainer.TokenContractStub.Issue),
                         nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
                         nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken),
+                        nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
+                        nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
                         "IssueNativeToken"
                     };
 
@@ -109,6 +112,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
+                var txSize = transactionContext.Transaction.Size();
+                var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
                 var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
                 {
                     BlockHash = transactionContext.PreviousBlockHash,
@@ -119,7 +124,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     {
                         MethodName = transactionContext.Transaction.MethodName,
                         ContractAddress = transactionContext.Transaction.To,
-                        TransactionSizeFee = unitPrice * transactionContext.Transaction.Size(),
+                        TransactionSizeFee = txCost,
                         PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
                     })).Transaction;
                 return new List<Transaction>
