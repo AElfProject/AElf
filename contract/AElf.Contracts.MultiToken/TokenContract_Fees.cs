@@ -96,19 +96,19 @@ namespace AElf.Contracts.MultiToken
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (input.PrimaryTokenSymbol == null) return availableBalance > txSizeFeeAmount;
+            if (input.PrimaryTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
 
             if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
             {
                 bill.TokenToAmount[input.PrimaryTokenSymbol] =
-                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
+                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(chargeAmount);
             }
             else
             {
                 bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
             }
 
-            return availableBalance > txSizeFeeAmount;
+            return availableBalance >= txSizeFeeAmount;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
