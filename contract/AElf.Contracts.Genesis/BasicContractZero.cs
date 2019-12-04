@@ -75,6 +75,8 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
+            Assert(!State.Initialized.Value || !State.ContractDeploymentAuthorityRequired.Value,
+                "Genesis contract already initialized.");
             RequireSenderAuthority();
             var name = input.Name;
             var category = input.Category;
@@ -290,6 +292,7 @@ namespace AElf.Contracts.Genesis
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract not found.");
             AssertAuthorByContractInfo(info);
+            Assert(ValidateNewAuthor(input.NewAuthor, info), "Failed to change contract author.");
             var oldAuthor = info.Author;
             info.Author = input.NewAuthor;
             State.ContractInfos[contractAddress] = info;
@@ -320,8 +323,7 @@ namespace AElf.Contracts.Genesis
             {
                 AssertSenderAddressWith(State.GenesisOwner.Value);
                 RequireParliamentAuthAddressSet();
-                var organizationExist =
-                    State.ParliamentAuthContract.ValidateOrganizationExist.Call(newOwnerAddress).Value;
+                var organizationExist = CheckOrganizationExist(newOwnerAddress);
                 Assert(organizationExist, "Invalid genesis owner address.");
                 State.GenesisOwner.Value = newOwnerAddress;
             }
@@ -333,7 +335,7 @@ namespace AElf.Contracts.Genesis
         {
             Assert(!State.Initialized.Value, "Genesis contract already initialized.");
             var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            Assert(Context.Sender.Equals(address), "Unauthorized to set genesis contract state.");
+            Assert(Context.Sender == address, "Unauthorized to set genesis contract state.");
             State.ContractProposerAuthorityRequired.Value = input.Value;
             return new Empty();
         }
