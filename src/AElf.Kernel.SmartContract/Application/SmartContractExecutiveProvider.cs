@@ -27,6 +27,8 @@ namespace AElf.Kernel.SmartContract.Application
         void RemoveForkCache(List<BlockIndex> blockIndexes);
 
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
+
+        void CleanIdleExecutive();
     }
 
     public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
@@ -44,6 +46,9 @@ namespace AElf.Kernel.SmartContract.Application
         
         private Hash _initLibBlockHash = Hash.Empty;
         private long _initLibBlockHeight;
+        
+        private const int ExecutiveExpirationTime = 3600; // 1 Hour
+        private const int ExecutiveClearLimit = 10;
 
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -170,6 +175,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (dictionary.TryGetValue(executive.ContractHash, out var pool))
                 {
+                    executive.LastUsedTime = TimestampHelper.GetUtcNow();
                     pool.Add(executive);
                     return;
                 }
@@ -342,6 +348,22 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             caches.Add(smartContractRegistrationCache);
+        }
+        
+        public void CleanIdleExecutive()
+        {
+            foreach (var executivePool in _executivePools.Values)
+            {
+                foreach (var executiveBag in executivePool.Values)
+                {
+                    if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Last().LastUsedTime <
+                        TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
+                    {
+                        if (executiveBag.TryTake(out var executive))
+                            executive.Unload();
+                    }
+                }
+            }
         }
 
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
