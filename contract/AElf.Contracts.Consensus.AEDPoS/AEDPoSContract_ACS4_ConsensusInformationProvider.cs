@@ -19,21 +19,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (Context.CurrentHeight < 2) return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            Context.LogDebug(() => "Entered GetConsensusCommand.");
-
             if (!TryToGetCurrentRoundInformation(out var currentRound))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
-
-            Context.LogDebug(() => "Passed getting current round.");
 
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            Context.LogDebug(() => "Passed miner check.");
-
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
-
-            Context.LogDebug(() => "Passed getting start timestamp.");
 
             var behaviour = IsMainChain
                 ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
