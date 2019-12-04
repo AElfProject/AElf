@@ -57,7 +57,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
             };
             generatedTransactions.Add(generatedTransaction);
             
-            Logger.LogInformation("Donate resource transaction generated.");
+            Logger.LogInformation("Proposal approval transaction generated.");
 
             return generatedTransactions;
         }
