@@ -4,6 +4,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

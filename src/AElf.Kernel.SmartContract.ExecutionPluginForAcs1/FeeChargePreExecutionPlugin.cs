@@ -9,7 +9,6 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -21,6 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
+        private readonly ICalculateFeeService _calService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
@@ -28,11 +28,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
-            ITransactionFeeExemptionService transactionFeeExemptionService)
+            ITransactionFeeExemptionService transactionFeeExemptionService,
+            ICalculateFeeService calService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
+            _calService = calService;
             _transactionFeeExemptionService = transactionFeeExemptionService;
 
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
@@ -83,6 +85,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
+                var txSize = transactionContext.Transaction.Size();
+                var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
                 var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
                 {
                     BlockHash = transactionContext.PreviousBlockHash,
@@ -93,7 +97,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     {
                         MethodName = transactionContext.Transaction.MethodName,
                         ContractAddress = transactionContext.Transaction.To,
-                        TransactionSizeFee = unitPrice * transactionContext.Transaction.Size(),
+                        TransactionSizeFee = txCost,
                         PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
                     })).Transaction;
                 return new List<Transaction>
