@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public static class MiningTimeArrangingService
+        private static class MiningTimeArrangingService
         {
             public static Timestamp ArrangeMiningTimeBasedOnOffset(Timestamp currentBlockTime, int offset)
             {

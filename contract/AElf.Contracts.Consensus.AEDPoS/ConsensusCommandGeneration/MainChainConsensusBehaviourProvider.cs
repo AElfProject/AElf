@@ -8,7 +8,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public class MainChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
+        private class MainChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
         {
             private readonly Timestamp _blockchainStartTimestamp;
             private readonly long _timeEachTerm;
@@ -28,8 +28,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// </summary>
             /// <returns></returns>
             protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>
-                CurrentRound.RoundNumber == 1 || !CurrentRound.NeedToChangeTerm(_blockchainStartTimestamp,
-                    CurrentRound.TermNumber, _timeEachTerm) || CurrentRound.RealTimeMinersInformation.Keys.Count == 1
+                CurrentRound.RoundNumber == 1 || // Return NEXT_ROUND in first round.
+                !CurrentRound.NeedToChangeTerm(_blockchainStartTimestamp,
+                    CurrentRound.TermNumber, _timeEachTerm) || 
+                CurrentRound.RealTimeMinersInformation.Keys.Count == 1 // Return NEXT_ROUND for single node.
                     ? AElfConsensusBehaviour.NextRound
                     : AElfConsensusBehaviour.NextTerm;
         }
