@@ -3,6 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.Events";
 
@@ -11,30 +12,31 @@ service EventsContract {
     //Actions
     rpc InitializeEvents(InitializeInput) returns (google.protobuf.Empty){
     }
-    
     rpc IssueOrder(OrderInput) returns (google.protobuf.Empty) {
     }
-    
     rpc DealOrder(DealOrderInput) returns (google.protobuf.Empty) {
     }
-    
     rpc CancelOrder(aelf.Hash) returns (google.protobuf.Empty) {
     }
 
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryIssueOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-
     rpc QueryDoneOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryCanceledOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryOrderById(aelf.Hash) returns (OrderInfo) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryOrderSubOrders(aelf.Hash) returns (DealtOrders) {
+        option (aelf.is_view) = true;
     }
 }
 

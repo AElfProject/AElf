@@ -1,9 +1,18 @@
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.Performance
 {
     public partial class PerformanceContract
     {
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(PerformanceContract)
+            };
+        }
+
         public override ReadOutput QueryReadInfo(Address input)
         {
             if(State.Content[input] == null)

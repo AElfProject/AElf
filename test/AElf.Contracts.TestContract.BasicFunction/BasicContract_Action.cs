@@ -6,7 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.TestContract.BasicFunction
 {
     /// <summary>
-    /// Action methods
+    ///     Action methods
     /// </summary>
     public partial class BasicFunctionContract : BasicFunctionContractContainer.BasicFunctionContractBase
     {
@@ -101,7 +101,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
             {
                 Symbol = input.Symbol,
                 Address = input.Address,
-                LockId = input.LockId,
+                LockId = input.LockId
             });
             return new GetLockedTokenAmountOutput
             {
@@ -122,12 +122,12 @@ namespace AElf.Contracts.TestContract.BasicFunction
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);
             if (data < 0)
-                data = data * (-1);
+                data = data.Mul(-1);
 
             if (data % 100 == 1)
-                return betAmount * 1000;
+                return betAmount.Mul(1000);
             if (data % 50 == 5)
-                return betAmount * 50;
+                return betAmount.Mul(50);
             return 0;
         }
 

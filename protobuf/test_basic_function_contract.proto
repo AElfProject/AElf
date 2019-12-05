@@ -3,6 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunction";
 
@@ -23,17 +24,26 @@ service BasicFunctionContract {
     }
 
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc TransferTokenToContract(TransferTokenToContractInput) returns (google.protobuf.Empty){
+        option (aelf.is_view) = true;
     }
     rpc GetLockedAmount(GetLockedTokenAmountInput) returns(GetLockedTokenAmountOutput){
+        option (aelf.is_view) = true;
     }
 }
 
@@ -47,8 +57,8 @@ message InitialBasicContractInput {
 }
 
 message BetLimitInput {
-    int64 min_value = 2;
-    int64 max_value = 3;
+    int64 min_value = 1;
+    int64 max_value = 2;
 }
 
 message BetInput {
@@ -74,15 +84,15 @@ message UnlockTokenInput {
 
 message GetLockedTokenAmountInput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
 }
 
 message GetLockedTokenAmountOutput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
-    sint64 amount = 5;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
+    sint64 amount = 4;
 }
 
 message MoneyOutput {

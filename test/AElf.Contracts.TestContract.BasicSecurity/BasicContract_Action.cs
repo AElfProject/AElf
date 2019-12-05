@@ -1,4 +1,3 @@
-using System;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -22,7 +21,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             State.UInt32Info.Value = 0;
             State.Int64Info.Value = 0;
             State.UInt64Info.Value = 0;
-            State.StringInfo.Value = String.Empty;
+            State.StringInfo.Value = string.Empty;
             State.BytesInfo.Value = new byte[]{};
             
             return new Empty();
@@ -68,7 +67,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             if(string.IsNullOrEmpty(State.StringInfo.Value))
                 State.StringInfo.Value = string.Empty;
             
-            State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
+            State.StringInfo.Value = State.StringInfo.Value.Append(input.StringValue);
             
             return new Empty();
         }
@@ -152,7 +151,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         //Reference call action
         public override Empty TestExecuteExternalMethod(Int64Input input)
         {
-            var feeValue = input.Int64Value * 5 / 100;
+            var feeValue = input.Int64Value.Mul(5).Div(100);
             var betValue = input.Int64Value.Sub(feeValue);
             
             State.Int64Info.Value.Add(feeValue);

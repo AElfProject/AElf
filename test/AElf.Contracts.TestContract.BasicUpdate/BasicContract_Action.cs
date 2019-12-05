@@ -82,12 +82,12 @@ namespace AElf.Contracts.TestContract.BasicUpdate
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);
             if (data < 0)
-                data = data * (-1);
+                data = data.Mul(-1);
 
             if (data % 100 == 1)
-                return betAmount * 1000;
+                return betAmount.Mul(1000);
             if (data % 50 == 5)
-                return betAmount * 50;
+                return betAmount.Mul(50);
             return 0;
         }
     }
