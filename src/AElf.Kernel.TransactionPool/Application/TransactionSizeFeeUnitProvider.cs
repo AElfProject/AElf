@@ -22,7 +22,7 @@ namespace AElf.Kernel.TransactionPool.Application
         private ConcurrentDictionary<BlockIndex, long> _forkCache = new ConcurrentDictionary<BlockIndex, long>();
 
         public TransactionSizeFeeUnitProvider(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
-            IBlockchainService blockchainService, 
+            IBlockchainService blockchainService,
             IChainBlockLinkService chainBlockLinkService)
         {
             _tokenStTokenContractReaderFactory = tokenStTokenContractReaderFactory;
@@ -32,7 +32,7 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<TransactionSizeFeeUnitProvider>.Instance;
         }
 
-        public void SetUnitPrice(long unitPrice,BlockIndex blockIndex)
+        public void SetUnitPrice(long unitPrice, BlockIndex blockIndex)
         {
             Logger.LogTrace($"Set tx size fee unit price: {unitPrice}");
             _forkCache[blockIndex] = unitPrice;
@@ -86,12 +86,12 @@ namespace AElf.Kernel.TransactionPool.Application
 
             return _unitPrice.Value;
         }
-        
+
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex, out _)) continue;
+                if (!_forkCache.TryGetValue(blockIndex, out _)) continue;
                 _forkCache.TryRemove(blockIndex, out _);
             }
         }
@@ -100,7 +100,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex,out var unitPrice)) continue;
+                if (!_forkCache.TryGetValue(blockIndex, out var unitPrice)) continue;
                 _unitPrice = unitPrice;
                 _forkCache.TryRemove(blockIndex, out _);
             }

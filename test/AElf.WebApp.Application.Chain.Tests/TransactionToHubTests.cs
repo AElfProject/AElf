@@ -5,6 +5,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
@@ -56,7 +57,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var transactionId = await SendTransactionAsync(transaction);
                 var transactionResult = await QueryTransactionResultAsync(transactionId);
                 Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
-                status.ShouldBe(TransactionResultStatus.Unexecutable);
+                status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
             }
 
             //bp user with token - Mined

@@ -130,6 +130,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
+
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if (input == null || input.Value.IsEmpty) return new Empty();
 
@@ -138,14 +139,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
                 return new Empty();
-            Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
-            var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
-            State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+
+            Context.LogDebug(() =>
+                $"Shared miner list of round {consensusInformation.Round.RoundNumber}:" +
+                $"{consensusInformation.Round.ToString("M")}");
+
             DistributeResourceTokensToPreviousMiners();
+
+            State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+
+            var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
                 Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
+
             return new Empty();
         }
 
@@ -165,8 +173,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Owner = Context.Self,
                     Symbol = symbol
                 }).Balance;
-                if (balance <= 0) continue;
                 var amount = balance.Div(minerList.Count);
+                if (amount <= 0) break;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));

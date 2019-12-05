@@ -19,7 +19,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public partial class EconomicSystemTest
     {
         private const long DefaultFeeAmount = 1_0000_0000;
-        private const long NewFeeAmount = 1_5000_0000;
+        private const long NewFeeAmount = 0;
         private const long CreateSchemeAmount = 10_00000000;
 
         private async Task Vote_SetMethodFee_Test()

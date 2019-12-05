@@ -15,7 +15,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         private readonly ConcurrentDictionary<int, ICrossChainClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, ICrossChainClient>();
-        
+
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
         public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption)
@@ -32,16 +32,16 @@ namespace AElf.CrossChain.Communication.Grpc
                 ? GetUriStr(_grpcCrossChainConfigOption.ParentChainServerIp,
                     _grpcCrossChainConfigOption.ParentChainServerPort)
                 : GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
-            
+
             if (TryGetClient(chainId, out var client) && client.TargetUriString.Equals(uriStr))
                 return client; // client already cached
-            
+
             client = CreateCrossChainClient(crossChainClientDto);
             _grpcCrossChainClients.TryAdd(chainId, client);
-            Logger.LogTrace("Create client finished.");
+            Logger.LogDebug("Create client finished.");
             return client;
         }
-        
+
         /// <summary>
         /// Create a new client to another chain.
         /// </summary>
@@ -69,12 +69,12 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         #endregion Create client
-        
+
         public bool TryGetClient(int chainId, out ICrossChainClient client)
         {
             return _grpcCrossChainClients.TryGetValue(chainId, out client);
         }
-        
+
         public List<ICrossChainClient> GetAllClients()
         {
             return _grpcCrossChainClients.Values.ToList();
