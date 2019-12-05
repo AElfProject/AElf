@@ -18,6 +18,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         internal const long CpuUnitPrice = 1_00000000;
         internal const long NetUnitPrice = 1_00000000;
         internal const long StoUnitPrice = 1_00000000;
+        internal readonly string[] NativeToReourceToken = {"NTCPU", "NTSTO" ,"NTNET", "NTRAM"};
 
         //init connectors
         internal Connector ElfConnector = new Connector
@@ -35,7 +36,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = true// For testing
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NTCPU"
+        };
+        internal Connector NativeToCpuConnector = new Connector
+        {
+            Symbol = "NTCPU",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,
+            RelatedSymbol = "CPU"
         };
         
         internal Connector StoConnector = new Connector
@@ -44,16 +55,53 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = true// For testing
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NTSTO"
         };
-        
+        internal Connector NativeToStoConnector = new Connector
+        {
+            Symbol = "NTSTO",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,
+            RelatedSymbol = "STO"
+        };
         internal Connector NetConnector = new Connector
         {
             Symbol = "NET",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = true// For testing
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NTNET"
+        };
+        internal Connector NativeToNetConnector = new Connector
+        {
+            Symbol = "NTNET",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NET"
+        };
+        internal Connector RamConnector = new Connector
+        {
+            Symbol = "RAM",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "NTRAM"
+        };
+        internal Connector NativeToRamConnector = new Connector
+        {
+            Symbol = "NTRAM",
+            VirtualBalance = 100_000_00000000,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = true,// For testing
+            RelatedSymbol = "RAM"
         };
 
         internal Address TestContractAddress { get; set; }
@@ -77,8 +125,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();
-            await InitializeTokenConverterAsync();
             await InitializeTreasuryContractAsync();
+            await InitializeTokenConverterAsync();
         }
         
         private async Task DeployContractsAsync()
@@ -170,6 +218,34 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 }
             }
+
+            {
+                foreach (var nativeDepositToken in NativeToReourceToken)
+                {
+                    var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+                    {
+                        Symbol = nativeDepositToken,
+                        Decimals = 8,
+                        IsBurnable = true,
+                        TokenName = nativeDepositToken + " elf token",
+                        TotalSupply = totalSupply,
+                        Issuer = DefaultSender,
+                        LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
+                    });
+
+                    createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    {
+                        var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                        {
+                            Symbol = nativeDepositToken,
+                            Amount = issueAmountToConverter,
+                            To = TokenConverterAddress,
+                            Memo = $"Set for  {nativeDepositToken} elf token converter."
+                        });
+                        issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    }
+                }
+            }
             
             //init resource token - CPU
             {
@@ -245,13 +321,37 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+            //init resource token - RAM
+            {
+                var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = "RAM",
+                    Decimals = 2,
+                    IsBurnable = true,
+                    TokenName = "ram token",
+                    TotalSupply = totalSupply,
+                    Issuer = DefaultSender,
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
+                });
 
-            await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
+                createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = "RAM",
+                    Amount = issueAmount,
+                    To = DefaultSender,
+                    Memo = "Set for ram token converter."
+                });
+                issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            var setResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
             {
                 CpuUnitPrice = CpuUnitPrice,
                 NetUnitPrice = NetUnitPrice,
                 StoUnitPrice = StoUnitPrice
             });
+            setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task InitializeTokenConverterAsync()
@@ -263,7 +363,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 ManagerAddress = ManagerAddress,
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
-                Connectors = { ElfConnector, CpuConnector, StoConnector, NetConnector }
+                Connectors =
+                {
+                    ElfConnector, CpuConnector, StoConnector, NetConnector, NativeToCpuConnector, NativeToStoConnector,
+                    NativeToNetConnector, RamConnector, NativeToRamConnector
+                }
             };
 
             var initializeResult = await TokenConverterContractStub.Initialize.SendAsync(input);
@@ -272,8 +376,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
         private async Task InitializeTreasuryContractAsync()
         {
-            await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
-            await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new Empty());
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
     }
 }

@@ -15,11 +15,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ICalculateFeeService _calService;
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            ICalculateFeeService calService)
         {
             _contextService = contextService;
+            _calService = calService;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -67,18 +70,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             }
 
             // Transaction size related to NET Token.
-            var transactionSize = transactionContext.Transaction.Size();
+            var netSize = transactionContext.Transaction.Size();
             // Transaction trace state set writes count related to STO Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction trace state set reads count related to CPU Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
-
+            var netCost = _calService.CalculateFee(FeeType.Net, netSize);
+            var cpuCost = _calService.CalculateFee(FeeType.Cpu, readsCount);
+            var stoCost = _calService.CalculateFee(FeeType.Sto, netSize);
+            var ramCost = _calService.CalculateFee(FeeType.Ram, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {
-                    TransactionSize = transactionSize,
-                    WritesCount = writesCount,
-                    ReadsCount = readsCount,
+                    NetCost = netCost,
+                    StoCost = stoCost,
+                    CpuCost = cpuCost,
+                    RamCost = ramCost,
                     Caller = transactionContext.Transaction.From
                 })).Transaction;
 

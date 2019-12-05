@@ -4,6 +4,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -16,7 +17,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task CheckTreasuryProfitsDistribution_Test()
         {
-            const long txFee = 1_00000000L;
+            const long txFee = 0;
             const long txSizeFeeUnitPrice = 0;
             long rewardAmount;
             var updatedBackupSubsidy = 0L;

@@ -200,7 +200,8 @@ namespace AElf.Kernel.Blockchain.Domain
             bool isLinkedToLongestChain = chainBlockLink.PreviousBlockHash == chain.LongestChainHash &&
                                           chainBlockLink.Height == chain.LongestChainHeight + 1;
 
-            Logger.LogTrace($"Start attach block hash {chainBlockLink.BlockHash}, height {chainBlockLink.Height}");
+            Logger.LogTrace(
+                $"Start attach block hash {chainBlockLink.BlockHash}, height {chainBlockLink.Height}");
             
             while (true)
             {
@@ -298,7 +299,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LastIrreversibleBlockHeight = links.First().Height;
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
                 
-                Logger.LogDebug($"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
+                Logger.LogInformation($"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
             }
 
             return true;
@@ -400,7 +401,7 @@ namespace AElf.Kernel.Blockchain.Domain
                     var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                     if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                     {
-                        Logger.LogDebug($"Remove incorrect branch: {branch.Key}");
+                        Logger.LogTrace($"Remove incorrect branch: {branch.Key}");
                         toCleanBranchKeys.Add(branch.Key);
                         continue;
                     }
@@ -488,7 +489,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.NotLinkedBlocks.Remove(key);
             }
 
-            Logger.LogDebug(
+            Logger.LogInformation(
                 $"Clean chain branch, Branches: [{discardedBranch.BranchKeys.JoinAsString(",")}], NotLinkedBlocks: [{discardedBranch.NotLinkedKeys.JoinAsString(",")}]");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
@@ -501,7 +502,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             chain.LongestChainHash = chain.BestChainHash;
             chain.LongestChainHeight = chain.BestChainHeight;
-            Logger.LogWarning(
+            Logger.LogInformation(
                 $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
@@ -537,7 +538,7 @@ namespace AElf.Kernel.Blockchain.Domain
             chain.LongestChainHash = libHash;
             chain.LongestChainHeight = libHeight;
 
-            Logger.LogTrace($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
+            Logger.LogInformation($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             return chain;

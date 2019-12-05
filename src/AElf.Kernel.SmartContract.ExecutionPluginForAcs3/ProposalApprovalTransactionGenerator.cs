@@ -6,6 +6,8 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
 {
@@ -14,12 +16,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
         private readonly IProposalService _proposalService;
         
         private readonly ISmartContractAddressService _smartContractAddressService;
+        
+        public ILogger<ProposalApprovalTransactionGenerator> Logger { get; set; }
 
         public ProposalApprovalTransactionGenerator(IProposalService proposalService, 
             ISmartContractAddressService smartContractAddressService)
         {
             _proposalService = proposalService;
             _smartContractAddressService = smartContractAddressService;
+            
+            Logger = NullLogger<ProposalApprovalTransactionGenerator>.Instance;
         }
         
         public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight, Hash preBlockHash)
@@ -50,6 +56,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs3
                 }.ToByteString()
             };
             generatedTransactions.Add(generatedTransaction);
+            
+            Logger.LogInformation("Proposal approval transaction generated.");
 
             return generatedTransactions;
         }
