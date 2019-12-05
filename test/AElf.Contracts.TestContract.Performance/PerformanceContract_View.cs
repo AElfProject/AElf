@@ -26,7 +26,7 @@ namespace AElf.Contracts.TestContract.Performance
 
         public override NumberOutput QueryFibonacci(NumberInput input)
         {
-            Assert(input.Number < 50, $"Query number should less than 50. actual number: {input.Number}");
+            Assert(input.Number < 50, $"Query number should less than 50. Actual number: {input.Number}");
             
             var result = CalculateFibonacci(input.Number);
             
