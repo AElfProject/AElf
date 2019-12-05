@@ -112,15 +112,15 @@ namespace AElf.Contracts.MultiToken
             switch (input.Value)
             {
                 case 0:
-                    return State.CalculateCoefficient[(int) FeeType.Tx];
+                    return State.CalculateCoefficient[(int) FeeTypeEnum.Tx];
                 case 1:
-                    return State.CalculateCoefficient[(int) FeeType.Cpu];
+                    return State.CalculateCoefficient[(int) FeeTypeEnum.Cpu];
                 case 2:
-                    return State.CalculateCoefficient[(int) FeeType.Sto];
+                    return State.CalculateCoefficient[(int) FeeTypeEnum.Sto];
                 case 3:
-                    return State.CalculateCoefficient[(int) FeeType.Ram];
+                    return State.CalculateCoefficient[(int) FeeTypeEnum.Ram];
                 case 4:
-                    return State.CalculateCoefficient[(int) FeeType.Net];
+                    return State.CalculateCoefficient[(int) FeeTypeEnum.Net];
                 default:
                     return null;
             }

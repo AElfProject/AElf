@@ -537,42 +537,25 @@ namespace AElf.Contracts.MultiToken
 
         private void IntialParameters()
         {
-            if (State.CalculateCoefficient[(int) FeeType.Cpu] == null)
-                State.CalculateCoefficient[(int) FeeType.Cpu] = GetCpuFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeType.Sto] == null)
-                State.CalculateCoefficient[(int) FeeType.Sto] = GetStoFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeType.Ram] == null)
-                State.CalculateCoefficient[(int) FeeType.Ram] = GetRamFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeType.Net] == null)
-                State.CalculateCoefficient[(int) FeeType.Net] = GetNetFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeType.Tx] == null)
-                State.CalculateCoefficient[(int) FeeType.Tx] = GetTxFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeTypeEnum.Cpu] == null)
+                State.CalculateCoefficient[(int) FeeTypeEnum.Cpu] = GetCpuFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeTypeEnum.Sto] == null)
+                State.CalculateCoefficient[(int) FeeTypeEnum.Sto] = GetStoFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeTypeEnum.Ram] == null)
+                State.CalculateCoefficient[(int) FeeTypeEnum.Ram] = GetRamFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeTypeEnum.Net] == null)
+                State.CalculateCoefficient[(int) FeeTypeEnum.Net] = GetNetFeeParameter();
+            if (State.CalculateCoefficient[(int) FeeTypeEnum.Tx] == null)
+                State.CalculateCoefficient[(int) FeeTypeEnum.Tx] = GetTxFeeParameter();
         }
 
-        public enum FeeType
+        private enum FeeTypeEnum
         {
             Tx = 0,
             Cpu,
             Sto,
             Ram,
             Net
-        }
-
-        public enum AlgorithmOpCode
-        {
-            AddFunc,
-            DeleteFunc,
-            UpdateFunc
-        }
-
-        public enum CalculateFunctionType
-        {
-            Default = 0,
-            Constant,
-            Liner,
-            Power,
-            Ln,
-            Bancor
         }
     }
 }

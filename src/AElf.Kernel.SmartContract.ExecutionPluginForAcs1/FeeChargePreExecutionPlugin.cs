@@ -19,22 +19,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
         private readonly ICalculateFeeService _calService;
+        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
-            ICalculateFeeService calService)
+            ICalculateFeeService calService,
+            ICalculateStrategyProvider calculateStrategyProvider)
         {
             _contextService = contextService;
             _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
             _calService = calService;
+            _calculateStrategyProvider = calculateStrategyProvider;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -118,12 +118,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _calService.CalculateFee(chainContext, FeeType.Tx, txSize);
-                var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
-                {
-                    BlockHash = transactionContext.PreviousBlockHash,
-                    BlockHeight = transactionContext.BlockHeight - 1
-                });
+                var txCalculateStrategy = _calculateStrategyProvider.GetTxCalculateStrategy();
+                _calService.CalculateCostStrategy = txCalculateStrategy;
+                var txCost = await _calService.CalculateFee(chainContext, txSize);
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {

@@ -13,7 +13,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionType FunctionType { get; } = CalculateFunctionType.Ln;
+        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Ln;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -70,7 +70,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long Precision { get; set; } = 100000000L;
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
-        public CalculateFunctionType FunctionType { get; } = CalculateFunctionType.Power;
+        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Power;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -136,7 +136,7 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         public long Precision { get; set; } = 100000000L;
         public int ConstantValue { get; set; }
-        public CalculateFunctionType FunctionType { get; } = CalculateFunctionType.Constant;
+        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Constant;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -173,7 +173,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionType FunctionType { get; } = CalculateFunctionType.Liner;
+        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Liner;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -223,7 +223,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long ResourceConnectorBalance { get; set; }
         public long TokenConnectorBalance { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionType FunctionType { get; } = CalculateFunctionType.Bancor;
+        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Bancor;
 
         public bool InitParameter(IDictionary<string, string> param)
         {

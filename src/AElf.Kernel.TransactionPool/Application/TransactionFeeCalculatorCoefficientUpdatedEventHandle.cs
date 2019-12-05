@@ -15,6 +15,7 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICalculateFeeService _calculateFeeService;
+        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
 
         private LogEvent _interestedEvent;
 
@@ -38,10 +39,12 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedEventHandle(
             ISmartContractAddressService smartContractAddressService,
-            ICalculateFeeService calculateFeeService)
+            ICalculateFeeService calculateFeeService,
+            ICalculateStrategyProvider calculateStrategyProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _calculateFeeService = calculateFeeService;
+            _calculateStrategyProvider = calculateStrategyProvider;
 
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
@@ -66,18 +69,21 @@ namespace AElf.Kernel.TransactionPool.Application
             var funcType = param.FunctionType;
             var paramDic = param.ParameterDic;
             var opCode = param.OperationType;
-            switch ((AlgorithmOpCode) opCode)
+            _calculateFeeService.CalculateCostStrategy =
+                _calculateStrategyProvider.GetCalculateStrategyByFeeType((FeeTypeEnum)feeType);
+            switch ((AlgorithmOpCodeEnum) opCode)
             {
-                case AlgorithmOpCode.AddFunc:
-                    await _calculateFeeService.AddFeeCal(chainContext, blockIndex, (FeeType) feeType, pieceKey,
-                        (CalculateFunctionType) funcType, paramDic);
+                case AlgorithmOpCodeEnum.AddFunc:
+                    
+                    await _calculateFeeService.AddFeeCal(chainContext, blockIndex, pieceKey,
+                        (CalculateFunctionTypeEnum) funcType, paramDic);
                     break;
-                case AlgorithmOpCode.DeleteFunc:
-                    await _calculateFeeService.DeleteFeeCal(chainContext, blockIndex, (FeeType) feeType, pieceKey);
+                case AlgorithmOpCodeEnum.DeleteFunc:
+                    await _calculateFeeService.DeleteFeeCal(chainContext, blockIndex, pieceKey);
                     break;
-                case AlgorithmOpCode.UpdateFunc:
-                    await _calculateFeeService.UpdateFeeCal(chainContext, blockIndex, (FeeType) feeType, pieceKey,
-                        (CalculateFunctionType) funcType, paramDic);
+                case AlgorithmOpCodeEnum.UpdateFunc:
+                    await _calculateFeeService.UpdateFeeCal(chainContext, blockIndex, pieceKey,
+                        (CalculateFunctionTypeEnum) funcType, paramDic);
                     break;
                 default:
                     Logger.LogWarning($"does not find operation code {opCode}");

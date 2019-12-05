@@ -29,22 +29,22 @@ namespace AElf.Kernel.TransactionPool.Application
     
     public class TransactionFeeCalculatorCoefficientForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
-        private readonly ICalculateFeeService _calculateFeeService;
+        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
 
-        public TransactionFeeCalculatorCoefficientForkCacheHandler(ICalculateFeeService calculateFeeService)
+        public TransactionFeeCalculatorCoefficientForkCacheHandler(ICalculateStrategyProvider calculateStrategyProvider)
         {
-            _calculateFeeService = calculateFeeService;
+            _calculateStrategyProvider = calculateStrategyProvider;
         }
 
         public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
-            _calculateFeeService.RemoveForkCache(blockIndexes);
+            _calculateStrategyProvider.RemoveForkCache(blockIndexes);
             return Task.CompletedTask;
         }
 
         public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
-            _calculateFeeService.SetIrreversedCache(blockIndexes);
+            _calculateStrategyProvider.SetIrreversedCache(blockIndexes);
             return Task.CompletedTask;
         }
     }

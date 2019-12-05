@@ -18,26 +18,26 @@ namespace AElf.Kernel.TransactionPool.Application
             return await CalculateAlgorithm.Calculate(cost);
         }
 
-        public async Task UpdateAlgorithm(IChainContext chainContext, BlockIndex blockIndex, AlgorithmOpCode opCode,
+        public async Task UpdateAlgorithm(IChainContext chainContext, BlockIndex blockIndex, AlgorithmOpCodeEnum opCodeEnum,
             int pieceKey,
-            CalculateFunctionType funcType,
+            CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> param)
         {
             CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            switch (opCode)
+            switch (opCodeEnum)
             {
-                case AlgorithmOpCode.AddFunc:
-                    await CalculateAlgorithm.AddByParam(pieceKey, funcType, param);
+                case AlgorithmOpCodeEnum.AddFunc:
+                    await CalculateAlgorithm.AddByParam(pieceKey, funcTypeEnum, param);
                     break;
-                case AlgorithmOpCode.DeleteFunc:
+                case AlgorithmOpCodeEnum.DeleteFunc:
                     await CalculateAlgorithm.Delete(pieceKey);
                     break;
-                case AlgorithmOpCode.UpdateFunc:
-                    await CalculateAlgorithm.Update(pieceKey, funcType, param);
+                case AlgorithmOpCodeEnum.UpdateFunc:
+                    await CalculateAlgorithm.Update(pieceKey, funcTypeEnum, param);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null);
+                    throw new ArgumentOutOfRangeException(nameof(opCodeEnum), opCodeEnum, null);
             }
         }
 
@@ -79,7 +79,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 4,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeType = FeeType.Cpu;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = FeeTypeEnum.Cpu;
         }
     }
 
@@ -106,7 +106,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 64,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeType = FeeType.Sto;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = FeeTypeEnum.Sto;
         }
     }
 
@@ -136,7 +136,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 4,
                         WeightBase = 40,
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeType = FeeType.Ram;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = FeeTypeEnum.Ram;
         }
     }
 
@@ -163,7 +163,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 64,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeType = FeeType.Net;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = FeeTypeEnum.Net;
         }
     }
 
@@ -190,7 +190,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 16 * 50,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeType = FeeType.Tx;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = FeeTypeEnum.Tx;
         }
     }
 

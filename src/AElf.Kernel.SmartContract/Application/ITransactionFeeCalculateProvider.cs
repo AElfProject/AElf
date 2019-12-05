@@ -4,7 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 { 
-    public enum FeeType
+    public enum FeeTypeEnum
     {
         Tx = 0,
         Cpu,
@@ -13,30 +13,34 @@ namespace AElf.Kernel.SmartContract.Application
         Net
     }
 
-    public interface ICalculateFeeService : ISingletonDependency
+    public interface ICalculateFeeService : ITransientDependency
     {
-        Task<long> CalculateFee(IChainContext chainContext, FeeType feeType, int cost);
+        ICalculateCostStrategy CalculateCostStrategy { get; set; }
+        Task<long> CalculateFee(IChainContext chainContext, int cost);
 
-        Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey,
-            CalculateFunctionType funcType, IDictionary<string, string> param);
+        Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+            CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> param);
 
-        Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey);
+        Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey);
 
-        Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey,
-            CalculateFunctionType funcType,
+        Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+            CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> para);
-        void RemoveForkCache(List<BlockIndex> blockIndexes);
-        void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
     public interface ICalculateStrategyProvider : ISingletonDependency
     {
-        ICalculateCostStrategy GetCalculateStrategy(FeeType feeType);
+        ICalculateCostStrategy GetCalculateStrategyByFeeType(FeeTypeEnum typeEnum);
+        ICalculateCostStrategy GetCpuCalculateStrategy();
+        ICalculateCostStrategy GetStoCalculateStrategy();
+        ICalculateCostStrategy GetRamCalculateStrategy();
+        ICalculateCostStrategy GetNetCalculateStrategy();
+        ICalculateCostStrategy GetTxCalculateStrategy();
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
-    public enum AlgorithmOpCode
+    public enum AlgorithmOpCodeEnum
     {
         AddFunc,
         DeleteFunc,
@@ -47,8 +51,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<long> GetCost(IChainContext context, int cost);
 
-        Task UpdateAlgorithm(IChainContext chainContext, BlockIndex blockIndex, AlgorithmOpCode opCode, int pieceKey,
-            CalculateFunctionType funcType = CalculateFunctionType.Default,
+        Task UpdateAlgorithm(IChainContext chainContext, BlockIndex blockIndex, AlgorithmOpCodeEnum opCodeEnum, int pieceKey,
+            CalculateFunctionTypeEnum funcTypeEnum = CalculateFunctionTypeEnum.Default,
             IDictionary<string, string> param = null);
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
@@ -56,7 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
 
     public interface ICalculateAlgorithmContext
     {
-        FeeType CalculateFeeType { get; set; }
+        FeeTypeEnum CalculateFeeTypeEnum { get; set; }
         IChainContext ChainContext { get; set; }
         BlockIndex BlockIndex { get; set; }
     }
@@ -68,11 +72,11 @@ namespace AElf.Kernel.SmartContract.Application
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
         Task<long> Calculate(int count);
         Task Delete(int pieceKey);
-        Task Update(int pieceKey, CalculateFunctionType funcType, IDictionary<string, string> parameters);
-        Task AddByParam(int pieceKey, CalculateFunctionType funcType, IDictionary<string, string> parameters);
+        Task Update(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters);
+        Task AddByParam(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters);
     }
 
-    public enum CalculateFunctionType
+    public enum CalculateFunctionTypeEnum
     {
         Default = 0,
         Constant,
@@ -87,27 +91,66 @@ namespace AElf.Kernel.SmartContract.Application
         long GetCost(int initValue);
         bool InitParameter(IDictionary<string, string> param);
         IDictionary<string, string> GetParameterDic();
-        CalculateFunctionType FunctionType { get;}
+        CalculateFunctionTypeEnum FunctionTypeEnum { get;}
 
     }
 
     class DefaultCalculateFeeService : ICalculateFeeService
     {
-        //private readonly ICalculateStrategyProvider _calculateStrategyProvider;
+        public ICalculateCostStrategy CalculateCostStrategy { get; set; }
 
-        public DefaultCalculateFeeService()
-        {
-            //_calculateStrategyProvider = calculateStrategyProvider;
-        }
-
-        public async Task<long> CalculateFee(IChainContext chainContext, FeeType feeType, int cost)
+        public async Task<long> CalculateFee(IChainContext chainContext, int cost)
         {
             return 0;
         }
 
-        public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey,
-            CalculateFunctionType funcType,
+        public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+            CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> param)
+        {
+            throw new System.NotImplementedException();
+        }
+        public async Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex,int pieceKey)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+            CalculateFunctionTypeEnum funcTypeEnum,
+            IDictionary<string, string> param)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    class DefaultCalculateStrategyProvider : ICalculateStrategyProvider
+    {
+        public ICalculateCostStrategy GetCalculateStrategyByFeeType(FeeTypeEnum typeEnum)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ICalculateCostStrategy GetCpuCalculateStrategy()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ICalculateCostStrategy GetStoCalculateStrategy()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ICalculateCostStrategy GetRamCalculateStrategy()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ICalculateCostStrategy GetNetCalculateStrategy()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ICalculateCostStrategy GetTxCalculateStrategy()
         {
             throw new System.NotImplementedException();
         }
@@ -118,18 +161,6 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, FeeType feeType, int pieceKey,
-            CalculateFunctionType funcType,
-            IDictionary<string, string> param)
         {
             throw new System.NotImplementedException();
         }
