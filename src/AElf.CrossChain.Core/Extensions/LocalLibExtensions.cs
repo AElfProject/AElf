@@ -5,7 +5,7 @@ using AElf.Types;
 
 namespace AElf.CrossChain
 {
-    public static class LocalLibExtension
+    public static class LocalLibExtensions
     {
         public static async Task<Block> GetIrreversibleBlockByHeightAsync(this IBlockchainService blockchainService, long height)
         {

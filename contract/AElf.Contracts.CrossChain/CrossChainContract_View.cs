@@ -182,5 +182,12 @@ namespace AElf.Contracts.CrossChain
             res.ExtraInformation.Add(sideChainTokenInformation);
             return res;
         }
+
+        public override CrossChainIndexingProposal GetPendingCrossChainIndexingProposal(Empty input)
+        {
+            return TryGetPendingProposal(out var pendingCrossChainIndexingProposal)
+                ? pendingCrossChainIndexingProposal
+                : new CrossChainIndexingProposal();
+        }
     }
 }

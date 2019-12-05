@@ -372,5 +372,11 @@ namespace AElf.Contracts.CrossChain
 
             return true;
         }
+
+        private bool TryGetPendingProposal(out CrossChainIndexingProposal proposal)
+        {
+            proposal = State.PendingCrossChainIndexingProposal.Value;
+            return proposal != null && proposal.ProposalId != null;
+        }
     }
 }

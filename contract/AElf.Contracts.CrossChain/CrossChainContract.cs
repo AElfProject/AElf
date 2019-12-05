@@ -138,9 +138,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ProposeCrossChainIndexing(ProposeCrossChainIndexingInput input)
         {
             AssertValidCrossChainIndexingProposer(Context.Sender);
-            var pendingCrossChainIndexingProposal = State.PendingCrossChainIndexingProposal.Value;
-            if (pendingCrossChainIndexingProposal != null 
-                && pendingCrossChainIndexingProposal.ProposalId != null)
+            if (TryGetPendingProposal(out var pendingCrossChainIndexingProposal))
             {
                 HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId,
                     pendingCrossChainIndexingProposal.Proposer);

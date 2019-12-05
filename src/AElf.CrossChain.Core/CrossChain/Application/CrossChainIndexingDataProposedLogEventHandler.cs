@@ -1,30 +1,60 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain
 {
     public class CrossChainIndexingDataProposedLogEventHandler : IBestChainFoundLogEventHandler
     {
         public LogEvent InterestedEvent => GetInterestedEvent();
-        
+        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+        public ILogger<CrossChainIndexingDataProposedLogEventHandler> Logger { get; set; }
+
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ICrossChainIndexingDataValidationService _crossChainIndexingDataValidationService;
+        private readonly IProposalService _proposalService;
         private LogEvent _interestedEvent;
         
-        public CrossChainIndexingDataProposedLogEventHandler(ISmartContractAddressService smartContractAddressService)
+        public CrossChainIndexingDataProposedLogEventHandler(ISmartContractAddressService smartContractAddressService, 
+            ICrossChainIndexingDataValidationService crossChainIndexingDataValidationService, IProposalService proposalService)
         {
             _smartContractAddressService = smartContractAddressService;
+            _crossChainIndexingDataValidationService = crossChainIndexingDataValidationService;
+            _proposalService = proposalService;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
+            if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
+            {
+                Logger.LogTrace("Cross chain data validation disabled.");
+                return;
+            }
+            
             var crossChainIndexingDataProposedEvent = new CrossChainIndexingDataProposedEvent();
             crossChainIndexingDataProposedEvent.MergeFrom(logEvent);
             var crossChainBlockData = crossChainIndexingDataProposedEvent.ProposedCrossChainData;
+            if (crossChainBlockData.ParentChainBlockData.Count == 0 &&
+                crossChainBlockData.SideChainBlockData.Count == 0)
+                return;
+            var validationResult =
+                await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingData(crossChainBlockData,
+                    block);
+            if (validationResult)
+            {
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                    .ProposalId;
+                _proposalService.AddNotApprovedProposal(proposalId, block.Height);
+            }
         }
 
         private LogEvent GetInterestedEvent()

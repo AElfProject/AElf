@@ -40,6 +40,9 @@ service CrossChainContract {
     rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (CrossChainIndexingProposal) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitializeInput {

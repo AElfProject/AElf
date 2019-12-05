@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs7;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -24,31 +26,36 @@ namespace AElf.CrossChain
             _smartContractAddressService = smartContractAddressService;
         }
 
-        private List<Transaction> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
+        private async Task<List<Transaction>> GenerateCrossChainIndexingTransactionAsync(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
-            
+
+            var proposingInput = new ProposeCrossChainIndexingInput();
             // should return the same data already filled in block header.
-            var filledCrossChainBlockData =
-                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMining(previousBlockHash, refBlockNumber);
+            var crossChainBlockData =
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, refBlockNumber);
             
-            // filledCrossChainBlockData == null means no cross chain data filled in this block.
-            if (filledCrossChainBlockData != null)
-            {
-                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConstants.CrossChainIndexingMethodName, refBlockNumber,
-                    previousBlockPrefix, filledCrossChainBlockData));
+
+            if (!crossChainBlockData.IsNullOrEmpty())
+            {            
+                proposingInput.ProposedCrossChainData = crossChainBlockData;
             }
+            
+            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+            generatedTransactions.Add(GenerateNotSignedTransaction(from,
+                nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing), refBlockNumber,
+                previousBlockPrefix, proposingInput));
             
             Logger.LogTrace($"{generatedTransactions.Count} Cross chain transaction generated.");
             return generatedTransactions;
         }
 
-        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
+        public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
-            var generatedTransactions = GenerateCrossChainIndexingTransaction(from, preBlockHeight, preBlockHash);
-            return Task.FromResult(generatedTransactions);
+            var generatedTransactions =
+                await GenerateCrossChainIndexingTransactionAsync(from, preBlockHeight, preBlockHash);
+            return generatedTransactions;
         }
 
         /// <summary>
