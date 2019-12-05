@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private static class MiningTimeArrangingService
         {
-            public static Timestamp ArrangeMiningTimeBasedOnOffset(Timestamp currentBlockTime, int offset)
+            public static Timestamp ArrangeMiningTimeWithOffset(Timestamp currentBlockTime, int offset)
             {
                 return currentBlockTime.AddMilliseconds(offset);
             }

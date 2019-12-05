@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             /// <summary>
-            /// Simply return NEXT_ROUND.
+            /// Simply return NEXT_ROUND for side chain.
             /// </summary>
             /// <returns></returns>
             protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>

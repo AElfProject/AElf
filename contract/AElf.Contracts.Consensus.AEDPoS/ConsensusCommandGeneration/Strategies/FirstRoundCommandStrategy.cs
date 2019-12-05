@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         ? miningInterval
                         : Order.Add(MinersCount).Sub(1).Mul(miningInterval);
                 var arrangedMiningTime =
-                    MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime, offset);
+                    MiningTimeArrangingService.ArrangeMiningTimeWithOffset(CurrentBlockTime, offset);
                 return new ConsensusCommand
                 {
                     Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),

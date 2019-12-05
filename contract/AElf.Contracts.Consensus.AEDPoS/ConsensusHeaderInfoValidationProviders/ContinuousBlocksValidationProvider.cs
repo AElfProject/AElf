@@ -1,5 +1,6 @@
 using Acs4;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class ContinuousBlocksValidationProvider : IHeaderInformationValidationProvider
@@ -13,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (validationContext.ProvidedRound.RoundNumber > 2 &&
                 validationContext.BaseRound.RealTimeMinersInformation.Count != 1)
             {
-                var latestProviderToTinyBlocksCount = validationContext.LatestProviderToTinyBlocksCount;
+                var latestProviderToTinyBlocksCount = validationContext.LatestPubkeyToTinyBlocksCount;
                 if (latestProviderToTinyBlocksCount != null &&
                     latestProviderToTinyBlocksCount.Pubkey == validationContext.SenderPubkey &&
                     latestProviderToTinyBlocksCount.BlocksCount < 0)

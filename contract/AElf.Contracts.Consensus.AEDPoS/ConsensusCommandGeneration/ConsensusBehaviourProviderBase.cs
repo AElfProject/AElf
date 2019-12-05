@@ -90,9 +90,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             /// <summary>
             /// If this miner come to a new round, normally, there are three possible behaviour:
-            /// UpdateValue (most common)
-            /// TinyBlock (happens if this miner is mining blocks for extra block time slot of previous round)
-            /// NextRound (only happens in first round)
+            /// UPDATE_VALUE (most common)
+            /// TINY_BLOCK (happens if this miner is mining blocks for extra block time slot of previous round)
+            /// NEXT_ROUND (only happens in first round)
             /// </summary>
             /// <returns></returns>
             private AElfConsensusBehaviour HandleMinerInNewRound()
