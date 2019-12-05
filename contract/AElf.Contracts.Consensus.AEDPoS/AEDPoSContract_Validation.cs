@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 CurrentTermNumber = State.CurrentTermNumber.Value,
                 CurrentRoundNumber = State.CurrentRoundNumber.Value,
                 PreviousRound = TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round(),
-                LatestPubkeyToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value,
+                LatestPubkeyToTinyBlocksCount = State.LatestPubkeyToTinyBlocksCount.Value,
                 ExtraData = extraData
             };
 

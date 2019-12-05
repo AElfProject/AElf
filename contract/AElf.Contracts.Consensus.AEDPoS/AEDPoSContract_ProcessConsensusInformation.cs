@@ -312,21 +312,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
             LatestPubkeyToTinyBlocksCount currentValue;
-            if (State.LatestProviderToTinyBlocksCount.Value == null)
+            if (State.LatestPubkeyToTinyBlocksCount.Value == null)
             {
                 currentValue = new LatestPubkeyToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
                     BlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(1)
                 };
-                State.LatestProviderToTinyBlocksCount.Value = currentValue;
+                State.LatestPubkeyToTinyBlocksCount.Value = currentValue;
             }
             else
             {
-                currentValue = State.LatestProviderToTinyBlocksCount.Value;
+                currentValue = State.LatestPubkeyToTinyBlocksCount.Value;
                 if (currentValue.Pubkey == _processingBlockMinerPubkey)
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = currentValue.BlocksCount.Sub(1)
@@ -334,7 +334,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = minersCountInTheory.Sub(1)
