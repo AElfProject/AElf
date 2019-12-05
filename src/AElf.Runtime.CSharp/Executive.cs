@@ -45,6 +45,11 @@ namespace AElf.Runtime.CSharp
             return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
         }
 
+        private Type FindExecutionCounterType(Assembly assembly)
+        {
+            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
+        }
+
         private Type FindContractContainer(Assembly assembly)
         {
             var contractBase = FindContractBaseType(assembly);
@@ -64,7 +69,7 @@ namespace AElf.Runtime.CSharp
             _executivePlugins = executivePlugins;
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
+            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, FindExecutionCounterType(assembly));
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();

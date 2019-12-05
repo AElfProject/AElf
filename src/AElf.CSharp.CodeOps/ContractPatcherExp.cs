@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
+using AElf.CSharp.CodeOps.Validators;
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -16,7 +15,7 @@ namespace AElf.CSharp.CodeOps
 {
     public static class ContractPatcherExp
     {
-        private static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
+        public static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
         {
             OpCodes.Beq,
             OpCodes.Beq_S,
@@ -49,26 +48,24 @@ namespace AElf.CSharp.CodeOps
             // ReSharper disable once IdentifierTypo
             var nmspace = contractAsmDef.MainModule.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
 
-            var (counterType, instanceField) = ConstructCounterType(contractAsmDef.MainModule, nmspace);
+            var (counterProxy, observerField) = ConstructCounterProxy(contractAsmDef.MainModule, nmspace);
 
-            var countMethod = ConstructCountMethod(mainModule, instanceField, 100000);
-            var resetMethod = ConstructResetMethod(mainModule, instanceField);
-
-            counterType.Methods.Add(countMethod);
-            counterType.Methods.Add(resetMethod);
+            var initializeMethod = ConstructInitializeMethod(mainModule, observerField);
+            var proxyCountMethod = ConstructProxyCountMethod(mainModule, observerField);
+            
+            counterProxy.Methods.Add(initializeMethod);
+            counterProxy.Methods.Add(proxyCountMethod);
 
             // Check if already injected
-            if (!mainModule.Types.Select(t => t.Name).Contains(counterType.Name))
+            if (!mainModule.Types.Select(t => t.Name).Contains(counterProxy.Name))
             {
                 // Patch the types
                 foreach (var typ in contractAsmDef.MainModule.Types)
                 {
-                    PatchType(contractAsmDef, typ, countMethod);
+                    PatchType(typ, proxyCountMethod);
                 }
 
-                PatchEntryPointsWithReset(mainModule, resetMethod);
-            
-                mainModule.Types.Add(counterType);
+                mainModule.Types.Add(counterProxy);
             }
 
             var newCode = new MemoryStream();
@@ -76,18 +73,18 @@ namespace AElf.CSharp.CodeOps
             return newCode.ToArray();
         }
 
-        private static (TypeDefinition, FieldDefinition) ConstructCounterType(ModuleDefinition module, string nmspace)
+        private static (TypeDefinition, FieldDefinition) ConstructCounterProxy(ModuleDefinition module, string nmspace)
         {
             var counterType = new TypeDefinition(
-                nmspace, "InternalInstructionCounter",
+                nmspace, nameof(ExecutionObserverProxy),
                 TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.Public | TypeAttributes.Class,
                 module.ImportReference(typeof(object))
             );
             
             var counterField = new FieldDefinition(
-                "_counter",
+                "_observer",
                 FieldAttributes.Private | FieldAttributes.Static, 
-                module.ImportReference(typeof(int)
+                module.ImportReference(typeof(IExecutionObserver)
                 )
             );
             
@@ -96,70 +93,68 @@ namespace AElf.CSharp.CodeOps
                 module.ImportReference(typeof(ThreadStaticAttribute).GetConstructor(new Type[]{}))));
 
             counterType.Fields.Add(counterField);
-            
-            var constructor = new MethodDefinition(
-                ".cctor", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.Static,
-                module.ImportReference(typeof(void))
-            );
-            
-            var il = constructor.Body.GetILProcessor();
-            il.Emit(OpCodes.Nop);
-            il.Emit(OpCodes.Ldc_I4_0); // Set default value of counter to 0
-            il.Emit(OpCodes.Stsfld, counterField);
-            il.Emit(OpCodes.Ret);
-            
-            counterType.Methods.Add(constructor);
-            
+
             return (counterType, counterField);
         }
 
-        private static MethodDefinition ConstructCountMethod(ModuleDefinition module, FieldDefinition counterField, int threshold)
+        private static MethodDefinition ConstructProxyCountMethod(ModuleDefinition module, FieldReference observerField)
         {
             var counterMethod = new MethodDefinition(
-                "Count", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
+                nameof(ExecutionObserverProxy.Count), 
+                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
                 module.ImportReference(typeof(void))
             );
             
             counterMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
             var il = counterMethod.Body.GetILProcessor();
-            
+
             var ret = il.Create(OpCodes.Ret);
-            il.Emit(OpCodes.Ldsfld, counterField);
-            il.Emit(OpCodes.Dup);
-            il.Emit(OpCodes.Ldc_I4_1);
-            il.Emit(OpCodes.Add_Ovf);
-            il.Emit(OpCodes.Stsfld, counterField);
-            il.Emit(OpCodes.Ldc_I4, threshold);
-            il.Emit(OpCodes.Ceq);
-            il.Emit(OpCodes.Stloc_0); //  Variable 0
+            
+            #if DEBUG
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
+                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
+            #endif
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Cgt_Un);
+            il.Emit(OpCodes.Stloc_0);
             il.Emit(OpCodes.Ldloc_0);
-            il.Emit(OpCodes.Brfalse_S, ret);
-            il.Emit(OpCodes.Ldstr, "Contract exceeded maximum calls or allowed loops.");
-            //il.Emit(OpCodes.Ldsflda, instanceField);
-            //il.Emit(OpCodes.Call, mainModule.ImportReference(typeof(int).GetMethod("ToString", new Type[]{})));
-            //il.Emit(OpCodes.Call,mainModule.ImportReference(typeof(string).GetMethod("Concat", new []{typeof(string), typeof(string)})));
-            il.Emit(OpCodes.Newobj, module.ImportReference(typeof(RuntimeBranchingThresholdExceededException).GetConstructor(new []{typeof(string)})));
-            il.Emit(OpCodes.Throw);
+            il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Callvirt, module.ImportReference(
+                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.Count))));
             il.Append(ret);
 
             return counterMethod;
         }
         
-        private static MethodDefinition ConstructResetMethod(ModuleDefinition module, FieldDefinition counterField)
+        private static MethodDefinition ConstructInitializeMethod(ModuleDefinition module, FieldReference observerField)
         {
-            var resetMethod = new MethodDefinition(
-                "Reset", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static,
+            var initializeMethod = new MethodDefinition(
+                nameof(ExecutionObserverProxy.Initialize), 
+                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
                 module.ImportReference(typeof(void))
             );
+
+            initializeMethod.Parameters.Add(new ParameterDefinition("observer", 
+                ParameterAttributes.In, module.ImportReference(typeof(IExecutionObserver))));
             
-            var il = resetMethod.Body.GetILProcessor();
-            il.Emit(OpCodes.Ldc_I4_0);
-            il.Emit(OpCodes.Stsfld, counterField);
+            var il = initializeMethod.Body.GetILProcessor();
+            
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Stsfld, observerField);
+            #if DEBUG // May remove later, if a contract is injected in debug mode, it won't run in a node compiled with release mode
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
+                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
+            #endif
             il.Emit(OpCodes.Ret);
-            return resetMethod;
+
+            return initializeMethod;
         }
 
-        private static void PatchType(AssemblyDefinition contractAsmDef, TypeDefinition typ, MethodReference counterMethodRef)
+        private static void PatchType(TypeDefinition typ, MethodReference counterMethodRef)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
@@ -170,7 +165,7 @@ namespace AElf.CSharp.CodeOps
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                PatchType(contractAsmDef, nestedType, counterMethodRef);
+                PatchType(nestedType, counterMethodRef);
             }
         }
 
@@ -180,9 +175,6 @@ namespace AElf.CSharp.CodeOps
                 return;
 
             var il = method.Body.GetILProcessor();
-            
-            // Insert counter in the beginning of each method
-            il.InsertBefore(method.Body.Instructions[0], Instruction.Create(OpCodes.Call, counterMethodRef));
 
             // Insert before every branching instruction
             var branchingInstructions = method.Body.Instructions.Where(i => JumpingOps.Contains(i.OpCode)).ToList();
@@ -192,36 +184,6 @@ namespace AElf.CSharp.CodeOps
                 il.InsertBefore(instruction, il.Create(OpCodes.Call, counterMethodRef));
             }
             il.Body.OptimizeMacros();
-        }
-
-        private static void PatchEntryPointsWithReset(ModuleDefinition module, MethodReference resetMethodRef)
-        {
-            var contractImplementation = module.Types.Where(t => t.BaseType is TypeDefinition).SingleOrDefault(IsContractImplementation);
-
-            foreach (var method in contractImplementation.Methods.Where(m => m.IsPublic))
-            {
-                var il = method.Body.GetILProcessor();
-                
-                // Insert reset call as the first instruction
-                // It may be better to invoke this outside the contract,
-                // otherwise there will be a limitation that public method cannot call public method
-                il.InsertBefore(method.Body.Instructions[0], Instruction.Create(OpCodes.Call, resetMethodRef));
-            }
-        }
-
-        private static bool IsContractImplementation(TypeDefinition typeDefinition)
-        {
-            while (true)
-            {
-                var baseType = typeDefinition.BaseType.Resolve();
-                
-                if (baseType.BaseType == null) // Reached the type before object type (the most base type)
-                {
-                    return typeDefinition.FullName == typeof(CSharpSmartContract).FullName;
-                }
-
-                typeDefinition = baseType;
-            }
         }
     }
 }

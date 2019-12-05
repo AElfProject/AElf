@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -33,12 +34,29 @@ namespace AElf.Sdk.CSharp.Tests
             BridgeContext.TransactionContext = transactionContext;
 
             Contract.InternalInitialize(BridgeContext);
+            
+            var injectedCounter =  Contract.GetType().Assembly
+                    .GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
+            injectedCounter.ShouldNotBeNull();
+            
+            var proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.Initialize), new[] { typeof(IExecutionObserver) });
+            proxyCountMethod.ShouldNotBeNull();
+            
+            // Initialize injected type since we don't use CSharpSmartContractProxy here
+            proxyCountMethod.Invoke(null, new object[] {
+                    BridgeContext.ExecutionObserver
+            });
         }
         
         [Fact]
-        public void TestMaliciousCases()
+        public void TestInfiniteLoop_InContractImplementation()
         {
             Should.Throw<RuntimeBranchingThresholdExceededException>(() => Contract.TestInfiniteLoop(new Empty()));
+        }
+
+        [Fact]
+        public void TestInfiniteLoop_InSeparateClass()
+        {
             Should.Throw<RuntimeBranchingThresholdExceededException>(() => Contract.TestInfiniteLoopInSeparateClass(new Empty()));
         }
     }

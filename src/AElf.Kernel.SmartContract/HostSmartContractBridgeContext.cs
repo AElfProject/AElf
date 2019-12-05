@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -103,6 +104,9 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
+
+        // Get from a service later
+        public IExecutionObserver ExecutionObserver => new InstructionExecutionObserver(50000);
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
