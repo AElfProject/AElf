@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _accountService = accountService;
             _secretSharingService = secretSharingService;
             _inValueCacheService = inValueCacheService;
-            
+
             Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
         }
 

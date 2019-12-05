@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(
-                    new TransactionExecutingDto 
+                    new TransactionExecutingDto
                     {
                         BlockHeader = blockHeader,
                         Transactions = cancellable,
@@ -81,7 +81,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection);
             return block;
         }
-        
+
         protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
             ReturnSetCollection returnSetCollection)
         {
@@ -108,25 +108,25 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                 if (returnSet.Status == TransactionResultStatus.Mined)
                 {
-                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});    
+                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
                 }
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
-            
+
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             var orderedReturnSets = returnSetCollection.ToList().AsParallel()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
                 CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
-            
+
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
-            
+
             var blockHash = blockHeader.GetHashWithoutCache();
             var blockBody = new BlockBody();
             blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
-            
+
             var block = new Block
             {
                 Header = blockHeader,
@@ -158,7 +158,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             return merkleTreeRootOfWorldState;
         }
-        
+
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
         {
             var keys = blockStateSet.Changes.Keys;
@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 yield return ByteString.Empty.ToByteArray();
             }
         }
-        
+
         private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
         {
             Logger.LogTrace("Start transaction status merkle tree root calculation.");
@@ -195,7 +195,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogTrace("Start transaction merkle tree root calculation.");
             return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
         }
-        
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {

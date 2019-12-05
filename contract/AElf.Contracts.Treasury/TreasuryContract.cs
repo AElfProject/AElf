@@ -146,7 +146,7 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-
+            
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -155,9 +155,8 @@ namespace AElf.Contracts.Treasury
                     : Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
-                Memo = "Donate to treasury."
+                Memo = "Donate to treasury.",
             });
-
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
@@ -168,7 +167,6 @@ namespace AElf.Contracts.Treasury
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
-
             if (input.Symbol != Context.Variables.NativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);

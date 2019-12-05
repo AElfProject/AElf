@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
             });
             
-            Logger.LogTrace("FeeClaim transaction generated.");
+            Logger.LogInformation("FeeClaim transaction generated.");
             return Task.FromResult(generatedTransactions);
         }
     }
