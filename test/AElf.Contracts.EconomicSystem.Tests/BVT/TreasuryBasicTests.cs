@@ -78,13 +78,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = chosenOneAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
-            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - 10L - transactionSize * 0);
+            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - 0 - transactionSize * 0);
         }
 
         [Fact]
         public async Task EconomicSystem_ChargeMethodTransactionFeeEvenExecutionFailed()
         {
-            const long feeAmount = 10L;
+            const long feeAmount = 0L;
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = nameof(TransactionFeeChargingContractStub.SupposedToFail),
@@ -200,7 +200,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Owner = chosenOneAddress,
                     Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
                 });
-                balance.Balance.ShouldBe(0L);
+                balance.Balance.ShouldBe(feeAmount);
             }
         }
 

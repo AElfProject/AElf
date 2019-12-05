@@ -5,7 +5,6 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -31,7 +30,6 @@ namespace AElf.Contracts.MultiToken
                 IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
-
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
                 State.NativeTokenSymbol.Value = input.Symbol;
@@ -258,7 +256,6 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -99,28 +100,74 @@ namespace AElf.Contracts.TokenConverter
 
             return new Empty();
         }
-
-        public override Empty SetConnector(Connector input)
+        public override Empty UpdateConnector(Connector input)
         {
             AssertPerformedByManager();
-            AssertValidConnectorAndNormalizeWeight(input);
-            var existing = State.Connectors[input.Symbol];
-            if (existing == null)
+            Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
+            var targetConnector = State.Connectors[input.Symbol];
+            Assert(targetConnector != null, "Can't find target connector.");
+            if (!string.IsNullOrEmpty(input.Weight))
             {
-                State.ConnectorSymbols[State.ConnectorCount.Value] = input.Symbol;
-                State.ConnectorCount.Value = State.ConnectorCount.Value.Add(1);
+                AssertedDecimal(input.Weight);
+                targetConnector.Weight = input.Weight;
             }
-
-            State.Connectors[input.Symbol] = input;
+            if(input.VirtualBalance > 0)
+                targetConnector.VirtualBalance = input.VirtualBalance;
+            targetConnector.IsVirtualBalanceEnabled = input.IsVirtualBalanceEnabled;
+            targetConnector.IsPurchaseEnabled = input.IsPurchaseEnabled;
+            if(!string.IsNullOrEmpty(input.RelatedSymbol))
+                targetConnector.RelatedSymbol = input.RelatedSymbol;
             return new Empty();
         }
 
+        public override Empty AddPairConnectors(PairConnector pairConnector)
+        {
+            AssertPerformedByManager();
+            Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
+                "resource token symbol should not be empty");
+            Assert(!string.IsNullOrEmpty(pairConnector.NativeConnectorSymbol),
+                "native token symbol symbol should not be empty");
+            Assert(State.Connectors[pairConnector.ResourceConnectorSymbol]==null,
+                "resource token symbol has been existed");
+            Assert(State.Connectors[pairConnector.NativeConnectorSymbol]==null,
+                "native token symbol has been existed");
+            var resourceConnector = new Connector
+            {
+                Symbol = pairConnector.ResourceConnectorSymbol,
+                VirtualBalance = pairConnector.ResourceVirtualBalance,
+                IsVirtualBalanceEnabled = pairConnector.IsResourceVirtualBalanceEnabled,
+                IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
+                RelatedSymbol = pairConnector.NativeConnectorSymbol,
+                Weight = pairConnector.ResourceWeight
+            };
+            AssertValidConnectorAndNormalizeWeight(resourceConnector);
+            var nativeTokenToResourceConnector = new Connector
+            {
+                Symbol = pairConnector.NativeConnectorSymbol,
+                VirtualBalance = pairConnector.NativeVirtualBalance,
+                IsVirtualBalanceEnabled = pairConnector.IsNativeVirtualBalanceEnabled,
+                IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
+                RelatedSymbol = pairConnector.ResourceConnectorSymbol,
+                Weight = pairConnector.NativeWeight
+            };
+            AssertValidConnectorAndNormalizeWeight(nativeTokenToResourceConnector);
+            int count = State.ConnectorCount.Value;
+            State.ConnectorSymbols[count+1] = resourceConnector.Symbol;
+            State.Connectors[resourceConnector.Symbol] = resourceConnector;
+            State.ConnectorSymbols[count+2] = nativeTokenToResourceConnector.Symbol;
+            State.Connectors[nativeTokenToResourceConnector.Symbol] = nativeTokenToResourceConnector;
+            State.ConnectorCount.Value = count + 2;
+            return new Empty();
+        }
         public override Empty Buy(BuyInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
-            var fromConnector = State.Connectors[State.BaseTokenSymbol.Value];
+            
             var toConnector = State.Connectors[input.Symbol];
-            Assert(toConnector != null, "Can't find connector.");
+            Assert(toConnector != null, "Can't find to connector.");
+            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
+            var fromConnector = State.Connectors[toConnector.RelatedSymbol];
+            Assert(toConnector != null, "Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -143,9 +190,9 @@ namespace AElf.Contracts.TokenConverter
                     Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
                     To = Context.Self,
-                    Amount = amountToPay
+                    Amount = amountToPay,
                 });
-
+            State.DepositBalance[fromConnector.Symbol] = State.DepositBalance[fromConnector.Symbol].Add(amountToPay);
             // Transfer bought token
             State.TokenContract.Transfer.Send(
                 new TransferInput
@@ -169,8 +216,10 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
-            Assert(fromConnector != null, "Can't find connector.");
-            var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
+            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
+            var toConnector = State.Connectors[fromConnector.RelatedSymbol];
+            Assert(toConnector != null, "Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -201,7 +250,8 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = amountToReceiveLessFee
                 });
-
+            State.DepositBalance[toConnector.Symbol] =
+                State.DepositBalance[toConnector.Symbol].Sub(amountToReceiveLessFee);
             // Transfer sold token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
@@ -304,12 +354,21 @@ namespace AElf.Contracts.TokenConverter
 
         private long GetSelfBalance(Connector connector)
         {
-            var realBalance = State.TokenContract.GetBalance.Call(
-                new GetBalanceInput()
-                {
-                    Owner = Context.Self,
-                    Symbol = connector.Symbol
-                }).Balance;
+            long realBalance;
+            if (connector.IsDepositAccount)
+            {
+                realBalance = State.DepositBalance[connector.Symbol];
+            }
+            else
+            {
+                realBalance = State.TokenContract.GetBalance.Call(
+                    new GetBalanceInput()
+                    {
+                        Owner = Context.Self,
+                        Symbol = connector.Symbol
+                    }).Balance;
+            }
+
             if (connector.IsVirtualBalanceEnabled)
             {
                 return connector.VirtualBalance.Add(realBalance);
