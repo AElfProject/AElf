@@ -163,7 +163,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
             Context.Fire(new ProposalCreated {ProposalId = hash});
-            
+            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, hash); // proposal id feedback 
             return hash;
         }
 

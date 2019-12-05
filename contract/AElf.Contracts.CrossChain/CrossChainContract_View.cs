@@ -10,23 +10,22 @@ namespace AElf.Contracts.CrossChain
 
     public partial class CrossChainContract
     {
-        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
-        {
-            var crossChainBlockData = new CrossChainBlockData();
-            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
-
-            var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
-            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
-            return crossChainBlockData;
-        }
+//        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
+//        {
+//            var crossChainBlockData = new CrossChainBlockData();
+//            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
+//            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
+//                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
+//
+//            var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
+//            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
+//            return crossChainBlockData;
+//        }
 
         public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(SInt64Value input)
         {
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
-            Assert(indexedSideChainBlockData != null, "Side chain block data should not be null.");
-            return indexedSideChainBlockData;
+            return indexedSideChainBlockData ?? new IndexedSideChainBlockData();
         }
 
         public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(SInt64Value input)

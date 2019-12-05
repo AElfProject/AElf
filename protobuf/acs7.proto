@@ -11,13 +11,17 @@ option (aelf.identity) = "acs7";
 
 service ACS7 {
     
-    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
+    rpc ProposeCrossChainIndexing(ProposeCrossChainIndexingInput) returns (google.protobuf.Empty) {
+    }
+    rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
     }
     rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
+    }
+    rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -28,9 +32,9 @@ service ACS7 {
     rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
-    rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
-        option (aelf.is_view) = true;
-    }
+//    rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
+//        option (aelf.is_view) = true;
+//    }
     rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
         option (aelf.is_view) = true;
     }
@@ -173,4 +177,13 @@ message IndexedParentChainBlockData{
 
 message IndexedSideChainBlockData{
     repeated acs7.SideChainBlockData side_chain_block_data = 1;
+}
+
+message ProposeCrossChainIndexingInput{
+    CrossChainBlockData proposed_cross_chain_data = 1;
+}
+
+message RecordCrossChainDataInput{
+    CrossChainBlockData proposed_cross_chain_data = 1;
+    aelf.Address proposer = 2;
 }

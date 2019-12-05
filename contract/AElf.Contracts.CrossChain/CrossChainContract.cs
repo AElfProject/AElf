@@ -32,7 +32,7 @@ namespace AElf.Contracts.CrossChain
         public override SInt32Value CreateSideChain(SideChainCreationRequest sideChainCreationRequest)
         {
             // side chain creation should be triggered by organization address from parliament.
-            CheckOwnerAuthority();
+            AssertOwnerAuthority(Context.Sender);
 
             Assert(sideChainCreationRequest.LockedTokenAmount > 0
                    && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
@@ -113,7 +113,7 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override SInt64Value DisposeSideChain(SInt32Value input)
         {
-            CheckOwnerAuthority();
+            AssertOwnerAuthority(Context.Sender);
 
             var chainId = input.Value;
             var info = State.SideChainInfo[chainId];
@@ -135,28 +135,63 @@ namespace AElf.Contracts.CrossChain
 
         #region Cross chain actions
 
-        public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
+        public override Empty ProposeCrossChainIndexing(ProposeCrossChainIndexingInput input)
+        {
+            AssertValidCrossChainIndexingProposer(Context.Sender);
+            var pendingCrossChainIndexingProposal = State.PendingCrossChainIndexingProposal.Value;
+            if (pendingCrossChainIndexingProposal != null 
+                && pendingCrossChainIndexingProposal.ProposalId != null)
+            {
+                HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId,
+                    pendingCrossChainIndexingProposal.Proposer);
+                return new Empty();
+            }
+
+            if (input.ProposedCrossChainData != null)
+            {
+                AssertValidCrossChainDataBeforeIndexing(input.ProposedCrossChainData);
+                ProposeCrossChainBlockData(input.ProposedCrossChainData, Context.Sender);
+            }
+            
+            return new Empty();
+        }
+
+        public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
+        {
+            AssertAddressIsParliamentContract(Context.Sender);
+            AssertAddressIsCurrentMiner(Context.Origin);
+            var pendingCrossChainIndexingProposal = State.PendingCrossChainIndexingProposal.Value;
+            Assert(
+                pendingCrossChainIndexingProposal != null &&
+                pendingCrossChainIndexingProposal.IndexingProposalFeedbackNeeded,
+                "Incorrect proposal feedback.");
+            pendingCrossChainIndexingProposal.IndexingProposalFeedbackNeeded = false;
+            pendingCrossChainIndexingProposal.ProposalId = input;
+            State.PendingCrossChainIndexingProposal.Value = pendingCrossChainIndexingProposal;
+            return new Empty();
+        }
+
+        public override Empty RecordCrossChainData(RecordCrossChainDataInput recordCrossChainDataInput)
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
             
-            AssertCurrentMiner();
-
-            var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
-            Assert(indexedCrossChainData == null); // This should not fail without evil miners.
-            
-            var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
+            AssertOwnerAuthority(Context.Sender);
+            var indexedParentChainBlockData =
+                IndexParentChainBlockData(recordCrossChainDataInput.ProposedCrossChainData.ParentChainBlockData);
 
             if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
             {
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.Fire(new ParentChainBlockDataIndexed());
+//                Context.Fire(new ParentChainBlockDataIndexed());
             }
 
-            var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
-            State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+            var indexedSideChainBlockData = IndexSideChainBlockData(
+                recordCrossChainDataInput.ProposedCrossChainData.SideChainBlockData,
+                recordCrossChainDataInput.Proposer);
 
             if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
-                Context.Fire(new SideChainBlockDataIndexed());
+                State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+//                Context.Fire(new SideChainBlockDataIndexed());
 
             Context.LogDebug(() => "Finished RecordCrossChainData.");
 
@@ -212,8 +247,10 @@ namespace AElf.Contracts.CrossChain
         /// Index side chain block data.
         /// </summary>
         /// <param name="sideChainBlockData">Side chain block data to be indexed.</param>
+        /// <param name="proposer">Charge indexing fee for the one who proposed side chain block data.</param>
         /// <returns>Valid side chain block data which are indexed.</returns>
-        private IndexedSideChainBlockData IndexSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
+        private IndexedSideChainBlockData IndexSideChainBlockData(IList<SideChainBlockData> sideChainBlockData,
+            Address proposer)
         {
             var indexedSideChainBlockData = new IndexedSideChainBlockData();
             foreach (var blockInfo in sideChainBlockData)
@@ -249,7 +286,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     Transfer(new TransferInput
                     {
-                        To = Context.Sender,
+                        To = proposer,
                         Symbol = Context.Variables.NativeSymbol,
                         Amount = indexingPrice,
                         Memo = "Index fee."
@@ -267,7 +304,7 @@ namespace AElf.Contracts.CrossChain
 
         public override Empty ChangOwnerAddress(Address input)
         {
-            CheckOwnerAuthority();
+            AssertOwnerAuthority(Context.Sender);
             State.Owner.Value = input;
             return new Empty();
         }

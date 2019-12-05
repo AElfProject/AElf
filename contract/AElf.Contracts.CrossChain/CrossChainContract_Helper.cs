@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
@@ -93,7 +94,7 @@ namespace AElf.Contracts.CrossChain
             Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
         }
 
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        private void SetContractStateRequired(ContractReferenceState state, Hash contractSystemName)
         {
             if (state.Value != null)
                 return;
@@ -102,19 +103,19 @@ namespace AElf.Contracts.CrossChain
 
         private void Transfer(TransferInput input)
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Transfer.Send(input);
         }
 
         private void TransferFrom(TransferFromInput input)
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.TransferFrom.Send(input);
         }
 
         private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
             {
                 TokenName = sideChainTokenInfo.TokenName,
@@ -130,13 +131,13 @@ namespace AElf.Contracts.CrossChain
 
         private TokenInfo GetNativeTokenInfo()
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
         }
 
         private TokenInfo GetTokenInfo(string symbol)
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
                 Symbol = symbol
@@ -145,13 +146,13 @@ namespace AElf.Contracts.CrossChain
 
         private TokenInfoList GetResourceTokenInfo()
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetResourceTokenInfo.Call(new Empty());
         }
 
         private MinerListWithRoundNumber GetCurrentMiners()
         {
-            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
+            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
             return miners;
         }
@@ -159,7 +160,7 @@ namespace AElf.Contracts.CrossChain
         // only for side chain
         private void UpdateCurrentMiners(ByteString bytes)
         {
-            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
+            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
         }
 
@@ -201,26 +202,33 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.Owner.Value != null) 
                 return State.Owner.Value;
-            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
+            SetContractStateRequired(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;
         }
         
-        private void CheckOwnerAuthority()
+        private void AssertOwnerAuthority(Address address)
         {
             var owner = GetOwnerAddress();
-            Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
+            Assert(owner.Equals(address), "Not authorized to do this.");
         }
 
-        private void AssertCurrentMiner()
+        private void AssertAddressIsParliamentContract(Address address)
         {
-            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
-            Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            Assert(State.ParliamentAuthContract.Value == address, "Unauthorized behavior.");
+        }
+        
+        private void AssertAddressIsCurrentMiner(Address address)
+        {
+            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
+            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(address).Value;
             Assert(isCurrentMiner, "No permission.");
         }
+        
 
         private void AssertParentChainBlock(int parentChainId, long currentRecordedHeight, ParentChainBlockData parentChainBlockData)
         {
@@ -234,6 +242,135 @@ namespace AElf.Contracts.CrossChain
         private int GetChainId(long serialNumber)
         {
             return ChainHelper.GetChainId(serialNumber + Context.ChainId);
+        }
+
+        private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
+        {
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            {
+                Params = new RecordCrossChainDataInput
+                {
+                    ProposedCrossChainData = crossChainBlockData,
+                    Proposer = proposer
+                }.ToByteString(),
+                ContractMethodName = nameof(RecordCrossChainData),
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
+                OrganizationAddress = State.Owner.Value,
+                ToAddress = Context.Self,
+                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId)
+            });
+            
+            State.PendingCrossChainIndexingProposal.Value = new CrossChainIndexingProposal
+            {
+                IndexingProposalFeedbackNeeded = true,
+                Proposer = proposer
+            };
+            
+            Context.Fire(new CrossChainIndexingProposed
+            {
+                ProposedCrossChainData = crossChainBlockData
+            });
+        }
+
+        private ProposalOutput GetProposal(Hash proposalId)
+        {
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            var proposal = State.ParliamentAuthContract.GetProposal.Call(proposalId);
+            return proposal;
+        }
+        
+        private void HandleIndexingProposal(Hash proposalId, Address proposer)
+        {
+            var proposal = GetProposal(proposalId);
+            if (proposal.ToBeReleased)
+                State.ParliamentAuthContract.Release.Send(proposal.ProposalId); //release if ready
+            else if (proposal.ExpiredTime > Context.CurrentBlockTime)
+                return;
+            else
+                BanCrossChainIndexingFromAddress(proposer); // ban the proposer if expired
+
+            State.PendingCrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
+        }
+
+        private void BanCrossChainIndexingFromAddress(Address address)
+        {
+            State.BannedMinerHeight[address] = Context.CurrentHeight;
+        }
+        
+        private void AssertValidCrossChainIndexingProposer(Address proposer)
+        {
+            AssertAddressIsCurrentMiner(proposer);
+            var bannedHeight = State.BannedMinerHeight[proposer];
+            var permitted = bannedHeight == 0 ||
+                            bannedHeight + CrossChainIndexingBannedBlockHeightInterval > Context.CurrentHeight;
+            Assert(permitted, $"Cross chain indexing is banned for address {proposer}");
+            if (bannedHeight != 0)
+                State.BannedMinerHeight.Remove(proposer); // lift the ban
+        }
+
+        private void AssertValidCrossChainDataBeforeIndexing(CrossChainBlockData crossChainBlockData)
+        {
+            Assert(
+                crossChainBlockData.ParentChainBlockData.Count > 0 || crossChainBlockData.SideChainBlockData.Count > 0,
+                "Empty cross chain data proposed.");
+            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockData)
+                   && ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockData),
+                "Invalid cross chain data to be indexed.");
+        }
+
+        private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData)
+        {
+            var groupResult = sideChainBlockData.GroupBy(data => data.ChainId, data => data);
+            
+            foreach (var group in groupResult)
+            {
+                var chainId = group.Key;
+                var info = State.SideChainInfo[chainId];
+                if (info == null || info.SideChainStatus != SideChainStatus.Active)
+                    return false;
+                var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
+                var target = currentSideChainHeight != 0
+                    ? currentSideChainHeight + 1
+                    : Constants.GenesisBlockHeight;
+                // indexing fee
+                var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
+                var lockedToken = State.IndexingBalance[chainId];
+                foreach (var blockData in group)
+                {
+                    var sideChainHeight = blockData.Height;
+                    if (target != sideChainHeight)
+                        return false;
+                    target++;
+                }
+
+                if (indexingPrice.Mul(group.Count()) > lockedToken)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidateParentChainBlockData(IEnumerable<ParentChainBlockData> parentChainBlockData)
+        {
+            var parentChainId = State.ParentChainId.Value;
+            var currentHeight = State.CurrentParentChainHeight.Value;
+            foreach (var blockData in parentChainBlockData)
+            {
+                if (parentChainId != blockData.ChainId || currentHeight + 1 != blockData.Height ||
+                    blockData.TransactionStatusMerkleTreeRoot == null)
+                    return false;
+                if (blockData.IndexedMerklePath.Any(indexedBlockInfo =>
+                    State.ChildHeightToParentChainHeight[indexedBlockInfo.Key] != 0 ||
+                    State.TxRootMerklePathInParentChain[indexedBlockInfo.Key] != null))
+                    return false;
+                
+                currentHeight += 1;
+            }
+
+            return true;
         }
     }
 }

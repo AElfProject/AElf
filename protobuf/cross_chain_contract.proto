@@ -70,10 +70,21 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-message ParentChainBlockDataIndexed{
+//message ParentChainBlockDataIndexed{
+//    option (aelf.is_event) = true;
+//}
+
+message CrossChainIndexingProposed{
     option (aelf.is_event) = true;
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
 }
 
-message SideChainBlockDataIndexed{
-    option (aelf.is_event) = true;
+//message SideChainBlockDataIndexed{
+//    option (aelf.is_event) = true;
+//}
+
+message CrossChainIndexingProposal{
+    bool indexing_proposal_feedback_needed = 1;
+    aelf.Hash proposal_id = 2;
+    aelf.Address proposer = 3;
 }
