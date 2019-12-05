@@ -31,14 +31,14 @@ yarn add aelf-bridge
 
 ### Introduction
 
-The communications between the dApp and the chain need to go through the keeper of wallet info, this keeper could be any client which has implemented the AElf bridge protocol, for now(2019.12), AElf mobile wallet App has implemented this protocol.
+The communications between a dApp and the chain need to go through some wallet software. This wallet software could be any client that has implemented the AElf bridge protocol. at the time of writing (2019.12), AElf mobile wallet App has implemented this protocol.
 
-Since dApps are mostly web applications, and web applications can communicate with clients in many ways, this SDK chooses two of them:
-* postMessage: a dApp will run in a container(`iframe` or mobile Apps' `webview`), and the container needs to overwrite `window.postMessage` method in dApp, so dap and container can communicate with each other by overwritten `postMessage`.  
-* WebSocket(Socket.io): Use traditional B/S architecture, communicate by `WebSocket`. SDK uses `Socket.io` to support `WebSocket` communication, and this requires servers need to support `Socket.io` too.
+Since dApps are mostly web applications and web applications can communicate with clients in many ways, this SDK supports two of them:
+* postMessage: a dApp will run in a container (`iframe` or mobile Apps' `webview`), and the container needs to overwrite `window.postMessage` method in the dApp, so the dApp and the container can communicate with each other by overwritten `postMessage`.  
+* WebSocket(Socket.io): use traditional B/S architecture, communicate by `WebSocket`. SDK uses `Socket.io` to support `WebSocket` communication, and this requires servers need to support `Socket.io` too.
 
-Developers can choose one of them depend on requirements, in the process of development, we provide two ways to support data mock and debug:
-* [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo): This demo uses `iframe` to overwrite `dapp.html`'s `postMessage` to simulate communication with mobile App;
+Developers can choose one of them depending on requirements, in the process of development, we provide two ways to support data mock and debugging:
+* [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo): this demo uses `iframe` to overwrite `dapp.html`'s `postMessage` to simulate communication with mobile App.
 * [aelf-command dapp-server](https://github.com/AElfProject/aelf-command): `aelf-command` provides a simple `socket.io` server to support the communication method `socket.io` in `aelf-bridge`, developers can change the communication way to `SOCKET.IO`, and give the URI given by running `aelf-command dapp-server` as an option when initializing `aelf-bridge` instance. Therefore developers can inspect the communications in the Network tab of browser.
 
 ### Initialization
