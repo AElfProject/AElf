@@ -61,7 +61,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
             if (issueAmount != 0)
             {
-                await TokenContractStub.Issue.SendAsync(new IssueInput()
+                await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = symbol,
                     Amount = issueAmount,
@@ -150,27 +150,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_SizeFee_FailedTest()
+        public async Task ChargeFee_TxFee_FailedTest()
         {
             await DeployContractsAsync();
-            await CreateAndIssueTokenAsync();
+            await CreateAndIssueTokenAsync("ELF", 99999);
 
             var feeAmount = 100000;
             await SetMethodFee_Successful(feeAmount);
-
-            // Make sure balance insufficient
-            var originalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            })).Balance;
-            var targetBalance = 2000000000; // So that the sender doesn't have enough balance for paying the fee
-            var res = await TokenContractStub.Burn.SendAsync(new BurnInput()
-            {
-                Symbol = "ELF",
-                Amount = originalBalance - targetBalance
-            });
-            res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var dummy = await TestContractStub.DummyMethod
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
@@ -185,51 +171,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             afterFee.ShouldBe(0);
         }
 
-        [Fact]
-        public async Task ChargeFee_TransactionFee_FailedTest()
-        {
-            await DeployContractsAsync();
-            await CreateAndIssueTokenAsync();
-
-            var feeAmount = 100000;
-            await SetMethodFee_Successful(feeAmount);
-
-            await SetMethodFee_Successful(feeAmount);
-
-            {
-                // Make sure balance insufficient
-                var originalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = "ELF"
-                })).Balance;
-                var targetBalance = 1000000000; // So that the sender doesn't have enough balance for paying the fee
-                var res = await TokenContractStub.Burn.SendAsync(new BurnInput()
-                {
-                    Symbol = "ELF",
-                    Amount = originalBalance - targetBalance
-                });
-                res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
-            dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
-
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-            balance.Balance.ShouldBe(0);
-        }
-
         [Theory]
-        [InlineData(9, 0, 3, 10, 1, 2, "TSB", 2, true)]
+        [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20260010, true)]
         [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
-        [InlineData(1, 2, 2, 0, 1, 2, "TSA", 1, true)]
+        [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
         [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
-        [InlineData(10, 0, 0, 0, 1, 2, null, 0, false)]
+        [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
         public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2, long fee3,
             string chargedSymbol, long chargedAmount, bool isChargingSuccessful)
         {
@@ -263,8 +210,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.First().ShouldBe(chargedSymbol);
-                    dummyResult.TransactionResult.TransactionFee.Value.Values.First().ShouldBe(chargedAmount);
+                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.TransactionFee.Value.Values.ShouldContain(chargedAmount);
                 }
             }
             else
@@ -274,8 +221,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.First().ShouldBe(chargedSymbol);
-                    dummyResult.TransactionResult.TransactionFee.Value.Values.First().ShouldBeGreaterThan(0);
+                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
                 }
             }
 
