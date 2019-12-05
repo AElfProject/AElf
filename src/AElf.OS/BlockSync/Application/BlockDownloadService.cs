@@ -183,7 +183,7 @@ namespace AElf.OS.BlockSync.Application
                     wrongPeerPubkey);
             }
         }
-        
+
         private bool UseSuggestedPeer(DownloadBlockDto downloadBlockDto)
         {
             if (downloadBlockDto.UseSuggestedPeer)
@@ -238,13 +238,14 @@ namespace AElf.OS.BlockSync.Application
                 var blocksWithTransactions = getBlocksResult.Payload;
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
-                    Logger.LogWarning("No blocks returned.");
+                    Logger.LogWarning(
+                        $"No blocks returned from peer: {peerPubkey}, Previous block height: {lastDownloadBlockHeight}, hash: {lastDownloadBlockHash}.");
                     break;
                 }
 
                 foreach (var blockWithTransactions in blocksWithTransactions)
                 {
-                    Logger.LogDebug($"Processing block {blockWithTransactions}.");
+                    Logger.LogTrace($"Processing block {blockWithTransactions}.");
 
                     if (blockWithTransactions.Height != lastDownloadBlockHeight + 1 ||
                         blockWithTransactions.Header.PreviousBlockHash != lastDownloadBlockHash)

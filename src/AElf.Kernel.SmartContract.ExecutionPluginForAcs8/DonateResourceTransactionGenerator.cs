@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 }
             });
             
-            Logger.LogTrace("Donate resource transaction generated.");
+            Logger.LogInformation("Donate resource transaction generated.");
             return Task.FromResult(generatedTransactions);
         }
     }

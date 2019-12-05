@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly GrpcSideChainServerBase _grpcSideChainServerBase;
         private readonly GrpcBasicServerBase _grpcBasicServerBase;
 
-        public GrpcCrossChainServer(GrpcParentChainServerBase grpcParentChainServerBase, 
+        public GrpcCrossChainServer(GrpcParentChainServerBase grpcParentChainServerBase,
             GrpcSideChainServerBase grpcSideChainServerBase, GrpcBasicServerBase grpcBasicServerBase)
         {
             _grpcParentChainServerBase = grpcParentChainServerBase;
@@ -22,7 +22,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         public ILogger<GrpcCrossChainServer> Logger { get; set; }
-        
+
         public async Task StartAsync(int listeningPort)
         {
             _server = new Server
@@ -34,14 +34,14 @@ namespace AElf.CrossChain.Communication.Grpc
                 Services =
                 {
                     ParentChainRpc.BindService(_grpcParentChainServerBase),
-                    SideChainRpc.BindService(_grpcSideChainServerBase), 
+                    SideChainRpc.BindService(_grpcSideChainServerBase),
                     BasicCrossChainRpc.BindService(_grpcBasicServerBase)
                 }
             };
-            
+
             await Task.Run(() => _server.Start());
-            
-            Logger.LogDebug($"Grpc cross chain server started, listening at {listeningPort}");
+
+            Logger.LogInformation($"Grpc cross chain server started, listening at {listeningPort}");
             IsStarted = true;
         }
 
@@ -51,7 +51,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             if (_server == null)
                 return;
-            AsyncHelper.RunSync(() =>_server.ShutdownAsync());
+            AsyncHelper.RunSync(() => _server.ShutdownAsync());
             _server = null;
             IsStarted = false;
         }
