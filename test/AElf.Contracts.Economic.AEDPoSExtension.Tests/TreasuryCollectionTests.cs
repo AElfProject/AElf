@@ -25,7 +25,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).Balance);
             await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
             await CheckBalancesAsync(firstSevenCoreDataCenters,
-                distributedAmount / 5 / 7 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
+                distributedAmount / 5 / 7 , balancesBefore);
         }
 
         [Fact(Skip = "Save time.")]

@@ -6,6 +6,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -372,11 +373,12 @@ namespace AElf.Contracts.Election
             var txSize = claimResult.Transaction.Size();
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            // Check ELF token balance
-            {
-                var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
-            }
+            // has removed all IPluginExecution
+            // Check ELF token balance     
+//            {
+//                var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
+//                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
+//            }
 
             // Check VOTE token balance.
             {

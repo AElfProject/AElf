@@ -75,7 +75,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0);
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0);
         }
 
         private async Task Profit_SetMethodFee_Test()
@@ -133,7 +133,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0); 
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)

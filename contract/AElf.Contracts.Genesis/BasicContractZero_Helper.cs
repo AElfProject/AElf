@@ -142,7 +142,7 @@ namespace AElf.Contracts.Genesis
         private Address DecideContractAuthor()
         {
             // if genesis contract not initialized
-            // of if proposer authority not required
+            // or if proposer authority not required
             // or parliament authority required and proposer is in whitelist
             // then author is Context.Origin
             if (!State.Initialized.Value || !State.ContractProposerAuthorityRequired.Value ||
