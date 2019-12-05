@@ -39,5 +39,7 @@ namespace AElf.OS.Network
         public const int DefaultPeerBlackListTimeoutInSeconds = 300;
 
         public const int DefaultPeerPort = 6800;
+
+        public const int DefaultNtpDriftThreshold = 1_000;
     }
 }

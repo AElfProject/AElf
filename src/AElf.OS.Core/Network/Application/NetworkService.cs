@@ -282,6 +282,11 @@ namespace AElf.OS.Network.Application
             }
         }
 
+        public void CheckNtpDrift()
+        {
+            _networkServer.CheckNtpDrift();
+        }
+
         public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubkey)
         {

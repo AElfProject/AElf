@@ -43,6 +43,8 @@ namespace AElf.OS.Worker
 
         internal async Task DoReconnectionJobAsync()
         {
+            CheckNtpClockDrift();
+                
             await _networkService.SendHealthChecksAsync();
             
             var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
@@ -103,6 +105,18 @@ namespace AElf.OS.Worker
                         TimestampHelper.GetUtcNow().AddMilliseconds(_networkOptions.PeerReconnectionPeriod);
                     
                     Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}.");
+                }
+            }
+
+            void CheckNtpClockDrift()
+            {
+                try
+                {
+                    _networkService.CheckNtpDrift();
+                }
+                catch (Exception)
+                {
+                    // swallow any exception, we are not interested in anything else than valid checks. 
                 }
             }
         }

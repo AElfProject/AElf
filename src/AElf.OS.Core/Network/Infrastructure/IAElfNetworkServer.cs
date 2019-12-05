@@ -11,5 +11,6 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TrySchedulePeerReconnectionAsync(IPeer peer);
         Task StartAsync();
         Task StopAsync(bool gracefulDisconnect = true);
+        void CheckNtpDrift();
     }
 }
