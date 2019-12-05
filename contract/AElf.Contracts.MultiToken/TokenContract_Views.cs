@@ -242,7 +242,7 @@ namespace AElf.Contracts.MultiToken
             {
                 FunctionType = 2,
                 PieceKey = 1000000,
-                ParameterDic = { {"numerator","1"},{"denominator",(16 * 50).ToString()},{"constantValue","10000"}}
+                ParameterDic = { {"numerator","1"},{"denominator",(16.Mul(50)).ToString()},{"constantValue","10000"}}
             };
             var txFeeParameter2 = new CalculateFeeParameter
             {
@@ -250,7 +250,7 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 ParameterDic =
                 {
-                    {"numerator","1"},{"denominator",(16 * 50).ToString()},{"power","2"},{"changeSpanBase","100"},{"weight","1"},
+                    {"numerator","1"},{"denominator",(16.Mul(50)).ToString()},{"power","2"},{"changeSpanBase","100"},{"weight","1"},
                     {"weightBase", "1"}
                 }
             };

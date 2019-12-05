@@ -20,7 +20,7 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();
-            services.AddSingleton<ICalculateFeeService, CalculateFeeService>();
+            services.AddTransient<ICalculateFeeService, CalculateFeeService>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }

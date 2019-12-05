@@ -85,15 +85,15 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = new NullLogger<CalculateAlgorithm>();
         }
 
-        private readonly Dictionary<int, ICalculateWay> _defaultPieceWise = new Dictionary<int, ICalculateWay>();
-        private Dictionary<int, ICalculateWay> _pieceWiseCache = new Dictionary<int, ICalculateWay>();
+        private readonly Dictionary<int, ICalculateWay> _defaultPieceWiseFunc = new Dictionary<int, ICalculateWay>();
+        private Dictionary<int, ICalculateWay> _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
 
         private readonly ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> _forkCache =
             new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
 
         public ICalculateAlgorithm AddDefaultAlgorithm(int limit, ICalculateWay func)
         {
-            _defaultPieceWise[limit] = func;
+            _defaultPieceWiseFunc[limit] = func;
             return this;
         }
 
@@ -113,7 +113,7 @@ namespace AElf.Kernel.TransactionPool.Application
             foreach (var blockIndex in blockIndexes)
             {
                 if (!_forkCache.TryGetValue(blockIndex, out var calAlgoritm)) continue;
-                _pieceWiseCache = calAlgoritm;
+                _pieceWiseFuncCache = calAlgoritm;
                 _forkCache.TryRemove(blockIndex, out _);
                 blockHash = blockIndex.BlockHash;
                 height = blockIndex.BlockHeight;
@@ -124,16 +124,16 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = blockHash,
                 BlockHeight = height
             });
-            var parameters = TransferFromParaDic(_pieceWiseCache);
+            var parameters = TransferFromParaDic(_pieceWiseFuncCache);
             tokenStub.SetCalculateFeeAlgorithmParameters.CallAsync(parameters).GetAwaiter().GetResult();
         }
 
         public async Task<long> Calculate(int count)
         {
-            var pieceWise = await GetPieceWiseFuncUnderContext();
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             long totalCost = 0;
             int prePieceKey = 0;
-            foreach (var piece in pieceWise.OrderBy(x => x.Key))
+            foreach (var piece in pieceWiseFunc.OrderBy(x => x.Key))
             {
                 if (count < piece.Key)
                 {
@@ -153,33 +153,33 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task Delete(int pieceKey)
         {
-            var pieceWise = await GetPieceWiseFuncUnderContext();
-            if (pieceWise == null)
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            if (pieceWiseFunc == null)
                 return;
-            pieceWise = pieceWise.ToDictionary(x => x.Key, x => x.Value);
-            if (pieceWise.ContainsKey(pieceKey))
-                pieceWise.Remove(pieceKey);
-            SetAlgorithm(pieceWise);
+            pieceWiseFunc = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
+            if (pieceWiseFunc.ContainsKey(pieceKey))
+                pieceWiseFunc.Remove(pieceKey);
+            SetAlgorithm(pieceWiseFunc);
         }
 
         public async Task Update(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters)
         {
-            var pieceWise = await GetPieceWiseFuncUnderContext();
-            if (!pieceWise.ContainsKey(pieceKey))
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            if (!pieceWiseFunc.ContainsKey(pieceKey))
                 return;
-            AddPieceFunction(pieceKey, pieceWise, funcTypeEnum, parameters);
+            AddPieceFunction(pieceKey, pieceWiseFunc, funcTypeEnum, parameters);
         }
 
         public async Task AddByParam(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> parameters)
         {
-            var pieceWise = await GetPieceWiseFuncUnderContext();
-            if (pieceWise.ContainsKey(pieceKey) || pieceKey <= 0)
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            if (pieceWiseFunc.ContainsKey(pieceKey) || pieceKey <= 0)
                 return;
-            AddPieceFunction(pieceKey, pieceWise, funcTypeEnum, parameters);
+            AddPieceFunction(pieceKey, pieceWiseFunc, funcTypeEnum, parameters);
         }
 
-        private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWise,
+        private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> parameters)
         {
@@ -195,12 +195,12 @@ namespace AElf.Kernel.TransactionPool.Application
             if (newCalculateWay == null || !newCalculateWay.InitParameter(parameters)) return;
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWise.ToDictionary(x => x.Key, x => x.Value);
+                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey] = newCalculateWay;
             }
             else
             {
-                _pieceWiseCache[pieceKey] = newCalculateWay; //todo
+                _pieceWiseFuncCache[pieceKey] = newCalculateWay; //todo
             }
         }
 
@@ -234,9 +234,9 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunction()
         {
-            if (_pieceWiseCache != null && _pieceWiseCache.Count > 0)
+            if (_pieceWiseFuncCache != null && _pieceWiseFuncCache.Count > 0)
             {
-                return _pieceWiseCache;
+                return _pieceWiseFuncCache;
             }
 
             var chain = await _blockchainService.GetChainAsync();
@@ -252,18 +252,18 @@ namespace AElf.Kernel.TransactionPool.Application
                     {Value = (int) CalculateAlgorithmContext.CalculateFeeTypeEnum});
             if (parameters == null)
             {
-                return _defaultPieceWise;
+                return _defaultPieceWiseFunc;
             }
-            if(_pieceWiseCache == null)
-                _pieceWiseCache = new Dictionary<int, ICalculateWay>();
-            _pieceWiseCache.Clear();
+            if(_pieceWiseFuncCache == null)
+                _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
+            _pieceWiseFuncCache.Clear();
             foreach (var func in parameters.AllParameter)
             {
-                AddPieceFunction(func.PieceKey, _pieceWiseCache, (CalculateFunctionTypeEnum) func.FunctionType,
+                AddPieceFunction(func.PieceKey, _pieceWiseFuncCache, (CalculateFunctionTypeEnum) func.FunctionType,
                     func.ParameterDic);
             }
 
-            return _pieceWiseCache;
+            return _pieceWiseFuncCache;
         }
 
         private void SetAlgorithm(Dictionary<int, ICalculateWay> calAlgorithm)
