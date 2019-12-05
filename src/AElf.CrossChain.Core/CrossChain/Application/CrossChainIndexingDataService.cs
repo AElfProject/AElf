@@ -227,12 +227,12 @@ namespace AElf.CrossChain
             return true;
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-        {
-            var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
-                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
-            return crossChainBlockData;
-        }
+//        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
+//        {
+//            var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
+//                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
+//            return crossChainBlockData;
+//        }
         
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {

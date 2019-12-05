@@ -1,7 +1,5 @@
-using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 

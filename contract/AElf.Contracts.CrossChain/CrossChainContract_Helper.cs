@@ -268,7 +268,7 @@ namespace AElf.Contracts.CrossChain
                 Proposer = proposer
             };
             
-            Context.Fire(new CrossChainIndexingProposed
+            Context.Fire(new CrossChainIndexingDataProposedEvent
             {
                 ProposedCrossChainData = crossChainBlockData
             });

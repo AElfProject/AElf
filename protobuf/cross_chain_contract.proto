@@ -74,7 +74,7 @@ message Disposed {
 //    option (aelf.is_event) = true;
 //}
 
-message CrossChainIndexingProposed{
+message CrossChainIndexingDataProposedEvent{
     option (aelf.is_event) = true;
     acs7.CrossChainBlockData proposed_cross_chain_data = 1;
 }
