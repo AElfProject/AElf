@@ -78,12 +78,18 @@ namespace AElf.Contracts.Genesis
 
         private bool ValidateNewAuthor(Address newAuthor, ContractInfo info)
         {
+            // system contract
             if (info.IsSystemContract)
                 return false;
 
             if (!State.ContractDeploymentAuthorityRequired.Value && !State.ContractProposerAuthorityRequired.Value)
                 return true;
+
+            // old author is organization address
+            if(CheckOrganizationExist(info.Author))
+                return CheckOrganizationExist(newAuthor);
             
+            // old author is normal address
             var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
             return !proposerWhiteListContext.ProposerAuthorityRequired ||
                    proposerWhiteListContext.Proposers.Any(p => p == newAuthor);

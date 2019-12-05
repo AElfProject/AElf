@@ -183,7 +183,7 @@ namespace AElf.Contracts.MultiToken
             var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
             Assert.True(result.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Token contract address of parent chain not found.", result.Error);
+            Assert.Contains("Assertion failed!", result.Error);
         }
 
         [Fact]

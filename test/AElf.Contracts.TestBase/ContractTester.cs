@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.CrossChain;
@@ -37,6 +38,7 @@ using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenCont
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
+using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -681,7 +683,7 @@ namespace AElf.Contracts.TestBase
                 TokenName = "Native token",
                 TotalSupply = totalSupply,
                 Decimals = 8,
-                Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                Issuer = issuer,
                 IsBurnable = true
             });
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
@@ -690,16 +692,23 @@ namespace AElf.Contracts.TestBase
                 Amount = balanceOfStarter,
                 To = Address.FromPublicKey(KeyPair.PublicKey)
             });
+            var crossChainContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            crossChainContractCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                new CrossChain.InitializeInput
+                {
+                    IsPrivilegePreserved = true
+                });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
             {
                 GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold
             });
+            
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(CrossChainContractCode,CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,ConfigurationSmartContractAddressNameProvider.Name);

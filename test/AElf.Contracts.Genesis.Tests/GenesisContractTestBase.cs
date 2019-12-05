@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs3;
 using AElf.Contracts.ParliamentAuth;
-using AElf.Contracts.TestKit;
+using AElf.Contracts.TestBase;
+using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -14,6 +16,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.Genesis
 {
@@ -50,15 +53,18 @@ namespace AElf.Contracts.Genesis
         protected Address BasicContractZeroAddress;
         protected Address TokenContractAddress;
 
-        protected long _totalSupply;
-        protected long _balanceOfStarter;
-
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
+        protected readonly ECKeyPair TesterKeyPair;
+        protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
+        
         public BasicContractZeroTestBase()
         {
+            TesterKeyPair = Tester.KeyPair;
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsyncWithAuthAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsyncWithAuthAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out TotalSupply,
                     out _,
-                    out _balanceOfStarter)));
+                    out BalanceOfStarter)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
@@ -82,14 +88,15 @@ namespace AElf.Contracts.Genesis
             return txResult;
         }
 
-        protected async Task<Hash> CreateProposalAsync(string methodName, IMessage input, Address organizationAddress = null)
+        protected async Task<Hash> CreateProposalAsync(string methodName, IMessage input,ECKeyPair ecKeyPair,Address organizationAddress = null)
         {
-            organizationAddress ??= Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
+            var tester = Tester.CreateNewContractTester(ecKeyPair);
+            organizationAddress ??= Address.Parser.ParseFrom((await tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
                     nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+            var proposal = await tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
                 new CreateProposalInput
                 {
@@ -103,37 +110,20 @@ namespace AElf.Contracts.Genesis
             return proposalId;
         }
 
-        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
+        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId,ECKeyPair ecKeyPair)
         {
-            var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+            var tester = Tester.CreateNewContractTester(ecKeyPair);
+            var transactionResult = await tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release),proposalId);
             return transactionResult;
         }
-
-//        internal async Task<ReleaseApprovedContractInput> ProposeContractDeploymentAsync(ContractDeploymentInput contractDeploymentInput)
-//        {
-//            var result = await Tester.ExecuteContractWithMiningAsync(
-//                BasicContractZeroAddress,
-//                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract),
-//                contractDeploymentInput);
-//
-//            var inputHash = Hash.Parser.ParseFrom(result.ReturnValue);
-//            var proposalId = ProposalCreated.Parser
-//                .ParseFrom(result.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
-//
-//            return new ReleaseApprovedContractInput
-//            {
-//                ProposedContractInputHash = inputHash,
-//                ProposalId = proposalId
-//            };
-//        }
-//        
+      
         internal async Task<ReleaseApprovedContractInput> ProposeContractAsync(string methodName,
-            IMessage contractUpdateInput, Address organizationAddress = null)
+            IMessage contractUpdateInput,ECKeyPair ecKeyPair, Address organizationAddress = null)
         {
-            var proposalId = await CreateProposalAsync(methodName, contractUpdateInput, organizationAddress);
+            var proposalId = await CreateProposalAsync(methodName, contractUpdateInput,ecKeyPair,organizationAddress);
             await ApproveWithMinersAsync(proposalId);
-            var releaseResult = await ReleaseProposalAsync(proposalId);
+            var releaseResult = await ReleaseProposalAsync(proposalId,ecKeyPair);
             var proposedContractInputHash = CodeCheckRequired.Parser
                 .ParseFrom(releaseResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed)
                 .ProposedContractInputHash;
@@ -158,10 +148,10 @@ namespace AElf.Contracts.Genesis
                 });
         }
 
-        internal async Task<Address> DeployAsync(ContractDeploymentInput contractDeploymentInput)
+        internal async Task<Address> DeployAsync(ContractDeploymentInput contractDeploymentInput,ECKeyPair ecKeyPair)
         {
             var releaseApprovedContractInput = await ProposeContractAsync(
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput);
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput,ecKeyPair);
             var approveResult0 =
                 await ApproveWithKeyPairAsync(releaseApprovedContractInput.ProposalId, Tester.InitialMinerList[0]);
             var approveResult1 =
