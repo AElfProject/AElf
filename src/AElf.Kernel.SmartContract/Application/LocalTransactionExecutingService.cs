@@ -145,7 +145,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception e)
             {
-                Logger.LogTrace("Failed while executing txs in block.", e);
+                Logger.LogError(e, "Failed while executing txs in block.");
                 throw;
             }
         }
@@ -221,7 +221,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Tx execution failed: {txContext}");
+                Logger.LogError(ex, $"Tx execution failed: {txContext}");
                 txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txContext.Trace.Error += ex + "\n";
                 throw;
