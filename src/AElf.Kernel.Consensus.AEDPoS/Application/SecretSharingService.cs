@@ -25,14 +25,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly Dictionary<long, Dictionary<string, Hash>> _revealedInValues =
             new Dictionary<long, Dictionary<string, Hash>>();
 
-        private readonly IInValueCacheService _inValueCacheService;
+        private readonly IInValueCache _inValueCache;
         private readonly IAccountService _accountService;
 
         public ILogger<SecretSharingService> Logger { get; set; }
 
-        public SecretSharingService(IInValueCacheService inValueCacheService, IAccountService accountService)
+        public SecretSharingService(IInValueCache inValueCache, IAccountService accountService)
         {
-            _inValueCacheService = inValueCacheService;
+            _inValueCache = inValueCache;
             _accountService = accountService;
 
             Logger = NullLogger<SecretSharingService>.Instance;
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 secretSharingInformation.MergeFrom(logEvent);
 
                 var newInValue = await GenerateInValueAsync(secretSharingInformation);
-                _inValueCacheService.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
+                _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
                 if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)
                 {
