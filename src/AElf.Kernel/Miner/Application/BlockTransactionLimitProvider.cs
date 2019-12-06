@@ -76,7 +76,7 @@ namespace AElf.Kernel.Miner.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex, out _)) continue;
+                if (!_forkCache.TryGetValue(blockIndex, out _)) continue;
                 _forkCache.TryRemove(blockIndex, out _);
             }
         }
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Miner.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if(!_forkCache.TryGetValue(blockIndex,out var limit)) continue;
+                if (!_forkCache.TryGetValue(blockIndex, out var limit)) continue;
                 _limit = limit;
                 _forkCache.TryRemove(blockIndex, out _);
             }
@@ -112,11 +112,11 @@ namespace AElf.Kernel.Miner.Application
                         BlockHeight = chain.LastIrreversibleBlockHeight
                     });
                     _limit = Int32Value.Parser.ParseFrom(result).Value;
-                    Logger.LogInformation($"Get blockTransactionLimit: {_limit} by ConfigurationStub");
+                    Logger.LogTrace($"Get blockTransactionLimit: {_limit} by ConfigurationStub");
                 }
                 catch (InvalidOperationException e)
                 {
-                    Logger.LogWarning($"Invalid ConfigurationContractAddress :{e.Message}");
+                    Logger.LogError(e, "Invalid configuration contract address");
                     _limit = 0;
                 }
             }
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Miner.Application
                 From = FromAddress,
                 To = ConfigurationContractAddress,
                 MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                Params =  new Empty().ToByteString(),
+                Params = new Empty().ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
             var transactionTrace =

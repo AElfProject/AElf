@@ -15,7 +15,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public ILogger<GrpcCrossChainClientNodePlugin> Logger { get; set; }
 
-        public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOption, 
+        public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOption,
             ICrossChainClientService crossChainClientService)
         {
             _crossChainClientService = crossChainClientService;
@@ -25,10 +25,10 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task StartAsync(int chainId)
         {
             _localChainId = chainId;
-            
+
             if (string.IsNullOrEmpty(_crossChainConfigOptions.ParentChainId))
                 return;
-            Logger.LogTrace("Starting client to parent chain..");
+            Logger.LogInformation("Starting client to parent chain..");
 
             await _crossChainClientService.CreateClientAsync(new CrossChainClientDto
             {
@@ -42,10 +42,10 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             await _crossChainClientService.CloseClientsAsync();
         }
-        
+
         public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
 
             crossChainClientDto.LocalChainId = _localChainId;

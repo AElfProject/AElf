@@ -43,9 +43,6 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubkey)
         {
-            Logger.LogDebug(
-                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubkey}");
-            
             var chain = await _blockchainService.GetChainAsync();
             
             if (!await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement, senderPubkey))

@@ -1,5 +1,6 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
@@ -18,8 +19,11 @@ namespace AElf.CrossChain
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedCrossChainTransactionValidationProvider>();
+            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
             var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
+
+            context.Services.AddSingleton<IChargeFeeStrategy, CrossChainContractChargeFeeStrategy>();
         }
     }
 }

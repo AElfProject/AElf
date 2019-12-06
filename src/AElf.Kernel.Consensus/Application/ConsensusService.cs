@@ -58,7 +58,7 @@ namespace AElf.Kernel.Consensus.Application
 
             if (_consensusCommand == null)
             {
-                Logger.LogDebug("Consensus command is null.");
+                Logger.LogWarning("Consensus command is null.");
                 return;
             }
 
@@ -96,13 +96,13 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogError("Failed to execute ValidateConsensusBeforeExecution.");
+                Logger.LogWarning("Failed to execute ValidateConsensusBeforeExecution.");
                 return false;
             }
 
             if (!validationResult.Success)
             {
-                Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
+                Logger.LogWarning($"Consensus validating before execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
                     ValidationResultMessage = validationResult.Message
@@ -125,13 +125,13 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogError("Failed to execute ValidateConsensusAfterExecution.");
+                Logger.LogWarning("Failed to execute ValidateConsensusAfterExecution.");
                 return false;
             }
 
             if (!validationResult.Success)
             {
-                Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
+                Logger.LogWarning($"Consensus validating after execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
                     ValidationResultMessage = validationResult.Message
@@ -182,7 +182,7 @@ namespace AElf.Kernel.Consensus.Application
                     ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
             }
 
-            Logger.LogTrace("Consensus transaction generated.");
+            Logger.LogInformation("Consensus transaction generated.");
 
             return generatedTransactions;
         }

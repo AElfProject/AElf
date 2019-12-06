@@ -227,7 +227,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return;
 
             var validationResult =
-                await _transactionValidationService.ValidateTransactionAsync(queuedTransaction.Transaction);
+                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction.Transaction);
             if (!validationResult)
                 return;
 
@@ -264,8 +264,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
-            Logger.LogDebug($"Handle best chain found: BlockHeight:" +
-                            $" {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            Logger.LogTrace(
+                $"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
 
             var minimumHeight = _allTransactions.Count == 0
                 ? 0
@@ -284,8 +284,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
 
-            Logger.LogDebug($"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, " +
-                            $"BlockHash: {eventData.BlockHash}");
+            Logger.LogTrace(
+                $"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)

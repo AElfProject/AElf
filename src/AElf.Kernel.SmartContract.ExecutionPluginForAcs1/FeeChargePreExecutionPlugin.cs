@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -17,24 +18,25 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
         private readonly ICalculateFeeService _calService;
+        private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
+            ITransactionFeeExemptionService transactionFeeExemptionService,
             ICalculateFeeService calService)
         {
             _contextService = contextService;
-            _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
             _calService = calService;
+            _transactionFeeExemptionService = transactionFeeExemptionService;
+
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -50,38 +52,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 var context = _contextService.Create();
 
-                var systemContractAddresses = new List<Address>
+                if (_transactionFeeExemptionService.IsFree(transactionContext.Transaction))
                 {
-                    context.GetZeroSmartContractAddress(context.ChainId),
-                    context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name),
-                    // TODO: Try to use contract address name providers - put providers to one place easy to ref.
-                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Consensus")),
-                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.CrossChain")),
-                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Economic")),
-                };
-                if (systemContractAddresses.Contains(transactionContext.Transaction.To))
-                {
-                    if (_systemTransactionMethodNameListProvider.GetSystemTransactionMethodNameList()
-                        .Contains(transactionContext.Transaction.MethodName))
-                    {
-                        return new List<Transaction>();
-                    }
-
-                    var methodNameWhiteList = new List<string>
-                    {
-                        nameof(TokenContractContainer.TokenContractStub.Create),
-                        nameof(TokenContractContainer.TokenContractStub.Issue),
-                        nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
-                        nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken),
-                        nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
-                        nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
-                        "IssueNativeToken"
-                    };
-
-                    if (methodNameWhiteList.Contains(transactionContext.Transaction.MethodName))
-                    {
-                        return new List<Transaction>();
-                    }
+                    return new List<Transaction>();
                 }
 
                 context.TransactionContext = transactionContext;
@@ -114,11 +87,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
                 var txSize = transactionContext.Transaction.Size();
                 var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
-                var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync(new ChainContext
-                {
-                    BlockHash = transactionContext.PreviousBlockHash,
-                    BlockHeight = transactionContext.BlockHeight - 1
-                });
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {
@@ -134,7 +102,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed to generate ChargeTransactionFees tx.", e);
+                Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
                 throw;
             }
         }

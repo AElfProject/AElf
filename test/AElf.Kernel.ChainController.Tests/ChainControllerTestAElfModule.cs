@@ -14,45 +14,18 @@ namespace AElf.Kernel.ChainController
     [DependsOn(
         typeof(ChainControllerAElfModule),
         typeof(KernelCoreTestAElfModule)
-        )]
+    )]
     public class ChainControllerTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            
+
             services.AddTransient<ChainCreationService>();
-            services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
             services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
-            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
+            context.Services.Replace(ServiceDescriptor
+                .Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
         }
-    }
-    
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
-    {
-        public List<string> GetSystemTransactionMethodNameList()
-        {
-            return new List<string>
-            {
-                "InitialAElfConsensusContract",
-                "FirstRound",
-                "NextRound",
-                "NextTerm",
-                "UpdateValue",
-                "UpdateTinyBlockInformation",
-                "ClaimTransactionFees",
-                "DonateResourceToken",
-                "RecordCrossChainData",
-                
-                //acs5 check tx
-                "CheckThreshold",
-                //acs8 check tx
-                "CheckResourceToken",
-                "ChargeResourceToken",
-                //genesis deploy
-                "DeploySmartContract",
-                "DeploySystemSmartContract"
-            };
-        }
+
     }
 }

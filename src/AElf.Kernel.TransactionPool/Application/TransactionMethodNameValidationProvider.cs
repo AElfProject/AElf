@@ -13,6 +13,8 @@ namespace AElf.Kernel.TransactionPool.Application
     /// </summary>
     internal class TransactionMethodNameValidationProvider : ITransactionValidationProvider
     {
+        public bool ValidateWhileSyncing => true;
+
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public TransactionMethodNameValidationProvider(ISmartContractAddressService smartContractAddressService)
