@@ -26,6 +26,7 @@ namespace AElf.Kernel.Consensus.Application
             _blockchainService = serviceProvider.GetService<IBlockchainService>();
             _consensusExtraDataExtractor = serviceProvider.GetService<IConsensusExtraDataExtractor>();
             _systemTransactionCount = serviceProvider.GetServices<ISystemTransactionGenerator>().Count();
+
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
 

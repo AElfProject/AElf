@@ -51,8 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return validationResult;
             }
 
-            // Is next term information correct?
-            //   Term Number
+            // Is next term number correct?
             return validationContext.BaseRound.TermNumber.Add(1) != extraData.Round.TermNumber
                 ? new ValidationResult {Message = "Incorrect term number for next round."}
                 : new ValidationResult {Success = true};

@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     // ReSharper disable once InconsistentNaming
     /// <summary>
     /// DO NOT forget to clear after executing one transaction,
-    /// otherwise these cached states will be saved to `executive` instance wrongly.
+    /// otherwise these cached states will be saved to `executive` instance unexpectly.
     /// </summary>
     public partial class AEDPoSContract
     {
