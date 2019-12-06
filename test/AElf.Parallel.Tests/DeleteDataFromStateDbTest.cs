@@ -23,7 +23,7 @@ using Xunit;
 
 namespace AElf.Parallel.Tests
 {
-    public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestAElfModule>
+    public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestWithoutFeeAElfModule>
     {
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainService _blockchainService;
