@@ -257,11 +257,13 @@ namespace AElf.Contracts.TestBase
             
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
