@@ -135,7 +135,7 @@ namespace AElf.Contracts.CrossChain
 
         #region Cross chain actions
 
-        public override Empty ProposeCrossChainIndexing(ProposeCrossChainIndexingInput input)
+        public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
             AssertValidCrossChainIndexingProposer(Context.Sender);
             if (TryGetPendingProposal(out var pendingCrossChainIndexingProposal))
@@ -145,12 +145,11 @@ namespace AElf.Contracts.CrossChain
                 return new Empty();
             }
 
-            if (input.ProposedCrossChainData != null)
-            {
-                AssertValidCrossChainDataBeforeIndexing(input.ProposedCrossChainData);
-                ProposeCrossChainBlockData(input.ProposedCrossChainData, Context.Sender);
-            }
+            if (input == null) 
+                return new Empty();
             
+            AssertValidCrossChainDataBeforeIndexing(input);
+            ProposeCrossChainBlockData(input, Context.Sender);
             return new Empty();
         }
 
@@ -188,8 +187,10 @@ namespace AElf.Contracts.CrossChain
                 recordCrossChainDataInput.Proposer);
 
             if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
+            {
                 State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
-//                Context.Fire(new SideChainBlockDataIndexed());
+                Context.Fire(new SideChainBlockDataIndexedEvent());
+            }
 
             Context.LogDebug(() => "Finished RecordCrossChainData.");
 

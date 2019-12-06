@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Kernel;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Application
 {
     public interface ICrossChainIndexingDataValidationService
     {

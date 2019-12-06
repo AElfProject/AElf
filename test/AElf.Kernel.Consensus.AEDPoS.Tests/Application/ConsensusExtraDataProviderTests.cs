@@ -26,7 +26,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
                 Height = 1,
                 ExtraData = { ByteString.Empty }
             };
-            var result = await _blockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(blockHeader);
+            var result = await _blockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(blockHeader);
             result.ShouldBeNull();
             
             //with data
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             var height = chain.BestChainHeight;
             var hash = chain.BestChainHash;
 
-            var result1 = await _blockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(new BlockHeader
+            var result1 = await _blockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(new BlockHeader
             {
                 PreviousBlockHash = hash,
                 Height = height

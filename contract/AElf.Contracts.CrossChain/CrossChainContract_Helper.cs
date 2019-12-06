@@ -265,7 +265,8 @@ namespace AElf.Contracts.CrossChain
             State.PendingCrossChainIndexingProposal.Value = new CrossChainIndexingProposal
             {
                 IndexingProposalFeedbackNeeded = true,
-                Proposer = proposer
+                Proposer = proposer,
+                ProposedCrossChainBlockData = crossChainBlockData
             };
             
             Context.Fire(new CrossChainIndexingDataProposedEvent

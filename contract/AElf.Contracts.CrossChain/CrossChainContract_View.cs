@@ -10,17 +10,17 @@ namespace AElf.Contracts.CrossChain
 
     public partial class CrossChainContract
     {
-//        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
-//        {
-//            var crossChainBlockData = new CrossChainBlockData();
-//            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-//            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-//                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
-//
-//            var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
-//            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
-//            return crossChainBlockData;
-//        }
+        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
+        {
+            var crossChainBlockData = new CrossChainBlockData();
+            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
+            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
+                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
+
+            var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
+            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
+            return crossChainBlockData;
+        }
 
         public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(SInt64Value input)
         {
@@ -183,11 +183,17 @@ namespace AElf.Contracts.CrossChain
             return res;
         }
 
-        public override CrossChainIndexingProposal GetPendingCrossChainIndexingProposal(Empty input)
+        public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
         {
-            return TryGetPendingProposal(out var pendingCrossChainIndexingProposal)
-                ? pendingCrossChainIndexingProposal
-                : new CrossChainIndexingProposal();
+            var res = new GetPendingCrossChainIndexingProposalOutput();
+            if (!TryGetPendingProposal(out var pendingCrossChainIndexingProposal)) 
+                return res;
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            res.ToBeReleased = State.ParliamentAuthContract.GetProposal
+                .Call(pendingCrossChainIndexingProposal.ProposalId).ToBeReleased;
+            res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
+            return res;
         }
     }
 }

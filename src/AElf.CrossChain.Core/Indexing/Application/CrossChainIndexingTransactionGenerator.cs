@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -9,7 +8,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Application
 {
     internal class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
     {
@@ -31,21 +30,18 @@ namespace AElf.CrossChain
         {
             var generatedTransactions = new List<Transaction>();
 
-            var proposingInput = new ProposeCrossChainIndexingInput();
-            // should return the same data already filled in block header.
-            var crossChainBlockData =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, refBlockNumber);
+            var bytes =
+                await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(previousBlockHash, refBlockNumber);
             
-
-            if (!crossChainBlockData.IsNullOrEmpty())
+            if (bytes == null || bytes.IsEmpty)
             {            
-                proposingInput.ProposedCrossChainData = crossChainBlockData;
+                return generatedTransactions;
             }
             
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             generatedTransactions.Add(GenerateNotSignedTransaction(from,
                 nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing), refBlockNumber,
-                previousBlockPrefix, proposingInput));
+                previousBlockPrefix, bytes));
             
             Logger.LogTrace($"{generatedTransactions.Count} Cross chain transaction generated.");
             return generatedTransactions;
@@ -64,12 +60,11 @@ namespace AElf.CrossChain
         /// <param name="from"></param>
         /// <param name="methodName"></param>
         /// <param name="refBlockNumber"></param>
-        /// <param name=""></param>
         /// <param name="refBlockPrefix"></param> 
-        /// <param name="input"></param>
+        /// <param name="bytes"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
-            byte[] refBlockPrefix, IMessage input)
+            byte[] refBlockPrefix, ByteString bytes)
         {
             return new Transaction
             {
@@ -79,7 +74,7 @@ namespace AElf.CrossChain
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
-                Params = input.ToByteString(),
+                Params = bytes,
             };
         }
     }

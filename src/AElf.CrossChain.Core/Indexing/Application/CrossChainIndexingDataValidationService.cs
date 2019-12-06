@@ -4,14 +4,12 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Application
 {
     internal class CrossChainIndexingDataValidationService : ICrossChainIndexingDataValidationService, ITransientDependency
     {
@@ -69,18 +67,26 @@ namespace AElf.CrossChain
                 var cachedSideChainBlockData =
                     _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
-                    throw new ValidateNextTimeBlockValidationException(
-                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
-                if (!cachedSideChainBlockData.Equals(sideChainBlockData))
+                {
+                    Logger.LogWarning(
+                        $"Side chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                     return false;
+                }
+
+                if (!cachedSideChainBlockData.Equals(sideChainBlockData))
+                {
+                    Logger.LogWarning(
+                        $"Side chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
+                    return false;
+                }
 
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
             foreach (var chainIdHeight in sideChainValidatedHeightDict)
             {
-                Logger.LogTrace(
-                    $"Validated height {chainIdHeight.Value} from  chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} ");
+                Logger.LogDebug(
+                    $"Validated height {chainIdHeight.Value} from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} ");
             }
 
             return true;
@@ -107,11 +113,18 @@ namespace AElf.CrossChain
                 var parentChainBlockData =
                     _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
-                    throw new ValidateNextTimeBlockValidationException(
-                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
-                
-                if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
+                {
+                    Logger.LogWarning(
+                        $"Parent chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
                     return false;
+                }
+
+                if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
+                {
+                    Logger.LogWarning(
+                        $"Incorrect parent chain data. ChainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
+                    return false;
+                }
 
                 targetHeight++;
                 i++;

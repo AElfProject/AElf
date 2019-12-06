@@ -40,7 +40,7 @@ service CrossChainContract {
     rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (CrossChainIndexingProposal) {
+    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
@@ -82,12 +82,20 @@ message CrossChainIndexingDataProposedEvent{
     acs7.CrossChainBlockData proposed_cross_chain_data = 1;
 }
 
-//message SideChainBlockDataIndexed{
-//    option (aelf.is_event) = true;
-//}
+message SideChainBlockDataIndexedEvent{
+    option (aelf.is_event) = true;
+}
 
 message CrossChainIndexingProposal{
     bool indexing_proposal_feedback_needed = 1;
     aelf.Hash proposal_id = 2;
     aelf.Address proposer = 3;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+}
+
+message GetPendingCrossChainIndexingProposalOutput{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    bool to_be_released = 3;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
 }

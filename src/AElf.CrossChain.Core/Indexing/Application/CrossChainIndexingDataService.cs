@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Application
 {
     internal class CrossChainIndexingDataService : ICrossChainIndexingDataService
     {
@@ -149,91 +149,12 @@ namespace AElf.CrossChain
             return parentChainBlockDataList;
         }
 
-        
-//        public async Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockDataList, 
-//            Hash blockHash, long blockHeight)
-//        {
-//            var sideChainValidatedHeightDict = new Dictionary<int, long>(); // chain id => validated height
-//            foreach (var sideChainBlockData in sideChainBlockDataList)
-//            {
-//                if (!sideChainValidatedHeightDict.TryGetValue(sideChainBlockData.ChainId, out var validatedHeight))
-//                {
-//                    var height = await _readerFactory.Create(blockHash, blockHeight).GetSideChainHeight
-//                        .CallAsync(
-//                            new SInt32Value()
-//                            {
-//                                Value = sideChainBlockData.ChainId
-//                            });
-//                    validatedHeight = height?.Value ?? 0;
-//                }
-//
-//                long targetHeight = validatedHeight + 1; 
-//
-//                if (targetHeight != sideChainBlockData.Height)
-//                    // this should not happen if it is good data.
-//                    return false;
-//
-//                var cachedSideChainBlockData =
-//                    _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
-//                if (cachedSideChainBlockData == null)
-//                    throw new ValidateNextTimeBlockValidationException(
-//                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
-//                if (!cachedSideChainBlockData.Equals(sideChainBlockData))
-//                    return false;
-//
-//                sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
-//            }
-//
-//            foreach (var chainIdHeight in sideChainValidatedHeightDict)
-//            {
-//                Logger.LogTrace(
-//                    $"Validated height {chainIdHeight.Value} from  chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} ");
-//            }
-//
-//            return true;
-//        }
-//        
-//        public async Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockDataList, 
-//            Hash blockHash, long blockHeight)
-//        {
-//            if (parentChainBlockDataList.Count == 0)
-//                return true;
-//            var parentChainId = (await _readerFactory.Create(blockHash, blockHeight).GetParentChainId
-//                .CallAsync(new Empty())).Value;
-//            if (parentChainId == 0)
-//                // no configured parent chain
-//                return false;
-//
-//            var length = parentChainBlockDataList.Count;
-//
-//            var i = 0;
-//
-//            var targetHeight = (await _readerFactory.Create(blockHash, blockHeight).GetParentChainHeight
-//                                   .CallAsync(new Empty())).Value + 1;
-//            while (i < length)
-//            {
-//                var parentChainBlockData =
-//                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
-//                if (parentChainBlockData == null)
-//                    throw new ValidateNextTimeBlockValidationException(
-//                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
-//                
-//                if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
-//                    return false;
-//
-//                targetHeight++;
-//                i++;
-//            }
-//
-//            return true;
-//        }
-
-//        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-//        {
-//            var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
-//                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
-//            return crossChainBlockData;
-//        }
+        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
+        {
+            var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
+                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
+            return crossChainBlockData;
+        }
         
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
@@ -243,67 +164,87 @@ namespace AElf.CrossChain
         }
 
         /// <summary>
-        /// This method returns cross chain data.
+        /// This method returns serialization input for cross chain proposing method.
         /// </summary>
         /// <param name="blockHash"></param>
         /// <param name="blockHeight"></param>
         /// <returns></returns>
-        public async Task<ProposeCrossChainIndexingInput> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash, long blockHeight)
+        public Task<ByteString> GetTransactionInputForNextMiningAsync(Hash blockHash, long blockHeight)
         {
-            if (!_transactionPackingService.IsTransactionPackingEnabled())
-                return null;
-
-            var result = new ProposeCrossChainIndexingInput();
-            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
-                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
-            
-            // 1' propose new cross chain indexing data if pending proposal is null or empty 
-            // 2' should should release pending proposal if it is ready
-            // 3' otherwise do nothing 
-
-            if (pendingProposal.ProposalId == null)
-            {
-                var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
-                var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
-                var crossChainBlockData = new CrossChainBlockData();
-                crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-                crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-                crossChainBlockData.PreviousBlockHeight = blockHeight;
-                if (crossChainBlockData.IsNullOrEmpty())
-                    return null; // nothing to propose
-            }
-            else
-            {
-                if ()
-                {
-                    
-                }
-                else
-            }
-            
-            Logger.LogTrace("Try get cross chain data for mining.");
-            
-            
-            
-            _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, crossChainBlockData);
-            return crossChainBlockData;
+            return Task.FromResult(_indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash)?.ToByteString() ??
+                                   ByteString.Empty);
         }
 
-//        /// <summary>
-//        /// This method returns cross chain data already used before.
-//        /// </summary>
-//        /// <param name="blockHash"></param>
-//        /// <param name="previousBlockHeight"></param>
-//        /// <returns></returns>
+        public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
+        {
+            if (!_transactionPackingService.IsTransactionPackingEnabled())
+                return ByteString.Empty;
+
+            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
+                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
+
+            if (pendingProposal != null && pendingProposal.ProposalId != null)
+            {
+                // do nothing if pending proposal is not ready
+                if (!pendingProposal.ToBeReleased) 
+                    return ByteString.Empty;
+                
+                // release pending proposal and unable to propose anything if it is ready
+                _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, new CrossChainBlockData());
+                return ExtractCrossChainExtraDataFromCrossChainBlockData(
+                    pendingProposal.ProposedCrossChainBlockData);
+            }
+            
+            // propose new cross chain indexing data if pending proposal is null or empty 
+            await PrepareCrossChainBlockDataForNextMining(blockHash, blockHeight);
+            return ByteString.Empty;
+        }
+
+        public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
+        {
+            if (crossChainBlockData.IsNullOrEmpty())
+                return ByteString.Empty;
+
+            var txRootHashList = crossChainBlockData.SideChainBlockData
+                .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
+            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
+
+            Logger.LogInformation("Cross chain extra data generated.");
+            return new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
+                .ToByteString();
+        }
+
+        /// <summary>
+        /// This method returns cross chain data already used before.
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <param name="previousBlockHeight"></param>
+        /// <returns></returns>
 //        public CrossChainBlockData GetUsedCrossChainBlockDataForLastMining(Hash blockHash, long previousBlockHeight)
 //        {
 //            return _indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash);
 //        }
 
+        
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
             _indexedCrossChainBlockDataProvider.ClearExpiredCrossChainBlockData(blockHeight);
+        }
+
+        private async Task PrepareCrossChainBlockDataForNextMining(Hash blockHash, long blockHeight)
+        {
+            Logger.LogTrace("Try get cross chain data for mining.");
+            var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
+            var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                PreviousBlockHeight = blockHeight,
+                ParentChainBlockData = {parentChainBlockData},
+                SideChainBlockData = {sideChainBlockData}
+            };
+
+            _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, crossChainBlockData);
         }
     }
 }

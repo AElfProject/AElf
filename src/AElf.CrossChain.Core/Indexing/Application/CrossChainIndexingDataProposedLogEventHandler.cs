@@ -10,7 +10,7 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Application
 {
     public class CrossChainIndexingDataProposedLogEventHandler : IBestChainFoundLogEventHandler
     {

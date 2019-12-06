@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Events;
 using Volo.Abp.DependencyInjection;

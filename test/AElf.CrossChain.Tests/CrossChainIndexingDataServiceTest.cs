@@ -435,7 +435,7 @@ namespace AElf.CrossChain
             var sideFakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideBlockInfoCache}};
             AddFakeCacheData(sideFakeCache);
             
-            var res = await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.True(res.ParentChainBlockData.Count == 4);
             Assert.True(res.SideChainBlockData.Count == 4);
             Assert.True(res.PreviousBlockHeight == 1);
@@ -460,7 +460,7 @@ namespace AElf.CrossChain
             AddFakeCacheData(fakeCache);
            
             
-            var res = await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.True(res.ParentChainBlockData.Count == 0);
             Assert.True(res.SideChainBlockData.Count == 4);
             Assert.True(res.PreviousBlockHeight == 1);
@@ -484,7 +484,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             
-            var res = await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.True(res.ParentChainBlockData.Count == 4);
             Assert.True(res.SideChainBlockData.Count == 0);
             Assert.True(res.PreviousBlockHeight == 1);
@@ -493,7 +493,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetCrossChainBlockDataForNextMining_WithoutCaching_Test()
         {
-            var res = await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.True(res == null);
         }
 

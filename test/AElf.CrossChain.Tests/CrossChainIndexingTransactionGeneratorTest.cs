@@ -65,7 +65,7 @@ namespace AElf.CrossChain
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
 
-            await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
+            await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(previousBlockHash, previousBlockHeight);
 
             transactions.AddRange(
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
