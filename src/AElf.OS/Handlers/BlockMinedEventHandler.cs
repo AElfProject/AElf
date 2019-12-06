@@ -52,7 +52,7 @@ namespace AElf.OS.Handlers
                     return;
                 }
 
-                Logger.LogTrace(
+                Logger.LogDebug(
                     $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
 
                 var _ = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransactions);

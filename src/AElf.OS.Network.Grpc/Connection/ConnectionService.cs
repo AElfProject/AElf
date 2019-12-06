@@ -87,7 +87,7 @@ namespace AElf.OS.Network.Grpc.Connection
         /// <returns>True if the connection was successful, false otherwise</returns>
         public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
-            Logger.LogTrace($"Attempting to reach {endpoint}.");
+            Logger.LogDebug($"Attempting to reach {endpoint}.");
 
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
@@ -174,7 +174,7 @@ namespace AElf.OS.Network.Grpc.Connection
             currentPeer.IsConnected = true;
             currentPeer.SyncState = SyncState.Syncing;
             
-            Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
+            Logger.LogInformation($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {currentPeer.LastKnownLibHeight}" +
                               $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");

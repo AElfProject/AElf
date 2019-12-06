@@ -11,7 +11,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.RemoveAll<IPreExecutionPlugin>();
-
         }
     }
 }

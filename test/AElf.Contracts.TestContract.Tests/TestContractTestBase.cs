@@ -123,7 +123,10 @@ namespace AElf.Contract.TestContract
 
     public class TestFeesContractTestBase : ContractTestBase<TestFeesContractAElfModule>
     {
-        protected const long Supply = 1000_0000_00000000L;
+        protected const long Supply = 1_000_000_00000000L;
+        protected const long VirtualElfSupplyToken = 1_000_000_00000000L;
+        protected const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
+        protected const long VirtualResourceToken = 100_000;
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected ECKeyPair OtherTesterKeyPair => SampleECKeyPairs.KeyPairs[1];
@@ -146,6 +149,7 @@ namespace AElf.Contract.TestContract
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
         internal static readonly List<string> ResourceTokenSymbols = new List<string> {"RAM", "CPU", "NET", "STO"};
+        internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTRAM", "NTCPU", "NTNET", "NTSTO"};
 
         protected async Task DeployTestContracts()
         {
@@ -214,10 +218,10 @@ namespace AElf.Contract.TestContract
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput()
                 {
                     Symbol = "ELF",
-                    Decimals = 2,
+                    Decimals = 8,
                     IsBurnable = true,
                     TokenName = "elf token",
-                    TotalSupply = Supply,
+                    TotalSupply = Supply * 10,
                     Issuer = DefaultSender,
                     LockWhiteList =
                     {
@@ -236,23 +240,49 @@ namespace AElf.Contract.TestContract
                 });
                 CheckResult(issueResult.TransactionResult);
 
-                issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                foreach (var resourceRelatedNativeToken in NativTokenToSourceSymbols)
                 {
-                    Symbol = "ELF",
-                    Amount = Supply / 2,
-                    To = OtherTester,
-                    Memo = "Set for token converter."
-                });
-                CheckResult(issueResult.TransactionResult);
-
+                    createResult = await TokenContractStub.Create.SendAsync(new CreateInput()
+                    {
+                        Symbol = resourceRelatedNativeToken,
+                        Decimals = 8,
+                        IsBurnable = true,
+                        TokenName = resourceRelatedNativeToken + " elf token",
+                        TotalSupply = Supply * 10,
+                        Issuer = DefaultSender,
+                        LockWhiteList =
+                        {
+                            TokenConverterContractAddress,
+                            TreasuryContractAddress
+                        }
+                    });
+                    CheckResult(createResult.TransactionResult);
+                    issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                    {
+                        Symbol = resourceRelatedNativeToken,
+                        Amount = Supply / 2,
+                        To = DefaultSender,
+                        Memo = $"Set for {resourceRelatedNativeToken} token converter."
+                    });
+                    CheckResult(issueResult.TransactionResult);
+//
+//                    issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
+//                    {
+//                        Symbol = resourceRelatedNativeToken,
+//                        Amount = Supply / 2,
+//                        To = OtherTester,
+//                        Memo = $"Set for {resourceRelatedNativeToken} token converter."
+//                    });
+//                    CheckResult(issueResult.TransactionResult);
+                }
                 foreach (var symbol in ResourceTokenSymbols)
                 {
                     var resourceCreateResult = await TokenContractStub.Create.SendAsync(new CreateInput
                     {
                         Symbol = symbol,
                         TokenName = $"{symbol} Token",
-                        TotalSupply = Supply,
-                        Decimals = 2,
+                        TotalSupply = ResourceTokenTotalSupply,
+                        Decimals = 8,
                         Issuer = DefaultSender,
                         IsBurnable = true,
                         LockWhiteList =
@@ -267,7 +297,7 @@ namespace AElf.Contract.TestContract
                     {
                         Symbol = symbol,
                         To = TokenConverterContractAddress,
-                        Amount = Supply,
+                        Amount = ResourceTokenTotalSupply,
                         Memo = "Initialize for resources trade"
                     });
                     CheckResult(resourceIssueResult.TransactionResult);
@@ -276,9 +306,9 @@ namespace AElf.Contract.TestContract
                 var setPriceResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
                     new SetResourceTokenUnitPriceInput
                     {
-                        CpuUnitPrice = 100L,
-                        NetUnitPrice = 100L,
-                        StoUnitPrice = 100L
+                        CpuUnitPrice = 100_000L,
+                        NetUnitPrice = 100_000L,
+                        StoUnitPrice = 100_000L
                     });
                 CheckResult(setPriceResult.TransactionResult);
             }
@@ -292,20 +322,33 @@ namespace AElf.Contract.TestContract
                     IsPurchaseEnabled = true,
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.5",
-                    VirtualBalance = Supply
+                    VirtualBalance = VirtualElfSupplyToken
                 };
                 connectors.Add(elfConnector);
-
+                foreach (var resourceRelatedNativeToken in NativTokenToSourceSymbols)
+                {
+                    elfConnector = new Connector
+                    {
+                        Symbol = resourceRelatedNativeToken,
+                        IsPurchaseEnabled = true,
+                        IsVirtualBalanceEnabled = true,
+                        Weight = "0.5",
+                        VirtualBalance = VirtualElfSupplyToken
+                    };
+                    elfConnector.RelatedSymbol = ResourceTokenSymbols.First(x => elfConnector.Symbol.Contains(x));
+                    connectors.Add(elfConnector);
+                }
                 foreach (var symbol in ResourceTokenSymbols)
                 {
                     var connector = new Connector
                     {
                         Symbol = symbol,
-                        VirtualBalance = Supply,
+                        VirtualBalance = ResourceTokenTotalSupply,
                         Weight = "0.5",
                         IsPurchaseEnabled = true,
                         IsVirtualBalanceEnabled = false
                     };
+                    connector.RelatedSymbol = NativTokenToSourceSymbols.First(x => x.Contains(connector.Symbol));
                     connectors.Add(connector);
                 }
 

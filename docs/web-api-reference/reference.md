@@ -14,7 +14,7 @@
 ## Paths
 
 <a name="getblockasync"></a>
-### Get information about a given block by block hash. Otionally with the list of its transactions.
+### Get information about a given block by block hash. Optionally with the list of its transactions.
 ```
 GET /api/blockChain/block
 ```
@@ -49,7 +49,7 @@ GET /api/blockChain/block
 
 
 <a name="getblockbyheightasync"></a>
-### Get information about a given block by block height. Otionally with the list of its transactions.
+### Get information about a given block by block height. Optionally with the list of its transactions.
 ```
 GET /api/blockChain/blockByHeight
 ```

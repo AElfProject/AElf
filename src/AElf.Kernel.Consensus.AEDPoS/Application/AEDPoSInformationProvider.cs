@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
+    // ReSharper disable once InconsistentNaming
     internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
     {
         private readonly IAEDPoSReaderFactory _readerFactory;

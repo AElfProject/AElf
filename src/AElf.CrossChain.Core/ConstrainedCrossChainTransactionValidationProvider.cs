@@ -49,8 +49,8 @@ namespace AElf.CrossChain
                 }
 
                 _alreadyHas.TryRemove(blockHash, out var oldTransaction);
-                Logger.LogError(
-                    $"Only allow one Cross Chain Contract core transaction\nNew tx: {transaction}\nOld tx: {oldTransaction}");
+                Logger.LogWarning(
+                    $"Only allow one Cross Chain Contract core transaction. New tx: {transaction}, Old tx: {oldTransaction}");
                 return false;
             }
 

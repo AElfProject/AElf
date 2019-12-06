@@ -50,7 +50,7 @@ namespace AElf.OS.Network.Application
 
             if (!_reconnectionStateProvider.AddReconnectingPeer(endpoint, reconnectingPeer))
             {
-                Logger.LogDebug($"Reconnection scheduling failed to {endpoint}.");
+                Logger.LogWarning($"Reconnection scheduling failed to {endpoint}.");
                 return false;
             }
 
@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Application
         {
             if (!_reconnectionStateProvider.RemoveReconnectionPeer(endpoint))
             {
-                Logger.LogDebug($"Could not find reconnection {endpoint}");
+                Logger.LogWarning($"Could not find reconnection {endpoint}");
                 return false;
             }
             
