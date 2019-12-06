@@ -1,83 +1,41 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using FieldAttributes = Mono.Cecil.FieldAttributes;
-using MethodAttributes = Mono.Cecil.MethodAttributes;
-using TypeAttributes = Mono.Cecil.TypeAttributes;
 
-namespace AElf.CSharp.CodeOps
+namespace AElf.CSharp.CodeOps.Patchers.Module
 {
-    public static class ContractPatcherExp
+    public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
     {
-        public static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
+        public void Patch(ModuleDefinition module)
         {
-            OpCodes.Beq,
-            OpCodes.Beq_S,
-            OpCodes.Bge,
-            OpCodes.Bge_S,
-            OpCodes.Bge_Un,
-            OpCodes.Bge_Un_S,
-            OpCodes.Bgt,
-            OpCodes.Bgt_S,
-            OpCodes.Ble,
-            OpCodes.Ble_S,
-            OpCodes.Ble_Un,
-            OpCodes.Blt,
-            OpCodes.Bne_Un,
-            OpCodes.Bne_Un_S,
-            OpCodes.Br,
-            OpCodes.Brfalse,
-            OpCodes.Brfalse_S,
-            OpCodes.Brtrue,
-            OpCodes.Brtrue_S,
-            OpCodes.Br_S
-        };
-        
-        public static byte[] Patch(byte[] code)
-        {
-            var contractAsmDef = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
-
-            var mainModule = contractAsmDef.MainModule;
-
-            #if DEBUG
+            // Check if already injected, do not double inject
+            if (module.Types.Select(t => t.Name).Contains(nameof(ExecutionObserverProxy)))
+                return;
             
-            #endif
-
             // ReSharper disable once IdentifierTypo
-            var nmspace = contractAsmDef.MainModule.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
+            var nmspace = module.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
 
-            var (counterProxy, observerField) = ConstructCounterProxy(contractAsmDef.MainModule, nmspace);
+            var (counterProxy, observerField) = ConstructCounterProxy(module, nmspace);
 
-            var initializeMethod = ConstructInitializeMethod(mainModule, observerField);
-            var proxyCountMethod = ConstructProxyCountMethod(mainModule, observerField);
+            var initializeMethod = ConstructInitializeMethod(module, observerField);
+            var proxyCountMethod = ConstructProxyCountMethod(module, observerField);
             
             counterProxy.Methods.Add(initializeMethod);
             counterProxy.Methods.Add(proxyCountMethod);
 
-            // Check if already injected
-            if (!mainModule.Types.Select(t => t.Name).Contains(counterProxy.Name))
+            // Patch the types
+            foreach (var typ in module.Types)
             {
-                // Patch the types
-                foreach (var typ in contractAsmDef.MainModule.Types)
-                {
-                    PatchType(typ, proxyCountMethod);
-                }
-
-                mainModule.Types.Add(counterProxy);
+                PatchType(typ, proxyCountMethod);
             }
 
-            var newCode = new MemoryStream();
-            contractAsmDef.Write(newCode);
-            return newCode.ToArray();
+            module.Types.Add(counterProxy);
         }
 
-        private static (TypeDefinition, FieldDefinition) ConstructCounterProxy(ModuleDefinition module, string nmspace)
+        private (TypeDefinition, FieldDefinition) ConstructCounterProxy(ModuleDefinition module, string nmspace)
         {
             var counterType = new TypeDefinition(
                 nmspace, nameof(ExecutionObserverProxy),
@@ -101,7 +59,7 @@ namespace AElf.CSharp.CodeOps
             return (counterType, counterField);
         }
 
-        private static MethodDefinition ConstructProxyCountMethod(ModuleDefinition module, FieldReference observerField)
+        private MethodDefinition ConstructProxyCountMethod(ModuleDefinition module, FieldReference observerField)
         {
             var counterMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.Count), 
@@ -133,7 +91,7 @@ namespace AElf.CSharp.CodeOps
             return counterMethod;
         }
         
-        private static MethodDefinition ConstructInitializeMethod(ModuleDefinition module, FieldReference observerField)
+        private MethodDefinition ConstructInitializeMethod(ModuleDefinition module, FieldReference observerField)
         {
             var initializeMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.Initialize), 
@@ -158,7 +116,7 @@ namespace AElf.CSharp.CodeOps
             return initializeMethod;
         }
 
-        private static void PatchType(TypeDefinition typ, MethodReference counterMethodRef)
+        private void PatchType(TypeDefinition typ, MethodReference counterMethodRef)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
@@ -173,7 +131,7 @@ namespace AElf.CSharp.CodeOps
             }
         }
 
-        private static void PatchMethodsWithCounter(MethodDefinition method, MethodReference counterMethodRef)
+        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference counterMethodRef)
         {
             if (!method.HasBody)
                 return;
@@ -181,7 +139,7 @@ namespace AElf.CSharp.CodeOps
             var il = method.Body.GetILProcessor();
 
             // Insert before every branching instruction
-            var branchingInstructions = method.Body.Instructions.Where(i => JumpingOps.Contains(i.OpCode)).ToList();
+            var branchingInstructions = method.Body.Instructions.Where(i => Consts.JumpingOps.Contains(i.OpCode)).ToList();
             il.Body.SimplifyMacros();
             foreach (var instruction in branchingInstructions)
             {

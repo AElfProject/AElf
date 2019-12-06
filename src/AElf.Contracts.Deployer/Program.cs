@@ -11,7 +11,7 @@ namespace AElf.Contracts.Deployer
             var code = File.ReadAllBytes(sourceDllPath);
             
             // Overwrite
-            File.WriteAllBytes(sourceDllPath, ContractPatcherExp.Patch(code));
+            File.WriteAllBytes(sourceDllPath, ContractPatcher.Patch(code));
         }
     }
 }

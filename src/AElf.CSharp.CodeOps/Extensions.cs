@@ -1,11 +1,11 @@
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
 
-namespace AElf.CSharp.CodeOps.Validators
+namespace AElf.CSharp.CodeOps
 {
-    public static class Helpers
+    public static class Extensions
     {
-        public static bool IsContractImplementation(TypeDefinition typeDefinition)
+        public static bool IsContractImplementation(this TypeDefinition typeDefinition)
         {
             while (true)
             {
