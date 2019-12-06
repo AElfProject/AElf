@@ -233,8 +233,8 @@ namespace AElf.WebApp.Application.Chain
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelper.HexStringToByteArray(rawTransactions[i]);
-                    transaction = Transaction.Parser.ParseFrom(hexString);
+                    var byteArray = ByteArrayHelper.HexStringToByteArray(rawTransactions[i]);
+                    transaction = Transaction.Parser.ParseFrom(byteArray);
                 }
                 catch
                 {
