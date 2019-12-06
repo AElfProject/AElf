@@ -18,7 +18,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncQueueService _blockSyncQueueService;
 
         public ILogger<BlockFetchService> Logger { get; set; }
-        
+
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockFetchService(IBlockSyncAttachService blockSyncAttachService,
@@ -49,7 +49,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 return false;
             }
-            
+
             var blockWithTransactions = response.Payload;
             if (blockWithTransactions.GetHash() != blockHash || blockWithTransactions.Height != blockHeight)
             {
@@ -61,7 +61,7 @@ namespace AElf.OS.BlockSync.Application
                     BlockHeight = blockWithTransactions.Height,
                     PeerPubkey = suggestedPeerPubKey
                 });
-                
+
                 return false;
             }
 

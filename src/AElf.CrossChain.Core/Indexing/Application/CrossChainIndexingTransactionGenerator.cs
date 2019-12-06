@@ -43,7 +43,7 @@ namespace AElf.CrossChain.Indexing.Application
                 nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing), refBlockNumber,
                 previousBlockPrefix, bytes));
             
-            Logger.LogTrace($"{generatedTransactions.Count} Cross chain transaction generated.");
+            Logger.LogTrace($"Cross chain transaction generated.");
             return generatedTransactions;
         }
 

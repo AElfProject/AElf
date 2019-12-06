@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     public class GrouperOptions
     {
         public int GroupingTimeOut { get; set; } = 500; // ms
-        public int MaxTransactions { get; set; } = int.MaxValue;   // Maximum transactions to group
+        public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
     }
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
@@ -30,7 +30,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext,List<Transaction> transactions)
+        public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext, List<Transaction> transactions)
         {
             Logger.LogTrace("Entered GroupAsync");
 
@@ -39,11 +39,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
                 var parallelizables = new List<TransactionWithResourceInfo>();
-                
+
                 Logger.LogTrace("Extracting resources for transactions.");
-                var txsWithResources = await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
+                var txsWithResources =
+                    await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
                 Logger.LogTrace("Completed resource extraction.");
-                
+
                 foreach (var twr in txsWithResources)
                 {
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.InvalidContractAddress)
@@ -58,36 +59,37 @@ namespace AElf.Kernel.SmartContract.Parallel
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                    
+
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.NonParallelizable)
                     {
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                    
+
                     if (twr.TransactionResourceInfo.Paths.Count == 0)
                     {
                         // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                
+
                     parallelizables.Add(twr);
                 }
 
                 groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
-                
+
                 Logger.LogTrace("Completed transaction grouping.");
             }
-            
-            Logger.LogTrace($"From {transactions.Count} transactions, grouped into " +
+
+            Logger.LogDebug($"From {transactions.Count} transactions, grouped into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
             return groupedTransactions;
         }
 
-        private List<Transaction> GetTransactionsToBeGrouped(List<Transaction> transactions, out GroupedTransactions groupedTransactions)
+        private List<Transaction> GetTransactionsToBeGrouped(List<Transaction> transactions,
+            out GroupedTransactions groupedTransactions)
         {
             List<Transaction> toBeGrouped;
             groupedTransactions = new GroupedTransactions();
@@ -111,7 +113,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var transactionResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
-            
+
             foreach (var txWithResource in txsWithResources)
             {
                 UnionFindNode first = null;

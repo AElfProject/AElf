@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
+    // ReSharper disable once InconsistentNaming
     public class AEDPoSBroadcastPrivilegedPubkeyListProvider : IBroadcastPrivilegedPubkeyListProvider
     {
         private readonly IBlockExtraDataService _blockExtraDataService;

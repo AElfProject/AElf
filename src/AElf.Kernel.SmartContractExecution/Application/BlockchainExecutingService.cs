@@ -103,7 +103,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (successLinks.Count == 0)
                 return;
 
-            Logger.LogTrace($"Set best chain for block height {string.Join(",", successLinks.Select(l => l.Height))}");
+            Logger.LogDebug($"Set best chain for block height {string.Join(",", successLinks.Select(l => l.Height))}");
             var blockLink = successLinks.Last();
             await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
         }
@@ -113,7 +113,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
-                Logger.LogTrace($"Try to attach to chain but the status is {status}.");
+                Logger.LogDebug( $"Try to attach to chain but the status is {status}.");
                 return null;
             }
 
@@ -158,7 +158,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             catch (Exception ex)
             {
                 await _chainManager.RemoveLongestBranchAsync(chain);
-                Logger.LogWarning($"Block validate or execute fails. Exception message {ex.Message}");
+                Logger.LogError(ex, "Block validate or execute fails.");
                 throw;
             }
 

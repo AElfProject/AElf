@@ -150,7 +150,7 @@ namespace AElf.OS.Network.Application
                 else
                 {
                     await SetSyncAsFinishedAsync();
-                    Logger.LogDebug("Finishing sync, no peer has as a LIB high enough.");
+                    Logger.LogInformation("Finishing sync, no peer has as a LIB high enough.");
                 }
             }
         }

@@ -370,15 +370,7 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             });
-            var txSize = claimResult.Transaction.Size();
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // has removed all IPluginExecution
-            // Check ELF token balance     
-//            {
-//                var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-//                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
-//            }
 
             // Check VOTE token balance.
             {
