@@ -25,17 +25,16 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
 
-        public async Task<bool> ValidateCrossChainIndexingData(CrossChainBlockData crossChainBlockData, Block block)
+        public async Task<bool> ValidateCrossChainIndexingData(CrossChainBlockData crossChainBlockData, 
+            Hash blockHash, long blockHeight)
         {
             var sideChainBlockDataValidationResult =
-                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockData, block.GetHash(),
-                    block.Height);
+                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockData, blockHash, blockHeight);
             if (!sideChainBlockDataValidationResult)
                 return false;
 
             var parentChainBlockDataValidationResult =
-                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockData, block.GetHash(),
-                    block.Height);
+                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockData, blockHash, blockHeight);
             
             return parentChainBlockDataValidationResult;
         }

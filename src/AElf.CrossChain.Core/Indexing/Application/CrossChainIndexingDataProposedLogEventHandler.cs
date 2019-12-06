@@ -47,7 +47,7 @@ namespace AElf.CrossChain.Indexing.Application
                 return;
             var validationResult =
                 await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingData(crossChainBlockData,
-                    block);
+                    block.GetHash(), block.Height);
             if (validationResult)
             {
                 var proposalId = ProposalCreated.Parser
