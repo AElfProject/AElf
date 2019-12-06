@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
@@ -106,7 +107,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         // Get from a service later
-        public IExecutionObserver ExecutionObserver => new InstructionExecutionObserver(50000);
+        public IExecutionObserver ExecutionObserver => new ExecutionObserver(500000);
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {

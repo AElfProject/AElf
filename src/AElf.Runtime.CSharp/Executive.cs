@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -21,7 +22,6 @@ namespace AElf.Runtime.CSharp
     public class Executive : IExecutive
     {
         private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -67,8 +67,7 @@ namespace AElf.Runtime.CSharp
         {
             _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
-            _contractType = FindContractType(assembly);
-            _contractInstance = Activator.CreateInstance(_contractType);
+            _contractInstance = Activator.CreateInstance(FindContractType(assembly));
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, FindExecutionCounterType(assembly));
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();

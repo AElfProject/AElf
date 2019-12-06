@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Sdk;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.CodeOps;
 using AElf.Types;
 
 namespace AElf.Runtime.CSharp
@@ -46,7 +42,7 @@ namespace AElf.Runtime.CSharp
             // Initialize the counter if injected
             _counterType
                 ?.GetMethod(nameof(ExecutionObserverProxy.Initialize), new []{ typeof(IExecutionObserver) })
-                ?.Invoke(_instance, new object[] { context.ExecutionObserver });
+                ?.Invoke(null, new object[] { context.ExecutionObserver });
         }
 
         public TransactionExecutingStateSet GetChanges()

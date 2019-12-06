@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -44,6 +44,10 @@ namespace AElf.CSharp.CodeOps
             var contractAsmDef = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
 
             var mainModule = contractAsmDef.MainModule;
+
+            #if DEBUG
+            
+            #endif
 
             // ReSharper disable once IdentifierTypo
             var nmspace = contractAsmDef.MainModule.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
@@ -144,7 +148,7 @@ namespace AElf.CSharp.CodeOps
             
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Stsfld, observerField);
-            #if DEBUG // May remove later, if a contract is injected in debug mode, it won't run in a node compiled with release mode
+            #if DEBUG
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
                 GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));

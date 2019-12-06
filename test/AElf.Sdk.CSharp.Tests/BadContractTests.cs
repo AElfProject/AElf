@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
