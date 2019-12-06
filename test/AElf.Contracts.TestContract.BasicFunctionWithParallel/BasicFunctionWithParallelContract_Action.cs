@@ -41,7 +41,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         public override Empty UserPlayBet(BetInput input)
         {
             Assert(input.Int64Value >= State.MinBet.Value && input.Int64Value <=State.MaxBet.Value, $"Input balance not in boundary({State.MinBet.Value}, {State.MaxBet.Value}).");
-            Assert(input.Int64Value > State.WinerHistory[Context.Sender], "Should bet bigger than your reward money.");
+            //Assert(input.Int64Value > State.WinerHistory[Context.Sender], "Should bet bigger than your reward money.");
             State.TotalBetBalance.Value = State.TotalBetBalance.Value.Add(input.Int64Value);
             
             var result = WinOrLose(input.Int64Value);
