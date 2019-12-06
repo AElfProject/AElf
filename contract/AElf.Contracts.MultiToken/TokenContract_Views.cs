@@ -106,7 +106,7 @@ namespace AElf.Contracts.MultiToken
             return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
         }
 
-        public override AllCalculateFeeParameter GetCalculateFeeAllParameters(SInt32Value input)
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientByType(SInt32Value input)
         {
             IntialParameters();
             switch (input.Value)
@@ -125,137 +125,137 @@ namespace AElf.Contracts.MultiToken
                     return null;
             }
         }
-        private AllCalculateFeeParameter GetCpuFeeParameter()
+        private CalculateFeeCoefficientsOfType GetCpuFeeParameter()
         {
-            var totalParameter = new AllCalculateFeeParameter();
-            var cpuFeeParameter1 = new CalculateFeeParameter
+            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var cpuFeeParameter1 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 10,
-                ParameterDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
                 
             };
-            var cpuFeeParameter2 = new CalculateFeeParameter
+            var cpuFeeParameter2 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 100,
-                ParameterDic = { {"numerator","1"},{"denominator","4"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","4"}}
             };
-            var cpuFeeParameter3 = new CalculateFeeParameter
+            var cpuFeeParameter3 = new CalculateFeeCoefficient
             {
                 FunctionType =3,
                 PieceKey = int.MaxValue,
-                ParameterDic =
+                CoefficientDic =
                 {
                     {"numerator","1"},{"denominator","4"},{"power","2"},{"changeSpanBase","4"},{"weight","250"},
                     {"weightBase", "40"}
                 }
             };
-            totalParameter.AllParameter.Add(cpuFeeParameter1);
-            totalParameter.AllParameter.Add(cpuFeeParameter2);
-            totalParameter.AllParameter.Add(cpuFeeParameter3);
+            totalParameter.Coefficients.Add(cpuFeeParameter1);
+            totalParameter.Coefficients.Add(cpuFeeParameter2);
+            totalParameter.Coefficients.Add(cpuFeeParameter3);
             return totalParameter;
         }
-        private AllCalculateFeeParameter GetStoFeeParameter()
+        private CalculateFeeCoefficientsOfType GetStoFeeParameter()
         {
-            var totalParameter = new AllCalculateFeeParameter();
-            var stoFeeParameter1 = new CalculateFeeParameter
+            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var stoFeeParameter1 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 1000000,
-                ParameterDic = { {"numerator","1"},{"denominator","4"},{"constantValue", "10000"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","4"},{"constantValue", "10000"}}
                 
             };
-            var stoFeeParameter2 = new CalculateFeeParameter
+            var stoFeeParameter2 = new CalculateFeeCoefficient
             {
                 FunctionType = 3,
                 PieceKey = int.MaxValue,
-                ParameterDic =
+                CoefficientDic =
                 {
                     {"numerator","1"},{"denominator","64"},{"power","2"},{"changeSpanBase","100"},{"weight","250"},
                     {"weightBase", "500"}
                 }
             };
-            totalParameter.AllParameter.Add(stoFeeParameter1);
-            totalParameter.AllParameter.Add(stoFeeParameter2);
+            totalParameter.Coefficients.Add(stoFeeParameter1);
+            totalParameter.Coefficients.Add(stoFeeParameter2);
             return totalParameter;
         }
-        private AllCalculateFeeParameter GetRamFeeParameter()
+        private CalculateFeeCoefficientsOfType GetRamFeeParameter()
         {
-            var totalParameter = new AllCalculateFeeParameter();
-            var ramFeeParameter1 = new CalculateFeeParameter
+            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var ramFeeParameter1 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 10,
-                ParameterDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","8"},{"constantValue","10000"}}
                 
             };
-            var ramFeeParameter2 = new CalculateFeeParameter
+            var ramFeeParameter2 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 100,
-                ParameterDic = { {"numerator","1"},{"denominator","4"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","4"}}
             };
-            var ramFeeParameter3 = new CalculateFeeParameter
+            var ramFeeParameter3 = new CalculateFeeCoefficient
             {
                 FunctionType = 3,
                 PieceKey = int.MaxValue,
-                ParameterDic =
+                CoefficientDic =
                 {
                     {"numerator","1"},{"denominator","4"},{"power","2"},{"changeSpanBase","2"},{"weight","250"},
                     {"weightBase", "40"}
                 }
             };
-            totalParameter.AllParameter.Add(ramFeeParameter1);
-            totalParameter.AllParameter.Add(ramFeeParameter2);
-            totalParameter.AllParameter.Add(ramFeeParameter3);
+            totalParameter.Coefficients.Add(ramFeeParameter1);
+            totalParameter.Coefficients.Add(ramFeeParameter2);
+            totalParameter.Coefficients.Add(ramFeeParameter3);
             return totalParameter;
         }
-        private AllCalculateFeeParameter GetNetFeeParameter()
+        private CalculateFeeCoefficientsOfType GetNetFeeParameter()
         {
-            var totalParameter = new AllCalculateFeeParameter();
-            var netFeeParameter1 = new CalculateFeeParameter
+            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var netFeeParameter1 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 1000000,
-                ParameterDic = { {"numerator","1"},{"denominator","64"},{"constantValue","10000"}}
+                CoefficientDic = { {"numerator","1"},{"denominator","64"},{"constantValue","10000"}}
                 
             };
-            var netFeeParameter2 = new CalculateFeeParameter
+            var netFeeParameter2 = new CalculateFeeCoefficient
             {
                 FunctionType = 3,
                 PieceKey = int.MaxValue,
-                ParameterDic =
+                CoefficientDic =
                 {
                     {"numerator","1"},{"denominator","64"},{"power","2"},{"changeSpanBase","100"},{"weight","250"},
                     {"weightBase", "500"}
                 }
             };
-            totalParameter.AllParameter.Add(netFeeParameter1);
-            totalParameter.AllParameter.Add(netFeeParameter2);
+            totalParameter.Coefficients.Add(netFeeParameter1);
+            totalParameter.Coefficients.Add(netFeeParameter2);
             return totalParameter;
         }
-        private AllCalculateFeeParameter GetTxFeeParameter()
+        private CalculateFeeCoefficientsOfType GetTxFeeParameter()
         {
-            var totalParameter = new AllCalculateFeeParameter();
-            var txFeeParameter1 = new CalculateFeeParameter
+            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var txFeeParameter1 = new CalculateFeeCoefficient
             {
                 FunctionType = 2,
                 PieceKey = 1000000,
-                ParameterDic = { {"numerator","1"},{"denominator",(16.Mul(50)).ToString()},{"constantValue","10000"}}
+                CoefficientDic = { {"numerator","1"},{"denominator",(16.Mul(50)).ToString()},{"constantValue","10000"}}
             };
-            var txFeeParameter2 = new CalculateFeeParameter
+            var txFeeParameter2 = new CalculateFeeCoefficient
             {
                 FunctionType = 3,
                 PieceKey = int.MaxValue,
-                ParameterDic =
+                CoefficientDic =
                 {
                     {"numerator","1"},{"denominator",(16.Mul(50)).ToString()},{"power","2"},{"changeSpanBase","100"},{"weight","1"},
                     {"weightBase", "1"}
                 }
             };
-            totalParameter.AllParameter.Add(txFeeParameter1);
-            totalParameter.AllParameter.Add(txFeeParameter2);
+            totalParameter.Coefficients.Add(txFeeParameter1);
+            totalParameter.Coefficients.Add(txFeeParameter2);
             return totalParameter;
         }
 

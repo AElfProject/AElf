@@ -12,6 +12,21 @@ namespace AElf.Kernel.SmartContract.Application
         Ram,
         Net
     }
+    public enum CalculateFunctionTypeEnum
+    {
+        Default = 0,
+        Constant,
+        Liner,
+        Power,
+        Ln,
+        Bancor
+    }
+    public enum AlgorithmOpCodeEnum
+    {
+        AddFunc,
+        DeleteFunc,
+        UpdateFunc
+    }
 
     public interface ICalculateFeeService : ITransientDependency
     {
@@ -38,13 +53,6 @@ namespace AElf.Kernel.SmartContract.Application
         ICalculateCostStrategy GetTxCalculateStrategy();
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
-    }
-
-    public enum AlgorithmOpCodeEnum
-    {
-        AddFunc,
-        DeleteFunc,
-        UpdateFunc
     }
 
     public interface ICalculateCostStrategy
@@ -76,15 +84,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task AddByParam(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters);
     }
 
-    public enum CalculateFunctionTypeEnum
-    {
-        Default = 0,
-        Constant,
-        Liner,
-        Power,
-        Ln,
-        Bancor
-    }
+   
 
     public interface ICalculateWay
     {

@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
@@ -62,19 +62,20 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 BlockHash = eventData.PreBlockHash,
                 BlockHeight = eventData.BlockHeigh
-            };
-            var param = eventData.Parameter;
+            }; 
+            var param = eventData.Coefficient;
             var feeType = param.FeeType;
             var pieceKey = param.PieceKey;
             var funcType = param.FunctionType;
-            var paramDic = param.ParameterDic;
+            var paramDic = param.CoefficientDic;
             var opCode = param.OperationType;
             _calculateFeeService.CalculateCostStrategy =
                 _calculateStrategyProvider.GetCalculateStrategyByFeeType((FeeTypeEnum)feeType);
+            if(_calculateFeeService.CalculateCostStrategy == null)
+                return;
             switch ((AlgorithmOpCodeEnum) opCode)
             {
                 case AlgorithmOpCodeEnum.AddFunc:
-                    
                     await _calculateFeeService.AddFeeCal(chainContext, blockIndex, pieceKey,
                         (CalculateFunctionTypeEnum) funcType, paramDic);
                     break;

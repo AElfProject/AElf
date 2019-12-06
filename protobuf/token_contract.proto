@@ -69,9 +69,9 @@ service TokenContract {
     }
     rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
-    rpc UpdateCalculateFeeAlgorithmParameters (CalculateFeeParameter) returns (google.protobuf.Empty) {
+    rpc UpdateCalculateFeeAlgorithmParameters (CalculateFeeCoefficient) returns (google.protobuf.Empty) {
     }
-    rpc SetCalculateFeeAlgorithmParameters (AllCalculateFeeParameter) returns (google.protobuf.Empty) {
+    rpc SetCalculateFeeAlgorithmParameters (CalculateFeeCoefficientsOfType) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -110,7 +110,7 @@ service TokenContract {
     rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeAllParameters (aelf.SInt32Value) returns (AllCalculateFeeParameter) {
+    rpc GetCalculateFeeCoefficientByType (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
 }
@@ -411,21 +411,21 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message CalculateFeeParameter {
+message CalculateFeeCoefficient {
     sint32 function_type = 1;
     sint32 piece_key = 2;
     sint32 operation_type = 3;
     sint32 fee_type = 4;
-    map<string, string> parameterDic = 5;
+    map<string, string> coefficient_dic = 5;
 }
 
-message AllCalculateFeeParameter{
-    repeated CalculateFeeParameter all_parameter= 1;
+message CalculateFeeCoefficientsOfType{
+    repeated CalculateFeeCoefficient coefficients= 1;
 }
 
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-    CalculateFeeParameter parameter = 1;
+    CalculateFeeCoefficient coefficient = 1;
     aelf.Hash pre_block_hash = 2;
     sint64 block_heigh = 3;
 }

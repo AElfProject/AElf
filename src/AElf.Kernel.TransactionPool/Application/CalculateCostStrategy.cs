@@ -60,7 +60,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithm =
                 new CalculateAlgorithm(tokenStTokenContractReaderFactory, blockchainService, chainBlockLinkService)
-                    .AddDefaultAlgorithm(10, new LinerCalculateWay
+                    .AddDefaultAlgorithm(10, new LinerCalculateWay    // used for unit test
                     {
                         Numerator = 1,
                         Denominator = 8,

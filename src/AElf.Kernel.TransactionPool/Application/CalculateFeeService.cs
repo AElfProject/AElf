@@ -86,7 +86,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
 
         private readonly Dictionary<int, ICalculateWay> _defaultPieceWiseFunc = new Dictionary<int, ICalculateWay>();
-        private Dictionary<int, ICalculateWay> _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
+        private Dictionary<int, ICalculateWay> _pieceWiseFuncCache = null;
 
         private readonly ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> _forkCache =
             new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
@@ -130,6 +130,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<long> Calculate(int count)
         {
+            count = count < 0 ? int.MaxValue : count;
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             long totalCost = 0;
             int prePieceKey = 0;
@@ -191,7 +192,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 CalculateFunctionTypeEnum.Ln => new LnCalculateWay(),
                 _ => null
             };
-
+            parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
             if (newCalculateWay == null || !newCalculateWay.InitParameter(parameters)) return;
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
@@ -234,7 +235,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunction()
         {
-            if (_pieceWiseFuncCache != null && _pieceWiseFuncCache.Count > 0)
+            if (_pieceWiseFuncCache != null)
             {
                 return _pieceWiseFuncCache;
             }
@@ -248,40 +249,44 @@ namespace AElf.Kernel.TransactionPool.Application
             });
 
             var parameters =
-                await tokenStub.GetCalculateFeeAllParameters.CallAsync(new SInt32Value
+                await tokenStub.GetCalculateFeeCoefficientByType.CallAsync(new SInt32Value
                     {Value = (int) CalculateAlgorithmContext.CalculateFeeTypeEnum});
             if (parameters == null)
             {
-                return _defaultPieceWiseFunc;
+                _pieceWiseFuncCache = _defaultPieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
+                return _pieceWiseFuncCache;
             }
             if(_pieceWiseFuncCache == null)
                 _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
             _pieceWiseFuncCache.Clear();
-            foreach (var func in parameters.AllParameter)
+            foreach (var func in parameters.Coefficients)
             {
                 AddPieceFunction(func.PieceKey, _pieceWiseFuncCache, (CalculateFunctionTypeEnum) func.FunctionType,
-                    func.ParameterDic);
+                    func.CoefficientDic);
             }
 
             return _pieceWiseFuncCache;
         }
-
         private void SetAlgorithm(Dictionary<int, ICalculateWay> calAlgorithm)
         {
             if (CalculateAlgorithmContext.BlockIndex == null)
+            {
+                _pieceWiseFuncCache = calAlgorithm;
                 return;
+            }
+               
             _forkCache[CalculateAlgorithmContext.BlockIndex] = calAlgorithm;
         }
 
-        private AllCalculateFeeParameter TransferFromParaDic(IDictionary<int, ICalculateWay> calAlgorithmDic)
+        private CalculateFeeCoefficientsOfType TransferFromParaDic(IDictionary<int, ICalculateWay> calAlgorithmDic)
         {
             if (calAlgorithmDic == null)
                 return null;
-            var allCalculateFeeParameter = new AllCalculateFeeParameter();
+            var allCalculateFeeParameter = new CalculateFeeCoefficientsOfType();
             foreach (var calAlgorithm in calAlgorithmDic)
             {
                 var parameterStrDic = calAlgorithm.Value.GetParameterDic();
-                var parameter = new CalculateFeeParameter
+                var parameter = new CalculateFeeCoefficient
                 {
                     FeeType = (int) CalculateAlgorithmContext.CalculateFeeTypeEnum,
                     PieceKey = calAlgorithm.Key,
@@ -289,10 +294,10 @@ namespace AElf.Kernel.TransactionPool.Application
                 };
                 foreach (var parameterPair in parameterStrDic)
                 {
-                    parameter.ParameterDic[parameterPair.Key] = parameterPair.Value;
+                    parameter.CoefficientDic[parameterPair.Key] = parameterPair.Value;
                 }
 
-                allCalculateFeeParameter.AllParameter.Add(parameter);
+                allCalculateFeeParameter.Coefficients.Add(parameter);
             }
 
             return allCalculateFeeParameter;

@@ -513,11 +513,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
         
-        public override Empty UpdateCalculateFeeAlgorithmParameters(CalculateFeeParameter updateInfo)
+        public override Empty UpdateCalculateFeeAlgorithmParameters(CalculateFeeCoefficient updateInfo)
         {
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
                 {
-                    Parameter = updateInfo,
+                    Coefficient = updateInfo,
                     PreBlockHash = Context.PreviousBlockHash,
                     BlockHeigh = Context.CurrentHeight
                 }
@@ -525,9 +525,9 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetCalculateFeeAlgorithmParameters(AllCalculateFeeParameter input)
+        public override Empty SetCalculateFeeAlgorithmParameters(CalculateFeeCoefficientsOfType input)
         {
-            var allParameter = input.AllParameter;
+            var allParameter = input.Coefficients;
             if(!allParameter.Any())
                 return new Empty();
             var feeType = allParameter.First().FeeType;
