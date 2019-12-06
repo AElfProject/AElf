@@ -5,6 +5,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
@@ -57,8 +58,9 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var transactionResult = await QueryTransactionResultAsync(transactionId);
                 Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
                 status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
             }
-            
+
             //bp user with token - Mined
             {
                 var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -78,11 +80,11 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var fakeContract = Address.FromPublicKey(keyPairs[1].PublicKey);
             var transaction = await GenerateTransaction(keyPairs[0], fakeContract, "ContractTest", new Empty());
-            
+
             var transactionId = await SendTransactionAsync(transaction);
             var transactionResult = await QueryTransactionResultAsync(transactionId);
             Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
-            status.ShouldBe(TransactionResultStatus.Failed); 
+            status.ShouldBe(TransactionResultStatus.Failed);
         }
 
         [Fact]
@@ -115,7 +117,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             return await GetResponseAsObjectAsync<TransactionResultDto>(
                 $"/api/blockChain/transactionResult?transactionId={transactionId}");
         }
-        
+
         private async Task<Transaction> GenerateTransaction(ECKeyPair keyPair, Address contract, string method,
             IMessage input)
         {
@@ -134,7 +136,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var chain = await _blockchainService.GetChainAsync();
             transaction.RefBlockNumber = chain.BestChainHeight;
             transaction.RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray());
-            
+
             transaction.Signature =
                 ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
                     transaction.GetHash().ToByteArray()));

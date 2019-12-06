@@ -82,7 +82,7 @@ namespace AElf.Kernel.Miner.Application
 
         private async Task SignBlockAsync(Block block)
         {
-            Logger.LogTrace("Sign block.");
+            Logger.LogDebug("Sign block.");
             var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Miner.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed while mining block.", e);
+                Logger.LogError(e, "Failed while mining block.");
                 throw;
             }
         }

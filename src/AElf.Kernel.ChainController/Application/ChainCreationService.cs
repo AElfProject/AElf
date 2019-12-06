@@ -63,7 +63,7 @@ namespace AElf.Kernel.ChainController.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("CreateNewChainAsync Error: " + e);
+                Logger.LogError(e, "Create new chain failed.");
                 throw;
             }
         }

@@ -47,6 +47,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
 
+            context.Services.RemoveAll<IPreExecutionPlugin>();
+
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }

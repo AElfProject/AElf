@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         public override Empty CpuConsumingMethod(Empty input)
         {
             var sum = 0L;
-            for (var i = 0; i < 99_999; i++)
+            for (var i = 0; i < 99; i++)
             {
                 sum = sum.Add(i);
             }
@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         /// <returns></returns>
         public override Empty StoConsumingMethod(Empty input)
         {
-            for (var i = 0; i < 999; i++)
+            for (var i = 0; i < 99; i++)
             {
                 State.Map[i.ToString()] = i.ToString();
             }

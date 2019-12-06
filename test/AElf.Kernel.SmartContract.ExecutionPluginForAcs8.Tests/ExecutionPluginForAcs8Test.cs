@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         private async Task AdvanceResourceToken()
         {
             const long amount = 10_000_00000000;
-            var resourceTokenList = new List<string> {"CPU", "STO", "NET"};
+            var resourceTokenList = new List<string> {"CPU", "STO", "NET","RAM"};
             foreach (var symbol in resourceTokenList)
             {
                 await TokenContractStub.Transfer.SendAsync(new TransferInput
@@ -216,17 +216,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await AdvanceResourceToken();
 
-            var (cpu, sto, net) =
+            var (cpu, ram, net) =
                 await GetTransactionResourcesCost(DefaultTester.CpuConsumingMethod.SendAsync);
-            var (cpu1, sto1, net1) =
+            var (cpu1, ram1, net1) =
                 await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
 
             cpu.ShouldBeGreaterThan(cpu1);
-            sto.ShouldBeGreaterThan(sto1);
+            ram.ShouldBeGreaterThan(ram1);
             net.ShouldBe(net1);
         }
 
-        private async Task<(long cpu, long sto, long net)> GetTransactionResourcesCost(
+        private async Task<(long cpu, long ram, long net)> GetTransactionResourcesCost(
             Func<Empty, Task<IExecutionResult<Empty>>> action)
         {
             var beforeCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -234,10 +234,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress,
                 Symbol = "CPU"
             })).Balance;
-            var beforeSto = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var beforeRam = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
-                Symbol = "STO"
+                Symbol = "RAM"
             })).Balance;
             var beforeNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -254,10 +254,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress,
                 Symbol = "CPU"
             })).Balance;
-            var afterSto = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var afterRam = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
-                Symbol = "STO"
+                Symbol = "RAM"
             })).Balance;
             var afterNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -265,7 +265,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Symbol = "NET"
             })).Balance;
 
-            return (beforeCpu - afterCpu, beforeSto - afterSto, beforeNet - afterNet);
+            return (beforeCpu - afterCpu, beforeRam - afterRam, beforeNet - afterNet);
         }
     }
 }

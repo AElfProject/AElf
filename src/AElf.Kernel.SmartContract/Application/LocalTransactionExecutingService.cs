@@ -145,7 +145,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception e)
             {
-                Logger.LogTrace("Failed while executing txs in block.", e);
+                Logger.LogError(e, "Failed while executing txs in block.");
                 throw;
             }
         }
@@ -221,7 +221,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Tx execution failed: {txContext}");
+                Logger.LogError(ex, $"Tx execution failed: {txContext}");
                 txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txContext.Trace.Error += ex + "\n";
                 throw;
@@ -313,6 +313,11 @@ namespace AElf.Kernel.SmartContract.Application
                     internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
+
+                    if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
+
+                    preTrace.ExecutionStatus = ExecutionStatus.Executed;
+                    return false;
                 }
             }
 
@@ -383,6 +388,19 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
+                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
+                {
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Failed,
+                        ReturnValue = trace.ReturnValue,
+                        ReadableReturnValue = trace.ReadableReturnValue,
+                        BlockNumber = blockHeight,
+                        Logs = {trace.FlattenedLogs},
+                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                    };
+                }
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
