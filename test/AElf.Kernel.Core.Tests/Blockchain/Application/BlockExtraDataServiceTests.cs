@@ -36,11 +36,11 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 Height = 100,
             };
-            await _blockExtraDataService.FillBlockExtraDataBeforeMiningAsync(blockHeader);
+            await _blockExtraDataService.FillBlockExtraData(blockHeader);
             blockHeader.ExtraData.Count.ShouldBe(0);
 
             blockHeader.Height = 1;
-            await _blockExtraDataService.FillBlockExtraDataBeforeMiningAsync(blockHeader);
+            await _blockExtraDataService.FillBlockExtraData(blockHeader);
             blockHeader.ExtraData.Count.ShouldBe(1);
         }
     }

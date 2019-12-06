@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -76,7 +78,7 @@ namespace AElf.CrossChain
             transactions[0].To.ShouldBe(smartContractAddress);
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
-            transactions[0].MethodName.ShouldBe(CrossChainConstants.CrossChainIndexingMethodName);
+            transactions[0].MethodName.ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData));
             
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(transactions[0].Params);
             crossChainBlockData.PreviousBlockHeight.ShouldBe(previousBlockHeight);

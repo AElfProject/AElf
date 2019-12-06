@@ -41,7 +41,7 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IBlockExtraDataService>();
                 mockService.Setup(s =>
-                    s.FillBlockExtraDataBeforeMiningAsync(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
+                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
                 return mockService.Object;
             });
 

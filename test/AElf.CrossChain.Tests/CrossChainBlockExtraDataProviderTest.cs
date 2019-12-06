@@ -30,7 +30,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 1
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
 
@@ -42,7 +42,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
 
@@ -74,7 +74,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
 
@@ -158,7 +158,7 @@ namespace AElf.CrossChain
             };
 
             var sideChainTxMerkleTreeRoot =
-                await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderBeforeMiningAsync(header);
+                await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             var merkleTreeRoot = BinaryMerkleTree
                 .FromLeafNodes(fakeSideChainBlockDataList.Select(sideChainBlockData =>
                     sideChainBlockData.TransactionStatusMerkleTreeRoot)).Root;

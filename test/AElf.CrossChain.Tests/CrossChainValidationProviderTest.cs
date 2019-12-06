@@ -63,7 +63,7 @@ namespace AElf.CrossChain
             var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
             var bloom = new Bloom();
             bloom.Combine(new []{
-                GetSideChainBlockDataIndexedEventBloom(), GetParentChainBlockDataIndexedEventBloom()
+                GetSideChainBlockDataIndexedEventBloom()
             });
             block.Header.Bloom = ByteString.CopyFrom(bloom.Data);
 
@@ -240,14 +240,7 @@ namespace AElf.CrossChain
         private Bloom GetSideChainBlockDataIndexedEventBloom()
         {
             var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            var logEvent = new SideChainBlockDataIndexed().ToLogEvent(contractAddress);
-            return logEvent.GetBloom();
-        }
-        
-        private Bloom GetParentChainBlockDataIndexedEventBloom()
-        {
-            var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            var logEvent = new ParentChainBlockDataIndexed().ToLogEvent(contractAddress);
+            var logEvent = new SideChainBlockDataIndexedEvent().ToLogEvent(contractAddress);
             return logEvent.GetBloom();
         }
     }
