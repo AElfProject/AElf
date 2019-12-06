@@ -368,7 +368,7 @@ namespace AElf.Contracts.TestBase
         {
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
-
+        
         /// <summary>
         /// Same key pair, different chain.
         /// </summary>
@@ -719,11 +719,11 @@ namespace AElf.Contracts.TestBase
         /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, out long totalSupply,
-            Address proposer,out bool isPrivilegePreserved)
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,
+            out long totalSupply,
+            Address proposer, long parentChainHeightOfCreation = 1)
         {
             totalSupply = TokenTotalSupply;
-            isPrivilegePreserved = IsPrivilegePreserved;
             var nativeTokenInfo = new TokenInfo
             {
                 Symbol = "ELF",
@@ -768,12 +768,20 @@ namespace AElf.Contracts.TestBase
             {
                 GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
                 PrivilegedProposer = proposer,
-                ProposerAuthorityRequired = IsPrivilegePreserved
+                ProposerAuthorityRequired = true
             });
+            var crossChainContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            crossChainContractCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                new CrossChain.InitializeInput
+                {
+                    IsPrivilegePreserved = IsPrivilegePreserved,
+                    ParentChainId = mainChainId,
+                    CreationHeightOnParentChain = parentChainHeightOfCreation
+                });
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name,tokenInitializationCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };

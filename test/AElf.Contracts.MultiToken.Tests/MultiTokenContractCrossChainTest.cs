@@ -645,8 +645,7 @@ namespace AElf.Contracts.MultiToken
         private async Task<int> GeneratedSideChain()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
-            StartSideChain(sideChainId);
-            await InitializeCrossChainContractOnSideChainAsync(ParentChainHeightOfCreation, MainChainId);
+            StartSideChain(sideChainId,ParentChainHeightOfCreation);
             return sideChainId;
         }
 
