@@ -71,8 +71,7 @@ namespace AElf.WebApp.Application.Net
                 BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
                 BufferedBlocksCount = p.BufferedBlocksCount,
                 BufferedTransactionsCount = p.BufferedTransactionsCount,
-                RequestMetrics = withMetrics ? p.RequestMetrics : null,
-                IsSecure = p.IsSecure
+                RequestMetrics = withMetrics ? p.RequestMetrics : null
             }).ToList();
             
             return peerDtoList;

@@ -25,32 +25,19 @@ namespace AElf.OS.Network.Grpc
                 if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
                 {
                     // a method other than DoHandshake is being called
+                
                     var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
                     if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
                     {
-                        Logger.LogWarning($"Could not find peer {context.Peer} {context.GetPublicKey()} {context.Method}");
+                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
                     }
 
                     // check that the peers session is equal to one announced in the headers
-                    var sessionId = context.GetSessionId();
-                    
-                    if (peer != null && !peer.InboundSessionId.BytesEqual(sessionId))
+                    if (peer != null && !peer.InboundSessionId.BytesEqual(context.GetSessionId()))
                     {
-                        if (peer.InboundSessionId == null)
-                        {
-                            Logger.LogWarning($"Wrong inbound session id {context.Peer}, {context.Method}");
-                            return Task.FromResult<TResponse>(null);
-                        }
-                        
-                        if (sessionId == null)
-                        {
-                            Logger.LogWarning($"Wrong context session id {context.Peer}, {context.Method}");
-                            return Task.FromResult<TResponse>(null);
-                        }
-
-                        Logger.LogWarning($"Wrong session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
+                        Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
                     }
                 
@@ -59,7 +46,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Auth interceptor error {context.Peer}, {context.Method}: ");
+                Logger.LogError(e, "Auth interceptor error: ");
                 throw;
             }
             
