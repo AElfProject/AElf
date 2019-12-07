@@ -19,13 +19,13 @@ namespace AElf.Kernel.TransactionPool.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             if (transaction.To != tokenContractAddress)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             var systemTxs = new List<string>
@@ -33,7 +33,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
                 nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
             };
-            return !systemTxs.Contains(transaction.MethodName);
+            return Task.FromResult(!systemTxs.Contains(transaction.MethodName));
         }
     }
 }

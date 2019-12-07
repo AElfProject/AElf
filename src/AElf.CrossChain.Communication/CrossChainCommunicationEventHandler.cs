@@ -14,9 +14,9 @@ namespace AElf.CrossChain.Communication
             _crossChainRequestService = crossChainRequestService;
         }
 
-        public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
+        public Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
-            _ = _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();
+            return _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();
         }
     }
 }
