@@ -96,7 +96,7 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogWarning("Failed to execute ValidateConsensusBeforeExecution.");
+                Logger.LogWarning("Validation of consensus failed before execution.");
                 return false;
             }
 
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogWarning("Failed to execute ValidateConsensusAfterExecution.");
+                Logger.LogWarning("Validation of consensus failed after execution.");
                 return false;
             }
 
