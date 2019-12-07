@@ -86,14 +86,13 @@ namespace AElf.Contracts.Genesis
             return State.ParliamentAuthContract.GetProposerWhiteListContext.Call(new Empty());
         }
 
-        private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
+        private void ClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
         {
             contractProposingInput = null;
             contractProposingInput = State.ContractProposingInputMap[inputHash];
             Assert(contractProposingInput != null && contractProposingInput.Status == ContractProposingInputStatus.CodeChecked,
                 "Invalid contract proposing status.");
             State.ContractProposingInputMap.Remove(inputHash);
-            return true;
         }
 
         private void RequireAuthorityByContractInfo(ContractInfo contractInfo)

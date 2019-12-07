@@ -82,7 +82,9 @@ namespace AElf.Contracts.Genesis
             var category = input.Category;
             var code = input.Code.ToByteArray();
             var transactionMethodCallList = input.TransactionMethodCallList;
-            var address = PrivateDeploySystemSmartContract(name, category, code, true, Context.Self);
+
+            // Context.Sender should be identical to Genesis contract address before initialization in production
+            var address = PrivateDeploySystemSmartContract(name, category, code, true, Context.Sender);
 
             if (transactionMethodCallList != null)
             {
@@ -300,7 +302,7 @@ namespace AElf.Contracts.Genesis
             var inputHash = CalculateHashFromInput(input);
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (isGenesisOwnerAuthorityRequired)
-                TryClearContractProposingInput(inputHash, out contractProposingInput);
+                ClearContractProposingInput(inputHash, out contractProposingInput);
 
             var address =
                 PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
@@ -320,7 +322,7 @@ namespace AElf.Contracts.Genesis
             var inputHash = CalculateHashFromInput(input);
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (isGenesisOwnerAuthorityRequired)
-                TryClearContractProposingInput(inputHash, out _);
+                ClearContractProposingInput(inputHash, out _);
             else 
                 Assert(Context.Sender == info.Author, "No permission.");
 
