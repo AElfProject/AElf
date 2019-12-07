@@ -108,24 +108,12 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)
         {
-            Hash blockHash = null;
-            long height = 0;
             foreach (var blockIndex in blockIndexes)
             {
                 if (!_forkCache.TryGetValue(blockIndex, out var calAlgoritm)) continue;
                 _pieceWiseFuncCache = calAlgoritm;
                 _forkCache.TryRemove(blockIndex, out _);
-                blockHash = blockIndex.BlockHash;
-                height = blockIndex.BlockHeight;
             }
-
-            var tokenStub = _tokenStTokenContractReaderFactory.Create(new ChainContext
-            {
-                BlockHash = blockHash,
-                BlockHeight = height
-            });
-            var parameters = TransferFromParaDic(_pieceWiseFuncCache);
-            tokenStub.SetCalculateFeeAlgorithmParameters.CallAsync(parameters).GetAwaiter().GetResult();
         }
 
         public async Task<long> Calculate(int count)

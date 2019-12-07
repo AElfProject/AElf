@@ -512,28 +512,68 @@ namespace AElf.Contracts.MultiToken
                 advancedAmount.Sub(input.Amount);
             return new Empty();
         }
-        
+
         public override Empty UpdateCalculateFeeAlgorithmParameters(CalculateFeeCoefficient updateInfo)
         {
-            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
-                {
-                    Coefficient = updateInfo,
-                    PreBlockHash = Context.PreviousBlockHash,
-                    BlockHeigh = Context.CurrentHeight
-                }
-            );
+            var dataInDb = State.CalculateCoefficient[updateInfo.FeeType];
+            if (dataInDb == null)
+                return new Empty();
+            if (updateInfo.OperationType == (int) AlgorithmOpCodeEnum.AddFunc)
+            {
+                if(dataInDb.Coefficients.Any(x => x.PieceKey == updateInfo.PieceKey))
+                    return new Empty();
+                dataInDb.Coefficients.Add(updateInfo);
+            }
+            else if (updateInfo.OperationType == (int) AlgorithmOpCodeEnum.DeleteFunc)
+            {
+                if(dataInDb.Coefficients.All(x => x.PieceKey != updateInfo.PieceKey))
+                    return new Empty();
+                dataInDb.Coefficients.Remove(updateInfo);
+            }
+            else if (updateInfo.OperationType == (int) AlgorithmOpCodeEnum.UpdateFunc)
+            {
+                var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == updateInfo.PieceKey);
+                if(theOne == null)
+                    return new Empty();
+                dataInDb.Coefficients.Remove(theOne);
+                dataInDb.Coefficients.Add(updateInfo);
+            }
+
+            var param = new NoticeUpdateCalculateFeeAlgorithm
+            {
+                PreBlockHash = Context.PreviousBlockHash,
+                BlockHeight = Context.CurrentHeight,
+                CoefficientList = new CalculateFeeCoefficientsOfType()
+            };
+            param.CoefficientList.Coefficients.Add(updateInfo);
+            Context.Fire(param);
             return new Empty();
         }
 
-        public override Empty SetCalculateFeeAlgorithmParameters(CalculateFeeCoefficientsOfType input)
-        {
-            var allParameter = input.Coefficients;
-            if(!allParameter.Any())
-                return new Empty();
-            var feeType = allParameter.First().FeeType;
-            State.CalculateCoefficient[feeType] = input;
-            return new Empty();
-        }
+        #region
+
+//        public override Empty SetCalculateFeeAlgorithmParameters(CalculateFeeCoefficientsOfType input)
+//        {
+//            var allParameter = input.Coefficients;
+//            if(!allParameter.Any())
+//                return new Empty();
+//            var feeType = allParameter.First().FeeType;
+//            State.CalculateCoefficient[feeType] = input;
+//            var param = new NoticeUpdateCalculateFeeAlgorithm
+//            {
+//                PreBlockHash = Context.PreviousBlockHash,
+//                BlockHeight = Context.CurrentHeight,
+//                CoefficientList = new CalculateFeeCoefficientsOfType()
+//            };
+//            foreach (var parameter in allParameter)
+//            {
+//                param.CoefficientList.Coefficients.Add(parameter);
+//            }
+//            Context.Fire(param);
+//            return new Empty();
+//        }
+
+        #endregion
 
         private void IntialParameters()
         {
@@ -557,6 +597,7 @@ namespace AElf.Contracts.MultiToken
             Ram,
             Net
         }
+
         private enum CalculateFunctionTypeEnum
         {
             Default = 1,
@@ -565,6 +606,13 @@ namespace AElf.Contracts.MultiToken
             Power,
             Ln,
             Bancor
+        }
+
+        private enum AlgorithmOpCodeEnum
+        {
+            AddFunc = 1,
+            DeleteFunc,
+            UpdateFunc
         }
     }
 }

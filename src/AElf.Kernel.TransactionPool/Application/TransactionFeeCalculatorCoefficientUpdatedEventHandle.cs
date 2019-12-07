@@ -61,9 +61,17 @@ namespace AElf.Kernel.TransactionPool.Application
             var chainContext = new ChainContext
             {
                 BlockHash = eventData.PreBlockHash,
-                BlockHeight = eventData.BlockHeigh
-            }; 
-            var param = eventData.Coefficient;
+                BlockHeight = eventData.BlockHeight
+            };
+            foreach (var param in eventData.CoefficientList.Coefficients)
+            {
+                await HandleEachOne(blockIndex, chainContext, param);
+            }
+           
+        }
+
+        private async Task HandleEachOne(BlockIndex blockIndex, ChainContext chainContext, CalculateFeeCoefficient param)
+        {
             var feeType = param.FeeType;
             var pieceKey = param.PieceKey;
             var funcType = param.FunctionType;

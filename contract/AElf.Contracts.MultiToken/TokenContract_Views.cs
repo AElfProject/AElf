@@ -109,6 +109,7 @@ namespace AElf.Contracts.MultiToken
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientByType(SInt32Value input)
         {
             IntialParameters();
+            
             return State.CalculateCoefficient[input.Value];
         }
         private CalculateFeeCoefficientsOfType GetCpuFeeParameter()

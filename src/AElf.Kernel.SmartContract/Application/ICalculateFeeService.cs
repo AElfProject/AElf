@@ -157,12 +157,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
-            throw new System.NotImplementedException();
+            return;
         }
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)
         {
-            throw new System.NotImplementedException();
+            return;
         }
     }
 }

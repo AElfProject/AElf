@@ -425,7 +425,7 @@ message CalculateFeeCoefficientsOfType{
 
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-    CalculateFeeCoefficient coefficient = 1;
+    CalculateFeeCoefficientsOfType coefficient_list = 1;
     aelf.Hash pre_block_hash = 2;
-    sint64 block_heigh = 3;
+    sint64 block_height = 3;
 }
