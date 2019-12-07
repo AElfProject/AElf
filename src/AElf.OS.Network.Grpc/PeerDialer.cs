@@ -58,14 +58,14 @@ namespace AElf.OS.Network.Grpc
             // verify handshake
             if (handshakeReply.Error != HandshakeError.HandshakeOk)
             {
-                Logger.LogWarning($"Handshake error: {handshakeReply.Error}.");
+                Logger.LogWarning($"Handshake error: {remoteEndpoint} {handshakeReply.Error}.");
                 return null;
             }
 
             if (await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake) !=
                 HandshakeValidationResult.Ok)
             {
-                Logger.LogWarning($"Connect error: {handshakeReply}.");
+                Logger.LogWarning($"Connect error: {remoteEndpoint} {handshakeReply}.");
                 await client.Channel.ShutdownAsync();
                 return null;
             }
