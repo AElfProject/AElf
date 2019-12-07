@@ -48,7 +48,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
             foreach (var t in transactions)
             {
-                var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+                var transactionResourcePair =
+                    await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
                 transactionResourceList.Add(transactionResourcePair);
             }
 
@@ -57,7 +58,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         private async Task<TransactionWithResourceInfo> GetResourcesForOneWithCacheAsync(
             IChainContext chainContext,
-            Transaction transaction, CancellationToken ct,Dictionary<Address,ContractResourceInfo> contractResourceInfoCache)
+            Transaction transaction, CancellationToken ct,
+            Dictionary<Address, ContractResourceInfo> contractResourceInfoCache)
         {
             if (ct.IsCancellationRequested)
                 return new TransactionWithResourceInfo
@@ -121,6 +123,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         ContractHash = executive.ContractHash
                     };
                 }
+
                 var codeRemark =
                     await _contractRemarksService.GetCodeRemarkAsync(chainContext, address,
                         executive.ContractHash);
@@ -141,6 +144,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     return resourceCache.ResourceInfo;
                 }
+
                 var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
                 // Try storing in cache here
                 return resourceInfo;
@@ -237,11 +241,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             };
             return chainContext;
         }
-        
+
         private class ContractResourceInfo
         {
             public Hash CodeHash { get; set; }
-            
+
             public bool IsContractRemarks { get; set; }
         }
     }

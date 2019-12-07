@@ -13,10 +13,16 @@ namespace AElf.Kernel.TransactionPool
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+            // Validate signature and tx size.
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
-//            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            // Validate existence of target contract.
+            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            // Validate proposed method is allowed.
             services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
-//            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+            services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            // Validate sender's balance is not 0.
+            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();

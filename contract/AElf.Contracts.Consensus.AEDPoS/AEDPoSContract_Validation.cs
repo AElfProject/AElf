@@ -14,8 +14,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private ValidationResult ValidateBeforeExecution(AElfConsensusHeaderInformation extraData)
         {
-            Context.LogDebug(extraData.ToString);
-
             // According to current round information:
             if (!TryToGetCurrentRoundInformation(out var baseRound))
             {

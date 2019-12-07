@@ -45,7 +45,7 @@ namespace AElf.Kernel.Miner.Application
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address,
+            var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
                 previousBlockHeight, previousBlockHash);
 
             foreach (var transaction in systemTransactions)
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Miner.Application
 
         private async Task SignBlockAsync(Block block)
         {
-            Logger.LogTrace("Sign block.");
+            Logger.LogDebug("Sign block.");
             var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Miner.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed while mining block.", e);
+                Logger.LogError(e, "Failed while mining block.");
                 throw;
             }
         }

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 
 namespace AElf.Kernel.Miner.Application
 {
     public interface ISystemTransactionGenerator
     {
-        void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
-            ref List<Transaction> generatedTransactions);
+        Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash);
     }
 }
