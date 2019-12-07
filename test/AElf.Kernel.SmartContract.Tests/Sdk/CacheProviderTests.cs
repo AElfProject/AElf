@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         }
 
         [Fact]
-        public async Task TryGetValue_Test()
+        public void TryGetValue_Test()
         {
             GenerateStateProvider();
             
