@@ -50,7 +50,7 @@ namespace AElf.OS.Network.Grpc
         /// <returns>The created peer</returns>
         public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint)
         {
-            var client = CreateClient(remoteEndpoint);
+            var client = await CreateClientAsync(remoteEndpoint);
             
             var handshake = await _handshakeProvider.GetHandshakeAsync();
             var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
@@ -120,7 +120,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
-            var client = CreateClient(remoteEndpoint);
+            var client = await CreateClientAsync(remoteEndpoint);
             await PingNodeAsync(client, remoteEndpoint);
 
             var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
@@ -177,9 +177,9 @@ namespace AElf.OS.Network.Grpc
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        private GrpcClient CreateClient(DnsEndPoint remoteEndpoint)
+        private async Task<GrpcClient> CreateClientAsync(DnsEndPoint remoteEndpoint)
         {
-            var certificate = RetrieveServerCertificate(remoteEndpoint);
+            var certificate = await RetrieveServerCertificateAsync(remoteEndpoint);
 
             ChannelCredentials credentials = ChannelCredentials.Insecure;
 
@@ -209,7 +209,7 @@ namespace AElf.OS.Network.Grpc
             return new GrpcClient(channel, client, certificate);
         }
         
-        private X509Certificate RetrieveServerCertificate(DnsEndPoint remoteEndpoint)
+        private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             TcpClient client = null;
             try
@@ -220,7 +220,7 @@ namespace AElf.OS.Network.Grpc
                 {
                     sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
                     sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
-                    sslStream.AuthenticateAsClient(remoteEndpoint.Host);
+                    await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host);
 
                     if (sslStream.RemoteCertificate == null)
                         throw new PeerDialException($"Certificate from {remoteEndpoint} is null");
