@@ -14,7 +14,7 @@ namespace AElf.Contracts.Genesis
 
         public MappedState<Hash, Address> NameAddressMapping { get; set; }
         
-        public MappedState<Hash, ContractProposingInfo> ContractProposingInfoMap { get; set; }
+        public MappedState<Hash, ContractProposingInput> ContractProposingInputMap { get; set; }
         
         /// <summary>
         /// Genesis owner controls contract deployment if <see cref="ContractDeploymentAuthorityRequired"/> is true.
