@@ -8,10 +8,13 @@ namespace AElf.Kernel.SmartContract.Domain
     {
         private List<ExecutionReturnSet> _executed = new List<ExecutionReturnSet>();
         private List<ExecutionReturnSet> _unexecutable = new List<ExecutionReturnSet>();
+        private List<ExecutionReturnSet> _conflict = new List<ExecutionReturnSet>();
 
         public List<ExecutionReturnSet> Executed => _executed;
 
         public List<ExecutionReturnSet> Unexecutable => _unexecutable;
+
+        public List<ExecutionReturnSet> Conflict => _conflict;
 
         public ReturnSetCollection(IEnumerable<ExecutionReturnSet> returnSets)
         {
@@ -30,6 +33,10 @@ namespace AElf.Kernel.SmartContract.Domain
                 else if (returnSet.Status == TransactionResultStatus.Unexecutable)
                 {
                     _unexecutable.Add(returnSet);
+                }
+                else if (returnSet.Status == TransactionResultStatus.Conflict)
+                {
+                    _conflict.Add(returnSet);
                 }
             }
         }
@@ -57,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
         public List<ExecutionReturnSet> ToList()
         {
-            return _executed.Concat(_unexecutable).ToList();
+            return _executed.Concat(_unexecutable).Concat(_conflict).ToList();
         }
     }
 }

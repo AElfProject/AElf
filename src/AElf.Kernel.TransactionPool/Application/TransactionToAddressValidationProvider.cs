@@ -9,6 +9,8 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     internal class TransactionToAddressValidationProvider : ITransactionValidationProvider
     {
+        public bool ValidateWhileSyncing => false;
+
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IBlockchainService _blockchainService;
 
@@ -34,7 +36,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 return true;
             }
 
-            Logger.LogError($"Invalid contract address: {transaction}");
+            Logger.LogWarning($"Invalid contract address: {transaction}");
             return false;
         }
     }

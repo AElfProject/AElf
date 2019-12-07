@@ -34,7 +34,9 @@ namespace AElf.CrossChain
         public async Task GenerateTransactions_Test()
         {
             var transactions = new List<Transaction>();
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],0,Hash.Empty, ref transactions);
+            transactions.AddRange(
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0], 0,
+                    Hash.Empty));
             transactions.Count.ShouldBe(0);
 
             var chainId = _kernelTestHelper.BestBranchBlockList[0].Header.ChainId;
@@ -64,8 +66,10 @@ namespace AElf.CrossChain
                 smartContractAddress);
 
             await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
-            
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],previousBlockHeight,previousBlockHash, ref transactions);
+
+            transactions.AddRange(
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
+                    previousBlockHeight, previousBlockHash));
             
             transactions.Count.ShouldBe(1);
             transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);

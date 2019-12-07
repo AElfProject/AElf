@@ -48,7 +48,7 @@ namespace AElf.Contracts.MultiToken
             // Parliament Auth Contract maybe not deployed.
             if (State.ParliamentAuthContract.Value != null)
             {
-                var genesisOwnerAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
+                var genesisOwnerAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
                 Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
             }
 

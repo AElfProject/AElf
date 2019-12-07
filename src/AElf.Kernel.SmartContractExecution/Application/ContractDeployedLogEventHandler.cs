@@ -51,7 +51,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address,
                 new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height});
-            Logger.LogTrace($"Added deployed contract address of {eventData}");
+            Logger.LogDebug($"Added deployed contract address of {eventData}");
             _smartContractExecutiveProvider.AddSmartContractRegistration(eventData.Address, eventData.CodeHash,
                 new BlockIndex
                 {

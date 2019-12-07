@@ -9,12 +9,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     public interface IContractRemarksService
     {
         Task<CodeRemark> GetCodeRemarkAsync(IChainContext chainContext, Address address, Hash codeHash);
-        void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash);
         Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader);
         Task RemoveContractRemarksCacheAsync(List<BlockIndex> blockIndexes);
         Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes);
-        bool MayHasContractRemarks(BlockIndex previousBlockIndex);
-        Hash GetCodeHashByBlockIndex(BlockIndex previousBlockIndex, Address address);
     }
     
     public class ContractRemarksService : IContractRemarksService
@@ -28,11 +25,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             _contractRemarksProvider = contractRemarksProvider;
             _contractRemarksManager = contractRemarksManager;
             _blockchainService = blockchainService;
-        }
-
-        public void AddCodeHashCache(IBlockIndex blockIndex, Address address, Hash codeHash)
-        {
-            _contractRemarksProvider.AddCodeHashCache(blockIndex, address, codeHash);
         }
 
         public async Task<CodeRemark> GetCodeRemarkAsync(IChainContext chainContext, Address address, Hash codeHash)
@@ -72,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             };
             var codeRemark = new CodeRemark
             {
-                BlockHash = blockHeader.GetHash(),
+                BlockHash = blockHeader.GetHashWithoutCache(),
                 BlockHeight = blockHeader.Height,
                 CodeHash = codeHash,
                 NonParallelizable = true
@@ -119,16 +111,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 contractList.AddIfNotContains(codeRemarkDic[address]);
                 await _contractRemarksManager.SetContractRemarksAsync(address, contractRemarks);
             }
-        }
-
-        public bool MayHasContractRemarks(BlockIndex previousBlockIndex)
-        {
-            return _contractRemarksProvider.MayHasContractRemarks(previousBlockIndex);
-        }
-
-        public Hash GetCodeHashByBlockIndex(BlockIndex previousBlockIndex, Address address)
-        {
-            return _contractRemarksProvider.GetCodeHash(previousBlockIndex, address);
         }
     }
 }

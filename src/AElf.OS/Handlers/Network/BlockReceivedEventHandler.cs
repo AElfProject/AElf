@@ -43,8 +43,6 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlockAsync(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
-            Logger.LogDebug($"Start full block sync job, block: {blockWithTransactions}, peer: {senderPubkey}.");
-
             var chain = await _blockchainService.GetChainAsync();
 
             if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions, senderPubkey))

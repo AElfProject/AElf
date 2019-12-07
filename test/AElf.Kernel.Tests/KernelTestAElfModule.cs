@@ -57,8 +57,7 @@ namespace AElf.Kernel
             {
                 var mockService = new Mock<ISystemTransactionGenerator>();
                 mockService.Setup(m =>
-                    m.GenerateTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>(),
-                        ref transactionList));
+                    m.GenerateTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()));
 
                 return mockService.Object;
             });
@@ -67,8 +66,8 @@ namespace AElf.Kernel
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
                 mockService.Setup(m =>
-                        m.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(transactionList);
+                        m.GenerateSystemTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                    .Returns(Task.FromResult(transactionList));
 
                 return mockService.Object;
             });
