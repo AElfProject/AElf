@@ -99,9 +99,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
-            foreach (var blockIndex in blockIndexes)
+            foreach (var blockIndex in blockIndexes.Where(blockIndex => _forkCache.TryGetValue(blockIndex, out _)))
             {
-                if (!_forkCache.TryGetValue(blockIndex, out _)) continue;
                 _forkCache.TryRemove(blockIndex, out _);
             }
         }
@@ -144,20 +143,40 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (pieceWiseFunc == null)
+            {
+                Logger.LogWarning("does not find piecewise function in add");
                 return;
+            }
             pieceWiseFunc = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-            if (pieceWiseFunc.ContainsKey(pieceKey))
-                pieceWiseFunc.Remove(pieceKey);
+            if (!pieceWiseFunc.ContainsKey(pieceKey))
+            {
+                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
+                return;
+            }
+            pieceWiseFunc.Remove(pieceKey);
             SetAlgorithm(pieceWiseFunc);
         }
 
         public async Task Update(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
-            if (!pieceWiseFunc.ContainsKey(pieceKey))
+            if (pieceWiseFunc == null)
+            {
+                Logger.LogWarning("does not find piecewise function in update");
                 return;
+            }
+
+            if (!pieceWiseFunc.ContainsKey(pieceKey))
+            {
+                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
+                return;
+            }
+
             if (!System.Enum.IsDefined(typeof(CalculateFunctionTypeEnum), funcTypeEnum))
+            {
+                Logger.LogWarning($"does not find mapped function type : {funcTypeEnum}");
                 funcTypeEnum = pieceWiseFunc[pieceKey].FunctionTypeEnum;
+            }
             AddPieceFunction(pieceKey, pieceWiseFunc, funcTypeEnum, parameters);
         }
 
@@ -165,8 +184,18 @@ namespace AElf.Kernel.TransactionPool.Application
             IDictionary<string, string> parameters)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
-            if (pieceWiseFunc.ContainsKey(pieceKey) || pieceKey <= 0)
+            if (pieceWiseFunc == null)
+            {
+                Logger.LogWarning("does not find piecewise function in add");
                 return;
+            }
+
+            if (pieceWiseFunc.ContainsKey(pieceKey) || pieceKey <= 0)
+            {
+                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function or piece key equals less than 0");
+                return;
+            }
+                
             AddPieceFunction(pieceKey, pieceWiseFunc, funcTypeEnum, parameters);
         }
 
@@ -183,9 +212,18 @@ namespace AElf.Kernel.TransactionPool.Application
                 _ => null
             };
             if (newCalculateWay == null)
+            {
+                Logger.LogWarning($"could not find mapped function type {funcTypeEnum}");
                 return;
+            }
+                
             parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-            if (!newCalculateWay.InitParameter(parameters)) return;
+            if (!newCalculateWay.InitParameter(parameters))
+            {
+                Logger.LogWarning("illegal parameters");
+                return;
+            }
+            
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
@@ -193,7 +231,7 @@ namespace AElf.Kernel.TransactionPool.Application
             }
             else
             {
-                _pieceWiseFuncCache[pieceKey] = newCalculateWay; //todo
+                _pieceWiseFuncCache[pieceKey] = newCalculateWay;
             }
         }
 
@@ -245,6 +283,7 @@ namespace AElf.Kernel.TransactionPool.Application
                     {Value = (int) CalculateAlgorithmContext.CalculateFeeTypeEnum});
             if (parameters == null)
             {
+                Logger.LogWarning("does not find parameter from contract, initialize default ");
                 _pieceWiseFuncCache = _defaultPieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 return _pieceWiseFuncCache;
             }

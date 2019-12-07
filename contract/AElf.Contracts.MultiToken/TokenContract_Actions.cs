@@ -515,6 +515,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateCalculateFeeAlgorithmParameters(CalculateFeeCoefficient updateInfo)
         {
+            AssertIsAuthorized();
             var dataInDb = State.CalculateCoefficient[updateInfo.FeeType];
             if (dataInDb == null)
                 return new Empty();
@@ -550,10 +551,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        #region
+        #region reserved batch update
 
 //        public override Empty SetCalculateFeeAlgorithmParameters(CalculateFeeCoefficientsOfType input)
 //        {
+//            AssertIsAuthorized();
 //            var allParameter = input.Coefficients;
 //            if(!allParameter.Any())
 //                return new Empty();
