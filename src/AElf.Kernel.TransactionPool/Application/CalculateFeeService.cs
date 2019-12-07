@@ -168,6 +168,8 @@ namespace AElf.Kernel.TransactionPool.Application
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (!pieceWiseFunc.ContainsKey(pieceKey))
                 return;
+            if (!System.Enum.IsDefined(typeof(CalculateFunctionTypeEnum), funcTypeEnum))
+                funcTypeEnum = pieceWiseFunc[pieceKey].FunctionTypeEnum;
             AddPieceFunction(pieceKey, pieceWiseFunc, funcTypeEnum, parameters);
         }
 
@@ -192,8 +194,10 @@ namespace AElf.Kernel.TransactionPool.Application
                 CalculateFunctionTypeEnum.Ln => new LnCalculateWay(),
                 _ => null
             };
+            if (newCalculateWay == null)
+                return;
             parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-            if (newCalculateWay == null || !newCalculateWay.InitParameter(parameters)) return;
+            if (!newCalculateWay.InitParameter(parameters)) return;
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);

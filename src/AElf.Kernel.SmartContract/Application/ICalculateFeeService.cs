@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Application
 { 
     public enum FeeTypeEnum
     {
-        Tx = 0,
+        Tx = 1,
         Cpu,
         Sto,
         Ram,
@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.Application
     }
     public enum CalculateFunctionTypeEnum
     {
-        Default = 0,
+        Default = 1,
         Constant,
         Liner,
         Power,
@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.Application
     }
     public enum AlgorithmOpCodeEnum
     {
-        AddFunc,
+        AddFunc = 1,
         DeleteFunc,
         UpdateFunc
     }

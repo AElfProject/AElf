@@ -47,16 +47,6 @@ namespace AElf.Contracts.MultiToken
             var size = 10000;
             var fee = await calculateFeeService.CalculateFee(null,size);
             fee.ShouldBe(1250010000);
-
-            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(new CalculateFeeCoefficient
-            {
-                OperationType = (int)AlgorithmOpCodeEnum.AddFunc,
-                FunctionType = (int)CalculateFunctionTypeEnum.Liner,
-                FeeType = (int)FeeTypeEnum.Tx,
-                PieceKey = 500,
-                CoefficientDic = { {"numerator","1"},{"denominator","4"}}
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
             var param = new CalculateFeeCoefficient
             {
                 OperationType = (int) AlgorithmOpCodeEnum.AddFunc,
@@ -65,6 +55,9 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = 500,
                 CoefficientDic = {{"numerator", "1"}, {"denominator", "4"}}
             };
+            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(param)).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            
             await HandleTestAsync(param, null, null);
             var updatedFee =  await calculateFeeService.CalculateFee(null,size);
             updatedFee.ShouldBe(13687510000);
@@ -76,28 +69,23 @@ namespace AElf.Contracts.MultiToken
             var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
             calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
             var size = 10000;
-            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(new CalculateFeeCoefficient
-            {
-                OperationType = (int)AlgorithmOpCodeEnum.DeleteFunc,
-                FeeType = (int)FeeTypeEnum.Tx,
-                PieceKey = 1000000
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
             var param = new CalculateFeeCoefficient
             {
                 OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
                 PieceKey = int.MaxValue
             };
-            await HandleTestAsync(param, null, null);
-            var updatedFee1 =  await calculateFeeService.CalculateFee(null,100000000);
-            updatedFee1.ShouldBe(1250_0001_0000);
+            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(param)).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
             var param2 = new CalculateFeeCoefficient
             {
                 OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
                 PieceKey = 1000000
             };
+            await HandleTestAsync(param, null, null);
+            var updatedFee1 =  await calculateFeeService.CalculateFee(null,100000000);
+            updatedFee1.ShouldBe(1250_0001_0000);
             await HandleTestAsync(param2, null, null);
             var updatedFee2 =  await calculateFeeService.CalculateFee(null,size);
             updatedFee2.ShouldBe(0);
@@ -108,15 +96,6 @@ namespace AElf.Contracts.MultiToken
             var calculateFeeService = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
             var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
             calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
-            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(new CalculateFeeCoefficient
-            {
-                OperationType = (int)AlgorithmOpCodeEnum.UpdateFunc,
-                FeeType = (int)FeeTypeEnum.Tx,
-                PieceKey = 1000000,
-                FunctionType = (int)CalculateFunctionTypeEnum.Liner,
-                CoefficientDic = { {"numerator","1"},{"denominator","400"},{"pieceKey","10000"}}
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
             var param = new CalculateFeeCoefficient
             {
                 OperationType = (int) AlgorithmOpCodeEnum.UpdateFunc,
@@ -125,10 +104,55 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = 1000000,
                 CoefficientDic = { {"numerator","1"},{"denominator","400"},{"pieceKey","10000"}}
             };
+            var result = (await TokenContractStub.UpdateCalculateFeeAlgorithmParameters.SendAsync(param)).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            
             await HandleTestAsync(param, null, null);
             var size = 10000;
             var updatedFee =  await calculateFeeService.CalculateFee(null,size);
             updatedFee.ShouldBe(25_0000_0000);
+        }
+        [Fact]
+        public async Task Token_Fee_Calculate_Compose_Update_Piecewise_Function_Test()
+        {
+            var calculateFeeService = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
+            var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
+            calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
+            var param = new CalculateFeeCoefficient
+            {
+                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
+                FeeType = (int) FeeTypeEnum.Tx,
+                PieceKey = int.MaxValue
+            };
+            var param2 = new CalculateFeeCoefficient
+            {
+                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
+                FeeType = (int) FeeTypeEnum.Tx,
+                PieceKey = 1000000
+            };
+            var param3 = new CalculateFeeCoefficient
+            {
+                OperationType = (int) AlgorithmOpCodeEnum.AddFunc,
+                FeeType = (int) FeeTypeEnum.Tx,
+                FunctionType = (int) CalculateFunctionTypeEnum.Liner,
+                PieceKey = 1000000,
+                CoefficientDic = {{"numerator", "1"}, {"denominator", "4"}}
+            };
+            var param4 = new CalculateFeeCoefficient
+            {
+                OperationType = (int) AlgorithmOpCodeEnum.UpdateFunc,
+                FeeType = (int) FeeTypeEnum.Tx,
+                FunctionType = (int) CalculateFunctionTypeEnum.Liner,
+                PieceKey = 1000000,
+                CoefficientDic = {{"numerator", "1"}, {"denominator", "2"}}
+            };
+            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param2, null, null);
+            await HandleTestAsync(param3, null, null);
+            await HandleTestAsync(param4, null, null);
+            var size = 100000000;
+            var updatedFee =  await calculateFeeService.CalculateFee(null,size);
+            updatedFee.ShouldBe(50_0000_0000_0000);
         }
         private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, ChainContext chain)
         {

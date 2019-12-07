@@ -551,11 +551,20 @@ namespace AElf.Contracts.MultiToken
 
         private enum FeeTypeEnum
         {
-            Tx = 0,
+            Tx = 1,
             Cpu,
             Sto,
             Ram,
             Net
+        }
+        private enum CalculateFunctionTypeEnum
+        {
+            Default = 1,
+            Constant,
+            Liner,
+            Power,
+            Ln,
+            Bancor
         }
     }
 }
