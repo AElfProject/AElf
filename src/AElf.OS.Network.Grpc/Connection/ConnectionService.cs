@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -199,9 +200,12 @@ namespace AElf.OS.Network.Grpc.Connection
             var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
             if (handshakeValidationResult != HandshakeValidationResult.Ok)
             {
+                Logger.LogDebug($"peer {endpoint} sent an invalid handshake {handshakeValidationResult}");
                 var handshakeError = GetHandshakeError(handshakeValidationResult);
                 return new HandshakeReply {Error = handshakeError};
             }
+            
+            Logger.LogDebug($"peer {endpoint} sent a valid handshake {handshake}");
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             
@@ -210,6 +214,7 @@ namespace AElf.OS.Network.Grpc.Connection
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
+                Logger.LogDebug($"{endpoint} - removing old peer {currentPeer}");
                 _peerPool.RemovePeer(pubkey);
                 await currentPeer.DisconnectAsync(false);
             }
@@ -223,6 +228,8 @@ namespace AElf.OS.Network.Grpc.Connection
                 // create the connection to the peer
                 var peerEndpoint = new AElfPeerEndpoint(endpoint.Host, handshake.HandshakeData.ListeningPort);
                 var grpcPeer = await _peerDialer.DialBackPeerAsync(peerEndpoint, handshake);
+                
+                Logger.LogDebug($"Dialed back {peerEndpoint} successfully.");
 
                 // add the new peer to the pool
                 if (!_peerPool.TryAddPeer(grpcPeer))
@@ -239,6 +246,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
                 grpcPeer.UpdateLastSentHandshake(replyHandshake);
 
+                Logger.LogDebug($"Sending back handshake to {peerEndpoint}.");
                 return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
             finally

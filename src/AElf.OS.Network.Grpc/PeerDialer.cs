@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -96,9 +97,11 @@ namespace AElf.OS.Network.Grpc
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
-
+            var stop = Stopwatch.StartNew();
+            
             try
             {
+                
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
@@ -107,6 +110,9 @@ namespace AElf.OS.Network.Grpc
 
                 handshakeReply =
                     await client.Client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, metadata);
+                stop.Stop();
+                
+                Logger.LogDebug($"Handshake to {remoteEndPoint} done in {stop.Elapsed.TotalMilliseconds} ms.");
             }
             catch (Exception ex)
             {
@@ -142,10 +148,12 @@ namespace AElf.OS.Network.Grpc
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(GrpcClient client, DnsEndPoint ipAddress)
+        private async Task PingNodeAsync(GrpcClient client, DnsEndPoint peerEndpoint)
         {
             try
             {
+                Stopwatch s = Stopwatch.StartNew();
+
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
@@ -153,10 +161,14 @@ namespace AElf.OS.Network.Grpc
                 };
 
                 await client.Client.PingAsync(new PingRequest(), metadata);
+
+                s.Stop();
+
+                Logger.LogDebug($"Pinged {peerEndpoint} in {s.Elapsed.TotalMilliseconds} ms.");
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Could not ping {ipAddress}.");
+                Logger.LogError(ex, $"Could not ping {peerEndpoint}.");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -164,13 +176,20 @@ namespace AElf.OS.Network.Grpc
 
         private SslCredentials CreateSecureCredentials(X509Certificate certificate)
         {
+            Stopwatch credentialCreationSw = Stopwatch.StartNew();
             var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
             
             var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
             var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
                 new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
             var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
-            return new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+            
+            var creds =  new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+
+            credentialCreationSw.Stop();
+            Logger.LogDebug($"Created credential in {credentialCreationSw.Elapsed.TotalMilliseconds} ms");
+
+            return creds;
         }
 
         /// <summary>
@@ -212,6 +231,7 @@ namespace AElf.OS.Network.Grpc
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             TcpClient client = null;
+            Stopwatch sw = Stopwatch.StartNew();
             try
             {
                 client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
@@ -224,6 +244,9 @@ namespace AElf.OS.Network.Grpc
 
                     if (sslStream.RemoteCertificate == null)
                         throw new PeerDialException($"Certificate from {remoteEndpoint} is null");
+                    
+                    sw.Stop();
+                    Logger.LogDebug($"Retrieved certificate in {sw.Elapsed.TotalMilliseconds} ms.");
 
                     return FromX509Certificate(sslStream.RemoteCertificate);
                 }

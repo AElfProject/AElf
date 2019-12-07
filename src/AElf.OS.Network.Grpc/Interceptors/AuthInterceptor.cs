@@ -46,7 +46,7 @@ namespace AElf.OS.Network.Grpc
                         
                         if (sessionId == null)
                         {
-                            Logger.LogWarning($"Wrong context session id {context.Peer}, {context.Method}");
+                            Logger.LogWarning($"Wrong context session id {context.Peer}, {context.Method}, {peer}");
                             return Task.FromResult<TResponse>(null);
                         }
 
