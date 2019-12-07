@@ -6,19 +6,16 @@ namespace AElf.Kernel.SmartContract.Parallel
     public class ConflictingTransactionsFoundInParallelGroupsEvent
     {
         public ConflictingTransactionsFoundInParallelGroupsEvent(
-            long previousBlockHeight,
-            Hash previousBlockHash,
+            BlockHeader blockHeader,
             List<ExecutionReturnSet> existingSets,
             List<ExecutionReturnSet> conflictingSets)
         {
-            PreviousBlockHeight = previousBlockHeight;
-            PreviousBlockHash = previousBlockHash;
+            BlockHeader = blockHeader;
             ExistingSets = existingSets;
             ConflictingSets = conflictingSets;
         }
 
-        public long PreviousBlockHeight { get; }
-        public Hash PreviousBlockHash { get; }
+        public BlockHeader BlockHeader { get; set; }
         public List<ExecutionReturnSet> ExistingSets { get; }
         public List<ExecutionReturnSet> ConflictingSets { get; }
     }

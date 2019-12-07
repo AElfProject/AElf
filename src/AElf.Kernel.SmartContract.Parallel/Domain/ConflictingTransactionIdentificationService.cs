@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -51,6 +50,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
 
             var txnWithResources =
                 await _resourceExtractionService.GetResourcesAsync(chainContext, transactions, CancellationToken.None);
+            txnWithResources =
+                txnWithResources.Where(t => t.TransactionResourceInfo.ParallelType == ParallelType.Parallelizable);
 
             var returnSetLookup = returnSets.ToDictionary(rs => rs.TransactionId, rs => rs);
             var wrongTxnWithResources = new List<TransactionWithResourceInfo>();
