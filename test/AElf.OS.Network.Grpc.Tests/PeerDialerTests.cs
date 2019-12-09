@@ -26,12 +26,12 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialPeer_Test()
         {
-            var endpoint = IpEndPointHelper.Parse("127.0.0.1:2000");
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2000", out var endpoint);
             var grpcPeer = await _peerDialer.DialPeerAsync(endpoint);
             
             grpcPeer.ShouldNotBeNull();
 
-            var peersHandshake = _networkTestContext.GeneratedHandshakes[endpoint.Address.ToString()];
+            var peersHandshake = _networkTestContext.GeneratedHandshakes[endpoint.Host];
             grpcPeer.CurrentBlockHash.ShouldBe(peersHandshake.HandshakeData.BestChainHash);
             grpcPeer.CurrentBlockHeight.ShouldBe(peersHandshake.HandshakeData.BestChainHeight);
             grpcPeer.LastKnownLibHeight.ShouldBe(peersHandshake.HandshakeData.LastIrreversibleBlockHeight);
@@ -40,7 +40,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialBackPeer_Test()
         {
-            var endpoint = IpEndPointHelper.Parse("127.0.0.1:2000");
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2000", out var endpoint);
             var handshake = await _handshakeProvider.GetHandshakeAsync();
             
             var grpcPeer = await _peerDialer.DialBackPeerAsync(endpoint, handshake);

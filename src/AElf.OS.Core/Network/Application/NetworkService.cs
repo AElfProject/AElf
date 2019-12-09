@@ -43,15 +43,17 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            if (IpEndPointHelper.TryParse(address, out IPEndPoint endpoint))
+            if (AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint))
                 return await _networkServer.ConnectAsync(endpoint);
+            
+            Logger.LogWarning($"Could not parse endpoint {address}.");
 
             return false;
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            if (!IpEndPointHelper.TryParse(address, out IPEndPoint endpoint)) 
+            if (!AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint)) 
                 return false;
             
             var peer = _peerPool.FindPeerByEndpoint(endpoint);
@@ -77,8 +79,8 @@ namespace AElf.OS.Network.Application
             
             if (blacklistPeer)
             {
-                _blackListedPeerProvider.AddIpToBlackList(peer.RemoteEndpoint.Address);
-                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Address} ({peerPubKey})");
+                _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host);
+                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Host} ({peerPubKey})");
             }
             
             await _networkServer.DisconnectAsync(peer);
@@ -278,6 +280,11 @@ namespace AElf.OS.Network.Application
                     }
                 }
             }
+        }
+
+        public void CheckNtpDrift()
+        {
+            _networkServer.CheckNtpDrift();
         }
 
         public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
