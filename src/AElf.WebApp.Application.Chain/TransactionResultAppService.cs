@@ -77,7 +77,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
+            {
+                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                output.BlockHash = block.GetHash().ToHex();
                 output.Error = transactionResult.Error;
+            }
 
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
