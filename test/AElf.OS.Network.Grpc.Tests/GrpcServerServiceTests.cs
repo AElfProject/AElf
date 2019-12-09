@@ -53,22 +53,17 @@ namespace AElf.OS.Network
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
         {
             return TestServerCallContext.Create("mock", null, TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata ?? new Metadata(), CancellationToken.None, 
-                address ?? "127.0.0.1", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
+                address ?? "ipv4:127.0.0.1:5555", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
 
         [Fact]
         public async Task DoHandshake_Test()
         {
-            var context = BuildServerCallContext();
             var request = new HandshakeRequest {Handshake = new Handshake {HandshakeData = new HandshakeData()}};
-
-            var result = await _serverService.DoHandshake(request, context);
-            result.Error.ShouldBe(HandshakeError.InvalidConnection);
-            
-            context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
+            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
             
             //invalid handshake
-            result = await _serverService.DoHandshake(request, context);
+            var result = await _serverService.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.ChainMismatch);
 
             request.Handshake.HandshakeData.ChainId = _blockchainService.GetChainId();
@@ -532,7 +527,7 @@ namespace AElf.OS.Network
                 Endpoint = "127.0.0.1:2001",
                 Pubkey = ByteString.CopyFromUtf8("pubkey1")
             };
-            await _nodeManager.AddNodeAsync(node);
+            await _nodeManager.AddOrUpdateNodeAsync(node);
             var request = new NodesRequest
             {
                 MaxCount = 1

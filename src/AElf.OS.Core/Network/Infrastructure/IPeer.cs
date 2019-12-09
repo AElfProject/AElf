@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
         Timestamp LastReceivedHandshakeTime { get; }
-        IPEndPoint RemoteEndpoint { get; }
+        DnsEndPoint RemoteEndpoint { get; }
 
         int BufferedTransactionsCount { get; }
         int BufferedBlocksCount { get; }

@@ -24,7 +24,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DoHandshake_MaxPeersPerHostReached_Test()
         {
-            var peerEndpoint = new IPEndPoint(IPAddress.Parse("1.2.3.4"), 1234);
+            var peerEndpoint = new DnsEndPoint("1.2.3.4", 1234);
 
             var firstPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake("pubKey1"));
             firstPeerFromHostResp.Error.ShouldBe(HandshakeError.HandshakeOk);
@@ -39,8 +39,8 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DoHandshake_LocalhostMaxHostIgnored_Test()
         {
-            var grpcUriLocal = new IPEndPoint(IPAddress.Loopback, 1234);
-            var grpcUriLocalhostIp = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
+            var grpcUriLocal = new DnsEndPoint(IPAddress.Loopback.ToString(), 1234);
+            var grpcUriLocalhostIp = new DnsEndPoint("127.0.0.1", 1234);
 
             var firstLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake("pubKey1"));
             firstLocalPeerResp.Error.ShouldBe(HandshakeError.HandshakeOk);

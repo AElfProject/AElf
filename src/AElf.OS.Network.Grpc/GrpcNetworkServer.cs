@@ -5,9 +5,12 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Helpers;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Logging;
+using GuerrillaNtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -45,6 +48,9 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
+            GrpcEnvironment.SetLogger(new ConsoleLogger());
+            
             await StartListeningAsync();
             await DialBootNodesAsync();
 
@@ -92,10 +98,13 @@ namespace AElf.OS.Network.Grpc
                 .Select(async node =>
                 {
                     bool dialed = false;
-                    
-                    if (!IpEndPointHelper.TryParse(node, out IPEndPoint endpoint))
+
+                    if (!AElfPeerEndpointHelper.TryParse(node, out DnsEndPoint endpoint))
+                    {
+                        Logger.LogWarning($"Could not parse endpoint {node}.");
                         return;
-                    
+                    }
+
                     try
                     {
                         dialed = await _connectionService.ConnectAsync(endpoint);
@@ -118,7 +127,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
+        public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             return await _connectionService.ConnectAsync(endpoint);
         }
@@ -131,6 +140,19 @@ namespace AElf.OS.Network.Grpc
         public async Task<bool> TrySchedulePeerReconnectionAsync(IPeer peer)
         {
             return await _connectionService.TrySchedulePeerReconnectionAsync(peer);
+        }
+
+        public void CheckNtpDrift()
+        {
+            TimeSpan offset;
+            using (var ntp = new NtpClient(Dns.GetHostAddresses("pool.ntp.org")[0]))
+                offset = ntp.GetCorrectionOffset();
+            
+            if (offset.Duration().TotalMilliseconds > NetworkConstants.DefaultNtpDriftThreshold)
+            {
+                Logger.LogWarning($"NTP clock drift is more that {NetworkConstants.DefaultNtpDriftThreshold} ms : " +
+                                  $"{offset.Duration().TotalMilliseconds} ms");
+            }
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

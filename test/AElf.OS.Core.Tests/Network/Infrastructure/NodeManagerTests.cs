@@ -22,7 +22,7 @@ namespace AElf.OS.Network
         public async Task AddNode_Test()
         {
             var node = GenerateTestNodes(1).First();
-            var result = await _nodeManager.AddNodeAsync(node);
+            var result = await _nodeManager.AddOrUpdateNodeAsync(node);
             result.ShouldBeTrue();
 
             var data = node.ToDiagnosticString();
@@ -30,7 +30,7 @@ namespace AElf.OS.Network
             data.ShouldContain(node.Pubkey.ToHex().Substring(0, 45));
 
             //add duplicate one
-            var result1 = await _nodeManager.AddNodeAsync(node);
+            var result1 = await _nodeManager.AddOrUpdateNodeAsync(node);
             result1.ShouldBeFalse();
         }
 
@@ -40,7 +40,7 @@ namespace AElf.OS.Network
             {
                 Nodes = {GenerateTestNodes(3).ToArray()}
             };
-            var result = await _nodeManager.AddNodesAsync(nodes);
+            var result = await _nodeManager.AddOrUpdateNodesAsync(nodes);
             result.Nodes.Count.ShouldBe(3);
 
             var data = nodes.ToDiagnosticString();
