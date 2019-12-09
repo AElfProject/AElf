@@ -116,7 +116,8 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Could not connect to {remoteEndPoint}.");
+                stop.Stop();
+                Logger.LogError(ex, $"Could not connect to {remoteEndPoint} (took {stop.Elapsed.TotalMilliseconds} ms).");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -230,6 +231,8 @@ namespace AElf.OS.Network.Grpc
         
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
+            Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint.Host}:{remoteEndpoint.Port}.");
+            
             TcpClient client = null;
             Stopwatch sw = Stopwatch.StartNew();
             try
@@ -246,7 +249,7 @@ namespace AElf.OS.Network.Grpc
                         throw new PeerDialException($"Certificate from {remoteEndpoint} is null");
                     
                     sw.Stop();
-                    Logger.LogDebug($"Retrieved certificate in {sw.Elapsed.TotalMilliseconds} ms.");
+                    Logger.LogDebug($"Retrieved certificate for {remoteEndpoint.Host}:{remoteEndpoint.Port} in {sw.Elapsed.TotalMilliseconds} ms.");
 
                     return FromX509Certificate(sslStream.RemoteCertificate);
                 }
