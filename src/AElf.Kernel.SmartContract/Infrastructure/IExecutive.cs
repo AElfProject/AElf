@@ -21,7 +21,5 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         
         Hash ContractHash { get; }
         Timestamp LastUsedTime { get; set; }
-
-        void Unload();
     }
 }

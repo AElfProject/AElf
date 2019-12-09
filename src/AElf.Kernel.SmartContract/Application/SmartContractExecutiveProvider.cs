@@ -186,8 +186,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 Logger.LogDebug($"Lost an executive (no pool {address})");
             }
-            
-            executive.Unload();
 
             await Task.CompletedTask;
         }
@@ -197,13 +195,8 @@ namespace AElf.Kernel.SmartContract.Application
             if (!_executivePools.TryGetValue(address, out var dictionary)) return;
             foreach (var codeHash in codeHashes)
             {
-                dictionary.TryRemove(codeHash, out var executives);
-
-                while (executives.TryTake(out var executive))
-                {
-                    Logger.LogDebug($"Unloaded executive for address {address.Value.ToHex()}");
-                    executive.Unload();
-                }
+                if(dictionary.TryRemove(codeHash, out _))
+                    Logger.LogDebug($"Unloaded executive for address {address} and code hash {codeHash}.");
             }
         }
 
@@ -359,8 +352,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Last().LastUsedTime <
                         TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                     {
-                        if (executiveBag.TryTake(out var executive))
-                            executive.Unload();
+                        executiveBag.TryTake(out _);
                     }
                 }
             }

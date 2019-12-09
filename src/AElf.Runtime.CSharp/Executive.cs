@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
-using System.Text;
 using System.Threading.Tasks;
-using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -26,21 +22,18 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private Assembly _contractAssembly;
-        private Type _contractType;
-        private object _contractInstance;
-        private ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-        private ServerServiceDefinition _serverServiceDefinition;
+        private readonly Assembly _contractAssembly;
+        private readonly Type _contractType;
+        private readonly object _contractInstance;
+        private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
+        private readonly ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
-        private IServiceContainer<IExecutivePlugin> _executivePlugins;
-        public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
-        private List<ServiceDescriptor> _descriptors;
-
-        private AssemblyLoadContext _acl;
+        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
         
         public Timestamp LastUsedTime { get; set; }
 
@@ -69,49 +62,16 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(IServiceContainer<IExecutivePlugin> executivePlugins)
+        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
-            _executivePlugins = executivePlugins;
-        }
-
-        public void Load(byte[] code, AssemblyLoadContext loadContext)
-        {
-            _acl = loadContext;
-
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = _acl.LoadFromStream(stream);
-            }
-
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
-            
             _contractAssembly = assembly;
+            _executivePlugins = executivePlugins;
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
-            _descriptors = _serverServiceDefinition.GetDescriptors().ToList();
-        }
-
-        public void Unload()
-        {
-            var acl = _acl;
-            _acl = null;
-            
-            _contractAssembly = null;
-            _contractType = null;
-            _contractInstance = null;
-            _smartContractProxy = null;
-            _serverServiceDefinition = null;
-            _callHandlers = null;
-            _descriptors = null;
-
-            acl.Unload();
+            Descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -126,7 +86,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public async Task ApplyAsync(ITransactionContext transactionContext)
+        public Task ApplyAsync(ITransactionContext transactionContext)
         {
             try
             {
@@ -135,7 +95,7 @@ namespace AElf.Runtime.CSharp
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
                     CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 Execute();
@@ -152,6 +112,8 @@ namespace AElf.Runtime.CSharp
             {
                 _hostSmartContractBridgeContext.TransactionContext = null;
             }
+
+            return Task.CompletedTask;
         }
 
         public void Execute()

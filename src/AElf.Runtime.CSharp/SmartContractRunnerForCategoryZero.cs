@@ -14,7 +14,7 @@ namespace AElf.Runtime.CSharp
     public class SmartContractRunnerForCategoryZero : ISmartContractRunner
     {
         public int Category { get; protected set; }
-        protected readonly ISdkStreamManager _sdkStreamManager;
+        private readonly ISdkStreamManager _sdkStreamManager;
 
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
             new ConcurrentDictionary<string, MemoryStream>();
@@ -50,8 +50,21 @@ namespace AElf.Runtime.CSharp
         public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             var code = reg.Code.ToByteArray();
-            var executive = new Executive(_executivePlugins) { ContractHash = reg.CodeHash };
-            executive.Load(code, GetLoadContext());
+
+            var loadContext = GetLoadContext();
+
+            Assembly assembly = null;
+            using (Stream stream = new MemoryStream(code))
+            {
+                assembly = loadContext.LoadFromStream(stream);
+            }
+
+            if (assembly == null)
+            {
+                throw new InvalidCodeException("Invalid binary code.");
+            }
+
+            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
 
             return await Task.FromResult(executive);
         }
