@@ -5,7 +5,6 @@ package acs7;
 import public "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
@@ -13,6 +12,8 @@ option (aelf.identity) = "acs7";
 service ACS7 {
     
     rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
+    }
+    rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
     }

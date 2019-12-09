@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
+using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

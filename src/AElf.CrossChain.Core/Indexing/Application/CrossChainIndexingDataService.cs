@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
+using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,28 +19,29 @@ namespace AElf.CrossChain.Indexing.Application
     {
         private readonly IReaderFactory _readerFactory;
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
-        private readonly IIndexedCrossChainBlockDataProvider _indexedCrossChainBlockDataProvider;
+        private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
         private readonly ITransactionPackingService _transactionPackingService;
-        
+
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
         public IOptionsSnapshot<CrossChainConfigOptions> CrossChainOptions { get; set; }
-        
-        public CrossChainIndexingDataService(IReaderFactory readerFactory, 
-            IBlockCacheEntityConsumer blockCacheEntityConsumer, 
-            IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider, 
-            IIrreversibleBlockStateProvider irreversibleBlockStateProvider, 
+
+        public CrossChainIndexingDataService(IReaderFactory readerFactory,
+            IBlockCacheEntityConsumer blockCacheEntityConsumer,
+            ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
+            IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
             ITransactionPackingService transactionPackingService)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
-            _indexedCrossChainBlockDataProvider = indexedCrossChainBlockDataProvider;
+            _transactionInputForBlockMiningDataProvider = transactionInputForBlockMiningDataProvider;
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
             _transactionPackingService = transactionPackingService;
         }
 
-        private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
+        private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
+            long blockHeight)
         {
             var sideChainBlockDataList = new List<SideChainBlockData>();
             var sideChainIndexingInformationList = await _readerFactory.Create(blockHash, blockHeight)
@@ -76,8 +79,8 @@ namespace AElf.CrossChain.Indexing.Application
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
                 }
 
-                var sideChainBlockDataFromCache = new List<SideChainBlockData>();  
-                
+                var sideChainBlockDataFromCache = new List<SideChainBlockData>();
+
                 var i = 0;
                 while (i < toBeIndexedCount)
                 {
@@ -89,7 +92,7 @@ namespace AElf.CrossChain.Indexing.Application
                         // no more available parent chain block info
                         break;
                     }
-                    
+
                     sideChainBlockDataFromCache.Add(sideChainBlockData);
                     targetHeight++;
                     i++;
@@ -106,8 +109,9 @@ namespace AElf.CrossChain.Indexing.Application
 
             return sideChainBlockDataList;
         }
-        
-        private async Task<List<ParentChainBlockData>> GetNonIndexedParentChainBlockDataAsync(Hash blockHash, long blockHeight)
+
+        private async Task<List<ParentChainBlockData>> GetNonIndexedParentChainBlockDataAsync(Hash blockHash,
+            long blockHeight)
         {
             var parentChainBlockDataList = new List<ParentChainBlockData>();
             var returnValue = await _readerFactory.Create(blockHash, blockHeight).GetParentChainId
@@ -119,18 +123,19 @@ namespace AElf.CrossChain.Indexing.Application
                 // no configured parent chain
                 return parentChainBlockDataList;
             }
-                
+
             int length = CrossChainOptions.Value.MaximalCountForIndexingParentChainBlock;
             var heightInState = (await _readerFactory.Create(blockHash, blockHeight).GetParentChainHeight
                 .CallAsync(new Empty())).Value;
-            
+
             var targetHeight = heightInState + 1;
             Logger.LogTrace($"Target height {targetHeight}");
 
             var i = 0;
             while (i < length)
             {
-                var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
+                var parentChainBlockData =
+                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
                 if (parentChainBlockData == null)
                 {
                     // no more available parent chain block info
@@ -155,7 +160,7 @@ namespace AElf.CrossChain.Indexing.Application
                 .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
             return crossChainBlockData;
         }
-        
+
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var indexedSideChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
@@ -169,10 +174,12 @@ namespace AElf.CrossChain.Indexing.Application
         /// <param name="blockHash"></param>
         /// <param name="blockHeight"></param>
         /// <returns></returns>
-        public Task<ByteString> GetTransactionInputForNextMiningAsync(Hash blockHash, long blockHeight)
+        public Task<CrossChainTransactionInput> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash,
+            long blockHeight)
         {
-            return Task.FromResult(_indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash)?.ToByteString() ??
-                                   ByteString.Empty);
+            var inputForNextMining =
+                _transactionInputForBlockMiningDataProvider.GetTransactionInputForBlockMining(blockHash);
+            return Task.FromResult(inputForNextMining);
         }
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
@@ -185,18 +192,33 @@ namespace AElf.CrossChain.Indexing.Application
 
             if (pendingProposal != null && pendingProposal.ProposalId != null)
             {
-                // do nothing if pending proposal is not ready
-                if (!pendingProposal.ToBeReleased) 
-                    return ByteString.Empty;
-                
                 // release pending proposal and unable to propose anything if it is ready
-                _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, new CrossChainBlockData());
-                return ExtractCrossChainExtraDataFromCrossChainBlockData(
-                    pendingProposal.ProposedCrossChainBlockData);
+                _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
+                    new CrossChainTransactionInput
+                    {
+                        PreviousBlockHeight = blockHeight,
+                        MethodName =
+                            nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
+                        Value = pendingProposal.ProposalId.ToByteString()
+                    });
+
+                // do nothing if pending proposal is not ready
+                return !pendingProposal.ToBeReleased
+                    ? ByteString.Empty
+                    : ExtractCrossChainExtraDataFromCrossChainBlockData(pendingProposal.ProposedCrossChainBlockData);
             }
-            
+
             // propose new cross chain indexing data if pending proposal is null or empty 
-            await PrepareCrossChainBlockDataForNextMining(blockHash, blockHeight);
+            var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight);
+            if (!crossChainBlockData.IsNullOrEmpty())
+                _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
+                    new CrossChainTransactionInput
+                    {
+                        PreviousBlockHeight = blockHeight,
+                        MethodName =
+                            nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
+                        Value = crossChainBlockData.ToByteString()
+                    });
             return ByteString.Empty;
         }
 
@@ -210,8 +232,10 @@ namespace AElf.CrossChain.Indexing.Application
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
             Logger.LogInformation("Cross chain extra data generated.");
-            return new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
-                .ToByteString();
+            return calculatedSideChainTransactionsRoot == Hash.Empty
+                ? ByteString.Empty
+                : new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
+                    .ToByteString();
         }
 
         /// <summary>
@@ -224,15 +248,14 @@ namespace AElf.CrossChain.Indexing.Application
 //        {
 //            return _indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash);
 //        }
-
-        
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
-            _indexedCrossChainBlockDataProvider.ClearExpiredCrossChainBlockData(blockHeight);
+            _transactionInputForBlockMiningDataProvider.ClearExpiredTransactionInput(blockHeight);
         }
 
-        private async Task PrepareCrossChainBlockDataForNextMining(Hash blockHash, long blockHeight)
+        private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
+            long blockHeight)
         {
             Logger.LogTrace("Try get cross chain data for mining.");
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
@@ -244,7 +267,7 @@ namespace AElf.CrossChain.Indexing.Application
                 SideChainBlockData = {sideChainBlockData}
             };
 
-            _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, crossChainBlockData);
+            return crossChainBlockData;
         }
     }
 }

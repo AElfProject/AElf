@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Cache;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -35,45 +35,87 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FillExtraData_WithoutCacheData_Test()
+        public async Task FillExtraData__NoPendingProposal_Test()
         {
             var header = new BlockHeader
             {
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput());
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
 
         [Fact]
-        public async Task FillExtraData_WithoutSideChainCacheData_Test()
+        public async Task FillExtraData__NotApproved_Test()
         {
-            int chainId = _chainOptions.ChainId;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
-            var fakeParentChainBlockDataList = new List<IBlockCacheEntity>();
+            int sideChainId = _chainOptions.ChainId;
+            var sideChainBlockData = new List<SideChainBlockData>();
 
             for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
             {
-                fakeParentChainBlockDataList.Add(new ParentChainBlockData()
+                sideChainBlockData.Add(new SideChainBlockData()
                     {
                         Height = i + 1,
-                        ChainId = chainId
+                        ChainId = sideChainId
                     }
                 );
             }
-
-            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
-            {
-                {chainId, fakeParentChainBlockDataList}
-            });
-            _crossChainTestHelper.SetFakeLibHeight(1);
 
             var header = new BlockHeader
             {
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = new CrossChainBlockData
+                    {
+                        SideChainBlockData = {sideChainBlockData}
+                    },
+                    ToBeReleased = false
+                });
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            Assert.Empty(bytes);
+        }
+
+        [Fact]
+        public async Task FillExtraData_WithoutSideChainBlockData_Test()
+        {
+            int parentChainId = _chainOptions.ChainId;
+            var parentChainBlockDataList = new List<ParentChainBlockData>();
+
+            for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
+            {
+                parentChainBlockDataList.Add(new ParentChainBlockData
+                    {
+                        Height = i + 1,
+                        ChainId = parentChainId
+                    }
+                );
+            }
+
+            var header = new BlockHeader
+            {
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                Height = 2
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = new CrossChainBlockData
+                    {
+                        ParentChainBlockData = {parentChainBlockDataList}
+                    },
+                    ToBeReleased = true
+                });
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
@@ -110,9 +152,9 @@ namespace AElf.CrossChain
                 }
             };
 
-            var list1 = new List<IBlockCacheEntity>();
-            var list2 = new List<IBlockCacheEntity>();
-            var list3 = new List<IBlockCacheEntity>();
+            var list1 = new List<SideChainBlockData>();
+            var list2 = new List<SideChainBlockData>();
+            var list3 = new List<SideChainBlockData>();
 
             list1.Add(fakeSideChainBlockDataList[0]);
             list2.Add(fakeSideChainBlockDataList[1]);
@@ -140,16 +182,18 @@ namespace AElf.CrossChain
                 });
             }
 
-            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
-            {
-                {chainId1, list1},
-                {chainId2, list2},
-                {chainId3, list3}
-            });
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = new CrossChainBlockData
+                    {
+                        SideChainBlockData = {list1, list2, list3}
+                    },
+                    ToBeReleased = true
+                });
 
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);
             _crossChainTestHelper.SetFakeLibHeight(1);
             var header = new BlockHeader
             {
@@ -160,7 +204,7 @@ namespace AElf.CrossChain
             var sideChainTxMerkleTreeRoot =
                 await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             var merkleTreeRoot = BinaryMerkleTree
-                .FromLeafNodes(fakeSideChainBlockDataList.Select(sideChainBlockData =>
+                .FromLeafNodes(list1.Concat(list2).Concat(list3).Select(sideChainBlockData =>
                     sideChainBlockData.TransactionStatusMerkleTreeRoot)).Root;
             var expected = new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot}.ToByteString();
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);

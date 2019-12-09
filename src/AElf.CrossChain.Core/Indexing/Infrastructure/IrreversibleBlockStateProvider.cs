@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Infrastructure
 {
     public class IrreversibleBlockStateProvider : IIrreversibleBlockStateProvider
     {

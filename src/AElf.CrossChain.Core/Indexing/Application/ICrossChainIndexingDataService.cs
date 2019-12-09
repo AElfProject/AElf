@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -11,7 +12,7 @@ namespace AElf.CrossChain.Indexing.Application
 
         Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight);
 
-        Task<ByteString> GetTransactionInputForNextMiningAsync(Hash blockHash,
+        Task<CrossChainTransactionInput> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash,
             long blockHeight);
 
         Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight);

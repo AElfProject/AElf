@@ -72,7 +72,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task Validate_WithoutCache_Test()
+        public async Task Validate_Test()
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             int chainId = ChainHelper.ConvertBase58ToChainId("2112");
@@ -90,8 +90,8 @@ namespace AElf.CrossChain
             fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(2, fakeIndexedCrossChainData);
 
-            await Assert.ThrowsAsync<BlockValidationException>(() =>
-                _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
+            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
+            Assert.True(res);
         }
 
         [Fact]
@@ -130,23 +130,7 @@ namespace AElf.CrossChain
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
         }
-
-        [Fact]
-        public async Task Validate_Test()
-        {
-            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
-            var fakeSideChainId = ChainHelper.ConvertBase58ToChainId("2112");
-            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
-
-            CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
-            var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
-            var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
-
-            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
-            Assert.True(res);
-        }
-
+        
         [Fact]
         public async Task Validate_WithTrueOption_Test()
         {

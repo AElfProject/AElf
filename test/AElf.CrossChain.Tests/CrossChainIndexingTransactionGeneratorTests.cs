@@ -15,7 +15,7 @@ using Xunit;
 
 namespace AElf.CrossChain
 {
-    public sealed class CrossChainIndexingTransactionGeneratorTest : CrossChainWithChainTestBase
+    public sealed class CrossChainIndexingTransactionGeneratorTest : CrossChainTestBase
     {
         private readonly ISystemTransactionGenerator _crossChainIndexingTransactionGenerator;
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
@@ -31,62 +31,205 @@ namespace AElf.CrossChain
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
         }
-        
+
         [Fact]
         public async Task GenerateTransactions_Test()
         {
-            var transactions = new List<Transaction>();
-            transactions.AddRange(
-                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0], 0,
-                    Hash.Empty));
-            transactions.Count.ShouldBe(0);
-
-            var chainId = _kernelTestHelper.BestBranchBlockList[0].Header.ChainId;
-            var previousBlockHash = _kernelTestHelper.BestBranchBlockList[3].GetHash();
-            var previousBlockHeight = _kernelTestHelper.BestBranchBlockList[3].Height;
-            
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
-            
-            var blockInfoCache = new List<IBlockCacheEntity>();
-            var cachingCount = CrossChainConstants.MinimalBlockCacheEntityCount + 1;
-            for (var i = 1; i <= cachingCount; i++)
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<IBlockCacheEntity>();
+            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHeight = 1;
+            var crossChainBlockData = new CrossChainBlockData
             {
-                var sideChainBlockData = new SideChainBlockData
+                PreviousBlockHeight = previousBlockHeight
+            };
+            
+            var cachingCount = 5;
+            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            {
+                var sideChainBlockData = new SideChainBlockData()
                 {
-                    ChainId = chainId,
-                    Height = previousBlockHeight + i,
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
                 };
-                blockInfoCache.Add(sideChainBlockData);
+                sideChainBlockInfoCache.Add(sideChainBlockData);
+                if (i < cachingCount)
+                    crossChainBlockData.SideChainBlockData.Add(sideChainBlockData);
             }
 
-            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
-            AddFakeCacheData(fakeCache);
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideChainBlockInfoCache}});
+            
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
+                previousBlockHeight);
+            Assert.Empty(res);
 
             var smartContractAddress = SampleAddress.AddressList[0];
-
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
 
-            await _crossChainIndexingDataService.GetTransactionInputForNextMiningAsync(previousBlockHash, previousBlockHeight);
-
-            transactions.AddRange(
+            var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
-                    previousBlockHeight, previousBlockHash));
-            
+                    previousBlockHeight, previousBlockHash);
+
             transactions.Count.ShouldBe(1);
             transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
             transactions[0].To.ShouldBe(smartContractAddress);
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
-            transactions[0].MethodName.ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData));
+            transactions[0].MethodName
+                .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing));
+
+            var crossChainBlockDataInParam = CrossChainBlockData.Parser.ParseFrom(transactions[0].Params);
+            Assert.Equal(crossChainBlockData, crossChainBlockDataInParam);
+        }
+        
+        [Fact]
+        public async Task GenerateTransaction_PendingProposal_Test()
+        {
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<IBlockCacheEntity>();
+            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHeight = 1;
             
-            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(transactions[0].Params);
-            crossChainBlockData.PreviousBlockHeight.ShouldBe(previousBlockHeight);
-            crossChainBlockData.ParentChainBlockData.Count.ShouldBe(0);
-            crossChainBlockData.SideChainBlockData.Count.ShouldBe(
-                cachingCount - CrossChainConstants.MinimalBlockCacheEntityCount);
-            crossChainBlockData.SideChainBlockData[0].ChainId.ShouldBe(chainId);
-            crossChainBlockData.SideChainBlockData[0].Height.ShouldBe(previousBlockHeight + 1);
+            var cachingCount = 5;
+            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            {
+                var sideChainBlockData = new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                };
+                sideChainBlockInfoCache.Add(sideChainBlockData);
+            }
+
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideChainBlockInfoCache}});
+
+            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
+            {
+                Proposer = SampleAddress.AddressList[0],
+                ProposalId = Hash.FromString("ProposalId"),
+                ProposedCrossChainBlockData = new CrossChainBlockData(),
+                ToBeReleased = true
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
+            
+            
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
+                previousBlockHeight);
+            Assert.Empty(res);
+
+            var smartContractAddress = SampleAddress.AddressList[0];
+            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
+                smartContractAddress);
+
+            var transactions =
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
+                    previousBlockHeight, previousBlockHash);
+
+            transactions.Count.ShouldBe(1);
+            transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
+            transactions[0].To.ShouldBe(smartContractAddress);
+            transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
+            transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
+            transactions[0].MethodName
+                .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing));
+
+            var proposalIdInParam = Hash.Parser.ParseFrom(transactions[0].Params);
+            Assert.Equal(pendingProposal.ProposalId, proposalIdInParam);
+        }
+        
+        [Fact]
+        public async Task GenerateTransaction_PendingProposal_NotApproved_Test()
+        {
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<IBlockCacheEntity>();
+            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHeight = 1;
+            
+            var cachingCount = 5;
+            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            {
+                var sideChainBlockData = new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                };
+                sideChainBlockInfoCache.Add(sideChainBlockData);
+            }
+
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideChainBlockInfoCache}});
+
+            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
+            {
+                Proposer = SampleAddress.AddressList[0],
+                ProposalId = Hash.FromString("ProposalId"),
+                ProposedCrossChainBlockData = new CrossChainBlockData(),
+                ToBeReleased = false
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
+                previousBlockHeight);
+            Assert.Empty(res);
+
+            var smartContractAddress = SampleAddress.AddressList[0];
+            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
+                smartContractAddress);
+
+            var transactions =
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
+                    previousBlockHeight, previousBlockHash);
+
+            Assert.Single(transactions);
+            transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
+            transactions[0].To.ShouldBe(smartContractAddress);
+            transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
+            transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
+            transactions[0].MethodName
+                .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing));
+
+            var proposalIdInParam = Hash.Parser.ParseFrom(transactions[0].Params);
+            Assert.Equal(pendingProposal.ProposalId, proposalIdInParam);
+        }
+        
+        [Fact]
+        public async Task GenerateTransaction_NoTransaction_Test()
+        {
+            var sideChainId = 123;
+            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHeight = 1;
+            
+
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+
+            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput();
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
+                previousBlockHeight);
+            Assert.Empty(res);
+
+            var smartContractAddress = SampleAddress.AddressList[0];
+            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
+                smartContractAddress);
+
+            var transactions =
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
+                    previousBlockHeight, previousBlockHash);
+
+            Assert.Empty(transactions);
         }
     }
 }

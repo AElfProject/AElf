@@ -1,3 +1,4 @@
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.CrossChain.Cache
@@ -6,5 +7,7 @@ namespace AElf.CrossChain.Cache
     {
         long Height { get; set; }
         int ChainId { get; set;}
+        
+        Hash TransactionStatusMerkleTreeRoot { get; set; }
     }
 }

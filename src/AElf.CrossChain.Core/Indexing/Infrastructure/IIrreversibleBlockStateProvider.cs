@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Indexing.Infrastructure
 {
     public interface IIrreversibleBlockStateProvider
     {

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
