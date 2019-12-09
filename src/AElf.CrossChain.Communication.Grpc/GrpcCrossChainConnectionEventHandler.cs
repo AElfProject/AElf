@@ -13,9 +13,9 @@ namespace AElf.CrossChain.Communication.Grpc
             _grpcClientPlugin = grpcClientPlugin;
         }
 
-        public async Task HandleEventAsync(NewChainConnectionEvent eventData)
+        public Task HandleEventAsync(NewChainConnectionEvent eventData)
         {
-            _ = _grpcClientPlugin.CreateClientAsync(new CrossChainClientDto
+            return _grpcClientPlugin.CreateClientAsync(new CrossChainClientDto
             {
                 RemoteChainId = eventData.RemoteChainId,
                 RemoteServerHost = eventData.RemoteServerHost,
