@@ -23,11 +23,11 @@ namespace AElf.OS.Network
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m => m.DoHandshakeAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
-                    .Returns<IPEndPoint, Handshake>((pe, hsk) =>
+                mockService.Setup(m => m.DoHandshakeAsync(It.IsAny<DnsEndPoint>(), It.IsAny<Handshake>()))
+                    .Returns<DnsEndPoint, Handshake>((pe, hsk) =>
                     {
                         var handshake = NetworkTestHelper.CreateValidHandshake(CryptoHelper.GenerateKeyPair(), 10, hsk.HandshakeData.ChainId);
-                        netTestContext.GeneratedHandshakes[pe.Address.ToString()] = handshake;
+                        netTestContext.GeneratedHandshakes[pe.Host.ToString()] = handshake;
 
                         var handShakeReply = Task.FromResult(new HandshakeReply
                         {
@@ -55,7 +55,7 @@ namespace AElf.OS.Network
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m=>m.DoHandshakeAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
+                mockService.Setup(m=>m.DoHandshakeAsync(It.IsAny<DnsEndPoint>(), It.IsAny<Handshake>()))
                     .Returns(Task.FromResult(new HandshakeReply
                     {
                         Error = HandshakeError.HandshakeOk,
@@ -81,7 +81,7 @@ namespace AElf.OS.Network
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m=>m.DoHandshakeAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
+                mockService.Setup(m=>m.DoHandshakeAsync(It.IsAny<DnsEndPoint>(), It.IsAny<Handshake>()))
                     .Returns(Task.FromResult(new HandshakeReply
                     {
                         Error = HandshakeError.ChainMismatch

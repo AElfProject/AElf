@@ -20,6 +20,7 @@ namespace AElf.OS.Network.Application
         Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
         Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight);
         Task SendHealthChecksAsync();
+        void CheckNtpDrift();
         bool IsPeerPoolFull();
     }
 }
