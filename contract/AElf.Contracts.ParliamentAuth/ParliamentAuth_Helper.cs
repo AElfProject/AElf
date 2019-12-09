@@ -30,8 +30,9 @@ namespace AElf.Contracts.ParliamentAuth
             if (ValidateAddressInWhiteList(Context.Sender))
                 return;
 
-            Assert(Context.Sender == State.GenesisContract.Value && ValidateAddressInWhiteList(Context.Origin),
-                "Not authorized to propose.");
+            Assert(
+                Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
+                ValidateAddressInWhiteList(Context.Origin), "Not authorized to propose.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,

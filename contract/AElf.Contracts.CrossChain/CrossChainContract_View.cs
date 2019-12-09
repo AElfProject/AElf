@@ -190,6 +190,8 @@ namespace AElf.Contracts.CrossChain
                 return res;
             SetContractStateRequired(State.ParliamentAuthContract,
                 SmartContractConstants.ParliamentAuthContractSystemName);
+            res.Proposer = pendingCrossChainIndexingProposal.Proposer;
+            res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
             res.ToBeReleased = State.ParliamentAuthContract.GetProposal
                 .Call(pendingCrossChainIndexingProposal.ProposalId).ToBeReleased;
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
