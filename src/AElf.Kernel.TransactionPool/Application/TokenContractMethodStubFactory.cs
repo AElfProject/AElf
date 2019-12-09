@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
@@ -29,7 +28,6 @@ namespace AElf.Kernel.TransactionPool.Application
             _chainContext = chainContext;
         }
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {

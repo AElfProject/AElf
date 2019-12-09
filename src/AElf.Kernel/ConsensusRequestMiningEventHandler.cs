@@ -42,7 +42,7 @@ namespace AElf.Kernel
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
+        public Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
         {
             try
             {
@@ -102,6 +102,8 @@ namespace AElf.Kernel
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
+                
+                return Task.CompletedTask;
             }
             catch (Exception e)
             {

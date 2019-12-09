@@ -22,7 +22,7 @@ service MethodFeeProviderContract {
 
 message MethodFees {
     string method_name = 1;
-    repeated MethodFee fees = 3;
+    repeated MethodFee fees = 2;
 }
 
 message MethodFee {
