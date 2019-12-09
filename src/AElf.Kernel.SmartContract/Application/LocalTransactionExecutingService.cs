@@ -434,6 +434,7 @@ namespace AElf.Kernel.SmartContract.Application
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
                 BlockNumber = blockHeight,
+                Error = trace.Error
             };
         }
 
