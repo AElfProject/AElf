@@ -1,8 +1,7 @@
-using AElf.Kernel.Helper;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Types.Tests
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class UriHelperTests
     {
@@ -12,7 +11,7 @@ namespace AElf.Kernel.Types.Tests
             //wrong format
             {
                 string address = "127.0.0.1:8000";
-                var parsed = UriHelper.TryParsePrefixedEndpoint(address, out var endpoint);
+                var parsed = GrpcUriHelper.TryParsePrefixedEndpoint(address, out var endpoint);
 
                 parsed.ShouldBeFalse();
                 endpoint.ShouldBeNull();
@@ -21,7 +20,7 @@ namespace AElf.Kernel.Types.Tests
             //correct format
             {
                 string address = "ipv4:127.0.0.1:8000";
-                var parsed = UriHelper.TryParsePrefixedEndpoint(address, out var endpoint);
+                var parsed = GrpcUriHelper.TryParsePrefixedEndpoint(address, out var endpoint);
                 
                 parsed.ShouldBeTrue();
                 endpoint.ToString().ShouldBe("127.0.0.1:8000");

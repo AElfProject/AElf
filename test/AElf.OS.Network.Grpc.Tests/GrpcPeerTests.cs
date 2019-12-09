@@ -128,32 +128,6 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task RequestBlockAsync_Success_Test()
-        {
-            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[] {1, 2, 7}));
-            block.ShouldBeNull();
-
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            block = await _grpcPeer.GetBlockByHashAsync(blockHeader.GetHash());
-            block.ShouldNotBeNull();
-        }
-
-        [Fact]
-        public async Task GetBlocksAsync_Success_Test()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var genesisHash = chain.GenesisBlockHash;
-
-            var blocks = await _grpcPeer.GetBlocksAsync(genesisHash, 5);
-            blocks.Count.ShouldBe(5);
-            blocks.Select(o => o.Height).ShouldBe(new long[] {2, 3, 4, 5, 6});
-
-            var blockHash = Hash.Empty;
-            blocks = await _grpcPeer.GetBlocksAsync(blockHash, 1);
-            blocks.ShouldBe(new List<BlockWithTransactions>());
-        }
-
-        [Fact]
         public void GetRequestMetrics_Test()
         {
             var result = _grpcPeer.GetRequestMetrics();
@@ -163,24 +137,6 @@ namespace AElf.OS.Network
             result.Keys.ShouldContain("GetBlocks");
             result.Keys.ShouldContain("Announce");
         }
-
-        [Fact]
-        public async Task GetNodes_Test()
-        {
-            var nodeList = await _grpcPeer.GetNodesAsync();
-            nodeList.Nodes.Count.ShouldBeGreaterThanOrEqualTo(0);
-        }
-
-        [Fact]
-        public async Task DisconnectAsync_Success_Test()
-        {
-            var peers = _pool.GetPeers(true);
-            peers.Count.ShouldBe(2);
-
-            await _grpcPeer.DisconnectAsync(true);
-            peers = _pool.GetPeers(true);
-            peers.Count.ShouldBe(1);
-        }
         
         [Fact]
         public async Task DisconnectAsync_Test()
@@ -188,7 +144,7 @@ namespace AElf.OS.Network
             var isReady = _grpcPeer.IsReady;
             isReady.ShouldBeTrue();
             
-            await _grpcPeer.DisconnectAsync(true);
+            await _grpcPeer.DisconnectAsync(false);
             
             isReady = _grpcPeer.IsReady;
             isReady.ShouldBeFalse();

@@ -1,8 +1,8 @@
 using System.Net;
 
-namespace AElf.Kernel.Helper
+namespace AElf.CrossChain.Communication.Grpc
 {
-    public static class UriHelper
+    public static class GrpcUriHelper
     {
         /// <summary>
         /// Tries to parse a grpc URI. format: ipv4:127.0.0.1:8000 "
