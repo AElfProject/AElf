@@ -43,29 +43,29 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(IPEndPoint remoteEndPoint)
+        public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint)
         {
             var handshake = await _handshakeProvider.GetHandshakeAsync();
-            var client = CreateClient(remoteEndPoint);
+            var client = CreateClient(remoteEndpoint);
 
-            var handshakeReply = await CallDoHandshakeAsync(client, remoteEndPoint, handshake);
+            var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
             // verify handshake
             if (handshakeReply.Error != HandshakeError.HandshakeOk)
             {
-                Logger.LogWarning($"Handshake error: {handshakeReply.Error}.");
+                Logger.LogWarning($"Handshake error: {remoteEndpoint} {handshakeReply.Error}.");
                 return null;
             }
 
             if (await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake) !=
                 HandshakeValidationResult.Ok)
             {
-                Logger.LogWarning($"Connect error: {handshakeReply}.");
+                Logger.LogWarning($"Connect error: {remoteEndpoint} {handshakeReply}.");
                 await client.Channel.ShutdownAsync();
                 return null;
             }
 
-            var peer = new GrpcPeer(client, remoteEndPoint, new PeerConnectionInfo
+            var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
             {
                 Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
@@ -86,7 +86,7 @@ namespace AElf.OS.Network.Grpc
         /// Calls the server side DoHandshake RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, IPEndPoint remoteEndPoint,
+        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, DnsEndPoint remoteEndPoint,
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
@@ -95,7 +95,8 @@ namespace AElf.OS.Network.Grpc
             {
                 var metadata = new Metadata
                 {
-                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds * 2).ToString()}
+                    {GrpcConstants.RetryCountMetadataKey, "0"},
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeout * 2).ToString()}
                 };
 
                 handshakeReply =
@@ -111,12 +112,12 @@ namespace AElf.OS.Network.Grpc
             return handshakeReply;
         }
 
-        public async Task<GrpcPeer> DialBackPeerAsync(IPEndPoint endpoint, Handshake handshake)
+        public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
-            var client = CreateClient(endpoint);
-            await PingNodeAsync(client, endpoint);
+            var client = CreateClient(remoteEndpoint);
+            await PingNodeAsync(client, remoteEndpoint);
 
-            var peer = new GrpcPeer(client, endpoint, new PeerConnectionInfo
+            var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
             {
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
@@ -134,13 +135,14 @@ namespace AElf.OS.Network.Grpc
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(GrpcClient client, IPEndPoint ipAddress)
+        private async Task PingNodeAsync(GrpcClient client, DnsEndPoint ipAddress)
         {
             try
             {
                 var metadata = new Metadata
                 {
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                    {GrpcConstants.RetryCountMetadataKey, "0"},
+                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeout.ToString()}
                 };
 
                 await client.Client.PingAsync(new PingRequest(), metadata);
@@ -157,9 +159,9 @@ namespace AElf.OS.Network.Grpc
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        private GrpcClient CreateClient(IPEndPoint endpoint)
+        private GrpcClient CreateClient(DnsEndPoint remoteEndpoint)
         {
-            var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
+            var channel = new Channel(remoteEndpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
