@@ -13,6 +13,8 @@ namespace AElf.Kernel.TransactionPool.Application
     /// </summary>
     internal class TransactionMethodNameValidationProvider : ITransactionValidationProvider
     {
+        public bool ValidateWhileSyncing => true;
+
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public TransactionMethodNameValidationProvider(ISmartContractAddressService smartContractAddressService)
@@ -20,24 +22,23 @@ namespace AElf.Kernel.TransactionPool.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             if (transaction.To != tokenContractAddress)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
-            TokenContractContainer.TokenContractStub tokenStub; // No need to instantiate.
             var txsGeneratedByPlugins = new List<string>
             {
-                nameof(tokenStub.ChargeTransactionFees),
-                nameof(tokenStub.ChargeResourceToken),
-                nameof(tokenStub.CheckThreshold),
-                nameof(tokenStub.CheckResourceToken)
+                nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
+                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
+                nameof(TokenContractContainer.TokenContractStub.CheckThreshold),
+                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken)
             };
-            return !txsGeneratedByPlugins.Contains(transaction.MethodName);
+            return Task.FromResult(!txsGeneratedByPlugins.Contains(transaction.MethodName));
         }
     }
 }

@@ -15,10 +15,11 @@ namespace AElf.Kernel.Node
             _codeCheckService = codeCheckService;
         }
         
-        public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
+        public Task HandleEventAsync(InitialSyncFinishedEvent eventData)
         {
             // Activate code check service in smart contract module
             _codeCheckService.Enable();
+            return Task.CompletedTask;
         }
     }
 }

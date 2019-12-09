@@ -34,7 +34,10 @@ namespace AElf.OS.Network
             PeerService.PeerServiceClient peerClient = new PeerService.PeerServiceClient(channel);
             
             GrpcClient grpcClient = new GrpcClient(channel, peerClient);
-            GrpcPeer peer = new GrpcPeer(grpcClient, IpEndPointHelper.Parse("127.0.0.1:2001"), new PeerConnectionInfo
+
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
+            
+            GrpcPeer peer = new GrpcPeer(grpcClient, endpoint, new PeerConnectionInfo
             {
                 SessionId = new byte[] { 1,2,3 }
             });

@@ -12,13 +12,13 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly ITaskQueueManager _taskQueueManager;
-        
+
         public ILogger<BlockSyncQueueService> Logger { get; set; }
 
         public BlockSyncQueueService(IBlockSyncStateProvider blockSyncStateProvider, ITaskQueueManager taskQueueManager)
         {
             Logger = NullLogger<BlockSyncQueueService>.Instance;
-            
+
             _blockSyncStateProvider = blockSyncStateProvider;
             _taskQueueManager = taskQueueManager;
         }
@@ -69,7 +69,7 @@ namespace AElf.OS.BlockSync.Application
             if (enqueueTime != null && TimestampHelper.GetUtcNow() >
                 enqueueTime + TimestampHelper.DurationFromMilliseconds(ageLimit))
             {
-                Logger.LogDebug($"Enqueue time is more then limit : {enqueueTime}");
+                Logger.LogTrace($"Enqueue time is more then limit : {enqueueTime}");
                 return false;
             }
 
