@@ -1,9 +1,7 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -33,7 +31,6 @@ namespace AElf.Contracts.TestKit
             _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
