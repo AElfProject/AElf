@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 namespace AElf.Kernel.TransactionPool.Application
@@ -26,8 +27,9 @@ namespace AElf.Kernel.TransactionPool.Application
             };
         }
 
-        public ICalculateCostStrategy GetCalculateStrategyByFeeType(FeeTypeEnum typeEnum)
+        public ICalculateCostStrategy GetCalculateStrategyByFeeType(int type)
         {
+            var typeEnum = (FeeTypeEnum)type;
             return DefaultCalculatorDic.TryGetValue(typeEnum, out var strategy) ? strategy : null;
         }
         public ICalculateCostStrategy GetCpuCalculateStrategy()

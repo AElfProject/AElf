@@ -49,9 +49,9 @@ namespace AElf.Contracts.MultiToken
             fee.ShouldBe(1250010000);
             var param = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.AddFunc,
-                FunctionType = (int) CalculateFunctionTypeEnum.Liner,
-                FeeType = (int) FeeTypeEnum.Tx,
+                OperationType = AlgorithmOpCodeEnum.AddFunc,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
+                FeeType = FeeTypeEnum.Tx,
                 PieceKey = 500,
                 CoefficientDic = {{"numerator", "1"}, {"denominator", "4"}}
             };
@@ -71,7 +71,7 @@ namespace AElf.Contracts.MultiToken
             var size = 10000;
             var param = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
+                OperationType = AlgorithmOpCodeEnum.DeleteFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
                 PieceKey = int.MaxValue
             };
@@ -79,7 +79,7 @@ namespace AElf.Contracts.MultiToken
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             var param2 = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
+                OperationType = AlgorithmOpCodeEnum.DeleteFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
                 PieceKey = 1000000
             };
@@ -98,9 +98,9 @@ namespace AElf.Contracts.MultiToken
             calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
             var param = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.UpdateFunc,
+                OperationType = AlgorithmOpCodeEnum.UpdateFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
-                FunctionType = (int)CalculateFunctionTypeEnum.Liner,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = { {"numerator","1"},{"denominator","400"},{"pieceKey","10000"}}
             };
@@ -120,29 +120,29 @@ namespace AElf.Contracts.MultiToken
             calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
             var param = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
-                FeeType = (int) FeeTypeEnum.Tx,
+                OperationType = AlgorithmOpCodeEnum.DeleteFunc,
+                FeeType = FeeTypeEnum.Tx,
                 PieceKey = int.MaxValue
             };
             var param2 = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.DeleteFunc,
-                FeeType = (int) FeeTypeEnum.Tx,
+                OperationType =  AlgorithmOpCodeEnum.DeleteFunc,
+                FeeType = FeeTypeEnum.Tx,
                 PieceKey = 1000000
             };
             var param3 = new CalculateFeeCoefficient
             {
                 OperationType = (int) AlgorithmOpCodeEnum.AddFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
-                FunctionType = (int) CalculateFunctionTypeEnum.Liner,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", "1"}, {"denominator", "4"}}
             };
             var param4 = new CalculateFeeCoefficient
             {
-                OperationType = (int) AlgorithmOpCodeEnum.UpdateFunc,
+                OperationType = AlgorithmOpCodeEnum.UpdateFunc,
                 FeeType = (int) FeeTypeEnum.Tx,
-                FunctionType = (int) CalculateFunctionTypeEnum.Liner,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", "1"}, {"denominator", "2"}}
             };
@@ -154,7 +154,7 @@ namespace AElf.Contracts.MultiToken
             var updatedFee =  await calculateFeeService.CalculateFee(null,size);
             updatedFee.ShouldBe(50_0000_0000_0000);
         }
-        private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, ChainContext chain)
+        private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, IChainContext chain)
         {
             var calculateFeeService = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
             var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
@@ -164,21 +164,21 @@ namespace AElf.Contracts.MultiToken
             var paramDic = param.CoefficientDic;
             var opCode = param.OperationType;
             calculateFeeService.CalculateCostStrategy =
-                calculateStrategyProvider.GetCalculateStrategyByFeeType((FeeTypeEnum)feeType);
+                calculateStrategyProvider.GetCalculateStrategyByFeeType((int)feeType);
             if(calculateFeeService.CalculateCostStrategy == null)
                 return;
-            switch ((AlgorithmOpCodeEnum) opCode)
+            switch (opCode)
             {
                 case AlgorithmOpCodeEnum.AddFunc:
                     await calculateFeeService.AddFeeCal(chain, blockIndex, pieceKey,
-                        (CalculateFunctionTypeEnum) funcType, paramDic);
+                        (int)funcType, paramDic);
                     break;
                 case AlgorithmOpCodeEnum.DeleteFunc:
                     await calculateFeeService.DeleteFeeCal(chain, blockIndex, pieceKey);
                     break;
                 case AlgorithmOpCodeEnum.UpdateFunc:
                     await calculateFeeService.UpdateFeeCal(chain, blockIndex, pieceKey,
-                        (CalculateFunctionTypeEnum) funcType, paramDic);
+                        (int)funcType, paramDic);
                     break;
             }
         }

@@ -525,13 +525,13 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 dataInDb.Coefficients.Add(updateInfo);
             }
-            else if (updateInfo.OperationType == (int) AlgorithmOpCodeEnum.DeleteFunc)
+            else if (updateInfo.OperationType == AlgorithmOpCodeEnum.DeleteFunc)
             {
                 if(dataInDb.Coefficients.All(x => x.PieceKey != updateInfo.PieceKey))
                     return new Empty();
                 dataInDb.Coefficients.Remove(updateInfo);
             }
-            else if (updateInfo.OperationType == (int) AlgorithmOpCodeEnum.UpdateFunc)
+            else if (updateInfo.OperationType == AlgorithmOpCodeEnum.UpdateFunc)
             {
                 var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == updateInfo.PieceKey);
                 if(theOne == null)
@@ -579,42 +579,16 @@ namespace AElf.Contracts.MultiToken
 
         private void IntialParameters()
         {
-            if (State.CalculateCoefficient[(int) FeeTypeEnum.Cpu] == null)
-                State.CalculateCoefficient[(int) FeeTypeEnum.Cpu] = GetCpuFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeTypeEnum.Sto] == null)
-                State.CalculateCoefficient[(int) FeeTypeEnum.Sto] = GetStoFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeTypeEnum.Ram] == null)
-                State.CalculateCoefficient[(int) FeeTypeEnum.Ram] = GetRamFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeTypeEnum.Net] == null)
-                State.CalculateCoefficient[(int) FeeTypeEnum.Net] = GetNetFeeParameter();
-            if (State.CalculateCoefficient[(int) FeeTypeEnum.Tx] == null)
-                State.CalculateCoefficient[(int) FeeTypeEnum.Tx] = GetTxFeeParameter();
-        }
-
-        private enum FeeTypeEnum
-        {
-            Tx = 1,
-            Cpu,
-            Sto,
-            Ram,
-            Net
-        }
-
-        private enum CalculateFunctionTypeEnum
-        {
-            Default = 1,
-            Constant,
-            Liner,
-            Power,
-            Ln,
-            Bancor
-        }
-
-        private enum AlgorithmOpCodeEnum
-        {
-            AddFunc = 1,
-            DeleteFunc,
-            UpdateFunc
+            if (State.CalculateCoefficient[FeeTypeEnum.Cpu] == null)
+                State.CalculateCoefficient[FeeTypeEnum.Cpu] = GetCpuFeeParameter();
+            if (State.CalculateCoefficient[FeeTypeEnum.Sto] == null)
+                State.CalculateCoefficient[FeeTypeEnum.Sto] = GetStoFeeParameter();
+            if (State.CalculateCoefficient[FeeTypeEnum.Ram] == null)
+                State.CalculateCoefficient[FeeTypeEnum.Ram] = GetRamFeeParameter();
+            if (State.CalculateCoefficient[FeeTypeEnum.Net] == null)
+                State.CalculateCoefficient[FeeTypeEnum.Net] = GetNetFeeParameter();
+            if (State.CalculateCoefficient[FeeTypeEnum.Tx] == null)
+                State.CalculateCoefficient[FeeTypeEnum.Tx] = GetTxFeeParameter();
         }
     }
 }

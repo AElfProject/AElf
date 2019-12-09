@@ -70,7 +70,7 @@ namespace AElf.Kernel.TransactionPool.Application
            
         }
 
-        private async Task HandleEachOne(BlockIndex blockIndex, ChainContext chainContext, CalculateFeeCoefficient param)
+        private async Task HandleEachOne(BlockIndex blockIndex, IChainContext chainContext, CalculateFeeCoefficient param)
         {
             var feeType = param.FeeType;
             var pieceKey = param.PieceKey;
@@ -78,21 +78,21 @@ namespace AElf.Kernel.TransactionPool.Application
             var paramDic = param.CoefficientDic;
             var opCode = param.OperationType;
             _calculateFeeService.CalculateCostStrategy =
-                _calculateStrategyProvider.GetCalculateStrategyByFeeType((FeeTypeEnum)feeType);
+                _calculateStrategyProvider.GetCalculateStrategyByFeeType((int)feeType);
             if(_calculateFeeService.CalculateCostStrategy == null)
                 return;
-            switch ((AlgorithmOpCodeEnum) opCode)
+            switch (opCode)
             {
                 case AlgorithmOpCodeEnum.AddFunc:
                     await _calculateFeeService.AddFeeCal(chainContext, blockIndex, pieceKey,
-                        (CalculateFunctionTypeEnum) funcType, paramDic);
+                        (int)funcType, paramDic);
                     break;
                 case AlgorithmOpCodeEnum.DeleteFunc:
                     await _calculateFeeService.DeleteFeeCal(chainContext, blockIndex, pieceKey);
                     break;
                 case AlgorithmOpCodeEnum.UpdateFunc:
                     await _calculateFeeService.UpdateFeeCal(chainContext, blockIndex, pieceKey,
-                        (CalculateFunctionTypeEnum) funcType, paramDic);
+                        (int)funcType, paramDic);
                     break;
                 default:
                     Logger.LogWarning($"does not find operation code {opCode}");

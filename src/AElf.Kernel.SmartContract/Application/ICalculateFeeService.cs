@@ -3,49 +3,25 @@ using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
-{ 
-    public enum FeeTypeEnum
-    {
-        Tx = 1,
-        Cpu,
-        Sto,
-        Ram,
-        Net
-    }
-    public enum CalculateFunctionTypeEnum
-    {
-        Default = 1,
-        Constant,
-        Liner,
-        Power,
-        Ln,
-        Bancor
-    }
-    public enum AlgorithmOpCodeEnum
-    {
-        AddFunc = 1,
-        DeleteFunc,
-        UpdateFunc
-    }
-
+{
     public interface ICalculateFeeService : ITransientDependency
     {
         ICalculateCostStrategy CalculateCostStrategy { get; set; }
         Task<long> CalculateFee(IChainContext chainContext, int cost);
 
         Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> param);
+            int funcTypeEnum, IDictionary<string, string> param);
 
         Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey);
 
         Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            CalculateFunctionTypeEnum funcTypeEnum,
+            int funcTypeEnum,
             IDictionary<string, string> para);
     }
 
     public interface ICalculateStrategyProvider : ISingletonDependency
     {
-        ICalculateCostStrategy GetCalculateStrategyByFeeType(FeeTypeEnum typeEnum);
+        ICalculateCostStrategy GetCalculateStrategyByFeeType(int typeEnum);
         ICalculateCostStrategy GetCpuCalculateStrategy();
         ICalculateCostStrategy GetStoCalculateStrategy();
         ICalculateCostStrategy GetRamCalculateStrategy();
@@ -59,8 +35,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<long> GetCost(IChainContext context, int cost);
 
-        Task UpdateAlgorithm(IChainContext chainContext, BlockIndex blockIndex, AlgorithmOpCodeEnum opCodeEnum, int pieceKey,
-            CalculateFunctionTypeEnum funcTypeEnum = CalculateFunctionTypeEnum.Default,
+        Task ModifyAlgorithm(IChainContext chainContext, BlockIndex blockIndex, int opCodeEnum, int pieceKey,
+            int funcTypeEnum = 0,
             IDictionary<string, string> param = null);
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
@@ -68,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Application
 
     public interface ICalculateAlgorithmContext
     {
-        FeeTypeEnum CalculateFeeTypeEnum { get; set; }
+        int CalculateFeeTypeEnum { get; set; }
         IChainContext ChainContext { get; set; }
         BlockIndex BlockIndex { get; set; }
     }
@@ -80,8 +56,8 @@ namespace AElf.Kernel.SmartContract.Application
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
         Task<long> Calculate(int count);
         Task Delete(int pieceKey);
-        Task Update(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters);
-        Task AddByParam(int pieceKey, CalculateFunctionTypeEnum funcTypeEnum, IDictionary<string, string> parameters);
+        Task Update(int pieceKey, int funcTypeEnum, IDictionary<string, string> parameters);
+        Task AddByParam(int pieceKey, int funcTypeEnum, IDictionary<string, string> parameters);
     }
 
    
@@ -91,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Application
         long GetCost(int initValue);
         bool InitParameter(IDictionary<string, string> param);
         IDictionary<string, string> GetParameterDic();
-        CalculateFunctionTypeEnum FunctionTypeEnum { get;}
+        int FunctionTypeEnum { get;}
 
     }
 
@@ -105,7 +81,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            CalculateFunctionTypeEnum funcTypeEnum,
+            int funcTypeEnum,
             IDictionary<string, string> param)
         {
             throw new System.NotImplementedException();
@@ -116,7 +92,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            CalculateFunctionTypeEnum funcTypeEnum,
+            int funcTypeEnum,
             IDictionary<string, string> param)
         {
             throw new System.NotImplementedException();
@@ -125,7 +101,7 @@ namespace AElf.Kernel.SmartContract.Application
 
     class DefaultCalculateStrategyProvider : ICalculateStrategyProvider
     {
-        public ICalculateCostStrategy GetCalculateStrategyByFeeType(FeeTypeEnum typeEnum)
+        public ICalculateCostStrategy GetCalculateStrategyByFeeType(int typeEnum)
         {
             throw new System.NotImplementedException();
         }

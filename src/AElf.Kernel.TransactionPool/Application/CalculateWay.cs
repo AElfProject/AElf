@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 
@@ -13,7 +14,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Ln;
+        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Ln;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -70,7 +71,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long Precision { get; set; } = 100000000L;
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
-        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Power;
+        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Power;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -136,7 +137,7 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         public long Precision { get; set; } = 100000000L;
         public int ConstantValue { get; set; }
-        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Constant;
+        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Constant;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -173,7 +174,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Liner;
+        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Liner;
 
         public bool InitParameter(IDictionary<string, string> param)
         {
@@ -223,7 +224,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long ResourceConnectorBalance { get; set; }
         public long TokenConnectorBalance { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public CalculateFunctionTypeEnum FunctionTypeEnum { get; } = CalculateFunctionTypeEnum.Bancor;
+        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Bancor;
 
         public bool InitParameter(IDictionary<string, string> param)
         {

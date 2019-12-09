@@ -412,10 +412,10 @@ message TransactionSizeFeeUnitPriceUpdated {
 }
 
 message CalculateFeeCoefficient {
-    sint32 function_type = 1;
+    CalculateFunctionTypeEnum function_type = 1;
     sint32 piece_key = 2;
-    sint32 operation_type = 3;
-    sint32 fee_type = 4;
+    AlgorithmOpCodeEnum operation_type = 3;
+    FeeTypeEnum fee_type = 4;
     map<string, string> coefficient_dic = 5;
 }
 
@@ -428,4 +428,27 @@ message NoticeUpdateCalculateFeeAlgorithm {
     CalculateFeeCoefficientsOfType coefficient_list = 1;
     aelf.Hash pre_block_hash = 2;
     sint64 block_height = 3;
+}
+
+enum FeeTypeEnum{
+    Tx = 0;
+    Cpu = 1;
+    Sto = 2;
+    Ram = 3;
+    Net = 4;
+}
+
+enum CalculateFunctionTypeEnum{
+    Default = 0;
+    Constant = 1;
+    Liner = 2;
+    Power = 3;
+    Ln = 4;
+    Bancor = 5;
+}
+
+enum AlgorithmOpCodeEnum{
+    AddFunc = 0;
+    DeleteFunc = 1;
+    UpdateFunc = 2;
 }
