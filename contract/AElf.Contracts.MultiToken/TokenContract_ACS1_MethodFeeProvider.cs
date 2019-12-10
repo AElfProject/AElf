@@ -26,7 +26,7 @@ namespace AElf.Contracts.MultiToken
                 if (methodFees == null) return new MethodFees();
                 var symbols = GetMethodFeeSymbols();
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
-                Context.LogDebug(()=>$"## Symbols: {symbols?.First()} Fees:{fees.First()}");
+                Context.LogDebug(()=>$"## Symbols: {symbols?.First()} MethodFees: {methodFees} Fees:{fees?.First()}");
                 return new MethodFees
                 {
                     MethodName = input.Value,
@@ -61,7 +61,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             State.MethodFees[input.MethodName] = input;
-            Context.LogDebug(()=>$"## {input}");
+            Context.LogDebug(()=>$"## Name: {input.MethodName}, Fee: {input.Fees.First()}");
             return new Empty();
         }
 
