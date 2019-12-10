@@ -13,38 +13,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-//    class CalculateFeeService : ICalculateFeeService
-//    {
-//        private ILogger<CalculateFeeService> Logger { get; set; }
-//
-//        public CalculateFeeService()
-//        {
-//            Logger =  NullLogger<CalculateFeeService>.Instance;
-//        }
-//        public ICalculateCostStrategy CalculateCostStrategy { get; set; }
-//
-//        public async Task<long> CalculateFee(IChainContext chainContext, int cost)
-//        {
-//            if (CalculateCostStrategy != null)
-//                return await CalculateCostStrategy.GetCost(chainContext, cost);
-//            Logger.LogError("does not find CalculateCostStrategy}");
-//            return 20000000L;
-//        }
-//
-//        public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-//            IDictionary<string, string> param)
-//        {
-//            if (CalculateCostStrategy != null)
-//                await CalculateCostStrategy.ModifyAlgorithm(chainContext, blockIndex,pieceKey, param);
-//        }
-//
-//        public async Task ModifyPieceKey(IChainContext chainContext, BlockIndex blockIndex, int oldPieceKey, int newPieceKey)
-//        {
-//            if (CalculateCostStrategy != null)
-//                await CalculateCostStrategy.ChangeAlgorithmPieceKey(chainContext, blockIndex,oldPieceKey, newPieceKey);
-//        }
-//    }
-
     #region ICalculateAlgorithm implemention
 
     class CalculateAlgorithmContext : ICalculateAlgorithmContext
@@ -53,13 +21,14 @@ namespace AElf.Kernel.TransactionPool.Application
         public IChainContext ChainContext { get; set; }
         public BlockIndex BlockIndex { get; set; }
     }
+
     class CalculateAlgorithm : ICalculateAlgorithm
     {
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
-        
-        public ICalculateAlgorithmContext CalculateAlgorithmContext { get;} = new CalculateAlgorithmContext();
+
+        public ICalculateAlgorithmContext CalculateAlgorithmContext { get; } = new CalculateAlgorithmContext();
         public ILogger<CalculateAlgorithm> Logger { get; set; }
 
         public CalculateAlgorithm(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
@@ -140,6 +109,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
                 return;
             }
+
             parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
@@ -166,11 +136,13 @@ namespace AElf.Kernel.TransactionPool.Application
                 Logger.LogWarning($"does not find piece key: {oldPieceKey} in piecewise function");
                 return;
             }
+
             if (pieceWiseFunc.ContainsKey(newPieceKey))
             {
                 Logger.LogWarning($"piece key {newPieceKey}  has been defined");
                 return;
             }
+
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
@@ -195,16 +167,18 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 case CalculateFunctionTypeEnum.Liner:
                     newCalculateWay = new LinerCalculateWay();
-                    break; 
+                    break;
                 case CalculateFunctionTypeEnum.Power:
                     newCalculateWay = new PowerCalculateWay();
                     break;
             }
+
             if (newCalculateWay == null)
             {
                 Logger.LogWarning($"could not find mapped function type {funcTypeEnum}");
                 return;
             }
+
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
@@ -270,13 +244,15 @@ namespace AElf.Kernel.TransactionPool.Application
                 parameters = await tokenStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
                     {Value = CalculateAlgorithmContext.CalculateFeeTypeEnum});
             }
+
             if (parameters == null)
             {
                 Logger.LogWarning("does not find parameter from contract, initialize default ");
                 _pieceWiseFuncCache = _defaultPieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 return _pieceWiseFuncCache;
             }
-            if(_pieceWiseFuncCache == null)
+
+            if (_pieceWiseFuncCache == null)
                 _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
             _pieceWiseFuncCache.Clear();
             foreach (var func in parameters.Coefficients)

@@ -98,84 +98,84 @@ namespace AElf.Contracts.MultiToken
             var updatedFee2 =  await calculateCpuCostStrategy.GetCost(null,size2);
             updatedFee2.ShouldBe(2500000000);
         }
-        [Fact]
-        public async Task Ram_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
-        {
-            var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
-            var apiParam = new LinerCoefficientForUser
-            {
-                Denominator = 400,
-                Numerator = 1
-            };
-            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var param = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Tx,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
-            };
-            
-            await HandleTestAsync(param, null, null);
-            var size = 10000;
-            var updatedFee =  await calculateRamCostStrategy.GetCost(null,size);
-            updatedFee.ShouldBe(25_0000_0000);
-            
-            
-        }
-        [Fact]
-        public async Task Sto_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
-        {
-            var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
-            var apiParam = new LinerCoefficientForUser
-            {
-                Denominator = 400,
-                Numerator = 1
-            };
-            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var param = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Tx,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
-            };
-            
-            await HandleTestAsync(param, null, null);
-            var size = 10000;
-            var updatedFee =  await calculateStoCostStrategy.GetCost(null,size);
-            updatedFee.ShouldBe(25_0000_0000);
-            
-            
-        }
-        [Fact]
-        public async Task Net_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
-        {
-            var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
-            var apiParam = new LinerCoefficientForUser
-            {
-                Denominator = 400,
-                Numerator = 1
-            };
-            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var param = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Tx,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
-            };
-            
-            await HandleTestAsync(param, null, null);
-            var size = 10000;
-            var updatedFee =  await calculateNetCostStrategy.GetCost(null,size);
-            updatedFee.ShouldBe(25_0000_0000);
-            
-            
-        }
+//        [Fact]
+//        public async Task Ram_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
+//        {
+//            var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
+//            var apiParam = new LinerCoefficientForUser
+//            {
+//                Denominator = 400,
+//                Numerator = 1
+//            };
+//            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
+//            result.Status.ShouldBe(TransactionResultStatus.Mined);
+//            var param = new CalculateFeeCoefficient
+//            {
+//                FeeType = FeeTypeEnum.Tx,
+//                FunctionType = CalculateFunctionTypeEnum.Liner,
+//                PieceKey = 1000000,
+//                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
+//            };
+//            
+//            await HandleTestAsync(param, null, null);
+//            var size = 10000;
+//            var updatedFee =  await calculateRamCostStrategy.GetCost(null,size);
+//            updatedFee.ShouldBe(25_0000_0000);
+//            
+//            
+//        }
+//        [Fact]
+//        public async Task Sto_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
+//        {
+//            var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
+//            var apiParam = new LinerCoefficientForUser
+//            {
+//                Denominator = 400,
+//                Numerator = 1
+//            };
+//            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
+//            result.Status.ShouldBe(TransactionResultStatus.Mined);
+//            var param = new CalculateFeeCoefficient
+//            {
+//                FeeType = FeeTypeEnum.Tx,
+//                FunctionType = CalculateFunctionTypeEnum.Liner,
+//                PieceKey = 1000000,
+//                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
+//            };
+//            
+//            await HandleTestAsync(param, null, null);
+//            var size = 10000;
+//            var updatedFee =  await calculateStoCostStrategy.GetCost(null,size);
+//            updatedFee.ShouldBe(25_0000_0000);
+//            
+//            
+//        }
+//        [Fact]
+//        public async Task Net_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
+//        {
+//            var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
+//            var apiParam = new LinerCoefficientForUser
+//            {
+//                Denominator = 400,
+//                Numerator = 1
+//            };
+//            var result = (await TokenContractStub.UpdateLinerAlgorithmForUser.SendAsync(apiParam)).TransactionResult;
+//            result.Status.ShouldBe(TransactionResultStatus.Mined);
+//            var param = new CalculateFeeCoefficient
+//            {
+//                FeeType = FeeTypeEnum.Tx,
+//                FunctionType = CalculateFunctionTypeEnum.Liner,
+//                PieceKey = 1000000,
+//                CoefficientDic = { {"numerator","1"},{"denominator","400"}}
+//            };
+//            
+//            await HandleTestAsync(param, null, null);
+//            var size = 10000;
+//            var updatedFee =  await calculateNetCostStrategy.GetCost(null,size);
+//            updatedFee.ShouldBe(25_0000_0000);
+//            
+//            
+//        }
         
         private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, IChainContext chain,
             int newPieceKey = 0)
