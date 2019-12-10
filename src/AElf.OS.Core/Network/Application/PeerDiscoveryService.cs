@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Application
                     {
                         Logger.LogDebug($"Discovery: {peer} responded with the following nodes: {nodes}.");
                         
-                        var added = await _nodeManager.AddNodesAsync(nodes);
+                        var added = await _nodeManager.AddOrUpdateNodesAsync(nodes);
                     
                         if (added != null)
                             discoveredNodes.Nodes.AddRange(added.Nodes);
@@ -77,7 +77,7 @@ namespace AElf.OS.Network.Application
 
         public async Task AddNodeAsync(NodeInfo nodeInfo)
         {
-            await _nodeManager.AddNodeAsync(nodeInfo);
+            await _nodeManager.AddOrUpdateNodeAsync(nodeInfo);
         }
 
         public Task<NodeList> GetNodesAsync(int maxCount)

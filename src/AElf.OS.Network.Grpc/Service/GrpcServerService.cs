@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Utils;
@@ -54,9 +53,15 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogDebug($"Peer {context.Peer} has requested a handshake.");
 
-                if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
-                    return new HandshakeReply {Error = HandshakeError.InvalidConnection};
+                if (context.AuthContext?.Properties != null)
+                {
+                    foreach (var authProperty in context.AuthContext.Properties)
+                        Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
+                }
 
+                if(!GrpcEndPointHelpers.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
+                    return new HandshakeReply { Error = HandshakeError.InvalidConnection};
+            
                 return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
             }
             catch (Exception e)
@@ -103,7 +108,10 @@ namespace AElf.OS.Network.Grpc
                 {
                     Logger.LogInformation(
                         $"Received full block announce, block: {block} from {context.GetPeerInfo()}.");
-                    peer.TryAddKnownBlock(block.GetHash());
+
+                    if (!peer.TryAddKnownBlock(block.GetHash()))
+                        return Task.CompletedTask;
+                        
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
 
                     return Task.CompletedTask;
@@ -144,7 +152,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (announcement?.BlockHash == null)
             {
-                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
 
@@ -152,7 +160,8 @@ namespace AElf.OS.Network.Grpc
                 $"Received announce, block hash: {announcement.BlockHash}, block height: {announcement.BlockHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer.TryAddKnownBlock(announcement.BlockHash);
+            if (!peer.TryAddKnownBlock(announcement.BlockHash))
+                return Task.CompletedTask;
 
             if (peer.SyncState != SyncState.Finished)
             {
@@ -212,7 +221,8 @@ namespace AElf.OS.Network.Grpc
                 return;
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer.TryAddKnownTransaction(tx.GetHash());
+            if (!peer.TryAddKnownTransaction(tx.GetHash()))
+                return;
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
@@ -241,7 +251,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (announcement?.LibHash == null)
             {
-                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null or empty announcement from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
 
