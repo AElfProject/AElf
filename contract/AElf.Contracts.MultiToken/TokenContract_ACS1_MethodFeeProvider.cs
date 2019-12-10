@@ -25,6 +25,9 @@ namespace AElf.Contracts.MultiToken
                 var methodFees = State.MethodFees[input.Value];
                 if (methodFees == null) return new MethodFees();
                 var symbols = GetMethodFeeSymbols();
+                if(symbols.Count >0)
+                    Context.LogDebug(()=>$"## {symbols.First()}");
+                
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
                 Context.LogDebug(()=>$"## Symbols: {symbols?.First()} MethodFees: {methodFees} Fees:{fees?.First()}");
                 return new MethodFees
@@ -57,11 +60,12 @@ namespace AElf.Contracts.MultiToken
 
             foreach (var symbolToAmount in input.Fees)
             {
+                Context.LogDebug(()=>$"## {symbolToAmount}");
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
 
             State.MethodFees[input.MethodName] = input;
-            Context.LogDebug(()=>$"## Name: {input.MethodName}, Fee: {input.Fees.First()}");
+            Context.LogDebug(()=>$"## Name: {input}");
             return new Empty();
         }
 
