@@ -830,8 +830,8 @@ namespace AElf.Parallel.Tests
                     BlockHeight = chain.BestChainHeight
                 }, systemTransactions);
                 groupedSystemTransactions.Parallelizables.Count.ShouldBe(2);
-                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(2);
-                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(1);
+                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(2);
                 groupedSystemTransactions.NonParallelizables.Count.ShouldBe(2);
                 
                 //NonParallel Normal Transaction
@@ -884,8 +884,8 @@ namespace AElf.Parallel.Tests
                     BlockHeight = chain.BestChainHeight
                 }, transactions);
                 groupedNormalTransactions.Parallelizables.Count.ShouldBe(2);
-                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(2);
-                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(1);
+                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(2);
                 groupedNormalTransactions.NonParallelizables.Count.ShouldBe(3);
                 
                 var allTransactions = systemTransactions.Concat(transactions).ToList();
@@ -979,8 +979,8 @@ namespace AElf.Parallel.Tests
                     BlockHeight = chain.BestChainHeight
                 }, systemTransactions);
                 groupedSystemTransactions.Parallelizables.Count.ShouldBe(2);
-                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(2);
-                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(1);
+                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(2);
                 groupedSystemTransactions.NonParallelizables.Count.ShouldBe(2);
 
                 //NonParallel Normal Transaction
@@ -1033,8 +1033,8 @@ namespace AElf.Parallel.Tests
                     BlockHeight = chain.BestChainHeight
                 }, transactions);
                 groupedNormalTransactions.Parallelizables.Count.ShouldBe(2);
-                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(2);
-                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(1);
+                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(2);
                 groupedNormalTransactions.NonParallelizables.Count.ShouldBe(3);
                 
                 var allTransactions = systemTransactions.Concat(transactions).ToList();
