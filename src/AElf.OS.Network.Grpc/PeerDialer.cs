@@ -35,6 +35,8 @@ namespace AElf.OS.Network.Grpc
 
         public ILogger<PeerDialer> Logger { get; set; }
 
+        private KeyCertificatePair _clientKeyCertificatePair;
+
         public PeerDialer(IAccountService accountService,
             IHandshakeProvider handshakeProvider)
         {
@@ -42,6 +44,19 @@ namespace AElf.OS.Network.Grpc
             _handshakeProvider = handshakeProvider;
 
             Logger = NullLogger<PeerDialer>.Instance;
+
+            CreateClientKeyCertificatePair();
+        }
+
+        private void CreateClientKeyCertificatePair()
+        {
+            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
+            
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
+                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
+            
+            _clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
         }
 
         /// <summary>
@@ -178,17 +193,10 @@ namespace AElf.OS.Network.Grpc
         private SslCredentials CreateSecureCredentials(X509Certificate certificate)
         {
             Stopwatch credentialCreationSw = Stopwatch.StartNew();
-            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
-            
-            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
-                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
-            var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
-            
-            var creds =  new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
 
+            var creds =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
             credentialCreationSw.Stop();
-            Logger.LogDebug($"Created credential in {credentialCreationSw.Elapsed.TotalMilliseconds} ms");
+            Logger.LogDebug($"Created SslCredentials object in {credentialCreationSw.Elapsed.TotalMilliseconds} ms");
 
             return creds;
         }
