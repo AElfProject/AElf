@@ -29,7 +29,7 @@ namespace AElf.Contracts.MultiToken
                     Context.LogDebug(()=>$"## {symbols.Count}");
                 
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
-                Context.LogDebug(()=>$"## Symbols: {symbols?.First()} MethodFees: {methodFees} Fees:{fees?.First()}");
+                Context.LogDebug(()=>$"## Symbols: {symbols[0]} MethodFees: {methodFees} Fees:{fees.Count()}");
                 return new MethodFees
                 {
                     MethodName = input.Value,
