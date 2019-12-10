@@ -73,11 +73,15 @@ namespace AElf.WebApp.Application.Chain
                 output.Status = transactionResult.Status.ToString();
                 return output;
             }
-            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+
+            if (transactionResult.Status != TransactionResultStatus.Pending)
+            {
+                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                output.BlockHash = block.GetHash().ToHex();
+            }
 
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                output.BlockHash = block.GetHash().ToHex();
                 output.ReturnValue = transactionResult.ReturnValue.ToHex();
                 var bloom = transactionResult.Bloom;
                 output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
@@ -85,7 +89,6 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
             {
-                output.BlockHash = block.GetHash().ToHex();
                 output.Error = transactionResult.Error;
             }
 
