@@ -37,8 +37,8 @@ namespace AElf.CrossChain.Communication.Application
                 }
                 catch (CrossChainRequestException e)
                 {
-                    Logger.LogError(
-                        $"Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} failed with exception message {e.Message}");
+                    Logger.LogError(e, 
+                        $"Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} failed.");
                 }
             }
         }

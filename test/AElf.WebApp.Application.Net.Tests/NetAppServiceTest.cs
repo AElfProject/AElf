@@ -39,7 +39,10 @@ namespace AElf.WebApp.Application.Net.Tests
             
             var peerMock = new Mock<IPeer>();
             peerMock.SetupGet(p => p.Info).Returns(connectionInfo);
-            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(IpEndPointHelper.Parse(ipAddress));
+
+            AElfPeerEndpointHelper.TryParse(ipAddress, out var ip);
+            
+            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(ip);
             peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>());
 
             return peerMock.Object;

@@ -26,8 +26,8 @@ namespace AElf.OS.Network
             {
                 Mock<IPeerDialer> mockDialer = new Mock<IPeerDialer>();
                 
-                mockDialer.Setup(d => d.DialBackPeerAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
-                    .Returns<IPEndPoint, Handshake>((ip, hsk) =>
+                mockDialer.Setup(d => d.DialBackPeerAsync(It.IsAny<DnsEndPoint>(), It.IsAny<Handshake>()))
+                    .Returns<DnsEndPoint, Handshake>((ip, hsk) =>
                     {
                         return Task.FromResult(new GrpcPeer(
                                 new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerConnectionInfo
@@ -37,8 +37,8 @@ namespace AElf.OS.Network
                                 }));
                     });
                 
-                mockDialer.Setup(d => d.DialBackPeerAsync(It.Is<IPEndPoint>(ipEndpoint => ipEndpoint.Address.Equals(IPAddress.Parse("1.2.3.5"))), It.IsAny<Handshake>()))
-                    .Returns<IPEndPoint, Handshake>(async (ip, hsk) =>
+                mockDialer.Setup(d => d.DialBackPeerAsync(It.Is<DnsEndPoint>(ipEndpoint => ipEndpoint.Host.Equals("1.2.3.5")), It.IsAny<Handshake>()))
+                    .Returns<DnsEndPoint, Handshake>(async (ip, hsk) =>
                     {
                         await Task.Delay(TimeSpan.FromSeconds(2));
                         
