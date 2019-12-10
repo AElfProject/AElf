@@ -15,7 +15,8 @@ namespace AElf.Blockchains.SideChain
                 new AElf.Contracts.CrossChain.InitializeInput
                 {
                     ParentChainId = _sideChainInitializationDataProvider.ParentChainId,
-                    CreationHeightOnParentChain = chainInitializationData.CreationHeightOnParentChain
+                    CreationHeightOnParentChain = chainInitializationData.CreationHeightOnParentChain,
+                    IsPrivilegePreserved = chainInitializationData.ChainCreatorPrivilegePreserved
                 });
             return crossChainMethodCallList;
         }
