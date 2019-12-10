@@ -40,7 +40,7 @@ namespace AElf.OS.Network
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
-        public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds;
+        public int PeerDialTimeout { get; set; } = NetworkConstants.DefaultPeerDialTimeout;
 
         /// <summary>
         /// Period used to try and reconnect to outbound peers that have disconnected.
