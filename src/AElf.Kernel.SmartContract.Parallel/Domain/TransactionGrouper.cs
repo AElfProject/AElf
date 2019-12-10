@@ -82,7 +82,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 var groupedParallelizables = GroupParallelizables(parallelizables);
                 if (groupedParallelizables.Count > 0)
                 {
+                    Logger.LogDebug(
+                        $"##Old group counts: {string.Join(", ", groupedParallelizables.Select(g => g.Count))}");
                     groupedTransactions.Parallelizables.AddRange(GroupParallelizables(groupedParallelizables));
+                    Logger.LogDebug(
+                        $"##New group counts: {string.Join(", ", groupedTransactions.Parallelizables.Select(g => g.Count))}");
                     Logger.LogDebug(
                         $"Group {groupedParallelizables.Count} groups into {groupedTransactions.Parallelizables.Count} groups");
                 }
