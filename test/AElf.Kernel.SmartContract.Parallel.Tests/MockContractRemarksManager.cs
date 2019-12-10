@@ -23,17 +23,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public async Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader)
+        public Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task RemoveContractRemarksCacheAsync(List<BlockIndex> blockIndexes)
+        public Task RemoveContractRemarksCacheAsync(List<BlockIndex> blockIndexes)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
+        public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
             throw new System.NotImplementedException();
         }
