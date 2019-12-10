@@ -796,12 +796,12 @@ namespace AElf.Contracts.MultiToken
                 : ParentChainHeightOfCreation;
             for (var i = index; i < height; i++)
             {
-                crossChainBlockData.ParentChainBlockData.Add(CreateParentChainBlockData(i, MainChainId,
+                crossChainBlockData.ParentChainBlockDataList.Add(CreateParentChainBlockData(i, MainChainId,
                     root));
             }
 
             var parentChainBlockData = CreateParentChainBlockData(height, MainChainId, root);
-            crossChainBlockData.ParentChainBlockData.Add(parentChainBlockData);
+            crossChainBlockData.ParentChainBlockDataList.Add(parentChainBlockData);
 
             parentChainBlockData.CrossChainExtraData = new CrossChainExtraData
             {
@@ -810,7 +810,7 @@ namespace AElf.Contracts.MultiToken
 
             await BootMinerChangeRoundAsync(false);
             var indexingTx = await GenerateTransactionAsync(SideCrossChainContractAddress,
-                CrossChainConstants.CrossChainIndexingMethodName, null, crossChainBlockData, "Side");
+                nameof(z), null, crossChainBlockData, "Side");
             await MineAsync(new List<Transaction> {indexingTx}, "Side");
             var result = await SideChainTester.GetTransactionResultAsync(indexingTx.GetHash());
             Assert.True(result.Status == TransactionResultStatus.Mined);
@@ -824,23 +824,24 @@ namespace AElf.Contracts.MultiToken
             var height = mainChainIndexSideChain > 1 ? mainChainIndexSideChain + 1 : 1;
             for (var i = height; i < sideTransactionHeight; i++)
             {
-                crossChainBlockData.SideChainBlockData.Add(CreateSideChainBlockData(FakeBlockHeader, i, sideChainId,
+                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(FakeBlockHeader, i, sideChainId,
                     root));
             }
 
             var sideChainBlockData = CreateSideChainBlockData(FakeBlockHeader, sideTransactionHeight, sideChainId,
                 root);
-            crossChainBlockData.SideChainBlockData.Add(sideChainBlockData);
+            crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
 
             await BootMinerChangeRoundAsync(true);
             var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConstants.CrossChainIndexingMethodName, null, crossChainBlockData, "Main");
+            MainChainTester.
             var mainBlock = await MineAsync(new List<Transaction> {indexingTx}, "Main");
             var result = await MainChainTester.GetTransactionResultAsync(indexingTx.GetHash());
             Assert.True(result.Status == TransactionResultStatus.Mined);
             //Side chain index main chain
             await IndexMainChainBlockAsync(indexingTx, mainBlock.Height, sideTransactionHeight,
-                crossChainBlockData.SideChainBlockData.Select(b => b.TransactionStatusMerkleTreeRoot).ToList());
+                crossChainBlockData.SideChainBlockDataList.Select(b => b.TransactionStatusMerkleTreeRoot).ToList());
         }
 
         private async Task IndexMainChainBlockAsync(Transaction transaction, long height,
@@ -872,7 +873,7 @@ namespace AElf.Contracts.MultiToken
                 generatedMerkleTree.GenerateMerklePath(indexedSideChainBlockRoots.Count - 1));
             var crossChainBlockData = new CrossChainBlockData
             {
-                ParentChainBlockData = {parentChainBlockData}
+                ParentChainBlockDataList = {parentChainBlockData}
             };
 
             await BootMinerChangeRoundAsync(false);
