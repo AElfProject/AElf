@@ -7,34 +7,52 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ObserverProxyValidator : IValidator<ModuleDefinition>
     {
-        private static readonly TypeDefinition counterProxyTypeRef =
+        private static readonly TypeDefinition CounterProxyTypeRef =
             AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location)
                 .MainModule.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
 
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition item)
+        private TypeDefinition _injProxyType;
+        private MethodDefinition _injProxyInitialize;
+        private MethodDefinition _injProxyCount;
+
+        public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
             var errors = new List<ValidationResult>();
             
             // Get counter type
-            var counterTypeInj = item.Types.Single(t => t.Name == nameof(ExecutionObserverProxy));
+            _injProxyType = module.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
 
-            errors.AddRange(CheckObserverProxyIsNotTampered(counterTypeInj));
+            if (_injProxyType == null)
+                return new List<ValidationResult>
+                {
+                    new ObserverProxyValidationResult("Could not find execution observer proxy in contract.")
+                };
 
+            CheckObserverProxyIsNotTampered(errors);
+            
+            _injProxyInitialize =
+                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.Initialize));
+            _injProxyCount =
+                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.Count));
+
+            foreach (var typ in module.Types)
+            {
+                CheckCallsFromTypes(errors, typ);
+            }
+            
             return errors;
         }
 
-        private IEnumerable<ValidationResult> CheckObserverProxyIsNotTampered(TypeDefinition injectedType)
+        private void CheckObserverProxyIsNotTampered(List<ValidationResult> errors)
         {
-            var errors = new List<ValidationResult>();
-            
-            if (!injectedType.HasSameFields(counterProxyTypeRef))
+            if (!_injProxyType.HasSameFields(CounterProxyTypeRef))
             {
-                errors.Add(new ObserverProxyValidationResult(injectedType.Name + " type has different fields."));
+                errors.Add(new ObserverProxyValidationResult(_injProxyType.Name + " type has different fields."));
             }
 
-            foreach (var refMethod in counterProxyTypeRef.Methods)
+            foreach (var refMethod in CounterProxyTypeRef.Methods)
             {
-                var injMethod = injectedType.Methods.SingleOrDefault(m => m.Name == refMethod.Name);
+                var injMethod = _injProxyType.Methods.SingleOrDefault(m => m.Name == refMethod.Name);
 
                 if (injMethod == null)
                 {
@@ -52,15 +70,54 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 }
             }
             
-            if (injectedType.Methods.Count != counterProxyTypeRef.Methods.Count)
+            if (_injProxyType.Methods.Count != CounterProxyTypeRef.Methods.Count)
                 errors.Add(new ObserverProxyValidationResult("Observer type contains unusual number of methods."));
-
-            return errors;
         }
 
-        private IEnumerable<ValidationResult> CheckCallsFromContract(ModuleDefinition module)
+        private void CheckCallsFromTypes(List<ValidationResult> errors, TypeDefinition typ)
         {
-            throw new System.NotImplementedException();
+            if (typ == _injProxyType) // Do not need to validate calls from the injected proxy
+                return;
+            
+            // Patch the methods in the type
+            foreach (var method in typ.Methods)
+            {
+                CheckCallsFromMethods(errors, method);
+            }
+
+            // Patch if there is any nested type within the type
+            foreach (var nestedType in typ.NestedTypes)
+            {
+                CheckCallsFromTypes(errors, nestedType);
+            }
+        }
+
+        private void CheckCallsFromMethods(List<ValidationResult> errors, MethodDefinition method)
+        {
+            if (!method.HasBody)
+                return;
+
+            // Should be a call placed before each branching opcode
+            foreach (var instruction in method.Body.Instructions)
+            {
+                if (Consts.JumpingOps.Contains(instruction.OpCode))
+                {
+                    var proxyCallInstruction = instruction.Previous; // Previous instruction should be proxy call
+
+                    if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyCount))
+                    {
+                        errors.Add(new ObserverProxyValidationResult($"Missing execution observer call detected. " +
+                                                                     $"[{method.DeclaringType.Name} > {method.Name}]"));
+                    }                    
+                }
+
+                // Calling initialize method within contract is a breach
+                if (instruction.OpCode == OpCodes.Call && instruction.Operand == _injProxyInitialize)
+                {
+                    errors.Add(new ObserverProxyValidationResult($"Proxy initialize call detected from within the contract. " +
+                                                                 $"[{method.DeclaringType.Name} > {method.Name}]"));
+                }
+            }
         }
     }
     
