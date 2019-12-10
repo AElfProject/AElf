@@ -81,6 +81,40 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
+        public async Task Deploy_MultiTimes()
+        {
+            var contractDeploymentInput = new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            };
+
+            {
+                var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+                address.ShouldNotBeNull();
+            }
+            
+            {
+                var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+                address.ShouldNotBeNull();
+            }
+            
+            {
+                var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
+                var address = await DeployAsync(minerTester, ParliamentAddress, contractDeploymentInput);
+                address.ShouldNotBeNull();
+            }
+            {
+                var otherTester = Tester.CreateNewContractTester(AnotherUserKeyPair);
+                var proposingTxResult = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
+                proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                proposingTxResult.Error.Contains("Proposer authority validation failed.").ShouldBeTrue();
+            }
+        }
+        
+        
+        [Fact]
         public async Task UpdateSmartContract_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput

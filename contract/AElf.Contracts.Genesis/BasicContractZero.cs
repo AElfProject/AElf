@@ -177,12 +177,11 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
                 Params = new ContractCodeCheckInput
                 {
-                    Code = input.Code,
                     ContractInput = input.ToByteString(),
                     IsContractDeployment = true
                 }.ToByteString(),
                 OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                ExpiredTime = Context.CurrentBlockTime.AddHours(24) // Maybe, get the interval from configuration
             });
             
             Context.Fire(new ContractProposed
@@ -216,7 +215,6 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
                 Params = new ContractCodeCheckInput
                 {
-                    Code = input.Code,
                     ContractInput = input.ToByteString(),
                     IsContractDeployment = false
                 }.ToByteString(),
@@ -261,7 +259,7 @@ namespace AElf.Contracts.Genesis
             // Fire event to trigger BPs checking contract code
             Context.Fire(new CodeCheckRequired
             {
-                Code = input.Code,
+                Code = ExtractCodeFromContractCodeCheckInput(input),
                 ProposedContractInputHash = proposedContractInputHash
             });
     
@@ -297,12 +295,9 @@ namespace AElf.Contracts.Genesis
         {
             RequireSenderAuthority();
             AssertDeploymentProposerAuthority(Context.Origin);
-            
-            ContractProposingInput contractProposingInput = null;
+
             var inputHash = CalculateHashFromInput(input);
-            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            if (isGenesisOwnerAuthorityRequired)
-                ClearContractProposingInput(inputHash, out contractProposingInput);
+            TryClearContractProposingInput(inputHash, out var contractProposingInput);
 
             var address =
                 PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
@@ -316,14 +311,10 @@ namespace AElf.Contracts.Genesis
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract not found.");
-
             RequireSenderAuthority();
-
             var inputHash = CalculateHashFromInput(input);
-            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            if (isGenesisOwnerAuthorityRequired)
-                ClearContractProposingInput(inputHash, out _);
-            else 
+            
+            if (!TryClearContractProposingInput(inputHash, out _))
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;

@@ -23,7 +23,7 @@ namespace AElf.Contracts.Genesis
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!isGenesisOwnerAuthorityRequired)
                 return;
-            
+
             AssertSenderAddressWith(State.GenesisOwner.Value);
         }
 
@@ -68,7 +68,7 @@ namespace AElf.Contracts.Genesis
                 : CheckAddressIsParliamentMember(proposer);
             Assert(validationResult, "Proposer authority validation failed.");
         }
-        
+
         private bool CheckAddressIsParliamentMember(Address address)
         {
             RequireParliamentAuthAddressSet();
@@ -79,20 +79,28 @@ namespace AElf.Contracts.Genesis
         {
             return State.ParliamentAuthContract.ValidateOrganizationExist.Call(address).Value;
         }
-        
+
         private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
         {
             RequireParliamentAuthAddressSet();
             return State.ParliamentAuthContract.GetProposerWhiteListContext.Call(new Empty());
         }
 
-        private void ClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
+        private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
         {
-            contractProposingInput = null;
             contractProposingInput = State.ContractProposingInputMap[inputHash];
-            Assert(contractProposingInput != null && contractProposingInput.Status == ContractProposingInputStatus.CodeChecked,
+            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (isGenesisOwnerAuthorityRequired)
+                Assert(
+                    contractProposingInput != null, "Contract proposing data not found.");
+
+            if (contractProposingInput == null) 
+                return false;
+            
+            Assert(contractProposingInput.Status == ContractProposingInputStatus.CodeChecked,
                 "Invalid contract proposing status.");
             State.ContractProposingInputMap.Remove(inputHash);
+            return true;
         }
 
         private void RequireAuthorityByContractInfo(ContractInfo contractInfo)
@@ -116,10 +124,10 @@ namespace AElf.Contracts.Genesis
             {
                 validationResult = Context.Sender == contractInfo.Author;
             }
-            
+
             Assert(validationResult, "No permission.");
         }
-        
+
         private Address DecideNormalContractAuthor(Address address)
         {
             if (!State.ContractDeploymentAuthorityRequired.Value)
@@ -132,15 +140,22 @@ namespace AElf.Contracts.Genesis
                 return address;
             }
 
-            if (!State.ContractProposerAuthorityRequired.Value) 
+            if (!State.ContractProposerAuthorityRequired.Value)
                 return address;
-            
+
             // check parliament member
             Assert(CheckAddressIsParliamentMember(address), "Unauthorized proposer.");
             return Context.Self;
         }
+
+        private ByteString ExtractCodeFromContractCodeCheckInput(ContractCodeCheckInput input)
+        {
+            return input.IsContractDeployment
+                ? ContractDeploymentInput.Parser.ParseFrom(input.ContractInput).Code
+                : ContractUpdateInput.Parser.ParseFrom(input.ContractInput).Code;
+        }
     }
-    
+
     public static class AddressHelper
     {
         /// <summary>

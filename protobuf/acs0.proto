@@ -92,14 +92,8 @@ message ContractUpdateInput {
 }
 
 message ContractCodeCheckInput{
-    bytes code = 1;
-    bytes contract_input = 2;
-    bool is_contract_deployment =3;
-}
-
-message ChangeContractAuthorInput {
-    aelf.Address contract_address = 1;
-    aelf.Address new_author = 2;
+    bytes contract_input = 1;
+    bool is_contract_deployment = 2;
 }
 
 message InitializeInput{

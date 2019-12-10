@@ -33,6 +33,7 @@ namespace AElf.Contracts.Genesis
         internal BasicContractZeroContainer.BasicContractZeroStub ZeroTester =>
             GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
+        
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
@@ -63,7 +64,10 @@ namespace AElf.Contracts.Genesis
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         protected ECKeyPair CreatorKeyPair => SampleECKeyPairs.KeyPairs[10];
 
+        protected ECKeyPair AnotherMinerKeyPair => SampleECKeyPairs.KeyPairs[2];
 
+        protected Address AnotherMinerAddress => Address.FromPublicKey(AnotherMinerKeyPair.PublicKey);
+        
         public BasicContractZeroTestBase()
         {
             TesterKeyPair = Tester.KeyPair;
@@ -179,7 +183,7 @@ namespace AElf.Contracts.Genesis
         internal async Task<Address> DeployAsync(ContractTester<BasicContractZeroTestAElfModule> tester,
             Address parliamentContract, ContractDeploymentInput contractDeploymentInput)
         {
-            var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            var proposingTxResult = await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
 
             var proposalId = ProposalCreated.Parser
@@ -191,7 +195,7 @@ namespace AElf.Contracts.Genesis
             await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
 
             // release contract code and trigger code check proposal
-            var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            var releaseApprovedContractTxResult = await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
                 {
                     ProposalId = proposalId,
@@ -204,7 +208,7 @@ namespace AElf.Contracts.Genesis
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
 
             // release code check proposal and deployment completes
-            var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            var deploymentResult = await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
