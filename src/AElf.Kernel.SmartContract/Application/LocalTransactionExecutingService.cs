@@ -152,9 +152,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         private static bool IsTransactionCanceled(TransactionTrace trace)
         {
-            return trace.ExecutionStatus == ExecutionStatus.Canceled ||
-                   trace.PreTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled) ||
-                   trace.PostTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled);
+            return trace.ExecutionStatus == ExecutionStatus.Canceled || trace.PreTraces.Any(IsTransactionCanceled) ||
+                   trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 

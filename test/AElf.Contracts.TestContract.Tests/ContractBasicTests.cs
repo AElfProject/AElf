@@ -10,7 +10,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -25,15 +24,13 @@ namespace AElf.Contract.TestContract
         private readonly IBlockchainService _blockchainService;
         private readonly IMiningService _miningService;
         private readonly IBlockAttachService _blockAttachService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionResultManager _transactionResultManager;
-        
+
         public ContractBasicTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _miningService = GetRequiredService<IMiningService>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
-            _smartContractExecutiveService = GetRequiredService<ISmartContractExecutiveService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             InitializeTestContracts();
         }
@@ -41,33 +38,35 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Initialize_MultiTimesContract_Test()
         {
-            var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendWithExceptionAsync(
-                new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput
-                {
-                    ContractName = "Test initialize again",
-                    MinValue = 1000,
-                    MaxValue = 10000,
-                    Manager = SampleAddress.AddressList[0]
-                })).TransactionResult;
+            var transactionResult =
+                (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendWithExceptionAsync(
+                    new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput
+                    {
+                        ContractName = "Test initialize again",
+                        MinValue = 1000,
+                        MaxValue = 10000,
+                        Manager = SampleAddress.AddressList[0]
+                    })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task DeployContract_With_Two_Branch()
-        {    
+        {
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var startBlockHeight = blockHeader.Height;
             var startBlockHash = blockHeader.GetHash();
 
-             Address contractAddress;
+            Address contractAddress;
             //branch one
             {
                 var t = (await BasicContractZeroStub.DeploySmartContract.SendAsync(
                     new Acs0.ContractDeploymentInput
                     {
-                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel")).Value),
+                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel"))
+                            .Value),
                         Category = KernelConstants.CodeCoverageRunnerCategory
                     }
                 ));
@@ -87,9 +86,9 @@ namespace AElf.Contract.TestContract
                     blockHeader.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchOneBlock);
 
-                 var queryTwoUserWinMoneyTransactionResult =
+                var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
-                        .GetHash(),branchOneBlock.Header.GetHash());
+                        .GetHash(), branchOneBlock.Header.GetHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
@@ -101,19 +100,21 @@ namespace AElf.Contract.TestContract
                 var branchTwoBlock = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
 
-                 transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), branchTwoBlock.Height,
+                transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+                    nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(),
+                    branchTwoBlock.Height,
                     branchTwoBlock.GetHash());
                 branchTwoBlock = await ExecuteAsync(transaction, branchTwoBlock.Height, branchTwoBlock.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
 
-                 transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), branchTwoBlock.Height,
+                transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+                    nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(),
+                    branchTwoBlock.Height,
                     branchTwoBlock.GetHash());
                 branchTwoBlock = await ExecuteAsync(transaction, branchTwoBlock.Height, branchTwoBlock.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
 
-                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]
@@ -121,7 +122,7 @@ namespace AElf.Contract.TestContract
                 var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, contractAddress,
                     "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
 
-                 branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
                     branchTwoBlock.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
                 var queryTwoUserWinMoneyTransactionResult =
@@ -148,7 +149,7 @@ namespace AElf.Contract.TestContract
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
             }
-            
+
             //different code
             {
                 var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
@@ -207,7 +208,7 @@ namespace AElf.Contract.TestContract
             var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
-            
+
             //execute again
             transactionResult = (await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
                 new AElf.Contracts.TestContract.BasicFunction.BetInput
@@ -222,51 +223,12 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task ChangeContractAuthor_Test()
-        {
-            //without permission
-            {
-                var testUser = SampleECKeyPairs.KeyPairs[2];
-                var otherZeroStub = GetContractZeroTester(testUser);
-                var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendWithExceptionAsync(
-                    new Acs0.ChangeContractAuthorInput()
-                    {
-                        ContractAddress = BasicFunctionContractAddress,
-                        NewAuthor = SampleAddress.AddressList[1]
-                    }
-                )).TransactionResult;
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("No permission.").ShouldBeTrue();
-            }
-            
-            //with permission
-            {
-                var otherUser = SampleAddress.AddressList[2];
-                var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
-                    new Acs0.ChangeContractAuthorInput()
-                    {
-                        ContractAddress = BasicFunctionContractAddress,
-                        NewAuthor = otherUser
-                    }
-                )).TransactionResult;
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var ownerAddress =
-                    (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress))
-                    .GetFormatted();
-                ownerAddress.ShouldBe(otherUser.GetFormatted());
-            }
-        }
-        
-        [Fact]
         public async Task UpdateContract_Attach_After_ReadOnly_Transaction()
         {
             var chain = await _blockchainService.GetChainAsync();
             var blockHeight = chain.BestChainHeight;
             var blockHash = chain.BestChainHash;
-            
+
             var input = new Acs0.ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
@@ -281,15 +243,15 @@ namespace AElf.Contract.TestContract
 
             var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
             await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
-            
+
             await _blockAttachService.AttachBlockAsync(block);
-            
+
             var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
 //            //execute new action method
             var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
                 new Empty())).TransactionResult;
             transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //call new view method
             var result = (await basic11ContractStub.QueryBetStatus.CallAsync(
                 new Empty())).BoolValue;
@@ -300,28 +262,29 @@ namespace AElf.Contract.TestContract
 
         [Fact]
         public async Task UpdateContract_With_Two_Branch()
-        {    
+        {
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var startBlockHeight = blockHeader.Height;
             var startBlockHash = blockHeader.GetHash();
-            
+
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
                 }
             )).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
 //            //execute new action method
             var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
                 new Empty())).TransactionResult;
             transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), startBlockHeight, startBlockHash);
+                nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), startBlockHeight,
+                startBlockHash);
             var block = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
             await _blockAttachService.AttachBlockAsync(block);
 
@@ -330,7 +293,7 @@ namespace AElf.Contract.TestContract
                 block.GetHash());
             block = await ExecuteAsync(transaction, block.Height, block.GetHash());
             await _blockAttachService.AttachBlockAsync(block);
-            
+
             var input = new Empty().ToByteString();
             var failedTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
                 nameof(basic11ContractStub.UpdateStopBet), input, block.Height, block.GetHash());
@@ -342,7 +305,7 @@ namespace AElf.Contract.TestContract
                     block.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Failed to find handler for UpdateStopBet.");
-            
+
             input = new Acs0.ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
@@ -358,7 +321,7 @@ namespace AElf.Contract.TestContract
                     updateBlock.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
-            
+
             input = new Acs0.ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
@@ -373,18 +336,17 @@ namespace AElf.Contract.TestContract
                 await _transactionResultManager.GetTransactionResultAsync(updateTransaction.GetHash(),
                     updateBlock.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
-           //execute new action method
+            //execute new action method
             transactionResult = (await basic11ContractStub.UpdateStopBet.SendAsync(
                 new Empty())).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //call new view method
             var result = (await basic11ContractStub.QueryBetStatus.CallAsync(
                 new Empty())).BoolValue;
             result.ShouldBeTrue();
-            
         }
 
         private Transaction CreateTransaction(Address from, Address to, string methodName,
@@ -405,10 +367,11 @@ namespace AElf.Contract.TestContract
             return transaction;
         }
 
-        private async Task<Block> ExecuteAsync(Transaction transaction,long previousBlockHeight,Hash previousBlockHash)
+        private async Task<Block> ExecuteAsync(Transaction transaction, long previousBlockHeight,
+            Hash previousBlockHash)
         {
             var transactionList = new List<Transaction>();
-            if(transaction!=null) transactionList.Add(transaction);
+            if (transaction != null) transactionList.Add(transaction);
             var block = await _miningService.MineAsync(
                 new RequestMiningDto
                 {
@@ -418,7 +381,7 @@ namespace AElf.Contract.TestContract
                 transactionList,
                 DateTime.UtcNow.ToTimestamp());
 
-            if(transaction != null)
+            if (transaction != null)
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await _blockchainService.AddBlockAsync(block);
             return block;
