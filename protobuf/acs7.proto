@@ -104,8 +104,8 @@ message SideChainIndexingInformation {
 }
 
 message CrossChainBlockData {
-    repeated SideChainBlockData side_chain_block_data = 1;
-    repeated ParentChainBlockData parent_chain_block_data = 2;
+    repeated SideChainBlockData side_chain_block_data_list = 1;
+    repeated ParentChainBlockData parent_chain_block_data_list = 2;
     int64 previous_block_height = 3;
 }
 
@@ -174,11 +174,11 @@ message RequestChainCreationOutput {
 
 message IndexedParentChainBlockData{
     int64 local_chain_height = 1;
-    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
+    repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
 }
 
 message IndexedSideChainBlockData{
-    repeated acs7.SideChainBlockData side_chain_block_data = 1;
+    repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
 }
 
 message RecordCrossChainDataInput{

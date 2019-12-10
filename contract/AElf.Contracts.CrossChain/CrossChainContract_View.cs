@@ -15,10 +15,10 @@ namespace AElf.Contracts.CrossChain
             var crossChainBlockData = new CrossChainBlockData();
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
             if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
+                crossChainBlockData.ParentChainBlockDataList.AddRange(indexedParentChainBlockData.ParentChainBlockDataList);
 
             var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
-            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
+            crossChainBlockData.SideChainBlockDataList.AddRange(indexedSideChainBlockData.SideChainBlockDataList);
             return crossChainBlockData;
         }
 
@@ -186,8 +186,9 @@ namespace AElf.Contracts.CrossChain
         public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
         {
             var res = new GetPendingCrossChainIndexingProposalOutput();
-            if (!TryGetPendingProposal(out var pendingCrossChainIndexingProposal)) 
-                return res;
+            var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
+                out var pendingCrossChainIndexingProposal);
+            Assert(exists, "Cross chain indexing with Pending status not found.");
             SetContractStateRequired(State.ParliamentAuthContract,
                 SmartContractConstants.ParliamentAuthContractSystemName);
             res.Proposer = pendingCrossChainIndexingProposal.Proposer;

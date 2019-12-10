@@ -190,7 +190,7 @@ namespace AElf.CrossChain.Indexing.Application
             var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
                 .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
 
-            if (pendingProposal != null && pendingProposal.ProposalId != null)
+            if (pendingProposal != null)
             {
                 // release pending proposal and unable to propose anything if it is ready
                 _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
@@ -227,7 +227,7 @@ namespace AElf.CrossChain.Indexing.Application
             if (crossChainBlockData.IsNullOrEmpty())
                 return ByteString.Empty;
 
-            var txRootHashList = crossChainBlockData.SideChainBlockData
+            var txRootHashList = crossChainBlockData.SideChainBlockDataList
                 .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
@@ -237,17 +237,7 @@ namespace AElf.CrossChain.Indexing.Application
                 : new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
                     .ToByteString();
         }
-
-        /// <summary>
-        /// This method returns cross chain data already used before.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <param name="previousBlockHeight"></param>
-        /// <returns></returns>
-//        public CrossChainBlockData GetUsedCrossChainBlockDataForLastMining(Hash blockHash, long previousBlockHeight)
-//        {
-//            return _indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash);
-//        }
+        
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
@@ -263,8 +253,8 @@ namespace AElf.CrossChain.Indexing.Application
             var crossChainBlockData = new CrossChainBlockData
             {
                 PreviousBlockHeight = blockHeight,
-                ParentChainBlockData = {parentChainBlockData},
-                SideChainBlockData = {sideChainBlockData}
+                ParentChainBlockDataList = {parentChainBlockData},
+                SideChainBlockDataList = {sideChainBlockData}
             };
 
             return crossChainBlockData;

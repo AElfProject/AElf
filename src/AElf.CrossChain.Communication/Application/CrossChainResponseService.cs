@@ -91,7 +91,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             var indexedSideChainBlockData =
                 await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.GetHash(), block.Height);
-            return indexedSideChainBlockData.SideChainBlockData.ToList();
+            return indexedSideChainBlockData.SideChainBlockDataList.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 

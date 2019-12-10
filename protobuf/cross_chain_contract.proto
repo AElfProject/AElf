@@ -73,10 +73,6 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-//message ParentChainBlockDataIndexed{
-//    option (aelf.is_event) = true;
-//}
-
 message CrossChainIndexingDataProposedEvent{
     option (aelf.is_event) = true;
     acs7.CrossChainBlockData proposed_cross_chain_data = 1;
@@ -87,10 +83,10 @@ message SideChainBlockDataIndexedEvent{
 }
 
 message CrossChainIndexingProposal{
-    bool indexing_proposal_feedback_needed = 1;
-    aelf.Hash proposal_id = 2;
-    aelf.Address proposer = 3;
-    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 3;
+    CrossChainIndexingProposalStatus status = 4;
 }
 
 message GetPendingCrossChainIndexingProposalOutput{
@@ -98,4 +94,11 @@ message GetPendingCrossChainIndexingProposalOutput{
     aelf.Address proposer = 2;
     bool to_be_released = 3;
     acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+}
+
+enum CrossChainIndexingProposalStatus{
+    NON_PROPOSED = 0;
+    PROPOSED = 1;
+    PENDING = 2;
+    TO_BE_RELEASED = 3;
 }

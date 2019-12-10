@@ -16,7 +16,7 @@ namespace AElf.Contracts.CrossChain
     public partial class CrossChainContract
     {
         private const string ConsensusExtraDataName = "Consensus";
-        
+
         /// <summary>
         /// Bind parent chain height together with self height.
         /// </summary>
@@ -41,7 +41,7 @@ namespace AElf.Contracts.CrossChain
         {
             return BinaryMerkleTree.FromLeafNodes(nodes).Root;
         }
-        
+
         /// <summary>
         /// Record merkle path of self chain block, which is from parent chain. 
         /// </summary>
@@ -55,7 +55,7 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, 
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest,
             SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
             TransferFrom(new TransferFromInput
@@ -66,7 +66,7 @@ namespace AElf.Contracts.CrossChain
                 Symbol = Context.Variables.NativeSymbol
             });
             State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
-            
+
             CreateSideChainToken(sideChainTokenInfo, chainId);
         }
 
@@ -84,11 +84,11 @@ namespace AElf.Contracts.CrossChain
                 });
             State.IndexingBalance[chainId] = 0;
         }
-        
+
         private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
         {
             Assert(
-                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
+                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol)
                 && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
                 "Invalid side chain token name,");
             Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
@@ -168,14 +168,14 @@ namespace AElf.Contracts.CrossChain
         {
             return State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
         }
-        
+
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
             var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
-                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionStatusMerkleTreeRoot));
+                indexedSideChainData.SideChainBlockDataList.Select(d => d.TransactionStatusMerkleTreeRoot));
         }
-        
+
         private Hash GetCousinChainMerkleTreeRoot(long parentChainHeight)
         {
             return State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
@@ -200,15 +200,16 @@ namespace AElf.Contracts.CrossChain
 
         private Address GetOwnerAddress()
         {
-            if (State.Owner.Value != null) 
+            if (State.Owner.Value != null)
                 return State.Owner.Value;
-            SetContractStateRequired(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;
         }
-        
+
         private void AssertOwnerAuthority(Address address)
         {
             var owner = GetOwnerAddress();
@@ -221,22 +222,47 @@ namespace AElf.Contracts.CrossChain
                 SmartContractConstants.ParliamentAuthContractSystemName);
             Assert(State.ParliamentAuthContract.Value == address, "Unauthorized behavior.");
         }
-        
+
         private void AssertAddressIsCurrentMiner(Address address)
         {
             SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(address).Value;
             Assert(isCurrentMiner, "No permission.");
         }
-        
 
-        private void AssertParentChainBlock(int parentChainId, long currentRecordedHeight, ParentChainBlockData parentChainBlockData)
+
+        private void AssertParentChainBlock(int parentChainId, long currentRecordedHeight,
+            ParentChainBlockData parentChainBlockData)
         {
             Assert(parentChainId == parentChainBlockData.ChainId, "Wrong parent chain id.");
             Assert(currentRecordedHeight + 1 == parentChainBlockData.Height,
                 $"Parent chain block info at height {currentRecordedHeight + 1} is needed, not {parentChainBlockData.Height}");
             Assert(parentChainBlockData.TransactionStatusMerkleTreeRoot != null,
                 "Parent chain transaction status merkle tree root needed.");
+        }
+
+        private void AssertIsCrossChainBlockDataToBeReleased(RecordCrossChainDataInput recordCrossChainDataInput)
+        {
+            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.ToBeReleased,
+                out var pendingCrossChainIndexingProposal);
+            Assert(
+                pendingProposalExists &&
+                pendingCrossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.ToBeReleased &&
+                pendingCrossChainIndexingProposal.ProposedCrossChainBlockData.Equals(recordCrossChainDataInput
+                    .ProposedCrossChainData) &&
+                pendingCrossChainIndexingProposal.Proposer == recordCrossChainDataInput.Proposer,
+                "Incorrect cross chain indexing proposal status.");
+            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
+        }
+
+        private void AssertIsCrossChainBlockDataAlreadyProposed(CrossChainIndexingProposal crossChainIndexingProposal)
+        {
+            Assert(
+                crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.Proposed &&
+                crossChainIndexingProposal.Proposer != null &&
+                crossChainIndexingProposal.ProposedCrossChainBlockData != null &&
+                crossChainIndexingProposal.ProposalId == null,
+                "Incorrect cross chain indexing proposal status.");
         }
 
         private int GetChainId(long serialNumber)
@@ -261,14 +287,14 @@ namespace AElf.Contracts.CrossChain
                 ToAddress = Context.Self,
                 ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId)
             });
-            
-            State.PendingCrossChainIndexingProposal.Value = new CrossChainIndexingProposal
+
+            var crossChainIndexingProposal = new CrossChainIndexingProposal
             {
-                IndexingProposalFeedbackNeeded = true,
                 Proposer = proposer,
                 ProposedCrossChainBlockData = crossChainBlockData
             };
-            
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Proposed);
+
             Context.Fire(new CrossChainIndexingDataProposedEvent
             {
                 ProposedCrossChainData = crossChainBlockData
@@ -282,23 +308,21 @@ namespace AElf.Contracts.CrossChain
             var proposal = State.ParliamentAuthContract.GetProposal.Call(proposalId);
             return proposal;
         }
-        
-        private void HandleIndexingProposal(Hash proposalId, Address proposer)
+
+        private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
             var proposal = GetProposal(proposalId);
             if (proposal.ToBeReleased)
-                State.ParliamentAuthContract.Release.Send(proposal.ProposalId); //release if ready
-            else if (proposal.ExpiredTime > Context.CurrentBlockTime)
-                return;
-            else
-                BanCrossChainIndexingFromAddress(proposer); // ban the proposer if expired
-
-            State.PendingCrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
-        }
-
-        private void BanCrossChainIndexingFromAddress(Address address)
-        {
-            State.BannedMinerHeight[address] = Context.CurrentHeight;
+            {
+                State.ParliamentAuthContract.Release.Send(proposal.ProposalId); // release if ready
+                SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
+                    CrossChainIndexingProposalStatus.ToBeReleased);
+            }
+            else if (proposal.ExpiredTime <= Context.CurrentBlockTime)
+            {
+                BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
+                ResetCrossChainIndexingProposal();
+            }
         }
         
         private void AssertValidCrossChainIndexingProposer(Address proposer)
@@ -315,17 +339,18 @@ namespace AElf.Contracts.CrossChain
         private void AssertValidCrossChainDataBeforeIndexing(CrossChainBlockData crossChainBlockData)
         {
             Assert(
-                crossChainBlockData.ParentChainBlockData.Count > 0 || crossChainBlockData.SideChainBlockData.Count > 0,
+                crossChainBlockData.ParentChainBlockDataList.Count > 0 ||
+                crossChainBlockData.SideChainBlockDataList.Count > 0,
                 "Empty cross chain data proposed.");
-            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockData)
-                   && ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockData),
+            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockDataList)
+                   && ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList),
                 "Invalid cross chain data to be indexed.");
         }
 
         private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData)
         {
             var groupResult = sideChainBlockData.GroupBy(data => data.ChainId, data => data);
-            
+
             foreach (var group in groupResult)
             {
                 var chainId = group.Key;
@@ -367,17 +392,34 @@ namespace AElf.Contracts.CrossChain
                     State.ChildHeightToParentChainHeight[indexedBlockInfo.Key] != 0 ||
                     State.TxRootMerklePathInParentChain[indexedBlockInfo.Key] != null))
                     return false;
-                
+
                 currentHeight += 1;
             }
 
             return true;
         }
 
-        private bool TryGetPendingProposal(out CrossChainIndexingProposal proposal)
+        private bool TryGetProposalWithStatus(CrossChainIndexingProposalStatus status, out CrossChainIndexingProposal proposal)
         {
-            proposal = State.PendingCrossChainIndexingProposal.Value;
-            return proposal != null && proposal.ProposalId != null;
+            proposal = State.CrossChainIndexingProposal.Value;
+            return proposal != null && proposal.Status == status;
+        }
+        
+        private void ResetCrossChainIndexingProposal()
+        {
+            // clear pending proposal
+            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
+        }
+        
+        private void SetCrossChainIndexingProposalStatus(CrossChainIndexingProposal crossChainIndexingProposal, CrossChainIndexingProposalStatus status)
+        {
+            crossChainIndexingProposal.Status = status;
+            State.CrossChainIndexingProposal.Value = crossChainIndexingProposal;
+        }
+
+        private void BanCrossChainIndexingFromAddress(Address address)
+        {
+            State.BannedMinerHeight[address] = Context.CurrentHeight;
         }
     }
 }

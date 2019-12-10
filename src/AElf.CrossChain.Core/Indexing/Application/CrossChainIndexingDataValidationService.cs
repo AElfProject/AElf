@@ -28,12 +28,12 @@ namespace AElf.CrossChain.Indexing.Application
             Hash blockHash, long blockHeight)
         {
             var sideChainBlockDataValidationResult =
-                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockData, blockHash, blockHeight);
+                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockDataList, blockHash, blockHeight);
             if (!sideChainBlockDataValidationResult)
                 return false;
 
             var parentChainBlockDataValidationResult =
-                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockData, blockHash, blockHeight);
+                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockDataList, blockHash, blockHeight);
             
             return parentChainBlockDataValidationResult;
         }

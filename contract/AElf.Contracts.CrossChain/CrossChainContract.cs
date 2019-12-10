@@ -19,6 +19,7 @@ namespace AElf.Contracts.CrossChain
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
 
+            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
             return new Empty();
         }
 
@@ -135,66 +136,80 @@ namespace AElf.Contracts.CrossChain
 
         #region Cross chain actions
 
+        /// <summary>
+        /// Propose cross chain block data to be indexed and create a proposal.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
             AssertValidCrossChainIndexingProposer(Context.Sender);
-            var pendingProposalExists = TryGetPendingProposal(out var pendingCrossChainIndexingProposal);
-            Assert(!pendingProposalExists, "Cross chain indexing pending proposal already exists.");
+            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.NonProposed, out _);
+            Assert(pendingProposalExists, "Cross chain indexing pending proposal already exists.");
 
             AssertValidCrossChainDataBeforeIndexing(input);
             ProposeCrossChainBlockData(input, Context.Sender);
             return new Empty();
         }
-
-        public override Empty ReleaseCrossChainIndexing(Hash input)
-        {
-            AssertValidCrossChainIndexingProposer(Context.Sender);
-            var pendingProposalExists = TryGetPendingProposal(out var pendingCrossChainIndexingProposal);
-            Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
-                "Cross chain indexing pending proposal not found.");
-            HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId,
-                pendingCrossChainIndexingProposal.Proposer);
-            return new Empty();
-        }
-
+        
+        /// <summary>
+        /// Feed back from proposal creation as callback to register proposal Id.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
         {
             AssertAddressIsParliamentContract(Context.Sender);
             AssertAddressIsCurrentMiner(Context.Origin);
-            var pendingCrossChainIndexingProposal = State.PendingCrossChainIndexingProposal.Value;
-            Assert(
-                pendingCrossChainIndexingProposal != null &&
-                pendingCrossChainIndexingProposal.IndexingProposalFeedbackNeeded,
-                "Incorrect proposal feedback.");
-            pendingCrossChainIndexingProposal.IndexingProposalFeedbackNeeded = false;
-            pendingCrossChainIndexingProposal.ProposalId = input;
-            State.PendingCrossChainIndexingProposal.Value = pendingCrossChainIndexingProposal;
+            
+            var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
+            AssertIsCrossChainBlockDataAlreadyProposed(crossChainIndexingProposal);
+            crossChainIndexingProposal.ProposalId = input;
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
             return new Empty();
         }
 
-        public override Empty RecordCrossChainData(RecordCrossChainDataInput recordCrossChainDataInput)
+        /// <summary>
+        /// Release cross chain block data proposed before and trigger the proposal to release.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty ReleaseCrossChainIndexing(Hash input)
+        {
+            AssertValidCrossChainIndexingProposer(Context.Sender);
+            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
+                out var pendingCrossChainIndexingProposal);
+            Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
+                "Cross chain indexing pending proposal not found.");
+            HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId, pendingCrossChainIndexingProposal);
+            return new Empty();
+        }
+
+        public override Empty RecordCrossChainData(RecordCrossChainDataInput input)
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
-
             AssertOwnerAuthority(Context.Sender);
+            AssertIsCrossChainBlockDataToBeReleased(input);
+            
             var indexedParentChainBlockData =
-                IndexParentChainBlockData(recordCrossChainDataInput.ProposedCrossChainData.ParentChainBlockData);
+                IndexParentChainBlockData(input.ProposedCrossChainData.ParentChainBlockDataList);
 
-            if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
+            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
             {
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-//                Context.Fire(new ParentChainBlockDataIndexed());
             }
 
             var indexedSideChainBlockData = IndexSideChainBlockData(
-                recordCrossChainDataInput.ProposedCrossChainData.SideChainBlockData,
-                recordCrossChainDataInput.Proposer);
+                input.ProposedCrossChainData.SideChainBlockDataList,
+                input.Proposer);
 
-            if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
+            if (indexedSideChainBlockData.SideChainBlockDataList.Count > 0)
             {
                 State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
                 Context.Fire(new SideChainBlockDataIndexedEvent());
             }
+            
+            ResetCrossChainIndexingProposal();
 
             Context.LogDebug(() => "Finished RecordCrossChainData.");
 
@@ -238,7 +253,7 @@ namespace AElf.Contracts.CrossChain
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
                         blockInfo.CrossChainExtraData.TransactionStatusMerkleTreeRoot;
 
-                indexedParentChainBlockData.ParentChainBlockData.Add(blockInfo);
+                indexedParentChainBlockData.ParentChainBlockDataList.Add(blockInfo);
                 currentHeight += 1;
             }
 
@@ -297,7 +312,7 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 State.CurrentSideChainHeight[chainId] = sideChainHeight;
-                indexedSideChainBlockData.SideChainBlockData.Add(blockInfo);
+                indexedSideChainBlockData.SideChainBlockDataList.Add(blockInfo);
             }
 
             return indexedSideChainBlockData;

@@ -42,8 +42,7 @@ namespace AElf.CrossChain.Indexing.Application
             var crossChainIndexingDataProposedEvent = new CrossChainIndexingDataProposedEvent();
             crossChainIndexingDataProposedEvent.MergeFrom(logEvent);
             var crossChainBlockData = crossChainIndexingDataProposedEvent.ProposedCrossChainData;
-            if (crossChainBlockData.ParentChainBlockData.Count == 0 &&
-                crossChainBlockData.SideChainBlockData.Count == 0)
+            if (crossChainBlockData.IsNullOrEmpty())
                 return;
             var validationResult =
                 await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingData(crossChainBlockData,
