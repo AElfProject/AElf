@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
 using Mono.Cecil;
@@ -28,6 +29,7 @@ namespace AElf.CSharp.CodeOps.Policies
             WhitelistOthers();
 
             UseMethodValidators();
+            UseModuleValidators();
         }
 
         private void WhitelistAssemblies()
@@ -140,6 +142,15 @@ namespace AElf.CSharp.CodeOps.Policies
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
+            });
+        }
+
+        private void UseModuleValidators()
+        {
+            ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
+            {
+                new ObserverProxyValidator(), 
+                //new RecursiveCallValidator(), 
             });
         }
     }
