@@ -74,24 +74,6 @@ namespace AElf.WebApp.Application.Chain
                 return output;
             }
 
-            if (transactionResult.Status != TransactionResultStatus.Pending)
-            {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block.GetHash().ToHex();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                output.ReturnValue = transactionResult.ReturnValue.ToHex();
-                var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-            {
-                output.Error = transactionResult.Error;
-            }
-
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
                 _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
@@ -106,6 +88,25 @@ namespace AElf.WebApp.Application.Chain
                 }
 
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Pending)
+            {
+                return output;
+            }
+            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+            output.BlockHash = block.GetHash().ToHex();
+
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                output.ReturnValue = transactionResult.ReturnValue.ToHex();
+                var bloom = transactionResult.Bloom;
+                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+            {
+                output.Error = transactionResult.Error;
             }
 
             output.TransactionFee = transactionResult.TransactionFee == null
