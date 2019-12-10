@@ -69,9 +69,17 @@ service TokenContract {
     }
     rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
-    rpc UpdateCalculateFeeAlgorithmParameters (CalculateFeeCoefficient) returns (google.protobuf.Empty) {
+    rpc UpdateLinerAlgorithmForDeveloper (LinerCoefficientForDeveloper) returns (google.protobuf.Empty) {
     }
-    rpc SetCalculateFeeAlgorithmParameters (CalculateFeeCoefficientsOfType) returns (google.protobuf.Empty) {
+    rpc UpdatePowerAlgorithmForDeveloper (PowerCoefficientForDeveloper) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateLinerAlgorithmForUser (LinerCoefficientForUser) returns (google.protobuf.Empty) {
+    }
+    rpc UpdatePowerAlgorithmForUser (PowerCoefficientForUser) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeFeePieceKeyForDeveloper (PieceKeyOperationForDeveloper) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeFeePieceKeyForUser (PieceKeyOperationForUser) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -110,7 +118,10 @@ service TokenContract {
     rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeCoefficientByType (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
+    rpc GetCalculateFeeCoefficientOfDeveloper (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCalculateFeeCoefficientOfUser (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
 }
@@ -411,44 +422,83 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message CalculateFeeCoefficient {
-    CalculateFunctionTypeEnum function_type = 1;
-    sint32 piece_key = 2;
-    AlgorithmOpCodeEnum operation_type = 3;
-    FeeTypeEnum fee_type = 4;
-    map<string, string> coefficient_dic = 5;
-}
+
 
 message CalculateFeeCoefficientsOfType{
     repeated CalculateFeeCoefficient coefficients= 1;
 }
 
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, string> coefficient_dic = 4;
+}
+
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-    CalculateFeeCoefficientsOfType coefficient_list = 1;
+   // AlgorithmOpCode op_code = 1;
+    CalculateFeeCoefficient coefficient = 1;
     aelf.Hash pre_block_hash = 2;
     sint64 block_height = 3;
+    sint32 new_piece_key = 4;
 }
 
-enum FeeTypeEnum{
-    Tx = 0;
-    Cpu = 1;
-    Sto = 2;
-    Ram = 3;
-    Net = 4;
+message LinerCoefficientForUser {
+    sint32 piece_key = 1;
+    sint32 numerator = 2;
+    sint32 denominator = 3;
+    sint32 constant_value = 4;
 }
 
-enum CalculateFunctionTypeEnum{
-    Default = 0;
-    Constant = 1;
-    Liner = 2;
-    Power = 3;
-    Ln = 4;
-    Bancor = 5;
+message PowerCoefficientForUser {
+    sint32 piece_key = 1;
+    sint32 change_span_base = 2;
+    sint32 weight = 3;
+    sint32 weight_base = 4;
+    sint32 numerator = 5;
+    sint32 denominator = 6;
 }
 
-enum AlgorithmOpCodeEnum{
-    AddFunc = 0;
-    DeleteFunc = 1;
-    UpdateFunc = 2;
+message LinerCoefficientForDeveloper {
+    FeeTypeEnum fee_type = 1;
+    LinerCoefficientForUser coefficient = 2;
+}
+
+message PowerCoefficientForDeveloper {
+    FeeTypeEnum fee_type = 1;
+    PowerCoefficientForUser coefficient = 2;
+}
+
+message PieceKeyOperationForUser {
+    sint32 old_key = 1;
+    sint32 new_key = 2;
+}
+
+message PieceKeyOperationForDeveloper {
+    FeeTypeEnum fee_type = 1;
+    sint32 old_key = 2;
+    sint32 new_key = 3;
+}
+
+enum FeeTypeEnum {
+    Cpu = 0;
+    Sto = 1;
+    Ram = 2;
+    Net = 3;
+    Tx = 4;
+}
+
+enum CalculateFunctionTypeEnum {
+    Liner = 0;
+    Power = 1;
+    Constant = 2;
+    Ln = 3;
+    Bancor = 4;
+}
+
+enum AlgorithmOpCode {
+    Add = 0;
+    Update = 1;
 }

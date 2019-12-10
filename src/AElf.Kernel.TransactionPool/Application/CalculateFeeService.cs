@@ -7,56 +7,43 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    class CalculateFeeService : ICalculateFeeService
-    {
-        private ILogger<CalculateFeeService> Logger { get; set; }
-
-        public CalculateFeeService()
-        {
-            Logger =  NullLogger<CalculateFeeService>.Instance;
-        }
-        public ICalculateCostStrategy CalculateCostStrategy { get; set; }
-
-        public async Task<long> CalculateFee(IChainContext chainContext, int cost)
-        {
-            if (CalculateCostStrategy != null)
-                return await CalculateCostStrategy.GetCost(chainContext, cost);
-            Logger.LogError("does not find CalculateCostStrategy}");
-            return 20000000L;
-        }
-
-        #region temporary dealt
-
-        public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            int funcTypeEnum,
-            IDictionary<string, string> param)
-        {
-            if (CalculateCostStrategy != null)
-                await CalculateCostStrategy.ModifyAlgorithm(chainContext, blockIndex, (int)AlgorithmOpCodeEnum.UpdateFunc, pieceKey,
-                    funcTypeEnum, param);
-        }
-
-        public async Task DeleteFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey)
-        {
-            if (CalculateCostStrategy != null)
-                await CalculateCostStrategy.ModifyAlgorithm(chainContext, blockIndex, (int)AlgorithmOpCodeEnum.DeleteFunc, pieceKey);
-        }
-
-        public async Task AddFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            int funcTypeEnum,
-            IDictionary<string, string> param)
-        {
-            if (CalculateCostStrategy != null)
-                await CalculateCostStrategy.ModifyAlgorithm(chainContext, blockIndex, (int)AlgorithmOpCodeEnum.AddFunc, pieceKey, funcTypeEnum,
-                    param);
-        }
-        #endregion
-    }
+//    class CalculateFeeService : ICalculateFeeService
+//    {
+//        private ILogger<CalculateFeeService> Logger { get; set; }
+//
+//        public CalculateFeeService()
+//        {
+//            Logger =  NullLogger<CalculateFeeService>.Instance;
+//        }
+//        public ICalculateCostStrategy CalculateCostStrategy { get; set; }
+//
+//        public async Task<long> CalculateFee(IChainContext chainContext, int cost)
+//        {
+//            if (CalculateCostStrategy != null)
+//                return await CalculateCostStrategy.GetCost(chainContext, cost);
+//            Logger.LogError("does not find CalculateCostStrategy}");
+//            return 20000000L;
+//        }
+//
+//        public async Task UpdateFeeCal(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+//            IDictionary<string, string> param)
+//        {
+//            if (CalculateCostStrategy != null)
+//                await CalculateCostStrategy.ModifyAlgorithm(chainContext, blockIndex,pieceKey, param);
+//        }
+//
+//        public async Task ModifyPieceKey(IChainContext chainContext, BlockIndex blockIndex, int oldPieceKey, int newPieceKey)
+//        {
+//            if (CalculateCostStrategy != null)
+//                await CalculateCostStrategy.ChangeAlgorithmPieceKey(chainContext, blockIndex,oldPieceKey, newPieceKey);
+//        }
+//    }
 
     #region ICalculateAlgorithm implemention
 
@@ -139,25 +126,7 @@ namespace AElf.Kernel.TransactionPool.Application
             return totalCost;
         }
 
-        public async Task Delete(int pieceKey)
-        {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
-            if (pieceWiseFunc == null)
-            {
-                Logger.LogWarning("does not find piecewise function in add");
-                return;
-            }
-            pieceWiseFunc = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-            if (!pieceWiseFunc.ContainsKey(pieceKey))
-            {
-                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
-                return;
-            }
-            pieceWiseFunc.Remove(pieceKey);
-            SetAlgorithm(pieceWiseFunc);
-        }
-
-        public async Task Update(int pieceKey, int funcTypeEnum, IDictionary<string, string> parameters)
+        public async Task Update(int pieceKey, IDictionary<string, string> parameters)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (pieceWiseFunc == null)
@@ -171,67 +140,81 @@ namespace AElf.Kernel.TransactionPool.Application
                 Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
                 return;
             }
-
-            if (funcTypeEnum == (int)CalculateFunctionTypeEnum.Default || !System.Enum.IsDefined(typeof(CalculateFunctionTypeEnum), funcTypeEnum))
+            parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+            if (CalculateAlgorithmContext.BlockIndex != null)
             {
-                Logger.LogWarning($"does not find mapped function type : {funcTypeEnum}");
-                funcTypeEnum = pieceWiseFunc[pieceKey].FunctionTypeEnum;
+                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
+                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
             }
-            AddPieceFunction(pieceKey, pieceWiseFunc, (CalculateFunctionTypeEnum)funcTypeEnum, parameters);
+            else
+            {
+                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
+            }
         }
 
-        public async Task AddByParam(int pieceKey, int funcTypeEnum,
-            IDictionary<string, string> parameters)
+        public async Task ChangePieceKey(int oldPieceKey, int newPieceKey)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (pieceWiseFunc == null)
             {
-                Logger.LogWarning("does not find piecewise function in add");
+                Logger.LogWarning("does not find piecewise function in update");
                 return;
             }
 
-            if (pieceWiseFunc.ContainsKey(pieceKey) || pieceKey <= 0)
+            if (!pieceWiseFunc.ContainsKey(oldPieceKey))
             {
-                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function or piece key equals less than 0");
+                Logger.LogWarning($"does not find piece key: {oldPieceKey} in piecewise function");
                 return;
             }
-                
-            AddPieceFunction(pieceKey, pieceWiseFunc, (CalculateFunctionTypeEnum)funcTypeEnum, parameters);
+            if (pieceWiseFunc.ContainsKey(newPieceKey))
+            {
+                Logger.LogWarning($"piece key {newPieceKey}  has been defined");
+                return;
+            }
+            if (CalculateAlgorithmContext.BlockIndex != null)
+            {
+                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
+                var temp = _forkCache[CalculateAlgorithmContext.BlockIndex][oldPieceKey];
+                _forkCache[CalculateAlgorithmContext.BlockIndex].Remove(oldPieceKey);
+                _forkCache[CalculateAlgorithmContext.BlockIndex][newPieceKey] = temp;
+            }
+            else
+            {
+                var temp = _pieceWiseFuncCache[oldPieceKey];
+                _pieceWiseFuncCache.Remove(oldPieceKey);
+                _pieceWiseFuncCache[newPieceKey] = temp;
+            }
         }
 
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, string> parameters)
         {
-            var newCalculateWay = funcTypeEnum switch
+            ICalculateWay newCalculateWay = null;
+            switch (funcTypeEnum)
             {
-                CalculateFunctionTypeEnum.Constant => (ICalculateWay) new ConstCalculateWay(),
-                CalculateFunctionTypeEnum.Liner => new LinerCalculateWay(),
-                CalculateFunctionTypeEnum.Power => new PowerCalculateWay(),
-                CalculateFunctionTypeEnum.Ln => new LnCalculateWay(),
-                _ => null
-            };
+                case CalculateFunctionTypeEnum.Liner:
+                    newCalculateWay = new LinerCalculateWay();
+                    break; 
+                case CalculateFunctionTypeEnum.Power:
+                    newCalculateWay = new PowerCalculateWay();
+                    break;
+            }
             if (newCalculateWay == null)
             {
                 Logger.LogWarning($"could not find mapped function type {funcTypeEnum}");
                 return;
             }
-                
-            parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-            if (!newCalculateWay.InitParameter(parameters))
-            {
-                Logger.LogWarning("illegal parameters");
-                return;
-            }
-            
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey] = newCalculateWay;
+                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
             }
             else
             {
                 _pieceWiseFuncCache[pieceKey] = newCalculateWay;
+                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
             }
         }
 
@@ -260,7 +243,6 @@ namespace AElf.Kernel.TransactionPool.Application
             } while (blockIndex.BlockHash != null && blockIndex.BlockHeight >= minHeight);
 
             return algorithm ?? await GetDefaultPieceWiseFunction();
-            //Logger.LogTrace($"Get tx size fee unit price: {unitPrice.Value}");
         }
 
         private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunction()
@@ -278,9 +260,16 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight
             });
 
-            var parameters =
-                await tokenStub.GetCalculateFeeCoefficientByType.CallAsync(new SInt32Value
-                    {Value = (int) CalculateAlgorithmContext.CalculateFeeTypeEnum});
+            CalculateFeeCoefficientsOfType parameters;
+            if (CalculateAlgorithmContext.CalculateFeeTypeEnum == (int) FeeTypeEnum.Tx)
+            {
+                parameters = await tokenStub.GetCalculateFeeCoefficientOfUser.CallAsync(new Empty());
+            }
+            else
+            {
+                parameters = await tokenStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+                    {Value = CalculateAlgorithmContext.CalculateFeeTypeEnum});
+            }
             if (parameters == null)
             {
                 Logger.LogWarning("does not find parameter from contract, initialize default ");
@@ -297,41 +286,6 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             return _pieceWiseFuncCache;
-        }
-        private void SetAlgorithm(Dictionary<int, ICalculateWay> calAlgorithm)
-        {
-            if (CalculateAlgorithmContext.BlockIndex == null)
-            {
-                _pieceWiseFuncCache = calAlgorithm;
-                return;
-            }
-               
-            _forkCache[CalculateAlgorithmContext.BlockIndex] = calAlgorithm;
-        }
-
-        private CalculateFeeCoefficientsOfType TransferFromParaDic(IDictionary<int, ICalculateWay> calAlgorithmDic)
-        {
-            if (calAlgorithmDic == null)
-                return null;
-            var allCalculateFeeParameter = new CalculateFeeCoefficientsOfType();
-            foreach (var calAlgorithm in calAlgorithmDic)
-            {
-                var parameterStrDic = calAlgorithm.Value.GetParameterDic();
-                var parameter = new CalculateFeeCoefficient
-                {
-                    FeeType =  (FeeTypeEnum)CalculateAlgorithmContext.CalculateFeeTypeEnum,
-                    PieceKey = calAlgorithm.Key,
-                    FunctionType = (CalculateFunctionTypeEnum)calAlgorithm.Value.FunctionTypeEnum
-                };
-                foreach (var parameterPair in parameterStrDic)
-                {
-                    parameter.CoefficientDic[parameterPair.Key] = parameterPair.Value;
-                }
-
-                allCalculateFeeParameter.Coefficients.Add(parameter);
-            }
-
-            return allCalculateFeeParameter;
         }
     }
 

@@ -9,7 +9,7 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     #region concrete strategys
 
-    abstract class CalculateCostStrategyBase : ICalculateCostStrategy
+    abstract class CalculateCostStrategyBase
     {
         protected ICalculateAlgorithm CalculateAlgorithm { get; set; }
 
@@ -19,29 +19,19 @@ namespace AElf.Kernel.TransactionPool.Application
             return await CalculateAlgorithm.Calculate(cost);
         }
 
-        public async Task ModifyAlgorithm(IChainContext chainContext, BlockIndex blockIndex, int opCode,
-            int pieceKey,
-            int funcType,
+        public async Task ModifyAlgorithm(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
             IDictionary<string, string> param)
         {
-            var opCodeEnum = (AlgorithmOpCodeEnum) opCode;
-            var funcTypeEnum = (CalculateFunctionTypeEnum) funcType;
             CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            switch (opCodeEnum)
-            {
-                case AlgorithmOpCodeEnum.AddFunc:
-                    await CalculateAlgorithm.AddByParam(pieceKey, funcType, param);
-                    break;
-                case AlgorithmOpCodeEnum.DeleteFunc:
-                    await CalculateAlgorithm.Delete(pieceKey);
-                    break;
-                case AlgorithmOpCodeEnum.UpdateFunc:
-                    await CalculateAlgorithm.Update(pieceKey, funcType, param);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(opCodeEnum), opCodeEnum, null);
-            }
+            await CalculateAlgorithm.Update(pieceKey, param);
+        }
+
+        public async Task ChangeAlgorithmPieceKey(IChainContext chainContext, BlockIndex blockIndex, int oldPieceKey, int newPieceKey)
+        {
+            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
+            CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
+            await CalculateAlgorithm.ChangePieceKey(oldPieceKey, newPieceKey);
         }
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
@@ -55,7 +45,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class CpuCalculateCostStrategy : CalculateCostStrategyBase
+    class CpuCalculateCostStrategy : CalculateCostStrategyBase, ICalculateCpuCostStrategy
     {
         public CpuCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -86,7 +76,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class StoCalculateCostStrategy : CalculateCostStrategyBase
+    class StoCalculateCostStrategy : CalculateCostStrategyBase, ICalculateStoCostStrategy
     {
         public StoCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -113,7 +103,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class RamCalculateCostStrategy : CalculateCostStrategyBase
+    class RamCalculateCostStrategy : CalculateCostStrategyBase, ICalculateRamCostStrategy
     {
         public RamCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -143,7 +133,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class NetCalculateCostStrategy : CalculateCostStrategyBase
+    class NetCalculateCostStrategy : CalculateCostStrategyBase, ICalculateNetCostStrategy
     {
         public NetCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -170,7 +160,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class TxCalculateCostStrategy : CalculateCostStrategyBase
+    class TxCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
     {
         public TxCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,

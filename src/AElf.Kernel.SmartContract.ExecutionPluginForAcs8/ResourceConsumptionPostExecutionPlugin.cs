@@ -15,17 +15,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ICalculateFeeService _calService;
-        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
+        private readonly ICalculateCpuCostStrategy _cpuCostStrategy;
+        private readonly ICalculateRamCostStrategy _ramCostStrategy;
+        private readonly ICalculateNetCostStrategy _netCostStrategy;
+        private readonly ICalculateStoCostStrategy _stoCostStrategy;
+        
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            ICalculateFeeService calService,
-            ICalculateStrategyProvider calculateStrategyProvider)
+            ICalculateCpuCostStrategy cpuCostStrategy,
+            ICalculateRamCostStrategy ramCostStrategy,
+            ICalculateStoCostStrategy stoCostStrategy,
+            ICalculateNetCostStrategy netCostStrategy)
         {
             _contextService = contextService;
-            _calService = calService;
-            _calculateStrategyProvider = calculateStrategyProvider;
+            _cpuCostStrategy = cpuCostStrategy;
+            _ramCostStrategy = ramCostStrategy;
+            _stoCostStrategy = stoCostStrategy;
+            _netCostStrategy = netCostStrategy;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -83,14 +90,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-            _calService.CalculateCostStrategy = _calculateStrategyProvider.GetNetCalculateStrategy();
-            var netCost = await _calService.CalculateFee(chainContext, netSize);
-            _calService.CalculateCostStrategy = _calculateStrategyProvider.GetCpuCalculateStrategy();
-            var cpuCost = await _calService.CalculateFee(chainContext, readsCount);
-            _calService.CalculateCostStrategy = _calculateStrategyProvider.GetStoCalculateStrategy();
-            var stoCost = await _calService.CalculateFee(chainContext, netSize);
-            _calService.CalculateCostStrategy = _calculateStrategyProvider.GetRamCalculateStrategy();
-            var ramCost = await _calService.CalculateFee(chainContext, writesCount);
+            var netCost = await _netCostStrategy.GetCost(chainContext, netSize);
+            var cpuCost = await _cpuCostStrategy.GetCost(chainContext, readsCount);
+            var stoCost = await _stoCostStrategy.GetCost(chainContext, netSize);
+            var ramCost = await _ramCostStrategy.GetCost(chainContext, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {

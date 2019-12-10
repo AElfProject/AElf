@@ -14,8 +14,11 @@ namespace AElf.Kernel.TransactionPool.Application
     public class TransactionFeeCalculatorCoefficientUpdatedEventHandle : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ICalculateFeeService _calculateFeeService;
-        private readonly ICalculateStrategyProvider _calculateStrategyProvider;
+        private readonly ICalculateTxCostStrategy _txCostStrategy;
+        private readonly ICalculateCpuCostStrategy _cpuCostStrategy;
+        private readonly ICalculateRamCostStrategy _ramCostStrategy;
+        private readonly ICalculateNetCostStrategy _netCostStrategy;
+        private readonly ICalculateStoCostStrategy _stoCostStrategy;
 
         private LogEvent _interestedEvent;
 
@@ -39,13 +42,18 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedEventHandle(
             ISmartContractAddressService smartContractAddressService,
-            ICalculateFeeService calculateFeeService,
-            ICalculateStrategyProvider calculateStrategyProvider)
+            ICalculateTxCostStrategy txCostStrategy,
+            ICalculateCpuCostStrategy cpuCostStrategy,
+            ICalculateRamCostStrategy ramCostStrategy,
+            ICalculateStoCostStrategy stoCostStrategy,
+            ICalculateNetCostStrategy netCostStrategy)
         {
             _smartContractAddressService = smartContractAddressService;
-            _calculateFeeService = calculateFeeService;
-            _calculateStrategyProvider = calculateStrategyProvider;
-
+            _txCostStrategy = txCostStrategy;
+            _cpuCostStrategy = cpuCostStrategy;
+            _ramCostStrategy = ramCostStrategy;
+            _stoCostStrategy = stoCostStrategy;
+            _netCostStrategy = netCostStrategy;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
 
@@ -63,40 +71,37 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = eventData.PreBlockHash,
                 BlockHeight = eventData.BlockHeight
             };
-            foreach (var param in eventData.CoefficientList.Coefficients)
+            ICalculateCostStrategy selectedStrategy = null;
+            switch (eventData.Coefficient.FeeType)
             {
-                await HandleEachOne(blockIndex, chainContext, param);
+                case FeeTypeEnum.Tx:
+                    selectedStrategy = _txCostStrategy;
+                    break;
+                case FeeTypeEnum.Cpu:
+                    selectedStrategy = _cpuCostStrategy;
+                    break;
+                case FeeTypeEnum.Ram:
+                    selectedStrategy = _ramCostStrategy;
+                    break;
+                case FeeTypeEnum.Sto:
+                    selectedStrategy = _stoCostStrategy;
+                    break;
+                case FeeTypeEnum.Net:
+                    selectedStrategy = _netCostStrategy;
+                    break;
             }
-           
-        }
 
-        private async Task HandleEachOne(BlockIndex blockIndex, IChainContext chainContext, CalculateFeeCoefficient param)
-        {
-            var feeType = param.FeeType;
-            var pieceKey = param.PieceKey;
-            var funcType = param.FunctionType;
-            var paramDic = param.CoefficientDic;
-            var opCode = param.OperationType;
-            _calculateFeeService.CalculateCostStrategy =
-                _calculateStrategyProvider.GetCalculateStrategyByFeeType((int)feeType);
-            if(_calculateFeeService.CalculateCostStrategy == null)
+            if (selectedStrategy == null)
                 return;
-            switch (opCode)
+            if(eventData.NewPieceKey > 0)
+                await selectedStrategy.ChangeAlgorithmPieceKey(chainContext, blockIndex, eventData.Coefficient.PieceKey,eventData.NewPieceKey);
+            else
             {
-                case AlgorithmOpCodeEnum.AddFunc:
-                    await _calculateFeeService.AddFeeCal(chainContext, blockIndex, pieceKey,
-                        (int)funcType, paramDic);
-                    break;
-                case AlgorithmOpCodeEnum.DeleteFunc:
-                    await _calculateFeeService.DeleteFeeCal(chainContext, blockIndex, pieceKey);
-                    break;
-                case AlgorithmOpCodeEnum.UpdateFunc:
-                    await _calculateFeeService.UpdateFeeCal(chainContext, blockIndex, pieceKey,
-                        (int)funcType, paramDic);
-                    break;
-                default:
-                    Logger.LogWarning($"does not find operation code {opCode}");
-                    break;
+                var param = eventData.Coefficient;
+                var pieceKey = param.PieceKey;
+                var paramDic = param.CoefficientDic;
+                await selectedStrategy.ModifyAlgorithm(chainContext, blockIndex, pieceKey, paramDic);
+                
             }
         }
     }

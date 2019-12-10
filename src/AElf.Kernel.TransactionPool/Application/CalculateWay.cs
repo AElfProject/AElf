@@ -16,7 +16,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long Precision { get; set; } = 100000000L;
         public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Ln;
 
-        public bool InitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, string> param)
         {
             param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBaseStr);
             int.TryParse(changeSpanBaseStr, out var changeSpanBase);
@@ -64,8 +64,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class PowerCalculateWay : ICalculateWay
     {
-        public double Power { get; set; }
-        public int ChangeSpanBase { get; set; }
+        public double Power { get; set; } = 2;
+        public int ChangeSpanBase { get; set; } = 1;
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
@@ -73,7 +73,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Denominator { get; set; } = 1;
         public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Power;
 
-        public bool InitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, string> param)
         {
             param.TryGetValue(nameof(Power).ToLower(), out var powerStr);
             double.TryParse(powerStr, out var power);
@@ -139,7 +139,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public int ConstantValue { get; set; }
         public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Constant;
 
-        public bool InitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, string> param)
         {
             param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
             int.TryParse(constantValueStr, out var constantValue);
@@ -176,7 +176,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long Precision { get; set; } = 100000000L;
         public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Liner;
 
-        public bool InitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, string> param)
         {
             param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr);
             int.TryParse(numeratorStr, out var numerator);
@@ -226,7 +226,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public long Precision { get; set; } = 100000000L;
         public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Bancor;
 
-        public bool InitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, string> param)
         {
             throw new NotImplementedException();
         }

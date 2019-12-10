@@ -68,11 +68,9 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var calculateFeeService = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
-            var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
-            calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
+            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            var txFee = await calculateFeeService.CalculateFee(null, transactionSize);
+            var txFee = await txCostStrategy.GetCost(null, transactionSize);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + txFee);   //according to the way to calculate
 
            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
@@ -123,11 +121,9 @@ namespace AElf.Contract.TestContract
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var txTxSize = transactionResult.Transaction.Size();
-            var calculateFeeService = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
-            var calculateStrategyProvider = Application.ServiceProvider.GetRequiredService<ICalculateStrategyProvider>();
-            calculateFeeService.CalculateCostStrategy = calculateStrategyProvider.GetTxCalculateStrategy();
+            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            var sizeFee = await calculateFeeService.CalculateFee(null, txTxSize);
+            var sizeFee = await txCostStrategy.GetCost(null, txTxSize);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + sizeFee);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);

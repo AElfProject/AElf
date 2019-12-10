@@ -26,7 +26,12 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();
-            services.AddTransient<ICalculateFeeService, CalculateFeeService>();
+            services.AddSingleton<ICalculateStoCostStrategy, StoCalculateCostStrategy>();
+            services.AddSingleton<ICalculateCpuCostStrategy, CpuCalculateCostStrategy>();
+            services.AddSingleton<ICalculateNetCostStrategy, NetCalculateCostStrategy>();
+            services.AddSingleton<ICalculateRamCostStrategy, RamCalculateCostStrategy>();
+            services.AddSingleton<ICalculateTxCostStrategy, TxCalculateCostStrategy>();
+            //services.AddTransient<ICalculateFeeService, CalculateFeeService>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }

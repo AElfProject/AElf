@@ -105,12 +105,16 @@ namespace AElf.Contracts.MultiToken
         {
             return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
         }
-
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientByType(SInt32Value input)
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfDeveloper(SInt32Value input)
         {
             IntialParameters();
             
-            return State.CalculateCoefficient[(FeeTypeEnum)input.Value];
+            return State.CalculateCoefficientForDev[(FeeTypeEnum)input.Value];
+        }
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfUser(Empty input)
+        {
+            IntialParameters();
+            return State.CalculateCoefficientForUser;
         }
         private CalculateFeeCoefficientsOfType GetCpuFeeParameter()
         {
