@@ -67,9 +67,16 @@ namespace AElf.WebApp.Application.Chain
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
                 output.ReturnValue = transactionResult.ReturnValue.ToHex();
                 var bloom = transactionResult.Bloom;
@@ -78,15 +85,8 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
             {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
                 output.Error = transactionResult.Error;
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.NotExisted)
-            {
-                output.Status = transactionResult.Status.ToString();
-                return output;
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
