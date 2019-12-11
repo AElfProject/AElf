@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Token;
 using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
@@ -15,6 +16,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public bool Validate(Transaction transaction)
         {
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            if (transaction.To != tokenContractAddress || transaction.MethodName != "TransferFrom") return true;
             return new List<Address>
             {
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name),

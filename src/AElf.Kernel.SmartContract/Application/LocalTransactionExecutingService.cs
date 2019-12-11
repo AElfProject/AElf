@@ -259,7 +259,8 @@ namespace AElf.Kernel.SmartContract.Application
                     Origin = txContext.Origin
                 };
 
-                if (!_inlineTransactionValidationService.Validate(txContext.Transaction))
+                // Only system contract can send TransferFrom tx as inline tx.
+                if (!_inlineTransactionValidationService.Validate(inlineTx))
                     break;
 
                 var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);

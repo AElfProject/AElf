@@ -15,6 +15,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         public bool Validate(Transaction transaction)
         {
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            if (transaction.To != tokenContractAddress || transaction.MethodName != "TransferFrom") return true;
             return new List<Address>
             {
                 _smartContractAddressService.GetAddressByContractName(VoteSmartContractAddressNameProvider.Name),

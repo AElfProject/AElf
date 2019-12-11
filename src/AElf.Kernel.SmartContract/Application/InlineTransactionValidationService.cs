@@ -16,8 +16,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         public bool Validate(Transaction transaction)
         {
-            return _inlineTransactionValidationProviders.Any(inlineTransactionValidationProvider =>
-                inlineTransactionValidationProvider.Validate(transaction));
+            return _inlineTransactionValidationProviders.Any() && _inlineTransactionValidationProviders.Any(
+                       inlineTransactionValidationProvider =>
+                           inlineTransactionValidationProvider.Validate(transaction));
         }
     }
 }
