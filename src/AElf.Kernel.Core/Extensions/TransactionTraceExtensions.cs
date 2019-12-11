@@ -1,6 +1,3 @@
-
-using System.Linq;
-
 namespace AElf.Kernel
 {
     public static class TransactionTraceExtensions
@@ -28,7 +25,7 @@ namespace AElf.Kernel
                     return false;
                 }
             }
-            
+
             foreach (var trace in txTrace.PostTraces)
             {
                 if (!trace.IsSuccessful())
@@ -42,6 +39,16 @@ namespace AElf.Kernel
 
         public static void SurfaceUpError(this TransactionTrace txTrace)
         {
+            foreach (var inline in txTrace.InlineTraces)
+            {
+                inline.SurfaceUpError();
+                if (inline.ExecutionStatus < txTrace.ExecutionStatus)
+                {
+                    txTrace.ExecutionStatus = inline.ExecutionStatus;
+                    txTrace.Error = $"Inline-Error: {inline.Error}";
+                }
+            }
+
             if (txTrace.ExecutionStatus == ExecutionStatus.Postfailed)
             {
                 foreach (var trace in txTrace.PostTraces)
@@ -52,10 +59,8 @@ namespace AElf.Kernel
                         txTrace.Error += $"Post-Error: {trace.Error}";
                     }
                 }
-                
-                return;
             }
-            
+
             if (txTrace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
                 foreach (var trace in txTrace.PreTraces)
@@ -65,18 +70,6 @@ namespace AElf.Kernel
                     {
                         txTrace.Error += $"Pre-Error: {trace.Error}";
                     }
-                }
-
-                return;
-            }
-            
-            foreach (var inline in txTrace.InlineTraces)
-            {
-                inline.SurfaceUpError();
-                if (inline.ExecutionStatus < txTrace.ExecutionStatus)
-                {
-                    txTrace.ExecutionStatus = inline.ExecutionStatus;
-                    txTrace.Error = $"Inline-Error: {inline.Error}";
                 }
             }
         }
