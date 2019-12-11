@@ -4,6 +4,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -49,6 +50,8 @@ namespace AElf.CrossChain.Indexing.Application
                     block.GetHash(), block.Height);
             if (validationResult)
             {
+                Logger.LogDebug(
+                    $"Valid cross chain indexing proposal found, block height {block.Height}, block hash {block.GetHash()} ");
                 var proposalId = ProposalCreated.Parser
                     .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                     .ProposalId;

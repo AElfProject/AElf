@@ -1,5 +1,5 @@
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
@@ -23,8 +23,8 @@ namespace AElf.CrossChain
                 _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
             return Task.FromResult(transaction.To != crossChainContractAddress ||
-                                   transaction.MethodName !=
-                                   nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData));
+                                   CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.All(methodName =>
+                                       methodName != transaction.MethodName));
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
-using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -49,7 +48,7 @@ namespace AElf.CrossChain.Indexing.Application
             try
             {
                 var isSideChainBlockDataIndexed = TryDiscoverIndexedSideChainBlockDataAsync(block);
-                Logger.LogTrace($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
+                Logger.LogDebug($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
                 var extraData = ExtractCrossChainExtraData(block.Header);
                 var validationResult = true;
                 if (!isSideChainBlockDataIndexed && !extraData.IsNullOrEmpty())
