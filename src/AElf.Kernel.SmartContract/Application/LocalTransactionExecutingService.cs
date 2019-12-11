@@ -381,6 +381,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
+                    BlockNumber = blockHeight,
                     Error = ExecutionStatus.Undefined.ToString()
                 };
             }
@@ -404,6 +405,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
+                    BlockNumber = blockHeight,
                     Error = trace.Error
                 };
             }
@@ -430,6 +432,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
+                BlockNumber = blockHeight,
                 Error = trace.Error
             };
         }
