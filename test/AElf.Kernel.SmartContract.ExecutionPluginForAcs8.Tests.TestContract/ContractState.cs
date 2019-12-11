@@ -1,5 +1,6 @@
 ﻿using Acs0;
 using Acs8;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.Collections;
@@ -11,5 +12,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         public MappedState<string, string> Map { get; set; }
         internal ACS0Container.ACS0ReferenceState Acs0Contract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
+        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     }
 }
