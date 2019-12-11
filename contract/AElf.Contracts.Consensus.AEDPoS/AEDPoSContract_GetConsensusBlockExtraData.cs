@@ -111,6 +111,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
+            UpdateLatestSecretPieces(updatedRound, pubkey, triggerInformation);
+
+            // To publish Out Value.
+            return new AElfConsensusHeaderInformation
+            {
+                SenderPubkey = pubkey.ToByteString(),
+                Round = updatedRound,
+                Behaviour = triggerInformation.Behaviour
+            };
+        }
+
+        private void UpdateLatestSecretPieces(Round updatedRound, string pubkey, AElfConsensusTriggerInformation triggerInformation)
+        {
             foreach (var encryptedPiece in triggerInformation.EncryptedPieces)
             {
                 updatedRound.RealTimeMinersInformation[pubkey].EncryptedPieces
@@ -135,14 +148,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
                 }
             }
-
-            // To publish Out Value.
-            return new AElfConsensusHeaderInformation
-            {
-                SenderPubkey = pubkey.ToByteString(),
-                Round = updatedRound,
-                Behaviour = triggerInformation.Behaviour
-            };
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataForTinyBlock(Round currentRound,

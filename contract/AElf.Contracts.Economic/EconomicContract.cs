@@ -300,6 +300,22 @@ namespace AElf.Contracts.Economic
                     RelatedSymbol = Context.Variables.NativeSymbol
                 }
             };
+
+            var resourceTokenConnectors = GetResourceTokenConnectors();
+            connectors.AddRange(resourceTokenConnectors);
+
+            State.TokenConverterContract.Initialize.Send(new InitializeInput
+            {
+                FeeRate = EconomicContractConstants.TokenConverterFeeRate,
+                Connectors = {connectors},
+                BaseTokenSymbol = Context.Variables.NativeSymbol,
+                ManagerAddress = connectorManager
+            });
+        }
+
+        private IEnumerable<Connector> GetResourceTokenConnectors()
+        {
+            var connectors = new List<Connector>();
             foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var resourceTokenConnector = new Connector
@@ -325,13 +341,8 @@ namespace AElf.Contracts.Economic
                 connectors.Add(resourceTokenConnector);
                 connectors.Add(nativeTokenConnector);
             }
-            State.TokenConverterContract.Initialize.Send(new InitializeInput
-            {
-                FeeRate = EconomicContractConstants.TokenConverterFeeRate,
-                Connectors = {connectors},
-                BaseTokenSymbol = Context.Variables.NativeSymbol,
-                ManagerAddress = connectorManager
-            });
+
+            return connectors;
         }
     }
 }

@@ -375,66 +375,27 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
+            ITransactionResultFactory factory;
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                return new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    BlockNumber = blockHeight,
-                    Error = ExecutionStatus.Undefined.ToString()
-                };
+                factory = new UnexecutableTxResultFactory();
+                return factory.GetTransactionResult(trace, blockHeight);
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
-                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
-                {
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        ReturnValue = trace.ReturnValue,
-                        ReadableReturnValue = trace.ReadableReturnValue,
-                        BlockNumber = blockHeight,
-                        Logs = {trace.FlattenedLogs},
-                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
-                    };
-                }
-                return new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    BlockNumber = blockHeight,
-                    Error = trace.Error
-                };
+                factory = new PreFailedTxResultFactory();
+                return factory.GetTransactionResult(trace, blockHeight);
             }
 
             if (trace.IsSuccessful())
             {
-                var txRes = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Mined,
-                    ReturnValue = trace.ReturnValue,
-                    ReadableReturnValue = trace.ReadableReturnValue,
-                    BlockNumber = blockHeight,
-                    //StateHash = trace.GetSummarizedStateHash(),
-                    Logs = {trace.FlattenedLogs}
-                };
-
-                txRes.UpdateBloom();
-
-                return txRes;
+                factory = new MinedTxResultFactory();
+                return factory.GetTransactionResult(trace, blockHeight);
             }
 
-            return new TransactionResult
-            {
-                TransactionId = trace.TransactionId,
-                Status = TransactionResultStatus.Failed,
-                BlockNumber = blockHeight,
-                Error = trace.Error
-            };
+            factory = new FailedTxResultFactory();
+            return factory.GetTransactionResult(trace, blockHeight);
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
