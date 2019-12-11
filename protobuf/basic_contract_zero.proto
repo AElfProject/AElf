@@ -21,7 +21,15 @@ message AddressList {
     repeated aelf.Address value = 1;
 }
 
-message ContractProposingInfo{
+message ContractProposingInput{
     aelf.Address proposer = 1;
-    bool is_released = 2;
+    ContractProposingInputStatus status = 2;   
+}
+
+enum ContractProposingInputStatus {
+    PROPOSED = 0;
+    PRE_APPROVED = 1;
+    APPROVED = 2;
+    PRE_CODE_CHECKED = 3;
+    CODE_CHECKED = 4;
 }

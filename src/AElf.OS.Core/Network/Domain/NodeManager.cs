@@ -10,8 +10,8 @@ namespace AElf.OS.Network.Domain
 {
     public interface INodeManager
     {
-        Task<bool> AddNodeAsync(NodeInfo nodeInfo);
-        Task<NodeList> AddNodesAsync(NodeList node);
+        Task<bool> AddOrUpdateNodeAsync(NodeInfo nodeInfo);
+        Task<NodeList> AddOrUpdateNodesAsync(NodeList node);
         Task<NodeList> GetRandomNodesAsync(int maxCount);
     }
     
@@ -27,18 +27,28 @@ namespace AElf.OS.Network.Domain
             Logger = NullLogger<NodeManager>.Instance;
         }
 
-        public Task<bool> AddNodeAsync(NodeInfo nodeInfo)
+        public Task<bool> AddOrUpdateNodeAsync(NodeInfo nodeInfo)
         {
-            return Task.FromResult(_nodes.TryAdd(nodeInfo.Pubkey.ToHex(), nodeInfo));
+            bool addedOrUpdated = true;
+            _nodes.AddOrUpdate(nodeInfo.Pubkey.ToHex(), nodeInfo, (pubkey, oldInfo) =>
+            {
+                if (oldInfo.Endpoint != nodeInfo.Endpoint) 
+                    return nodeInfo;
+                
+                addedOrUpdated = false;
+                return oldInfo;
+            });
+
+            return Task.FromResult(addedOrUpdated);
         }
         
-        public async Task<NodeList> AddNodesAsync(NodeList nodes)
+        public async Task<NodeList> AddOrUpdateNodesAsync(NodeList nodes)
         {
             NodeList addedNodes = new NodeList();
             
             foreach (var node in nodes.Nodes)
             {
-                if (await AddNodeAsync(node))
+                if (await AddOrUpdateNodeAsync(node))
                     addedNodes.Nodes.Add(node);
             }
             
@@ -54,7 +64,7 @@ namespace AElf.OS.Network.Domain
             NodeList nodes = new NodeList();
             nodes.Nodes.AddRange(randomPeers);
 
-            return Task.FromResult(nodes);;
+            return Task.FromResult(nodes);
         }
     }
 }

@@ -554,7 +554,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionList = await GenerateTwoInitializeTransaction();
             await _osTestHelper.BroadcastTransactions(transactionList);
 
-            await _osTestHelper.MinedOneBlock();
+            var block = await _osTestHelper.MinedOneBlock();
 
             // After executed
             var transactionHex = transactionList[1].GetHash().ToHex();
@@ -562,6 +562,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
+            response.BlockNumber.ShouldBe(block.Height);
+            response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
             response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
         }
 

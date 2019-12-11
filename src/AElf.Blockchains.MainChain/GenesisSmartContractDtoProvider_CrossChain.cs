@@ -28,7 +28,10 @@ namespace AElf.Blockchains.MainChain
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
-                new InitializeInput());
+                new InitializeInput
+                {
+                    IsPrivilegePreserved = true
+                });
             return crossChainMethodCallList;
         }
     }
