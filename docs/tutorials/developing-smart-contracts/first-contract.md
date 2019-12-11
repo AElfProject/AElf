@@ -382,7 +382,3 @@ The state uses the custom ```GreetedList``` type, that was generated from the Pr
 The ```SingletonState``` is part of the C# SDK and is used to represent exactly **one** value. The value can be of any type, including collection types. Here we only wanted our contract to store one list (here a list of strings).
 
 **Note** that you have to wrap you state types in a type like ```SingletonState``` (others are also available like ```MappedState```) because behind the scene they implement the state read and write operations.
-
-### Deployment
-
-After implementing the contract's logic and building the contract you can find the dll (the compiled code) in the ```bin/obj/netstandard``` folder of the contract project. You can deploy this with aelf-command and start interacting with the contract. Later in this series of tutorials we will see how to test directly within Boilerplate.

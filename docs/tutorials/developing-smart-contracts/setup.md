@@ -87,6 +87,10 @@ The next section of this article explains more about how Boilerplate works.
 
 ## More on Boilerplate
 
+Boilerplate is an environment that is used to develop smart contracts and dApps. After writing and testing your contract on Boilerplate you can deploy it to a running AElf chain. 
+
+Internally Boilerplate will run an AElf node that will automatically have your contract deployed on it.
+
 Boilerplate is composed of two root folders: **chain** and **web**. This series of tutorial articles focuses on contract development so we'll only go into the details of the **chain** part of Boilerplate. Here is a brief overview of the folders:
 
 <!-- 
@@ -139,4 +143,4 @@ You can use this layout as a template for your future smart contracts, before yo
 
 You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate.
 
-The next article will give you more complete smart contract and extra content on how tto  organize your code.
+The next article will give you more complete smart contract and extra content on how to organize your code.
