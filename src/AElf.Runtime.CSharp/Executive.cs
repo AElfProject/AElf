@@ -15,6 +15,8 @@ using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
@@ -32,6 +34,8 @@ namespace AElf.Runtime.CSharp
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
+        
+        public Timestamp LastUsedTime { get; set; }
 
         private Type FindContractType(Assembly assembly)
         {
