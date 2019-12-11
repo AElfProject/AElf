@@ -49,9 +49,6 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
-            Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
-            GrpcEnvironment.SetLogger(new ConsoleLogger());
-            
             await StartListeningAsync();
             await DialBootNodesAsync();
 

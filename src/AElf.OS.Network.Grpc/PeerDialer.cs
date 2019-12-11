@@ -112,7 +112,6 @@ namespace AElf.OS.Network.Grpc
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
-            var stop = Stopwatch.StartNew();
             
             try
             {
@@ -125,14 +124,11 @@ namespace AElf.OS.Network.Grpc
 
                 handshakeReply =
                     await client.Client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, metadata);
-                stop.Stop();
                 
-                Logger.LogDebug($"Handshake to {remoteEndPoint} done in {stop.Elapsed.TotalMilliseconds} ms.");
+                Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
             }
             catch (Exception ex)
             {
-                stop.Stop();
-                Logger.LogError(ex, $"Could not connect to {remoteEndPoint} (took {stop.Elapsed.TotalMilliseconds} ms).");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -168,8 +164,6 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                Stopwatch s = Stopwatch.StartNew();
-
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
@@ -178,9 +172,7 @@ namespace AElf.OS.Network.Grpc
 
                 await client.Client.PingAsync(new PingRequest(), metadata);
 
-                s.Stop();
-
-                Logger.LogDebug($"Pinged {peerEndpoint} in {s.Elapsed.TotalMilliseconds} ms.");
+                Logger.LogDebug($"Pinged {peerEndpoint} successfully.");
             }
             catch (Exception ex)
             {
@@ -228,10 +220,9 @@ namespace AElf.OS.Network.Grpc
         
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
-            Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint.Host}:{remoteEndpoint.Port}.");
+            Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
             
             TcpClient client = null;
-            Stopwatch sw = Stopwatch.StartNew();
             try
             {
                 client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
@@ -243,10 +234,12 @@ namespace AElf.OS.Network.Grpc
                     await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host);
 
                     if (sslStream.RemoteCertificate == null)
-                        throw new PeerDialException($"Certificate from {remoteEndpoint} is null");
-                    
-                    sw.Stop();
-                    Logger.LogDebug($"Retrieved certificate for {remoteEndpoint.Host}:{remoteEndpoint.Port} in {sw.Elapsed.TotalMilliseconds} ms.");
+                    {
+                        Logger.LogDebug($"Certificate from {remoteEndpoint} is null");
+                        return null;
+                    }
+
+                    Logger.LogDebug($"Retrieved certificate for {remoteEndpoint}.");
 
                     return FromX509Certificate(sslStream.RemoteCertificate);
                 }

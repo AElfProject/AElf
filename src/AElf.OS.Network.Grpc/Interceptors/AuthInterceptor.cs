@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Grpc
                             return Task.FromResult<TResponse>(null);
                         }
 
-                        Logger.LogWarning($"Wrong session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
+                        Logger.LogWarning($"Unequal session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
                     }
                 
