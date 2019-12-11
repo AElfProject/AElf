@@ -4,6 +4,7 @@ This article will get you started with AElf's Boilerplate project. You will lear
 - setting up the basic environment for developing contracts.
 - downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
 - running a template HelloWorld contract.
+- Boilerplate's structure.
 
 ## Environment
 
@@ -41,12 +42,12 @@ If you don't already have protobuf installed, run the following script from with
 
 On Mac or Linux:
 ```bash
-sh chain/scripts/install.sh
+sh chain/scripts/install_protobuf.sh
 ```
 On Windows
 ```bash
 # open a PowerShell console as administrator
-chain/scripts/install_choco.ps1
+chain/scripts/install_dependency.ps1
 ```
 
 Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
@@ -58,11 +59,11 @@ Note: if you prefer or have problems, you can refer to the following guide to [*
 cd chain/src/AElf.Boilerplate.Launcher/
 dotnet build
 
-# run the boilerplate 
+# run the Boilerplate 
 dotnet run bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
 ```
 
-**Note:** when running the node, you might see some errors related to an incorrect password, to solve this you need to backup your `data-dir/keys` folder and start with an empty folder.
+**Note:** when running the Boilerplate, you might see some errors related to an incorrect password, to solve this you need to backup your `data-dir/keys/` folder and start with an empty folder.
 
 At this point the smart contract has been deployed and is ready to use. You should see the node's logs. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
 
@@ -74,5 +75,68 @@ dotnet test
 ```
 The output should look somewhat like this:
 ```bash 
-Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 2.8865 Seconds
 ```
+
+At this point you have successfully downloaded and built Boilerplate. You have also run the HelloWorld contract that is included in Boilerplate.
+
+The next section of this article explains more about how Boilerplate works.
+
+## More on Boilerplate
+
+Boilerplate is composed of two root folders: **chain** and **web**. This series of tutorial articles focuses on contract development so we'll only go into the details of the **chain** part of Boilerplate. Here is a brief overview of the folders:
+
+<!-- 
+## chain  // root of the contract development folder
+### src 
+### contract 
+#### AElf.Contracts.HelloWorldContract
+##### AElf.Contracts.HelloWorldContract.csproj
+##### HelloWorldContract.cs
+##### HelloWorldContractState.cs
+##### ...
+### protobuf 
+#### hello_world_contract.proto
+#### ...
+### test 
+#### AElf.Contracts.HelloWorldContract.Test 
+##### AElf.Contracts.HelloWorldContract.Test.csproj
+##### HelloWorldContractTest.cs
+### ...
+-->
+
+```
+.
+└── chain 
+    ├── src 
+    ├── contract
+    │   └── AElf.Contracts.HelloWorldContract
+    │       ├── AElf.Contracts.HelloWorldContract.csproj
+    │       ├── HelloWorldContract.cs
+    │       ├── HelloWorldContractState.cs
+    │       └── ...
+    ├── protobuf
+    │   ├── hello_world_contract.proto
+    │   └── ...
+    ├── test 
+    │   └── AElf.Contracts.HelloWorldContract.Test
+    │       ├── AElf.Contracts.HelloWorldContract.Test.csproj
+    │       └── HelloWorldContractTest.cs
+    └── ...
+```
+
+The hello world contract and its tests are split between the following folders:
+- **contract**: this folder contains the csharp projects (.csproj) along with the contract implementation (.cs files).
+- **protobuf**: contains the .proto definition of the contract.
+- **test**: contains the test project and files.
+
+You can use this layout as a template for your future smart contracts, before you do we recommend you follow through all the articles of this series.
+
+## Next 
+
+You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate.
+
+The next article will give you more complete smart contract and extra content on how tto  organize your code.
