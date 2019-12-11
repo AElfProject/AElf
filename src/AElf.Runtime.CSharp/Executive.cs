@@ -145,7 +145,6 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                // TODO: Not needed
                 Cleanup();
             }
 
@@ -214,14 +213,8 @@ namespace AElf.Runtime.CSharp
                 CurrentTransactionContext.Trace.Error += ex;
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
             }
-            catch (AssertionException ex)
-            {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                CurrentTransactionContext.Trace.Error += "\n" + ex;
-            }
             catch (Exception ex)
             {
-                // TODO: Simplify exception
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 CurrentTransactionContext.Trace.Error += "\n" + ex;
             }
