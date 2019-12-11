@@ -21,11 +21,6 @@ namespace AElf.Runtime.CSharp
             Category = KernelConstants.CodeCoverageRunnerCategory;
         }
 
-        /*protected override AssemblyLoadContext GetLoadContext()
-        {
-            return AssemblyLoadContext.Default;
-        }*/
-
         public override async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             var code = reg.Code.ToByteArray();
