@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;
@@ -26,11 +27,47 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
-            services.AddSingleton(p => Mock.Of<ICalculateCpuCostStrategy>());
-            services.AddSingleton(p => Mock.Of<ICalculateStoCostStrategy>());
-            services.AddSingleton(p => Mock.Of<ICalculateRamCostStrategy>());
-            services.AddSingleton(p => Mock.Of<ICalculateNetCostStrategy>());
-            services.AddSingleton(p => Mock.Of<ICalculateTxCostStrategy>());
+            services.AddSingleton(provider =>
+            {
+                var mockTxCostStrategy = new Mock<ICalculateTxCostStrategy>();
+                mockTxCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
+                
+                return mockTxCostStrategy.Object;
+            });
+            services.AddSingleton(provider =>
+            {
+                var mockCpuCostStrategy = new Mock<ICalculateCpuCostStrategy>();
+                mockCpuCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
+                
+                return mockCpuCostStrategy.Object;
+            });
+            services.AddSingleton(provider =>
+            {
+                var mockRamCostStrategy = new Mock<ICalculateRamCostStrategy>();
+                mockRamCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
+                
+                return mockRamCostStrategy.Object;
+            });
+            services.AddSingleton(provider =>
+            {
+                var mockStoCostStrategy = new Mock<ICalculateStoCostStrategy>();
+                mockStoCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
+                
+                return mockStoCostStrategy.Object;
+            });
+            services.AddSingleton(provider =>
+            {
+                var mockNetCostStrategy = new Mock<ICalculateNetCostStrategy>();
+                mockNetCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
+                
+                return mockNetCostStrategy.Object;
+            });
+            
         }
 
     }
