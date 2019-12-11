@@ -378,7 +378,7 @@ namespace AElf.Kernel.SmartContract.Application
             ITransactionResultFactory factory;
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                factory = new UnexecutableTxResultFactory();
+                factory = new UnExecutableTxResultFactory();
                 return factory.GetTransactionResult(trace, blockHeight);
             }
 

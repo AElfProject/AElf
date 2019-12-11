@@ -7,7 +7,7 @@ namespace AElf.Kernel.SmartContract.Application
         TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight);
     }
 
-    class UnexecutableTxResultFactory : ITransactionResultFactory
+    internal class UnExecutableTxResultFactory : ITransactionResultFactory
     {
         public TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    class PreFailedTxResultFactory : ITransactionResultFactory
+    internal class PreFailedTxResultFactory : ITransactionResultFactory
     {
         public TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
@@ -49,7 +49,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    class MinedTxResultFactory : ITransactionResultFactory
+    internal class MinedTxResultFactory : ITransactionResultFactory
     {
         public TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    class FailedTxResultFactory : ITransactionResultFactory
+    internal class FailedTxResultFactory : ITransactionResultFactory
     {
         public TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {

@@ -441,7 +441,17 @@ namespace AElf.Kernel.Blockchain.Domain
                     toCleanBranchKeys.Add(branch.Key);
                 }
             }
+            await CollectNotLinkedBlockAsync(chain, toCleanNotLinkedKeys, irreversibleBlockHeight);
+            
+            return new DiscardedBranch
+            {
+                BranchKeys = toCleanBranchKeys,
+                NotLinkedKeys = toCleanNotLinkedKeys
+            };
+        }
 
+        private async Task CollectNotLinkedBlockAsync(Chain chain, List<string> toCleanNotLinkedKeys, long irreversibleBlockHeight)
+        {
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
                 var blockLink = await GetChainBlockLinkWithCacheAsync(notLinkedBlock.Value);
@@ -456,12 +466,6 @@ namespace AElf.Kernel.Blockchain.Domain
                     toCleanNotLinkedKeys.Add(notLinkedBlock.Key);
                 }
             }
-            
-            return new DiscardedBranch
-            {
-                BranchKeys = toCleanBranchKeys,
-                NotLinkedKeys = toCleanNotLinkedKeys
-            };
         }
 
         public async Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)
