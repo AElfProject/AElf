@@ -175,9 +175,6 @@ namespace AElf.OS.Network.Grpc
                 { GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
 
             return RequestAsync(() => _client.GetNodesAsync(new NodesRequest {MaxCount = count}, data), request);
         }
@@ -215,9 +212,6 @@ namespace AElf.OS.Network.Grpc
                 { GrpcConstants.TimeoutMetadataKey, HealthCheckTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
 
             await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
         }
@@ -238,9 +232,6 @@ namespace AElf.OS.Network.Grpc
                 { GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
 
             var blockReply = await RequestAsync(() => _client.RequestBlockAsync(blockRequest, data), request);
 
@@ -264,9 +255,6 @@ namespace AElf.OS.Network.Grpc
                 { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
 
             var list = await RequestAsync(() => _client.RequestBlocksAsync(blockRequest, data), request);
 
@@ -452,9 +440,6 @@ namespace AElf.OS.Network.Grpc
                 {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()},
                 {GrpcConstants.SessionIdMetadataKey, OutboundSessionId}
             };
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
 
             await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
         }
@@ -643,9 +628,6 @@ namespace AElf.OS.Network.Grpc
             {
                 // if channel already shutdown
             }
-            
-            if (OutboundSessionId == null)
-                throw new InvalidOperationException($"Null outbound session id {this}.");
         }
 
         public override string ToString()

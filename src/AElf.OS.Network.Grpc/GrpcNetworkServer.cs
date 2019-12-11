@@ -14,6 +14,7 @@ using GuerrillaNtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.X509;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -67,20 +68,41 @@ namespace AElf.OS.Network.Grpc
             if (_authInterceptor != null)
                 serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
 
-            _server = new Server(new List<ChannelOption>
+            var serverOptions = new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
-            })
-            {
-                Services = {serviceDefinition},
-                Ports =
-                {
-                    new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure)
-                }
             };
+
+            // setup service
+            _server = new Server(serverOptions);
+            _server.Services.Add(serviceDefinition);
             
-            return Task.Run(() => _server.Start());
+            var serverCredentials = CreateCredentials();
+            
+            // setup encrypted endpoint	
+            _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, serverCredentials));
+            
+            return Task.Run(() =>
+            {
+                _server.Start();
+                
+                foreach (var port in _server.Ports)
+                    Logger.LogDebug($"Server listening on {port.Host}:{port.BoundPort}.");
+            });
+        }
+
+        private SslServerCredentials CreateCredentials()
+        {
+            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
+
+            // Generate the servers rsa key pair and self-signed certificate.
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var certificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName), 
+                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
+
+            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));	
+            return new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
         }
 
         /// <summary>

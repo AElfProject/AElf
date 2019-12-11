@@ -190,17 +190,6 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        private SslCredentials CreateSecureCredentials(X509Certificate certificate)
-        {
-            Stopwatch credentialCreationSw = Stopwatch.StartNew();
-
-            var creds =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
-            credentialCreationSw.Stop();
-            Logger.LogDebug($"Created SslCredentials object in {credentialCreationSw.Elapsed.TotalMilliseconds} ms");
-
-            return creds;
-        }
-
         /// <summary>
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
@@ -214,7 +203,7 @@ namespace AElf.OS.Network.Grpc
             if (certificate != null)
             {
                 Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
-                credentials = CreateSecureCredentials(certificate);
+                credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
             }
             
             var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>
