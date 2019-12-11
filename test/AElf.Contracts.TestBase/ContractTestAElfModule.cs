@@ -4,6 +4,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
@@ -39,7 +40,7 @@ namespace AElf.Contracts.TestBase
 
             context.Services.AddSingleton<ITxHub, MockTxHub>();
 
-//            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 

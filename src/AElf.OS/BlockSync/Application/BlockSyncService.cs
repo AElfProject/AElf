@@ -72,7 +72,7 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
-                Logger.LogTrace(
+                Logger.LogDebug(
                     $"Block sync: Fetch block, block height: {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}.");
 
                 var fetchResult = false;
@@ -96,7 +96,7 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
-                Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
+                Logger.LogDebug($"Block sync: sync block, block: {blockWithTransactions}.");
                 await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions, senderPubkey);
             }, OSConstants.BlockSyncAttachQueueName);
         }

@@ -41,6 +41,7 @@ namespace AElf.Parallel.Tests
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("BasicFunctionWithParallel")).Value;
         
         public static Address BasicFunctionWithParallelContractAddress { get; private set; }
+        public readonly string PrimaryTokenSymbol = "ELF";
 
         public ParallelTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -170,6 +171,69 @@ namespace AElf.Parallel.Tests
                 new GetBalanceInput {Owner = address, Symbol = symbol});
             var returnValue = await ExecuteReadOnlyAsync(transaction, blockHash, blockHeight);
             return GetBalanceOutput.Parser.ParseFrom(returnValue).Balance;
+        }
+
+        public async Task CreateAndIssueTokenAsync(string symbol,Address issueAddress)
+        {
+            var ownAddress = await _accountService.GetAccountAsync();
+            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
+                TokenSmartContractAddressNameProvider.Name);
+            var createTokenTransaction = GenerateTransaction(ownAddress, tokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                new CreateInput
+                {
+                    Symbol = symbol,
+                    TokenName = $"{symbol}_Token",
+                    TotalSupply = TokenTotalSupply,
+                    Decimals = 2,
+                    Issuer = ownAddress,
+                    IsBurnable = true
+                });
+            var signature = await _accountService.SignAsync(createTokenTransaction.GetHash().ToByteArray());
+            createTokenTransaction.Signature = ByteString.CopyFrom(signature);
+            await BroadcastTransactions(new List<Transaction> {createTokenTransaction});
+            await MinedOneBlock();
+
+            var issueTokenTransaction = GenerateTransaction(ownAddress, tokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = TokenTotalSupply,
+                    To = issueAddress,
+                    Memo = "Issue"
+                });
+            signature = await _accountService.SignAsync(issueTokenTransaction.GetHash().ToByteArray());
+            issueTokenTransaction.Signature = ByteString.CopyFrom(signature);
+            await BroadcastTransactions(new List<Transaction> {issueTokenTransaction});
+            await MinedOneBlock();
+        }
+        
+        public Transaction GenerateTransferTransaction(ECKeyPair fromKeyPair, Address to ,string symbol, long amount)
+        {
+            var transaction = GenerateTransaction(Address.FromPublicKey(fromKeyPair.PublicKey),
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                nameof(TokenContractContainer.TokenContractStub.Transfer),
+                new TransferInput {To = to, Amount = amount, Symbol = symbol});
+
+            var signature =
+                CryptoHelper.SignWithPrivateKey(fromKeyPair.PrivateKey, transaction.GetHash().ToByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
+
+            return transaction;
+        }
+        
+        public async Task<Transaction> GenerateTransferTransaction(Address to ,string symbol, long amount)
+        {
+            var fromAddress = await _accountService.GetAccountAsync();
+            var transaction = GenerateTransaction(fromAddress,
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                nameof(TokenContractContainer.TokenContractStub.Transfer),
+                new TransferInput {To = to, Amount = amount, Symbol = symbol});
+
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
+
+            return transaction;
         }
     }
 }

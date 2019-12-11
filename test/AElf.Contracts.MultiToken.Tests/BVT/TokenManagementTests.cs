@@ -71,7 +71,8 @@ namespace AElf.Contracts.MultiToken
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = false
+            IsVirtualBalanceEnabled = false,
+            RelatedSymbol = "ELF"
         };
 
         private Connector BaseConnector = new Connector
@@ -139,7 +140,7 @@ namespace AElf.Contracts.MultiToken
                         DefaultKeyPair);
 
                 OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, BasicFunctionContractCode,
+                    category, OtherBasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(

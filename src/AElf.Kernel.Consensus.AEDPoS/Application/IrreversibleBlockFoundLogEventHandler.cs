@@ -13,7 +13,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class IrreversibleBlockFoundLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -24,7 +24,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager, ITransactionPackingService transactionPackingService)
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager,
+            ITransactionPackingService transactionPackingService)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
@@ -61,18 +62,23 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 var chain = await _blockchainService.GetChainAsync();
 
-                if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight)
+                if (chain.LastIrreversibleBlockHeight > irreversibleBlockFound.IrreversibleBlockHeight)
                     return;
+
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 if (libBlockHash == null) return;
-                
+
                 // enable transaction packing
                 _transactionPackingService.EnableTransactionPacking();
+                if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
+
+                if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight)
+                    return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +
-                                $"Event: {irreversibleBlockFound}\n" +
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight} " +
+                                $"Event: {irreversibleBlockFound} " +
                                 $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
                 _taskQueueManager.Enqueue(
                     async () =>
@@ -87,7 +93,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
             catch (Exception e)
             {
-                Logger.LogError($"Failed to resolve IrreversibleBlockFound event.\n{e.Message}\n{e.StackTrace}");
+                Logger.LogError(e, "Failed to resolve IrreversibleBlockFound event.");
                 throw;
             }
         }

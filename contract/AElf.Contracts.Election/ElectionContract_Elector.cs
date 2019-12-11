@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -5,7 +8,6 @@ using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -166,13 +168,52 @@ namespace AElf.Contracts.Election
 
             return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
+        private const int DaySec = 86400;
 
-        // TODO: Tune the votes weight calculation.
+        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
+        {
+            {1 * 365 * DaySec, 1.001m},           // compound interest
+            {2 * 365 * DaySec, 1.0015m},
+            {3 * 365 * DaySec, 1.002m}
+        };
+
+        private const decimal DefaultInterest = 1.0022m;   // if locktime > 3 years, use this interest
+        private const int Scale = 10000;   
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return lockTime.Mul(1_0000).Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
+            long calculated = 1;
+            foreach (var instMap in _interestMap)  // calculate with different interest according to locktime
+            {
+                if(lockTime > instMap.Key)
+                    continue;
+                calculated = calculated.Mul((long)(Pow(instMap.Value, (uint)lockTime.Div(DaySec)) * Scale));
+                break;
+            }
+            if (calculated == 1)   // locktime > 3 years
+                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint)lockTime.Div(DaySec)) * Scale));
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2));  // weight = locktime + voteAmount 
         }
-
+        
+        private decimal Pow(decimal x, uint y)
+        {
+            if (y == 1)
+                return (long)x;
+            decimal a = 1m;
+            if (y == 0)
+                return a;
+            BitArray e = new BitArray(BitConverter.GetBytes(y));
+            int t = e.Count;
+            for (int i = t - 1; i >= 0; --i)
+            {
+                a *= a;
+                if (e[i] == true)
+                {
+                    a *= x;
+                }
+            }
+            return a;
+        }
+        
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);

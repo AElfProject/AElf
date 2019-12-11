@@ -303,7 +303,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var isMinerListChanged = false;
             if (previousRound.TermNumber == currentRound.TermNumber) // In same term.
             {
-                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
+                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
                 if (evilMinersCount != 0)
                 {
@@ -350,6 +350,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
+            Context.LogDebug(() => $"MainChainCurrentMinerList: \n{State.MainChainCurrentMinerList.Value}");
             var result = State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
                          GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
                          GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
@@ -385,7 +386,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
         }
 
-        private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
+        private List<string> GetEvilMinersPublicKey(Round currentRound)
         {
             var evilMinersPubKey = new List<string>();
 
@@ -492,12 +493,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentTermNumber == 1)
             {
                 currentTermStartTime = State.BlockchainStartTimestamp.Value;
+                if (TryToGetRoundInformation(1, out var firstRound) &&
+                    firstRound.RealTimeMinersInformation.Count == 1)
+                    return new SInt64Value(); // Return 0 for single node.
             }
             else
             {
                 var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
                 if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
                     return new SInt64Value(); // Unlikely.
+                if (firstRoundOfCurrentTerm.RealTimeMinersInformation.Count == 1)
+                    return new SInt64Value(); // Return 0 for single node.
                 currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
             }
 

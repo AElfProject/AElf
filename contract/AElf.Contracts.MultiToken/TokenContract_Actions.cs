@@ -5,7 +5,6 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -31,7 +30,6 @@ namespace AElf.Contracts.MultiToken
                 IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
-
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
                 State.NativeTokenSymbol.Value = input.Symbol;
@@ -94,6 +92,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
+            AssertValidMemo(input.Memo);
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
@@ -170,6 +169,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
             Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
@@ -258,7 +258,6 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
@@ -314,7 +313,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
+            Assert(existingBalance >= input.Amount, $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
@@ -476,7 +475,7 @@ namespace AElf.Contracts.MultiToken
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set resource token unit price.");
 

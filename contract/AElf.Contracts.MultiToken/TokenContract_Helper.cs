@@ -31,21 +31,27 @@ namespace AElf.Contracts.MultiToken
             Assert(amount > 0, "Invalid amount.");
         }
 
+        private void AssertValidMemo(string memo)
+        {
+            Assert(memo.Length <= 128, "memo's length is more than 128.");
+        }
+
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
         {
             Assert(from != to, "Can't do transfer to sender itself.");
+            AssertValidMemo(memo);
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];
             State.Balances[from][symbol] = balanceOfSender.Sub(amount);
             State.Balances[to][symbol] = balanceOfReceiver.Add(amount);
-            Context.Fire(new Transferred()
+            Context.Fire(new Transferred
             {
                 From = from,
                 To = to,
-                Symbol = symbol,
+                FromSymbol = symbol,
                 Amount = amount,
-                Memo = memo
+                Memo = memo,
             });
         }
 
@@ -114,7 +120,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentAuthContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             owner = Context.Call<Address>(parliamentAuthContractAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetGenesisOwnerAddress),
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetDefaultOrganizationAddress),
                 new Empty());
             State.Owner.Value = owner;
             return owner;

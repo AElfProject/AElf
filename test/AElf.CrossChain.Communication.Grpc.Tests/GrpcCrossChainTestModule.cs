@@ -1,7 +1,9 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication.Grpc
@@ -25,6 +27,12 @@ namespace AElf.CrossChain.Communication.Grpc
 
             Configure<CrossChainConfigOptions>(option => { option.ParentChainId = "AELF"; });
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IDeployedContractAddressService>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

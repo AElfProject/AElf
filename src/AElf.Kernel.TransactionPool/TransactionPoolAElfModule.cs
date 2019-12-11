@@ -13,20 +13,19 @@ namespace AElf.Kernel.TransactionPool
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+            // Validate signature and tx size.
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
-
-            // TODO: Temporarily remove the transaction contract address verification
-            // Switching branches depends on block validation passing and attaching successfully,
-            // but validation depends on the execution of the block where the deployment contract is located,
-            // so it causes a deadlock.
-            //services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
-
+            // Validate existence of target contract.
+            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            // Validate proposed method is allowed.
             services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
+            services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            // Validate sender's balance is not 0.
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
-
-            services.AddSingleton<NewIrreversibleBlockFoundEventHandler>();
+            services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));

@@ -15,7 +15,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
-        public CrossChainRequestService(ICrossChainService crossChainService, 
+        public CrossChainRequestService(ICrossChainService crossChainService,
             ICrossChainClientService crossChainClientService)
         {
             _crossChainService = crossChainService;
@@ -25,26 +25,27 @@ namespace AElf.CrossChain.Communication.Application
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
             var chainIdHeightDict = _crossChainService.GetNeededChainIdAndHeightPairs();
-            
+
             foreach (var chainIdHeightPair in chainIdHeightDict)
             {
                 Logger.LogTrace(
                     $"Try to request from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)}, from height {chainIdHeightPair.Value}");
                 try
                 {
-                    await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key, chainIdHeightPair.Value);
+                    await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key,
+                        chainIdHeightPair.Value);
                 }
                 catch (CrossChainRequestException e)
                 {
-                    Logger.LogError(
-                        $"Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} failed.", e);
+                    Logger.LogError(e, 
+                        $"Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} failed.");
                 }
             }
         }
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            Logger.LogTrace("Request chain initialization data.");
+            Logger.LogDebug("Request chain initialization data.");
             var chainInitializationData = await _crossChainClientService.RequestChainInitializationData(chainId);
             return chainInitializationData;
         }

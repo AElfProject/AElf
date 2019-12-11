@@ -68,7 +68,8 @@ namespace AElf.Contracts.MultiToken
         internal BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
-        protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
+        protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value;
+        protected byte[] OtherBasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunctionWithParallel")).Value;
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
@@ -104,7 +105,6 @@ namespace AElf.Contracts.MultiToken
 
         protected long TotalSupply;
         protected long BalanceOfStarter;
-        protected bool IsPrivilegePreserved;
         protected Timestamp BlockchainStartTimestamp => TimestampHelper.GetUtcNow();
 
         protected ContractTester<MultiTokenContractCrossChainTestAElfModule> MainChainTester;
@@ -131,15 +131,14 @@ namespace AElf.Contracts.MultiToken
             ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
         }
 
-        protected void StartSideChain(int chainId)
+        protected void StartSideChain(int chainId,long height)
         {
             SideChainTester =
                 new ContractTester<MultiTokenContractCrossChainTestAElfModule>(chainId, SampleECKeyPairs.KeyPairs[0]);
             AsyncHelper.RunSync(() =>
                 SideChainTester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChainTester.GetSideChainSystemContract(
-                        MainChainTester.GetCallOwnerAddress(), out TotalSupply, SideChainTester.GetCallOwnerAddress(),
-                        out IsPrivilegePreserved)));
+                        SideChainTester.GetCallOwnerAddress(),MainChainId,out TotalSupply, SideChainTester.GetCallOwnerAddress(), height)));
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideCrossChainContractAddress =
                 SideChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
@@ -182,19 +181,6 @@ namespace AElf.Contracts.MultiToken
                     CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await MainChainTester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
-        }
-
-        protected async Task InitializeCrossChainContractOnSideChainAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0)
-        {
-            var crossChainInitializationTransaction = await SideChainTester.GenerateTransactionAsync(
-                SideCrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new InitializeInput
-                {
-                    ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
-                    CreationHeightOnParentChain = parentChainHeightOfCreation
-                });
-            await SideChainTester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
         }
 
         protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
@@ -306,7 +292,7 @@ namespace AElf.Contracts.MultiToken
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
             var organizationAddress = Address.Parser.ParseFrom((await MainChainTester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -374,7 +360,7 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await MainChainTester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -396,7 +382,7 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await SideChainTester.ExecuteContractWithMiningAsync(
                     SideParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await SideChainTester.ExecuteContractWithMiningAsync(SideParliamentAddress,

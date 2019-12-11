@@ -14,6 +14,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash);
         
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
+
+        Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
     }
 
     public class BlockchainStateService : IBlockchainStateService
@@ -57,14 +59,14 @@ namespace AElf.Kernel.SmartContract.Application
 
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Start merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
 
             foreach (var blockIndex in blockIndexes)
             {
                 try
                 {
-                    Logger.LogDebug($"Merging state {chainStateInfo} for block {blockIndex}");
+                    Logger.LogTrace($"Merging state {chainStateInfo} for block {blockIndex}");
                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
                 }
                 catch (Exception e)
@@ -79,6 +81,11 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
         {
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+        }
+        
+        public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
+        {
+            await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
         }
     }
 }

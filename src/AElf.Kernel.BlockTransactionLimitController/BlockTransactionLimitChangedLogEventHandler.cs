@@ -11,7 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.BlockTransactionLimitController
 {
-    public class BlockTransactionLimitChangedLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class BlockTransactionLimitChangedLogEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -49,7 +49,8 @@ namespace AElf.Kernel.BlockTransactionLimitController
             var eventData = new BlockTransactionLimitChanged();
             eventData.MergeFrom(logEvent);
 
-            _blockTransactionLimitProvider.SetLimit(eventData.New);
+            _blockTransactionLimitProvider.SetLimit(eventData.New,
+                new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height});
             Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
             await Task.CompletedTask;
         }

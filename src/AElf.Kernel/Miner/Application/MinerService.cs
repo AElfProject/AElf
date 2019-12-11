@@ -37,7 +37,8 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
-            var limit = await _blockTransactionLimitProvider.GetLimitAsync();
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
+                {BlockHash = previousBlockHash, BlockHeight = previousBlockHeight});
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_transactionPackingService.IsTransactionPackingEnabled()
                     ? limit
@@ -54,7 +55,7 @@ namespace AElf.Kernel.Miner.Application
                                   $"best chain hash {previousBlockHash}.");
             }
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
             return await _miningService.MineAsync(
                 new RequestMiningDto

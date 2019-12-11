@@ -22,13 +22,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 return null;
 
             var headerInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            // Validate header information
-            if (headerInformation.SenderPubkey != header.SignerPubkey)
-            {
-                return null;
-            }
 
-            return consensusExtraData;
+            // Validate header information
+            return headerInformation.SenderPubkey != header.SignerPubkey ? null : consensusExtraData;
         }
     }
 }

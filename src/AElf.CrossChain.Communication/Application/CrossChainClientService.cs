@@ -14,7 +14,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public ILogger<CrossChainClientService> Logger { get; set; }
 
-        public CrossChainClientService(ICrossChainClientProvider crossChainClientProvider, 
+        public CrossChainClientService(ICrossChainClientProvider crossChainClientProvider,
             IBlockCacheEntityProducer blockCacheEntityProducer)
         {
             _crossChainClientProvider = crossChainClientProvider;
@@ -43,10 +43,10 @@ namespace AElf.CrossChain.Communication.Application
                 b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
         }
 
-        public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
+        public Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
-//            _ = ConnectAsync(crossChainClient);
+            return Task.CompletedTask;
         }
 
         public async Task CloseClientsAsync()
@@ -57,12 +57,12 @@ namespace AElf.CrossChain.Communication.Application
                 await client.CloseAsync();
             }
         }
-        
+
         private async Task ConnectAsync(ICrossChainClient client)
         {
             if (client.IsConnected)
                 return;
-            Logger.LogTrace($"Try connect with chain {ChainHelper.ConvertChainIdToBase58(client.RemoteChainId)}");
+            Logger.LogDebug($"Try connect with chain {ChainHelper.ConvertChainIdToBase58(client.RemoteChainId)}");
             await client.ConnectAsync();
         }
     }

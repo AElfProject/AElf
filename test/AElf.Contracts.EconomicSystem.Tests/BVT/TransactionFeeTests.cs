@@ -19,7 +19,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public partial class EconomicSystemTest
     {
         private const long DefaultFeeAmount = 1_0000_0000;
-        private const long NewFeeAmount = 1_5000_0000;
+        private const long NewFeeAmount = 0;
         private const long CreateSchemeAmount = 10_00000000;
 
         private async Task Vote_SetMethodFee_Test()
@@ -75,7 +75,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0);
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0);
         }
 
         private async Task Profit_SetMethodFee_Test()
@@ -133,12 +133,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0); 
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,
@@ -174,7 +174,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
         private async Task Profit_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,

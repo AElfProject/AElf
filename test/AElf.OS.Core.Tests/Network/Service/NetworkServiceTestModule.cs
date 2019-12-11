@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -27,7 +28,8 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<INetworkService, NetworkService>();
-            
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();
             p3.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "pBestPeer" });
@@ -37,7 +39,7 @@ namespace AElf.OS
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "blacklistpeer")))
                 .Returns<string>(adr =>
             {
-                var endpoint = IpEndPointHelper.Parse("127.0.0.1:5000");
+                AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             
                 var peer = new Mock<IPeer>();
                 peer.Setup(p => p.RemoteEndpoint).Returns(endpoint);
@@ -78,11 +80,12 @@ namespace AElf.OS
                 .Returns<bool>(includeFailing =>
                 {
                     List<IPeer> peers = new List<IPeer>();
+                    var mockPeerEndpoint = new DnsEndPoint("10.10.10.10", 100);
                     
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
                     var p2 = new Mock<IPeer>();
-                    p2.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
+                    p2.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                     p2.Setup(p => p.Info).Returns(new PeerConnectionInfo
                         {Pubkey = "p2", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
@@ -103,7 +106,7 @@ namespace AElf.OS
                         }));
                     peers.Add(p2.Object);
 
-                    p3.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
+                    p3.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                     p3.Setup(p => p.Info).Returns(new PeerConnectionInfo
                         {Pubkey = "p3", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
@@ -113,7 +116,7 @@ namespace AElf.OS
                     peers.Add(p3.Object);
                     
                     var exceptionOnBcast = new Mock<IPeer>();
-                    exceptionOnBcast.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
+                    exceptionOnBcast.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                     exceptionOnBcast.Setup(p => p.Info).Returns(new PeerConnectionInfo
                         {Pubkey = "exceptionOnBcast", ConnectionTime = TimestampHelper.GetUtcNow()});
                     
@@ -122,7 +125,7 @@ namespace AElf.OS
                     if (includeFailing)
                     {
                         var failingPeer = new Mock<IPeer>();
-                        failingPeer.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
+                        failingPeer.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                         failingPeer.Setup(p => p.Info).Returns(new PeerConnectionInfo
                             {Pubkey = "failing", ConnectionTime = TimestampHelper.GetUtcNow()});
                         peers.Add(failingPeer.Object);

@@ -511,19 +511,24 @@ namespace AElf.Contracts.Economic.TestBase
         protected async Task SetConnectors()
         {
             {
-                await SetConnector(new Connector
+                await SetConnector(new PairConnector
                 {
-                    Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+                    ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+                    ResourceVirtualBalance = 100,
                     IsPurchaseEnabled = true,
-                    Weight = "0.2",
-                    IsVirtualBalanceEnabled = true
+                    IsResourceVirtualBalanceEnabled = true,
+                    ResourceWeight = "0.05",
+                    NativeConnectorSymbol = "NTTFCC",
+                    NativeWeight = "0.05",
+                    NativeVirtualBalance = 1_000_000_00000000,
+                    IsNativeVirtualBalanceEnabled = true
                 });
             }
         }
 
         protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
         {
-            var genesisOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var genesisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = genesisOwner,
@@ -562,13 +567,13 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        private async Task SetConnector(Connector connector)
+        private async Task SetConnector(PairConnector connector)
         {
             var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = connectorManagerAddress,
-                ContractMethodName = nameof(TokenConverterContractStub.SetConnector),
+                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnectors),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress

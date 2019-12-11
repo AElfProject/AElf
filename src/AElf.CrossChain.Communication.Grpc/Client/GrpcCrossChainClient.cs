@@ -208,7 +208,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     });
                 return sideChainInitializationResponse;
             }
-            catch (RpcException e)
+            catch (RpcException)
             {
                 return null;
             }

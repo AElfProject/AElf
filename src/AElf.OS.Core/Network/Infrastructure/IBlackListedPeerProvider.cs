@@ -12,8 +12,8 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IBlackListedPeerProvider
     {
-        bool AddIpToBlackList(IPAddress ipAddress);
-        bool IsIpBlackListed(IPAddress address);
+        bool AddHostToBlackList(string host);
+        bool IsIpBlackListed(string host);
     }
     
     public class BlackListedPeerProvider : IBlackListedPeerProvider, ISingletonDependency
@@ -23,22 +23,22 @@ namespace AElf.OS.Network.Infrastructure
 
         public ILogger<BlackListedPeerProvider> Logger { get; set; }
         
-        private readonly ConcurrentDictionary<IPAddress, Timestamp> _blackListedPeers;
+        private readonly ConcurrentDictionary<string, Timestamp> _blackListedPeers;
 
         public BlackListedPeerProvider()
         {
-            _blackListedPeers = new ConcurrentDictionary<IPAddress, Timestamp>();
+            _blackListedPeers = new ConcurrentDictionary<string, Timestamp>();
         }
 
-        public bool AddIpToBlackList(IPAddress ipAddress)
+        public bool AddHostToBlackList(string host)
         {
-            return _blackListedPeers.TryAdd(ipAddress, TimestampHelper.GetUtcNow());
+            return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow());
         }
         
-        public bool IsIpBlackListed(IPAddress address)
+        public bool IsIpBlackListed(string host)
         {
             CleanBlackListed();
-            return _blackListedPeers.ContainsKey(address);
+            return _blackListedPeers.ContainsKey(host);
         }
 
         private void CleanBlackListed()

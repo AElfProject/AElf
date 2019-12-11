@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.CrossChain;
@@ -37,6 +38,7 @@ using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenCont
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
+using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -255,11 +257,13 @@ namespace AElf.Contracts.TestBase
             
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -366,7 +370,7 @@ namespace AElf.Contracts.TestBase
         {
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
-
+        
         /// <summary>
         /// Same key pair, different chain.
         /// </summary>
@@ -486,6 +490,26 @@ namespace AElf.Contracts.TestBase
             await blockAttachService.AttachBlockAsync(block);
     
             return block;
+        }
+
+        /// <summary>
+        /// Mine a block with only system txs.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Block> MineEmptyBlockAsync()
+        {
+            return await MineAsync(new List<Transaction> {});
+        }
+        
+        /// <summary>
+        /// Gets a specified transactions from their ids
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Transaction>> GetTransactionsAsync(IEnumerable<Hash> txs)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            return await blockchainService.GetTransactionsAsync(txs);
         }
 
         /// <summary>
@@ -661,7 +685,7 @@ namespace AElf.Contracts.TestBase
                 TokenName = "Native token",
                 TotalSupply = totalSupply,
                 Decimals = 8,
-                Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                Issuer = issuer,
                 IsBurnable = true
             });
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
@@ -670,16 +694,23 @@ namespace AElf.Contracts.TestBase
                 Amount = balanceOfStarter,
                 To = Address.FromPublicKey(KeyPair.PublicKey)
             });
+            var crossChainContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            crossChainContractCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                new CrossChain.InitializeInput
+                {
+                    IsPrivilegePreserved = true
+                });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
             {
                 GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold
             });
+            
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(CrossChainContractCode,CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,ConfigurationSmartContractAddressNameProvider.Name);
@@ -690,11 +721,11 @@ namespace AElf.Contracts.TestBase
         /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, out long totalSupply,
-            Address proposer,out bool isPrivilegePreserved)
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,
+            out long totalSupply,
+            Address proposer, long parentChainHeightOfCreation = 1)
         {
             totalSupply = TokenTotalSupply;
-            isPrivilegePreserved = IsPrivilegePreserved;
             var nativeTokenInfo = new TokenInfo
             {
                 Symbol = "ELF",
@@ -739,12 +770,20 @@ namespace AElf.Contracts.TestBase
             {
                 GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
                 PrivilegedProposer = proposer,
-                ProposerAuthorityRequired = IsPrivilegePreserved
+                ProposerAuthorityRequired = true
             });
+            var crossChainContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            crossChainContractCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                new CrossChain.InitializeInput
+                {
+                    IsPrivilegePreserved = IsPrivilegePreserved,
+                    ParentChainId = mainChainId,
+                    CreationHeightOnParentChain = parentChainHeightOfCreation
+                });
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name,tokenInitializationCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };

@@ -123,7 +123,7 @@ namespace AElf.Contracts.Genesis
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            resultUpdate.TransactionResult.Error.Contains("Only author can propose contract update.").ShouldBeTrue();
+            resultUpdate.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
 
         [Fact]
@@ -139,37 +139,6 @@ namespace AElf.Contracts.Genesis
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Code is not changed.").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task Change_Contract_Author_Test()
-        {
-            var contractAddress = await Deploy_SmartContracts_Test();
-
-            var resultChange = await DefaultTester.ChangeContractAuthor.SendAsync(
-                new ChangeContractAuthorInput()
-                {
-                    ContractAddress = contractAddress,
-                    NewAuthor = AnotherUser
-                });
-            resultChange.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var resultAuthor = await DefaultTester.GetContractAuthor.CallAsync(contractAddress);
-            resultAuthor.ShouldBe(AnotherUser);
-        }
-
-        [Fact]
-        public async Task Change_Contract_Author_Without_Permission_Test()
-        {
-            var contractAddress = await Deploy_SmartContracts_Test();
-            var result = await AnotherTester.ChangeContractAuthor.SendWithExceptionAsync(
-                new ChangeContractAuthorInput()
-                {
-                    ContractAddress = contractAddress,
-                    NewAuthor = AnotherUser
-                });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();
         }
     }
 }

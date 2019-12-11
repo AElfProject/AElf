@@ -49,7 +49,7 @@ namespace AElf.Contracts.ParliamentAuth
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub { get; set; }
+        
 
         protected void InitializeContracts()
         {
@@ -66,16 +66,6 @@ namespace AElf.Contracts.ParliamentAuth
                     DefaultSenderKeyPair
                 ));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
-
-            var otherParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
-                DeployContractAsync(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    ParliamentAuthCode,
-                    Hash.FromString("ParliamentAuth"),
-                    DefaultSenderKeyPair));
-            OtherParliamentAuthContractStub =
-                GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
-                    otherParliamentAuthContractAddress, DefaultSenderKeyPair);
 
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
@@ -157,24 +147,22 @@ namespace AElf.Contracts.ParliamentAuth
     public class ParliamentAuthContractPrivilegeTestBase : TestBase.ContractTestBase<ParliamentAuthContractPrivilegeTestAElfModule>
     {
         protected Address ParliamentAddress;
-        protected Address BasicContractZeroAddress;
         protected Address TokenContractAddress;
 
         protected long TotalSupply;
         protected long BalanceOfStarter;
-        protected bool IsPrivilegePreserved;
         protected new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
 
 
         public ParliamentAuthContractPrivilegeTestBase()
         {
-        var mainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
-            Tester = new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule>(mainChainId,SampleECKeyPairs.KeyPairs[1]);
+            var mainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+            var chainId = ChainHelper.GetChainId(1);
+            Tester = new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule>(chainId,SampleECKeyPairs.KeyPairs[1]);
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContract(
-                    Tester.GetCallOwnerAddress(), out TotalSupply,
-                     Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
-            BasicContractZeroAddress = Tester.GetZeroContractAddress();
+                    Tester.GetCallOwnerAddress(),
+                    mainChainId,out TotalSupply,Tester.GetCallOwnerAddress())));
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }

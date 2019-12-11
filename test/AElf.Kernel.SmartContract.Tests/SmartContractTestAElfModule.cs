@@ -23,25 +23,13 @@ namespace AElf.Kernel.SmartContract
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
             });
-            
-            context.Services
-                .AddTransient(provider =>
-                {
-                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
-                    service.Setup(m => m.GetSystemTransactionMethodNameList())
-                        .Returns(new List<string>
-                            {
-                                "InitialAElfConsensusContract",
-                                "FirstRound",
-                                "NextRound",
-                                "NextTerm",
-                                "UpdateValue",
-                                "UpdateTinyBlockInformation"
-                            }
-                        );
 
-                    return service.Object;
-                });
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IDeployedContractAddressService>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

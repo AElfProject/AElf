@@ -20,81 +20,113 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
-            var result = new TransactionFee();
+            var transactionFee = new TransactionFee();
 
-            if (input.PrimaryTokenSymbol == string.Empty)
+            // Primary token not created yet.
+            if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                // Primary token not created yet.
-                return result;
+                return transactionFee;
             }
 
-            var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-                new StringValue {Value = input.MethodName});
-
+            // Record tx fee bill during current charging process.
             var bill = new TransactionFeeBill();
 
             var fromAddress = Context.Sender;
-
-            if (fee != null && fee.Fees.Any())
+            var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
+                new StringValue {Value = input.MethodName});
+            var successToChargeBaseFee = true;
+            if (methodFees != null && methodFees.Fees.Any())
             {
-                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
-                    out var amount, out var existingBalance))
-                {
-                    Assert(false, "Failed to charge first sufficient token.");
-                }
-
-                bill.TokenToAmount.Add(symbol, amount);
-                // Charge base fee.
-                State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-                result.Value.Add(symbol, amount);
+                successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
 
-            var balanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
-            var txSizeFeeAmount = input.TransactionSizeFee;
-            txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
-                ? txSizeFeeAmount
-                // It's safe to convert from long to int here because
-                // balanceAfterChargingBaseFee <= txSizeFeeAmount and
-                // typeof(txSizeFeeAmount) == int
-                : (int) balanceAfterChargingBaseFee;
+            var successToChargeSizeFee = ChargeSizeFee(input, ref bill);
 
-            bill += new TransactionFeeBill
-            {
-                TokenToAmount =
-                {
-                    {
-                        input.PrimaryTokenSymbol,
-                        txSizeFeeAmount
-                    }
-                }
-            };
-
-            // Charge tx size fee.
-            var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
-            State.Balances[fromAddress][input.PrimaryTokenSymbol] = finalBalanceOfNativeSymbol;
-
-            // Record the bill finally.
+            // Update the bill.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
 
-            // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            Assert(
-                balanceAfterChargingBaseFee >=
-                input.TransactionSizeFee,
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
-                $"Primary token: {input.PrimaryTokenSymbol}");
-
-            if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
+            // Update balances.
+            foreach (var tokenToAmount in bill.TokenToAmount)
             {
-                result.Value[input.PrimaryTokenSymbol] =
-                    result.Value[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
+                State.Balances[fromAddress][tokenToAmount.Key] =
+                    State.Balances[fromAddress][tokenToAmount.Key].Sub(tokenToAmount.Value);
+                transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
+            }
+
+            transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
+            return transactionFee;
+        }
+
+        private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
+        {
+            var dict = new Dictionary<string, long>();
+            foreach (var methodFee in methodFees.Fees)
+            {
+                if (dict.ContainsKey(methodFee.Symbol))
+                {
+                    dict[methodFee.Symbol] = dict[methodFee.Symbol].Add(methodFee.BasicFee);
+                }
+                else
+                {
+                    dict[methodFee.Symbol] = methodFee.BasicFee;
+                }
+            }
+
+            return dict;
+        }
+
+        private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
+        {
+            if (!ChargeFirstSufficientToken(methodFeeMap, out var symbolToChargeBaseFee,
+                out var amountToChargeBaseFee, out var existingBalance))
+            {
+                Context.LogDebug(() => "Failed to charge first sufficient token.");
+                if (symbolToChargeBaseFee != null)
+                {
+                    bill.TokenToAmount.Add(symbolToChargeBaseFee, existingBalance);
+                } // If symbol == null, then charge nothing in base fee part.
+
+                return false;
+            }
+
+            bill.TokenToAmount.Add(symbolToChargeBaseFee, amountToChargeBaseFee);
+
+            return true;
+        }
+
+        private bool ChargeSizeFee(ChargeTransactionFeesInput input, ref TransactionFeeBill bill)
+        {
+            string symbolChargedForBaseFee = null;
+            var amountChargedForBaseFee = 0L;
+            if (bill.TokenToAmount.Any())
+            {
+                symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
+                amountChargedForBaseFee = bill.TokenToAmount.First().Value;
+            }
+
+            var availableBalance = symbolChargedForBaseFee == input.PrimaryTokenSymbol
+                // Available balance need to deduct amountChargedForBaseFee
+                ? State.Balances[Context.Sender][input.PrimaryTokenSymbol].Sub(amountChargedForBaseFee)
+                : State.Balances[Context.Sender][input.PrimaryTokenSymbol];
+            var txSizeFeeAmount = input.TransactionSizeFee;
+            var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
+                ? txSizeFeeAmount
+                : availableBalance;
+
+            if (input.PrimaryTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
+
+            if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
+            {
+                bill.TokenToAmount[input.PrimaryTokenSymbol] =
+                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(chargeAmount);
             }
             else
             {
-                result.Value.Add(input.PrimaryTokenSymbol, txSizeFeeAmount);
+                bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
             }
 
-            return result;
+            return availableBalance >= txSizeFeeAmount;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
@@ -104,12 +136,12 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
-
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", State.CpuUnitPrice.Value.Mul(input.ReadsCount)},
-                {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
-                {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
+                {"CPU", input.CpuCost},
+                {"NET", input.NetCost},
+                {"STO", input.StoCost},
+                {"RAM", input.RamCost}
             };
             foreach (var pair in symbolToAmount)
             {
@@ -126,6 +158,55 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Example 1:
+        /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
+        ///
+        /// [Charge successful]
+        /// Sender's balance:
+        /// ELF - 9
+        /// TSA - 0
+        /// TSB - 3
+        /// Then charge 2 TSBs.
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 9
+        /// TSA - 0
+        /// TSB - 1
+        /// Then charge 9 ELFs
+        ///
+        /// Example 2:
+        /// symbolToAmountMap: {{"TSA", 1}, {"TSB", 2}}
+        /// which means the charging token symbol list doesn't contain the native symbol.
+        ///
+        /// [Charge successful]
+        /// Sender's balance:
+        /// ELF - 1
+        /// TSA - 2
+        /// TSB - 2
+        /// Then charge 1 TSA
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 1
+        /// TSA - 0
+        /// TSB - 1
+        /// Then charge 1 TSB
+        ///
+        /// [Charge failed]
+        /// Sender's balance:
+        /// ELF - 1000000000
+        /// TSA - 0
+        /// TSB - 0
+        /// Then charge nothing.
+        /// (Contract developer should be suggested to implement acs5 to check certain balance or allowance of sender.)
+        /// </summary>
+        /// <param name="symbolToAmountMap"></param>
+        /// <param name="symbol"></param>
+        /// <param name="amount"></param>
+        /// <param name="existingBalance"></param>
+        /// <returns></returns>
         private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
@@ -133,6 +214,7 @@ namespace AElf.Contracts.MultiToken
             amount = 0L;
             existingBalance = 0L;
             var fromAddress = Context.Sender;
+            string symbolOfValidBalance = null;
 
             // Traverse available token symbols, check balance one by one
             // until there's balance of one certain token is enough to pay the fee.
@@ -142,19 +224,36 @@ namespace AElf.Contracts.MultiToken
                 symbol = symbolToAmount.Key;
                 amount = symbolToAmount.Value;
 
-                //Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
-
-                if (existingBalance >= amount)
+                if (existingBalance > 0)
                 {
-                    break;
+                    symbolOfValidBalance = symbol;
+                }
+
+                if (existingBalance >= amount) break;
+            }
+
+            if (existingBalance >= amount) return true;
+
+            var officialTokenContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            var primaryTokenSymbol =
+                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
+                    .Value;
+            if (symbolToAmountMap.Keys.Contains(primaryTokenSymbol))
+            {
+                symbol = primaryTokenSymbol;
+                existingBalance = State.Balances[fromAddress][primaryTokenSymbol];
+            }
+            else
+            {
+                symbol = symbolOfValidBalance;
+                if (symbol != null)
+                {
+                    existingBalance = State.Balances[fromAddress][symbolOfValidBalance];
                 }
             }
 
-            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount,
-                $"Insufficient balance to pay transaction fee. {existingBalance} < {amount}");
-
-            return symbol != null;
+            return false;
         }
 
         public override Empty ClaimTransactionFees(Empty input)
@@ -225,7 +324,7 @@ namespace AElf.Contracts.MultiToken
             var transactions = Context.GetPreviousBlockTransactions();
 
             Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var totalAmount = 0L;
                 foreach (var transaction in transactions)
@@ -347,7 +446,7 @@ namespace AElf.Contracts.MultiToken
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx size unit price.");
 

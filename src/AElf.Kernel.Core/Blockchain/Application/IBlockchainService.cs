@@ -293,9 +293,7 @@ namespace AElf.Kernel.Blockchain.Application
             var success = await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
             if (!success)
                 return;
-
-            Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
-
+            
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 

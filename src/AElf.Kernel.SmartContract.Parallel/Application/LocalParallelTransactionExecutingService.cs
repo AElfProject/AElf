@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,7 +13,8 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService, ISingletonDependency
+    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService,
+        ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ILocalTransactionExecutingService _plainExecutingService;
@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false)
         {
-            Logger.LogTrace($"Entered parallel ExecuteAsync.");
+            Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
             // TODO: Is it reasonable to allow throwing exception here
@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = blockHeader.Height - 1
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
-            
+
             var returnSets = new List<ExecutionReturnSet>();
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
@@ -65,13 +65,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
-            
+
             var returnSetCollection = new ReturnSetCollection(returnSets);
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
             if (transactionExecutingDto.PartialBlockStateSet != null)
             {
                 var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
-                foreach ( var change in partialBlockStateSet.Changes)
+                foreach (var change in partialBlockStateSet.Changes)
                 {
                     if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
                     if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
@@ -85,7 +85,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     updatedPartialBlockStateSet.Deletes.Add(delete);
                 }
             }
-            
+
             var tasks = groupedTransactions.Parallelizables.Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
@@ -96,27 +96,24 @@ namespace AElf.Kernel.SmartContract.Parallel
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
-            returnSets.AddRange(MergeResults(results, out var conflictingSets).Item1);
+            returnSets.AddRange(MergeResults(results, out var conflictingSets));
             Logger.LogTrace("Merged results from parallelizables.");
 
             var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
                 groupedTransactions.TransactionsWithoutContract, blockHeader);
-            
+
             Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
-            
+
             if (conflictingSets.Count > 0)
             {
-                await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                    blockHeader.Height - 1,
-                    blockHeader.PreviousBlockHash,
-                    returnSets, conflictingSets
-                ));
-                await ProcessConflictingSetsAsync(conflictingSets, returnSets, blockHeader);
+                await ProcessConflictingSetsAsync(conflictingSets, blockHeader);
+                returnSets.AddRange(conflictingSets);
             }
 
             return returnSets;
         }
+
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
             BlockHeader blockHeader)
         {
@@ -141,33 +138,31 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
                 returnSets.Add(returnSet);
             }
-            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
             return returnSets;
         }
 
-        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictionSets,
-            List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets, BlockHeader blockHeader)
         {
             var transactionResults = new List<TransactionResult>();
-            foreach (var conflictionSet in conflictionSets)
+            foreach (var conflictingSet in conflictingSets)
             {
                 var result = new TransactionResult
                 {
-                    TransactionId = conflictionSet.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    Error = ExecutionStatus.Canceled.ToString()
+                    TransactionId = conflictingSet.TransactionId,
+                    Status = TransactionResultStatus.Conflict,
+                    Error = "Parallel conflict",
                 };
-                conflictionSet.Status = result.Status;
+                conflictingSet.Status = result.Status;
                 transactionResults.Add(result);
-                returnSets.Add(conflictionSet);
             }
-            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
 
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
         }
 
-        private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
+        private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
             TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
             bool throwException = false)
         {
@@ -175,35 +170,47 @@ namespace AElf.Kernel.SmartContract.Parallel
                 await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
                     throwException);
             var keys = new HashSet<string>(
-                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
-            return (executionReturnSets, keys);
+                executionReturnSets.SelectMany(s =>
+                    s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
+            return new GroupedExecutionReturnSets
+            {
+                ReturnSets = executionReturnSets,
+                Keys = keys
+            };
+        }
+        
+        private class GroupedExecutionReturnSets
+        {
+            public List<ExecutionReturnSet> ReturnSets { get; set; }
+            
+            public HashSet<string> Keys { get; set; }
         }
 
-        private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(
-            IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results,
+        private List<ExecutionReturnSet> MergeResults(
+            IEnumerable<GroupedExecutionReturnSets> groupedExecutionReturnSetsList,
             out List<ExecutionReturnSet> conflictingSets)
         {
             // TODO: Throw exception upon conflicts
             var returnSets = new List<ExecutionReturnSet>();
             conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();
-            foreach (var (sets, keys) in results)
+            foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsList)
             {
-                if (!existingKeys.Overlaps(keys))
+                if (!existingKeys.Overlaps(groupedExecutionReturnSets.Keys))
                 {
-                    returnSets.AddRange(sets);
-                    foreach (var key in keys)
+                    returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
+                    foreach (var key in groupedExecutionReturnSets.Keys)
                     {
                         existingKeys.Add(key);
                     }
                 }
                 else
                 {
-                    conflictingSets.AddRange(sets);
+                    conflictingSets.AddRange(groupedExecutionReturnSets.ReturnSets);
                 }
             }
 
-            return (returnSets, existingKeys);
+            return returnSets;
         }
     }
 }

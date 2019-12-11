@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -25,20 +26,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             _transactionPackingService = transactionPackingService;
         }
 
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
-            ref List<Transaction> generatedTransactions)
+        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
+            var generatedTransactions = new List<Transaction>();
             if (!_transactionPackingService.IsTransactionPackingEnabled())
-                return;
+                return Task.FromResult(generatedTransactions);
 
             if (preBlockHeight < Constants.GenesisBlockHeight)
-                return;
+                return Task.FromResult(generatedTransactions);
 
             var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
                 TokenSmartContractAddressNameProvider.Name);
 
             if (tokenContractAddress == null)
-                return;
+                return Task.FromResult(generatedTransactions);
 
             generatedTransactions.AddRange(new List<Transaction>
             {
@@ -53,7 +54,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
             });
             
-            Logger.LogTrace("FeeClaim transaction generated.");
+            Logger.LogInformation("FeeClaim transaction generated.");
+            return Task.FromResult(generatedTransactions);
         }
     }
 }
