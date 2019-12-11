@@ -42,8 +42,6 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput());
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
@@ -76,7 +74,7 @@ namespace AElf.CrossChain
                     ProposalId = Hash.FromString("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
-                        SideChainBlockData = {sideChainBlockData}
+                        SideChainBlockDataList = {sideChainBlockData}
                     },
                     ToBeReleased = false
                 });
@@ -112,7 +110,7 @@ namespace AElf.CrossChain
                     ProposalId = Hash.FromString("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
-                        ParentChainBlockData = {parentChainBlockDataList}
+                        ParentChainBlockDataList = {parentChainBlockDataList}
                     },
                     ToBeReleased = true
                 });
@@ -189,7 +187,7 @@ namespace AElf.CrossChain
                     ProposalId = Hash.FromString("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
-                        SideChainBlockData = {list1, list2, list3}
+                        SideChainBlockDataList = {list1, list2, list3}
                     },
                     ToBeReleased = true
                 });

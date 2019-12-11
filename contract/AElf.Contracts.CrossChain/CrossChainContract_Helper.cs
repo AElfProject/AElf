@@ -283,7 +283,7 @@ namespace AElf.Contracts.CrossChain
                 }.ToByteString(),
                 ContractMethodName = nameof(RecordCrossChainData),
                 ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
-                OrganizationAddress = State.Owner.Value,
+                OrganizationAddress = GetOwnerAddress(),
                 ToAddress = Context.Self,
                 ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId)
             });

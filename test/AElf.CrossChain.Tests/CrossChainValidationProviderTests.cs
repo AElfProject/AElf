@@ -87,7 +87,7 @@ namespace AElf.CrossChain
             block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
             
             var fakeIndexedCrossChainData = new CrossChainBlockData();
-            fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
+            fakeIndexedCrossChainData.SideChainBlockDataList.Add(sideChainBlockData);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(2, fakeIndexedCrossChainData);
 
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
@@ -192,7 +192,7 @@ namespace AElf.CrossChain
             long height = 1)
         {
             var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
-            fakeIndexedCrossChainBlockData.SideChainBlockData.AddRange(new[] {fakeSideChainBlockData});
+            fakeIndexedCrossChainBlockData.SideChainBlockDataList.AddRange(new[] {fakeSideChainBlockData});
 
             // mock data in state
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(height, fakeIndexedCrossChainBlockData);

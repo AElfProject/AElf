@@ -46,7 +46,10 @@ namespace AElf.CrossChain
                 ExecutionStatus = ExecutionStatus.Executed,
             };
             var returnValue = CreateFakeReturnValue(trace, transaction, methodName);
-            trace.ReturnValue = returnValue == null ? ByteString.Empty : ByteString.CopyFrom(returnValue);
+            if (returnValue == null)
+                trace.ExecutionStatus = ExecutionStatus.ContractError;
+            else 
+                trace.ReturnValue = ByteString.CopyFrom(returnValue);
             
             return trace;
         }
@@ -122,7 +125,7 @@ namespace AElf.CrossChain
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub
                     .GetPendingCrossChainIndexingProposal))
             {
-                return _pendingCrossChainIndexingProposalOutput.ToByteArray();
+                return _pendingCrossChainIndexingProposalOutput?.ToByteArray();
             }
             
             return new byte[0];

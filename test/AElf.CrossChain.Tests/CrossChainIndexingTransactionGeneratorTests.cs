@@ -55,11 +55,9 @@ namespace AElf.CrossChain
                 };
                 sideChainBlockInfoCache.Add(sideChainBlockData);
                 if (i < cachingCount)
-                    crossChainBlockData.SideChainBlockData.Add(sideChainBlockData);
+                    crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
             }
 
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput());
             _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
             AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideChainBlockInfoCache}});
             
@@ -210,13 +208,7 @@ namespace AElf.CrossChain
             var previousBlockHash = Hash.FromString("PreviousBlockHash");
             var previousBlockHeight = 1;
             
-
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput());
             _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
-
-            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput();
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
                 previousBlockHeight);
             Assert.Empty(res);
