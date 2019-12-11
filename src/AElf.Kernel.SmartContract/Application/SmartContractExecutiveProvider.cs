@@ -377,7 +377,8 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                if (executiveZero != null) await PutExecutiveAsync(address, executiveZero);
+                if (executiveZero != null)
+                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
             }
         }
 
