@@ -67,17 +67,6 @@ namespace AElf.WebApp.Application.Chain
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block.GetHash().ToHex();
-                output.ReturnValue = transactionResult.ReturnValue.ToHex();
-                var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-                output.Error = transactionResult.Error;
 
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
@@ -99,6 +88,25 @@ namespace AElf.WebApp.Application.Chain
                 }
 
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Pending)
+            {
+                return output;
+            }
+            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+            output.BlockHash = block.GetHash().ToHex();
+
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                output.ReturnValue = transactionResult.ReturnValue.ToHex();
+                var bloom = transactionResult.Bloom;
+                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+            {
+                output.Error = transactionResult.Error;
             }
 
             output.TransactionFee = transactionResult.TransactionFee == null
