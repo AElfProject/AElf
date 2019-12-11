@@ -18,6 +18,12 @@ namespace AElf.Contracts.CrossChain
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
+            if (Context.CurrentHeight != Constants.GenesisBlockHeight) 
+                return new Empty();
+            
+            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            State.GenesisContract.SetContractProposerRequiredState.Send(
+                new BoolValue {Value = input.IsPrivilegePreserved});
 
             State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
             return new Empty();

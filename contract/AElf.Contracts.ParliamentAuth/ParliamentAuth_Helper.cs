@@ -27,12 +27,12 @@ namespace AElf.Contracts.ParliamentAuth
             if (!State.ProposerAuthorityRequired.Value)
                 return;
             
-            if (ValidateAddressInWhiteList(Context.Sender))
+            if (ValidateProposerAuthority(Context.Sender))
                 return;
-
+            
             Assert(
                 Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
-                ValidateAddressInWhiteList(Context.Origin), "Not authorized to propose.");
+                ValidateProposerAuthority(Context.Origin), "Not authorized to propose.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
@@ -104,11 +104,20 @@ namespace AElf.Contracts.ParliamentAuth
             return proposal.ApprovedRepresentatives.Contains(Context.Sender);
         }
 
+        private bool ValidateProposerAuthority(Address address)
+        {
+            return ValidateAddressInWhiteList(address) || ValidateParliamentMemberAuthority(address);
+        }
+
         private bool ValidateAddressInWhiteList(Address address)
         {
+            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address);
+        }
+
+        private bool ValidateParliamentMemberAuthority(Address address)
+        {
             var currentMinerList = GetCurrentMinerList();
-            return State.ProposerWhiteList.Value.Proposers.Any(p => p == address) ||
-                   currentMinerList.Any(m => m == address);
+            return currentMinerList.Any(m => m == address);
         }
         
         private void AssertCurrentMiner()
