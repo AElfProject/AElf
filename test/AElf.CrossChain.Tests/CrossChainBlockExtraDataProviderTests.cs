@@ -5,6 +5,7 @@ using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Xunit;
@@ -76,7 +77,8 @@ namespace AElf.CrossChain
                     {
                         SideChainBlockDataList = {sideChainBlockData}
                     },
-                    ToBeReleased = false
+                    ToBeReleased = false,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
                 });
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
@@ -112,7 +114,8 @@ namespace AElf.CrossChain
                     {
                         ParentChainBlockDataList = {parentChainBlockDataList}
                     },
-                    ToBeReleased = true
+                    ToBeReleased = true,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
                 });
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
@@ -189,7 +192,8 @@ namespace AElf.CrossChain
                     {
                         SideChainBlockDataList = {list1, list2, list3}
                     },
-                    ToBeReleased = true
+                    ToBeReleased = true,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
                 });
 
             _crossChainTestHelper.SetFakeLibHeight(1);

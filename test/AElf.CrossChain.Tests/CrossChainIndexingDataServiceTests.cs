@@ -6,6 +6,7 @@ using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Xunit;
@@ -167,7 +168,8 @@ namespace AElf.CrossChain
                     {
                         SideChainBlockDataList = {sideChainBlockInfoCache}
                     },
-                    ToBeReleased = false
+                    ToBeReleased = false,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
                 });
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
@@ -199,7 +201,8 @@ namespace AElf.CrossChain
                     Proposer = SampleAddress.AddressList[0],
                     ProposalId = Hash.FromString("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
-                    ToBeReleased = true
+                    ToBeReleased = true,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
                 });
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
@@ -211,6 +214,92 @@ namespace AElf.CrossChain
                 _crossChainIndexingDataService.ExtractCrossChainExtraDataFromCrossChainBlockData(crossChainBlockData));
         }
 
+        [Fact]
+        public async Task PrepareExtraDataForNextMiningAsync_Expired_Test()
+        {
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<SideChainBlockData>();
+            var cachingCount = 5;
+            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            {
+                sideChainBlockInfoCache.Add(new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                });
+            }
+
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
+                {{sideChainId, sideChainBlockInfoCache.ToList<IBlockCacheEntity>()}};
+            AddFakeCacheData(fakeCache);
+            
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockDataList = {sideChainBlockInfoCache}
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = crossChainBlockData,
+                    ToBeReleased = true,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-1)
+                });
+
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.Empty(res);
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.NotNull(crossChainTransactionInput);
+            var crossChainBlockDataFromInput = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
+
+            Assert.Equal(cachingCount - 1, crossChainBlockDataFromInput.SideChainBlockDataList.Count);
+        }
+        
+        [Fact]
+        public async Task PrepareExtraDataForNextMiningAsync_AlmostExpired_Test()
+        {
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<SideChainBlockData>();
+            var cachingCount = 5;
+            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            {
+                sideChainBlockInfoCache.Add(new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                });
+            }
+
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
+                {{sideChainId, sideChainBlockInfoCache.ToList<IBlockCacheEntity>()}};
+            AddFakeCacheData(fakeCache);
+            
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockDataList = {sideChainBlockInfoCache}
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = crossChainBlockData,
+                    ToBeReleased = true,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(100)
+                });
+
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.Empty(res);
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.Null(crossChainTransactionInput);
+        }
 
         [Fact]
         public async Task GetCrossChainBlockDataForNextMining_WithoutCachingParentBlock_Test()

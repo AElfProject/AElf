@@ -193,8 +193,10 @@ namespace AElf.Contracts.CrossChain
                 SmartContractConstants.ParliamentAuthContractSystemName);
             res.Proposer = pendingCrossChainIndexingProposal.Proposer;
             res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
-            res.ToBeReleased = State.ParliamentAuthContract.GetProposal
-                .Call(pendingCrossChainIndexingProposal.ProposalId).ToBeReleased;
+            var proposalInfo = State.ParliamentAuthContract.GetProposal
+                .Call(pendingCrossChainIndexingProposal.ProposalId);
+            res.ToBeReleased = proposalInfo.ToBeReleased;
+            res.ExpiredTime = proposalInfo.ExpiredTime;
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
             return res;
         }

@@ -25,6 +25,8 @@ namespace AElf.CrossChain
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
 
             context.Services.AddSingleton<IChargeFeeStrategy, CrossChainContractChargeFeeStrategy>();
+            context.Services
+                .AddSingleton<IBestChainFoundLogEventHandler, CrossChainIndexingDataProposedLogEventHandler>();
         }
     }
 }

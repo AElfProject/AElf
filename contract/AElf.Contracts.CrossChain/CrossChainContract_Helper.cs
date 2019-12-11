@@ -312,19 +312,12 @@ namespace AElf.Contracts.CrossChain
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
             var proposal = GetProposal(proposalId);
-            if (proposal.ToBeReleased)
-            {
-                State.ParliamentAuthContract.Release.Send(proposal.ProposalId); // release if ready
-                SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
-                    CrossChainIndexingProposalStatus.ToBeReleased);
-            }
-            else if (proposal.ExpiredTime <= Context.CurrentBlockTime)
-            {
-                BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
-                ResetCrossChainIndexingProposal();
-            }
+            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
+            State.ParliamentAuthContract.Release.Send(proposal.ProposalId); // release if ready
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
+                CrossChainIndexingProposalStatus.ToBeReleased);
         }
-        
+
         private void AssertValidCrossChainIndexingProposer(Address proposer)
         {
             AssertAddressIsCurrentMiner(proposer);
@@ -399,19 +392,22 @@ namespace AElf.Contracts.CrossChain
             return true;
         }
 
-        private bool TryGetProposalWithStatus(CrossChainIndexingProposalStatus status, out CrossChainIndexingProposal proposal)
+        private bool TryGetProposalWithStatus(CrossChainIndexingProposalStatus status,
+            out CrossChainIndexingProposal proposal)
         {
             proposal = State.CrossChainIndexingProposal.Value;
             return proposal != null && proposal.Status == status;
         }
-        
+
         private void ResetCrossChainIndexingProposal()
         {
             // clear pending proposal
-            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
+            SetCrossChainIndexingProposalStatus(new CrossChainIndexingProposal(),
+                CrossChainIndexingProposalStatus.NonProposed);
         }
-        
-        private void SetCrossChainIndexingProposalStatus(CrossChainIndexingProposal crossChainIndexingProposal, CrossChainIndexingProposalStatus status)
+
+        private void SetCrossChainIndexingProposalStatus(CrossChainIndexingProposal crossChainIndexingProposal,
+            CrossChainIndexingProposalStatus status)
         {
             crossChainIndexingProposal.Status = status;
             State.CrossChainIndexingProposal.Value = crossChainIndexingProposal;
@@ -420,6 +416,19 @@ namespace AElf.Contracts.CrossChain
         private void BanCrossChainIndexingFromAddress(Address address)
         {
             State.BannedMinerHeight[address] = Context.CurrentHeight;
+        }
+
+        private void ClearExpiredCrossChainIndexingProposalIfExists()
+        {
+            var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
+            if (crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.NonProposed)
+                return;
+            
+            var proposalInfo = GetProposal(crossChainIndexingProposal.ProposalId);
+            Assert(proposalInfo.ExpiredTime <= Context.CurrentBlockTime,
+                "Unable to clear cross chain indexing proposal which is not expired.");
+            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
+            ResetCrossChainIndexingProposal();
         }
     }
 }

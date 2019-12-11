@@ -8,6 +8,7 @@ using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
@@ -115,7 +116,8 @@ namespace AElf.CrossChain
                 Proposer = SampleAddress.AddressList[0],
                 ProposalId = Hash.FromString("ProposalId"),
                 ProposedCrossChainBlockData = new CrossChainBlockData(),
-                ToBeReleased = true
+                ToBeReleased = true,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
             };
             _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
             
@@ -174,7 +176,8 @@ namespace AElf.CrossChain
                 Proposer = SampleAddress.AddressList[0],
                 ProposalId = Hash.FromString("ProposalId"),
                 ProposedCrossChainBlockData = new CrossChainBlockData(),
-                ToBeReleased = false
+                ToBeReleased = false,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
             };
             _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
@@ -188,17 +191,7 @@ namespace AElf.CrossChain
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
                     previousBlockHeight, previousBlockHash);
-
-            Assert.Single(transactions);
-            transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
-            transactions[0].To.ShouldBe(smartContractAddress);
-            transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
-            transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
-            transactions[0].MethodName
-                .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing));
-
-            var proposalIdInParam = Hash.Parser.ParseFrom(transactions[0].Params);
-            Assert.Equal(pendingProposal.ProposalId, proposalIdInParam);
+            Assert.Empty(transactions);
         }
         
         [Fact]

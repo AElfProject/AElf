@@ -13,11 +13,13 @@ namespace AElf.Contracts.CrossChain
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-
-            //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
+            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal
+            {
+                Status = CrossChainIndexingProposalStatus.NonProposed
+            };
             if (Context.CurrentHeight != Constants.GenesisBlockHeight) 
                 return new Empty();
             
@@ -25,7 +27,6 @@ namespace AElf.Contracts.CrossChain
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
 
-            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
             return new Empty();
         }
 
@@ -150,9 +151,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
             AssertValidCrossChainIndexingProposer(Context.Sender);
-            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.NonProposed, out _);
-            Assert(pendingProposalExists, "Cross chain indexing pending proposal already exists.");
-
+            ClearExpiredCrossChainIndexingProposalIfExists();
             AssertValidCrossChainDataBeforeIndexing(input);
             ProposeCrossChainBlockData(input, Context.Sender);
             return new Empty();
