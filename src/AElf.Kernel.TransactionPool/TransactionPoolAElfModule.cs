@@ -31,7 +31,6 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ICalculateNetCostStrategy, NetCalculateCostStrategy>();
             services.AddSingleton<ICalculateRamCostStrategy, RamCalculateCostStrategy>();
             services.AddSingleton<ICalculateTxCostStrategy, TxCalculateCostStrategy>();
-            //services.AddTransient<ICalculateFeeService, CalculateFeeService>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }

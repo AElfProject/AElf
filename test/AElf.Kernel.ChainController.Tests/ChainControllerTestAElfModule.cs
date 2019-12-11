@@ -30,7 +30,7 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var mockTxCostStrategy = new Mock<ICalculateTxCostStrategy>();
-                mockTxCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                mockTxCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockTxCostStrategy.Object;
@@ -38,7 +38,7 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var mockCpuCostStrategy = new Mock<ICalculateCpuCostStrategy>();
-                mockCpuCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                mockCpuCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockCpuCostStrategy.Object;
@@ -46,7 +46,7 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var mockRamCostStrategy = new Mock<ICalculateRamCostStrategy>();
-                mockRamCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                mockRamCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockRamCostStrategy.Object;
@@ -54,7 +54,7 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var mockStoCostStrategy = new Mock<ICalculateStoCostStrategy>();
-                mockStoCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                mockStoCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockStoCostStrategy.Object;
@@ -62,12 +62,12 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var mockNetCostStrategy = new Mock<ICalculateNetCostStrategy>();
-                mockNetCostStrategy.Setup(m => m.GetCostAsync(null, 100))
+                mockNetCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockNetCostStrategy.Object;
             });
-            
+
         }
 
     }
