@@ -95,7 +95,6 @@ namespace AElf.Contracts.MultiToken
             var param2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Cpu,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
             };
             await HandleTestAsync(param2, null, null, 50);
@@ -123,7 +122,6 @@ namespace AElf.Contracts.MultiToken
             var param2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Ram,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
             };
             await HandleTestAsync(param2, null, null, 50);
