@@ -14,28 +14,22 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Ln;
+        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Ln;
 
-        public bool TryInitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, int> param)
         {
-            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBaseStr);
-            int.TryParse(changeSpanBaseStr, out var changeSpanBase);
+            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBase);
             if (changeSpanBase <= 0)
                 return false;
-            param.TryGetValue(nameof(Weight).ToLower(), out var weightStr);
-            int.TryParse(weightStr, out var weight);
+            param.TryGetValue(nameof(Weight).ToLower(), out var weight);
             if (weight <= 0)
                 return false;
-            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBaseStr);
-            int.TryParse(weightBaseStr, out var weightBase);
+            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBase);
             if (weightBase <= 0)
                 return false;
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
-            Precision = precision > 0 ? precision : Precision;
             return true;
         }
 
@@ -49,14 +43,13 @@ namespace AElf.Kernel.TransactionPool.Application
             return Precision.Mul((long) (weightChange * unitValue * Math.Log(weightChange, Math.E)));
         }
 
-        public IDictionary<string, string> GetParameterDic()
+        public IDictionary<string, int> GetParameterDic()
         {
-            var paraDic = new Dictionary<string, string>
+            var paraDic = new Dictionary<string, int>
             {
-                [nameof(ChangeSpanBase).ToLower()] = ChangeSpanBase.ToString(),
-                [nameof(Weight).ToLower()] = Weight.ToString(),
-                [nameof(WeightBase).ToLower()] = WeightBase.ToString(),
-                [nameof(Precision).ToLower()] = Precision.ToString()
+                [nameof(ChangeSpanBase).ToLower()] = ChangeSpanBase,
+                [nameof(Weight).ToLower()] = Weight,
+                [nameof(WeightBase).ToLower()] = WeightBase
             };
             return paraDic;
         }
@@ -64,49 +57,40 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class PowerCalculateWay : ICalculateWay
     {
-        public double Power { get; set; } = 2;
+        public int Power { get; set; } = 2;
         public int ChangeSpanBase { get; set; } = 1;
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
-        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Power;
+        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Power;
 
-        public bool TryInitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, int> param)
         {
-            param.TryGetValue(nameof(Power).ToLower(), out var powerStr);
-            double.TryParse(powerStr, out var power);
+            param.TryGetValue(nameof(Power).ToLower(), out var power);
             if (power <= 0)
                 return false;
-            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBaseStr);
-            int.TryParse(changeSpanBaseStr, out var changeSpanBase);
+            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBase);
             if (changeSpanBase <= 0)
                 return false;
-            param.TryGetValue(nameof(Weight).ToLower(), out var weightStr);
-            int.TryParse(weightStr, out var weight);
+            param.TryGetValue(nameof(Weight).ToLower(), out var weight);
             if (weight <= 0)
                 return false;
-            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBaseStr);
-            int.TryParse(weightBaseStr, out var weightBase);
+            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBase);
             if (weightBase <= 0)
+                return false;
+            param.TryGetValue(nameof(Numerator).ToLower(), out var numerator);
+            if (numerator <= 0)
+                return false;
+            param.TryGetValue(nameof(Denominator).ToLower(), out var denominator);
+            if (denominator <= 0)
                 return false;
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
-            if (param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr))
-            {
-                int.TryParse(numeratorStr, out var numerator);
-                Numerator = numerator;
-            }
-
-            param.TryGetValue(nameof(Denominator).ToLower(), out var denominatorStr);
-            int.TryParse(denominatorStr, out var denominator);
-            if (denominator != 0)
-                Denominator = denominator;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
-            Precision = precision > 0 ? precision : Precision;
+            Numerator = numerator;
+            Denominator = denominator;
             Power = power;
             return true;
         }
@@ -117,17 +101,16 @@ namespace AElf.Kernel.TransactionPool.Application
                 .Add(Precision.Mul(Numerator).Div(Denominator).Mul(cost));
         }
 
-        public IDictionary<string, string> GetParameterDic()
+        public IDictionary<string, int> GetParameterDic()
         {
-            var paraDic = new Dictionary<string, string>
+            var paraDic = new Dictionary<string, int>
             {
-                [nameof(Power).ToLower()] = Power.ToString("0.00"),
-                [nameof(ChangeSpanBase).ToLower()] = ChangeSpanBase.ToString(),
-                [nameof(Weight).ToLower()] = Weight.ToString(),
-                [nameof(WeightBase).ToLower()] = WeightBase.ToString(),
-                [nameof(Precision).ToLower()] = Precision.ToString(),
-                [nameof(Numerator).ToLower()] = Numerator.ToString(),
-                [nameof(Denominator).ToLower()] = Denominator.ToString()
+                [nameof(Power).ToLower()] = (int) Power,
+                [nameof(ChangeSpanBase).ToLower()] = ChangeSpanBase,
+                [nameof(Weight).ToLower()] = Weight,
+                [nameof(WeightBase).ToLower()] = WeightBase,
+                [nameof(Numerator).ToLower()] = Numerator,
+                [nameof(Denominator).ToLower()] = Denominator
             };
             return paraDic;
         }
@@ -137,17 +120,15 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         public long Precision { get; set; } = 100000000L;
         public int ConstantValue { get; set; }
-        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Constant;
+        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Constant;
 
-        public bool TryInitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, int> param)
         {
-            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
-            int.TryParse(constantValueStr, out var constantValue);
+            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValue);
             if (constantValue <= 0)
                 return false;
             ConstantValue = constantValue;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
+            param.TryGetValue(nameof(Precision).ToLower(), out var precision);
             Precision = precision > 0 ? precision : Precision;
             return true;
         }
@@ -157,12 +138,11 @@ namespace AElf.Kernel.TransactionPool.Application
             return Precision.Mul(ConstantValue);
         }
 
-        public IDictionary<string, string> GetParameterDic()
+        public IDictionary<string, int> GetParameterDic()
         {
-            var paraDic = new Dictionary<string, string>
+            var paraDic = new Dictionary<string, int>
             {
-                [nameof(ConstantValue).ToLower()] = ConstantValue.ToString(),
-                [nameof(Precision).ToLower()] = Precision.ToString(),
+                [nameof(ConstantValue).ToLower()] = ConstantValue
             };
             return paraDic;
         }
@@ -174,28 +154,22 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Precision { get; set; } = 100000000L;
-        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Liner;
+        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Liner;
 
-        public bool TryInitParameter(IDictionary<string, string> param)
+        public bool TryInitParameter(IDictionary<string, int> param)
         {
-            param.TryGetValue(nameof(Numerator).ToLower(), out var numeratorStr);
-            int.TryParse(numeratorStr, out var numerator);
+            param.TryGetValue(nameof(Numerator).ToLower(), out var numerator);
             if (numerator <= 0)
                 return false;
-            param.TryGetValue(nameof(Denominator).ToLower(), out var denominatorStr);
-            int.TryParse(denominatorStr, out var denominator);
+            param.TryGetValue(nameof(Denominator).ToLower(), out var denominator);
             if (denominator <= 0)
                 return false;
-            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValueStr);
-            int.TryParse(constantValueStr, out var constantValue);
+            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValue);
             if (constantValue < 0)
                 return false;
             Numerator = numerator;
             Denominator = denominator;
             ConstantValue = constantValue;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precisionStr);
-            long.TryParse(precisionStr, out var precision);
-            Precision = precision > 0 ? precision : Precision;
             return true;
         }
 
@@ -204,41 +178,15 @@ namespace AElf.Kernel.TransactionPool.Application
             return Precision.Mul(cost).Mul(Numerator).Div(Denominator).Add(ConstantValue);
         }
 
-        public IDictionary<string, string> GetParameterDic()
+        public IDictionary<string, int> GetParameterDic()
         {
-            var paraDic = new Dictionary<string, string>
+            var paraDic = new Dictionary<string, int>
             {
-                [nameof(ConstantValue).ToLower()] = ConstantValue.ToString(),
-                [nameof(Precision).ToLower()] = Precision.ToString(),
-                [nameof(Numerator).ToLower()] = Numerator.ToString(),
-                [nameof(Denominator).ToLower()] = Denominator.ToString()
+                [nameof(ConstantValue).ToLower()] = ConstantValue,
+                [nameof(Numerator).ToLower()] = Numerator,
+                [nameof(Denominator).ToLower()] = Denominator
             };
             return paraDic;
-        }
-    }
-
-    public class BancorCalculateWay : ICalculateWay
-    {
-        public decimal ResourceWeight { get; set; }
-        public decimal TokenWeight { get; set; }
-        public long ResourceConnectorBalance { get; set; }
-        public long TokenConnectorBalance { get; set; }
-        public long Precision { get; set; } = 100000000L;
-        public int FunctionTypeEnum { get; } = (int)CalculateFunctionTypeEnum.Bancor;
-
-        public bool TryInitParameter(IDictionary<string, string> param)
-        {
-            throw new NotImplementedException();
-        }
-
-        public long GetCost(int cost)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDictionary<string, string> GetParameterDic()
-        {
-            throw new NotImplementedException();
         }
     }
 

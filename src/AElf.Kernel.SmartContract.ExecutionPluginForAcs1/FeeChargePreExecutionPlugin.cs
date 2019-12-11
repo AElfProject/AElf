@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _calStrategy.GetCost(chainContext, txSize);
+                var txCost = await _calStrategy.GetCostAsync(chainContext, txSize);
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {

@@ -65,13 +65,13 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             foreach (var blockIndex in blockIndexes)
             {
-                if (!_forkCache.TryGetValue(blockIndex, out var calAlgoritm)) continue;
-                _pieceWiseFuncCache = calAlgoritm;
+                if (!_forkCache.TryGetValue(blockIndex, out var calAlgorithm)) continue;
+                _pieceWiseFuncCache = calAlgorithm;
                 _forkCache.TryRemove(blockIndex, out _);
             }
         }
 
-        public async Task<long> Calculate(int count)
+        public async Task<long> CalculateAsync(int count)
         {
             count = count < 0 ? int.MaxValue : count;
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
@@ -95,7 +95,7 @@ namespace AElf.Kernel.TransactionPool.Application
             return totalCost;
         }
 
-        public async Task Update(int pieceKey, IDictionary<string, string> parameters)
+        public async Task UpdateAsync(int pieceKey, IDictionary<string, int> parameters)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (pieceWiseFunc == null)
@@ -122,7 +122,7 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public async Task ChangePieceKey(int oldPieceKey, int newPieceKey)
+        public async Task ChangePieceKeyAsync(int oldPieceKey, int newPieceKey)
         {
             var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
             if (pieceWiseFunc == null)
@@ -160,7 +160,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
-            IDictionary<string, string> parameters)
+            IDictionary<string, int> parameters)
         {
             ICalculateWay newCalculateWay = null;
             switch (funcTypeEnum)
@@ -196,7 +196,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             var chainContext = CalculateAlgorithmContext.ChainContext;
             var keys = _forkCache.Keys.ToArray();
-            if (keys.Length == 0 || chainContext == null) return await GetDefaultPieceWiseFunction();
+            if (keys.Length == 0) return await GetDefaultPieceWiseFunction();
             var minHeight = keys.Select(k => k.BlockHeight).Min();
             Dictionary<int, ICalculateWay> algorithm = null;
             var blockIndex = new BlockIndex

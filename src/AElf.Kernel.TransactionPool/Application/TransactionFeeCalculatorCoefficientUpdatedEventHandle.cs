@@ -93,15 +93,15 @@ namespace AElf.Kernel.TransactionPool.Application
 
             if (selectedStrategy == null)
                 return;
-            if(eventData.NewPieceKey > 0)
-                await selectedStrategy.ChangeAlgorithmPieceKey(chainContext, blockIndex, eventData.Coefficient.PieceKey,eventData.NewPieceKey);
+            if (eventData.NewPieceKey > 0)
+                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chainContext, blockIndex,
+                    eventData.Coefficient.PieceKey, eventData.NewPieceKey);
             else
             {
                 var param = eventData.Coefficient;
                 var pieceKey = param.PieceKey;
                 var paramDic = param.CoefficientDic;
-                await selectedStrategy.ModifyAlgorithm(chainContext, blockIndex, pieceKey, paramDic);
-                
+                await selectedStrategy.ModifyAlgorithmAsync(chainContext, blockIndex, pieceKey, paramDic);
             }
         }
     }

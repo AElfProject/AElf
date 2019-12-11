@@ -13,25 +13,26 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         protected ICalculateAlgorithm CalculateAlgorithm { get; set; }
 
-        public async Task<long> GetCost(IChainContext chainContext, int cost)
+        public async Task<long> GetCostAsync(IChainContext chainContext, int cost)
         {
             CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
-            return await CalculateAlgorithm.Calculate(cost);
+            return await CalculateAlgorithm.CalculateAsync(cost);
         }
 
-        public async Task ModifyAlgorithm(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            IDictionary<string, string> param)
+        public async Task ModifyAlgorithmAsync(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+            IDictionary<string, int> param)
         {
             CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.Update(pieceKey, param);
+            await CalculateAlgorithm.UpdateAsync(pieceKey, param);
         }
 
-        public async Task ChangeAlgorithmPieceKey(IChainContext chainContext, BlockIndex blockIndex, int oldPieceKey, int newPieceKey)
+        public async Task ChangeAlgorithmPieceKeyAsync(IChainContext chainContext, BlockIndex blockIndex,
+            int oldPieceKey, int newPieceKey)
         {
             CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.ChangePieceKey(oldPieceKey, newPieceKey);
+            await CalculateAlgorithm.ChangePieceKeyAsync(oldPieceKey, newPieceKey);
         }
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
@@ -53,7 +54,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithm =
                 new CalculateAlgorithm(tokenStTokenContractReaderFactory, blockchainService, chainBlockLinkService)
-                    .AddDefaultAlgorithm(10, new LinerCalculateWay    // used for unit test
+                    .AddDefaultAlgorithm(10, new LinerCalculateWay // used for unit test
                     {
                         Numerator = 1,
                         Denominator = 8,
@@ -65,14 +66,14 @@ namespace AElf.Kernel.TransactionPool.Application
                     }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
                     {
                         Power = 2,
-                        ChangeSpanBase = 4,    
+                        ChangeSpanBase = 4,
                         Weight = 250,
                         WeightBase = 40,
                         Numerator = 1,
                         Denominator = 4,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int)FeeTypeEnum.Cpu;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Cpu;
         }
     }
 
@@ -99,7 +100,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 64,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int)FeeTypeEnum.Sto;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Sto;
         }
     }
 
@@ -129,7 +130,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 4,
                         WeightBase = 40,
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int)FeeTypeEnum.Ram;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Ram;
         }
     }
 
@@ -156,7 +157,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 64,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int)FeeTypeEnum.Net;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Net;
         }
     }
 
@@ -183,7 +184,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Denominator = 16 * 50,
                         Precision = 100000000L
                     });
-            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int)FeeTypeEnum.Tx;
+            CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Tx;
         }
     }
 

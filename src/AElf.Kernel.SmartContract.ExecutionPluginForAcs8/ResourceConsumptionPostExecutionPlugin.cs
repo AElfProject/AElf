@@ -90,10 +90,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-            var netCost = await _netCostStrategy.GetCost(chainContext, netSize);
-            var cpuCost = await _cpuCostStrategy.GetCost(chainContext, readsCount);
-            var stoCost = await _stoCostStrategy.GetCost(chainContext, netSize);
-            var ramCost = await _ramCostStrategy.GetCost(chainContext, writesCount);
+            var netCost = await _netCostStrategy.GetCostAsync(chainContext, netSize);
+            var cpuCost = await _cpuCostStrategy.GetCostAsync(chainContext, readsCount);
+            var stoCost = await _stoCostStrategy.GetCostAsync(chainContext, netSize);
+            var ramCost = await _ramCostStrategy.GetCostAsync(chainContext, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {

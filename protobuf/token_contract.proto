@@ -69,17 +69,10 @@ service TokenContract {
     }
     rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
-    rpc UpdateLinerAlgorithmForDeveloper (LinerCoefficientForDeveloper) returns (google.protobuf.Empty) {
+    
+    rpc UpdateCoefficientFormContract (CoefficientFromContract) returns (google.protobuf.Empty) {
     }
-    rpc UpdatePowerAlgorithmForDeveloper (PowerCoefficientForDeveloper) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateLinerAlgorithmForUser (LinerCoefficientForUser) returns (google.protobuf.Empty) {
-    }
-    rpc UpdatePowerAlgorithmForUser (PowerCoefficientForUser) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeFeePieceKeyForDeveloper (PieceKeyOperationForDeveloper) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeFeePieceKeyForUser (PieceKeyOperationForUser) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientFormSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -433,7 +426,7 @@ message CalculateFeeCoefficient {
     sint32 piece_key = 1;
     FeeTypeEnum fee_type = 2;
     CalculateFunctionTypeEnum function_type = 3;
-    map<string, string> coefficient_dic = 4;
+    map<string, sint32> coefficient_dic = 4;
 }
 
 message NoticeUpdateCalculateFeeAlgorithm {
@@ -445,41 +438,21 @@ message NoticeUpdateCalculateFeeAlgorithm {
     sint32 new_piece_key = 4;
 }
 
-message LinerCoefficientForUser {
+message CoefficientFromSender {
     sint32 piece_key = 1;
-    sint32 numerator = 2;
-    sint32 denominator = 3;
-    sint32 constant_value = 4;
+    bool is_liner = 2;
+    sint32 numerator = 3;
+    sint32 denominator = 4;
+    sint32 constant_value = 5;
+    sint32 change_span_base = 6;
+    sint32 weight = 7;
+    sint32 weight_base = 8;
+    sint32 new_key = 9;
 }
 
-message PowerCoefficientForUser {
-    sint32 piece_key = 1;
-    sint32 change_span_base = 2;
-    sint32 weight = 3;
-    sint32 weight_base = 4;
-    sint32 numerator = 5;
-    sint32 denominator = 6;
-}
-
-message LinerCoefficientForDeveloper {
+message CoefficientFromContract {
     FeeTypeEnum fee_type = 1;
-    LinerCoefficientForUser coefficient = 2;
-}
-
-message PowerCoefficientForDeveloper {
-    FeeTypeEnum fee_type = 1;
-    PowerCoefficientForUser coefficient = 2;
-}
-
-message PieceKeyOperationForUser {
-    sint32 old_key = 1;
-    sint32 new_key = 2;
-}
-
-message PieceKeyOperationForDeveloper {
-    FeeTypeEnum fee_type = 1;
-    sint32 old_key = 2;
-    sint32 new_key = 3;
+    CoefficientFromSender coefficient = 2;
 }
 
 enum FeeTypeEnum {

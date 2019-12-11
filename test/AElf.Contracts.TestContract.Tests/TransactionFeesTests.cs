@@ -70,7 +70,7 @@ namespace AElf.Contract.TestContract
             CheckResult(transactionResult.TransactionResult);
             var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            var txFee = await txCostStrategy.GetCost(null, transactionSize);
+            var txFee = await txCostStrategy.GetCostAsync(null, transactionSize);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + txFee);   //according to the way to calculate
 
            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
@@ -123,7 +123,7 @@ namespace AElf.Contract.TestContract
             var txTxSize = transactionResult.Transaction.Size();
             var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            var sizeFee = await txCostStrategy.GetCost(null, txTxSize);
+            var sizeFee = await txCostStrategy.GetCostAsync(null, txTxSize);
             beforeBalance.ShouldBe(afterBalance + DefaultFee + sizeFee);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);

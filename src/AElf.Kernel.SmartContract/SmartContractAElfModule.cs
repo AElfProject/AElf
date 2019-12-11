@@ -19,12 +19,6 @@ namespace AElf.Kernel.SmartContract
         {
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, DefaultTransactionSizeFeeUnitPriceProvider>();
-            context.Services.AddSingleton<ICalculateStoCostStrategy, DefaultCalculateStoCostStrategy>();
-            context.Services.AddSingleton<ICalculateCpuCostStrategy, DefaultCalculateCpuCostStrategy>();
-            context.Services.AddSingleton<ICalculateNetCostStrategy, DefaultCalculateNetCostStrategy>();
-            context.Services.AddSingleton<ICalculateRamCostStrategy, DefaultCalculateRamCostStrategy>();
-            context.Services.AddSingleton<ICalculateTxCostStrategy, DefaultCalculateTxCostStrategy>();
-            //context.Services.AddSingleton<ICalculateFeeService, DefaultCalculateFeeService>();
         }
         
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

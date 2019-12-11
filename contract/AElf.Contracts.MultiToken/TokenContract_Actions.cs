@@ -515,184 +515,132 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
         
-        public override Empty UpdateLinerAlgorithmForDeveloper(LinerCoefficientForDeveloper devCoe)
+
+        public override Empty UpdateCoefficientFormContract(CoefficientFromContract coeInput)
         {
-            if(devCoe == null)
+            if(coeInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            var coefficient = devCoe.Coefficient;
-            if(coefficient.Denominator <= 0)
+            var dataInDb = State.CalculateCoefficientForDev[coeInput.FeeType];
+            if(dataInDb == null)
                 return new Empty();
-            if(coefficient.Numerator < 0)
-                return new Empty();
-            
-            var dataInDb = State.CalculateCoefficientForDev[devCoe.FeeType];
-            if (dataInDb == null)
-                return new Empty();
+            var coefficient = coeInput.Coefficient;
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             if(theOne == null)
                 return new Empty();
-            theOne.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.ConstantValue)] =coefficient.ConstantValue.ToString();
-            var param = new NoticeUpdateCalculateFeeAlgorithm
+            if (coefficient.NewKey > 0)
             {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone()
-            };
-            Context.Fire(param);
+                ChangeFeePieceKey(coefficient, theOne);
+            }
+
+            else if (coefficient.IsLiner)
+            {
+                UpdateLinerAlgorithm(coefficient, theOne);
+            }
+            else
+            {
+                UpdatePowerAlgorithm(coefficient, theOne);
+            }
+
             return new Empty();
         }
-        public override Empty UpdatePowerAlgorithmForDeveloper(PowerCoefficientForDeveloper devCoe)
+        public override Empty UpdateCoefficientFormSender(CoefficientFromSender coeInput)
         {
-            if(devCoe == null)
+            if(coeInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            var coefficient = devCoe.Coefficient;
-            if(coefficient.Denominator <= 0)
-                return new Empty();
-            if(coefficient.Numerator < 0)
-                return new Empty();
-            
-            var dataInDb = State.CalculateCoefficientForDev[devCoe.FeeType];
-            if (dataInDb == null)
-                return new Empty();
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if(theOne == null)
-                return new Empty();
-            theOne.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Weight)] =coefficient.Weight.ToString();
-            theOne.CoefficientDic[nameof(coefficient.WeightBase)] =coefficient.WeightBase.ToString();
-            theOne.CoefficientDic[nameof(coefficient.ChangeSpanBase)] =coefficient.ChangeSpanBase.ToString();
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone()
-            };
-            Context.Fire(param);
-            return new Empty();
-        }
-        public override Empty UpdateLinerAlgorithmForUser(LinerCoefficientForUser coefficient)
-        {
-            if(coefficient == null)
-                return new Empty();
-            AssertIsAuthorized();
-            if(coefficient.Denominator <= 0)
-                return new Empty();
-            if(coefficient.Numerator < 0)
-                return new Empty();
-            
             var dataInDb = State.CalculateCoefficientForUser;
-            if (dataInDb == null)
+            if(dataInDb == null)
                 return new Empty();
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
+            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
             if(theOne == null)
                 return new Empty();
-            theOne.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.ConstantValue)] =coefficient.ConstantValue.ToString();
-            var param = new NoticeUpdateCalculateFeeAlgorithm
+            if (coeInput.NewKey > 0)
             {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone()
-            };
-            Context.Fire(param);
+                ChangeFeePieceKey(coeInput, theOne);
+            }
+
+            else if (coeInput.IsLiner)
+            {
+                UpdateLinerAlgorithm(coeInput, theOne);
+            }
+            else
+            {
+                UpdatePowerAlgorithm(coeInput, theOne);
+            }
             return new Empty();
         }
-        public override Empty UpdatePowerAlgorithmForUser(PowerCoefficientForUser coefficient)
+        private void UpdateLinerAlgorithm(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
-            if(coefficient == null)
-                return new Empty();
-            AssertIsAuthorized();
             if(coefficient.Denominator <= 0)
-                return new Empty();
+                return;
             if(coefficient.Numerator < 0)
-                return new Empty();
-            
-            var dataInDb = State.CalculateCoefficientForUser;
-            if (dataInDb == null)
-                return new Empty();
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if(theOne == null)
-                return new Empty();
-            theOne.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator.ToString();
-            theOne.CoefficientDic[nameof(coefficient.Weight)] =coefficient.Weight.ToString();
-            theOne.CoefficientDic[nameof(coefficient.WeightBase)] =coefficient.WeightBase.ToString();
-            theOne.CoefficientDic[nameof(coefficient.ChangeSpanBase)] =coefficient.ChangeSpanBase.ToString();
+                return;
+            if(coefficient.ConstantValue < 0)
+                return;
+            dbData.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator;
+            dbData.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator;
+            dbData.CoefficientDic[nameof(coefficient.ConstantValue)] =coefficient.ConstantValue;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
                 BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone()
+                Coefficient = dbData
             };
             Context.Fire(param);
-            return new Empty();
         }
-        public override Empty ChangeFeePieceKeyForDeveloper(PieceKeyOperationForDeveloper input)
+        private void UpdatePowerAlgorithm(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
-            if(input == null)
-                return new Empty();
-            AssertIsAuthorized();
-            if(input.NewKey <= 0 || input.OldKey <= 0)
-                return new Empty();
-            var dataInDb = State.CalculateCoefficientForDev[input.FeeType];
-            if (dataInDb == null)
-                return new Empty();
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == input.OldKey);
-            if(theOne == null)
-                return new Empty();
-            theOne.PieceKey = input.NewKey;
+            if(coefficient.Denominator <= 0)
+                return;
+            if(coefficient.Numerator < 0)
+                return;
+            if(coefficient.Weight <= 0)
+                return;
+            if(coefficient.WeightBase <= 0)
+                return;
+            if(coefficient.ChangeSpanBase <= 0)
+                return;
+            dbData.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator;
+            dbData.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator;
+            dbData.CoefficientDic[nameof(coefficient.Weight)] =coefficient.Weight;
+            dbData.CoefficientDic[nameof(coefficient.WeightBase)] =coefficient.WeightBase;
+            dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase)] =coefficient.ChangeSpanBase;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
                 BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone(),
-                NewPieceKey = input.NewKey
+                Coefficient = dbData
             };
             Context.Fire(param);
-            return new Empty();
         }
-        public override Empty ChangeFeePieceKeyForUser(PieceKeyOperationForUser input)
+        private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
-            if(input == null)
-                return new Empty();
-            AssertIsAuthorized();
-            if(input.NewKey <= 0 || input.OldKey <= 0)
-                return new Empty();
-            var dataInDb = State.CalculateCoefficientForUser;
-            if (dataInDb == null)
-                return new Empty();
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == input.OldKey);
-            if(theOne == null)
-                return new Empty();
-            theOne.PieceKey = input.NewKey;
+            if(coefficient.NewKey == coefficient.PieceKey)
+                return;
+            dbData.PieceKey = coefficient.NewKey;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
                 BlockHeight = Context.CurrentHeight,
-                Coefficient = theOne.Clone(),
-                NewPieceKey = input.NewKey
+                Coefficient = dbData,
+                NewPieceKey = coefficient.NewKey
             };
             Context.Fire(param);
-            return new Empty();
         }
+        
         private void IntialParameters()
         {
             if (State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] = GetCpuFeeParameter();
+                State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
             if (State.CalculateCoefficientForDev[FeeTypeEnum.Sto] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Sto] = GetStoFeeParameter();
+                State.CalculateCoefficientForDev[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
             if (State.CalculateCoefficientForDev[FeeTypeEnum.Ram] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Ram] = GetRamFeeParameter();
+                State.CalculateCoefficientForDev[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
             if (State.CalculateCoefficientForDev[FeeTypeEnum.Net] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Net] = GetNetFeeParameter();
+                State.CalculateCoefficientForDev[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
             if (State.CalculateCoefficientForUser == null)
-                State.CalculateCoefficientForUser = GetTxFeeParameter();
+                State.CalculateCoefficientForUser = GetTxFeeInitialCoefficient();
         }
     }
 }

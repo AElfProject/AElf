@@ -138,7 +138,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var size = dummy.Transaction.Size();
             var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
-            var sizeFee = await txCostStrategy.GetCost(null, size);
+            var sizeFee = await txCostStrategy.GetCostAsync(null, size);
             dummy.TransactionResult.TransactionFee.Value["ELF"].ShouldBe(feeAmount + sizeFee);
             var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
