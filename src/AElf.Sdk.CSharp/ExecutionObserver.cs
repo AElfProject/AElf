@@ -12,10 +12,15 @@ namespace AElf.Sdk.CSharp
 
         public void Count()
         {
-            if (--_counter == 0)
+            if (_counter == -1)
+                return; // Disabled
+            
+            if (_counter == 0)
             {
                 throw new RuntimeBranchingThresholdExceededException();
             }
+
+            _counter--;
         }
     }
     

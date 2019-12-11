@@ -8,6 +8,9 @@ namespace AElf.Kernel.SmartContract
 
         public bool IsTxExecutionTimeoutEnabled { get; set; } = true;
 
+        public int TransactionExecutionCounterThreshold { get; set; } =
+            SmartContractConstants.ExecutionCounterThreshold;
+
         public int TransactionExecutionTimePeriodLimitInMilliSeconds { get; set; } =
             SmartContractConstants.TransactionExecutionTimePeriodLimitInMilliSeconds;
     }

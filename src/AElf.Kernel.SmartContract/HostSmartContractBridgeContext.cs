@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
-using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
@@ -28,15 +27,17 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
-
+        private readonly ContractOptions _contractOptions;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
-            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options)
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options, 
+            IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+            _contractOptions = contractOptions.Value;
 
             Variables = new ContextVariableDictionary(options.Value.ContextVariables);
 
@@ -105,9 +106,8 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
-
-        // Get from a service later
-        public IExecutionObserver ExecutionObserver => new ExecutionObserver(500000);
+        
+        public IExecutionObserver ExecutionObserver => new ExecutionObserver(_contractOptions.TransactionExecutionCounterThreshold);
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
