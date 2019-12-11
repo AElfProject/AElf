@@ -14,9 +14,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
-            async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
+            Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
-                return new ExecutionResult<TOutput>()
+                return Task.FromResult<IExecutionResult<TOutput>>(new ExecutionResult<TOutput>()
                 {
                     Transaction = new Transaction()
                     {
@@ -25,10 +25,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                         MethodName = method.Name,
                         Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
                     }
-                };
+                });
             }
 
-            async Task<TOutput> CallAsync(TInput input)
+            Task<TOutput> CallAsync(TInput input)
             {
                 throw new NotSupportedException();
             }

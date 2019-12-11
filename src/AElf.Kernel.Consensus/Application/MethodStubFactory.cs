@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
@@ -36,7 +35,6 @@ namespace AElf.Kernel.Consensus.Application
             FromAddress = AsyncHelper.RunSync(() => _contextService.GetAccountAsync());
         }
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {

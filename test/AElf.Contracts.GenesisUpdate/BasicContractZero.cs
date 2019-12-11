@@ -130,7 +130,7 @@ namespace AElf.Contracts.GenesisUpdate
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
-                Creator = Context.Origin
+                Author = Context.Origin
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -190,25 +190,6 @@ namespace AElf.Contracts.GenesisUpdate
 
             Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress;
-        }
-
-        public override Empty ChangeContractAuthor(ChangeContractAuthorInput input)
-        {
-            var contractAddress = input.ContractAddress;
-            var info = State.ContractInfos[contractAddress];
-            Assert(info != null && info.Author.Equals(Context.Sender), "no permission.");
-
-            var oldAuthor = info.Author;
-            info.Author = input.NewAuthor;
-            State.ContractInfos[contractAddress] = info;
-            var newAuthor = input.NewAuthor;
-            Context.Fire(new AuthorChanged
-            {
-                Address = contractAddress,
-                OldAuthor = oldAuthor,
-                NewAuthor = newAuthor
-            });
-            return new Empty();
         }
 
         public override Empty Initialize(InitializeInput input)

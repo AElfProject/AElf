@@ -6,9 +6,9 @@ using Xunit.Abstractions;
 
 namespace AElf.Database.Benches
 {
-    public class Class1
+    public class ThroughPutTest
     {
-        public Class1(ITestOutputHelper output)
+        public ThroughPutTest(ITestOutputHelper output)
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));

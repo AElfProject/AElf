@@ -25,11 +25,12 @@ namespace AElf.OS.Network.Grpc
                 if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
                 {
                     // a method other than DoHandshake is being called
+                
                     var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
                     if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
                     {
-                        Logger.LogWarning($"Could not find peer {context.Peer} {context.GetPublicKey()} {context.Method}");
+                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
                     }
 
