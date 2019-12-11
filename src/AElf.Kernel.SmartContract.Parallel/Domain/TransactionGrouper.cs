@@ -15,8 +15,8 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public int GroupingTimeOut { get; set; } = 500; // ms
         public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
-        public int MinTransactionCountInGroup { get; set; } = 1;
-        public int MaxGroupCount { get; set; } = int.MaxValue;
+        public int MinTransactionCountInGroup { get; set; } = 10;
+        public int MaxGroupCount { get; set; } = 10;
     }
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
