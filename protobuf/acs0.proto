@@ -17,16 +17,19 @@ service ACS0 {
     }
     rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {
     }
+    rpc ProposeContractCodeCheck (ContractCodeCheckInput) returns (aelf.Hash) {
+    }
     rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {
     }
-    rpc ReleaseApprovedContract (ReleaseApprovedContractInput) returns (google.protobuf.Empty) {
+    rpc ReleaseApprovedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
+    rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    
     rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -88,9 +91,9 @@ message ContractUpdateInput {
     bytes code = 2;
 }
 
-message ChangeContractAuthorInput {
-    aelf.Address contract_address = 1;
-    aelf.Address new_author = 2;
+message ContractCodeCheckInput{
+    bytes contract_input = 1;
+    bool is_contract_deployment = 2;
 }
 
 message InitializeInput{
@@ -98,10 +101,16 @@ message InitializeInput{
 }
 
 // Events
+message ContractProposed
+{
+    option (aelf.is_event) = true;
+    aelf.Hash proposed_contract_input_hash = 1;
+}
+
 message ContractDeployed
 {
     option (aelf.is_event) = true;
-    aelf.Address creator = 1 [(aelf.is_indexed) = true];
+    aelf.Address author = 1 [(aelf.is_indexed) = true];
     aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
 }
@@ -129,12 +138,12 @@ message AuthorChanged
     aelf.Address new_author = 3;
 }
 
-message ValidateSystemContractAddressInput{
+message ValidateSystemContractAddressInput {
     aelf.Hash system_contract_hash_name = 1;
     aelf.Address address = 2;
 }
 
-message ReleaseApprovedContractInput{
+message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
     aelf.Hash proposed_contract_input_hash = 2;
 }

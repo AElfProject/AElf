@@ -27,7 +27,7 @@ service ParliamentAuthContract {
     rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
     }
-    rpc ValidateProposerAuthority(aelf.Address) returns (google.protobuf.BoolValue){
+    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
         option (aelf.is_view) = true;
     }
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
@@ -84,4 +84,9 @@ message ProposerWhiteList{
 
 message ProposalIdList{
     repeated aelf.Hash proposal_ids = 1;
+}
+
+message GetProposerWhiteListContextOutput{
+    repeated aelf.Address proposers = 1;
+    bool proposer_authority_required = 2;
 }
