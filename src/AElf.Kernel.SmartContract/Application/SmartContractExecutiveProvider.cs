@@ -353,7 +353,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 foreach (var executiveBag in executivePool.Value.Values)
                 {
-                    if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Last().LastUsedTime <
+                    if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
                         TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                     {
                         if (executiveBag.TryTake(out _))
