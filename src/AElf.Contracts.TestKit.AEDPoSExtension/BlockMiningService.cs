@@ -70,7 +70,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         /// </summary>
         /// <param name="nameToCode"></param>
         /// <returns></returns>
-        public async Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode)
+        public async Task<Dictionary<Hash, Address>>DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode)
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =

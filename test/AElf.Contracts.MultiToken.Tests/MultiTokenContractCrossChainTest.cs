@@ -183,7 +183,7 @@ namespace AElf.Contracts.MultiToken
             var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
             Assert.True(result.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Token contract address of parent chain not found.", result.Error);
+            Assert.Contains("Assertion failed!", result.Error);
         }
 
         [Fact]
@@ -645,8 +645,7 @@ namespace AElf.Contracts.MultiToken
         private async Task<int> GeneratedSideChain()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
-            StartSideChain(sideChainId);
-            await InitializeCrossChainContractOnSideChainAsync(ParentChainHeightOfCreation, MainChainId);
+            StartSideChain(sideChainId,ParentChainHeightOfCreation);
             return sideChainId;
         }
 
