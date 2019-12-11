@@ -74,7 +74,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public async Task<long> CalculateAsync(int count)
         {
             count = count < 0 ? int.MaxValue : count;
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
             long totalCost = 0;
             int prePieceKey = 0;
             foreach (var piece in pieceWiseFunc.OrderBy(x => x.Key))
@@ -97,7 +97,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task UpdateAsync(int pieceKey, IDictionary<string, int> parameters)
         {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
             if (pieceWiseFunc == null)
             {
                 Logger.LogWarning("does not find piecewise function in update");
@@ -124,7 +124,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task ChangePieceKeyAsync(int oldPieceKey, int newPieceKey)
         {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContext();
+            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
             if (pieceWiseFunc == null)
             {
                 Logger.LogWarning("does not find piecewise function in update");
@@ -192,11 +192,11 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContext()
+        private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContextAsync()
         {
             var chainContext = CalculateAlgorithmContext.ChainContext;
             var keys = _forkCache.Keys.ToArray();
-            if (keys.Length == 0) return await GetDefaultPieceWiseFunction();
+            if (keys.Length == 0) return await GetDefaultPieceWiseFunctionAsync();
             var minHeight = keys.Select(k => k.BlockHeight).Min();
             Dictionary<int, ICalculateWay> algorithm = null;
             var blockIndex = new BlockIndex
@@ -216,10 +216,10 @@ namespace AElf.Kernel.TransactionPool.Application
                 blockIndex.BlockHeight--;
             } while (blockIndex.BlockHash != null && blockIndex.BlockHeight >= minHeight);
 
-            return algorithm ?? await GetDefaultPieceWiseFunction();
+            return algorithm ?? await GetDefaultPieceWiseFunctionAsync();
         }
 
-        private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunction()
+        private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunctionAsync()
         {
             if (_pieceWiseFuncCache != null)
             {

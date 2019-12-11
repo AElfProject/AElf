@@ -5,9 +5,7 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using Enum = System.Enum;
 
 namespace AElf.Contracts.MultiToken
 {
