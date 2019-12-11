@@ -8,7 +8,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.0.100'
+      version: '3.1.100'
   - script: choco install protoc --version 3.6.0 -y
   - script: choco install unzip
   - task: BatchScript@1
