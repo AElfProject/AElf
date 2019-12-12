@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
@@ -87,7 +88,7 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 var param = eventData.Coefficient;
                 var pieceKey = param.PieceKey;
-                var paramDic = param.CoefficientDic;
+                var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
                 await selectedStrategy.ModifyAlgorithmAsync(chainContext, blockIndex, pieceKey, paramDic);
             }
         }

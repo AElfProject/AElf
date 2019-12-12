@@ -109,8 +109,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
                 return;
             }
-
-            parameters = parameters.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+            
             if (CalculateAlgorithmContext.BlockIndex != null)
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);

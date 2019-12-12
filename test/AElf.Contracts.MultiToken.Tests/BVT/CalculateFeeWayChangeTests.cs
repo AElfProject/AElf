@@ -198,7 +198,7 @@ namespace AElf.Contracts.MultiToken
             else
             {
                 var pieceKey = param.PieceKey;
-                var paramDic = param.CoefficientDic;
+                var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
                 await selectedStrategy.ModifyAlgorithmAsync(chain, blockIndex, pieceKey, paramDic);
             }
         }
