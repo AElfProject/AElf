@@ -526,7 +526,7 @@ namespace AElf.Contracts.MultiToken
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             if(theOne == null)
                 return new Empty();
-            if (coefficient.NewKey > 0)
+            if (coefficient.NewPieceKey > 0)
             {
                 ChangeFeePieceKey(coefficient, theOne);
             }
@@ -553,7 +553,7 @@ namespace AElf.Contracts.MultiToken
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
             if(theOne == null)
                 return new Empty();
-            if (coeInput.NewKey > 0)
+            if (coeInput.NewPieceKey > 0)
             {
                 ChangeFeePieceKey(coeInput, theOne);
             }
@@ -614,15 +614,15 @@ namespace AElf.Contracts.MultiToken
         }
         private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
-            if(coefficient.NewKey == coefficient.PieceKey)
+            if(coefficient.NewPieceKey == coefficient.PieceKey)
                 return;
-            dbData.PieceKey = coefficient.NewKey;
+            dbData.PieceKey = coefficient.NewPieceKey;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
                 BlockHeight = Context.CurrentHeight,
                 Coefficient = dbData,
-                NewPieceKey = coefficient.NewKey
+                NewPieceKey = coefficient.NewPieceKey
             };
             Context.Fire(param);
         }

@@ -431,7 +431,6 @@ message CalculateFeeCoefficient {
 
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-   // AlgorithmOpCode op_code = 1;
     CalculateFeeCoefficient coefficient = 1;
     aelf.Hash pre_block_hash = 2;
     sint64 block_height = 3;
@@ -447,7 +446,7 @@ message CoefficientFromSender {
     sint32 change_span_base = 6;
     sint32 weight = 7;
     sint32 weight_base = 8;
-    sint32 new_key = 9;
+    sint32 new_piece_key = 9;
 }
 
 message CoefficientFromContract {
