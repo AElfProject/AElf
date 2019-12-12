@@ -71,15 +71,15 @@ namespace AElf.CrossChain.Communication.Grpc
             var requestData = new CrossChainRequest
             {
                 ChainId = ChainHelper.GetChainId(1),
-                NextHeight = 61
+                NextHeight = 81
             };
 
             var responseResults = new List<ParentChainBlockData>();
             IServerStreamWriter<ParentChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
             var context = BuildServerCallContext();
             await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
-            Assert.Equal(40, responseResults.Count);
-            Assert.Equal(61, responseResults.First().Height);
+            Assert.Equal(20, responseResults.Count);
+            Assert.Equal(81, responseResults.First().Height);
             Assert.Equal(100, responseResults.Last().Height);
         }
 

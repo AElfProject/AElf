@@ -75,7 +75,7 @@ namespace AElf.CrossChain.Indexing.Application
                 else
                 {
                     toBeIndexedCount = 1;
-                    targetHeight = 1;
+                    targetHeight = Constants.GenesisBlockHeight;
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
@@ -88,7 +88,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     var sideChainBlockData =
                         _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainIndexingInformation.ChainId,
-                            targetHeight, true);
+                            targetHeight, targetHeight == Constants.GenesisBlockHeight);
                     if (sideChainBlockData == null)
                     {
                         // no more available parent chain block info
@@ -116,6 +116,10 @@ namespace AElf.CrossChain.Indexing.Application
             long blockHeight)
         {
             var parentChainBlockDataList = new List<ParentChainBlockData>();
+            var libExists = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
+            if (!libExists)
+                return parentChainBlockDataList;
+            
             var returnValue = await _readerFactory.Create(blockHash, blockHeight).GetParentChainId
                 .CallAsync(new Empty());
             var parentChainId = returnValue?.Value ?? 0;
@@ -137,7 +141,7 @@ namespace AElf.CrossChain.Indexing.Application
             while (i < length)
             {
                 var parentChainBlockData =
-                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
+                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
                 {
                     // no more available parent chain block info

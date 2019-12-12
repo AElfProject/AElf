@@ -6,6 +6,7 @@ using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain
@@ -15,6 +16,7 @@ namespace AElf.CrossChain
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
         private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
         private readonly IReaderFactory _readerFactory;
+        public ILogger<CrossChainService> Logger { get; set; }
 
         public CrossChainService(IIrreversibleBlockStateProvider irreversibleBlockStateProvider, 
             IReaderFactory readerFactory, ICrossChainCacheEntityService crossChainCacheEntityService)
@@ -48,6 +50,8 @@ namespace AElf.CrossChain
             foreach (var chainId in chainIdList)
             {
                 var neededChainHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
+                if (neededChainHeight < Constants.GenesisBlockHeight)
+                    continue;
                 dict.Add(chainId, neededChainHeight);
             }
 
@@ -80,9 +84,11 @@ namespace AElf.CrossChain
             {
                 // register new chain
                 _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
-            
+                
                 // clear cross chain cache
-                _crossChainCacheEntityService.ClearOutOfDateCrossChainCache(chainIdHeight.Key, chainIdHeight.Value);   
+                _crossChainCacheEntityService.ClearOutOfDateCrossChainCache(chainIdHeight.Key, chainIdHeight.Value);
+                Logger.LogDebug(
+                    $"Clear chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} cache by height {chainIdHeight.Value}");
             }
         }
 

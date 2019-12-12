@@ -44,13 +44,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
                 return generatedTransactions;
             }
 
-            var proposalIdList = await _proposalService.GetNotApprovedProposalIdListAsync(preBlockHash, preBlockHeight);
+            var proposalIdList = await _proposalService.GetNotApprovedProposalIdListAsync(from, preBlockHash, preBlockHeight);
             if (proposalIdList == null || proposalIdList.Count == 0) 
                 return generatedTransactions;
             
             var generatedTransaction = new Transaction
             {
-                From = @from,
+                From = from,
                 MethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals),
                 To = parliamentAuthContractAddress,
                 RefBlockNumber = preBlockHeight,

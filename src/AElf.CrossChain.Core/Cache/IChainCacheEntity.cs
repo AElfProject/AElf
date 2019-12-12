@@ -30,6 +30,8 @@ namespace AElf.CrossChain.Cache
 
         public long TargetChainHeight()
         {
+            if (BlockCacheEntities.Count >= CrossChainConstants.ChainCacheEntityCapacity)
+                return -1;
             var lastEnqueuedBlockCacheEntity = BlockCacheEntities.LastOrDefault();
             if (lastEnqueuedBlockCacheEntity != null)
                 return lastEnqueuedBlockCacheEntity.Height + 1;
@@ -52,7 +54,7 @@ namespace AElf.CrossChain.Cache
         
         /// <summary>
         /// Try take element from cached queue.
-        /// Make sure that more than <see cref="CrossChainConstants.MinimalBlockCacheEntityCount"/> block cache entities are left in <see cref="BlockCacheEntities"/>.
+        /// Make sure that more than <see cref="CrossChainConstants.DefaultBlockCacheEntityCount"/> block cache entities are left in <see cref="BlockCacheEntities"/>.
         /// </summary>
         /// <param name="height">Height of block info needed</param>
         /// <param name="blockCacheEntity"></param>
@@ -64,7 +66,7 @@ namespace AElf.CrossChain.Cache
             var cachedInQueue = DequeueBlockCacheEntitiesBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
             var lastQueuedHeight = BlockCacheEntities.LastOrDefault()?.Height ?? 0;
-            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.MinimalBlockCacheEntityCount))
+            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.DefaultBlockCacheEntityCount))
             {
                 return TryDequeue(out blockCacheEntity);
             }
@@ -73,7 +75,7 @@ namespace AElf.CrossChain.Cache
             if (blockCacheEntity != null)
                 return !isCacheSizeLimited ||
                        BlockCacheEntities.Count + DequeuedBlockCacheEntities.Count(ci => ci.Height >= height) 
-                       >= CrossChainConstants.MinimalBlockCacheEntityCount;
+                       >= CrossChainConstants.DefaultBlockCacheEntityCount;
             
             return false;
         }

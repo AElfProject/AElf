@@ -27,15 +27,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             _readyToApproveProposalCacheProvider.CacheProposalToApprove(proposalId, height);
         }
 
-        public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Hash blockHash, long blockHeight)
+        public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Address @from, Hash blockHash, long blockHeight)
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotApprovedProposals
-                .CallAsync(
-                    new ProposalIdList
-                    {
-                        ProposalIds = {proposalIdList}
-                    });
+            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight, from)
+                .GetNotApprovedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
 
             return result?.ProposalIds.ToList();
         }
@@ -44,11 +40,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
             var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetValidProposals
-                .CallAsync(
-                    new ProposalIdList
-                    {
-                        ProposalIds = {proposalIdList}
-                    });
+                .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
             if (result == null)
                 return;
 
