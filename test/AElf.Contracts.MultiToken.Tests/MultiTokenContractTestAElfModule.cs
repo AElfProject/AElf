@@ -17,7 +17,11 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => { o.ContractDeploymentAuthorityRequired = false; });
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
         }
     }
 
@@ -32,7 +36,11 @@ namespace AElf.Contracts.MultiToken
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.AddSingleton<IInlineTransactionValidationProvider, AElf.Kernel.Consensus.AEDPoS.Application.InlineTransferFromValidationProvider>();
             context.Services.AddSingleton<IInlineTransactionValidationProvider, AElf.CrossChain.InlineTransferFromValidationProvider>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
         }
     }
 }
