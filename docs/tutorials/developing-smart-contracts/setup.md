@@ -50,8 +50,8 @@ On Windows
 chain/scripts/install_dependency.ps1
 ```
 
-{% hint style="info" %}
-Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
+{% hint style="warning" %}
+If you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
 {% endhint %}
 
 
@@ -67,7 +67,8 @@ dotnet build
 dotnet run bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
 ```
 
-**Note:** when running the Boilerplate, you might see some errors related to an incorrect password, to solve this you need to backup your `data-dir/keys/` folder and start with an empty folder.
+{% hint style="info" %}
+ when running the Boilerplate, you might see some errors related to an incorrect password, to solve this you need to backup your `data-dir/keys/` folder and start with an empty folder.
 
 At this point the smart contract has been deployed and is ready to use. You should see the node's logs. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
 
