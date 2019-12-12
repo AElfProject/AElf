@@ -12,7 +12,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
     internal interface IParliamentContractReaderFactory
     {
-        ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight);
+        ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight,
+            Address sender = null);
     }
 
     internal class ParliamentContractReaderFactory : IParliamentContractReaderFactory, ITransientDependency
@@ -27,18 +28,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             _smartContractAddressService = smartContractAddressService;
         }
 
-        private ParliamentAuthContractContainer.ParliamentAuthContractStub Create(IChainContext chainContext)
+        private ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Address sender,
+            IChainContext chainContext)
         {
             return new ParliamentAuthContractContainer.ParliamentAuthContractStub()
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService, _smartContractAddressService,
-                    chainContext)
+                    chainContext, sender)
             };
         }
 
-        public ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight)
+        public ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight,
+            Address sender = null)
         {
-            return Create(new ChainContext()
+            return Create(sender, new ChainContext
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight
@@ -55,14 +58,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IChainContext _chainContext;
 
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+        private Address FromAddress { get; }
         
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
+            ISmartContractAddressService smartContractAddressService, IChainContext chainContext, Address sender)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
             _chainContext = chainContext;
+            FromAddress = sender ?? Address.FromBytes(new byte[] { }.ComputeHash());
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]

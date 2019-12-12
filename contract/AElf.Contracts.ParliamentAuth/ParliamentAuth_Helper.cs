@@ -96,12 +96,12 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyApproved(proposal), "Already approved.");
+            Assert(!CheckSenderAlreadyApproved(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyApproved(ProposalInfo proposal)
+        private bool CheckSenderAlreadyApproved(ProposalInfo proposal, Address address)
         {
-            return proposal.ApprovedRepresentatives.Contains(Context.Sender);
+            return proposal.ApprovedRepresentatives.Contains(address);
         }
 
         private bool ValidateProposerAuthority(Address address)

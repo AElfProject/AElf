@@ -71,7 +71,7 @@ namespace AElf.Contracts.ParliamentAuth
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
@@ -86,7 +86,7 @@ namespace AElf.Contracts.ParliamentAuth
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
                     continue;
                 var organization = State.Organisations[proposal.OrganizationAddress];
                 if (organization == null || IsReleaseThresholdReached(proposal, organization, currentParliament))
