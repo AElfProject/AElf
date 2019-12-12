@@ -24,7 +24,7 @@ namespace AElf.CrossChain
         {
             int chainId = _chainOptions.ChainId;
             var blockInfoCache = new List<IBlockCacheEntity>();
-            for (int i = 0; i <= CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i <= CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 blockInfoCache.Add(new SideChainBlockData
                 {
@@ -184,7 +184,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
 
             var cachingCount = _configOptions.MaximalCountForIndexingParentChainBlock +
-                               CrossChainConstants.MinimalBlockCacheEntityCount;
+                               CrossChainConstants.DefaultBlockCacheEntityCount;
             for (int i = 0; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new SideChainBlockData()
@@ -339,7 +339,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
 
             var cachingCount = _configOptions.MaximalCountForIndexingParentChainBlock +
-                               CrossChainConstants.MinimalBlockCacheEntityCount;
+                               CrossChainConstants.DefaultBlockCacheEntityCount;
             for (int i = 0; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData

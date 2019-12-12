@@ -155,7 +155,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ < CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
@@ -174,7 +174,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ <= CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ <= CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
@@ -209,7 +209,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < (int)initTarget +  CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
@@ -229,7 +229,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
@@ -251,7 +251,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {

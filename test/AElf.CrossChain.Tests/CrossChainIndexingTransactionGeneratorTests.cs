@@ -46,7 +46,7 @@ namespace AElf.CrossChain
             };
             
             var cachingCount = 5;
-            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 1; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData()
                 {
@@ -55,7 +55,7 @@ namespace AElf.CrossChain
                     TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
                 };
                 sideChainBlockInfoCache.Add(sideChainBlockData);
-                if (i < cachingCount)
+                if (i <= CrossChainConstants.DefaultBlockCacheEntityCount)
                     crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
             }
 
@@ -95,7 +95,7 @@ namespace AElf.CrossChain
             var previousBlockHeight = 1;
             
             var cachingCount = 5;
-            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 1; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData()
                 {
@@ -155,7 +155,7 @@ namespace AElf.CrossChain
             var previousBlockHeight = 1;
             
             var cachingCount = 5;
-            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 1; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData()
                 {

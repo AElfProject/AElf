@@ -18,7 +18,7 @@ namespace AElf.CrossChain
         private readonly IReaderFactory _readerFactory;
         public ILogger<CrossChainService> Logger { get; set; }
 
-        public CrossChainService(IIrreversibleBlockStateProvider irreversibleBlockStateProvider, 
+        public CrossChainService(IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
             IReaderFactory readerFactory, ICrossChainCacheEntityService crossChainCacheEntityService)
         {
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
@@ -31,11 +31,13 @@ namespace AElf.CrossChain
         public async Task FinishInitialSyncAsync()
         {
             CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored = false;
-            var isReadyToCreateChainCache = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
+            var isReadyToCreateChainCache =
+                await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
             if (!isReadyToCreateChainCache)
                 return;
             var libIdHeight = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            var chainIdHeightPairs = await GetAllChainIdHeightPairsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
+            var chainIdHeightPairs =
+                await GetAllChainIdHeightPairsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
             foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
             {
                 // register new chain
@@ -66,10 +68,11 @@ namespace AElf.CrossChain
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData.CallAsync(new SInt32Value
-            {
-                Value = chainId
-            });
+            return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
+                .CallAsync(new SInt32Value
+                {
+                    Value = chainId
+                });
         }
 
         public async Task UpdateWithLib(Hash blockHash, long blockHeight)
@@ -77,14 +80,14 @@ namespace AElf.CrossChain
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored
                 || blockHeight <= Constants.GenesisBlockHeight)
                 return;
-            
+
             var chainIdHeightPairs = await GetAllChainIdHeightPairsAsync(blockHash, blockHeight);
 
             foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
             {
                 // register new chain
                 _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
-                
+
                 // clear cross chain cache
                 _crossChainCacheEntityService.ClearOutOfDateCrossChainCache(chainIdHeight.Key, chainIdHeight.Value);
                 Logger.LogDebug(

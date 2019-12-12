@@ -53,7 +53,7 @@ namespace AElf.CrossChain
             int sideChainId = _chainOptions.ChainId;
             var sideChainBlockData = new List<SideChainBlockData>();
 
-            for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
+            for (int i = 0; i < CrossChainConstants.DefaultBlockCacheEntityCount + 1; i++)
             {
                 sideChainBlockData.Add(new SideChainBlockData()
                     {
@@ -90,7 +90,7 @@ namespace AElf.CrossChain
             int parentChainId = _chainOptions.ChainId;
             var parentChainBlockDataList = new List<ParentChainBlockData>();
 
-            for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
+            for (int i = 0; i < CrossChainConstants.DefaultBlockCacheEntityCount + 1; i++)
             {
                 parentChainBlockDataList.Add(new ParentChainBlockData
                     {
@@ -161,7 +161,7 @@ namespace AElf.CrossChain
             list2.Add(fakeSideChainBlockDataList[1]);
             list3.Add(fakeSideChainBlockDataList[2]);
 
-            for (int i = 2; i < CrossChainConstants.MinimalBlockCacheEntityCount + 2; i++)
+            for (int i = 2; i < CrossChainConstants.DefaultBlockCacheEntityCount + 2; i++)
             {
                 list1.Add(new SideChainBlockData
                 {

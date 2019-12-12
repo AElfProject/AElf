@@ -86,7 +86,7 @@ namespace AElf.CrossChain
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -117,7 +117,7 @@ namespace AElf.CrossChain
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;
-            for (int i = 1; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 1; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -131,8 +131,6 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, sideChainBlockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-//            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-//                new GetPendingCrossChainIndexingProposalOutput());
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
@@ -140,7 +138,8 @@ namespace AElf.CrossChain
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
 
-            Assert.Equal(cachingCount - 1, crossChainBlockData.SideChainBlockDataList.Count);
+            Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
+                crossChainBlockData.SideChainBlockDataList.Count);
         }
 
         [Fact]
@@ -149,7 +148,7 @@ namespace AElf.CrossChain
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<SideChainBlockData>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -181,7 +180,7 @@ namespace AElf.CrossChain
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<SideChainBlockData>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -220,7 +219,7 @@ namespace AElf.CrossChain
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<SideChainBlockData>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -234,7 +233,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
                 {{sideChainId, sideChainBlockInfoCache.ToList<IBlockCacheEntity>()}};
             AddFakeCacheData(fakeCache);
-            
+
             var crossChainBlockData = new CrossChainBlockData
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
@@ -256,16 +255,17 @@ namespace AElf.CrossChain
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockDataFromInput = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
 
-            Assert.Equal(cachingCount - 1, crossChainBlockDataFromInput.SideChainBlockDataList.Count);
+            Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
+                crossChainBlockDataFromInput.SideChainBlockDataList.Count);
         }
-        
+
         [Fact]
         public async Task PrepareExtraDataForNextMiningAsync_AlmostExpired_Test()
         {
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<SideChainBlockData>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 sideChainBlockInfoCache.Add(new SideChainBlockData()
                 {
@@ -279,7 +279,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
                 {{sideChainId, sideChainBlockInfoCache.ToList<IBlockCacheEntity>()}};
             AddFakeCacheData(fakeCache);
-            
+
             var crossChainBlockData = new CrossChainBlockData
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
@@ -307,7 +307,7 @@ namespace AElf.CrossChain
             var sideChainId = _chainOptions.ChainId;
             var blockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 blockInfoCache.Add(new SideChainBlockData()
                 {
@@ -326,7 +326,8 @@ namespace AElf.CrossChain
                 await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
-            Assert.Equal(cachingCount - 1, crossChainBlockData.SideChainBlockDataList.Count);
+            Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
+                crossChainBlockData.SideChainBlockDataList.Count);
             Assert.Empty(crossChainBlockData.ParentChainBlockDataList);
         }
 
@@ -336,7 +337,67 @@ namespace AElf.CrossChain
             var parentChainId = _chainOptions.ChainId;
             var blockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;
-            for (int i = 0; i < cachingCount + CrossChainConstants.MinimalBlockCacheEntityCount; i++)
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
+            {
+                blockInfoCache.Add(new ParentChainBlockData()
+                {
+                    ChainId = parentChainId,
+                    Height = (i + 1),
+                });
+            }
+
+            _crossChainTestHelper.SetFakeLibHeight(2);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(parentChainId, 1);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{parentChainId, blockInfoCache}};
+            AddFakeCacheData(fakeCache);
+
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.Empty(res);
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.NotNull(crossChainTransactionInput);
+            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
+            Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
+                crossChainBlockData.ParentChainBlockDataList.Count);
+            Assert.Empty(crossChainBlockData.SideChainBlockDataList);
+        }
+        
+        [Fact]
+        public async Task GetCrossChainBlockDataForNextMining_FromGenesisBlock_Test()
+        {
+            var sideChainId = _chainOptions.ChainId;
+            var blockInfoCache = new List<IBlockCacheEntity>();
+            var cachingCount = 5;
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
+            {
+                blockInfoCache.Add(new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                });
+            }
+
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 0);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{sideChainId, blockInfoCache}};
+            AddFakeCacheData(fakeCache);
+
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.Empty(res);
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+            Assert.NotNull(crossChainTransactionInput);
+            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
+            Assert.Equal(1, crossChainBlockData.SideChainBlockDataList.Count);
+            Assert.Empty(crossChainBlockData.ParentChainBlockDataList);
+        }
+        
+        [Fact]
+        public async Task GetCrossChainBlockDataForNextMining_WithoutLIB_Test()
+        {
+            var parentChainId = _chainOptions.ChainId;
+            var blockInfoCache = new List<IBlockCacheEntity>();
+            var cachingCount = 5;
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData()
                 {
@@ -353,10 +414,7 @@ namespace AElf.CrossChain
             Assert.Empty(res);
             var crossChainTransactionInput =
                 await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
-            Assert.NotNull(crossChainTransactionInput);
-            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
-            Assert.Equal(cachingCount - 1, crossChainBlockData.ParentChainBlockDataList.Count);
-            Assert.Empty(crossChainBlockData.SideChainBlockDataList);
+            Assert.Null(crossChainTransactionInput);
         }
 
         #endregion

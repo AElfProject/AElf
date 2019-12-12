@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Communication.Application;
@@ -17,18 +18,27 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainResponseService = crossChainResponseService;
         }
 
-        public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest,
             IServerStreamWriter<SideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogDebug("Side Chain Server received IndexedInfo message.");
             var requestedHeight = crossChainRequest.NextHeight;
-            while (requestedHeight - crossChainRequest.NextHeight < CrossChainCommunicationConstants.MaximalIndexingCount)
+            while (requestedHeight - crossChainRequest.NextHeight <
+                   CrossChainCommunicationConstants.MaximalIndexingCount)
             {
                 var sideChainBlock = await _crossChainResponseService.ResponseSideChainBlockDataAsync(requestedHeight);
                 if (sideChainBlock == null)
                     break;
-                await responseStream.WriteAsync(sideChainBlock);
-                requestedHeight++;
+                try
+                {
+                    await responseStream.WriteAsync(sideChainBlock);
+                    requestedHeight++;
+                }
+                catch (InvalidOperationException)
+                {
+                    Logger.LogWarning("Failed to write into server side stream.");
+                    return;
+                }
             }
         }
     }
