@@ -14,6 +14,7 @@ using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.Runtime.CSharp.Helper;
 using Mono.Cecil.Cil;
@@ -57,7 +58,6 @@ namespace AElf.Runtime.CSharp.Tests
             typeof(ProfitContract),
             typeof(ReferendumAuthContract),
             typeof(TokenConverterContract),
-            typeof(TestContract.TestContract),
         };
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)
@@ -88,6 +88,9 @@ namespace AElf.Runtime.CSharp.Tests
             var findings = Should.Throw<InvalidCodeException>(
                 ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
                 .Findings;
+            
+            // Should have identified that ACS1 or ACS8 is not there
+            findings.FirstOrDefault(f => f is AcsValidationResult).ShouldNotBeNull();
             
             // Random usage
             LookFor(findings, 
@@ -156,45 +159,6 @@ namespace AElf.Runtime.CSharp.Tests
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
-        }
-        
-        [Fact]
-        public void CheckILVerifier_IsFunctional()
-        { 
-            const string dummyCode =  @"using System;
-
-                                        public class DummyClass
-                                        {
-                                            public int SimpleAdd()
-                                            {
-                                                var a = 2;
-                                                var b = 3;
-                                                return a + b;
-                                            }
-                                        }";
-            
-            var validAssembly = new MemoryStream();
-            var dummyAssembly = AssemblyCompiler.Compile("DummyLib", dummyCode);
-            dummyAssembly.Write(validAssembly);
-
-            var typ = dummyAssembly.MainModule.GetType("DummyClass");
-
-            var testMethod = typ.Methods.FirstOrDefault(m => m.Name == "SimpleAdd");
-
-            if (testMethod != null)
-            {
-                var processor = testMethod.Body.GetILProcessor();
-                
-                // Break IL codes by injecting a line that loads string to stack while adding 2 integers
-                processor.Body.Instructions.Insert(2, processor.Create(OpCodes.Ldstr, "AElf"));
-            }
-            
-            var invalidAssembly = new MemoryStream();
-
-            dummyAssembly.Write(invalidAssembly);
-            
-            // Ensure contract auditor doesn't throw any exception
-            Should.NotThrow(()=>_auditorFixture.Audit(validAssembly.ToArray()));
         }
 
         #endregion
