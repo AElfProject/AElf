@@ -1,27 +1,13 @@
+using System;
 using System.Linq;
+using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using AElf.Sdk.CSharp;
 
 namespace AElf.CSharp.CodeOps
 {
     public static class Extensions
     {
-        public static bool IsContractImplementation(this TypeDefinition typeDefinition)
-        {
-            while (true)
-            {
-                var baseType = typeDefinition.BaseType.Resolve();
-                
-                if (baseType.BaseType == null) // Reached the type before object type (the most base type)
-                {
-                    return typeDefinition.FullName == typeof(CSharpSmartContract).FullName;
-                }
-
-                typeDefinition = baseType;
-            }
-        }
-
         public static bool HasSameBody(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
         {
             // Exclude nop opcodes (compile in debug mode adds nop to be able to place breakpoint, ignore those)
@@ -62,6 +48,7 @@ namespace AElf.CSharp.CodeOps
 
         public static bool HasSameParameters(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
         {
+            // Don't mind if injected type method has more parameters since we check the body to be the same
             return sourceMethod.Parameters.Count == targetMethod.Parameters.Count && 
                    sourceMethod.Parameters.All(sp => 
                        targetMethod.Parameters.SingleOrDefault(tp => 
@@ -70,10 +57,34 @@ namespace AElf.CSharp.CodeOps
 
         public static bool HasSameFields(this TypeDefinition sourceType, TypeDefinition targetType)
         {
+            // Don't mind if injected type has more fields since we check each of the methods' bodies
             return sourceType.Fields.Count == targetType.Fields.Count && 
                    sourceType.Fields.All(sp => 
                        targetType.Fields.SingleOrDefault(tp => 
                            tp.Name == sp.Name && tp.FieldType.FullName == sp.FieldType.FullName) != null);
+        }
+        
+        public static Type FindContractType(this Assembly assembly)
+        {
+            var types = assembly.GetTypes();
+            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
+        }
+        
+        public static Type FindContractBaseType(this Assembly assembly)
+        {
+            var types = assembly.GetTypes();
+            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
+        }
+
+        public static Type FindContractContainer(this Assembly assembly)
+        {
+            var contractBase = FindContractBaseType(assembly);
+            return contractBase.DeclaringType;
+        }
+        
+        public static Type FindExecutionCounterType(this Assembly assembly)
+        {
+            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
         }
     }
 }
