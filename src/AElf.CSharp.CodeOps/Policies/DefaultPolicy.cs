@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
@@ -30,6 +31,7 @@ namespace AElf.CSharp.CodeOps.Policies
 
             UseMethodValidators();
             UseModuleValidators();
+            UseAssemblyValidators();
         }
 
         private void WhitelistAssemblies()
@@ -151,6 +153,14 @@ namespace AElf.CSharp.CodeOps.Policies
             {
                 new ObserverProxyValidator(), 
                 //new RecursiveCallValidator(), 
+            });
+        }
+
+        private void UseAssemblyValidators()
+        {
+            AssemblyValidators.AddRange(new IValidator<Assembly>[]
+            {
+                new AcsValidator(),
             });
         }
     }
