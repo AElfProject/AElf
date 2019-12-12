@@ -723,7 +723,6 @@ namespace AElf.Contracts.Profit
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
-                        // TODO: Optimize.
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,
