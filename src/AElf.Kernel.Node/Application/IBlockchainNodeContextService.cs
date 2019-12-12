@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Volo.Abp.EventBus.Local;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Kernel.Node.Application
 {
@@ -60,6 +61,18 @@ namespace AElf.Kernel.Node.Application
             _consensusService = consensusService;
             _deployedContractAddressService = deployedContractAddressService;
 
+            EventBus = NullLocalEventBus.Instance;
+        }
+
+        public BlockchainNodeContextService(IServiceProvider serviceProvider)
+        {
+            _blockchainService = serviceProvider.GetService<IBlockchainService>();
+            _chainCreationService = serviceProvider.GetService<IChainCreationService>();
+            _txHub = serviceProvider.GetService<ITxHub>();
+            _smartContractAddressUpdateService = serviceProvider.GetService<ISmartContractAddressUpdateService>();
+            _defaultContractZeroCodeProvider = serviceProvider.GetService<IDefaultContractZeroCodeProvider>();
+            _consensusService = serviceProvider.GetService<IConsensusService>();
+            _deployedContractAddressService = serviceProvider.GetService<IDeployedContractAddressService>();
             EventBus = NullLocalEventBus.Instance;
         }
 

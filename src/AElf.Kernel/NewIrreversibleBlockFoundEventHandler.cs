@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -23,21 +25,15 @@ namespace AElf.Kernel
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
-        public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
-            IBlockchainStateService blockchainStateService,
-            IBlockchainService blockchainService,
-            ITransactionBlockIndexService transactionBlockIndexService, 
-            IForkCacheService forkCacheService,
-            IChainBlockLinkService chainBlockLinkService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+        public NewIrreversibleBlockFoundEventHandler(IServiceProvider serviceProvider)
         {
-            _taskQueueManager = taskQueueManager;
-            _blockchainStateService = blockchainStateService;
-            _blockchainService = blockchainService;
-            _transactionBlockIndexService = transactionBlockIndexService;
-            _forkCacheService = forkCacheService;
-            _chainBlockLinkService = chainBlockLinkService;
-            _smartContractExecutiveService = smartContractExecutiveService;
+            _taskQueueManager = serviceProvider.GetService<ITaskQueueManager>();
+            _blockchainStateService = serviceProvider.GetService<IBlockchainStateService>();
+            _blockchainService = serviceProvider.GetService<IBlockchainService>();
+            _transactionBlockIndexService = serviceProvider.GetService<ITransactionBlockIndexService>();
+            _forkCacheService = serviceProvider.GetService<IForkCacheService>();
+            _chainBlockLinkService = serviceProvider.GetService<IChainBlockLinkService>();
+            _smartContractExecutiveService = serviceProvider.GetService<ISmartContractExecutiveService>();
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
