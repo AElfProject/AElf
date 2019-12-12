@@ -42,6 +42,6 @@ message CrossChainReceiveTokenInput {
 
 Let's review the fields of the input:
 - **from_chain_id**: the source chain id (the chain that issued the tokens).
-- **parent_chain_height**: todo
-- **transfer_transaction_bytes**: todo
-- **merkle_path** : todo
+- **parent_chain_height**: the height of the block on the source chain, that includes the **CrossChainTransfer** transaction.
+- **transfer_transaction_bytes**: the serialized form of the **CrossChainTransfer** transaction.
+- **merkle_path** : the cross-chain merkle path. This you can get from the origin chain's web api with the **GetMerklePathByTransactionIdAsync** method. This takes the **CrossChainTransfer** transaction ID as input.
