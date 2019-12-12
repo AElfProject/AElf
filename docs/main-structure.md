@@ -34,6 +34,7 @@
     * [Architecture](crosschain/architecture.md)
     * [Crosschain verification](crosschain/crosschain-verification.md)
     * [Set up](crosschain/setup.md)
+    * [Transfer](crosschain/transfer.md)
 * [Public chain ecosystem](public-chain/main.md)
     * [Introduction](public-chain/introduction.md)
     * [AElf consensus](public-chain/dpos.md)
