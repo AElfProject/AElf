@@ -34,6 +34,8 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
+
+            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
     }
 
