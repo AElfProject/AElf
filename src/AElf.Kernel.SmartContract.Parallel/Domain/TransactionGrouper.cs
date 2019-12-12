@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,6 +15,8 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public int GroupingTimeOut { get; set; } = 500; // ms
         public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
+        public int MinTransactionCountInGroup { get; set; } = 10;
+        public int MaxGroupCount { get; set; } = 10;
     }
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
@@ -76,12 +79,17 @@ namespace AElf.Kernel.SmartContract.Parallel
                     parallelizables.Add(twr);
                 }
 
-                groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
-
+                var groupedParallelizables = GroupParallelizables(parallelizables);
+                if (groupedParallelizables.Count > 0)
+                {
+                    groupedTransactions.Parallelizables.AddRange(GroupParallelizables(groupedParallelizables));
+                    Logger.LogDebug(
+                        $"Group {groupedParallelizables.Count} groups into {groupedTransactions.Parallelizables.Count} groups");
+                }
                 Logger.LogTrace("Completed transaction grouping.");
             }
 
-            Logger.LogDebug($"From {transactions.Count} transactions, grouped into " +
+            Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
@@ -165,6 +173,49 @@ namespace AElf.Kernel.SmartContract.Parallel
             groups.AddRange(grouped.Values);
 
             return groups;
+        }
+
+        /// <summary>
+        /// Transaction count in group should be greater than <see cref="GrouperOptions.MinTransactionCountInGroup"/>
+        /// Group count should be less than or equal to <see cref="GrouperOptions.MaxGroupCount"/>
+        /// </summary>
+        /// <param name="groupedParallelizables"></param>
+        /// <returns></returns>
+        private List<List<Transaction>> GroupParallelizables(List<List<Transaction>> groupedParallelizables)
+        {
+            if (groupedParallelizables.Count <= 1) return groupedParallelizables;
+            var total = groupedParallelizables.Sum(g => g.Count);
+            var minTransactionCount = _options.MinTransactionCountInGroup;
+            if (total <= minTransactionCount)
+            {
+                var transactions = groupedParallelizables.SelectMany(g=>g).ToList();
+                return new List<List<Transaction>> {transactions};
+            }
+            var groupCount = (int) Math.Round((decimal) total / minTransactionCount);
+            groupCount = groupCount > _options.MaxGroupCount ? _options.MaxGroupCount : groupCount;
+            var mean = total / groupCount + (total % groupCount > 0 ? 1 : 0);
+            groupedParallelizables = groupedParallelizables.OrderBy(g => g.Count).ToList();
+            var newGroupdParallelizables = new List<List<Transaction>>();
+            for (var i = 0; i < groupCount; i++)
+            {
+                var list = new List<Transaction>();
+                var tempList = groupedParallelizables.ToList();
+                foreach (var transactions in tempList)
+                {
+                    if (transactions.Count >= mean)
+                    {
+                        newGroupdParallelizables.Add(transactions);
+                        groupedParallelizables.Remove(transactions);
+                        continue;
+                    }
+                    list.AddRange(transactions);
+                    groupedParallelizables.Remove(transactions);
+                    if (list.Count >= mean) break;
+                }
+                if(list.Count == 0) continue;
+                newGroupdParallelizables.Add(list);
+            }
+            return newGroupdParallelizables;
         }
     }
 }
