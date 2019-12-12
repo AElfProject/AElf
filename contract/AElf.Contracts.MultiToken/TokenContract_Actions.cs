@@ -547,7 +547,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coeInput == null)
                 return new Empty();
-            //AssertIsAuthorized();
+            AssertIsAuthorized();
             TryToInitialParameters();
             var dataInDb = State.CalculateCoefficientOfSender;
             if (dataInDb == null)
