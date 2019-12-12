@@ -627,7 +627,7 @@ namespace AElf.Contracts.MultiToken
             Context.Fire(param);
         }
         
-        private void IntialParameters()
+        private void InitialParameters()
         {
             if (State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] == null)
                 State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();

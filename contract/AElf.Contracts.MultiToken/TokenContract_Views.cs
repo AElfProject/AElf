@@ -107,13 +107,13 @@ namespace AElf.Contracts.MultiToken
         }
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfDeveloper(SInt32Value input)
         {
-            IntialParameters();
+            InitialParameters();
             
             return State.CalculateCoefficientForDev[(FeeTypeEnum)input.Value];
         }
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfUser(Empty input)
         {
-            IntialParameters();
+            InitialParameters();
             return State.CalculateCoefficientForUser;
         }
         private CalculateFeeCoefficientsOfType GetCpuFeeInitialCoefficient()

@@ -1,4 +1,4 @@
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
@@ -71,28 +71,15 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = eventData.PreBlockHash,
                 BlockHeight = eventData.BlockHeight
             };
-            ICalculateCostStrategy selectedStrategy = null;
-            switch (eventData.Coefficient.FeeType)
+            var selectedStrategy = eventData.Coefficient.FeeType switch
             {
-                case FeeTypeEnum.Tx:
-                    selectedStrategy = _txCostStrategy;
-                    break;
-                case FeeTypeEnum.Cpu:
-                    selectedStrategy = _cpuCostStrategy;
-                    break;
-                case FeeTypeEnum.Ram:
-                    selectedStrategy = _ramCostStrategy;
-                    break;
-                case FeeTypeEnum.Sto:
-                    selectedStrategy = _stoCostStrategy;
-                    break;
-                case FeeTypeEnum.Net:
-                    selectedStrategy = _netCostStrategy;
-                    break;
-            }
-
-            if (selectedStrategy == null)
-                return;
+                FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
+                FeeTypeEnum.Cpu => _cpuCostStrategy,
+                FeeTypeEnum.Ram => _ramCostStrategy,
+                FeeTypeEnum.Sto => _stoCostStrategy,
+                FeeTypeEnum.Net => _netCostStrategy,
+                _ => throw new ArgumentOutOfRangeException()
+            };
             if (eventData.NewPieceKey > 0)
                 await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chainContext, blockIndex,
                     eventData.Coefficient.PieceKey, eventData.NewPieceKey);
