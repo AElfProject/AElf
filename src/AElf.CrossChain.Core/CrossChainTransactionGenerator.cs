@@ -1,23 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.CrossChain.Indexing.Application
+namespace AElf.CrossChain
 {
-    internal class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
+    internal class CrossChainTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
+        public ILogger<CrossChainTransactionGenerator> Logger { get; set; }
 
-        public CrossChainIndexingTransactionGenerator(ICrossChainIndexingDataService crossChainIndexingDataService,
+        public CrossChainTransactionGenerator(ICrossChainIndexingDataService crossChainIndexingDataService,
             ISmartContractAddressService smartContractAddressService)
         {
             _crossChainIndexingDataService = crossChainIndexingDataService;
@@ -31,7 +32,7 @@ namespace AElf.CrossChain.Indexing.Application
             var generatedTransactions = new List<Transaction>();
 
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash,
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(previousBlockHash,
                     refBlockNumber);
 
             if (crossChainTransactionInput == null)

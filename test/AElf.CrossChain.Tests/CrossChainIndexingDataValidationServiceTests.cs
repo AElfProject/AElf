@@ -50,7 +50,8 @@ namespace AElf.CrossChain
             int chainId = _chainOptions.ChainId;
             var blockInfoCache = new List<IBlockCacheEntity>
             {
-                new SideChainBlockData {ChainId = chainId, Height = 1}
+                new SideChainBlockData
+                    {ChainId = chainId, Height = 1, TransactionStatusMerkleTreeRoot = Hash.FromString("1")}
             };
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
 
@@ -63,7 +64,8 @@ namespace AElf.CrossChain
                 new SideChainBlockData
                 {
                     ChainId = chainId,
-                    Height = 1
+                    Height = 1,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString("1")
                 }
             }, new ParentChainBlockData[0]);
 
@@ -190,7 +192,8 @@ namespace AElf.CrossChain
                 blockInfoCache.Add(new SideChainBlockData()
                 {
                     ChainId = chainId,
-                    Height = (i + 1)
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                 });
             }
 
@@ -203,7 +206,8 @@ namespace AElf.CrossChain
                     list.Add(new SideChainBlockData
                     {
                         ChainId = chainId,
-                        Height = (i + 1)
+                        Height = (i + 1),
+                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                     });
                 }
 
@@ -220,7 +224,8 @@ namespace AElf.CrossChain
                     list.Add(new SideChainBlockData
                     {
                         ChainId = chainId,
-                        Height = (i + 1)
+                        Height = (i + 1),
+                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                     });
                 }
 
@@ -256,7 +261,8 @@ namespace AElf.CrossChain
                 blockInfoCache.Add(new ParentChainBlockData
                 {
                     ChainId = chainId,
-                    Height = (i + 1)
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                 });
             }
 
@@ -269,7 +275,8 @@ namespace AElf.CrossChain
                 list.Add(new ParentChainBlockData
                 {
                     ChainId = chainId,
-                    Height = (i + 1)
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                 });
             }
 
@@ -345,7 +352,8 @@ namespace AElf.CrossChain
                 blockInfoCache.Add(new ParentChainBlockData
                 {
                     ChainId = chainId,
-                    Height = (i + 1)
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                 });
             }
 
@@ -355,7 +363,8 @@ namespace AElf.CrossChain
                 list.Add(new ParentChainBlockData
                 {
                     ChainId = chainId,
-                    Height = (i + 1)
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                 });
             }
 
@@ -372,7 +381,8 @@ namespace AElf.CrossChain
                     list.Add(new ParentChainBlockData
                     {
                         ChainId = chainId,
-                        Height = (i + 1)
+                        Height = (i + 1),
+                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
                     });
                 }
 

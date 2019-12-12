@@ -103,7 +103,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
             Assert.Single(crossChainBlockData.SideChainBlockDataList);
@@ -134,7 +134,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
 
@@ -251,7 +251,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockDataFromInput = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
 
@@ -297,7 +297,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.Null(crossChainTransactionInput);
         }
 
@@ -313,6 +313,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
 
@@ -323,7 +324,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
             Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
@@ -343,6 +344,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = parentChainId,
                     Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
 
@@ -354,7 +356,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
             Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
@@ -374,6 +376,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
 
@@ -384,7 +387,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
             Assert.Equal(1, crossChainBlockData.SideChainBlockDataList.Count);
@@ -413,7 +416,7 @@ namespace AElf.CrossChain
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
             var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.Null(crossChainTransactionInput);
         }
 

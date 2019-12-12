@@ -15,7 +15,7 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-            context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+            context.Services.AddTransient<ISystemTransactionGenerator, CrossChainTransactionGenerator>();
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,

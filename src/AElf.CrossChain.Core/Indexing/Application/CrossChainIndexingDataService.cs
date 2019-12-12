@@ -119,7 +119,7 @@ namespace AElf.CrossChain.Indexing.Application
             var libExists = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
             if (!libExists)
                 return parentChainBlockDataList;
-            
+
             var returnValue = await _readerFactory.Create(blockHash, blockHeight).GetParentChainId
                 .CallAsync(new Empty());
             var parentChainId = returnValue?.Value ?? 0;
@@ -180,7 +180,7 @@ namespace AElf.CrossChain.Indexing.Application
         /// <param name="blockHash"></param>
         /// <param name="blockHeight"></param>
         /// <returns></returns>
-        public Task<CrossChainTransactionInput> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash,
+        public Task<CrossChainTransactionInput> GetCrossChainTransactionInputForNextMiningAsync(Hash blockHash,
             long blockHeight)
         {
             var inputForNextMining =
@@ -215,7 +215,7 @@ namespace AElf.CrossChain.Indexing.Application
 
             if (!pendingProposal.ToBeReleased || pendingProposal.ExpiredTime <= utcNow.AddSeconds(1))
                 return ByteString.Empty; // do nothing if pending proposal is not ready to be released or not expired
-            
+
             // release pending proposal and unable to propose anything if it is ready
             _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
                 new CrossChainTransactionInput
@@ -231,7 +231,7 @@ namespace AElf.CrossChain.Indexing.Application
 
         public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
         {
-            if (crossChainBlockData.IsNullOrEmpty())
+            if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
                 return ByteString.Empty;
 
             var txRootHashList = crossChainBlockData.SideChainBlockDataList
@@ -239,13 +239,11 @@ namespace AElf.CrossChain.Indexing.Application
 
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
             Logger.LogInformation("Cross chain extra data generated.");
-            return calculatedSideChainTransactionsRoot == Hash.Empty
-                ? ByteString.Empty
-                : new CrossChainExtraData
-                    {
-                        TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
-                    }
-                    .ToByteString();
+            return new CrossChainExtraData
+                {
+                    TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
+                }
+                .ToByteString();
         }
 
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)

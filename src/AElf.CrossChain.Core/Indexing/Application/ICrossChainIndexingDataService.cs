@@ -12,7 +12,7 @@ namespace AElf.CrossChain.Indexing.Application
 
         Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight);
 
-        Task<CrossChainTransactionInput> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash,
+        Task<CrossChainTransactionInput> GetCrossChainTransactionInputForNextMiningAsync(Hash blockHash,
             long blockHeight);
 
         Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight);

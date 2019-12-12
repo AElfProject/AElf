@@ -48,7 +48,7 @@ namespace AElf.CrossChain.Cache
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
             if (blockCacheEntity.Height != TargetChainHeight())
                 return false;
-            var res = BlockCacheEntities.TryAdd(blockCacheEntity);
+            var res = ValidateBlockCacheEntity(blockCacheEntity) && BlockCacheEntities.TryAdd(blockCacheEntity);
             return res;
         }
         
@@ -130,6 +130,12 @@ namespace AElf.CrossChain.Cache
                 DequeuedBlockCacheEntities.Add(blockCacheEntity);
 
             return res;
+        }
+
+        private bool ValidateBlockCacheEntity(IBlockCacheEntity blockCacheEntity)
+        {
+            return blockCacheEntity.Height >= Constants.GenesisBlockHeight && blockCacheEntity.ChainId == _chainId &&
+                   blockCacheEntity.TransactionStatusMerkleTreeRoot != null;
         }
     }
 }

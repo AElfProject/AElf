@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -11,16 +12,18 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_SingleThread_Success()
         {
             var chainId = 123;
-            var height = 1;         
+            var height = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, 1);
             var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = height
+                Height = height,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString(height.ToString())
             });
             Assert.True(res);
             Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
         }
-        
+
         [Fact]
         public void TryAdd_SingleThread_Fail()
         {
@@ -40,15 +43,19 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_Twice_SingleThread_Success()
         {
             var chainId = 123;
-            var height = 1;         
+            var height = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, 1);
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = height++
+                Height = height,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString(height++.ToString())
             });
             var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = height
+                Height = height,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString(height.ToString())
             });
             Assert.True(res);
             Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
@@ -67,7 +74,9 @@ namespace AElf.CrossChain.Cache
                 var j = i;
                 var t = Task.Run(() => blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = 2 * j + 1
+                    Height = 2 * j + 1,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((2 * j + 1).ToString())
                 }));
                 taskList.Add(t);
                 i++;
@@ -88,9 +97,12 @@ namespace AElf.CrossChain.Cache
             {
                 blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = i++
+                    Height = i,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i++.ToString())
                 });
             }
+
             Assert.True(blockInfoCache.TargetChainHeight() == 5);
         }
 
@@ -102,21 +114,27 @@ namespace AElf.CrossChain.Cache
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 1
+                Height = 1,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("1")
             });
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 2
+                Height = 2,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("2")
             });
-            
+
             // 3 is absent.
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 4
+                Height = 4,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("4")
             });
             Assert.True(blockInfoCache.TargetChainHeight() == 3);
         }
-        
+
         [Fact]
         public void TryAdd_MultiThreads_WithSameData()
         {
@@ -129,7 +147,9 @@ namespace AElf.CrossChain.Cache
             {
                 var t = Task.Run(() => blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = initTarget
+                    Height = initTarget,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(initTarget.ToString())
                 }));
                 taskList.Add(t);
             }
@@ -147,7 +167,7 @@ namespace AElf.CrossChain.Cache
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, false);
             Assert.False(res);
         }
-        
+
         [Fact]
         public void TryTake_WithoutEnoughCache()
         {
@@ -162,11 +182,11 @@ namespace AElf.CrossChain.Cache
                     Height = i
                 });
             }
-            
+
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.False(res);
         }
-        
+
         [Fact]
         public void TryTake_WithSizeLimit()
         {
@@ -178,15 +198,17 @@ namespace AElf.CrossChain.Cache
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = i
+                    Height = i,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
-            
+
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.True(res);
             Assert.True(blockInfo.Height == initTarget);
         }
-        
+
         [Fact]
         public void TryTake_WithoutSizeLimit()
         {
@@ -195,7 +217,9 @@ namespace AElf.CrossChain.Cache
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 1
+                Height = 1,
+                ChainId = chainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("1")
             });
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, false);
             Assert.True(res);
@@ -209,14 +233,16 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.DefaultBlockCacheEntityCount)
+            while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = i
+                    ChainId = chainId,
+                    Height = i,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
-            
+
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.True(res);
             Assert.True(blockInfo.Height == initTarget);
@@ -233,10 +259,12 @@ namespace AElf.CrossChain.Cache
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = i
+                    Height = i,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
-            
+
             var res = blockInfoCache.TryTake(initTarget, out var b1, true);
             Assert.True(res);
             res = blockInfoCache.TryTake(initTarget, out var b2, true);
@@ -255,10 +283,12 @@ namespace AElf.CrossChain.Cache
             {
                 var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
-                    Height = i
+                    Height = i,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
                 });
             }
-            
+
             blockInfoCache.TryTake(2, out var b1, true);
             var res = blockInfoCache.TryTake(1, out var b2, true);
             Assert.True(res);
@@ -268,16 +298,20 @@ namespace AElf.CrossChain.Cache
         [Fact]
         public void TargetHeight_WithEmptyQueue()
         {
-            var chainId = 123;
+            var sideChainId = 123;
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
+            var blockInfoCache = new ChainCacheEntity(sideChainId, initTarget);
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 1
+                Height = 1,
+                ChainId = sideChainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("1")
             });
             blockInfoCache.TryAdd(new SideChainBlockData
             {
-                Height = 2
+                Height = 2,
+                ChainId = sideChainId,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("2")
             });
             blockInfoCache.TryTake(1, out _, false);
             blockInfoCache.TryTake(2, out _, false);

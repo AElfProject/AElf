@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 
-namespace AElf.CrossChain.Indexing.Application
+namespace AElf.CrossChain
 {
     internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
