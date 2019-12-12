@@ -223,7 +223,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Tx execution failed: {txContext}");
+                Logger.LogError(ex, "Transaction execution failed.");
                 txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txContext.Trace.Error += ex + "\n";
                 throw;

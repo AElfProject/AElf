@@ -8,6 +8,8 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -25,9 +27,11 @@ namespace AElf.Kernel.SmartContract.Application
         void RemoveForkCache(List<BlockIndex> blockIndexes);
 
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
+
+        void CleanIdleExecutive();
     }
 
-    public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider,ISingletonDependency
+    public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
     {
         private readonly ConcurrentDictionary<Address, SmartContractRegistrationCache>
             _addressSmartContractRegistrationMappingCache =
@@ -39,9 +43,12 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>>
             _executivePools =
                 new ConcurrentDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>>();
-        
+
         private Hash _initLibBlockHash = Hash.Empty;
         private long _initLibBlockHeight;
+
+        private const int ExecutiveExpirationTime = 3600; // 1 Hour
+        private const int ExecutiveClearLimit = 10;
 
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -51,11 +58,12 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainService _blockchainService;
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
+        public ILogger<SmartContractExecutiveProvider> Logger { get; set; }
 
         public SmartContractExecutiveProvider(IDeployedContractAddressProvider deployedContractAddressProvider,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
+            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
             IChainBlockLinkService chainBlockLinkService, IBlockchainService blockchainService)
         {
             _deployedContractAddressProvider = deployedContractAddressProvider;
@@ -64,8 +72,10 @@ namespace AElf.Kernel.SmartContract.Application
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _chainBlockLinkService = chainBlockLinkService;
             _blockchainService = blockchainService;
+
+            Logger = new NullLogger<SmartContractExecutiveProvider>();
         }
-        
+
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
             var addresses = _forkCache.Keys.ToList();
@@ -110,7 +120,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        private ConcurrentBag<IExecutive> GetPool(Address address,Hash codeHash)
+        private ConcurrentBag<IExecutive> GetPool(Address address, Hash codeHash)
         {
             if (!_executivePools.TryGetValue(address, out var dictionary))
             {
@@ -165,19 +175,28 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (dictionary.TryGetValue(executive.ContractHash, out var pool))
                 {
+                    executive.LastUsedTime = TimestampHelper.GetUtcNow();
                     pool.Add(executive);
+                    return;
                 }
+
+                Logger.LogDebug($"Lost an executive (no registration {address})");
+            }
+            else
+            {
+                Logger.LogDebug($"Lost an executive (no pool {address})");
             }
 
             await Task.CompletedTask;
         }
 
-        private void ClearExecutives(Address address,IEnumerable<Hash> codeHashes)
+        private void ClearExecutives(Address address, IEnumerable<Hash> codeHashes)
         {
             if (!_executivePools.TryGetValue(address, out var dictionary)) return;
             foreach (var codeHash in codeHashes)
             {
-                dictionary.TryRemove(codeHash, out _);
+                if (dictionary.TryRemove(codeHash, out _))
+                    Logger.LogDebug($"Removed executive for address {address} and code hash {codeHash}.");
             }
         }
 
@@ -195,7 +214,8 @@ namespace AElf.Kernel.SmartContract.Application
             return await GetSmartContractRegistrationAsync(registrationCache, address, chainContext.StateCache);
         }
 
-        private SmartContractRegistrationCache GetSmartContractRegistrationCacheFromForkCache(IChainContext chainContext,Address address)
+        private SmartContractRegistrationCache GetSmartContractRegistrationCacheFromForkCache(
+            IChainContext chainContext, Address address)
         {
             if (!_forkCache.TryGetValue(address, out var caches)) return null;
             var cacheList = caches.ToList();
@@ -207,7 +227,7 @@ namespace AElf.Kernel.SmartContract.Application
             do
             {
                 if (blockHashes.Contains(blockHash)) return cacheList.Last(s => s.BlockHash == blockHash);
-                
+
                 var link = _chainBlockLinkService.GetCachedChainBlockLink(blockHash);
                 blockHash = link?.PreviousBlockHash;
                 blockHeight--;
@@ -216,18 +236,19 @@ namespace AElf.Kernel.SmartContract.Application
             return null;
         }
 
-        private async Task<SmartContractRegistrationCache> GetSmartContractRegistrationCacheFromLibCache(IChainContext chainContext, Address address)
+        private async Task<SmartContractRegistrationCache> GetSmartContractRegistrationCacheFromLibCache(
+            IChainContext chainContext, Address address)
         {
             if (_addressSmartContractRegistrationMappingCache.TryGetValue(address,
                 out var smartContractRegistrationCache)) return smartContractRegistrationCache;
-            
+
             if (chainContext.BlockHeight > 0 && _initLibBlockHeight == 0)
             {
                 var chain = await _blockchainService.GetChainAsync();
                 _initLibBlockHash = chain.LastIrreversibleBlockHash;
                 _initLibBlockHeight = chain.LastIrreversibleBlockHeight;
             }
-            
+
             //Use lib chain context to set lib cache. Genesis block need to execute with state cache
             var context = new ChainContext
             {
@@ -265,7 +286,9 @@ namespace AElf.Kernel.SmartContract.Application
             return smartContractRegistrationCache;
         }
 
-        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(SmartContractRegistrationCache smartContractRegistrationCache, Address address, IStateCache stateCache = null)
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
+            SmartContractRegistrationCache smartContractRegistrationCache, Address address,
+            IStateCache stateCache = null)
         {
             //Cannot find registration in fork cache and lib cache
             if (smartContractRegistrationCache == null)
@@ -281,7 +304,7 @@ namespace AElf.Kernel.SmartContract.Application
                     throw new SmartContractFindRegistrationException("failed to find registration from zero contract");
                 return smartContractRegistration;
             }
-                
+
             if (smartContractRegistrationCache.SmartContractRegistration.Code.IsEmpty)
             {
                 smartContractRegistrationCache.SmartContractRegistration =
@@ -324,21 +347,41 @@ namespace AElf.Kernel.SmartContract.Application
             caches.Add(smartContractRegistrationCache);
         }
 
+        public void CleanIdleExecutive()
+        {
+            foreach (var executivePool in _executivePools)
+            {
+                foreach (var executiveBag in executivePool.Value.Values)
+                {
+                    if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
+                        TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
+                    {
+                        if (executiveBag.TryTake(out _))
+                        {
+                            Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
+                        }
+                    }
+                }
+            }
+        }
+
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
         {
             IExecutive executiveZero = null;
             try
             {
-                executiveZero = await GetExecutiveAsync(chainContext,_defaultContractZeroCodeProvider.ContractZeroAddress);
+                executiveZero =
+                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
                 return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
             }
             finally
             {
-                if (executiveZero != null) await PutExecutiveAsync(address, executiveZero);
+                if (executiveZero != null)
+                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
             }
         }
-        
+
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IExecutive executiveZero, IChainContext chainContext, Address address)
         {
@@ -378,15 +421,15 @@ namespace AElf.Kernel.SmartContract.Application
                     $"failed to find registration from zero contract {txCtxt.Trace.Error}");
             return null;
         }
-        
+
         private class SmartContractRegistrationCache
         {
             public Address Address { get; set; }
-        
+
             public SmartContractRegistration SmartContractRegistration { get; set; }
-        
+
             public Hash BlockHash { get; set; }
-        
+
             public long BlockHeight { get; set; }
         }
     }
