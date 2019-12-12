@@ -39,12 +39,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
-            // TODO: Is it reasonable to allow throwing exception here
-//            if (throwException)
-//            {
-//                throw new NotSupportedException(
-//                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
-//            }
 
             var chainContext = new ChainContext
             {
@@ -173,7 +167,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             IEnumerable<GroupedExecutionReturnSets> groupedExecutionReturnSetsList,
             out List<ExecutionReturnSet> conflictingSets)
         {
-            // TODO: Throw exception upon conflicts
             var returnSets = new List<ExecutionReturnSet>();
             conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();

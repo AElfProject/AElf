@@ -27,10 +27,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
-            //Todo New version metadata handle it
-//            var contractType = runner.GetContractType(registration);
-//            var contractTemplate = runner.ExtractMetadata(contractType);
-//            await _functionMetadataService.DeployContract(contractAddress, contractTemplate);
             return Task.CompletedTask;
         }
 
@@ -38,16 +34,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
-
-            //Todo New version metadata handle it
-//            var oldRegistration = await GetContractByAddressAsync(contractAddress);
-//            var oldContractType = runner.GetContractType(oldRegistration);
-//            var oldContractTemplate = runner.ExtractMetadata(oldContractType);
-//
-//            var newContractType = runner.GetContractType(newRegistration);
-//            var newContractTemplate = runner.ExtractMetadata(newContractType);
-//            await _functionMetadataService.UpdateContract(contractAddress, newContractTemplate,
-//                oldContractTemplate);
             return Task.CompletedTask;
         }
 
