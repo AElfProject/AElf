@@ -87,46 +87,8 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
                     
-                    if (trace == null)
+                    if (!IsGroupStateCacheUpdated(groupStateCache, trace, throwException))
                         break;
-
-                    if (!trace.IsSuccessful())
-                    {
-                        if (throwException)
-                        {
-                            Logger.LogError(trace.Error);
-                        }
-
-                        // Do not package this transaction if any of his inline transactions canceled.
-                        if (IsTransactionCanceled(trace))
-                        {
-                            break;
-                        }
-                        
-                        var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
-                        foreach (var preTrace in trace.PreTraces)
-                        {
-                            if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
-                        }
-                    
-                        foreach (var postTrace in trace.PostTraces)
-                        {
-                            if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
-                        }
-
-                        groupStateCache.Update(transactionExecutingStateSets);
-                        trace.SurfaceUpError();
-                    }
-                    else
-                    {
-                        groupStateCache.Update(trace.GetStateSets());
-                    }
-
-                    if (trace.Error != string.Empty)
-                    {
-                        Logger.LogError(trace.Error);
-                    }
-
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
                     if (result != null)
@@ -148,6 +110,51 @@ namespace AElf.Kernel.SmartContract.Application
                 Logger.LogError(e, "Failed while executing txs in block.");
                 throw;
             }
+        }
+
+        private bool IsGroupStateCacheUpdated(TieredStateCache groupStateCache, TransactionTrace trace,
+            bool throwException)
+        {
+            if (trace == null) return false;
+
+            if (!trace.IsSuccessful())
+            {
+                if (throwException)
+                {
+                    Logger.LogError(trace.Error);
+                }
+
+                // Do not package this transaction if any of his inline transactions canceled.
+                if (IsTransactionCanceled(trace))
+                {
+                    return false;
+                }
+
+                var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+                foreach (var preTrace in trace.PreTraces)
+                {
+                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                }
+
+                foreach (var postTrace in trace.PostTraces)
+                {
+                    if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+                }
+
+                groupStateCache.Update(transactionExecutingStateSets);
+                trace.SurfaceUpError();
+            }
+            else
+            {
+                groupStateCache.Update(trace.GetStateSets());
+            }
+
+            if (trace.Error != string.Empty)
+            {
+                Logger.LogError(trace.Error);
+            }
+
+            return true;
         }
 
         private static bool IsTransactionCanceled(TransactionTrace trace)
