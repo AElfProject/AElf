@@ -5,11 +5,12 @@ The previous article exposed how to add the proto definition and implement the l
 - using AElf Contract TestKit to test.
 - adding the test module, test base and test cases.
 
-AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework,you can simulate the execution of a transaction by constructing a stub of a contract and using the methods provided by the Stub instance (corresponding to the contract's Action methods) and query (corresponding to the View methods of the contract), and then query the transaction execution results in the test case, you can complete the test task of the contract method.
+AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework, you can simulate the execution of a transaction by constructing a stub of a contract and using the methods provided by the Stub instance (corresponding to the contract's Action methods) and query (corresponding to the View methods of the contract), and then query the transaction execution results in the test case, you can complete the test task of the contract method.
 
 ## Creating the project
 
 First let's take a look at Boilerplate's structure:
+
 <!-- 
 # chain 
 ## contract
