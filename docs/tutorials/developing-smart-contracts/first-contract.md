@@ -1,4 +1,4 @@
-# Smart Contract
+# Smart contract implementation
 
 This article will guide you through how to use **AElf Boilerplate** to implement a smart contract. It takes example on the **Greeter** contract that's already included in Boilerplate. Based on the concepts this article presents you'll be able to create your own basic contract.
 
