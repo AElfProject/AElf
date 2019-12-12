@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -16,7 +14,7 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
         public IReadOnlyDictionary<string, NamespaceRule> NameSpaces =>
             (IReadOnlyDictionary<string, NamespaceRule>) _namespaces;
 
-        public Whitelist Assembly(Assembly assembly, Trust trustLevel)
+        public Whitelist Assembly(System.Reflection.Assembly assembly, Trust trustLevel)
         {
             _assemblies.Add(assembly.GetName().Name, trustLevel);
 

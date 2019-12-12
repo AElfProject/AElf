@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using AElf.CSharp.Core;
-using Google.Protobuf.Reflection;
 
-namespace AElf.CSharp.CodeOps.Validators.Module
+namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
-    public class AcsValidator : IValidator<Assembly>
+    public class AcsValidator : IValidator<System.Reflection.Assembly>
     {
         private static readonly string[] RequiredAcs = 
         {
@@ -15,7 +13,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             "acs8"
         };
 
-        public IEnumerable<ValidationResult> Validate(Assembly assembly)
+        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly)
         {
             var acsBaseList = GetServiceDescriptorIdentities(GetServerServiceDefinition(assembly));
             
@@ -30,7 +28,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             return Enumerable.Empty<ValidationResult>();
         }
 
-        private ServerServiceDefinition  GetServerServiceDefinition(Assembly assembly)
+        private static ServerServiceDefinition  GetServerServiceDefinition(System.Reflection.Assembly assembly)
         {
             var methodInfo = assembly.FindContractContainer()
                 .GetMethod("BindService", new[] { assembly.FindContractBaseType() });
@@ -43,7 +41,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             return serviceDefinition;
         }
 
-        private IEnumerable<string> GetServiceDescriptorIdentities(ServerServiceDefinition serviceDefinition)
+        private static IEnumerable<string> GetServiceDescriptorIdentities(ServerServiceDefinition serviceDefinition)
         {
             var binder = new DescriptorOnlyServiceBinder();
             serviceDefinition.BindService(binder);
