@@ -7,7 +7,9 @@
         * [Running multiple nodes](tutorials/setup/multi-nodes.md)
     * [Smart contract development](tutorials/developing-smart-contracts/main.md)
         * [Setup Boilerplate](tutorials/developing-smart-contracts/setup.md)
-        * [First contract](tutorials/developing-smart-contracts/first-contract.md)
+        * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
+        * [First contract - test](tutorials/developing-smart-contracts/first-contract.md)
+        * [First contract - deploy](tutorials/developing-smart-contracts/first-contract.md)
         <!-- * [Issue tokens](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
