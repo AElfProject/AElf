@@ -237,11 +237,11 @@ namespace AElf.Kernel.TransactionPool.Application
             CalculateFeeCoefficientsOfType parameters;
             if (CalculateAlgorithmContext.CalculateFeeTypeEnum == (int) FeeTypeEnum.Tx)
             {
-                parameters = await tokenStub.GetCalculateFeeCoefficientOfUser.CallAsync(new Empty());
+                parameters = await tokenStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
             }
             else
             {
-                parameters = await tokenStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+                parameters = await tokenStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
                     {Value = CalculateAlgorithmContext.CalculateFeeTypeEnum});
             }
 

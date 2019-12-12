@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
@@ -14,27 +15,27 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Get_Calculate_Fee_Coefficient_Function_Test()
         {
-            var parameters0 = await TokenContractStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+            var parameters0 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
             {
                 Value = 0
             });
             parameters0.ShouldNotBeNull();
-            var parameters1 = await TokenContractStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+            var parameters1 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
             {
                 Value = 1
             });
             parameters1.ShouldNotBeNull();
-            var parameters2 = await TokenContractStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+            var parameters2 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
             {
                 Value = 2
             });
             parameters2.ShouldNotBeNull();
-            var parameters3 = await TokenContractStub.GetCalculateFeeCoefficientOfDeveloper.CallAsync(new SInt32Value
+            var parameters3 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
             {
                 Value = 3
             });
             parameters3.ShouldNotBeNull();
-            var parameters4 = await TokenContractStub.GetCalculateFeeCoefficientOfUser.CallAsync(new Empty());
+            var parameters4 = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
             parameters4.ShouldNotBeNull();
         }
 
@@ -74,12 +75,20 @@ namespace AElf.Contracts.MultiToken
             var apiParam = new CoefficientFromSender
             {
                 IsLiner = true,
-                PieceKey = 10,
-                Denominator = 4,
-                Numerator = 1
+                PieceKey = 100_0000,
+                LinerCoefficient = new LinerCoefficient
+                {
+                    Denominator = 4,
+                    Numerator = 1
+                }
             };
             var result = (await TokenContractStub.UpdateCoefficientFormSender.SendAsync(apiParam)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
+            var result2 = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
+            var changedState = result2.Coefficients.SingleOrDefault(x => x.PieceKey == apiParam.PieceKey);
+            changedState.ShouldNotBeNull();
+            changedState.CoefficientDic["denominator"].ShouldBe(4);
+            changedState.CoefficientDic["numerator"].ShouldBe(1);
             var param = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Cpu,

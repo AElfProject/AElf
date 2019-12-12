@@ -313,7 +313,8 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount, $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
+            Assert(existingBalance >= input.Amount,
+                $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
@@ -512,25 +513,24 @@ namespace AElf.Contracts.MultiToken
                 advancedAmount.Sub(input.Amount);
             return new Empty();
         }
-        
 
         public override Empty UpdateCoefficientFormContract(CoefficientFromContract coeInput)
         {
-            if(coeInput == null)
+            if (coeInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientForDev[coeInput.FeeType];
-            if(dataInDb == null)
+            TryToInitialParameters();
+            var dataInDb = State.CalculateCoefficientOfContract[coeInput.FeeType];
+            if (dataInDb == null)
                 return new Empty();
             var coefficient = coeInput.Coefficient;
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if(theOne == null)
+            if (theOne == null)
                 return new Empty();
-            if (coefficient.NewPieceKey > 0)
+            if (coefficient.IsChangePieceKey)
             {
                 ChangeFeePieceKey(coefficient, theOne);
             }
-
             else if (coefficient.IsLiner)
             {
                 UpdateLinerAlgorithm(coefficient, theOne);
@@ -542,22 +542,23 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
+
         public override Empty UpdateCoefficientFormSender(CoefficientFromSender coeInput)
         {
-            if(coeInput == null)
+            if (coeInput == null)
                 return new Empty();
-            AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientForUser;
-            if(dataInDb == null)
+            //AssertIsAuthorized();
+            TryToInitialParameters();
+            var dataInDb = State.CalculateCoefficientOfSender;
+            if (dataInDb == null)
                 return new Empty();
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
-            if(theOne == null)
+            if (theOne == null)
                 return new Empty();
-            if (coeInput.NewPieceKey > 0)
+            if (coeInput.IsChangePieceKey)
             {
                 ChangeFeePieceKey(coeInput, theOne);
             }
-
             else if (coeInput.IsLiner)
             {
                 UpdateLinerAlgorithm(coeInput, theOne);
@@ -566,19 +567,22 @@ namespace AElf.Contracts.MultiToken
             {
                 UpdatePowerAlgorithm(coeInput, theOne);
             }
+
             return new Empty();
         }
-        private void UpdateLinerAlgorithm(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
+
+        private void UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
         {
-            if(coefficient.Denominator <= 0)
+            var coefficient = sender.LinerCoefficient;
+            if (coefficient.Denominator <= 0)
                 return;
-            if(coefficient.Numerator < 0)
+            if (coefficient.Numerator < 0)
                 return;
-            if(coefficient.ConstantValue < 0)
+            if (coefficient.ConstantValue < 0)
                 return;
-            dbData.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.ConstantValue)] =coefficient.ConstantValue;
+            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
+            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
+            dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
@@ -587,23 +591,25 @@ namespace AElf.Contracts.MultiToken
             };
             Context.Fire(param);
         }
-        private void UpdatePowerAlgorithm(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
+
+        private void UpdatePowerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
         {
-            if(coefficient.Denominator <= 0)
+            var coefficient = sender.PowerCoefficient;
+            if (coefficient.Denominator <= 0)
                 return;
-            if(coefficient.Numerator < 0)
+            if (coefficient.Numerator < 0)
                 return;
-            if(coefficient.Weight <= 0)
+            if (coefficient.Weight <= 0)
                 return;
-            if(coefficient.WeightBase <= 0)
+            if (coefficient.WeightBase <= 0)
                 return;
-            if(coefficient.ChangeSpanBase <= 0)
+            if (coefficient.ChangeSpanBase <= 0)
                 return;
-            dbData.CoefficientDic[nameof(coefficient.Denominator)] =coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator)] =coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.Weight)] =coefficient.Weight;
-            dbData.CoefficientDic[nameof(coefficient.WeightBase)] =coefficient.WeightBase;
-            dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase)] =coefficient.ChangeSpanBase;
+            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
+            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
+            dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
+            dbData.CoefficientDic[nameof(coefficient.WeightBase).ToLower()] = coefficient.WeightBase;
+            dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase).ToLower()] = coefficient.ChangeSpanBase;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
@@ -612,33 +618,35 @@ namespace AElf.Contracts.MultiToken
             };
             Context.Fire(param);
         }
+
         private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
-            if(coefficient.NewPieceKey == coefficient.PieceKey)
+            var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
+            if (newPieceKey == coefficient.PieceKey)
                 return;
-            dbData.PieceKey = coefficient.NewPieceKey;
+            dbData.PieceKey = newPieceKey;
             var param = new NoticeUpdateCalculateFeeAlgorithm
             {
                 PreBlockHash = Context.PreviousBlockHash,
                 BlockHeight = Context.CurrentHeight,
                 Coefficient = dbData,
-                NewPieceKey = coefficient.NewPieceKey
+                NewPieceKey = newPieceKey
             };
             Context.Fire(param);
         }
-        
-        private void InitialParameters()
+
+        private void TryToInitialParameters()
         {
-            if (State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
-            if (State.CalculateCoefficientForDev[FeeTypeEnum.Sto] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
-            if (State.CalculateCoefficientForDev[FeeTypeEnum.Ram] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
-            if (State.CalculateCoefficientForDev[FeeTypeEnum.Net] == null)
-                State.CalculateCoefficientForDev[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
-            if (State.CalculateCoefficientForUser == null)
-                State.CalculateCoefficientForUser = GetTxFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Net] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfSender == null)
+                State.CalculateCoefficientOfSender = GetTxFeeInitialCoefficient();
         }
     }
 }

@@ -463,7 +463,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx size unit price.");
+                "No permission to set tx，cpu，sto，ram，net.");
         }
     }
 }
