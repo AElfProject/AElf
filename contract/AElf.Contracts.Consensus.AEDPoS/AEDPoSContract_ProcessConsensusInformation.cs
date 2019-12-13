@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var miningInformationUpdated = new MiningInformationUpdated
             {
-                // _processingBlockMinerPubkey is set during above process.
+                // _processingBlockMinerPubkey is set during PreCheck.
                 Pubkey = _processingBlockMinerPubkey,
                 Behaviour = callerMethodName,
                 MiningTime = Context.CurrentBlockTime,
