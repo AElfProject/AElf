@@ -397,4 +397,4 @@ The ```SingletonState``` is part of the C# SDK and is used to represent exactly 
 
 ## Next 
 
-This article showed you how to set up the contracts definition and implementation. Next we'll see how to test the contract.
+This article showed you how to set up the contract's definition and implementation, next we'll see how to test it.

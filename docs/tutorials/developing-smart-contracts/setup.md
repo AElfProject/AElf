@@ -72,7 +72,7 @@ dotnet run --no-build bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
 ```
 
 {% hint style="warning" %}
- When running the Boilerplate, you might see some errors related to an incorrect password, to solve this, you need to backup your `data-dir/keys/` folder and start with an empty keys folder. Once you've cleaned the keys, stop and restart the node with the ```dotnet run``` command.
+ When running Boilerplate, you might see some errors related to an incorrect password, to solve this, you need to backup your `data-dir/keys/` folder and start with an empty keys folder. Once you've cleaned the keys, stop and restart the node with the ```dotnet run``` command shown above.
  {% endhint %}
 
 At this point the smart contracts have been deployed and are ready to be called (Boilerplate has a functionning API). You should see the node's logs in the terminal and see the node producing blocks. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
@@ -148,12 +148,12 @@ The hello world contract and its tests are split between the following folders:
 You can use this layout as a template for your future smart contracts. Before you do we recommend you follow through all the articles of this series.
 
 {% hint style="info" %}
-You will also notice the **src** folder. This folder contains the Boilerplate's modules and the executable for the node.
+You will also notice the **src** folder. This folder contains Boilerplate's modules and the executable for the node.
 {% endhint %}
 
 ## Next 
 
-You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate. The next article will give you more complete smart contract and extra content on how to organize your code and tests files.
+You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate. The next article will show you a more complete smart contract and extra content on how to organize your code and tests files.
 
 {% hint style="warning" %}
 All production contracts (contracts destined to be deployed to a live chain) must go through a complete review process by the contract author and undergo proper testing. It is the authors responsibility to check the validity and security of his contract. The author should not simply copy the contracts contained in Boilerplate, it's the authors responsibility to ensure the security and correctness of his contracts.
