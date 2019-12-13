@@ -12,16 +12,14 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
-using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
-using AElf.Runtime.CSharp.Helper;
-using Mono.Cecil.Cil;
+using AElf.Runtime.CSharp.Tests.BadContract;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Runtime.CSharp.Tests
+namespace AElf.CSharp.CodeOps
 {
     public class ContractAuditorFixture : IDisposable
     {
@@ -43,7 +41,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
     }
 
-    public class ContractAuditorTests : CSharpRuntimeTestBase, IClassFixture<ContractAuditorFixture>
+    public class ContractAuditorTests : CSharpCodeOpsTestBase, IClassFixture<ContractAuditorFixture>
     {
         private readonly ContractAuditorFixture _auditorFixture;
         private readonly string _contractDllDir = "../../../contracts/";
@@ -86,7 +84,7 @@ namespace AElf.Runtime.CSharp.Tests
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module)))
                 .Findings;
             
             // Should have identified that ACS1 or ACS8 is not there
