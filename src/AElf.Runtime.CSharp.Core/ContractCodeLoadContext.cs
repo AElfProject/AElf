@@ -12,9 +12,8 @@ namespace AElf.Runtime.CSharp
     public class ContractCodeLoadContext : AssemblyLoadContext
     {
         private readonly ISdkStreamManager _sdkStreamManager;
-        public Assembly Sdk { get; private set; }
 
-        public ContractCodeLoadContext(ISdkStreamManager sdkStreamManager)
+        public ContractCodeLoadContext(ISdkStreamManager sdkStreamManager) : base(isCollectible: true)
         {
             _sdkStreamManager = sdkStreamManager;
         }
@@ -29,8 +28,7 @@ namespace AElf.Runtime.CSharp
             if (assemblyName.Name.StartsWith("AElf.Sdk"))
             {
                 // Sdk assembly should NOT be shared
-                Sdk = LoadFromStream(_sdkStreamManager.GetStream(assemblyName));
-                return Sdk;
+                return LoadFromStream(_sdkStreamManager.GetStream(assemblyName));
             }
 
             return null;

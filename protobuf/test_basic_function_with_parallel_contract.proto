@@ -3,12 +3,14 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "acs1.proto";
 import "acs2.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
 
 service BasicFunctionWithParallelContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicFunctionWithParallel.BasicFunctionWithParallelContractState";
+    option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs2.proto";
     //Actions
     rpc InitialBasicFunctionWithParallelContract(InitialBasicFunctionWithParallelContractInput) returns (google.protobuf.Empty){
