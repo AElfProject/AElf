@@ -22,7 +22,7 @@ Open a terminal in your system and clone the tutorial with the following command
 git clone https://github.com/AElfProject/aelf-boilerplate
 ```
 
-This command will create a **aelf-boilerplate** folder with the code inside it.
+This command will create a **aelf-boilerplate** folder with Boilerplate's code inside it.
 
 ## Build and run the Hello World
 
@@ -149,4 +149,4 @@ You can use this layout as a template for your future smart contracts, before yo
 
 You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate.
 
-The next article will give you more complete smart contract and extra content on how to organize your code.
+The next article will give you more complete smart contract and extra content on how to organize your code and tests files.
