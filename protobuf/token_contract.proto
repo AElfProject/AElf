@@ -10,10 +10,7 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
-    
-    
-    
-    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc InitializeCoefficient (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {

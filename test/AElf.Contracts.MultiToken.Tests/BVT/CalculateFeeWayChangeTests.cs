@@ -13,11 +13,15 @@ namespace AElf.Contracts.MultiToken
     public partial class MultiTokenContractTests
     {
 
+        private async Task InitializeCoefficientAsync()
+        {
+            var initResult = (await TokenContractStub.InitializeCoefficient.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
         [Fact]
         public async Task Tx_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await InitializeCoefficientAsync();
             var calculateTxCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var size = 10000;
             var fee = await calculateTxCostStrategy.GetCostAsync(null, size);
@@ -63,8 +67,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Cpu_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await InitializeCoefficientAsync();
             var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateCpuCostStrategy>();
             var apiParam = new CoefficientFromSender
             {
@@ -104,8 +107,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Ram_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await InitializeCoefficientAsync();
             var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
             var param = new CalculateFeeCoefficient
             {
@@ -133,8 +135,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Sto_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await InitializeCoefficientAsync();
             var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
             var param = new CalculateFeeCoefficient
             {
@@ -153,8 +154,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Net_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await InitializeCoefficientAsync();
             var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
             var param = new CalculateFeeCoefficient
             {

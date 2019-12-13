@@ -4,7 +4,6 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,8 +11,9 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        public override Empty Initialize(Empty empty)
+        public override Empty InitializeCoefficient(Empty empty)
         {
+            AssertIsAuthorized();
             InitialParameters();
             return new Empty();
         }
