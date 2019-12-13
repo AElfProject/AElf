@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -202,6 +203,8 @@ namespace AElf.Contracts.CrossChain
             if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
             {
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
+                Context.LogDebug(() =>
+                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
             }
 
             var indexedSideChainBlockData = IndexSideChainBlockData(
@@ -211,6 +214,8 @@ namespace AElf.Contracts.CrossChain
             if (indexedSideChainBlockData.SideChainBlockDataList.Count > 0)
             {
                 State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+                Context.LogDebug(() =>
+                    $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
                 Context.Fire(new SideChainBlockDataIndexedEvent());
             }
             

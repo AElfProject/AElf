@@ -91,7 +91,7 @@ namespace AElf.CrossChain.Indexing.Application
                             targetHeight, targetHeight == Constants.GenesisBlockHeight);
                     if (sideChainBlockData == null)
                     {
-                        // no more available parent chain block info
+                        // no more available side chain block info
                         break;
                     }
 

@@ -427,7 +427,7 @@ namespace AElf.Contracts.CrossChain
             var proposalInfo = GetProposal(crossChainIndexingProposal.ProposalId);
             Assert(proposalInfo.ExpiredTime <= Context.CurrentBlockTime,
                 "Unable to clear cross chain indexing proposal which is not expired.");
-            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
+//            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
             ResetCrossChainIndexingProposal();
         }
     }
