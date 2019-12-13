@@ -46,6 +46,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
+            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
 
             context.Services.RemoveAll<IPreExecutionPlugin>();
 
