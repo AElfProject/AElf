@@ -136,7 +136,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = creationInput.Decimals,
                 Issuer = creationInput.Issuer,
                 IsBurnable = creationInput.IsBurnable,
-                IssueChainId = parentChainId
+                IssueChainId = creationInput.IssueChainId
             });
             return new Empty();
         }

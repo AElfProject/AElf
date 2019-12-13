@@ -19,13 +19,13 @@ namespace AElf.CrossChain.Cache
         private BlockingCollection<IBlockCacheEntity> DequeuedBlockCacheEntities { get; } =
             new BlockingCollection<IBlockCacheEntity>(new ConcurrentQueue<IBlockCacheEntity>());
         
-        private readonly long _initTargetHeight;
+        private long _targetHeight;
         private readonly int _chainId;
         
         public ChainCacheEntity(int chainId, long chainHeight)
         {
             _chainId = chainId;
-            _initTargetHeight = chainHeight;
+            _targetHeight = chainHeight;
         }
 
         public long TargetChainHeight()
@@ -38,7 +38,7 @@ namespace AElf.CrossChain.Cache
             var lastDequeuedBlockCacheEntity = DequeuedBlockCacheEntities.LastOrDefault();
             if (lastDequeuedBlockCacheEntity != null) 
                 return lastDequeuedBlockCacheEntity.Height + 1;
-            return _initTargetHeight;
+            return _targetHeight;
         }
         
         public bool TryAdd(IBlockCacheEntity blockCacheEntity)
@@ -49,6 +49,8 @@ namespace AElf.CrossChain.Cache
             if (blockCacheEntity.Height != TargetChainHeight())
                 return false;
             var res = ValidateBlockCacheEntity(blockCacheEntity) && BlockCacheEntities.TryAdd(blockCacheEntity);
+            if (res)
+                _targetHeight = blockCacheEntity.Height + 1;
             return res;
         }
         
