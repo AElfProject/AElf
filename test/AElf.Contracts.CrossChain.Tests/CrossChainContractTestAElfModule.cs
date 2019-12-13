@@ -11,7 +11,11 @@ namespace AElf.Contracts.CrossChain.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<CrossChainContractTestAElfModule>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
         }
     }
 }
