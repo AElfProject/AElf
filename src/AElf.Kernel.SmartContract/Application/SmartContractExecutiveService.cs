@@ -35,5 +35,10 @@ namespace AElf.Kernel.SmartContract.Application
             var smartContractRegistration = await _smartContractExecutiveProvider.GetSmartContractRegistrationAsync(chainContext, address);
             return smartContractRegistration.CodeHash == contractHash;
         }
+
+        public void CleanIdleExecutive()
+        {
+            _smartContractExecutiveProvider.CleanIdleExecutive();
+        }
     }
 }
