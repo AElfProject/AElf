@@ -2,10 +2,10 @@
 
 AElf Boilerplate is the go-to environment for creating and testing smart contracts. It takes care of including your contract files in the build system and linking the appropriate development SDK. Boilerplate also takes care of generating the csharp code from the proto definition. 
 
-This article will get you started with development on Boilerplate project. You will learn the following items:
-- downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
-- running a template HelloWorld contract.
-- Boilerplate's structure.
+This article will get you started with development on Boilerplate. It contains the following items:
+- how to clone, build and run AElf Boilerplate.
+- how to run the Hello World contract tests.
+- a brief presentation of Boilerplate.
 
 ## Environment
 
@@ -25,13 +25,13 @@ The following command will clone AElf Boilerplate into a **aelf-boilerplate** fo
 git clone https://github.com/AElfProject/aelf-boilerplate
 ```
 
-The [**boilerplate repo**](https://github.com/AElfProject/aelf-boilerplate) contains the code for easy smart contract development as well as examples (some explained in this series of articles).
+The [**boilerplate repo**](https://github.com/AElfProject/aelf-boilerplate) contains a framework for easy smart contract development as well as examples (some explained in this series of articles).
 
 ## Build and run
 
 #### Open the project
 
-If not already done open vscode and open the **aelf-boilerplate** folder. If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
+If not already done, open vscode and open the **aelf-boilerplate** folder. If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
 <p align="center">
   <img src="vscode-dep-autox150.png" width="200">
@@ -41,7 +41,7 @@ Open vscode's **Integrated Terminal** and build the project with the following c
 
 #### Install script
 
-As stated earlier, Boilerplate takes care of the C# code generation and thus needs protobuf. If you don't already have it installed, run the following script from withing the **aelf-boilerplate** folder:
+As stated earlier, Boilerplate takes care of the C# code generation and thus has a dependency on protobuf. If you don't already have it installed, run the following script from withing the **aelf-boilerplate** folder:
 
 ```bash
 # Mac or Linux
@@ -55,7 +55,6 @@ chain/scripts/install_dependency.ps1
 {% hint style="info" %}
 If you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
 {% endhint %}
-
 
 #### Build and run
 
@@ -73,12 +72,12 @@ dotnet run --no-build bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
 ```
 
 {% hint style="warning" %}
- When running the Boilerplate, you might see some errors related to an incorrect password, to solve this you need to backup your `data-dir/keys/` folder and start with an empty folder.
+ When running the Boilerplate, you might see some errors related to an incorrect password, to solve this, you need to backup your `data-dir/keys/` folder and start with an empty keys folder. Once you've cleaned the keys, stop and restart the node with the ```dotnet run``` command.
  {% endhint %}
 
-At this point the smart contracts have been deployed and are ready to be called. You should see the node's logs in the terminal and see the node producing blocks. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
+At this point the smart contracts have been deployed and are ready to be called (Boilerplate has a functionning API). You should see the node's logs in the terminal and see the node producing blocks. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
 
-#### Run some tests
+#### Run tests
 
 Boilerplate makes it easy to write unit tests for your contracts. Here we'll take the tests of the Hello World contract included in Boilerplate as an example. To run the tests, simply navigate to the **AElf.Contracts.HelloWorldContract.Test** folder and run:
 
@@ -86,7 +85,7 @@ Boilerplate makes it easy to write unit tests for your contracts. Here we'll tak
 cd ../../test/AElf.Contracts.HelloWorldContract.Test/
 dotnet test
 ```
-The output should look somewhat like this:
+The output should look somewhat like this, meaning that the tests have successfully executed:
 ```bash 
 Test Run Successful.
 Total tests: 1
@@ -94,7 +93,7 @@ Total tests: 1
  Total time: 2.8865 Seconds
 ```
 
-At this point you have successfully downloaded and built and run Boilerplate. You have also run the HelloWorld contract tests that are included in Boilerplate. Later articles will show you how to add a contract and it's tests and add it to the deployment process.
+At this point you have successfully downloaded, built and run Boilerplate. You have also run the HelloWorld contract's tests that are included in Boilerplate. Later articles will show you how to add a contract and its tests and add it to the deployment process.
 
 ## More on Boilerplate
 
@@ -144,10 +143,18 @@ Boilerplate is composed of two root folders: **chain** and **web**. This series 
 The hello world contract and its tests are split between the following folders:
 - **contract**: this folder contains the csharp projects (.csproj) along with the contract implementation (.cs files).
 - **protobuf**: contains the .proto definition of the contract.
-- **test**: contains the test project and files.
+- **test**: contains the test project and files (basic xUnit test project).
 
-You can use this layout as a template for your future smart contracts, before you do we recommend you follow through all the articles of this series.
+You can use this layout as a template for your future smart contracts. Before you do we recommend you follow through all the articles of this series.
+
+{% hint style="info" %}
+You will also notice the **src** folder. This folder contains the Boilerplate's modules and the executable for the node.
+{% endhint %}
 
 ## Next 
 
 You've just seen a short introduction on how to run a smart contract that is already included in Boilerplate. The next article will give you more complete smart contract and extra content on how to organize your code and tests files.
+
+{% hint style="warning" %}
+All production contracts (contracts destined to be deployed to a live chain) must go through a complete review process by the contract author and undergo proper testing. It is the authors responsibility to check the validity and security of his contract. The author should not simply copy the contracts contained in Boilerplate, it's the authors responsibility to ensure the security and correctness of his contracts.
+{% endhint %}

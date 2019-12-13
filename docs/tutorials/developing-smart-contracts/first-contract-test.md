@@ -9,7 +9,7 @@ AElf Contract TestKit is a testing framework specifically used to test AElf smar
 
 ## Creating the project
 
-First let's take a look at Boilerplate's structure:
+Before creating the project let's take a look at Boilerplate's structure concerning the tests:
 
 <!-- 
 # chain 
