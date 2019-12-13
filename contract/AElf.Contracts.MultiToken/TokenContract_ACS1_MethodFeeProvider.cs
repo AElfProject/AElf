@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Acs1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -20,16 +22,16 @@ namespace AElf.Contracts.MultiToken
 
             if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
+                var methodFees = State.MethodFees[input.Value];
+                if (methodFees == null) return new MethodFees();
+                var symbols = GetMethodFeeSymbols();
+                var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
                 return new MethodFees
                 {
                     MethodName = input.Value,
                     Fees =
                     {
-                        new MethodFee
-                        {
-                            Symbol = primaryTokenSymbol,
-                            BasicFee = 1000_0000
-                        }
+                        fees
                     }
                 };
             }
@@ -59,6 +61,14 @@ namespace AElf.Contracts.MultiToken
 
             State.MethodFees[input.MethodName] = input;
             return new Empty();
+        }
+
+        private List<string> GetMethodFeeSymbols()
+        {
+            var symbols = new List<string>();
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
+            if (primaryTokenSymbol != string.Empty) symbols.Add(primaryTokenSymbol);
+            return symbols;
         }
     }
 }
