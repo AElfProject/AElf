@@ -2,7 +2,6 @@ language: csharp
 sudo: required
 mono: none
 dotnet: 3.0.100
-dist: bionic
 os:
   - linux
   - osx
