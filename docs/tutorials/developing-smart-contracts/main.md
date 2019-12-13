@@ -1,7 +1,5 @@
 # Developing smart contracts
 
-## Overview of smart contract:
-
 AElf is part of a relatively new software type called blockchain. From a high level perspective a blockchain is a network of interconnected nodes that process transactions in order to form blocks. Transactions are usually broadcast to the network by sending them to a node; this node verifies the transaction and if it’s correct will broadcast it to other nodes. The client that sent the transaction can be of many types, including a browser, script or any client that can connect and send HTTP requests to a node. 
 
 Internally blockchains keep a record of all the transactions ever executed by the network and these transactions are contained in cryptographically linked blocks. AElf uses a DPoS consensus type in which miners collect transactions and according to a schedule package them into blocks that are broadcast to the network. These linked blocks effectively constitute the blockchain (here, blockchain refers to the data structure rather than the software). In AElf the transaction and blocks are usually referred to as **chain data**.
