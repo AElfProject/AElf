@@ -35,7 +35,7 @@ namespace AElf.Contracts.Economic
             SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
-
+            State.TokenContract.Initialize.Send(new Empty());
             State.Initialized.Value = true;
             return new Empty();
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,6 +12,12 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        public override Empty Initialize(Empty empty)
+        {
+            InitialParameters();
+            return new Empty();
+        }
+
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -514,12 +521,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty UpdateCoefficientFormContract(CoefficientFromContract coeInput)
+        public override Empty UpdateCoefficientFromContract(CoefficientFromContract coeInput)
         {
             if (coeInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            TryToInitialParameters();
             var dataInDb = State.CalculateCoefficientOfContract[coeInput.FeeType];
             if (dataInDb == null)
                 return new Empty();
@@ -543,18 +549,23 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty UpdateCoefficientFormSender(CoefficientFromSender coeInput)
+        public override Empty UpdateCoefficientFromSender(CoefficientFromSender coeInput)
         {
             if (coeInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            TryToInitialParameters();
-            var dataInDb = State.CalculateCoefficientOfSender;
+            var dataInDb = State.CalculateCoefficientOfSender.Value;
             if (dataInDb == null)
+            {
                 return new Empty();
+            }
+
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
             if (theOne == null)
+            {
                 return new Empty();
+            }
+
             if (coeInput.IsChangePieceKey)
             {
                 ChangeFeePieceKey(coeInput, theOne);
@@ -622,7 +633,7 @@ namespace AElf.Contracts.MultiToken
         private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
             var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
-            if (newPieceKey == coefficient.PieceKey)
+            if (newPieceKey == coefficient.PieceKey || newPieceKey <= 0)
                 return;
             dbData.PieceKey = newPieceKey;
             var param = new NoticeUpdateCalculateFeeAlgorithm
@@ -635,18 +646,13 @@ namespace AElf.Contracts.MultiToken
             Context.Fire(param);
         }
 
-        private void TryToInitialParameters()
+        private void InitialParameters()
         {
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Net] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfSender == null)
-                State.CalculateCoefficientOfSender = GetTxFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
+            State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
         }
     }
 }

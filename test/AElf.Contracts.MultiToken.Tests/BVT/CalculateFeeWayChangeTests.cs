@@ -12,36 +12,12 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests
     {
-        [Fact]
-        public async Task Get_Calculate_Fee_Coefficient_Function_Test()
-        {
-            var parameters0 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
-            {
-                Value = 0
-            });
-            parameters0.ShouldNotBeNull();
-            var parameters1 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
-            {
-                Value = 1
-            });
-            parameters1.ShouldNotBeNull();
-            var parameters2 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
-            {
-                Value = 2
-            });
-            parameters2.ShouldNotBeNull();
-            var parameters3 = await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
-            {
-                Value = 3
-            });
-            parameters3.ShouldNotBeNull();
-            var parameters4 = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
-            parameters4.ShouldNotBeNull();
-        }
 
         [Fact]
         public async Task Tx_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculateTxCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var size = 10000;
             var fee = await calculateTxCostStrategy.GetCostAsync(null, size);
@@ -57,7 +33,23 @@ namespace AElf.Contracts.MultiToken
             await HandleTestAsync(param, null, null);
             var updatedFee = await calculateTxCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(25_0000_0000);
-
+            var apiParam2 = new CoefficientFromSender
+            {
+                IsChangePieceKey = true,
+                IsLiner = false,
+                PieceKey = 1000000,
+                LinerCoefficient = new LinerCoefficient(),
+                PowerCoefficient = new PowerCoefficient(),
+                NewPieceKeyCoefficient = new NewPieceKeyCoefficient
+                {
+                    NewPieceKey = 100
+                }
+            };
+            var result = (await TokenContractStub.UpdateCoefficientFromSender.SendAsync(apiParam2)).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            var allParameters = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
+            var changedState2 = allParameters.Coefficients.SingleOrDefault(x => x.PieceKey == apiParam2.NewPieceKeyCoefficient.NewPieceKey);
+            changedState2.ShouldNotBeNull();
             var param2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Tx,
@@ -71,6 +63,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Cpu_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateCpuCostStrategy>();
             var apiParam = new CoefficientFromSender
             {
@@ -82,13 +76,8 @@ namespace AElf.Contracts.MultiToken
                     Numerator = 1
                 }
             };
-            var result = (await TokenContractStub.UpdateCoefficientFormSender.SendAsync(apiParam)).TransactionResult;
+            var result = (await TokenContractStub.UpdateCoefficientFromSender.SendAsync(apiParam)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var result2 = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
-            var changedState = result2.Coefficients.SingleOrDefault(x => x.PieceKey == apiParam.PieceKey);
-            changedState.ShouldNotBeNull();
-            changedState.CoefficientDic["denominator"].ShouldBe(4);
-            changedState.CoefficientDic["numerator"].ShouldBe(1);
             var param = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Cpu,
@@ -115,6 +104,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Ram_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
             var param = new CalculateFeeCoefficient
             {
@@ -142,6 +133,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Sto_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
             var param = new CalculateFeeCoefficient
             {
@@ -160,6 +153,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Net_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
             var param = new CalculateFeeCoefficient
             {

@@ -246,7 +246,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
             if (parameters == null)
             {
-                Logger.LogWarning("does not find parameter from contract, initialize default ");
+                Logger.LogWarning("does not find parameter from contract, initialize from default ");
                 _pieceWiseFuncCache = _defaultPieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 return _pieceWiseFuncCache;
             }

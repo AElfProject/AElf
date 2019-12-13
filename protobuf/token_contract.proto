@@ -10,6 +10,11 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
+    
+    
+    
+    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -70,9 +75,9 @@ service TokenContract {
     rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
     
-    rpc UpdateCoefficientFormContract (CoefficientFromContract) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
     }
-    rpc UpdateCoefficientFormSender (CoefficientFromSender) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
