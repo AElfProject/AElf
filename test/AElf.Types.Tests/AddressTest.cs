@@ -10,25 +10,6 @@ namespace AElf.Types.Tests
     public class AddressTest
     {
         [Fact]
-        public void Test()
-        {
-            List<SmartContractRegistrationCache> list = null;
-            var a = list?.ToList();
-            Console.WriteLine($"test{a?.Count}");
-            Console.WriteLine("test2"); 
-        }
-        class SmartContractRegistrationCache
-        {
-            public Address Address { get; set; }
-
-            public SmartContractRegistration SmartContractRegistration { get; set; }
-
-            public Hash BlockHash { get; set; }
-
-            public long BlockHeight { get; set; }
-        }
-
-        [Fact]
         public void Generate_Address()
         {
             //Generate default

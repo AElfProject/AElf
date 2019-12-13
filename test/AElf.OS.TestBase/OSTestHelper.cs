@@ -448,9 +448,9 @@ namespace AElf.OS
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
                 var transactionResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-                MockChainTokenAmount += transactionResult.TransactionFee.Value["ELF"] +
-                                        TransferInput.Parser.ParseFrom(transaction.Params).Amount;
-                
+                long fee = 0;
+                transactionResult.TransactionFee?.Value.TryGetValue("ELF", out fee);
+                MockChainTokenAmount += fee + TransferInput.Parser.ParseFrom(transaction.Params).Amount;
                 bestBranchBlockList.Add(block);
             }
 
