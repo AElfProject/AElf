@@ -533,27 +533,11 @@ namespace AElf.Contracts.MultiToken
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             if (theOne == null)
                 return new Empty();
-            bool isChanged;
-            if (coefficient.IsChangePieceKey)
+            if (!IsModifiedDbData(coeInput.Coefficient, theOne)) return new Empty();
+            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                isChanged = ChangeFeePieceKey(coefficient, theOne);
-            }
-            else if (coefficient.IsLiner)
-            {
-                isChanged = UpdateLinerAlgorithm(coefficient, theOne);
-            }
-            else
-            {
-                isChanged = UpdatePowerAlgorithm(coefficient, theOne);
-            }
-            if (isChanged)
-            {
-                var param = new NoticeUpdateCalculateFeeAlgorithm
-                {
-                    AllCoefficient = dataInDb
-                };
-                Context.Fire(param);
-            }
+                AllCoefficient = dataInDb
+            });
             return new Empty();
         }
 
@@ -574,6 +558,16 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
+            if (!IsModifiedDbData(coeInput, theOne)) return new Empty();
+            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
+            {
+                AllCoefficient = dataInDb
+            });
+            return new Empty();
+        }
+
+        private bool IsModifiedDbData(CoefficientFromSender coeInput, CalculateFeeCoefficient theOne)
+        {
             bool isChanged;
             if (coeInput.IsChangePieceKey)
             {
@@ -588,15 +582,7 @@ namespace AElf.Contracts.MultiToken
                 isChanged = UpdatePowerAlgorithm(coeInput, theOne);
             }
 
-            if (isChanged)
-            {
-                var param = new NoticeUpdateCalculateFeeAlgorithm
-                {
-                    AllCoefficient = dataInDb
-                };
-                Context.Fire(param);
-            }
-            return new Empty();
+            return isChanged;
         }
 
         private bool UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)

@@ -58,10 +58,10 @@ namespace AElf.Contracts.MultiToken
                 BlockHeight = blockIndex.BlockHeight
             };
             await HandleTestAsync(ps, blockIndex);
-            
+
             var updatedFee = await calculateTxCostStrategy.GetCostAsync(chainContext, size);
             updatedFee.ShouldBe(25_0000_0000);
-            
+
             var apiParam2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Tx,
@@ -103,7 +103,7 @@ namespace AElf.Contracts.MultiToken
             var size = 10;
             var updatedFee1 = await calculateCpuCostStrategy.GetCostAsync(chainContext, size);
             updatedFee1.ShouldBe(2_5000_0000);
-            
+
             var apiParam2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Cpu,
@@ -125,7 +125,7 @@ namespace AElf.Contracts.MultiToken
             await InitializeCoefficientAsync();
             var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
             var ps = await GetCoefficentByType(FeeTypeEnum.Ram);
-            
+
             var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Ram,
@@ -157,7 +157,7 @@ namespace AElf.Contracts.MultiToken
             theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 10);
             ps.Coefficients.Remove(theOne);
             ps.Coefficients.Add(apiParam2);
-            
+
             await HandleTestAsync(ps, blockIndex);
             var size2 = 50;
             var updatedFee2 = await calculateRamCostStrategy.GetCostAsync(null, size2);
@@ -169,9 +169,9 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
-            
+
             var ps = await GetCoefficentByType(FeeTypeEnum.Sto);
-            
+
             var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Sto,
@@ -192,7 +192,6 @@ namespace AElf.Contracts.MultiToken
             var size = 10000;
             var updatedFee = await calculateStoCostStrategy.GetCostAsync(chainContext, size);
             updatedFee.ShouldBe(25_0000_0000);
-
         }
 
         [Fact]
@@ -200,10 +199,10 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
-            
-            
+
+
             var ps = await GetCoefficentByType(FeeTypeEnum.Net);
-            
+
             var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Net,

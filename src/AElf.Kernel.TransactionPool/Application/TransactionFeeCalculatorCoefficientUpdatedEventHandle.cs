@@ -69,7 +69,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHeight = block.Height
             };
             var firstData = eventData.AllCoefficient.Coefficients.First();
-            
+
             var selectedStrategy = firstData.FeeType switch
             {
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
@@ -83,23 +83,21 @@ namespace AElf.Kernel.TransactionPool.Application
             foreach (var coefficient in eventData.AllCoefficient.Coefficients)
             {
                 var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                ICalculateWay calculateWay = null;
-                if (coefficient.FunctionType == CalculateFunctionTypeEnum.Liner)
+                var calculateWay = coefficient.FunctionType switch
                 {
-                    calculateWay = new LinerCalculateWay();
-                    
-                }
-                else if (coefficient.FunctionType == CalculateFunctionTypeEnum.Power)
-                {
-                    calculateWay = new PowerCalculateWay();
-                }
-                if(calculateWay == null)
+                    CalculateFunctionTypeEnum.Liner => (ICalculateWay) new LinerCalculateWay(),
+                    CalculateFunctionTypeEnum.Power => new PowerCalculateWay(),
+                    _ => null
+                };
+
+                if (calculateWay == null)
                     continue;
                 calculateWay.PieceKey = coefficient.PieceKey;
                 calculateWay.InitParameter(paramDic);
                 calculateWayList.Add(calculateWay);
             }
-            if(calculateWayList.Any())
+
+            if (calculateWayList.Any())
                 selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
         }
     }

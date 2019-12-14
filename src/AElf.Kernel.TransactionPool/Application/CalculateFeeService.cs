@@ -116,6 +116,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 _forkCache[blockIndex] = new Dictionary<int, ICalculateWay>();
             }
         }
+
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, int> parameters)
