@@ -18,6 +18,8 @@ service EventsContract {
     }
     rpc CancelOrder(aelf.Hash) returns (google.protobuf.Empty) {
     }
+    rpc InlineTransferFrom(InlineTransferFromInput) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -72,6 +74,14 @@ message DealtOrder {
 message DealOrderInput {
     aelf.Hash order_id = 1;
     sint64 amount = 2;
+}
+
+message InlineTransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
 }
 
 //Output

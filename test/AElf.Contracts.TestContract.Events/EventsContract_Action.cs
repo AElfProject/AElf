@@ -156,5 +156,19 @@ namespace AElf.Contracts.TestContract.Events
 
             return new Empty();
         }
+
+        public override Empty InlineTransferFrom(InlineTransferFromInput input)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                Amount = input.Amount,
+                From = input.From,
+                To = input.To,
+                Symbol = input.Symbol,
+                Memo = input.Memo
+            });
+            
+            return new Empty();
+        }
     }
 }
