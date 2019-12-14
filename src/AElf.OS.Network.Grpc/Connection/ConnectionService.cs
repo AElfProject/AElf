@@ -6,6 +6,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
+using AElf.OS.Network.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -55,7 +56,7 @@ namespace AElf.OS.Network.Grpc.Connection
             Logger.LogDebug($"Removed peer {peer}");
         }
 
-        public Task<bool> SchedulePeerReconnection(IPEndPoint endpoint)
+        public Task<bool> SchedulePeerReconnection(DnsEndPoint endpoint)
         {
             return Task.FromResult(_reconnectionService.SchedulePeerForReconnection(endpoint.ToString()));
         }
@@ -84,9 +85,9 @@ namespace AElf.OS.Network.Grpc.Connection
         /// </summary>
         /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
+        public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
-            Logger.LogTrace($"Attempting to reach {endpoint}.");
+            Logger.LogDebug($"Attempting to reach {endpoint}.");
 
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
@@ -94,7 +95,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 return false;
             }
 
-            if (_peerPool.IsPeerBlackListed(endpoint.Address))
+            if (_peerPool.IsPeerBlackListed(endpoint.Host))
             {
                 Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
                 return false;
@@ -173,7 +174,7 @@ namespace AElf.OS.Network.Grpc.Connection
             currentPeer.IsConnected = true;
             currentPeer.SyncState = SyncState.Syncing;
             
-            Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
+            Logger.LogInformation($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {currentPeer.LastKnownLibHeight}" +
                               $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");
@@ -192,7 +193,7 @@ namespace AElf.OS.Network.Grpc.Connection
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
 
-        public async Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake)
+        public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
         {
             // validate the handshake (signature, chain id...)
             var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
@@ -216,11 +217,11 @@ namespace AElf.OS.Network.Grpc.Connection
             try
             {
                 // mark the (IP; pubkey) pair as currently handshaking
-                if (!_peerPool.AddHandshakingPeer(endpoint.Address, pubkey))
+                if (!_peerPool.AddHandshakingPeer(endpoint.Host, pubkey))
                     return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
 
                 // create the connection to the peer
-                var peerEndpoint = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+                var peerEndpoint = new AElfPeerEndpoint(endpoint.Host, handshake.HandshakeData.ListeningPort);
                 var grpcPeer = await _peerDialer.DialBackPeerAsync(peerEndpoint, handshake);
 
                 // add the new peer to the pool
@@ -243,7 +244,7 @@ namespace AElf.OS.Network.Grpc.Connection
             finally
             {
                 // remove the handshaking mark (IP; pubkey)
-                _peerPool.RemoveHandshakingPeer(endpoint.Address, pubkey);
+                _peerPool.RemoveHandshakingPeer(endpoint.Host, pubkey);
             }
         }
 
@@ -260,6 +261,8 @@ namespace AElf.OS.Network.Grpc.Connection
                     handshakeError = HandshakeError.ProtocolMismatch;
                     break;
                 case HandshakeValidationResult.HandshakeTimeout:
+                    handshakeError = HandshakeError.SignatureTimeout;
+                    break;
                 case HandshakeValidationResult.InvalidSignature:
                     handshakeError = HandshakeError.WrongSignature;
                     break;

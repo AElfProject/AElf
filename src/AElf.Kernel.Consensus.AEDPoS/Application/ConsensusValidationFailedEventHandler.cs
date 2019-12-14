@@ -3,6 +3,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -22,6 +23,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _consensusService = consensusService;
             _blockchainService = blockchainService;
             _accountService = accountService;
+
+            Logger = NullLogger<ConsensusValidationFailedEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(ConsensusValidationFailedEventData eventData)
@@ -30,6 +33,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var allowReTriggerMessage = $"Time slot already passed before execution.{pubkey.ToHex()}";
             if (eventData.ValidationResultMessage == allowReTriggerMessage)
             {
+                Logger.LogTrace($"Re-trigger consensus because validation failed.");
                 var chain = await _blockchainService.GetChainAsync();
                 await _consensusService.TriggerConsensusAsync(new ChainContext
                 {

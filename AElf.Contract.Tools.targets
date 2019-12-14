@@ -72,7 +72,7 @@
     <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
         <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
               SourceFiles="$(TargetDir)$(TargetName).dll" 
-              DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
+              DestinationFolder="../../test/AElf.CSharp.CodeOps.Tests/contracts"
               SkipUnchangedFiles="true" />
     </Target>
 </Project>

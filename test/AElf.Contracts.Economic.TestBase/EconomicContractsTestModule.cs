@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
@@ -11,7 +10,6 @@ using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
@@ -22,7 +20,11 @@ namespace AElf.Contracts.Economic.TestBase
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
 
             context.Services.AddSingleton<ITransactionExecutor, EconomicTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
@@ -33,12 +35,11 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
             context.Services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
-
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services
-                .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
+
+            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
     }
 
@@ -60,35 +61,6 @@ namespace AElf.Contracts.Economic.TestBase
         public Hash GetLatestGeneratedBlockRandomHash()
         {
             return Hash.FromString("LatestGeneratedBlockRandomHash");
-        }
-    }
-
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider,
-        ITransientDependency
-    {
-        public List<string> GetSystemTransactionMethodNameList()
-        {
-            return new List<string>
-            {
-                "InitialAElfConsensusContract",
-                "FirstRound",
-                "NextRound",
-                "NextTerm",
-                "UpdateValue",
-                "UpdateTinyBlockInformation",
-                "ClaimTransactionFees",
-                "DonateResourceToken",
-                "RecordCrossChainData",
-
-                //acs5 check tx
-                "CheckThreshold",
-                //acs8 check tx
-                "CheckResourceToken",
-                "ChargeResourceToken",
-                //genesis deploy
-                "DeploySmartContract",
-                "DeploySystemSmartContract"
-            };
         }
     }
 }

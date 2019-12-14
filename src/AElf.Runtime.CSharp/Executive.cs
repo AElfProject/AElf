@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -15,13 +16,14 @@ using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
         private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -32,6 +34,8 @@ namespace AElf.Runtime.CSharp
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
+        
+        public Timestamp LastUsedTime { get; set; }
 
         private Type FindContractType(Assembly assembly)
         {
@@ -43,6 +47,11 @@ namespace AElf.Runtime.CSharp
         {
             var types = assembly.GetTypes();
             return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
+        }
+
+        private Type FindExecutionCounterType(Assembly assembly)
+        {
+            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
         }
 
         private Type FindContractContainer(Assembly assembly)
@@ -62,9 +71,8 @@ namespace AElf.Runtime.CSharp
         {
             _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
-            _contractType = FindContractType(assembly);
-            _contractInstance = Activator.CreateInstance(_contractType);
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
+            _contractInstance = Activator.CreateInstance(FindContractType(assembly));
+            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, FindExecutionCounterType(assembly));
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();
@@ -82,7 +90,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public async Task ApplyAsync(ITransactionContext transactionContext)
+        public Task ApplyAsync(ITransactionContext transactionContext)
         {
             try
             {
@@ -91,7 +99,7 @@ namespace AElf.Runtime.CSharp
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
                     CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 Execute();
@@ -108,6 +116,8 @@ namespace AElf.Runtime.CSharp
             {
                 _hostSmartContractBridgeContext.TransactionContext = null;
             }
+
+            return Task.CompletedTask;
         }
 
         public void Execute()
@@ -143,7 +153,6 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                // TODO: Not needed
                 Cleanup();
             }
 
@@ -212,14 +221,8 @@ namespace AElf.Runtime.CSharp
                 CurrentTransactionContext.Trace.Error += ex;
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
             }
-            catch (AssertionException ex)
-            {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                CurrentTransactionContext.Trace.Error += "\n" + ex;
-            }
             catch (Exception ex)
             {
-                // TODO: Simplify exception
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 CurrentTransactionContext.Trace.Error += "\n" + ex;
             }

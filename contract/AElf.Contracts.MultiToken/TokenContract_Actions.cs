@@ -92,6 +92,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
+            AssertValidMemo(input.Memo);
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
@@ -168,6 +169,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
             Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
@@ -311,7 +313,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
+            Assert(existingBalance >= input.Amount, $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);

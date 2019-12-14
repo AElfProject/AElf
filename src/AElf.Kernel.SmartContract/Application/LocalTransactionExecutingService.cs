@@ -21,6 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class LocalTransactionExecutingService : ILocalTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
@@ -32,11 +33,13 @@ namespace AElf.Kernel.SmartContract.Application
         public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
             IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot
+            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot,
+            IInlineTransactionValidationService inlineTransactionValidationService
         )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
+            _inlineTransactionValidationService = inlineTransactionValidationService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
             _contractOptions = contractOptionsSnapshot.Value;
@@ -145,16 +148,15 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception e)
             {
-                Logger.LogTrace("Failed while executing txs in block.", e);
+                Logger.LogError(e, "Failed while executing txs in block.");
                 throw;
             }
         }
 
         private static bool IsTransactionCanceled(TransactionTrace trace)
         {
-            return trace.ExecutionStatus == ExecutionStatus.Canceled ||
-                   trace.PreTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled) ||
-                   trace.PostTraces.Concat(trace.InlineTraces).Any(IsTransactionCanceled);
+            return trace.ExecutionStatus == ExecutionStatus.Canceled || trace.PreTraces.Any(IsTransactionCanceled) ||
+                   trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
@@ -221,7 +223,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Tx execution failed: {txContext}");
+                Logger.LogError(ex, "Transaction execution failed.");
                 txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txContext.Trace.Error += ex + "\n";
                 throw;
@@ -256,8 +258,13 @@ namespace AElf.Kernel.SmartContract.Application
                     CurrentBlockTime = currentBlockTime,
                     Origin = txContext.Origin
                 };
+
+                // Only system contract can send TransferFrom tx as inline tx.
+                if (!_inlineTransactionValidationService.Validate(inlineTx))
+                    break;
+
                 var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
-                
+
                 if (inlineTrace == null)
                     break;
                 trace.InlineTraces.Add(inlineTrace);
@@ -313,6 +320,11 @@ namespace AElf.Kernel.SmartContract.Application
                     internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
+
+                    if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
+
+                    preTrace.ExecutionStatus = ExecutionStatus.Executed;
+                    return false;
                 }
             }
 
@@ -377,16 +389,31 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
+                    BlockNumber = blockHeight,
                     Error = ExecutionStatus.Undefined.ToString()
                 };
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
+                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
+                {
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Failed,
+                        ReturnValue = trace.ReturnValue,
+                        ReadableReturnValue = trace.ReadableReturnValue,
+                        BlockNumber = blockHeight,
+                        Logs = {trace.FlattenedLogs},
+                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                    };
+                }
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
+                    BlockNumber = blockHeight,
                     Error = trace.Error
                 };
             }
@@ -413,6 +440,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
+                BlockNumber = blockHeight,
                 Error = trace.Error
             };
         }

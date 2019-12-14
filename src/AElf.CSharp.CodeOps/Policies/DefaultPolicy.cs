@@ -5,7 +5,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
 using Mono.Cecil;
@@ -28,6 +30,8 @@ namespace AElf.CSharp.CodeOps.Policies
             WhitelistOthers();
 
             UseMethodValidators();
+            UseModuleValidators();
+            UseAssemblyValidators();
         }
 
         private void WhitelistAssemblies()
@@ -67,6 +71,7 @@ namespace AElf.CSharp.CodeOps.Policies
                         Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(NotSupportedException), Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(ArgumentOutOfRangeException), Permission.Allowed) // From AEDPoS
+                    .Type(typeof(RuntimeBranchingThresholdExceededException), Permission.Allowed)
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
@@ -88,8 +93,7 @@ namespace AElf.CSharp.CodeOps.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied)
-                        .Member(nameof(string.Concat), Permission.Allowed))
+                        .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
@@ -140,6 +144,23 @@ namespace AElf.CSharp.CodeOps.Policies
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
+            });
+        }
+
+        private void UseModuleValidators()
+        {
+            ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
+            {
+                new ObserverProxyValidator(), 
+                //new RecursiveCallValidator(), 
+            });
+        }
+
+        private void UseAssemblyValidators()
+        {
+            AssemblyValidators.AddRange(new IValidator<Assembly>[]
+            {
+                new AcsValidator(),
             });
         }
     }

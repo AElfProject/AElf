@@ -1,30 +1,29 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.CSharp.CodeOps;
 using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
     public class CSharpSmartContractProxy
     {
-        private static MethodInfo GetMethedInfo(Type type, string name)
+        private static MethodInfo GetMethodInfo(Type type, string name)
         {
             return type.GetMethod(name,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
         }
 
         private object _instance;
+        private Type _counterType;
 
         private Dictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
 
-        public CSharpSmartContractProxy(object instance)
+        public CSharpSmartContractProxy(object instance, Type counterType)
         {
             _instance = instance;
+            _counterType = counterType;
             InitializeMethodInfos(_instance.GetType());
         }
 
@@ -33,13 +32,17 @@ namespace AElf.Runtime.CSharp
             _methodInfos = new[]
             {
                 nameof(GetChanges),nameof(Cleanup),nameof(InternalInitialize)
-            }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
+            }.ToDictionary(x => x, x => GetMethodInfo(instanceType, x));
         }
-
 
         public void InternalInitialize(ISmartContractBridgeContext context)
         {
             _methodInfos[nameof(InternalInitialize)].Invoke(_instance, new object[] {context});
+            
+            // Initialize the counter if injected
+            _counterType
+                ?.GetMethod(nameof(ExecutionObserverProxy.Initialize), new []{ typeof(IExecutionObserver) })
+                ?.Invoke(null, new object[] { context.ExecutionObserver });
         }
 
         public TransactionExecutingStateSet GetChanges()

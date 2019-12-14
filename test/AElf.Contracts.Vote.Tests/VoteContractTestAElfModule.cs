@@ -12,7 +12,11 @@ namespace AElf.Contracts.Vote
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
         }
     }
 }

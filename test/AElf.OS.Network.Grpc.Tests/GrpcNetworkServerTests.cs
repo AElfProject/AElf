@@ -84,7 +84,7 @@ namespace AElf.OS.Network
         [Fact] 
         public void DialPeerAsync_ShouldThrowException()
         {
-            IpEndPointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
@@ -93,7 +93,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
-            IpEndPointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
 
             // two different hosts with the same pubkey.
             var added = await _networkServer.ConnectAsync(endpoint);
@@ -113,7 +113,7 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            IpEndPointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeTrue();
@@ -125,7 +125,7 @@ namespace AElf.OS.Network
         [Fact] 
         public void DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
         {
-            IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
@@ -134,7 +134,7 @@ namespace AElf.OS.Network
         [Fact]
         public void DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
-            IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
@@ -143,7 +143,7 @@ namespace AElf.OS.Network
         [Fact] 
         public void DialPeerAsync_HandshakeError_ShouldThrowException()
         {
-            IpEndPointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<NetworkException>();
             
             _peerPool.PeerCount.ShouldBe(0);

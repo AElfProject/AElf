@@ -12,7 +12,11 @@ namespace AElf.Contracts.ParliamentAuth
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.TransactionExecutionCounterThreshold = -1;
+            });
             context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }

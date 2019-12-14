@@ -60,4 +60,26 @@ namespace AElf.Sdk.CSharp
         {
         }
     }
+    
+    [Serializable]
+    public class RuntimeBranchingThresholdExceededException : Exception
+    {
+        public RuntimeBranchingThresholdExceededException()
+        {
+        }
+
+        public RuntimeBranchingThresholdExceededException(string message) : base(message)
+        {
+        }
+
+        public RuntimeBranchingThresholdExceededException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected RuntimeBranchingThresholdExceededException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
+    }
 }

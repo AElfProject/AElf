@@ -20,9 +20,9 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerToBlacklist_ShouldTimeout()
         {
-            var ipAddress = IPAddress.Parse("127.0.0.1");
+            var ipAddress = "127.0.0.1";
 
-            _blackListProvider.AddIpToBlackList(ipAddress);
+            _blackListProvider.AddHostToBlackList(ipAddress);
             _blackListProvider.IsIpBlackListed(ipAddress).ShouldBeTrue();
             
             await Task.Delay(TimeSpan.FromSeconds(2));

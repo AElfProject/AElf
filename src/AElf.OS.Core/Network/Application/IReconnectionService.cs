@@ -13,6 +13,7 @@ namespace AElf.OS.Network.Application
         bool SchedulePeerForReconnection(string endpoint);
         bool CancelReconnection(string endpoint);
         List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime);
+        ReconnectingPeer GetReconnectingPeer(string endpoint);
     }
 
     public class ReconnectionService : IReconnectionService
@@ -34,6 +35,11 @@ namespace AElf.OS.Network.Application
             return _reconnectionStateProvider.GetPeersReadyForReconnection(maxTime);
         }
 
+        public ReconnectingPeer GetReconnectingPeer(string endpoint)
+        {
+            return _reconnectionStateProvider.GetReconnectingPeer(endpoint);
+        }
+
         public bool SchedulePeerForReconnection(string endpoint)
         {
             var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod + 1000);
@@ -44,7 +50,7 @@ namespace AElf.OS.Network.Application
 
             if (!_reconnectionStateProvider.AddReconnectingPeer(endpoint, reconnectingPeer))
             {
-                Logger.LogDebug($"Reconnection scheduling failed to {endpoint}.");
+                Logger.LogWarning($"Reconnection scheduling failed to {endpoint}.");
                 return false;
             }
 
@@ -55,7 +61,7 @@ namespace AElf.OS.Network.Application
         {
             if (!_reconnectionStateProvider.RemoveReconnectionPeer(endpoint))
             {
-                Logger.LogDebug($"Could not find reconnection {endpoint}");
+                Logger.LogWarning($"Could not find reconnection {endpoint}");
                 return false;
             }
             

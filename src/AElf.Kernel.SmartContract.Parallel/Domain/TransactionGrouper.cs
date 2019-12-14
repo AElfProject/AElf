@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,7 +14,9 @@ namespace AElf.Kernel.SmartContract.Parallel
     public class GrouperOptions
     {
         public int GroupingTimeOut { get; set; } = 500; // ms
-        public int MaxTransactions { get; set; } = int.MaxValue;   // Maximum transactions to group
+        public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
+        public int MinTransactionCountInGroup { get; set; } = 10;
+        public int MaxGroupCount { get; set; } = 10;
     }
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
@@ -30,7 +33,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext,List<Transaction> transactions)
+        public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext, List<Transaction> transactions)
         {
             Logger.LogTrace("Entered GroupAsync");
 
@@ -39,11 +42,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
                 var parallelizables = new List<TransactionWithResourceInfo>();
-                
+
                 Logger.LogTrace("Extracting resources for transactions.");
-                var txsWithResources = await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
+                var txsWithResources =
+                    await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
                 Logger.LogTrace("Completed resource extraction.");
-                
+
                 foreach (var twr in txsWithResources)
                 {
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.InvalidContractAddress)
@@ -58,36 +62,42 @@ namespace AElf.Kernel.SmartContract.Parallel
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                    
+
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.NonParallelizable)
                     {
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                    
+
                     if (twr.TransactionResourceInfo.Paths.Count == 0)
                     {
                         // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
                         continue;
                     }
-                
+
                     parallelizables.Add(twr);
                 }
 
-                groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
-                
+                var groupedParallelizables = GroupParallelizables(parallelizables);
+                if (groupedParallelizables.Count > 0)
+                {
+                    groupedTransactions.Parallelizables.AddRange(GroupParallelizables(groupedParallelizables));
+                    Logger.LogDebug(
+                        $"Group {groupedParallelizables.Count} groups into {groupedTransactions.Parallelizables.Count} groups");
+                }
                 Logger.LogTrace("Completed transaction grouping.");
             }
-            
-            Logger.LogTrace($"From {transactions.Count} transactions, grouped into " +
+
+            Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
             return groupedTransactions;
         }
 
-        private List<Transaction> GetTransactionsToBeGrouped(List<Transaction> transactions, out GroupedTransactions groupedTransactions)
+        private List<Transaction> GetTransactionsToBeGrouped(List<Transaction> transactions,
+            out GroupedTransactions groupedTransactions)
         {
             List<Transaction> toBeGrouped;
             groupedTransactions = new GroupedTransactions();
@@ -111,7 +121,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var transactionResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
-            
+
             foreach (var txWithResource in txsWithResources)
             {
                 UnionFindNode first = null;
@@ -163,6 +173,49 @@ namespace AElf.Kernel.SmartContract.Parallel
             groups.AddRange(grouped.Values);
 
             return groups;
+        }
+
+        /// <summary>
+        /// Transaction count in group should be greater than <see cref="GrouperOptions.MinTransactionCountInGroup"/>
+        /// Group count should be less than or equal to <see cref="GrouperOptions.MaxGroupCount"/>
+        /// </summary>
+        /// <param name="groupedParallelizables"></param>
+        /// <returns></returns>
+        private List<List<Transaction>> GroupParallelizables(List<List<Transaction>> groupedParallelizables)
+        {
+            if (groupedParallelizables.Count <= 1) return groupedParallelizables;
+            var total = groupedParallelizables.Sum(g => g.Count);
+            var minTransactionCount = _options.MinTransactionCountInGroup;
+            if (total <= minTransactionCount)
+            {
+                var transactions = groupedParallelizables.SelectMany(g=>g).ToList();
+                return new List<List<Transaction>> {transactions};
+            }
+            var groupCount = (int) Math.Round((decimal) total / minTransactionCount);
+            groupCount = groupCount > _options.MaxGroupCount ? _options.MaxGroupCount : groupCount;
+            var mean = total / groupCount + (total % groupCount > 0 ? 1 : 0);
+            groupedParallelizables = groupedParallelizables.OrderBy(g => g.Count).ToList();
+            var newGroupdParallelizables = new List<List<Transaction>>();
+            for (var i = 0; i < groupCount; i++)
+            {
+                var list = new List<Transaction>();
+                var tempList = groupedParallelizables.ToList();
+                foreach (var transactions in tempList)
+                {
+                    if (transactions.Count >= mean)
+                    {
+                        newGroupdParallelizables.Add(transactions);
+                        groupedParallelizables.Remove(transactions);
+                        continue;
+                    }
+                    list.AddRange(transactions);
+                    groupedParallelizables.Remove(transactions);
+                    if (list.Count >= mean) break;
+                }
+                if(list.Count == 0) continue;
+                newGroupdParallelizables.Add(list);
+            }
+            return newGroupdParallelizables;
         }
     }
 }

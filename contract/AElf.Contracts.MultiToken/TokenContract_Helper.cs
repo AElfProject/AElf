@@ -31,9 +31,15 @@ namespace AElf.Contracts.MultiToken
             Assert(amount > 0, "Invalid amount.");
         }
 
+        private void AssertValidMemo(string memo)
+        {
+            Assert(memo.Length <= 128, "memo's length is more than 128.");
+        }
+
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
         {
             Assert(from != to, "Can't do transfer to sender itself.");
+            AssertValidMemo(memo);
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];

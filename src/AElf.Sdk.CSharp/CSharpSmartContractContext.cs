@@ -31,6 +31,8 @@ namespace AElf.Sdk.CSharp
             _smartContractBridgeContextImplementation.FireLogEvent(logEvent);
         }
 
+        public IExecutionObserver ExecutionObserver => _smartContractBridgeContextImplementation.ExecutionObserver;
+
         public Hash TransactionId => _smartContractBridgeContextImplementation.TransactionId;
 
         public Address Sender => _smartContractBridgeContextImplementation.Sender;

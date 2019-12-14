@@ -43,6 +43,8 @@ namespace AElf.OS.Worker
 
         internal async Task DoReconnectionJobAsync()
         {
+            CheckNtpClockDrift();
+                
             await _networkService.SendHealthChecksAsync();
             
             var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
@@ -56,9 +58,16 @@ namespace AElf.OS.Worker
             foreach (var peerToConnect in peersToConnect)
             {
                 string peerEndpoint = peerToConnect.Endpoint;
-                
+                if (!AElfPeerEndpointHelper.TryParse(peerEndpoint, out var parsed))
+                {
+                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
+                        Logger.LogWarning($"Invalid {peerEndpoint}.");
+
+                    continue;
+                }
+
                 // check that we haven't already reconnected to this node
-                if (_peerPool.FindPeerByEndpoint(IpEndPointHelper.Parse(peerEndpoint)) != null)
+                if (_peerPool.FindPeerByEndpoint(parsed) != null)
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
@@ -78,7 +87,6 @@ namespace AElf.OS.Worker
                 }
                 catch (Exception ex)
                 {
-                    // todo consider different handling of the exception in dialer 
                     // down the stack the AddPeerAsync rethrows any exception,
                     // in order to continue this job, Exception has to be catched for now.
                     Logger.LogError(ex, $"Could not re-connect to {peerEndpoint}.");
@@ -97,6 +105,18 @@ namespace AElf.OS.Worker
                         TimestampHelper.GetUtcNow().AddMilliseconds(_networkOptions.PeerReconnectionPeriod);
                     
                     Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}.");
+                }
+            }
+
+            void CheckNtpClockDrift()
+            {
+                try
+                {
+                    _networkService.CheckNtpDrift();
+                }
+                catch (Exception)
+                {
+                    // swallow any exception, we are not interested in anything else than valid checks. 
                 }
             }
         }

@@ -15,5 +15,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
         Task<bool> CheckContractHash(IChainContext chainContext, Address address, Hash contractHash);
+
+        void CleanIdleExecutive();
     }
 }
