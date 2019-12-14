@@ -119,6 +119,9 @@ service TokenContract {
     rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
+    rpc GetTokenStateOnAddress (TokenSymbolWithAddress) returns (TokenStateInAddress) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -470,6 +473,14 @@ message NewPieceKeyCoefficient{
 message CoefficientFromContract {
     FeeTypeEnum fee_type = 1;
     CoefficientFromSender coefficient = 2;
+}
+message TokenSymbolWithAddress{
+    string token_symbol = 1;
+    aelf.Address from_address = 2;
+}
+
+message TokenStateInAddress{
+    bool value = 1;
 }
 
 enum FeeTypeEnum {

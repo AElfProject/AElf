@@ -28,6 +28,8 @@ service TokenConverterContract {
     }
     rpc AddPairConnectors(PairConnector) returns (google.protobuf.Empty){
     }
+    rpc BuildConnectors(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -45,6 +47,9 @@ service TokenConverterContract {
         option (aelf.is_view) = true;
     }
     rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNeededDeposit(ToBeConnectedTokenInfo) returns (DepositInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -119,9 +124,16 @@ message PairConnector {
     sint64 resource_virtual_balance = 2;
     string resource_weight = 3;
     bool is_resource_virtual_balance_enabled = 4;
-    string native_connector_symbol = 5;
-    sint64 native_virtual_balance = 6;
-    string native_weight = 7;
-    bool is_native_virtual_balance_enabled = 8;
-    bool is_purchase_enabled = 9;
+    sint64 native_virtual_balance = 5;
+    string native_weight = 6;
+    bool is_native_virtual_balance_enabled = 7;
+    bool is_purchase_enabled = 8;
+}
+
+message ToBeConnectedTokenInfo{
+    string token_symbol = 1;
+}
+message DepositInfo{
+    sint64 need_amount = 1;
+    sint64 amount_to_be_issued = 2;
 }

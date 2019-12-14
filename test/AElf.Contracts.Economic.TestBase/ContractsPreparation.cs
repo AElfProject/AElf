@@ -518,7 +518,6 @@ namespace AElf.Contracts.Economic.TestBase
                     IsPurchaseEnabled = true,
                     IsResourceVirtualBalanceEnabled = true,
                     ResourceWeight = "0.05",
-                    NativeConnectorSymbol = "NTTFCC",
                     NativeWeight = "0.05",
                     NativeVirtualBalance = 1_000_000_00000000,
                     IsNativeVirtualBalanceEnabled = true

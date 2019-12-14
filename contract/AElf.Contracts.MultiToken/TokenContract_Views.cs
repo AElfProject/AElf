@@ -113,6 +113,23 @@ namespace AElf.Contracts.MultiToken
         {
             return State.CalculateCoefficientOfSender.Value;
         }
+        public override TokenStateInAddress GetTokenStateOnAddress (TokenSymbolWithAddress symbolPair)
+        {
+            var ret = new TokenStateInAddress
+            {
+                Value = false
+            };
+            if (string.IsNullOrEmpty(symbolPair.TokenSymbol))
+                return ret;
+            if (symbolPair.FromAddress == null)
+                return ret;
+            if (State.TokenInfos[symbolPair.TokenSymbol].Symbol != symbolPair.TokenSymbol)
+                return ret;
+            if (State.Balances[symbolPair.FromAddress][symbolPair.TokenSymbol] > 0)
+                return ret;
+            ret.Value = true;
+            return ret;
+        }
         private CalculateFeeCoefficientsOfType GetCpuFeeInitialCoefficient()
         {
             var totalParameter = new CalculateFeeCoefficientsOfType();

@@ -42,7 +42,7 @@ namespace AElf.Contracts.TokenConverter
                     Decimals = 2,
                     IsBurnable = true,
                     TokenName = "elf token",
-                    TotalSupply = 1000_0000L,
+                    TotalSupply = 100_0000_0000L,
                     Issuer = DefaultSender
                 });
                 await TokenContractStub.Issue.SendAsync(new IssueInput()
@@ -52,6 +52,14 @@ namespace AElf.Contracts.TokenConverter
                     To = DefaultSender,
                     Memo = "Set for token converter."
                 });
+                await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = "ELF",
+                    Amount = 1_0000_0000L,
+                    To = ManagerAddress,
+                    Memo = "Set for token converter."
+                });
+                
             }
             {
                 // TokenConverterContract

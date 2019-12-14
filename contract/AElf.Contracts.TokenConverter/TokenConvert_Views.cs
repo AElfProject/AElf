@@ -1,0 +1,81 @@
+using AElf.Contracts.MultiToken;
+using AElf.Sdk.CSharp;
+using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
+
+namespace AElf.Contracts.TokenConverter
+{
+    public partial class TokenConverterContract
+    {
+        public override Address GetTokenContractAddress(Empty input)
+        {
+            return State.TokenContract.Value;
+        }
+
+        public override Address GetFeeReceiverAddress(Empty input)
+        {
+            return State.FeeReceiverAddress.Value;
+        }
+
+        public override StringValue GetFeeRate(Empty input)
+        {
+            return new StringValue()
+            {
+                Value = State.FeeRate.Value
+            };
+        }
+
+        public override Address GetManagerAddress(Empty input)
+        {
+            return State.ManagerAddress.Value;
+        }
+
+        public override TokenSymbol GetBaseTokenSymbol(Empty input)
+        {
+            return new TokenSymbol()
+            {
+                Symbol = State.BaseTokenSymbol.Value
+            };
+        }
+
+        /// <summary>
+        /// Query the connector details.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Connector GetConnector(TokenSymbol input)
+        {
+            return State.Connectors[input.Symbol];
+        }
+
+        public override DepositInfo GetNeededDeposit(ToBeConnectedTokenInfo input)
+        {
+            Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
+
+            var toConnector = State.Connectors[input.TokenSymbol];
+            Assert(toConnector != null, "Can't find to connector.");
+            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
+            var fromConnector = State.Connectors[toConnector.RelatedSymbol];
+            Assert(fromConnector != null, "Can't find from connector.");
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(
+                new GetTokenInfoInput
+                {
+                    Symbol = input.TokenSymbol,
+                });
+            var issued = tokenInfo.Supply;
+            var fb = fromConnector.VirtualBalance;
+            var tb = toConnector.IsVirtualBalanceEnabled
+                ? toConnector.VirtualBalance.Add(tokenInfo.TotalSupply)
+                : tokenInfo.TotalSupply;
+            var needDeposite =
+                BancorHelper.GetReturnFromPaid(fb, GetWeight(fromConnector), 
+                    tb, GetWeight(toConnector), issued);
+            return new DepositInfo
+            {
+                NeedAmount = needDeposite,
+                AmountToBeIssued = tokenInfo.TotalSupply - tokenInfo.Supply
+            };
+            
+        }
+    }
+}

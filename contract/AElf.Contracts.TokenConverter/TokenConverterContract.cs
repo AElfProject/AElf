@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -11,51 +10,7 @@ namespace AElf.Contracts.TokenConverter
 {
     public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
     {
-        #region Views
-
-        public override Address GetTokenContractAddress(Empty input)
-        {
-            return State.TokenContract.Value;
-        }
-
-        public override Address GetFeeReceiverAddress(Empty input)
-        {
-            return State.FeeReceiverAddress.Value;
-        }
-
-        public override StringValue GetFeeRate(Empty input)
-        {
-            return new StringValue()
-            {
-                Value = State.FeeRate.Value
-            };
-        }
-
-        public override Address GetManagerAddress(Empty input)
-        {
-            return State.ManagerAddress.Value;
-        }
-
-        public override TokenSymbol GetBaseTokenSymbol(Empty input)
-        {
-            return new TokenSymbol()
-            {
-                Symbol = State.BaseTokenSymbol.Value
-            };
-        }
-
-        /// <summary>
-        /// Query the connector details.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Connector GetConnector(TokenSymbol input)
-        {
-            return State.Connectors[input.Symbol];
-        }
-
-        #endregion Views
-
+        private const string NtTokenPrefix = "NT";
         #region Actions
 
         /// <summary>
@@ -119,35 +74,41 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+
         public override Empty AddPairConnectors(PairConnector pairConnector)
         {
             AssertPerformedByManager();
             Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
-            Assert(!string.IsNullOrEmpty(pairConnector.NativeConnectorSymbol),
-                "native token symbol symbol should not be empty");
+            var nativeConnectorSymbol = NtTokenPrefix + pairConnector.ResourceConnectorSymbol;
             Assert(State.Connectors[pairConnector.ResourceConnectorSymbol]==null,
                 "resource token symbol has been existed");
-            Assert(State.Connectors[pairConnector.NativeConnectorSymbol]==null,
-                "native token symbol has been existed");
+            var isTokenCanAdd = State.TokenContract.GetTokenStateOnAddress.Call(
+                new TokenSymbolWithAddress
+                {
+                    FromAddress = Context.Self,
+                    TokenSymbol = pairConnector.ResourceConnectorSymbol
+                }).Value;
+            Assert(isTokenCanAdd, "can not create connector");
             var resourceConnector = new Connector
             {
                 Symbol = pairConnector.ResourceConnectorSymbol,
                 VirtualBalance = pairConnector.ResourceVirtualBalance,
                 IsVirtualBalanceEnabled = pairConnector.IsResourceVirtualBalanceEnabled,
                 IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
-                RelatedSymbol = pairConnector.NativeConnectorSymbol,
+                RelatedSymbol = nativeConnectorSymbol,
                 Weight = pairConnector.ResourceWeight
             };
             AssertValidConnectorAndNormalizeWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
             {
-                Symbol = pairConnector.NativeConnectorSymbol,
+                Symbol = nativeConnectorSymbol,
                 VirtualBalance = pairConnector.NativeVirtualBalance,
                 IsVirtualBalanceEnabled = pairConnector.IsNativeVirtualBalanceEnabled,
                 IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
                 RelatedSymbol = pairConnector.ResourceConnectorSymbol,
-                Weight = pairConnector.NativeWeight
+                Weight = pairConnector.NativeWeight,
+                IsDepositAccount = true
             };
             AssertValidConnectorAndNormalizeWeight(nativeTokenToResourceConnector);
             int count = State.ConnectorCount.Value;
@@ -316,6 +277,27 @@ namespace AElf.Contracts.TokenConverter
             AssertPerformedByManager();
             Assert(input != null && input != new Address(), "Input is not a valid address.");
             State.ManagerAddress.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty BuildConnectors (ToBeConnectedTokenInfo input)
+        {
+            AssertPerformedByManager();
+            var needDeposit = GetNeededDeposit(input);
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput
+                {
+                    Symbol = State.BaseTokenSymbol.Value,
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Amount = needDeposit.NeedAmount,
+                });
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = input.TokenSymbol,
+                Amount = needDeposit.AmountToBeIssued,
+                To = Context.Self
+            });
             return new Empty();
         }
 
