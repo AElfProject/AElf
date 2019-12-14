@@ -30,12 +30,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (!_isEnabled)
                 return Task.FromResult(false);
 
-            Logger.LogTrace("Start code check.");
             
             try
             {
                 // Check contract code
+                Logger.LogTrace("Start code check.");
                 _contractAuditor.Audit(code, true);
+                Logger.LogTrace("Finish code check.");
                 return Task.FromResult(true);
             }
             catch (InvalidCodeException e)
@@ -44,7 +45,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Logger.LogWarning(e.Message);
             }
 
-            Logger.LogTrace("Finish code check.");
 
             return Task.FromResult(false);
         }
