@@ -75,7 +75,7 @@ namespace AElf.CrossChain
                 });
         }
 
-        public async Task UpdateWithLib(Hash blockHash, long blockHeight)
+        public async Task UpdateWithLibAsync(Hash blockHash, long blockHeight)
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored
                 || blockHeight <= Constants.GenesisBlockHeight)

@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ProposalApprovalTransactionGenerator>();
             context.Services.AddSingleton<IChargeFeeStrategy, ParliamentContractChargeFeeStrategy>();
-            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryBannedValidationProvider>();
+            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
         }
     }
 }

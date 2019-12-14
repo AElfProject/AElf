@@ -1,4 +1,3 @@
-
 using Acs7;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -16,7 +15,8 @@ namespace AElf.Contracts.CrossChain
             var crossChainBlockData = new CrossChainBlockData();
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
             if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockDataList.AddRange(indexedParentChainBlockData.ParentChainBlockDataList);
+                crossChainBlockData.ParentChainBlockDataList.AddRange(indexedParentChainBlockData
+                    .ParentChainBlockDataList);
 
             var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
             crossChainBlockData.SideChainBlockDataList.AddRange(indexedSideChainBlockData.SideChainBlockDataList);
@@ -178,8 +178,9 @@ namespace AElf.Contracts.CrossChain
             ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
             res.ExtraInformation.Add(resourceTokenInformation);
 
-            ByteString sideChainTokenInformation = GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenSymbol)
-                .ToByteString();
+            ByteString sideChainTokenInformation =
+                GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenSymbol)
+                    .ToByteString();
             res.ExtraInformation.Add(sideChainTokenInformation);
             return res;
         }

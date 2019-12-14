@@ -43,20 +43,23 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _proposalService = proposalService;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new CodeCheckRequired();
-            eventData.MergeFrom(logEvent);
-            var codeCheckResult =
-                await Task.Run(() => _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray()));
-            if (!codeCheckResult)
-                return;
-            
-            var proposalId = ProposalCreated.Parser
-                .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                .ProposalId;
-            // Cache proposal id to generate system approval transaction later
-            _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
+            // a new task for time-consuming code check job 
+            return Task.Run(async () =>
+            {
+                var eventData = new CodeCheckRequired();
+                eventData.MergeFrom(logEvent);
+                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray());
+                if (!codeCheckResult)
+                    return;
+
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                    .ProposalId;
+                // Cache proposal id to generate system approval transaction later
+                _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
+            });
         }
     }
 }

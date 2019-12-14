@@ -6,13 +6,13 @@ using AElf.Types;
 
 namespace AElf.CrossChain
 {
-    public class TxHubEntryBannedValidationProvider : ITransactionValidationProvider
+    public class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public TxHubEntryBannedValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }

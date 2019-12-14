@@ -15,6 +15,6 @@ namespace AElf.CrossChain
         Task<Block> GetNonIndexedBlockAsync(long height);
         
         Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
-        Task UpdateWithLib(Hash blockHash, long blockHeight);
+        Task UpdateWithLibAsync(Hash blockHash, long blockHeight);
     }
 }

@@ -21,7 +21,7 @@ namespace AElf.CrossChain
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedCrossChainTransactionValidationProvider>();
-            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryBannedValidationProvider>();
+            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             var crossChainConfiguration = context.Services.GetConfiguration()
                 .GetSection(CrossChainConstants.CrossChainExtraDataNamePrefix);
             Configure<CrossChainConfigOptions>(crossChainConfiguration);

@@ -48,7 +48,7 @@ namespace AElf.CrossChain
 
             try
             {
-                var isSideChainBlockDataIndexed = TryDiscoverIndexedSideChainBlockDataAsync(block);
+                var isSideChainBlockDataIndexed = TryDiscoverIndexedSideChainBlockData(block);
                 Logger.LogDebug($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
                 var extraData = ExtractCrossChainExtraData(block.Header);
                 var validationResult = true;
@@ -91,7 +91,7 @@ namespace AElf.CrossChain
             return bytes;
         }
         
-        private bool TryDiscoverIndexedSideChainBlockDataAsync(IBlock block)
+        private bool TryDiscoverIndexedSideChainBlockData(IBlock block)
         {
             var crossChainContractAddress =
                 _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
