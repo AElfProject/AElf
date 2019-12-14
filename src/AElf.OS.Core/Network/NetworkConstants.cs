@@ -4,6 +4,7 @@ namespace AElf.OS.Network
 {
     public static class NetworkConstants
     {
+        public const int DefaultSslCertifFetchTimeout = 3000;
         public const int DefaultPeerDialTimeout = 3000;
         public const int DefaultPeerRecoveryTimeout = 3000;
         public const bool DefaultCompressBlocks = true;

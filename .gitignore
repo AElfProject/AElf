@@ -297,7 +297,6 @@ coverage*.xml
 # zip package
 *.gz
 *.zip
-*.zlo
 
 # Contract patcher dlls
 scripts/patcher/*
