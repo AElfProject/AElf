@@ -61,7 +61,7 @@ namespace AElf.CrossChain.Indexing.Application
                 if (sideChainHeightInLib > 0)
                 {
                     targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
-                    toBeIndexedCount = Math.Min(CrossChainOptions.Value.MaximalCountForIndexingSideChainBlock,
+                    toBeIndexedCount = Math.Min(CrossChainConstants.DefaultBlockCacheEntityCount,
                         sideChainIndexingInformation.ToBeIndexedCount);
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
@@ -130,7 +130,7 @@ namespace AElf.CrossChain.Indexing.Application
                 return parentChainBlockDataList;
             }
 
-            int length = CrossChainOptions.Value.MaximalCountForIndexingParentChainBlock;
+            int length = CrossChainConstants.DefaultBlockCacheEntityCount;
             var heightInState = (await _readerFactory.Create(blockHash, blockHeight).GetParentChainHeight
                 .CallAsync(new Empty())).Value;
 
