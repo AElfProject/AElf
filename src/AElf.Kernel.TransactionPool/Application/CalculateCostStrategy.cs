@@ -167,7 +167,7 @@ namespace AElf.Kernel.TransactionPool.Application
                     .AddDefaultAlgorithm(1000000, new LinerCalculateWay
                     {
                         Numerator = 1,
-                        Denominator = 16 * 50,
+                        Denominator = 800,
                         ConstantValue = 10000
                     }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
                     {
@@ -176,7 +176,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Weight = 1,
                         WeightBase = 1,
                         Numerator = 1,
-                        Denominator = 16 * 50,
+                        Denominator = 800,
                         Precision = 100000000L
                     });
             CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Tx;

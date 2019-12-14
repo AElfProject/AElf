@@ -104,51 +104,11 @@ namespace AElf.Kernel.TransactionPool.Application
 
             _forkCache[blockIndex] = funcDic;
         }
-
-        public void ClearAlgorithmByBlock(BlockIndex blockIndex)
-        {
-            if (_forkCache.TryGetValue(blockIndex, out var value))
-            {
-                value.Clear();
-            }
-            else
-            {
-                _forkCache[blockIndex] = new Dictionary<int, ICalculateWay>();
-            }
-        }
-
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, int> parameters)
         {
-            ICalculateWay newCalculateWay = null;
-            switch (funcTypeEnum)
-            {
-                case CalculateFunctionTypeEnum.Liner:
-                    newCalculateWay = new LinerCalculateWay();
-                    break;
-                case CalculateFunctionTypeEnum.Power:
-                    newCalculateWay = new PowerCalculateWay();
-                    break;
-            }
-
-            if (newCalculateWay == null)
-            {
-                Logger.LogWarning($"could not find mapped function type {funcTypeEnum}");
-                return;
-            }
-
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey] = newCalculateWay;
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].InitParameter(parameters);
-            }
-            else
-            {
-                _pieceWiseFuncCache[pieceKey] = newCalculateWay;
-                _pieceWiseFuncCache[pieceKey].InitParameter(parameters);
-            }
+            
         }
 
         private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContextAsync()
@@ -214,12 +174,32 @@ namespace AElf.Kernel.TransactionPool.Application
             if (_pieceWiseFuncCache == null)
                 _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
             _pieceWiseFuncCache.Clear();
+            var calWayDic = new Dictionary<int, ICalculateWay>();
             foreach (var func in parameters.Coefficients)
             {
-                AddPieceFunction(func.PieceKey, _pieceWiseFuncCache, func.FunctionType,
-                    func.CoefficientDic);
+                ICalculateWay newCalculateWay = null;
+                switch (func.FunctionType)
+                {
+                    case CalculateFunctionTypeEnum.Liner:
+                        newCalculateWay = new LinerCalculateWay();
+                        break;
+                    case CalculateFunctionTypeEnum.Power:
+                        newCalculateWay = new PowerCalculateWay();
+                        break;
+                }
+
+                if (newCalculateWay == null)
+                {
+                    Logger.LogWarning($"could not find mapped function type {func.FunctionType}");
+                    continue;
+                }
+
+                calWayDic[func.PieceKey] = newCalculateWay;
+                calWayDic[func.PieceKey].InitParameter(func.CoefficientDic);
             }
 
+            _forkCache[CalculateAlgorithmContext.BlockIndex] = calWayDic;
+            _pieceWiseFuncCache = calWayDic;
             return _pieceWiseFuncCache;
         }
     }
