@@ -18,7 +18,6 @@ namespace AElf.Kernel.TransactionPool.Application
     class CalculateAlgorithmContext : ICalculateAlgorithmContext
     {
         public int CalculateFeeTypeEnum { get; set; }
-        public IChainContext ChainContext { get; set; }
         public BlockIndex BlockIndex { get; set; }
     }
 
@@ -95,119 +94,40 @@ namespace AElf.Kernel.TransactionPool.Application
             return totalCost;
         }
 
-        public async Task UpdateAsync(int pieceKey, IDictionary<string, int> parameters)
+        public void AddAlgorithmByBlock(BlockIndex blockIndex, IList<ICalculateWay> allFunc)
         {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
-            if (pieceWiseFunc == null)
+            var funcDic = new Dictionary<int, ICalculateWay>();
+            foreach (var func in allFunc)
             {
-                Logger.LogWarning("does not find piecewise function in update");
-                return;
+                funcDic[func.PieceKey] = func;
             }
 
-            if (!pieceWiseFunc.ContainsKey(pieceKey))
-            {
-                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
-                return;
-            }
-            
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
-            }
-            else
-            {
-                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
-            }
+            _forkCache[blockIndex] = funcDic;
         }
-
-        public async Task ChangePieceKeyAsync(int oldPieceKey, int newPieceKey)
-        {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
-            if (pieceWiseFunc == null)
-            {
-                Logger.LogWarning("does not find piecewise function in update");
-                return;
-            }
-
-            if (!pieceWiseFunc.ContainsKey(oldPieceKey))
-            {
-                Logger.LogWarning($"does not find piece key: {oldPieceKey} in piecewise function");
-                return;
-            }
-
-            if (pieceWiseFunc.ContainsKey(newPieceKey))
-            {
-                Logger.LogWarning($"piece key {newPieceKey}  has been defined");
-                return;
-            }
-
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                var temp = _forkCache[CalculateAlgorithmContext.BlockIndex][oldPieceKey];
-                _forkCache[CalculateAlgorithmContext.BlockIndex].Remove(oldPieceKey);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][newPieceKey] = temp;
-            }
-            else
-            {
-                var temp = _pieceWiseFuncCache[oldPieceKey];
-                _pieceWiseFuncCache.Remove(oldPieceKey);
-                _pieceWiseFuncCache[newPieceKey] = temp;
-            }
-        }
-
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, int> parameters)
         {
-            ICalculateWay newCalculateWay = null;
-            switch (funcTypeEnum)
-            {
-                case CalculateFunctionTypeEnum.Liner:
-                    newCalculateWay = new LinerCalculateWay();
-                    break;
-                case CalculateFunctionTypeEnum.Power:
-                    newCalculateWay = new PowerCalculateWay();
-                    break;
-            }
-
-            if (newCalculateWay == null)
-            {
-                Logger.LogWarning($"could not find mapped function type {funcTypeEnum}");
-                return;
-            }
-
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey] = newCalculateWay;
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
-            }
-            else
-            {
-                _pieceWiseFuncCache[pieceKey] = newCalculateWay;
-                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
-            }
+            
         }
 
         private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContextAsync()
         {
-            var chainContext = CalculateAlgorithmContext.ChainContext;
             var keys = _forkCache.Keys.ToArray();
             if (keys.Length == 0) return await GetDefaultPieceWiseFunctionAsync();
             var minHeight = keys.Select(k => k.BlockHeight).Min();
             Dictionary<int, ICalculateWay> algorithm = null;
             var blockIndex = new BlockIndex
             {
-                BlockHash = chainContext.BlockHash,
-                BlockHeight = chainContext.BlockHeight
+                BlockHash = CalculateAlgorithmContext.BlockIndex.BlockHash,
+                BlockHeight = CalculateAlgorithmContext.BlockIndex.BlockHeight
             };
             do
             {
                 if (_forkCache.TryGetValue(blockIndex, out var value))
                 {
                     algorithm = value;
+                    break;
                 }
 
                 var link = _chainBlockLinkService.GetCachedChainBlockLink(blockIndex.BlockHash);
@@ -254,12 +174,32 @@ namespace AElf.Kernel.TransactionPool.Application
             if (_pieceWiseFuncCache == null)
                 _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
             _pieceWiseFuncCache.Clear();
+            var calWayDic = new Dictionary<int, ICalculateWay>();
             foreach (var func in parameters.Coefficients)
             {
-                AddPieceFunction(func.PieceKey, _pieceWiseFuncCache, func.FunctionType,
-                    func.CoefficientDic);
+                ICalculateWay newCalculateWay = null;
+                switch (func.FunctionType)
+                {
+                    case CalculateFunctionTypeEnum.Liner:
+                        newCalculateWay = new LinerCalculateWay();
+                        break;
+                    case CalculateFunctionTypeEnum.Power:
+                        newCalculateWay = new PowerCalculateWay();
+                        break;
+                }
+
+                if (newCalculateWay == null)
+                {
+                    Logger.LogWarning($"could not find mapped function type {func.FunctionType}");
+                    continue;
+                }
+
+                calWayDic[func.PieceKey] = newCalculateWay;
+                calWayDic[func.PieceKey].InitParameter(func.CoefficientDic);
             }
 
+            _forkCache[CalculateAlgorithmContext.BlockIndex] = calWayDic;
+            _pieceWiseFuncCache = calWayDic;
             return _pieceWiseFuncCache;
         }
     }

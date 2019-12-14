@@ -222,6 +222,13 @@ namespace AElf.Parallel.Tests
             await _parallelTestHelper.BroadcastTransactions(transactionList);
             var block = await _parallelTestHelper.MinedOneBlock();
             
+            var codeRemark =
+                await _contractRemarksService.GetCodeRemarkAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To,
+                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            codeRemark.NonParallelizable.ShouldBeFalse();
+            
             transactionList.Clear();
             transferTransaction = _parallelTestHelper.GenerateTransferTransaction(keyPair, accountAddress, symbol, 10);
             transactionList.Add(transferTransaction);
@@ -236,14 +243,14 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(),block.Header);
             transactionResults.Count.ShouldBe(2);
-            transactionResults.Count(t => t.Status == TransactionResultStatus.Conflict).ShouldBe(1);
-
-            var codeRemark =
+            transactionResults.Count(t => t.Status == TransactionResultStatus.Mined).ShouldBe(2);
+            
+            codeRemark =
                 await _contractRemarksService.GetCodeRemarkAsync(
                     new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To,
                     Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
             codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.NonParallelizable.ShouldBeTrue();
+            codeRemark.NonParallelizable.ShouldBeFalse();
         }
 
         [Fact]
@@ -268,9 +275,15 @@ namespace AElf.Parallel.Tests
             
             var transactions =
                 _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(groupUsers, _transactionCount);
+            var transferTransaction = await _parallelTestHelper.GenerateTransferTransaction(Address.FromPublicKey(groupUsers[1].PublicKey)
+                , "ELF", 10);
+            transactions.Add(transferTransaction);
             await _parallelTestHelper.BroadcastTransactions(transactions);
             
             var otherTransactions =  _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(groupUsers, _transactionCount);
+            var otherTransferTransaction = await _parallelTestHelper.GenerateTransferTransaction(Address.FromPublicKey(groupUsers[2].PublicKey)
+                , "ELF", 10);
+            otherTransactions.Add(otherTransferTransaction);
             await _parallelTestHelper.BroadcastTransactions(otherTransactions);
             
             var transferTransactions =  await _parallelTestHelper.GenerateTransferTransactions(16);
@@ -282,7 +295,7 @@ namespace AElf.Parallel.Tests
             var groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
                 transactions);
-            groupedTransactions.Parallelizables.Count.ShouldBe(_transactionCount);
+            groupedTransactions.Parallelizables.Count.ShouldBe(_transactionCount + 1);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
             for (var i = 0; i < transactions.Count; i++)
             {
@@ -292,7 +305,7 @@ namespace AElf.Parallel.Tests
             var otherGroupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
                 otherTransactions);
-            otherGroupedTransactions.Parallelizables.Count.ShouldBe(_transactionCount);
+            otherGroupedTransactions.Parallelizables.Count.ShouldBe(_transactionCount + 1);
             otherGroupedTransactions.NonParallelizables.Count.ShouldBe(0);
             
             var groupedTransferTransactions = await _grouper.GroupAsync(
@@ -304,17 +317,30 @@ namespace AElf.Parallel.Tests
 
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
-            block.TransactionIds.Count().ShouldBe(_transactionCount);
+            block.TransactionIds.Count().ShouldBe(_transactionCount + 1);
+            
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
             transactionResults.Count(t=>t.Status == TransactionResultStatus.Mined).ShouldBe(_groupCount);
-            transactionResults.Count(t => t.Status == TransactionResultStatus.Conflict).ShouldBe(_groupCount);
+            transactionResults.Count(t => t.Status == TransactionResultStatus.Conflict).ShouldBe(_groupCount + 1);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
-            
             var accountAddress = await _accountService.GetAccountAsync();
+            
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var codeRemark =
+                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, tokenContractAddress,
+                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            codeRemark.NonParallelizable.ShouldBeFalse();
             
             foreach (var transaction in transactions)
             {
+                if(transaction.To == tokenContractAddress) continue;
                 var param = IncreaseWinMoneyInput.Parser.ParseFrom(transaction.Params);
                 var input = new QueryTwoUserWinMoneyInput
                 {
@@ -338,7 +364,7 @@ namespace AElf.Parallel.Tests
                 }
             }
 
-            var codeRemark =
+            codeRemark =
                 await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
                     {
                         BlockHash = block.GetHash(),
@@ -352,13 +378,15 @@ namespace AElf.Parallel.Tests
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                 transactions);
 
-            groupedTransactions.Parallelizables.Count.ShouldBe(0);
+            groupedTransactions.Parallelizables.Count.ShouldBe(1);
+            groupedTransactions.Parallelizables[0][0].To.ShouldBe(tokenContractAddress);
             groupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
 
             otherGroupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                 otherTransactions);
-            otherGroupedTransactions.Parallelizables.Count.ShouldBe(0);
+            otherGroupedTransactions.Parallelizables.Count.ShouldBe(1);
+            otherGroupedTransactions.Parallelizables[0][0].To.ShouldBe(tokenContractAddress);
             otherGroupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
             
             groupedTransferTransactions = await _grouper.GroupAsync(

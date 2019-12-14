@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -85,7 +86,8 @@ namespace AElf.CrossChain.Cache
             return new SideChainBlockData
             {
                 ChainId = chainId,
-                Height = height
+                Height = height,
+                TransactionStatusMerkleTreeRoot = Hash.FromString(height.ToString())
             };
         }
     }

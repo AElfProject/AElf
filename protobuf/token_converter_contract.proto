@@ -127,7 +127,6 @@ message PairConnector {
     sint64 native_virtual_balance = 5;
     string native_weight = 6;
     bool is_native_virtual_balance_enabled = 7;
-    bool is_purchase_enabled = 8;
 }
 
 message ToBeConnectedTokenInfo{

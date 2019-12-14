@@ -515,7 +515,6 @@ namespace AElf.Contracts.Economic.TestBase
                 {
                     ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
                     ResourceVirtualBalance = 100,
-                    IsPurchaseEnabled = true,
                     IsResourceVirtualBalanceEnabled = true,
                     ResourceWeight = "0.05",
                     NativeWeight = "0.05",

@@ -171,7 +171,6 @@ namespace AElf.Contracts.TokenConverter
                 {
                     ResourceConnectorSymbol = "NET",
                     ResourceVirtualBalance = 100,
-                    IsPurchaseEnabled = false,
                     IsResourceVirtualBalanceEnabled = true,
                     ResourceWeight = "0.05",
                     NativeWeight = "0.05",
@@ -202,7 +201,6 @@ namespace AElf.Contracts.TokenConverter
                 {
                     ResourceConnectorSymbol = "CPU",
                     ResourceVirtualBalance = 100,
-                    IsPurchaseEnabled = false,
                     IsResourceVirtualBalanceEnabled = true,
                     ResourceWeight = "0.05",
                     NativeWeight = "0.05",
@@ -250,7 +248,7 @@ namespace AElf.Contracts.TokenConverter
             balanceOfElfToken.ShouldBe(amountToPay);
 
             var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
+            balanceOfFeeReceiver.ShouldBe(10000000000 + fee.Div(2));
 
             var balanceOfRamToken = await GetBalanceAsync(RamSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
@@ -530,52 +528,70 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Add_Pair_Connector_Success_Test()
         {
+            string token = "NETT";
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
-            var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
+            var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = "NETT",
+                Symbol = token,
                 TokenName = "NETT name",
                 TotalSupply = 100_0000_0000,
-                Issuer = DefaultSender,
-                IsBurnable = true
+                Issuer = ManagerAddress,
+                IsBurnable = true,
+                LockWhiteList = { TokenConverterContractAddress}
             })).TransactionResult;
             createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var pairConnector = new PairConnector
             {
-                ResourceConnectorSymbol = "NETT",
+                ResourceConnectorSymbol = token,
                 ResourceWeight = "0.02",
-                ResourceVirtualBalance = 100,
+                ResourceVirtualBalance = 10000,
                 IsResourceVirtualBalanceEnabled = true,
                 NativeWeight = "0.05",
-                NativeVirtualBalance = 1100,
+                NativeVirtualBalance = 100,
                 IsNativeVirtualBalanceEnabled = true,
-                IsPurchaseEnabled = true,
             };
             var ret = (await AuthorizedStub.AddPairConnectors.SendAsync(pairConnector)).TransactionResult;
             ret.Status.ShouldBe(TransactionResultStatus.Mined);
-            var resourceConnector = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NETT"});
+            var resourceConnector = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
             var nativeToResourceConnector =
-                await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NTNETT"});
+                await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
             resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(false);
             nativeToResourceConnector.ShouldNotBeNull();
-            var sendRet = (await TokenContractStub.Issue.SendAsync(new IssueInput
+            nativeToResourceConnector.IsPurchaseEnabled.ShouldBe(false);
+            var sendRet = (await AuthorizedTokenContractStub.Issue.SendAsync(new IssueInput
             {
                 To = ManagerAddress,
                 Amount = 100,
-                Symbol = "NETT"
+                Symbol = token
             })).TransactionResult;
             sendRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var deposit = await AuthorizedStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
             {
-                TokenSymbol = "NETT"
+                TokenSymbol = token
             });
             deposit.AmountToBeIssued.ShouldBe(100_0000_0000 - 100);
+            var issueRet = (await AuthorizedTokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = token,
+                Amount = deposit.AmountToBeIssued,
+                To = TokenConverterContractAddress
+            })).TransactionResult; 
+            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var buildRet = (await AuthorizedStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
             {
-                TokenSymbol = "NETT"
+                TokenSymbol = token
             })).TransactionResult;
             buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            resourceConnector = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            nativeToResourceConnector =
+                await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(true);
+            nativeToResourceConnector.ShouldNotBeNull();
+            nativeToResourceConnector.IsPurchaseEnabled.ShouldBe(true);
         }
         #endregion
 

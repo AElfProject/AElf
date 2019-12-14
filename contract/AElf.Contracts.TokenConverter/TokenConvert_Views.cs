@@ -62,7 +62,13 @@ namespace AElf.Contracts.TokenConverter
                 {
                     Symbol = input.TokenSymbol,
                 });
-            var issued = tokenInfo.Supply;
+            var balance = State.TokenContract.GetBalance.Call(
+                new GetBalanceInput
+                {
+                    Owner = Context.Self,
+                    Symbol = input.TokenSymbol
+                }).Balance;
+            var issued = tokenInfo.Supply - balance;
             var fb = fromConnector.VirtualBalance;
             var tb = toConnector.IsVirtualBalanceEnabled
                 ? toConnector.VirtualBalance.Add(tokenInfo.TotalSupply)

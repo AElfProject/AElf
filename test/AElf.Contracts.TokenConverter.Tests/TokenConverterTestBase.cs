@@ -16,6 +16,7 @@ namespace AElf.Contracts.TokenConverter
         protected Address TokenConverterContractAddress;
 
         internal TokenContractContainer.TokenContractStub TokenContractStub;
+        internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub;
         
         internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
         internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedStub;
@@ -32,45 +33,46 @@ namespace AElf.Contracts.TokenConverter
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
-                TokenContractAddress = await DeployContractAsync(category, code, TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                TokenContractAddress = await DeploySystemSmartContract(category, code, TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
-
-                await TokenContractStub.Create.SendAsync(new CreateInput()
-                {
-                    Symbol = "ELF",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = 100_0000_0000L,
-                    Issuer = DefaultSender
-                });
-                await TokenContractStub.Issue.SendAsync(new IssueInput()
-                {
-                    Symbol = "ELF",
-                    Amount = 1000_000L,
-                    To = DefaultSender,
-                    Memo = "Set for token converter."
-                });
-                await TokenContractStub.Issue.SendAsync(new IssueInput()
-                {
-                    Symbol = "ELF",
-                    Amount = 1_0000_0000L,
-                    To = ManagerAddress,
-                    Memo = "Set for token converter."
-                });
-                
+                AuthorizedTokenContractStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
             }
             {
                 // TokenConverterContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
-                TokenConverterContractAddress = await DeployContractAsync(category, code, TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                TokenConverterContractAddress = await DeploySystemSmartContract(category, code, TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
                 AuthorizedStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, ManagerKeyPair);
             }
+            
+            await TokenContractStub.Create.SendAsync(new CreateInput()
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = 1000_0000_0000L,
+                Issuer = DefaultSender,
+                LockWhiteList = { TokenConverterContractAddress} 
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput()
+            {
+                Symbol = "ELF",
+                Amount = 1000_000L,
+                To = DefaultSender,
+                Memo = "Set for token converter."
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput()
+            {
+                Symbol = "ELF",
+                Amount = 100_0000_0000L,
+                To = ManagerAddress,
+                Memo = "Set for token converter."
+            });
         }
 
         protected async Task<long> GetBalanceAsync(string symbol, Address owner)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
@@ -67,12 +68,9 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var chainContext = new ChainContext
-            {
-                BlockHash = eventData.PreBlockHash,
-                BlockHeight = eventData.BlockHeight
-            };
-            var selectedStrategy = eventData.Coefficient.FeeType switch
+            var firstData = eventData.AllCoefficient.Coefficients.First();
+
+            var selectedStrategy = firstData.FeeType switch
             {
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
                 FeeTypeEnum.Cpu => _cpuCostStrategy,
@@ -81,16 +79,26 @@ namespace AElf.Kernel.TransactionPool.Application
                 FeeTypeEnum.Net => _netCostStrategy,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            if (eventData.NewPieceKey > 0)
-                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chainContext, blockIndex,
-                    eventData.Coefficient.PieceKey, eventData.NewPieceKey);
-            else
+            var calculateWayList = new List<ICalculateWay>();
+            foreach (var coefficient in eventData.AllCoefficient.Coefficients)
             {
-                var param = eventData.Coefficient;
-                var pieceKey = param.PieceKey;
-                var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                await selectedStrategy.ModifyAlgorithmAsync(chainContext, blockIndex, pieceKey, paramDic);
+                var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+                var calculateWay = coefficient.FunctionType switch
+                {
+                    CalculateFunctionTypeEnum.Liner => (ICalculateWay) new LinerCalculateWay(),
+                    CalculateFunctionTypeEnum.Power => new PowerCalculateWay(),
+                    _ => null
+                };
+
+                if (calculateWay == null)
+                    continue;
+                calculateWay.PieceKey = coefficient.PieceKey;
+                calculateWay.InitParameter(paramDic);
+                calculateWayList.Add(calculateWay);
             }
+
+            if (calculateWayList.Any())
+                selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
         }
     }
 }

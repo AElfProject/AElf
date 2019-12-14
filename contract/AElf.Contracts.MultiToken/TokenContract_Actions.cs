@@ -11,13 +11,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        public override Empty InitializeCoefficient(Empty empty)
-        {
-            AssertIsAuthorized();
-            InitialParameters();
-            return new Empty();
-        }
-
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -143,7 +136,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = creationInput.Decimals,
                 Issuer = creationInput.Issuer,
                 IsBurnable = creationInput.IsBurnable,
-                IssueChainId = parentChainId
+                IssueChainId = creationInput.IssueChainId
             });
             return new Empty();
         }
@@ -520,139 +513,6 @@ namespace AElf.Contracts.MultiToken
                 advancedAmount.Sub(input.Amount);
             return new Empty();
         }
-
-        public override Empty UpdateCoefficientFromContract(CoefficientFromContract coeInput)
-        {
-            if (coeInput == null)
-                return new Empty();
-            AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientOfContract[coeInput.FeeType];
-            if (dataInDb == null)
-                return new Empty();
-            var coefficient = coeInput.Coefficient;
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if (theOne == null)
-                return new Empty();
-            if (coefficient.IsChangePieceKey)
-            {
-                ChangeFeePieceKey(coefficient, theOne);
-            }
-            else if (coefficient.IsLiner)
-            {
-                UpdateLinerAlgorithm(coefficient, theOne);
-            }
-            else
-            {
-                UpdatePowerAlgorithm(coefficient, theOne);
-            }
-
-            return new Empty();
-        }
-
-        public override Empty UpdateCoefficientFromSender(CoefficientFromSender coeInput)
-        {
-            if (coeInput == null)
-                return new Empty();
-            AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientOfSender.Value;
-            if (dataInDb == null)
-            {
-                return new Empty();
-            }
-
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
-            if (theOne == null)
-            {
-                return new Empty();
-            }
-
-            if (coeInput.IsChangePieceKey)
-            {
-                ChangeFeePieceKey(coeInput, theOne);
-            }
-            else if (coeInput.IsLiner)
-            {
-                UpdateLinerAlgorithm(coeInput, theOne);
-            }
-            else
-            {
-                UpdatePowerAlgorithm(coeInput, theOne);
-            }
-
-            return new Empty();
-        }
-
-        private void UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
-        {
-            var coefficient = sender.LinerCoefficient;
-            if (coefficient.Denominator <= 0)
-                return;
-            if (coefficient.Numerator < 0)
-                return;
-            if (coefficient.ConstantValue < 0)
-                return;
-            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData
-            };
-            Context.Fire(param);
-        }
-
-        private void UpdatePowerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
-        {
-            var coefficient = sender.PowerCoefficient;
-            if (coefficient.Denominator <= 0)
-                return;
-            if (coefficient.Numerator < 0)
-                return;
-            if (coefficient.Weight <= 0)
-                return;
-            if (coefficient.WeightBase <= 0)
-                return;
-            if (coefficient.ChangeSpanBase <= 0)
-                return;
-            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
-            dbData.CoefficientDic[nameof(coefficient.WeightBase).ToLower()] = coefficient.WeightBase;
-            dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase).ToLower()] = coefficient.ChangeSpanBase;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData
-            };
-            Context.Fire(param);
-        }
-
-        private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
-        {
-            var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
-            if (newPieceKey == coefficient.PieceKey || newPieceKey <= 0)
-                return;
-            dbData.PieceKey = newPieceKey;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData,
-                NewPieceKey = newPieceKey
-            };
-            Context.Fire(param);
-        }
-
-        private void InitialParameters()
-        {
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
-            State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
-        }
+        
     }
 }

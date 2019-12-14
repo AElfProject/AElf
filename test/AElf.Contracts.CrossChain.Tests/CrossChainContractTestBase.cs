@@ -245,6 +245,18 @@ namespace AElf.Contracts.CrossChain.Tests
             }
         }
 
+        internal async Task<bool> DoIndexAsync(CrossChainBlockData crossChainBlockData)
+        {
+            var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
+            var proposalId = ProposalCreated.Parser
+                .ParseFrom(txRes.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
+                .ProposalId;
+            await ApproveWithMinersAsync(proposalId);
+            
+            var releaseResult = await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+            return true;
+        }
+
         internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
         {
             var disposalInput = chainId;
@@ -267,6 +279,16 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 throw new Exception(result.Error);
             }
+        }
+        
+        internal ParentChainBlockData CreateParentChainBlockData(long height, int sideChainId, Hash txMerkleTreeRoot)
+        {
+            return new ParentChainBlockData
+            {
+                ChainId = sideChainId,
+                Height = height,
+                TransactionStatusMerkleTreeRoot = txMerkleTreeRoot
+            };
         }
     }
 }

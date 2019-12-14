@@ -15,24 +15,19 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<long> GetCostAsync(IChainContext chainContext, int cost)
         {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
+            if (chainContext != null)
+                CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = new BlockIndex
+                {
+                    BlockHash = chainContext.BlockHash,
+                    BlockHeight = chainContext.BlockHeight
+                };
             return await CalculateAlgorithm.CalculateAsync(cost);
         }
 
-        public async Task ModifyAlgorithmAsync(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
-            IDictionary<string, int> param)
+        public void AddAlgorithm(BlockIndex blockIndex, IList<ICalculateWay> allWay)
         {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.UpdateAsync(pieceKey, param);
-        }
-
-        public async Task ChangeAlgorithmPieceKeyAsync(IChainContext chainContext, BlockIndex blockIndex,
-            int oldPieceKey, int newPieceKey)
-        {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
-            CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.ChangePieceKeyAsync(oldPieceKey, newPieceKey);
+            CalculateAlgorithm.AddAlgorithmByBlock(blockIndex, allWay);
         }
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
@@ -172,7 +167,7 @@ namespace AElf.Kernel.TransactionPool.Application
                     .AddDefaultAlgorithm(1000000, new LinerCalculateWay
                     {
                         Numerator = 1,
-                        Denominator = 16 * 50,
+                        Denominator = 800,
                         ConstantValue = 10000
                     }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
                     {
@@ -181,7 +176,7 @@ namespace AElf.Kernel.TransactionPool.Application
                         Weight = 1,
                         WeightBase = 1,
                         Numerator = 1,
-                        Denominator = 16 * 50,
+                        Denominator = 800,
                         Precision = 100000000L
                     });
             CalculateAlgorithm.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Tx;

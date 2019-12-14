@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +14,23 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests
     {
-
         private async Task InitializeCoefficientAsync()
         {
             var initResult = (await TokenContractStub.InitializeCoefficient.SendAsync(new Empty())).TransactionResult;
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+
+        private async Task<CalculateFeeCoefficientsOfType> GetCoefficentByType(FeeTypeEnum type)
+        {
+            if (type == FeeTypeEnum.Tx)
+            {
+                return await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
+            }
+
+            return await TokenContractStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
+                {Value = (int) type});
+        }
+
         [Fact]
         public async Task Tx_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
@@ -33,34 +46,34 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
+            var ps = await GetCoefficentByType(FeeTypeEnum.Tx);
 
-            await HandleTestAsync(param, null, null);
-            var updatedFee = await calculateTxCostStrategy.GetCostAsync(null, size);
-            updatedFee.ShouldBe(25_0000_0000);
-            var apiParam2 = new CoefficientFromSender
+            var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 1000000);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(param);
+            var blockIndex = new BlockIndex();
+            IChainContext chainContext = new ChainContext
             {
-                IsChangePieceKey = true,
-                IsLiner = false,
-                PieceKey = 1000000,
-                LinerCoefficient = new LinerCoefficient(),
-                PowerCoefficient = new PowerCoefficient(),
-                NewPieceKeyCoefficient = new NewPieceKeyCoefficient
-                {
-                    NewPieceKey = 100
-                }
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
             };
-            var result = (await TokenContractStub.UpdateCoefficientFromSender.SendAsync(apiParam2)).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var allParameters = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
-            var changedState2 = allParameters.Coefficients.SingleOrDefault(x => x.PieceKey == apiParam2.NewPieceKeyCoefficient.NewPieceKey);
-            changedState2.ShouldNotBeNull();
-            var param2 = new CalculateFeeCoefficient
+            await HandleTestAsync(ps, blockIndex);
+
+            var updatedFee = await calculateTxCostStrategy.GetCostAsync(chainContext, size);
+            updatedFee.ShouldBe(25_0000_0000);
+
+            var apiParam2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Tx,
-                PieceKey = 1000000
+                FunctionType = CalculateFunctionTypeEnum.Liner,
+                PieceKey = 100,
+                CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
-            await HandleTestAsync(param2, null, null, 100);
-            var pieceKeyChangedFee = await calculateTxCostStrategy.GetCostAsync(null, size);
+            theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 1000000);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam2);
+            await HandleTestAsync(ps, blockIndex);
+            var pieceKeyChangedFee = await calculateTxCostStrategy.GetCostAsync(chainContext, size);
             pieceKeyChangedFee.ShouldBe(9813_6250_0000);
         }
 
@@ -69,39 +82,41 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateCpuCostStrategy>();
-            var apiParam = new CoefficientFromSender
+            var ps = await GetCoefficentByType(FeeTypeEnum.Cpu);
+            var apiParam = new CalculateFeeCoefficient
             {
-                IsLiner = true,
-                PieceKey = 100_0000,
-                LinerCoefficient = new LinerCoefficient
-                {
-                    Denominator = 4,
-                    Numerator = 1
-                }
+                FeeType = FeeTypeEnum.Cpu,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
+                PieceKey = 10,
+                CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
             };
-            var result = (await TokenContractStub.UpdateCoefficientFromSender.SendAsync(apiParam)).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var param = new CalculateFeeCoefficient
+            var blockIndex = new BlockIndex();
+            IChainContext chainContext = new ChainContext
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            };
+            var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 10);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam);
+            await HandleTestAsync(ps, blockIndex);
+            var size = 10;
+            var updatedFee1 = await calculateCpuCostStrategy.GetCostAsync(chainContext, size);
+            updatedFee1.ShouldBe(2_5000_0000);
+
+            var apiParam2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Cpu,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
             };
-
-            await HandleTestAsync(param, null, null);
-            var size = 10;
-            var updatedFee = await calculateCpuCostStrategy.GetCostAsync(null, size);
-            updatedFee.ShouldBe(500000000);
-            var param2 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Cpu,
-                PieceKey = 10,
-            };
-            await HandleTestAsync(param2, null, null, 50);
-            var size2 = 50;
-            var updatedFee2 = await calculateCpuCostStrategy.GetCostAsync(null, size2);
-            updatedFee2.ShouldBe(2500000000);
+            theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 10);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam2);
+            await HandleTestAsync(ps, blockIndex);
+            var updatedFee2 = await calculateCpuCostStrategy.GetCostAsync(chainContext, size);
+            updatedFee2.ShouldBe(500000000);
         }
 
         [Fact]
@@ -109,24 +124,41 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
-            var param = new CalculateFeeCoefficient
+            var ps = await GetCoefficentByType(FeeTypeEnum.Ram);
+
+            var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Ram,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
             };
-
-            await HandleTestAsync(param, null, null);
+            var blockIndex = new BlockIndex();
+            IChainContext chainContext = new ChainContext
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            };
+            var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 10);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam);
+            await HandleTestAsync(ps, blockIndex);
             var size = 10;
-            var updatedFee = await calculateRamCostStrategy.GetCostAsync(null, size);
-            updatedFee.ShouldBe(500000000);
-            var param2 = new CalculateFeeCoefficient
+            var updatedFee1 = await calculateRamCostStrategy.GetCostAsync(chainContext, size);
+            updatedFee1.ShouldBe(500000000);
+
+            var apiParam2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Ram,
-                PieceKey = 10,
+                FunctionType = CalculateFunctionTypeEnum.Liner,
+                PieceKey = 50,
+                CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
             };
-            await HandleTestAsync(param2, null, null, 50);
+            theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 10);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam2);
+
+            await HandleTestAsync(ps, blockIndex);
             var size2 = 50;
             var updatedFee2 = await calculateRamCostStrategy.GetCostAsync(null, size2);
             updatedFee2.ShouldBe(2500000000);
@@ -137,17 +169,28 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
-            var param = new CalculateFeeCoefficient
+
+            var ps = await GetCoefficentByType(FeeTypeEnum.Sto);
+
+            var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Sto,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
-
-            await HandleTestAsync(param, null, null);
+            var blockIndex = new BlockIndex();
+            IChainContext chainContext = new ChainContext
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            };
+            var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 1000000);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam);
+            await HandleTestAsync(ps, blockIndex);
             var size = 10000;
-            var updatedFee = await calculateStoCostStrategy.GetCostAsync(null, size);
+            var updatedFee = await calculateStoCostStrategy.GetCostAsync(chainContext, size);
             updatedFee.ShouldBe(25_0000_0000);
         }
 
@@ -156,24 +199,36 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
-            var param = new CalculateFeeCoefficient
+
+
+            var ps = await GetCoefficentByType(FeeTypeEnum.Net);
+
+            var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Net,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
-
-            await HandleTestAsync(param, null, null);
+            var blockIndex = new BlockIndex();
+            IChainContext chainContext = new ChainContext
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            };
+            var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 1000000);
+            ps.Coefficients.Remove(theOne);
+            ps.Coefficients.Add(apiParam);
+            await HandleTestAsync(ps, blockIndex);
             var size = 10000;
-            var updatedFee = await calculateNetCostStrategy.GetCostAsync(null, size);
+            var updatedFee = await calculateNetCostStrategy.GetCostAsync(chainContext, size);
             updatedFee.ShouldBe(25_0000_0000);
         }
 
-        private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, IChainContext chain,
-            int newPieceKey = 0)
+        private async Task HandleTestAsync(CalculateFeeCoefficientsOfType param, BlockIndex blockIndex)
         {
-            var selectedStrategy = param.FeeType switch
+            var firstData = param.Coefficients.First();
+            var selectedStrategy = firstData.FeeType switch
             {
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) Application.ServiceProvider
                     .GetRequiredService<ICalculateTxCostStrategy>(),
@@ -187,15 +242,26 @@ namespace AElf.Contracts.MultiToken
             if (selectedStrategy == null)
                 return;
 
-
-            if (newPieceKey > 0)
-                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chain, blockIndex, param.PieceKey, newPieceKey);
-            else
+            var calculateWayList = new List<ICalculateWay>();
+            foreach (var coefficient in param.Coefficients)
             {
-                var pieceKey = param.PieceKey;
-                var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                await selectedStrategy.ModifyAlgorithmAsync(chain, blockIndex, pieceKey, paramDic);
+                var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+                var calculateWay = coefficient.FunctionType switch
+                {
+                    CalculateFunctionTypeEnum.Liner => (ICalculateWay) new LinerCalculateWay(),
+                    CalculateFunctionTypeEnum.Power => new PowerCalculateWay(),
+                    _ => null
+                };
+
+                if (calculateWay == null)
+                    continue;
+                calculateWay.PieceKey = coefficient.PieceKey;
+                calculateWay.InitParameter(paramDic);
+                calculateWayList.Add(calculateWay);
             }
+
+            if (calculateWayList.Any())
+                selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
         }
     }
 }
