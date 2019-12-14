@@ -242,20 +242,16 @@ namespace AElf.Contracts.MultiToken
             if (selectedStrategy == null)
                 return;
 
-
             var calculateWayList = new List<ICalculateWay>();
             foreach (var coefficient in param.Coefficients)
             {
                 var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                ICalculateWay calculateWay = null;
-                if (coefficient.FunctionType == CalculateFunctionTypeEnum.Liner)
+                var calculateWay = coefficient.FunctionType switch
                 {
-                    calculateWay = new LinerCalculateWay();
-                }
-                else if (coefficient.FunctionType == CalculateFunctionTypeEnum.Power)
-                {
-                    calculateWay = new PowerCalculateWay();
-                }
+                    CalculateFunctionTypeEnum.Liner => (ICalculateWay) new LinerCalculateWay(),
+                    CalculateFunctionTypeEnum.Power => new PowerCalculateWay(),
+                    _ => null
+                };
 
                 if (calculateWay == null)
                     continue;
