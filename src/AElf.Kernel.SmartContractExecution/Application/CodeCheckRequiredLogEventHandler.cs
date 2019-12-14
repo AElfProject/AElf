@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             // a new task for time-consuming code check job 
-            return Task.Run(async () =>
+            Task.Run(async () =>
             {
                 var eventData = new CodeCheckRequired();
                 eventData.MergeFrom(logEvent);
@@ -60,6 +60,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 // Cache proposal id to generate system approval transaction later
                 _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
             });
+            
+            return Task.CompletedTask;
         }
     }
 }
