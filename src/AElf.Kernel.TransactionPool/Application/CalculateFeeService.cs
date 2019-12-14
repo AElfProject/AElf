@@ -94,68 +94,28 @@ namespace AElf.Kernel.TransactionPool.Application
             return totalCost;
         }
 
-        public async Task UpdateAsync(int pieceKey, IDictionary<string, int> parameters)
+        public void AddAlgorithmByBlock(BlockIndex blockIndex, IList<ICalculateWay> allFunc)
         {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
-            if (pieceWiseFunc == null)
+            var funcDic = new Dictionary<int, ICalculateWay>();
+            foreach (var func in allFunc)
             {
-                Logger.LogWarning("does not find piecewise function in update");
-                return;
+                funcDic[func.PieceKey] = func;
             }
 
-            if (!pieceWiseFunc.ContainsKey(pieceKey))
+            _forkCache[blockIndex] = funcDic;
+        }
+
+        public void ClearAlgorithmByBlock(BlockIndex blockIndex)
+        {
+            if (_forkCache.TryGetValue(blockIndex, out var value))
             {
-                Logger.LogWarning($"does not find piece key: {pieceKey} in piecewise function");
-                return;
-            }
-            
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
+                value.Clear();
             }
             else
             {
-                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
+                _forkCache[blockIndex] = new Dictionary<int, ICalculateWay>();
             }
         }
-
-        public async Task ChangePieceKeyAsync(int oldPieceKey, int newPieceKey)
-        {
-            var pieceWiseFunc = await GetPieceWiseFuncUnderContextAsync();
-            if (pieceWiseFunc == null)
-            {
-                Logger.LogWarning("does not find piecewise function in update");
-                return;
-            }
-
-            if (!pieceWiseFunc.ContainsKey(oldPieceKey))
-            {
-                Logger.LogWarning($"does not find piece key: {oldPieceKey} in piecewise function");
-                return;
-            }
-
-            if (pieceWiseFunc.ContainsKey(newPieceKey))
-            {
-                Logger.LogWarning($"piece key {newPieceKey}  has been defined");
-                return;
-            }
-
-            if (CalculateAlgorithmContext.BlockIndex != null)
-            {
-                _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
-                var temp = _forkCache[CalculateAlgorithmContext.BlockIndex][oldPieceKey];
-                _forkCache[CalculateAlgorithmContext.BlockIndex].Remove(oldPieceKey);
-                _forkCache[CalculateAlgorithmContext.BlockIndex][newPieceKey] = temp;
-            }
-            else
-            {
-                var temp = _pieceWiseFuncCache[oldPieceKey];
-                _pieceWiseFuncCache.Remove(oldPieceKey);
-                _pieceWiseFuncCache[newPieceKey] = temp;
-            }
-        }
-
         private void AddPieceFunction(int pieceKey, IDictionary<int, ICalculateWay> pieceWiseFunc,
             CalculateFunctionTypeEnum funcTypeEnum,
             IDictionary<string, int> parameters)
@@ -181,12 +141,12 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 _forkCache[CalculateAlgorithmContext.BlockIndex] = pieceWiseFunc.ToDictionary(x => x.Key, x => x.Value);
                 _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey] = newCalculateWay;
-                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].TryInitParameter(parameters);
+                _forkCache[CalculateAlgorithmContext.BlockIndex][pieceKey].InitParameter(parameters);
             }
             else
             {
                 _pieceWiseFuncCache[pieceKey] = newCalculateWay;
-                _pieceWiseFuncCache[pieceKey].TryInitParameter(parameters);
+                _pieceWiseFuncCache[pieceKey].InitParameter(parameters);
             }
         }
 

@@ -10,27 +10,21 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class LnCalculateWay : ICalculateWay
     {
+        public int PieceKey { get; set; }
         public int ChangeSpanBase { get; set; }
         public int Weight { get; set; }
         public int WeightBase { get; set; }
         public long Precision { get; set; } = 100000000L;
         public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Ln;
 
-        public bool TryInitParameter(IDictionary<string, int> param)
+        public void InitParameter(IDictionary<string, int> param)
         {
             param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBase);
-            if (changeSpanBase <= 0)
-                return false;
             param.TryGetValue(nameof(Weight).ToLower(), out var weight);
-            if (weight <= 0)
-                return false;
             param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBase);
-            if (weightBase <= 0)
-                return false;
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
-            return true;
         }
 
         public long GetCost(int cost)
@@ -57,6 +51,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class PowerCalculateWay : ICalculateWay
     {
+        public int PieceKey { get; set; }
         public int Power { get; set; } = 2;
         public int ChangeSpanBase { get; set; } = 1;
         public int Weight { get; set; }
@@ -66,33 +61,20 @@ namespace AElf.Kernel.TransactionPool.Application
         public int Denominator { get; set; } = 1;
         public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Power;
 
-        public bool TryInitParameter(IDictionary<string, int> param)
+        public void InitParameter(IDictionary<string, int> param)
         {
             param.TryGetValue(nameof(Power).ToLower(), out var power);
-            if (power <= 0)
-                return false;
             param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBase);
-            if (changeSpanBase <= 0)
-                return false;
             param.TryGetValue(nameof(Weight).ToLower(), out var weight);
-            if (weight <= 0)
-                return false;
             param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBase);
-            if (weightBase <= 0)
-                return false;
             param.TryGetValue(nameof(Numerator).ToLower(), out var numerator);
-            if (numerator <= 0)
-                return false;
             param.TryGetValue(nameof(Denominator).ToLower(), out var denominator);
-            if (denominator <= 0)
-                return false;
             ChangeSpanBase = changeSpanBase;
             Weight = weight;
             WeightBase = weightBase;
             Numerator = numerator;
             Denominator = denominator;
             Power = power;
-            return true;
         }
 
         public long GetCost(int cost)
@@ -118,19 +100,15 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class ConstCalculateWay : ICalculateWay
     {
+        public int PieceKey { get; set; }
         public long Precision { get; set; } = 100000000L;
         public int ConstantValue { get; set; }
         public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Constant;
 
-        public bool TryInitParameter(IDictionary<string, int> param)
+        public void InitParameter(IDictionary<string, int> param)
         {
             param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValue);
-            if (constantValue <= 0)
-                return false;
             ConstantValue = constantValue;
-            param.TryGetValue(nameof(Precision).ToLower(), out var precision);
-            Precision = precision > 0 ? precision : Precision;
-            return true;
         }
 
         public long GetCost(int cost)
@@ -150,27 +128,21 @@ namespace AElf.Kernel.TransactionPool.Application
 
     public class LinerCalculateWay : ICalculateWay
     {
+        public int PieceKey { get; set; }
         public int Numerator { get; set; }
         public int Denominator { get; set; } = 1;
         public int ConstantValue { get; set; }
         public long Precision { get; set; } = 100000000L;
         public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Liner;
 
-        public bool TryInitParameter(IDictionary<string, int> param)
+        public void InitParameter(IDictionary<string, int> param)
         {
             param.TryGetValue(nameof(Numerator).ToLower(), out var numerator);
-            if (numerator <= 0)
-                return false;
             param.TryGetValue(nameof(Denominator).ToLower(), out var denominator);
-            if (denominator <= 0)
-                return false;
             param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValue);
-            if (constantValue < 0)
-                return false;
             Numerator = numerator;
             Denominator = denominator;
             ConstantValue = constantValue;
-            return true;
         }
 
         public long GetCost(int cost)

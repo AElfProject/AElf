@@ -536,7 +536,7 @@ namespace AElf.Contracts.MultiToken
             bool isChanged;
             if (coefficient.IsChangePieceKey)
             {
-                isChanged = CanChangeFeePieceKey(coefficient, theOne);
+                isChanged = ChangeFeePieceKey(coefficient, theOne);
             }
             else if (coefficient.IsLiner)
             {
@@ -552,11 +552,6 @@ namespace AElf.Contracts.MultiToken
                 {
                     AllCoefficient = dataInDb
                 };
-                if (coeInput.Coefficient.IsChangePieceKey)
-                {
-                    param.OldPieceKey = theOne.PieceKey;
-                    param.NewPieceKey = coeInput.Coefficient.NewPieceKeyCoefficient.NewPieceKey;
-                }
                 Context.Fire(param);
             }
             return new Empty();
@@ -582,7 +577,7 @@ namespace AElf.Contracts.MultiToken
             bool isChanged;
             if (coeInput.IsChangePieceKey)
             {
-                isChanged = CanChangeFeePieceKey(coeInput, theOne);
+                isChanged = ChangeFeePieceKey(coeInput, theOne);
             }
             else if (coeInput.IsLiner)
             {
@@ -599,11 +594,6 @@ namespace AElf.Contracts.MultiToken
                 {
                     AllCoefficient = dataInDb
                 };
-                if (coeInput.IsChangePieceKey)
-                {
-                    param.OldPieceKey = theOne.PieceKey;
-                    param.NewPieceKey = coeInput.NewPieceKeyCoefficient.NewPieceKey;
-                }
                 Context.Fire(param);
             }
             return new Empty();
@@ -645,11 +635,12 @@ namespace AElf.Contracts.MultiToken
             return true;
         }
 
-        private bool CanChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
+        private bool ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
             var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
             if (newPieceKey == coefficient.PieceKey || newPieceKey <= 0)
                 return false;
+            dbData.PieceKey = newPieceKey;
             return true;
         }
 

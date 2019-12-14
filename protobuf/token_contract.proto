@@ -434,8 +434,6 @@ message CalculateFeeCoefficient {
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
     CalculateFeeCoefficientsOfType all_coefficient = 1;
-    sint32 old_piece_key = 2;
-    sint32 new_piece_key = 3;
 }
 
 message CoefficientFromSender {

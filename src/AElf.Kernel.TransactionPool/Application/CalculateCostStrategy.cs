@@ -23,21 +23,11 @@ namespace AElf.Kernel.TransactionPool.Application
                 };
             return await CalculateAlgorithm.CalculateAsync(cost);
         }
-
-        public async Task ModifyAlgorithmAsync(BlockIndex blockIndex, int pieceKey,
-            IDictionary<string, int> param)
+        public void AddAlgorithm(BlockIndex blockIndex, IList<ICalculateWay> allWay)
         {
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.UpdateAsync(pieceKey, param);
+            CalculateAlgorithm.AddAlgorithmByBlock(blockIndex, allWay);
         }
-
-        public async Task ChangeAlgorithmPieceKeyAsync(BlockIndex blockIndex,
-            int oldPieceKey, int newPieceKey)
-        {
-            CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
-            await CalculateAlgorithm.ChangePieceKeyAsync(oldPieceKey, newPieceKey);
-        }
-
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
             CalculateAlgorithm.RemoveForkCache(blockIndexes);

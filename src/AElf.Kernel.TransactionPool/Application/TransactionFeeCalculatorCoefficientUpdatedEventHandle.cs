@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
@@ -67,30 +68,39 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
+            var firstData = eventData.AllCoefficient.Coefficients.First();
+            
+            var selectedStrategy = firstData.FeeType switch
+            {
+                FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
+                FeeTypeEnum.Cpu => _cpuCostStrategy,
+                FeeTypeEnum.Ram => _ramCostStrategy,
+                FeeTypeEnum.Sto => _stoCostStrategy,
+                FeeTypeEnum.Net => _netCostStrategy,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            var calculateWayList = new List<ICalculateWay>();
             foreach (var coefficient in eventData.AllCoefficient.Coefficients)
             {
-                var selectedStrategy = coefficient.FeeType switch
+                var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+                ICalculateWay calculateWay = null;
+                if (coefficient.FunctionType == CalculateFunctionTypeEnum.Liner)
                 {
-                    FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
-                    FeeTypeEnum.Cpu => _cpuCostStrategy,
-                    FeeTypeEnum.Ram => _ramCostStrategy,
-                    FeeTypeEnum.Sto => _stoCostStrategy,
-                    FeeTypeEnum.Net => _netCostStrategy,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-                if (coefficient.PieceKey == eventData.OldPieceKey)
-                {
-                    await selectedStrategy.ChangeAlgorithmPieceKeyAsync(blockIndex, 
-                        eventData.OldPieceKey, eventData.NewPieceKey);
+                    calculateWay = new LinerCalculateWay();
+                    
                 }
-                else
+                else if (coefficient.FunctionType == CalculateFunctionTypeEnum.Power)
                 {
-                    var pieceKey = coefficient.PieceKey;
-                    var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                    await selectedStrategy.ModifyAlgorithmAsync(blockIndex, pieceKey, paramDic);
+                    calculateWay = new PowerCalculateWay();
                 }
-                
+                if(calculateWay == null)
+                    continue;
+                calculateWay.PieceKey = coefficient.PieceKey;
+                calculateWay.InitParameter(paramDic);
+                calculateWayList.Add(calculateWay);
             }
+            if(calculateWayList.Any())
+                selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
         }
     }
 }
