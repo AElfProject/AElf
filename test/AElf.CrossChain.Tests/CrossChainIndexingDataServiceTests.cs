@@ -291,14 +291,55 @@ namespace AElf.CrossChain
                     ProposalId = Hash.FromString("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
                     ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(100)
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
+                });
+
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            var crossChainExtraData = CrossChainExtraData.Parser.ParseFrom(res);
+            var expectedMerkleTreeRoot = BinaryMerkleTree
+                .FromLeafNodes(sideChainBlockInfoCache.Select(s => s.TransactionStatusMerkleTreeRoot)).Root;
+            Assert.Equal(expectedMerkleTreeRoot, crossChainExtraData.TransactionStatusMerkleTreeRoot);
+            Assert.Equal(res,
+                _crossChainIndexingDataService.ExtractCrossChainExtraDataFromCrossChainBlockData(crossChainBlockData));
+        }
+        
+        [Fact]
+        public async Task PrepareExtraDataForNextMiningAsync_AlmostExpired_NotApproved_Test()
+        {
+            var sideChainId = 123;
+            var sideChainBlockInfoCache = new List<SideChainBlockData>();
+            var cachingCount = 5;
+            for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
+            {
+                sideChainBlockInfoCache.Add(new SideChainBlockData()
+                {
+                    ChainId = sideChainId,
+                    Height = (i + 1),
+                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                });
+            }
+
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
+                {{sideChainId, sideChainBlockInfoCache.ToList<IBlockCacheEntity>()}};
+            AddFakeCacheData(fakeCache);
+
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockDataList = {sideChainBlockInfoCache}
+            };
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
+                new GetPendingCrossChainIndexingProposalOutput
+                {
+                    Proposer = SampleAddress.AddressList[0],
+                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposedCrossChainBlockData = crossChainBlockData,
+                    ToBeReleased = false,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
                 });
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
-            var crossChainTransactionInput =
-                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
-            Assert.Null(crossChainTransactionInput);
         }
 
         [Fact]
@@ -390,7 +431,7 @@ namespace AElf.CrossChain
                 await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
-            Assert.Equal(1, crossChainBlockData.SideChainBlockDataList.Count);
+            Assert.True(1 == crossChainBlockData.SideChainBlockDataList.Count);
             Assert.Empty(crossChainBlockData.ParentChainBlockDataList);
         }
         

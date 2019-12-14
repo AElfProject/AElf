@@ -1,6 +1,7 @@
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
@@ -150,7 +151,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(organization != null, "No registered organization.");
             AssertAuthorizedProposer();
 
-            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
+            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
+                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -158,16 +160,16 @@ namespace AElf.Contracts.ParliamentAuth
                 Params = input.Params,
                 ToAddress = input.ToAddress,
                 OrganizationAddress = input.OrganizationAddress,
-                ProposalId = hash,
+                ProposalId = proposalId,
                 Proposer = Context.Sender
             };
             Assert(Validate(proposal), "Invalid proposal.");
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = hash});
+            Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
+            State.Proposals[proposalId] = proposal;
+            Context.Fire(new ProposalCreated {ProposalId = proposalId});
             if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
-                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, hash); // proposal id feedback 
-            return hash;
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback 
+            return proposalId;
         }
 
         public override BoolValue Approve(ApproveInput approvalInput)

@@ -4,6 +4,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -20,8 +21,9 @@ namespace AElf.CrossChain
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedCrossChainTransactionValidationProvider>();
-            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
-            var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
+            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryBannedValidationProvider>();
+            var crossChainConfiguration = context.Services.GetConfiguration()
+                .GetSection(CrossChainConstants.CrossChainExtraDataNamePrefix);
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
 
             context.Services.AddSingleton<IChargeFeeStrategy, CrossChainContractChargeFeeStrategy>();

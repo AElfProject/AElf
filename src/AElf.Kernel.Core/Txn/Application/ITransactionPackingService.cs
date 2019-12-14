@@ -1,4 +1,4 @@
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.Txn.Application
 {
     public interface ITransactionPackingService
     {

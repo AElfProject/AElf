@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;

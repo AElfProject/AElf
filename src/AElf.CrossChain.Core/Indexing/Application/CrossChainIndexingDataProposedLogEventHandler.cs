@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Indexing.Application
             if (crossChainBlockData.IsNullOrEmpty())
                 return;
             var validationResult =
-                await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingData(crossChainBlockData,
+                await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingDataAsync(crossChainBlockData,
                     block.GetHash(), block.Height);
             if (validationResult)
             {

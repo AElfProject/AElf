@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
 
-        public async Task<bool> ValidateCrossChainIndexingData(CrossChainBlockData crossChainBlockData, 
+        public async Task<bool> ValidateCrossChainIndexingDataAsync(CrossChainBlockData crossChainBlockData, 
             Hash blockHash, long blockHeight)
         {
             var sideChainBlockDataValidationResult =

@@ -22,11 +22,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractBase>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
-            <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
     <Import Project="..\AllContracts.props" />

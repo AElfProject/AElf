@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Indexing.Application
 {
     public interface ICrossChainIndexingDataValidationService
     {
-        Task<bool> ValidateCrossChainIndexingData(CrossChainBlockData crossChainBlockData, Hash blockHash,
+        Task<bool> ValidateCrossChainIndexingDataAsync(CrossChainBlockData crossChainBlockData, Hash blockHash,
             long blockHeight);
     }
 }

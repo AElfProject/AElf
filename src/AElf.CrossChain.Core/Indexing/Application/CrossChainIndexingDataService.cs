@@ -7,7 +7,7 @@ using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -213,8 +213,8 @@ namespace AElf.CrossChain.Indexing.Application
                 return ByteString.Empty;
             }
 
-            if (!pendingProposal.ToBeReleased || pendingProposal.ExpiredTime <= utcNow.AddSeconds(1))
-                return ByteString.Empty; // do nothing if pending proposal is not ready to be released or not expired
+            if (!pendingProposal.ToBeReleased)
+                return ByteString.Empty; // do nothing if pending proposal is not ready to be released
 
             // release pending proposal and unable to propose anything if it is ready
             _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,

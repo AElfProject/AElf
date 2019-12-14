@@ -1,18 +1,18 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
 namespace AElf.CrossChain
 {
-    public class NotAllowEnterTxHubValidationProvider : ITransactionValidationProvider
+    public class TxHubEntryBannedValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public NotAllowEnterTxHubValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public TxHubEntryBannedValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }
