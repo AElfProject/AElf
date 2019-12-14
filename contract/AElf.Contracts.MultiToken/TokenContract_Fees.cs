@@ -136,6 +136,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
+
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"CPU", input.CpuCost},
@@ -383,13 +384,16 @@ namespace AElf.Contracts.MultiToken
             if (totalAmount <= 0) return;
 
             var burnAmount = totalAmount.Div(10);
-            Context.SendInline(Context.Self, nameof(Burn), new BurnInput
-            {
-                Symbol = symbol,
-                Amount = burnAmount
-            });
+            if (burnAmount > 0)
+                Context.SendInline(Context.Self, nameof(Burn), new BurnInput
+                {
+                    Symbol = symbol,
+                    Amount = burnAmount
+                });
 
             var transferAmount = totalAmount.Sub(burnAmount);
+            if (transferAmount == 0)
+                return;
             if (State.TreasuryContract.Value != null)
             {
                 // Main chain would donate tx fees to dividend pool.
