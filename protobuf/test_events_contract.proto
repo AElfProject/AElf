@@ -4,11 +4,14 @@ import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.Events";
 
 service EventsContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.Events.EventsContractState";
+    option (aelf.base) = "acs1.proto";
+    
     //Actions
     rpc InitializeEvents(InitializeInput) returns (google.protobuf.Empty){
     }
