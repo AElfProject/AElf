@@ -15,22 +15,25 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<long> GetCostAsync(IChainContext chainContext, int cost)
         {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
+            if (chainContext != null)
+                CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = new BlockIndex
+                {
+                    BlockHash = chainContext.BlockHash,
+                    BlockHeight = chainContext.BlockHeight
+                };
             return await CalculateAlgorithm.CalculateAsync(cost);
         }
 
-        public async Task ModifyAlgorithmAsync(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+        public async Task ModifyAlgorithmAsync(BlockIndex blockIndex, int pieceKey,
             IDictionary<string, int> param)
         {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
             await CalculateAlgorithm.UpdateAsync(pieceKey, param);
         }
 
-        public async Task ChangeAlgorithmPieceKeyAsync(IChainContext chainContext, BlockIndex blockIndex,
+        public async Task ChangeAlgorithmPieceKeyAsync(BlockIndex blockIndex,
             int oldPieceKey, int newPieceKey)
         {
-            CalculateAlgorithm.CalculateAlgorithmContext.ChainContext = chainContext;
             CalculateAlgorithm.CalculateAlgorithmContext.BlockIndex = blockIndex;
             await CalculateAlgorithm.ChangePieceKeyAsync(oldPieceKey, newPieceKey);
         }

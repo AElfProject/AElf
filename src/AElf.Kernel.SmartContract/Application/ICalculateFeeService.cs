@@ -8,10 +8,10 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<long> GetCostAsync(IChainContext context, int cost);
 
-        Task ModifyAlgorithmAsync(IChainContext chainContext, BlockIndex blockIndex, int pieceKey,
+        Task ModifyAlgorithmAsync(BlockIndex blockIndex, int pieceKey,
             IDictionary<string, int> param);
 
-        Task ChangeAlgorithmPieceKeyAsync(IChainContext chainContext, BlockIndex blockIndex, int oldPieceKey,
+        Task ChangeAlgorithmPieceKeyAsync(BlockIndex blockIndex, int oldPieceKey,
             int newPieceKey);
 
         void RemoveForkCache(List<BlockIndex> blockIndexes);
@@ -41,7 +41,6 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ICalculateAlgorithmContext
     {
         int CalculateFeeTypeEnum { get; set; }
-        IChainContext ChainContext { get; set; }
         BlockIndex BlockIndex { get; set; }
     }
 

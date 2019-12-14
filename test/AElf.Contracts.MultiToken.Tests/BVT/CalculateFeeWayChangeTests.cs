@@ -34,7 +34,7 @@ namespace AElf.Contracts.MultiToken
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
 
-            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param, null);
             var updatedFee = await calculateTxCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(25_0000_0000);
             var apiParam2 = new CoefficientFromSender
@@ -51,15 +51,12 @@ namespace AElf.Contracts.MultiToken
             };
             var result = (await TokenContractStub.UpdateCoefficientFromSender.SendAsync(apiParam2)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var allParameters = await TokenContractStub.GetCalculateFeeCoefficientOfSender.CallAsync(new Empty());
-            var changedState2 = allParameters.Coefficients.SingleOrDefault(x => x.PieceKey == apiParam2.NewPieceKeyCoefficient.NewPieceKey);
-            changedState2.ShouldNotBeNull();
             var param2 = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Tx,
                 PieceKey = 1000000
             };
-            await HandleTestAsync(param2, null, null, 100);
+            await HandleTestAsync(param2, null, 100);
             var pieceKeyChangedFee = await calculateTxCostStrategy.GetCostAsync(null, size);
             pieceKeyChangedFee.ShouldBe(9813_6250_0000);
         }
@@ -89,7 +86,7 @@ namespace AElf.Contracts.MultiToken
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
             };
 
-            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param, null);
             var size = 10;
             var updatedFee = await calculateCpuCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(500000000);
@@ -98,7 +95,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Cpu,
                 PieceKey = 10,
             };
-            await HandleTestAsync(param2, null, null, 50);
+            await HandleTestAsync(param2, null, 50);
             var size2 = 50;
             var updatedFee2 = await calculateCpuCostStrategy.GetCostAsync(null, size2);
             updatedFee2.ShouldBe(2500000000);
@@ -117,7 +114,7 @@ namespace AElf.Contracts.MultiToken
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
             };
 
-            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param, null);
             var size = 10;
             var updatedFee = await calculateRamCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(500000000);
@@ -126,7 +123,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Ram,
                 PieceKey = 10,
             };
-            await HandleTestAsync(param2, null, null, 50);
+            await HandleTestAsync(param2, null, 50);
             var size2 = 50;
             var updatedFee2 = await calculateRamCostStrategy.GetCostAsync(null, size2);
             updatedFee2.ShouldBe(2500000000);
@@ -145,7 +142,7 @@ namespace AElf.Contracts.MultiToken
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
 
-            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param, null);
             var size = 10000;
             var updatedFee = await calculateStoCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(25_0000_0000);
@@ -164,13 +161,13 @@ namespace AElf.Contracts.MultiToken
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
 
-            await HandleTestAsync(param, null, null);
+            await HandleTestAsync(param, null);
             var size = 10000;
             var updatedFee = await calculateNetCostStrategy.GetCostAsync(null, size);
             updatedFee.ShouldBe(25_0000_0000);
         }
 
-        private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex, IChainContext chain,
+        private async Task HandleTestAsync(CalculateFeeCoefficient param, BlockIndex blockIndex,
             int newPieceKey = 0)
         {
             var selectedStrategy = param.FeeType switch
@@ -189,12 +186,12 @@ namespace AElf.Contracts.MultiToken
 
 
             if (newPieceKey > 0)
-                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chain, blockIndex, param.PieceKey, newPieceKey);
+                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(blockIndex, param.PieceKey, newPieceKey);
             else
             {
                 var pieceKey = param.PieceKey;
                 var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                await selectedStrategy.ModifyAlgorithmAsync(chain, blockIndex, pieceKey, paramDic);
+                await selectedStrategy.ModifyAlgorithmAsync(blockIndex, pieceKey, paramDic);
             }
         }
     }

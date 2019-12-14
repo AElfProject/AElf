@@ -533,19 +533,32 @@ namespace AElf.Contracts.MultiToken
             var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             if (theOne == null)
                 return new Empty();
+            bool isChanged;
             if (coefficient.IsChangePieceKey)
             {
-                ChangeFeePieceKey(coefficient, theOne);
+                isChanged = CanChangeFeePieceKey(coefficient, theOne);
             }
             else if (coefficient.IsLiner)
             {
-                UpdateLinerAlgorithm(coefficient, theOne);
+                isChanged = UpdateLinerAlgorithm(coefficient, theOne);
             }
             else
             {
-                UpdatePowerAlgorithm(coefficient, theOne);
+                isChanged = UpdatePowerAlgorithm(coefficient, theOne);
             }
-
+            if (isChanged)
+            {
+                var param = new NoticeUpdateCalculateFeeAlgorithm
+                {
+                    AllCoefficient = dataInDb
+                };
+                if (coeInput.Coefficient.IsChangePieceKey)
+                {
+                    param.OldPieceKey = theOne.PieceKey;
+                    param.NewPieceKey = coeInput.Coefficient.NewPieceKeyCoefficient.NewPieceKey;
+                }
+                Context.Fire(param);
+            }
             return new Empty();
         }
 
@@ -566,84 +579,78 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
+            bool isChanged;
             if (coeInput.IsChangePieceKey)
             {
-                ChangeFeePieceKey(coeInput, theOne);
+                isChanged = CanChangeFeePieceKey(coeInput, theOne);
             }
             else if (coeInput.IsLiner)
             {
-                UpdateLinerAlgorithm(coeInput, theOne);
+                isChanged = UpdateLinerAlgorithm(coeInput, theOne);
             }
             else
             {
-                UpdatePowerAlgorithm(coeInput, theOne);
+                isChanged = UpdatePowerAlgorithm(coeInput, theOne);
             }
 
+            if (isChanged)
+            {
+                var param = new NoticeUpdateCalculateFeeAlgorithm
+                {
+                    AllCoefficient = dataInDb
+                };
+                if (coeInput.IsChangePieceKey)
+                {
+                    param.OldPieceKey = theOne.PieceKey;
+                    param.NewPieceKey = coeInput.NewPieceKeyCoefficient.NewPieceKey;
+                }
+                Context.Fire(param);
+            }
             return new Empty();
         }
 
-        private void UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
+        private bool UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
         {
             var coefficient = sender.LinerCoefficient;
             if (coefficient.Denominator <= 0)
-                return;
+                return false;
             if (coefficient.Numerator < 0)
-                return;
+                return false;
             if (coefficient.ConstantValue < 0)
-                return;
+                return false;
             dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
             dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
             dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData
-            };
-            Context.Fire(param);
+            return true;
         }
 
-        private void UpdatePowerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
+        private bool UpdatePowerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
         {
             var coefficient = sender.PowerCoefficient;
             if (coefficient.Denominator <= 0)
-                return;
+                return false;
             if (coefficient.Numerator < 0)
-                return;
+                return false;
             if (coefficient.Weight <= 0)
-                return;
+                return false;
             if (coefficient.WeightBase <= 0)
-                return;
+                return false;
             if (coefficient.ChangeSpanBase <= 0)
-                return;
+                return false;
             dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
             dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
             dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
             dbData.CoefficientDic[nameof(coefficient.WeightBase).ToLower()] = coefficient.WeightBase;
             dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase).ToLower()] = coefficient.ChangeSpanBase;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData
-            };
-            Context.Fire(param);
+            return true;
         }
 
-        private void ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
+        private bool CanChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
         {
             var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
             if (newPieceKey == coefficient.PieceKey || newPieceKey <= 0)
-                return;
-            dbData.PieceKey = newPieceKey;
-            var param = new NoticeUpdateCalculateFeeAlgorithm
-            {
-                PreBlockHash = Context.PreviousBlockHash,
-                BlockHeight = Context.CurrentHeight,
-                Coefficient = dbData,
-                NewPieceKey = newPieceKey
-            };
-            Context.Fire(param);
+                return false;
+            return true;
         }
 
         private void InitialParameters()

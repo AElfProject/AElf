@@ -67,29 +67,29 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var chainContext = new ChainContext
+            foreach (var coefficient in eventData.AllCoefficient.Coefficients)
             {
-                BlockHash = eventData.PreBlockHash,
-                BlockHeight = eventData.BlockHeight
-            };
-            var selectedStrategy = eventData.Coefficient.FeeType switch
-            {
-                FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
-                FeeTypeEnum.Cpu => _cpuCostStrategy,
-                FeeTypeEnum.Ram => _ramCostStrategy,
-                FeeTypeEnum.Sto => _stoCostStrategy,
-                FeeTypeEnum.Net => _netCostStrategy,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-            if (eventData.NewPieceKey > 0)
-                await selectedStrategy.ChangeAlgorithmPieceKeyAsync(chainContext, blockIndex,
-                    eventData.Coefficient.PieceKey, eventData.NewPieceKey);
-            else
-            {
-                var param = eventData.Coefficient;
-                var pieceKey = param.PieceKey;
-                var paramDic = param.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
-                await selectedStrategy.ModifyAlgorithmAsync(chainContext, blockIndex, pieceKey, paramDic);
+                var selectedStrategy = coefficient.FeeType switch
+                {
+                    FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
+                    FeeTypeEnum.Cpu => _cpuCostStrategy,
+                    FeeTypeEnum.Ram => _ramCostStrategy,
+                    FeeTypeEnum.Sto => _stoCostStrategy,
+                    FeeTypeEnum.Net => _netCostStrategy,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                if (coefficient.PieceKey == eventData.OldPieceKey)
+                {
+                    await selectedStrategy.ChangeAlgorithmPieceKeyAsync(blockIndex, 
+                        eventData.OldPieceKey, eventData.NewPieceKey);
+                }
+                else
+                {
+                    var pieceKey = coefficient.PieceKey;
+                    var paramDic = coefficient.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+                    await selectedStrategy.ModifyAlgorithmAsync(blockIndex, pieceKey, paramDic);
+                }
+                
             }
         }
     }

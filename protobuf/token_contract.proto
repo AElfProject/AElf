@@ -433,10 +433,9 @@ message CalculateFeeCoefficient {
 
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-    CalculateFeeCoefficient coefficient = 1;
-    aelf.Hash pre_block_hash = 2;
-    sint64 block_height = 3;
-    sint32 new_piece_key = 4;
+    CalculateFeeCoefficientsOfType all_coefficient = 1;
+    sint32 old_piece_key = 2;
+    sint32 new_piece_key = 3;
 }
 
 message CoefficientFromSender {

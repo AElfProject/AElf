@@ -18,7 +18,6 @@ namespace AElf.Kernel.TransactionPool.Application
     class CalculateAlgorithmContext : ICalculateAlgorithmContext
     {
         public int CalculateFeeTypeEnum { get; set; }
-        public IChainContext ChainContext { get; set; }
         public BlockIndex BlockIndex { get; set; }
     }
 
@@ -193,21 +192,21 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContextAsync()
         {
-            var chainContext = CalculateAlgorithmContext.ChainContext;
             var keys = _forkCache.Keys.ToArray();
             if (keys.Length == 0) return await GetDefaultPieceWiseFunctionAsync();
             var minHeight = keys.Select(k => k.BlockHeight).Min();
             Dictionary<int, ICalculateWay> algorithm = null;
             var blockIndex = new BlockIndex
             {
-                BlockHash = chainContext.BlockHash,
-                BlockHeight = chainContext.BlockHeight
+                BlockHash = CalculateAlgorithmContext.BlockIndex.BlockHash,
+                BlockHeight = CalculateAlgorithmContext.BlockIndex.BlockHeight
             };
             do
             {
                 if (_forkCache.TryGetValue(blockIndex, out var value))
                 {
                     algorithm = value;
+                    break;
                 }
 
                 var link = _chainBlockLinkService.GetCachedChainBlockLink(blockIndex.BlockHash);
