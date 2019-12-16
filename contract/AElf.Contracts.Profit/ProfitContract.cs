@@ -572,7 +572,7 @@ namespace AElf.Contracts.Profit
                     To = virtualAddress,
                     Symbol = input.Symbol,
                     Amount = input.Amount,
-                    Memo = $"Add {input.Amount} dividends for {input.SchemeId}."
+                    Memo = $"Add {input.Amount} dividends."
                 });
                 if (!scheme.UndistributedProfits.ContainsKey(input.Symbol))
                 {
@@ -613,7 +613,6 @@ namespace AElf.Contracts.Profit
                     To = distributedPeriodProfitsVirtualAddress,
                     Symbol = input.Symbol,
                     Amount = input.Amount,
-                    Memo = $"Add dividends for {input.SchemeId} (period {input.Period})."
                 });
 
                 State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress] = distributedProfitsInformation;
