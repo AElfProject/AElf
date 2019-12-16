@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Events;
 using Volo.Abp.DependencyInjection;
@@ -25,7 +26,7 @@ namespace AElf.CrossChain
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _crossChainService.UpdateWithLib(eventData.BlockHash, eventData.BlockHeight);
+            await _crossChainService.UpdateWithLibAsync(eventData.BlockHash, eventData.BlockHeight);
             _crossChainIndexingDataService.UpdateCrossChainDataWithLib(eventData.BlockHash, eventData.BlockHeight);
         }
     }

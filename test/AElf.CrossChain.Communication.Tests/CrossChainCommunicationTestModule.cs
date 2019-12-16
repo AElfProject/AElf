@@ -5,6 +5,7 @@ using Acs7;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.CrossChain.Communication.Infrastructure;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
@@ -87,7 +88,7 @@ namespace AElf.CrossChain.Communication
                     .Setup(m => m.GetExtraDataFromBlockHeader(It.IsAny<string>(), It.IsAny<BlockHeader>())).Returns(
                         () =>
                         {
-                            var crossExtraData = new CrossChainExtraData
+                            var crossExtraData = new CrossChainExtraData()
                             {
                                 TransactionStatusMerkleTreeRoot = Hash.FromString("SideChainBlockHeadersRoot"),
                             };
@@ -105,7 +106,7 @@ namespace AElf.CrossChain.Communication
                     {
                         var crossChainBlockData = new CrossChainBlockData
                         {
-                            SideChainBlockData =
+                            SideChainBlockDataList =
                             {
                                 new SideChainBlockData
                                 {
@@ -122,7 +123,7 @@ namespace AElf.CrossChain.Communication
                         {
                             var indexedSideChainBlockData = new IndexedSideChainBlockData
                             {
-                                SideChainBlockData =
+                                SideChainBlockDataList =
                                 {
                                     new SideChainBlockData
                                     {

@@ -29,9 +29,10 @@ namespace AElf.Contracts.ParliamentAuth
             
             if (ValidateProposerAuthority(Context.Sender))
                 return;
-
-            Assert(Context.Sender == State.GenesisContract.Value && ValidateProposerAuthority(Context.Origin),
-                "Not authorized to propose.");
+            
+            Assert(
+                Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
+                ValidateProposerAuthority(Context.Origin), "Not authorized to propose.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
@@ -95,12 +96,12 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyApproved(proposal), "Already approved.");
+            Assert(!CheckSenderAlreadyApproved(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyApproved(ProposalInfo proposal)
+        private bool CheckSenderAlreadyApproved(ProposalInfo proposal, Address address)
         {
-            return proposal.ApprovedRepresentatives.Contains(Context.Sender);
+            return proposal.ApprovedRepresentatives.Contains(address);
         }
 
         private bool ValidateProposerAuthority(Address address)
