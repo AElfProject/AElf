@@ -157,6 +157,7 @@ namespace AElf.Contracts.Economic
         /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
+            AssertValidMemo(input.Memo);
             if (State.ZeroContract.Value == null)
             {
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
@@ -180,6 +181,7 @@ namespace AElf.Contracts.Economic
 
         public override Empty IssueResourceToken(IssueResourceTokenInput input)
         {
+            AssertValidMemo(input.Memo);
             if (State.ZeroContract.Value == null)
             {
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
@@ -332,6 +334,11 @@ namespace AElf.Contracts.Economic
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
                 ManagerAddress = connectorManager
             });
+        }
+
+        private void AssertValidMemo(string memo)
+        {
+            Assert(memo.Length <= 64, "memo has more than 64 bytes.");
         }
     }
 }
