@@ -118,7 +118,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TokenSymbol = symbol,
                 AmountToTokenConvert = 0
             };
-            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(tokenInfo);
             var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
                 new IssueAmount
                 {
