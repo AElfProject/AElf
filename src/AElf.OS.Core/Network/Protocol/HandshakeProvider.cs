@@ -96,7 +96,7 @@ namespace AElf.OS.Network.Protocol
             if (TimestampHelper.GetUtcNow() > handshake.HandshakeData.Time +
                 TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
             {
-                Logger.LogWarning("Handshake is expired.");
+                Logger.LogWarning($"Handshake is expired: {handshake.HandshakeData.Time}.");
                 return HandshakeValidationResult.HandshakeTimeout;
             }
 

@@ -5,7 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

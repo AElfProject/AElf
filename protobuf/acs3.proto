@@ -33,6 +33,7 @@ message CreateProposalInput {
     bytes params = 4;
     google.protobuf.Timestamp expired_time = 5;
     aelf.Address organization_address = 6;
+    string proposal_id_feedback_method = 7;
 }
 
 message ProposalOutput {

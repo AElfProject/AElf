@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -65,7 +66,8 @@ namespace AElf.CrossChain.Cache
             var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId,
-                Height = 1
+                Height = 1,
+                TransactionStatusMerkleTreeRoot = Hash.FromString("1")
             });
             Assert.True(res);
         }

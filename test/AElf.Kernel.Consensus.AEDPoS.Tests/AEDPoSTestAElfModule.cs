@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
@@ -28,7 +27,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var interestedEvent = new IrreversibleBlockFound();
             var logEvent = interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
-            
+
             context.Services.AddTransient(provider =>
             {
                 var mockBlockChainService = new Mock<IBlockchainService>();
@@ -85,13 +84,16 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {
                         Status = TransactionResultStatus.Mined,
                         Bloom = ByteString.CopyFrom(logEvent.GetBloom().Data),
-                        Logs = { new LogEvent
+                        Logs =
                         {
-                            Address = SampleAddress.AddressList[0],
-                            Name = logEvent.Name
-                        }}
+                            new LogEvent
+                            {
+                                Address = SampleAddress.AddressList[0],
+                                Name = logEvent.Name
+                            }
+                        }
                     }));
-                
+
                 return mockService.Object;
             });
 
@@ -150,10 +152,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                             }
                         }.ToByteArray())
                     }));
-                
+
                 return mockService.Object;
             });
-            
+
             context.Services
                 .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
                 >();
