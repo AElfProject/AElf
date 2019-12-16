@@ -271,7 +271,7 @@ namespace AElf.Contracts.Economic
                 };
                 var nativeTokenConnector = new Connector
                 {
-                    Symbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    Symbol = EconomicContractConstants.NativeTokenPrefix.Append(resourceTokenSymbol),
                     IsPurchaseEnabled = true,
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",

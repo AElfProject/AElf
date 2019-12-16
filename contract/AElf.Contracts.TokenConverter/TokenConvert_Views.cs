@@ -68,21 +68,22 @@ namespace AElf.Contracts.TokenConverter
                     Owner = Context.Self,
                     Symbol = input.TokenSymbol
                 }).Balance;
-            var issuedOutside = tokenInfo.TotalSupply - balance;
+            var amountOutOfTokenConvert = tokenInfo.TotalSupply - balance - input.AmountToTokenConvert;
             long needDeposit = 0;
-            if (issuedOutside > 0)
+            if (amountOutOfTokenConvert > 0)
             {
                 var fb = fromConnector.VirtualBalance;
                 var tb = toConnector.IsVirtualBalanceEnabled
                     ? toConnector.VirtualBalance.Add(tokenInfo.TotalSupply)
                     : tokenInfo.TotalSupply;
                 needDeposit =
-                    BancorHelper.GetReturnFromPaid(fb, GetWeight(fromConnector), 
-                        tb, GetWeight(toConnector), issuedOutside);
+                    BancorHelper.GetAmountToPayFromReturn(fb, GetWeight(fromConnector), 
+                        tb, GetWeight(toConnector), amountOutOfTokenConvert);
             }
             return new DepositInfo
             {
                 NeedAmount = needDeposit,
+                AmountOutOfTokenConvert = amountOutOfTokenConvert
             };
             
         }

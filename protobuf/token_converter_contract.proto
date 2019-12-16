@@ -28,7 +28,7 @@ service TokenConverterContract {
     }
     rpc AddPairConnectors(PairConnector) returns (google.protobuf.Empty){
     }
-    rpc BuildConnectors(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
+    rpc EnableConnector(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
     }
     // Views
     rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
@@ -131,8 +131,9 @@ message PairConnector {
 
 message ToBeConnectedTokenInfo{
     string token_symbol = 1;
+    sint64 amount_to_token_convert = 2;
 }
 message DepositInfo{
     sint64 need_amount = 1;
-    sint64 amount_to_be_issued = 2;
+    sint64 amount_out_of_token_convert = 2;
 }

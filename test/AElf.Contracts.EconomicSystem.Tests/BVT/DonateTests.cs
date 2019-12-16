@@ -109,31 +109,24 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
         private async Task InitialBuildConnector(string symbol)
         {
-            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
+            var token = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
-                TokenSymbol = symbol
-            });
-            if (deposit.NeedAmount > 0)
+                Symbol = symbol,
+            }));
+            var tokenInfo = new ToBeConnectedTokenInfo
             {
-                var transferRet = (await TokenContractStub.Transfer.SendAsync(new TransferInput
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    To = TokenConverterContractAddress,
-                    Amount = deposit.NeedAmount
-                })).TransactionResult;
-                transferRet.Status.ShouldBe(TransactionResultStatus.Mined);   
-            }
+                TokenSymbol = symbol,
+                AmountToTokenConvert = 0
+            };
+            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(tokenInfo);
             var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
                 new IssueAmount
                 {
                     Symbol = symbol,
-                    Amount = deposit.AmountToBeIssued,
+                    Amount = token.TotalSupply - token.Supply
                 })).TransactionResult;
             issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var buildConnector = (await TokenConverterContractStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = symbol
-            })).TransactionResult;
+            var buildConnector = (await TokenConverterContractStub.EnableConnector.SendAsync(tokenInfo)).TransactionResult;
             buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
         }
         [Fact]

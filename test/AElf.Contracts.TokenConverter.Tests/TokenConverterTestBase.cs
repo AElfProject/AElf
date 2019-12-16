@@ -19,7 +19,7 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub;
         
         internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
-        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedStub;
+        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedTokenConvertStub;
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -45,7 +45,7 @@ namespace AElf.Contracts.TokenConverter
                 TokenConverterContractAddress = await DeploySystemSmartContract(category, code, TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
-                AuthorizedStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
+                AuthorizedTokenConvertStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, ManagerKeyPair);
             }
             

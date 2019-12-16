@@ -488,12 +488,4 @@ enum FeeTypeEnum {
 enum CalculateFunctionTypeEnum {
     Liner = 0;
     Power = 1;
-    Constant = 2;
-    Ln = 3;
-    Bancor = 4;
-}
-
-enum AlgorithmOpCode {
-    Add = 0;
-    Update = 1;
 }

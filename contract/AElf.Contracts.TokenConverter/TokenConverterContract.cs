@@ -277,10 +277,17 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        public override Empty BuildConnectors(ToBeConnectedTokenInfo input)
+        public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
+            Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
+            var fromConnector = State.Connectors[input.TokenSymbol];
+            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
+            var toConnector = State.Connectors[fromConnector.RelatedSymbol];
+            Assert(toConnector != null, "Can't find to connector.");
             var needDeposit = GetNeededDeposit(input);
             if (needDeposit.NeedAmount > 0)
+            {
                 State.TokenContract.TransferFrom.Send(
                     new TransferFromInput
                     {
@@ -289,9 +296,20 @@ namespace AElf.Contracts.TokenConverter
                         To = Context.Self,
                         Amount = needDeposit.NeedAmount,
                     });
-            var toConnector = State.Connectors[input.TokenSymbol];
+            }
+            if (input.AmountToTokenConvert > 0)
+            {
+                State.TokenContract.TransferFrom.Send(
+                    new TransferFromInput
+                    {
+                        Symbol = input.TokenSymbol,
+                        From = Context.Sender,
+                        To = Context.Self,
+                        Amount = input.AmountToTokenConvert
+                    });
+            }
+            State.DepositBalance[toConnector.Symbol] = needDeposit.NeedAmount;
             toConnector.IsPurchaseEnabled = true;
-            var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             fromConnector.IsPurchaseEnabled = true;
             return new Empty();
         }

@@ -37,8 +37,6 @@ namespace AElf.Contracts.MultiToken
             await InitializeCoefficientAsync();
             var calculateTxCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var size = 10000;
-            var fee = await calculateTxCostStrategy.GetCostAsync(null, size);
-            fee.ShouldBe(12_5001_0000);
             var param = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Tx,

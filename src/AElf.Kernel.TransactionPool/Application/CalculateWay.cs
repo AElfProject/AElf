@@ -7,48 +7,6 @@ using AElf.Sdk.CSharp;
 namespace AElf.Kernel.TransactionPool.Application
 {
     #region ICalculateWay implemention   
-
-    public class LnCalculateWay : ICalculateWay
-    {
-        public int PieceKey { get; set; }
-        public int ChangeSpanBase { get; set; }
-        public int Weight { get; set; }
-        public int WeightBase { get; set; }
-        public long Precision { get; set; } = 100000000L;
-        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Ln;
-
-        public void InitParameter(IDictionary<string, int> param)
-        {
-            param.TryGetValue(nameof(ChangeSpanBase).ToLower(), out var changeSpanBase);
-            param.TryGetValue(nameof(Weight).ToLower(), out var weight);
-            param.TryGetValue(nameof(WeightBase).ToLower(), out var weightBase);
-            ChangeSpanBase = changeSpanBase;
-            Weight = weight;
-            WeightBase = weightBase;
-        }
-
-        public long GetCost(int cost)
-        {
-            int diff = cost + 1;
-            double weightChange = (double) diff / ChangeSpanBase;
-            double unitValue = (double) Weight / WeightBase;
-            if (weightChange <= 1)
-                return 0;
-            return Precision.Mul((long) (weightChange * unitValue * Math.Log(weightChange, Math.E)));
-        }
-
-        public IDictionary<string, int> GetParameterDic()
-        {
-            var paraDic = new Dictionary<string, int>
-            {
-                [nameof(ChangeSpanBase).ToLower()] = ChangeSpanBase,
-                [nameof(Weight).ToLower()] = Weight,
-                [nameof(WeightBase).ToLower()] = WeightBase
-            };
-            return paraDic;
-        }
-    }
-
     public class PowerCalculateWay : ICalculateWay
     {
         public int PieceKey { get; set; }
@@ -97,35 +55,6 @@ namespace AElf.Kernel.TransactionPool.Application
             return paraDic;
         }
     }
-
-    public class ConstCalculateWay : ICalculateWay
-    {
-        public int PieceKey { get; set; }
-        public long Precision { get; set; } = 100000000L;
-        public int ConstantValue { get; set; }
-        public int FunctionTypeEnum { get; } = (int) CalculateFunctionTypeEnum.Constant;
-
-        public void InitParameter(IDictionary<string, int> param)
-        {
-            param.TryGetValue(nameof(ConstantValue).ToLower(), out var constantValue);
-            ConstantValue = constantValue;
-        }
-
-        public long GetCost(int cost)
-        {
-            return Precision.Mul(ConstantValue);
-        }
-
-        public IDictionary<string, int> GetParameterDic()
-        {
-            var paraDic = new Dictionary<string, int>
-            {
-                [nameof(ConstantValue).ToLower()] = ConstantValue
-            };
-            return paraDic;
-        }
-    }
-
     public class LinerCalculateWay : ICalculateWay
     {
         public int PieceKey { get; set; }

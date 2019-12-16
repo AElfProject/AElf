@@ -8,8 +8,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<long> GetCostAsync(IChainContext context, int cost);
         void AddAlgorithm(BlockIndex blockIndex, IList<ICalculateWay> allWay);
-
-
+        
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
@@ -40,10 +39,10 @@ namespace AElf.Kernel.SmartContract.Application
         BlockIndex BlockIndex { get; set; }
     }
 
-    public interface ICalculateAlgorithm
+    public interface ICalculateAlgorithmService
     {
         ICalculateAlgorithmContext CalculateAlgorithmContext { get; }
-        ICalculateAlgorithm AddDefaultAlgorithm(int pieceKey, ICalculateWay func);
+        ICalculateAlgorithmService AddDefaultAlgorithm(int pieceKey, ICalculateWay func);
         void AddAlgorithmByBlock(BlockIndex blockIndex, IList<ICalculateWay> funcList);
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
