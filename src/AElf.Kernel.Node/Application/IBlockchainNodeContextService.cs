@@ -47,23 +47,6 @@ namespace AElf.Kernel.Node.Application
         
         public ILocalEventBus EventBus { get; set; }
 
-        public BlockchainNodeContextService(
-            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
-            ISmartContractAddressUpdateService smartContractAddressUpdateService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService,
-            IDeployedContractAddressService deployedContractAddressService)
-        {
-            _blockchainService = blockchainService;
-            _chainCreationService = chainCreationService;
-            _txHub = txHub;
-            _smartContractAddressUpdateService = smartContractAddressUpdateService;
-            _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
-            _consensusService = consensusService;
-            _deployedContractAddressService = deployedContractAddressService;
-
-            EventBus = NullLocalEventBus.Instance;
-        }
-
         public BlockchainNodeContextService(IServiceProvider serviceProvider)
         {
             _blockchainService = serviceProvider.GetService<IBlockchainService>();
