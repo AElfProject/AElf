@@ -159,6 +159,7 @@ namespace AElf.Contracts.TestContract.Events
 
         public override Empty InlineTransferFrom(InlineTransferFromInput input)
         {
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 Amount = input.Amount,
