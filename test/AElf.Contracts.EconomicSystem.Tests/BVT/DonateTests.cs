@@ -88,33 +88,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_FewOtherToken_Success_Test()
         {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
             var keyPair = CoreDataCenterKeyPairs[0];
-            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
-            });
-            if (deposit.NeedAmount > 0)
-            {
-                var transferRet = (await TokenContractStub.Transfer.SendAsync(new TransferInput
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    To = TokenConverterContractAddress,
-                    Amount = deposit.NeedAmount
-                })).TransactionResult;
-                transferRet.Status.ShouldBe(TransactionResultStatus.Mined);   
-            }
-            var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
-                new IssueAmount
-                {
-                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                    Amount = deposit.AmountToBeIssued,
-                })).TransactionResult;
-            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var buildConnector = (await TokenConverterContractStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
-            })).TransactionResult;
-            buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
@@ -132,43 +107,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             userBalance.ShouldBe(50);
         }
 
-//        private async Task InitialBuildConnector(string symbol)
-//        {
-//            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
-//            {
-//                TokenSymbol = symbol
-//            });
-//            if (deposit.NeedAmount > 0)
-//            {
-//                var transferRet = (await TokenContractStub.Transfer.SendAsync(new TransferInput
-//                {
-//                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-//                    To = TokenConverterContractAddress,
-//                    Amount = deposit.NeedAmount
-//                })).TransactionResult;
-//                transferRet.Status.ShouldBe(TransactionResultStatus.Mined);   
-//            }
-//            var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
-//                new IssueAmount
-//                {
-//                    Symbol = symbol,
-//                    Amount = deposit.AmountToBeIssued,
-//                })).TransactionResult;
-//            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
-//            var buildConnector = (await TokenConverterContractStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
-//            {
-//                TokenSymbol = symbol
-//            })).TransactionResult;
-//            buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
-//        }
-        [Fact]
-        public async Task Donate_AllOtherToken_Success_Test()
+        private async Task InitialBuildConnector(string symbol)
         {
-            var keyPair = CoreDataCenterKeyPairs[0];
-
             var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
             {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                TokenSymbol = symbol
             });
             if (deposit.NeedAmount > 0)
             {
@@ -183,16 +126,22 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
                 new IssueAmount
                 {
-                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
+                    Symbol = symbol,
                     Amount = deposit.AmountToBeIssued,
                 })).TransactionResult;
             issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var buildConnector = (await TokenConverterContractStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
             {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                TokenSymbol = symbol
             })).TransactionResult;
             buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+        }
+        [Fact]
+        public async Task Donate_AllOtherToken_Success_Test()
+        {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
+            var keyPair = CoreDataCenterKeyPairs[0];
+
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
@@ -212,34 +161,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_OtherToken_LessThan_Owned_Test()
         {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
             var keyPair = CoreDataCenterKeyPairs[0];
-
-            var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
-            });
-            if (deposit.NeedAmount > 0)
-            {
-                var transferRet = (await TokenContractStub.Transfer.SendAsync(new TransferInput
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    To = TokenConverterContractAddress,
-                    Amount = deposit.NeedAmount
-                })).TransactionResult;
-                transferRet.Status.ShouldBe(TransactionResultStatus.Mined);   
-            }
-            var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
-                new IssueAmount
-                {
-                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                    Amount = deposit.AmountToBeIssued,
-                })).TransactionResult;
-            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var buildConnector = (await TokenConverterContractStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
-            })).TransactionResult;
-            buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
             
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 50);
             var stub = GetTreasuryContractTester(keyPair);
