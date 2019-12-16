@@ -44,9 +44,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\stub\acs3.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>
         </ContractStub>

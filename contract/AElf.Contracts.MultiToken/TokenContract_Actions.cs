@@ -313,7 +313,8 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount, $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
+            Assert(existingBalance >= input.Amount,
+                $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
@@ -512,5 +513,6 @@ namespace AElf.Contracts.MultiToken
                 advancedAmount.Sub(input.Amount);
             return new Empty();
         }
+        
     }
 }
