@@ -157,7 +157,7 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = input.Amount
                 });
-            
+
             Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,
@@ -279,17 +279,18 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty BuildConnectors(ToBeConnectedTokenInfo input)
         {
-            AssertPerformedByManager();
+            //AssertPerformedByManager();
             var needDeposit = GetNeededDeposit(input);
-            Assert(needDeposit.AmountToBeIssued == 0, $"token should all be issued");
-            State.TokenContract.TransferFrom.Send(
-                new TransferFromInput
-                {
-                    Symbol = State.BaseTokenSymbol.Value,
-                    From = Context.Sender,
-                    To = Context.Self,
-                    Amount = needDeposit.NeedAmount,
-                });
+            Assert(needDeposit.AmountToBeIssued == 0, $"all token should be issued");
+            if (needDeposit.NeedAmount > 0)
+                State.TokenContract.TransferFrom.Send(
+                    new TransferFromInput
+                    {
+                        Symbol = State.BaseTokenSymbol.Value,
+                        From = Context.Sender,
+                        To = Context.Self,
+                        Amount = needDeposit.NeedAmount,
+                    });
             var toConnector = State.Connectors[input.TokenSymbol];
             toConnector.IsPurchaseEnabled = true;
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];

@@ -14,8 +14,14 @@ service TransactionFeeChargingContract {
     }
     rpc SupposedToFail (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc IssueToTokenConvert (IssueAmount) returns (google.protobuf.Empty) {
+    }
 }
 
 message InitializeTransactionFeeChargingContractInput {
     string symbol = 1;
+}
+message IssueAmount {
+    string symbol = 1;
+    sint64 amount = 2;
 }

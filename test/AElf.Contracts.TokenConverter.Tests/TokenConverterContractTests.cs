@@ -526,7 +526,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Add_Pair_Connector_Success_Test()
+        public async Task Add_Pair_Connector_And_Build_Success_Test()
         {
             string token = "NETT";
             await DeployContractsAsync();
