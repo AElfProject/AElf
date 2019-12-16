@@ -94,8 +94,8 @@ namespace AElf.Runtime.CSharp
 
         public ContractPolicyTests()
         {
-            _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module);
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
+            _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
+            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched");
         }
 
         [Fact]
