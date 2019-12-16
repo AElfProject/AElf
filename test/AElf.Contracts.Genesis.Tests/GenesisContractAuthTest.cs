@@ -172,7 +172,7 @@ namespace AElf.Contracts.Genesis
             newHash.ShouldBe(codeHash);
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for time consuming code check.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput
@@ -210,7 +210,7 @@ namespace AElf.Contracts.Genesis
                 .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for time consuming code check.")]
         public async Task UpdateSmartContractWithCodeCheck_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput

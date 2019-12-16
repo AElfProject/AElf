@@ -3,6 +3,7 @@ syntax = "proto3";
 import "acs7.proto";
 import "google/protobuf/wrappers.proto";
 import "acs1.proto";
+import public "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
@@ -40,6 +41,9 @@ service CrossChainContract {
     rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitializeInput {
@@ -71,10 +75,33 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-message ParentChainBlockDataIndexed{
+message CrossChainIndexingDataProposedEvent{
+    option (aelf.is_event) = true;
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+}
+
+message SideChainBlockDataIndexedEvent{
     option (aelf.is_event) = true;
 }
 
-message SideChainBlockDataIndexed{
-    option (aelf.is_event) = true;
+message CrossChainIndexingProposal{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 3;
+    CrossChainIndexingProposalStatus status = 4;
+}
+
+message GetPendingCrossChainIndexingProposalOutput{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    bool to_be_released = 3;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    google.protobuf.Timestamp expired_time = 5;
+}
+
+enum CrossChainIndexingProposalStatus{
+    NON_PROPOSED = 0;
+    PROPOSED = 1;
+    PENDING = 2;
+    TO_BE_RELEASED = 3;
 }
