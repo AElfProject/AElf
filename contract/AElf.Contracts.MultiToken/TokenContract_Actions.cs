@@ -115,28 +115,26 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
-            var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
-            var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
-            Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
+            var tokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
+            Assert(tokenContractAddress != null,
+                $"Token contract address of chain {ChainHelper.ConvertChainIdToBase58(input.FromChainId)} not registered.");
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
-
-            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
-
+            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(ValidateTokenInfoExists));
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
-
-            CreateInput creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
+            ValidateTokenInfoExistsInput validateTokenInfoExistsInput =
+                ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);
 
             RegisterTokenInfo(new TokenInfo
             {
-                Symbol = creationInput.Symbol,
-                TokenName = creationInput.TokenName,
-                TotalSupply = creationInput.TotalSupply,
-                Decimals = creationInput.Decimals,
-                Issuer = creationInput.Issuer,
-                IsBurnable = creationInput.IsBurnable,
-                IssueChainId = creationInput.IssueChainId
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
             return new Empty();
         }
@@ -313,7 +311,8 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount, $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
+            Assert(existingBalance >= input.Amount,
+                $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
@@ -510,6 +509,18 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 advancedAmount.Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
+                                    tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
+                                    tokenInfo.IsTransferDisabled == input.IsTransferDisabled &&
+                                    tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
+                                    tokenInfo.IssueChainId == input.IssueChainId;
+            Assert(validationResult, "Token validation failed.");
             return new Empty();
         }
     }
