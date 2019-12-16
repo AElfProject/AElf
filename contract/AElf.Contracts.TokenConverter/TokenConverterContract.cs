@@ -279,9 +279,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty BuildConnectors(ToBeConnectedTokenInfo input)
         {
-            //AssertPerformedByManager();
             var needDeposit = GetNeededDeposit(input);
-            Assert(needDeposit.AmountToBeIssued == 0, $"all token should be issued");
             if (needDeposit.NeedAmount > 0)
                 State.TokenContract.TransferFrom.Send(
                     new TransferFromInput

@@ -526,7 +526,76 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Add_Pair_Connector_And_Build_Success_Test()
+        public async Task Add_Pair_Connector_And_Build_Without_Deposit_Success_Test()
+        {
+            string token = "NETT";
+            await DeployContractsAsync();
+            await InitializeTokenConverterContract();
+            var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = token,
+                TokenName = "NETT name",
+                TotalSupply = 100_0000_0000,
+                Issuer = ManagerAddress,
+                IsBurnable = true,
+                LockWhiteList = { TokenConverterContractAddress}
+            })).TransactionResult;
+            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var pairConnector = new PairConnector
+            {
+                ResourceConnectorSymbol = token,
+                ResourceWeight = "0.02",
+                ResourceVirtualBalance = 10000,
+                IsResourceVirtualBalanceEnabled = true,
+                NativeWeight = "0.05",
+                NativeVirtualBalance = 100,
+                IsNativeVirtualBalanceEnabled = true,
+            };
+            var ret = (await AuthorizedStub.AddPairConnectors.SendAsync(pairConnector)).TransactionResult;
+            ret.Status.ShouldBe(TransactionResultStatus.Mined);
+            var resourceConnector = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            var nativeToResourceConnector =
+                await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(false);
+            nativeToResourceConnector.ShouldNotBeNull();
+            nativeToResourceConnector.IsPurchaseEnabled.ShouldBe(false);
+            var sendRet = (await AuthorizedTokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                To = ManagerAddress,
+                Amount = 100,
+                Symbol = token
+            })).TransactionResult;
+            sendRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var deposit = await AuthorizedStub.GetNeededDeposit.CallAsync(new ToBeConnectedTokenInfo
+            {
+                TokenSymbol = token
+            });
+            deposit.AmountToBeIssued.ShouldBe(100_0000_0000 - 100);
+            var issueRet = (await AuthorizedTokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = token,
+                Amount = deposit.AmountToBeIssued,
+                To = TokenConverterContractAddress
+            })).TransactionResult; 
+            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var buildRet = (await AuthorizedStub.BuildConnectors.SendAsync(new ToBeConnectedTokenInfo
+            {
+                TokenSymbol = token
+            })).TransactionResult;
+            buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            resourceConnector = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            nativeToResourceConnector =
+                await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = token});
+            resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(true);
+            nativeToResourceConnector.ShouldNotBeNull();
+            nativeToResourceConnector.IsPurchaseEnabled.ShouldBe(true);
+        }
+        
+        [Fact]
+        public async Task Add_Pair_Connector_And_Build_With_Deposit_Success_Test()
         {
             string token = "NETT";
             await DeployContractsAsync();
@@ -597,6 +666,10 @@ namespace AElf.Contracts.TokenConverter
 
         #region Private Task
 
+        private async Task InitialTestConnector(string token)
+        {
+            
+        }
         private async Task CreateRamToken()
         {
             var createResult = (await TokenContractStub.Create.SendAsync(

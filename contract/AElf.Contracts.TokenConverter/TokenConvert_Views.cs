@@ -68,7 +68,7 @@ namespace AElf.Contracts.TokenConverter
                     Owner = Context.Self,
                     Symbol = input.TokenSymbol
                 }).Balance;
-            var issuedOutside = tokenInfo.Supply - balance;
+            var issuedOutside = tokenInfo.TotalSupply - balance;
             long needDeposit = 0;
             if (issuedOutside > 0)
             {
@@ -83,7 +83,6 @@ namespace AElf.Contracts.TokenConverter
             return new DepositInfo
             {
                 NeedAmount = needDeposit,
-                AmountToBeIssued = tokenInfo.TotalSupply - tokenInfo.Supply
             };
             
         }
