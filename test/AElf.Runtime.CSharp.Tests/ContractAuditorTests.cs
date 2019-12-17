@@ -86,7 +86,7 @@ namespace AElf.Runtime.CSharp.Tests
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module + ".patched")))
                 .Findings;
             
             // Random usage
