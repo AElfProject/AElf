@@ -10,7 +10,7 @@ namespace AElf.Contracts.TokenConverter
 {
     public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
     {
-        private const string NtTokenPrefix = "NT";
+        private const string NtTokenPrefix = "nt";
 
         #region Actions
 
@@ -46,7 +46,10 @@ namespace AElf.Contracts.TokenConverter
             var count = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
-                AssertValidConnectorAndNormalizeWeight(connector);
+                if(connector.IsDepositAccount)
+                    AssertValidConnectorWeight(connector);
+                else
+                    AssertValidConnectorAndNormalizeWeight(connector);
                 State.ConnectorSymbols[count] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
                 count = count.Add(1);
@@ -62,7 +65,9 @@ namespace AElf.Contracts.TokenConverter
             AssertPerformedByManager();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
-            Assert(targetConnector != null, "Can't find target connector.");
+            Assert(targetConnector != null, "Can not find target connector.");
+            Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been actived");
+            //AssertValidTokenOwnShip(targetConnector.IsDepositAccount?targetConnector.RelatedSymbol:targetConnector.Symbol,Context.Sender);
             if (!string.IsNullOrEmpty(input.Weight))
             {
                 var weight = AssertedDecimal(input.Weight);
@@ -82,14 +87,13 @@ namespace AElf.Contracts.TokenConverter
             AssertPerformedByManager();
             Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
-            var nativeConnectorSymbol = NtTokenPrefix + pairConnector.ResourceConnectorSymbol;
+            var nativeConnectorSymbol = NtTokenPrefix.Append(pairConnector.ResourceConnectorSymbol);
             Assert(State.Connectors[pairConnector.ResourceConnectorSymbol] == null,
                 "resource token symbol has been existed");
+            //AssertValidTokenOwnShip(pairConnector.ResourceConnectorSymbol, Context.Sender);
             var resourceConnector = new Connector
             {
                 Symbol = pairConnector.ResourceConnectorSymbol,
-                VirtualBalance = pairConnector.ResourceVirtualBalance,
-                IsVirtualBalanceEnabled = pairConnector.IsResourceVirtualBalanceEnabled,
                 IsPurchaseEnabled = false,
                 RelatedSymbol = nativeConnectorSymbol,
                 Weight = pairConnector.ResourceWeight
@@ -99,19 +103,19 @@ namespace AElf.Contracts.TokenConverter
             {
                 Symbol = nativeConnectorSymbol,
                 VirtualBalance = pairConnector.NativeVirtualBalance,
-                IsVirtualBalanceEnabled = pairConnector.IsNativeVirtualBalanceEnabled,
+                IsVirtualBalanceEnabled = true,
                 IsPurchaseEnabled = false,
                 RelatedSymbol = pairConnector.ResourceConnectorSymbol,
                 Weight = pairConnector.NativeWeight,
                 IsDepositAccount = true
             };
-            AssertValidConnectorAndNormalizeWeight(nativeTokenToResourceConnector);
+            AssertValidConnectorWeight(nativeTokenToResourceConnector);
             int count = State.ConnectorCount.Value;
-            State.ConnectorSymbols[count + 1] = resourceConnector.Symbol;
+            State.ConnectorSymbols[ ++ count] = resourceConnector.Symbol;
             State.Connectors[resourceConnector.Symbol] = resourceConnector;
-            State.ConnectorSymbols[count + 2] = nativeTokenToResourceConnector.Symbol;
+            State.ConnectorSymbols[ ++ count] = nativeTokenToResourceConnector.Symbol;
             State.Connectors[nativeTokenToResourceConnector.Symbol] = nativeTokenToResourceConnector;
-            State.ConnectorCount.Value = count + 2;
+            State.ConnectorCount.Value = count;
             return new Empty();
         }
 
@@ -376,6 +380,15 @@ namespace AElf.Contracts.TokenConverter
             return decimal.Parse(connector.Weight);
         }
 
+        private void AssertValidTokenOwnShip(string symbol, Address sender)
+        {
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
+            Assert(tokenInfo != null, $"token: {symbol} does not exist");
+            Assert(tokenInfo.Issuer == sender,"connector must be in control of token issuer");
+        }
         private void AssertPerformedByManager()
         {
             Assert(Context.Sender == State.ManagerAddress.Value, "Only manager can perform this action.");
@@ -383,7 +396,16 @@ namespace AElf.Contracts.TokenConverter
 
         private void AssertValidConnectorAndNormalizeWeight(Connector connector)
         {
+            AssertValidConnectorSymbol(connector);
+            AssertValidConnectorWeight(connector);
+        }
+
+        private void AssertValidConnectorSymbol(Connector connector)
+        {
             Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
+        }
+        private void AssertValidConnectorWeight(Connector connector)
+        {
             var weight = AssertedDecimal(connector.Weight);
             Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);

@@ -13,65 +13,65 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty UpdateCoefficientFromContract(CoefficientFromContract coeInput)
+        public override Empty UpdateCoefficientFromContract(CoefficientFromContract coefficientInput)
         {
-            if (coeInput == null)
+            if (coefficientInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientOfContract[coeInput.FeeType];
-            if (dataInDb == null)
+            var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
+            if (coefficientInfoInState == null)
                 return new Empty();
-            var coefficient = coeInput.Coefficient;
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if (theOne == null)
+            var coefficient = coefficientInput.Coefficient;
+            var funcCoefficient = coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
+            if (funcCoefficient == null)
                 return new Empty();
-            if (!IsModifiedDbData(coeInput.Coefficient, theOne)) return new Empty();
+            if (!IsModifiedDbData(coefficientInput.Coefficient, funcCoefficient)) return new Empty();
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                AllCoefficient = dataInDb
+                AllCoefficient = coefficientInfoInState
             });
             return new Empty();
         }
 
-        public override Empty UpdateCoefficientFromSender(CoefficientFromSender coeInput)
+        public override Empty UpdateCoefficientFromSender(CoefficientFromSender coefficientInput)
         {
-            if (coeInput == null)
+            if (coefficientInput == null)
                 return new Empty();
             AssertIsAuthorized();
-            var dataInDb = State.CalculateCoefficientOfSender.Value;
-            if (dataInDb == null)
+            var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
+            if (coefficientInfoInState == null)
             {
                 return new Empty();
             }
 
-            var theOne = dataInDb.Coefficients.SingleOrDefault(x => x.PieceKey == coeInput.PieceKey);
-            if (theOne == null)
+            var funcCoefficient = coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
+            if (funcCoefficient == null)
             {
                 return new Empty();
             }
 
-            if (!IsModifiedDbData(coeInput, theOne)) return new Empty();
+            if (!IsModifiedDbData(coefficientInput, funcCoefficient)) return new Empty();
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                AllCoefficient = dataInDb
+                AllCoefficient = coefficientInfoInState
             });
             return new Empty();
         }
 
-        private bool IsModifiedDbData(CoefficientFromSender coeInput, CalculateFeeCoefficient theOne)
+        private bool IsModifiedDbData(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
         {
             bool isChanged;
-            if (coeInput.IsChangePieceKey)
+            if (coefficientInput.IsChangePieceKey)
             {
-                isChanged = ChangeFeePieceKey(coeInput, theOne);
+                isChanged = ChangeFeePieceKey(coefficientInput, funcCoefficient);
             }
-            else if (coeInput.IsLiner)
+            else if (coefficientInput.IsLiner)
             {
-                isChanged = UpdateLinerAlgorithm(coeInput, theOne);
+                isChanged = UpdateLinerAlgorithm(coefficientInput, funcCoefficient);
             }
             else
             {
-                isChanged = UpdatePowerAlgorithm(coeInput, theOne);
+                isChanged = UpdatePowerAlgorithm(coefficientInput, funcCoefficient);
             }
 
             return isChanged;

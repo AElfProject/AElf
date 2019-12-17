@@ -25,7 +25,6 @@ namespace AElf.Kernel.TransactionPool.Application
     interface ICalculateFunctionProvider : ITransientDependency
     {
         Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
-        Dictionary<int, ICalculateWay> DefaultWiseFuncCache { get; set; }
         ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; }
     }
     class CalculateFunctionProvider : ICalculateFunctionProvider
@@ -64,11 +63,6 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 forkCache.TryRemove(blockIndex, out _);
             }
-        }
-        public ICalculateAlgorithmService AddDefaultAlgorithm(int limit, ICalculateWay func)
-        {
-            _cacheProvider.DefaultWiseFuncCache[limit] = func;
-            return this;
         }
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)
@@ -169,13 +163,6 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 parameters = await tokenStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
                     {Value = CalculateAlgorithmContext.CalculateFeeTypeEnum});
-            }
-            
-            if (parameters == null)
-            {
-                Logger.LogWarning("does not find parameter from contract, initialize from default ");
-                _cacheProvider.PieceWiseFuncCache = _cacheProvider.DefaultWiseFuncCache.ToDictionary(x => x.Key, x => x.Value);
-                return _cacheProvider.PieceWiseFuncCache;
             }
 
             if (_cacheProvider.PieceWiseFuncCache == null)

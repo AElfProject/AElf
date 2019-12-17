@@ -121,12 +121,9 @@ message TokenSold {
 }
 message PairConnector {
     string resource_connector_symbol = 1;
-    sint64 resource_virtual_balance = 2;
-    string resource_weight = 3;
-    bool is_resource_virtual_balance_enabled = 4;
-    sint64 native_virtual_balance = 5;
-    string native_weight = 6;
-    bool is_native_virtual_balance_enabled = 7;
+    string resource_weight = 2;
+    sint64 native_virtual_balance = 3;
+    string native_weight = 4;
 }
 
 message ToBeConnectedTokenInfo{

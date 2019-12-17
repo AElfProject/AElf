@@ -1,14 +1,16 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 
+[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests")]
 namespace AElf.Kernel.TransactionPool.Application
 {
     #region concrete strategys
 
-    abstract class CalculateCostStrategyBase
+    public abstract class CalculateCostStrategyBase
     {
         protected ICalculateAlgorithmService CalculateAlgorithmService { get; set; }
 
@@ -49,26 +51,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
-                        chainBlockLinkService, functionProvider)
-                    .AddDefaultAlgorithm(10, new LinerCalculateWay // used for unit test
-                    {
-                        Numerator = 1,
-                        Denominator = 8,
-                        ConstantValue = 10000
-                    }).AddDefaultAlgorithm(100, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 4
-                    }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 4,
-                        Weight = 250,
-                        WeightBase = 40,
-                        Numerator = 1,
-                        Denominator = 4,
-                        Precision = 100000000L
-                    });
+                    chainBlockLinkService, functionProvider);
+                   
             CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Cpu;
         }
     }
@@ -82,22 +66,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
-                        chainBlockLinkService, functionProvider)
-                    .AddDefaultAlgorithm(1000000, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 64,
-                        ConstantValue = 10000
-                    }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 100,
-                        Weight = 250,
-                        WeightBase = 500,
-                        Numerator = 1,
-                        Denominator = 64,
-                        Precision = 100000000L
-                    });
+                    chainBlockLinkService, functionProvider);
+            
             CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Sto;
         }
     }
@@ -111,25 +81,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
-                        chainBlockLinkService, functionProvider)
-                    .AddDefaultAlgorithm(10, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 8,
-                        ConstantValue = 10000
-                    }).AddDefaultAlgorithm(100, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 4
-                    }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 2,
-                        Weight = 250,
-                        Numerator = 1,
-                        Denominator = 4,
-                        WeightBase = 40,
-                    });
+                    chainBlockLinkService, functionProvider);
             CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Ram;
         }
     }
@@ -143,27 +95,13 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
-                        chainBlockLinkService, functionProvider)
-                    .AddDefaultAlgorithm(1000000, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 64,
-                        ConstantValue = 10000
-                    }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 100,
-                        Weight = 250,
-                        WeightBase = 500,
-                        Numerator = 1,
-                        Denominator = 64,
-                        Precision = 100000000L
-                    });
+                    chainBlockLinkService, functionProvider);
+                    
             CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Net;
         }
     }
 
-    class TxCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
+    internal class TxCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
     {
         public TxCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -172,22 +110,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
-                        chainBlockLinkService, functionProvider)
-                    .AddDefaultAlgorithm(1000000, new LinerCalculateWay
-                    {
-                        Numerator = 1,
-                        Denominator = 800,
-                        ConstantValue = 10000
-                    }).AddDefaultAlgorithm(int.MaxValue, new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 100,
-                        Weight = 1,
-                        WeightBase = 1,
-                        Numerator = 1,
-                        Denominator = 800,
-                        Precision = 100000000L
-                    });
+                        chainBlockLinkService, functionProvider);
             CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Tx;
         }
     }
