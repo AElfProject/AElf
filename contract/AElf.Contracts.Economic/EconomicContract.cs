@@ -339,7 +339,7 @@ namespace AElf.Contracts.Economic
 
         private void AssertValidMemo(string memo)
         {
-            Assert(Encoding.UTF8.GetByteCount(memo) <= 64, "memo has more than 64 bytes.");
+            Assert(Encoding.UTF8.GetByteCount(memo) <= EconomicContractConstants.MemoMaxLength, "memo has more than 64 bytes.");
         }
     }
 }
