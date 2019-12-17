@@ -1,5 +1,3 @@
-using System;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -10,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Volo.Abp;
@@ -30,14 +27,11 @@ namespace AElf.WebApp.Application.Chain
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync();
 
         Task<BlockStateDto> GetBlockStateAsync(string blockHash);
-
-        Task<RoundDto> GetCurrentRoundInformationAsync();
     }
 
     public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
 
@@ -46,12 +40,10 @@ namespace AElf.WebApp.Application.Chain
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
-            IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
             IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
-            _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
 
@@ -136,46 +128,6 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
-        }
-
-        /// <summary>
-        /// Get AEDPoS latest round information from last block header's consensus extra data of best chain.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<RoundDto> GetCurrentRoundInformationAsync()
-        {
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
-            var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            var round = information.Round;
-            var roundId = round.RoundIdForValidation == 0
-                ? round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
-                    .Sum()
-                : round.RoundIdForValidation;
-            return new RoundDto
-            {
-                ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
-                RealTimeMinerInformation = round.RealTimeMinersInformation.ToDictionary(i => i.Key, i =>
-                    new MinerInRoundDto
-                    {
-                        Order = i.Value.Order == 0 ? 1 : i.Value.Order,
-                        ExpectedMiningTime = i.Value.ExpectedMiningTime?.ToDateTime() ?? new DateTime(),
-                        ActualMiningTimes = i.Value.ActualMiningTimes?.Select(t => t.ToDateTime()).ToList(),
-                        ProducedTinyBlocks = i.Value.ActualMiningTimes?.Count ?? 0,
-                        ProducedBlocks = i.Value.ProducedBlocks,
-                        MissedBlocks = i.Value.MissedTimeSlots,
-                        InValue = i.Value.InValue?.ToHex(),
-                        OutValue = i.Value.OutValue?.ToHex(),
-                        PreviousInValue = i.Value.PreviousInValue?.ToHex(),
-                        ImpliedIrreversibleBlockHeight = i.Value.ImpliedIrreversibleBlockHeight
-                    }),
-                RoundNumber = round.RoundNumber,
-                TermNumber = round.TermNumber,
-                ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
-                ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
-                IsMinerListJustChanged = round.IsMinerListJustChanged,
-                RoundId = roundId
-            };
         }
 
         private async Task<Block> GetBlockAsync(Hash blockHash)

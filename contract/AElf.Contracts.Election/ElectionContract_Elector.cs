@@ -227,6 +227,7 @@ namespace AElf.Contracts.Election
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+            Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockDays = State.LockTimeMap[input.VoteId];
             Assert(actualLockedTime < claimedLockDays, "This vote already expired.");

@@ -27,7 +27,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -278,8 +277,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Approve(ApproveInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
             Context.Fire(new Approved()
