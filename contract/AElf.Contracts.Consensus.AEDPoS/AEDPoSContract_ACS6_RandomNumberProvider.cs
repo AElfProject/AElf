@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs6;
@@ -167,7 +166,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null || 
+            if (randomNumberRequestInformation == null ||
                 randomNumberRequestInformation.TargetRoundNumber == 0 ||
                 randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight ||
                 !TryToGetRoundNumber(out var currentRoundNumber))

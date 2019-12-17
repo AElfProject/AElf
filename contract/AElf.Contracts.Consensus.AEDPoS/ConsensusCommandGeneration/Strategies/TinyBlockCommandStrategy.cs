@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public class TinyBlockCommandStrategy : CommandStrategyBase
+        private class TinyBlockCommandStrategy : CommandStrategyBase
         {
             private readonly int _maximumBlocksCount;
 
@@ -23,23 +23,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public override ConsensusCommand GetAEDPoSConsensusCommand()
             {
+                // Provided pubkey can mine a block after TinyBlockMinimumInterval ms.
                 var arrangedMiningTime =
-                    MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime,
+                    MiningTimeArrangingService.ArrangeMiningTimeWithOffset(CurrentBlockTime,
                         TinyBlockMinimumInterval);
 
-                var miningDueTime = MinerInRound.ActualMiningTimes
-                    .OrderBy(t => t)
-                    .Last()
-                    .AddMilliseconds(MiningInterval);
+                var roundStartTime = CurrentRound.GetRoundStartTime();
+                var currentTimeSlotStartTime = CurrentBlockTime < roundStartTime
+                    ? roundStartTime.AddMilliseconds(-MiningInterval)
+                    : CurrentRound.RoundNumber == 1
+                        ? MinerInRound.ActualMiningTimes.First()
+                        : MinerInRound.ExpectedMiningTime;
+                var currentTimeSlotEndTime = currentTimeSlotStartTime.AddMilliseconds(MiningInterval);
 
-                return arrangedMiningTime > miningDueTime
+                return arrangedMiningTime > currentTimeSlotEndTime
                     ? new TerminateRoundCommandStrategy(CurrentRound, Pubkey, CurrentBlockTime, false)
-                        .GetAEDPoSConsensusCommand()
+                        .GetAEDPoSConsensusCommand() // The arranged mining time already beyond the time slot.
                     : new ConsensusCommand
                     {
                         Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.TinyBlock}.ToByteString(),
                         ArrangedMiningTime = arrangedMiningTime,
-                        MiningDueTime = miningDueTime,
+                        MiningDueTime = currentTimeSlotEndTime,
                         LimitMillisecondsOfMiningBlock = IsLastTinyBlockOfCurrentSlot()
                             ? LastTinyBlockMiningLimit
                             : DefaultBlockMiningLimit

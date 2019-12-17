@@ -481,6 +481,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new SInt64Value {Value = 0};
         }
 
+        /// <summary>
+        /// Get left seconds to next election takes effects.
+        /// Return 0 for side chain and single node.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
             if (!State.IsMainChain.Value)

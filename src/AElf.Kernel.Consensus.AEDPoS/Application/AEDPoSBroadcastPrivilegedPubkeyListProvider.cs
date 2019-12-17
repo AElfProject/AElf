@@ -32,19 +32,21 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
         {
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
-            var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            if (information.Behaviour == AElfConsensusBehaviour.TinyBlock)
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
+                // The orders changed every round, and the orders can be updated during every behaviour of UPDATE_VALUE or NEXT_ROUND,
+                // so we can skip the update for TINY_BLOCK.
                 return _cachedPubkeyList;
             }
 
-            var round = information.Round;
+            var round = consensusInformation.Round;
             var currentPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
             var minersCount = round.RealTimeMinersInformation.Count;
             if (round.RealTimeMinersInformation.Values.Any(m => m.OutValue != null) &&
                 round.RealTimeMinersInformation.ContainsKey(currentPubkey))
             {
-                // At least someone mined blocks during current round.
+                // If any miner mined blocks during current round.
                 var currentMiner =
                     round.RealTimeMinersInformation.Values.Single(m => m.Pubkey == currentPubkey);
                 var currentOrder = currentMiner.Order;

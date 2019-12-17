@@ -1,5 +1,6 @@
 using Acs4;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class MiningPermissionValidationProvider : IHeaderInformationValidationProvider

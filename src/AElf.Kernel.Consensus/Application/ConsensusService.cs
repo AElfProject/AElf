@@ -40,6 +40,11 @@ namespace AElf.Kernel.Consensus.Application
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        /// <summary>
+        /// Basically update the consensus scheduler with latest consensus command.
+        /// </summary>
+        /// <param name="chainContext"></param>
+        /// <returns></returns>
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
             var now = TimestampHelper.GetUtcNow();
@@ -71,7 +76,7 @@ namespace AElf.Kernel.Consensus.Application
                 ? new Duration {Seconds = ConsensusConstants.MaximumLeftMillisecondsForNextBlock}
                 : leftMilliseconds;
 
-            // Initial consensus scheduler.
+            // Update consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
                 _nextMiningTime,
@@ -83,6 +88,12 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
         }
 
+        /// <summary>
+        /// Call ACS4 method ValidateConsensusBeforeExecution.
+        /// </summary>
+        /// <param name="chainContext"></param>
+        /// <param name="consensusExtraData"></param>
+        /// <returns></returns>
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData)
         {
@@ -112,6 +123,12 @@ namespace AElf.Kernel.Consensus.Application
             return validationResult.Success;
         }
 
+        /// <summary>
+        /// Call ACS4 method ValidateConsensusAfterExecution.
+        /// </summary>
+        /// <param name="chainContext"></param>
+        /// <param name="consensusExtraData"></param>
+        /// <returns></returns>
         public async Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData)
         {
@@ -160,6 +177,11 @@ namespace AElf.Kernel.Consensus.Application
                 .ToByteArray();
         }
 
+        /// <summary>
+        /// Get consensus system tx list.
+        /// </summary>
+        /// <param name="chainContext"></param>
+        /// <returns></returns>
         public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
