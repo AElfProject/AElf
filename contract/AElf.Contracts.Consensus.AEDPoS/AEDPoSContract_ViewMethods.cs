@@ -132,7 +132,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {extraBlockProducer}))
             {
                 var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval));
+                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
                 if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
                     consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
                 {
