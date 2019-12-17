@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var distanceToRoundStartTime = (currentBlockTime - GetRoundStartTime()).Milliseconds();
             var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
             var arrangedMiningTime = CalculateFutureRoundStartTime(missedRoundsCount, miningInterval);
-            return arrangedMiningTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
+            return arrangedMiningTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval).Sub(1));
         }
 
         public bool IsInCorrectFutureMiningSlot(string pubkey, Timestamp currentBlockTime)
