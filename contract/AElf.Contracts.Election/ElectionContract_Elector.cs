@@ -254,14 +254,18 @@ namespace AElf.Contracts.Election
             oldCandidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
             oldCandidateVotes.ObtainedActiveVotedVotesAmount =
                 oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            oldCandidateVotes.AllObtainedVotedVotesAmount =
+                oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
-            if( newCandidateVotes != null )
+            if (newCandidateVotes != null)
             {
                 newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
                 newCandidateVotes.ObtainedActiveVotedVotesAmount =
                     newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
+                newCandidateVotes.AllObtainedVotedVotesAmount =
+                    newCandidateVotes.AllObtainedVotedVotesAmount.Add(votingRecord.Amount);
                 State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
             }
             else
@@ -274,6 +278,7 @@ namespace AElf.Contracts.Election
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
             }
+
             return new Empty();
         }
 
