@@ -159,7 +159,7 @@ namespace AElf.WebApp.Application.Chain
                     new MinerInRoundDto
                     {
                         Order = i.Value.Order == 0 ? 1 : i.Value.Order,
-                        ExpectedMiningTime = i.Value.ExpectedMiningTime?.ToDateTime() ?? new DateTime(),
+                        ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
                         ActualMiningTimes = i.Value.ActualMiningTimes?.Select(t => t.ToDateTime()).ToList(),
                         ProducedTinyBlocks = i.Value.ActualMiningTimes?.Count ?? 0,
                         ProducedBlocks = i.Value.ProducedBlocks,
