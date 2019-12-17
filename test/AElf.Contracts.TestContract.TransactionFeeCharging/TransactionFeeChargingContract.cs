@@ -58,5 +58,15 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
             Assert(false, "Fate!");
             return new Empty();
         }
+        public override Empty IssueToTokenConvert(IssueAmount input)
+        {
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+            });
+            return new Empty();
+        }
     }
 }
