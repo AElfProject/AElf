@@ -4,6 +4,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
@@ -274,18 +275,22 @@ namespace AElf.Contracts.CrossChain
         {
             SetContractStateRequired(State.ParliamentAuthContract,
                 SmartContractConstants.ParliamentAuthContractSystemName);
-            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                Params = new RecordCrossChainDataInput
+                ProposalInput = new CreateProposalInput
                 {
-                    ProposedCrossChainData = crossChainBlockData,
-                    Proposer = proposer
-                }.ToByteString(),
-                ContractMethodName = nameof(RecordCrossChainData),
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
-                OrganizationAddress = GetOwnerAddress(),
-                ToAddress = Context.Self,
-                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId)
+                    Params = new RecordCrossChainDataInput
+                    {
+                        ProposedCrossChainData = crossChainBlockData,
+                        Proposer = proposer
+                    }.ToByteString(),
+                    ContractMethodName = nameof(RecordCrossChainData),
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
+                    OrganizationAddress = GetOwnerAddress(),
+                    ToAddress = Context.Self
+                },
+                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
+                OriginProposer = Context.Sender
             });
 
             var crossChainIndexingProposal = new CrossChainIndexingProposal
@@ -423,7 +428,7 @@ namespace AElf.Contracts.CrossChain
             var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
             if (crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.NonProposed)
                 return;
-            
+
             var proposalInfo = GetProposal(crossChainIndexingProposal.ProposalId);
             Assert(proposalInfo.ExpiredTime <= Context.CurrentBlockTime,
                 "Unable to clear cross chain indexing proposal which is not expired.");

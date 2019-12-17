@@ -4,6 +4,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs3;
+using AElf.Contracts.ParliamentAuth;
 using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.Genesis
@@ -171,17 +172,22 @@ namespace AElf.Contracts.Genesis
             RequireParliamentAuthAddressSet();
             
             // Create proposal for deployment
-            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                ToAddress = Context.Self,
-                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
-                Params = new ContractCodeCheckInput
+                ProposalInput = new CreateProposalInput
                 {
-                    ContractInput = input.ToByteString(),
-                    IsContractDeployment = true
-                }.ToByteString(),
-                OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddHours(24) // Maybe, get the interval from configuration
+                    ToAddress = Context.Self,
+                    ContractMethodName =
+                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                    Params = new ContractCodeCheckInput
+                    {
+                        ContractInput = input.ToByteString(),
+                        IsContractDeployment = true
+                    }.ToByteString(),
+                    OrganizationAddress = State.GenesisOwner.Value,
+                    ExpiredTime = Context.CurrentBlockTime.AddHours(24) // Maybe, get the interval from configuration
+                },
+                OriginProposer = Context.Sender
             });
             
             Context.Fire(new ContractProposed
@@ -209,17 +215,22 @@ namespace AElf.Contracts.Genesis
 
             // Create proposal for deployment
             RequireParliamentAuthAddressSet();
-            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                ToAddress = Context.Self,
-                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
-                Params = new ContractCodeCheckInput
+                ProposalInput = new CreateProposalInput
                 {
-                    ContractInput = input.ToByteString(),
-                    IsContractDeployment = false
-                }.ToByteString(),
-                OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                    ToAddress = Context.Self,
+                    ContractMethodName =
+                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                    Params = new ContractCodeCheckInput
+                    {
+                        ContractInput = input.ToByteString(),
+                        IsContractDeployment = false
+                    }.ToByteString(),
+                    OrganizationAddress = State.GenesisOwner.Value,
+                    ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                },
+                OriginProposer = Context.Sender
             });
 
             // Fire event to trigger BPs checking contract code
@@ -245,15 +256,19 @@ namespace AElf.Contracts.Genesis
             RequireParliamentAuthAddressSet();
             
             // Create proposal for deployment
-            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                ToAddress = Context.Self,
-                ContractMethodName = input.IsContractDeployment
-                    ? nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract)
-                    : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
-                Params = input.ContractInput,
-                OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                ProposalInput = new CreateProposalInput
+                {
+                    ToAddress = Context.Self,
+                    ContractMethodName = input.IsContractDeployment
+                        ? nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract)
+                        : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                    Params = input.ContractInput,
+                    OrganizationAddress = State.GenesisOwner.Value,
+                    ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                },
+                OriginProposer = proposedInfo.Proposer
             });
             
             // Fire event to trigger BPs checking contract code
