@@ -173,24 +173,19 @@ namespace AElf.Contracts.Election
 
         private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
         {
-            {1 * 365 * DaySec, 1.001m}, // compound interest
-            {2 * 365 * DaySec, 1.0015m},
-            {3 * 365 * DaySec, 1.002m}
+            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
+            {2.Mul(365).Mul(DaySec), 1.0015m},
+            {3.Mul(365).Mul(DaySec), 1.002m}
         };
 
-        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
+        private const decimal DefaultInterest = 1.0022m; // if locktime > 3 years, use this interest
         private const int Scale = 10000;
 
-        /// <summary>
-        /// Votes weight related to votes amount and lock time.
-        /// </summary>
-        /// <param name="votesAmount"></param>
-        /// <param name="lockTime"></param>
-        /// <returns></returns>
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             long calculated = 1;
-            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
+            
+            foreach (var instMap in _interestMap) // calculate with different interest according to locktime
             {
                 if (lockTime > instMap.Key)
                     continue;
@@ -198,16 +193,16 @@ namespace AElf.Contracts.Election
                 break;
             }
 
-            if (calculated == 1) // lockTime > 3 years
+            if (calculated == 1) // locktime > 3 years
                 calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = locktime + voteAmount 
         }
 
-        private static decimal Pow(decimal x, uint y)
+        private decimal Pow(decimal x, uint y)
         {
             if (y == 1)
                 return (long) x;
-            var a = 1m;
+            decimal a = 1m;
             if (y == 0)
                 return a;
             var e = new BitArray(BitConverter.GetBytes(y));

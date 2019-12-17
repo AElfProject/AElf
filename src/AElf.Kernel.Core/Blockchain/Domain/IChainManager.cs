@@ -212,8 +212,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 {
                     chain.Branches[blockHash] = chainBlockLink.Height;
                     chain.Branches.Remove(previousHash);
-
-                    //TODO: change the longest chain switch length 
+                    
                     if (isLinkedToLongestChain && chainBlockLink.Height > chain.LongestChainHeight
                         || chainBlockLink.Height >= chain.LongestChainHeight + 8)
                     {

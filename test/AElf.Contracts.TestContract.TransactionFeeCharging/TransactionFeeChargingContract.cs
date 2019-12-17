@@ -1,13 +1,16 @@
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.TransactionFeeCharging
 {
-    public class TransactionFeeChargingContract : TransactionFeeChargingContractContainer.TransactionFeeChargingContractBase
+    public class
+        TransactionFeeChargingContract : TransactionFeeChargingContractContainer.TransactionFeeChargingContractBase
     {
-        public override Empty InitializeTransactionFeeChargingContract(InitializeTransactionFeeChargingContractInput input)
+        public override Empty InitializeTransactionFeeChargingContract(
+            InitializeTransactionFeeChargingContractInput input)
         {
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
