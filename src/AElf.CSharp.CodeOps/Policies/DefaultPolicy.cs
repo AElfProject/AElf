@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Globalization;
 using AElf.Sdk.CSharp;
 using System.Reflection;
@@ -129,6 +130,10 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
+//                
+//                .Namespace("System.Text",Permission.Denied, type => type
+//                    .Type(nameof(Encoding.UTF8),Permission.Denied, member => member
+//                        .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
                 ;
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -338,7 +339,7 @@ namespace AElf.Contracts.Economic
 
         private void AssertValidMemo(string memo)
         {
-            Assert(memo.Length <= 64, "memo has more than 64 bytes.");
+            Assert(Encoding.UTF8.GetByteCount(memo) <= 64, "memo has more than 64 bytes.");
         }
     }
 }
