@@ -17,7 +17,6 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
-using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
@@ -37,33 +36,10 @@ namespace AElf.Runtime.CSharp
         
         public Timestamp LastUsedTime { get; set; }
 
-        private Type FindContractType(Assembly assembly)
-        {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
-        }
-
-        private Type FindContractBaseType(Assembly assembly)
-        {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
-        }
-
-        private Type FindExecutionCounterType(Assembly assembly)
-        {
-            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
-        }
-
-        private Type FindContractContainer(Assembly assembly)
-        {
-            var contractBase = FindContractBaseType(assembly);
-            return contractBase.DeclaringType;
-        }
-
         private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
         {
-            var methodInfo = FindContractContainer(assembly).GetMethod("BindService",
-                new[] {FindContractBaseType(assembly)});
+            var methodInfo = assembly.FindContractContainer().GetMethod("BindService",
+                new[] {assembly.FindContractBaseType()});
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
@@ -71,8 +47,8 @@ namespace AElf.Runtime.CSharp
         {
             _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
-            _contractInstance = Activator.CreateInstance(FindContractType(assembly));
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, FindExecutionCounterType(assembly));
+            _contractInstance = Activator.CreateInstance(assembly.FindContractType());
+            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();
@@ -158,6 +134,7 @@ namespace AElf.Runtime.CSharp
 
             var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+            CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
@@ -208,6 +185,7 @@ namespace AElf.Runtime.CSharp
             {
                 var tx = CurrentTransactionContext.Transaction;
                 var retVal = handler.Execute(tx.Params.ToByteArray());
+                _smartContractProxy.SetExecutionObserver(new ExecutionObserver(CurrentTransactionContext.ExecutionUsageThreshold));
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);

@@ -1,26 +1,35 @@
+using Org.BouncyCastle.Tsp;
+
 namespace AElf.Sdk.CSharp
 {
     // Instantiated for every call, threshold can be a CPU token later, may add GetRemaining method
     public sealed class ExecutionObserver : IExecutionObserver
     {
-        private int _counter;
+        private int _usage;
+        private readonly int _balance;
 
-        public ExecutionObserver(int threshold)
+        public ExecutionObserver(int balance)
         {
-            _counter = threshold;
+            _usage = 0;
+            _balance = balance;
         }
 
         public void Count()
         {
-            if (_counter == -1)
-                return; // Disabled
-            
-            if (_counter == 0)
+            if (_balance == -1)
+                return;
+
+            if (_usage == _balance)
             {
                 throw new RuntimeBranchingThresholdExceededException();
             }
 
-            _counter--;
+            _usage++;
+        }
+
+        public int GetUsage()
+        {
+            return _usage;
         }
     }
     

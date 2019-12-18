@@ -10,7 +10,7 @@ namespace AElf.CSharp.CodeOps
         [ThreadStatic]
         private static IExecutionObserver _observer;
 
-        public static void Initialize(IExecutionObserver observer)
+        public static void SetObserver(IExecutionObserver observer)
         {
             _observer = observer;
             #if DEBUG
@@ -25,6 +25,16 @@ namespace AElf.CSharp.CodeOps
             #endif
             if (_observer != null)
                 _observer.Count();
+        }
+
+        public static int GetUsage()
+        {
+            #if DEBUG
+            ExecutionObserverDebugger.Test(_observer);
+            #endif
+            if (_observer != null)
+                return _observer.GetUsage();
+            return 0;
         }
     }
 }

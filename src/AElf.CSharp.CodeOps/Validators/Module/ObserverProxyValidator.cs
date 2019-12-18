@@ -12,7 +12,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 .MainModule.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
 
         private TypeDefinition _injProxyType;
-        private MethodDefinition _injProxyInitialize;
+        private MethodDefinition _injProxySetObserver;
         private MethodDefinition _injProxyCount;
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
@@ -30,8 +30,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
             CheckObserverProxyIsNotTampered(errors);
             
-            _injProxyInitialize =
-                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.Initialize));
+            _injProxySetObserver =
+                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.SetObserver));
             _injProxyCount =
                 _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.Count));
 
@@ -111,8 +111,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                     }                    
                 }
 
-                // Calling initialize method within contract is a breach
-                if (instruction.OpCode == OpCodes.Call && instruction.Operand == _injProxyInitialize)
+                // Calling SetObserver method within contract is a breach
+                if (instruction.OpCode == OpCodes.Call && instruction.Operand == _injProxySetObserver)
                 {
                     errors.Add(new ObserverProxyValidationResult($"Proxy initialize call detected from within the contract. " +
                                                                  $"[{method.DeclaringType.Name} > {method.Name}]"));

@@ -11,8 +11,10 @@ namespace AElf.CSharp.CodeOps
         public static bool HasSameBody(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
         {
             // Exclude nop opcodes (compile in debug mode adds nop to be able to place breakpoint, ignore those)
-            var sourceMethodBodyInstructions = sourceMethod.Body.Instructions.Where(i => i.OpCode != OpCodes.Nop).ToArray();
-            var targetMethodBodyInstructions = targetMethod.Body.Instructions.Where(i => i.OpCode != OpCodes.Nop).ToArray();
+            var sourceMethodBodyInstructions = sourceMethod.Body.Instructions
+                .Where(i => i.OpCode != OpCodes.Nop).ToArray();
+            var targetMethodBodyInstructions = targetMethod.Body.Instructions
+                .Where(i => i.OpCode != OpCodes.Nop).ToArray();
 
             // Compare method body
             for (var i = 0; i < sourceMethodBodyInstructions.Count(); i++)
@@ -82,7 +84,7 @@ namespace AElf.CSharp.CodeOps
             return contractBase.DeclaringType;
         }
         
-        public static Type FindExecutionCounterType(this Assembly assembly)
+        public static Type FindExecutionObserverType(this Assembly assembly)
         {
             return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
         }

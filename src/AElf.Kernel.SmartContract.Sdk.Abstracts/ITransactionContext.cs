@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         
         int CallDepth { get; set; }
         int MaxCallDepth { get; set; }
+        int ExecutionUsageThreshold { get; set; }
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
         IStateCache StateCache { get; set; }

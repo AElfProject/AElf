@@ -20,11 +20,13 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             var (counterProxy, observerField) = ConstructCounterProxy(module, nmspace);
 
-            var initializeMethod = ConstructInitializeMethod(module, observerField);
+            var proxySetObserverMethod = ConstructProxySetObserverMethod(module, observerField);
             var proxyCountMethod = ConstructProxyCountMethod(module, observerField);
+            var proxyGetUsageMethod = ConstructProxyGetUsageMethod(module, observerField);
             
-            counterProxy.Methods.Add(initializeMethod);
+            counterProxy.Methods.Add(proxySetObserverMethod);
             counterProxy.Methods.Add(proxyCountMethod);
+            counterProxy.Methods.Add(proxyGetUsageMethod);
 
             // Patch the types
             foreach (var typ in module.Types)
@@ -37,13 +39,13 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         private (TypeDefinition, FieldDefinition) ConstructCounterProxy(ModuleDefinition module, string nmspace)
         {
-            var counterType = new TypeDefinition(
+            var observerType = new TypeDefinition(
                 nmspace, nameof(ExecutionObserverProxy),
                 TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.Public | TypeAttributes.Class,
                 module.ImportReference(typeof(object))
             );
             
-            var counterField = new FieldDefinition(
+            var observerField = new FieldDefinition(
                 "_observer",
                 FieldAttributes.Private | FieldAttributes.Static, 
                 module.ImportReference(typeof(IExecutionObserver)
@@ -51,24 +53,24 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             );
             
             // Counter field should be thread static (at least for the test cases)
-            counterField.CustomAttributes.Add(new CustomAttribute(
+            observerField.CustomAttributes.Add(new CustomAttribute(
                 module.ImportReference(typeof(ThreadStaticAttribute).GetConstructor(new Type[]{}))));
 
-            counterType.Fields.Add(counterField);
+            observerType.Fields.Add(observerField);
 
-            return (counterType, counterField);
+            return (observerType, observerField);
         }
 
         private MethodDefinition ConstructProxyCountMethod(ModuleDefinition module, FieldReference observerField)
         {
-            var counterMethod = new MethodDefinition(
+            var countMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.Count), 
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
                 module.ImportReference(typeof(void))
             );
             
-            counterMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
-            var il = counterMethod.Body.GetILProcessor();
+            countMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
+            var il = countMethod.Body.GetILProcessor();
 
             var ret = il.Create(OpCodes.Ret);
             
@@ -88,21 +90,63 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.Count))));
             il.Append(ret);
 
-            return counterMethod;
+            return countMethod;
         }
-        
-        private MethodDefinition ConstructInitializeMethod(ModuleDefinition module, FieldReference observerField)
+
+        private MethodDefinition ConstructProxyGetUsageMethod(ModuleDefinition module, FieldReference observerField)
         {
-            var initializeMethod = new MethodDefinition(
-                nameof(ExecutionObserverProxy.Initialize), 
+            var getUsageMethod = new MethodDefinition(
+                nameof(ExecutionObserverProxy.GetUsage), 
+                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
+                module.ImportReference(typeof(int))
+            );
+            
+            getUsageMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
+            getUsageMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(int))));
+            
+            var il = getUsageMethod.Body.GetILProcessor();
+            
+            var setZero = il.Create(OpCodes.Ldc_I4_0);
+            var loadFirstVar = il.Create(OpCodes.Ldloc_1);
+            
+            #if DEBUG
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
+                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
+            #endif
+            il.Emit(OpCodes.Ldsfld, observerField);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Cgt_Un);
+            il.Emit(OpCodes.Stloc_0);
+            il.Emit(OpCodes.Ldloc_0);
+            il.Emit(OpCodes.Brfalse_S, setZero);
+            il.Emit(OpCodes.Ldsfld, observerField);
+            
+            il.Emit(OpCodes.Callvirt, module.ImportReference(
+                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.GetUsage))));
+            il.Emit(OpCodes.Stloc_1);
+            il.Emit(OpCodes.Br_S, loadFirstVar);
+            il.Append(setZero);
+            il.Emit(OpCodes.Stloc_1);
+            il.Emit(OpCodes.Br_S, loadFirstVar);
+            il.Append(loadFirstVar);
+            il.Emit(OpCodes.Ret);
+
+            return getUsageMethod;
+        }
+
+        private MethodDefinition ConstructProxySetObserverMethod(ModuleDefinition module, FieldReference observerField)
+        {
+            var setObserverMethod = new MethodDefinition(
+                nameof(ExecutionObserverProxy.SetObserver), 
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
                 module.ImportReference(typeof(void))
             );
 
-            initializeMethod.Parameters.Add(new ParameterDefinition("observer", 
+            setObserverMethod.Parameters.Add(new ParameterDefinition("observer", 
                 ParameterAttributes.In, module.ImportReference(typeof(IExecutionObserver))));
             
-            var il = initializeMethod.Body.GetILProcessor();
+            var il = setObserverMethod.Body.GetILProcessor();
             
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Stsfld, observerField);
@@ -113,7 +157,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             #endif
             il.Emit(OpCodes.Ret);
 
-            return initializeMethod;
+            return setObserverMethod;
         }
 
         private void PatchType(TypeDefinition typ, MethodReference counterMethodRef)
