@@ -61,15 +61,11 @@ service TokenContract {
     }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
-    }
     rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
-    }
-    rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
     
     rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
@@ -108,9 +104,6 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {

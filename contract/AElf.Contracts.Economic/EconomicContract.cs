@@ -31,8 +31,6 @@ namespace AElf.Contracts.Economic
 
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
-            SetResourceTokenUnitPrice();
-            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
             State.TokenContract.InitializeCoefficient.Send(new Empty());
@@ -204,24 +202,6 @@ namespace AElf.Contracts.Economic
                 ReElectionRewardHash = schemeIdsManagingByTreasuryContract[4],
                 SubsidyHash = schemeIdsManagingByElectionContract[0],
                 WelfareHash = schemeIdsManagingByElectionContract[1]
-            });
-        }
-
-        private void SetResourceTokenUnitPrice()
-        {
-            State.TokenContract.SetResourceTokenUnitPrice.Send(new SetResourceTokenUnitPriceInput
-            {
-                CpuUnitPrice = EconomicContractConstants.CpuUnitPrice,
-                StoUnitPrice = EconomicContractConstants.StoUnitPrice,
-                NetUnitPrice = EconomicContractConstants.NetUnitPrice,
-            });
-        }
-
-        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
-        {
-            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
-            {
-                Value = transactionSizeUnitPrice
             });
         }
 

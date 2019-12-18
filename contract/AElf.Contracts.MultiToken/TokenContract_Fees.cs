@@ -433,21 +433,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetTransactionSizeUnitPrice(SInt64Value input)
-        {
-            AssertIsAuthorized();
-            Context.Fire(new TransactionSizeFeeUnitPriceUpdated
-            {
-                UnitPrice = input.Value
-            });
-
-            Context.LogDebug(() => $"SetTransactionSizeUnitPrice: {input.Value}");
-
-            State.TransactionFeeUnitPrice.Value = input.Value;
-
-            return new Empty();
-        }
-
         private void AssertIsAuthorized()
         {
             if (State.ZeroContract.Value == null)

@@ -459,33 +459,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
-        {
-            if (State.ZeroContract.Value == null)
-            {
-                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-            }
-
-            if (State.ParliamentAuthContract.Value == null)
-            {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            }
-
-            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
-
-            Assert(
-                contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set resource token unit price.");
-
-            State.CpuUnitPrice.Value = input.CpuUnitPrice;
-            State.NetUnitPrice.Value = input.NetUnitPrice;
-            State.StoUnitPrice.Value = input.StoUnitPrice;
-            return new Empty();
-        }
-
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
             Assert(Context.Variables.ResourceTokenSymbolNameList.Contains(input.ResourceTokenSymbol),

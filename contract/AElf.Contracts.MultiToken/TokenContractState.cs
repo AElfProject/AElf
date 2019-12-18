@@ -17,11 +17,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, Address, string, long> Allowances { get; set; }
         public MappedState<Address, TransactionFeeBill> ChargedFees { get; set; }
 
-        /// <summary>
-        /// Resource Token Symbol -> Amount.
-        /// </summary>
-        public MappedState<string, long> ChargedResources { get; set; }
-
         public SingletonState<Address> FeeReceiver { get; set; }
 
         public MappedState<Address, Address, string, long> ChargedResourceTokens { get; set; }
@@ -53,9 +48,5 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
-
-        public Int64State CpuUnitPrice { get; set; }
-        public Int64State StoUnitPrice { get; set; }
-        public Int64State NetUnitPrice { get; set; }
     }
 }
