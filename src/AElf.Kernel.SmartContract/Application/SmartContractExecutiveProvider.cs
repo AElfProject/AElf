@@ -371,8 +371,16 @@ namespace AElf.Kernel.SmartContract.Application
             IExecutive executiveZero = null;
             try
             {
-                executiveZero =
-                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
+                if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
+                {
+                    executiveZero =
+                        await GetExecutiveAsync(_defaultContractZeroCodeProvider.DefaultContractZeroRegistration);
+                }
+                else
+                {
+                    executiveZero =
+                        await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
+                }
                 return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
             }
             finally
