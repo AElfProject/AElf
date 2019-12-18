@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
@@ -60,6 +61,8 @@ namespace AElf.Contracts.Genesis
         protected ContractTester<BasicContractZeroTestAElfModule> SideChainMiner;
 
         protected readonly ECKeyPair TesterKeyPair;
+        
+        protected readonly string _contractDllDir = "../../../contracts/";
 
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         protected ECKeyPair CreatorKeyPair => SampleECKeyPairs.KeyPairs[10];
@@ -240,6 +243,11 @@ namespace AElf.Contracts.Genesis
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
                 new Empty()));
             return organizationAddress;
+        }
+        
+        protected byte[] ReadCode(string path)
+        {
+            return File.Exists(path) ? File.ReadAllBytes(path) : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
         }
     }
 }

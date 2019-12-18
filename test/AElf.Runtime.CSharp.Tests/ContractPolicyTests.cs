@@ -1,27 +1,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Contracts.AssociationAuth;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.CrossChain;
-using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
-using AElf.Contracts.Profit;
-using AElf.Contracts.ReferendumAuth;
-using AElf.Contracts.TokenConverter;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
-using AElf.Runtime.CSharp.Tests.TestContract;
-using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil;
-using Moq;
-using Org.BouncyCastle.Pkix;
 using Shouldly;
 using Xunit;
 
