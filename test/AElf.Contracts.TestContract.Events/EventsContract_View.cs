@@ -1,3 +1,4 @@
+using System;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -6,6 +7,13 @@ namespace AElf.Contracts.TestContract.Events
     public partial class EventsContract
     {
         //view
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(EventsContract)
+            };
+        }
         public override OrdersOutput QueryIssueOrders(Empty input)
         {
             var orders = new OrdersOutput();

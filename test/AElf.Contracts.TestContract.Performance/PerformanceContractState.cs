@@ -3,7 +3,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.TestContract.Performance
 {
-    public partial class PerformanceContractState : ContractState
+    public class PerformanceContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         

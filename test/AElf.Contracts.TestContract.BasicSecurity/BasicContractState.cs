@@ -1,4 +1,3 @@
-using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.TestContract.BasicSecurity

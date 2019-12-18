@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import public "aelf/core.proto";
 import "aelf/options.proto";
 import "acs8.proto";
 import "google/protobuf/empty.proto";
@@ -17,6 +18,8 @@ service Contract {
     rpc NetConsumingMethod (NetConsumingMethodInput) returns (google.protobuf.Empty) {
     }
     rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc SendTransferFromAsInlineTx (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
 }
 
