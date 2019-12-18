@@ -8,57 +8,79 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public abstract class ConsensusBehaviourProviderBase : IConsensusBehaviourProvider
+        /// <summary>
+        /// First step of getting consensus command for any pubkey:
+        /// to get expected consensus behaviour.
+        /// </summary>
+        private abstract class ConsensusBehaviourProviderBase
         {
             protected readonly Round CurrentRound;
-            protected readonly string Pubkey;
-            protected readonly int MaximumBlocksCount;
-            protected readonly Timestamp CurrentBlockTime;
 
-            protected readonly bool IsTimeSlotPassed;
-            protected readonly MinerInRound MinerInRound;
+            private readonly string _pubkey;
+            private readonly int _maximumBlocksCount;
+            private readonly Timestamp _currentBlockTime;
+
+            private readonly bool _isTimeSlotPassed;
+            private readonly MinerInRound _minerInRound;
 
             protected ConsensusBehaviourProviderBase(Round currentRound, string pubkey, int maximumBlocksCount,
                 Timestamp currentBlockTime)
             {
                 CurrentRound = currentRound;
-                Pubkey = pubkey;
-                MaximumBlocksCount = maximumBlocksCount;
-                CurrentBlockTime = currentBlockTime;
 
-                IsTimeSlotPassed = CurrentRound.IsTimeSlotPassed(Pubkey, CurrentBlockTime);
-                MinerInRound = CurrentRound.RealTimeMinersInformation[Pubkey];
+                _pubkey = pubkey;
+                _maximumBlocksCount = maximumBlocksCount;
+                _currentBlockTime = currentBlockTime;
+
+                _isTimeSlotPassed = CurrentRound.IsTimeSlotPassed(_pubkey, _currentBlockTime);
+                _minerInRound = CurrentRound.RealTimeMinersInformation[_pubkey];
             }
 
             public AElfConsensusBehaviour GetConsensusBehaviour()
             {
-                if (!CurrentRound.IsInMinerList(Pubkey))
+                // The most simple situation: provided pubkey isn't a miner.
+                if (!CurrentRound.IsInMinerList(_pubkey))
                 {
                     return AElfConsensusBehaviour.Nothing;
                 }
 
-                if (!MinerInRound.IsThisANewRoundForThisMiner())
+                // If out value is null, it means provided pubkey hasn't mine any block during current round period.
+                if (_minerInRound.OutValue == null)
                 {
                     var behaviour = HandleMinerInNewRound();
+
+                    // It's possible HandleMinerInNewRound can't handle all the situations, if this method returns Nothing,
+                    // just go ahead. Otherwise, return it's result.
                     if (behaviour != AElfConsensusBehaviour.Nothing)
                     {
                         return behaviour;
                     }
                 }
-                else if (!IsTimeSlotPassed)
+                else if (!_isTimeSlotPassed
+                ) // Provided pubkey mined blocks during current round, and current block time is still in his time slot.
                 {
-                    if (MinerInRound.ActualMiningTimes.Count < MaximumBlocksCount)
+                    if (_minerInRound.ActualMiningTimes.Count < _maximumBlocksCount)
                     {
+                        // Provided pubkey can keep producing tiny blocks.
                         return AElfConsensusBehaviour.TinyBlock;
                     }
 
                     var blocksBeforeCurrentRound =
-                        MinerInRound.ActualMiningTimes.Count(t => t <= CurrentRound.GetRoundStartTime());
+                        _minerInRound.ActualMiningTimes.Count(t => t <= CurrentRound.GetRoundStartTime());
 
-                    if (CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
-                        !CurrentRound.IsMinerListJustChanged &&
-                        MinerInRound.ActualMiningTimes.Count.Add(1) < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
+                    // If provided pubkey is the one who terminated previous round, he can mine
+                    // (_maximumBlocksCount + blocksBeforeCurrentRound) blocks
+                    // because he has two time slots recorded in current round.
+
+                    if (CurrentRound.ExtraBlockProducerOfPreviousRound ==
+                        _pubkey && // Provided pubkey terminated previous round
+                        !CurrentRound.IsMinerListJustChanged && // & Current round isn't the first round of current term
+                        _minerInRound.ActualMiningTimes.Count.Add(1) <
+                        _maximumBlocksCount.Add(
+                            blocksBeforeCurrentRound) // & Provided pubkey hasn't mine enough blocks for current round.
+                    )
                     {
+                        // Then provided pubkey can keep producing tiny blocks.
                         return AElfConsensusBehaviour.TinyBlock;
                     }
                 }
@@ -68,9 +90,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             /// <summary>
             /// If this miner come to a new round, normally, there are three possible behaviour:
-            /// UpdateValue (most common)
-            /// TinyBlock (happens if this miner is mining blocks for extra block time slot of previous round)
-            /// NextRound (only happens in first round)
+            /// UPDATE_VALUE (most common)
+            /// TINY_BLOCK (happens if this miner is mining blocks for extra block time slot of previous round)
+            /// NEXT_ROUND (only happens in first round)
             /// </summary>
             /// <returns></returns>
             private AElfConsensusBehaviour HandleMinerInNewRound()
@@ -79,7 +101,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // For first round, the expected mining time is incorrect (due to configuration),
                     CurrentRound.RoundNumber == 1 &&
                     // so we'd better prevent miners' ain't first order (meanwhile he isn't boot miner) from mining fork blocks
-                    MinerInRound.Order != 1 &&
+                    _minerInRound.Order != 1 &&
                     // by postpone their mining time
                     CurrentRound.FirstMiner().OutValue == null
                 )
@@ -89,19 +111,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 if (
                     // If this miner is extra block producer of previous round,
-                    CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
+                    CurrentRound.ExtraBlockProducerOfPreviousRound == _pubkey &&
                     // and currently the time is ahead of current round,
-                    CurrentBlockTime < CurrentRound.GetRoundStartTime() &&
+                    _currentBlockTime < CurrentRound.GetRoundStartTime() &&
                     // make this miner produce some tiny blocks.
-                    MinerInRound.ActualMiningTimes.Count < MaximumBlocksCount
+                    _minerInRound.ActualMiningTimes.Count < _maximumBlocksCount
                 )
                 {
                     return AElfConsensusBehaviour.TinyBlock;
                 }
 
-                return !IsTimeSlotPassed ? AElfConsensusBehaviour.UpdateValue : AElfConsensusBehaviour.Nothing;
+                return !_isTimeSlotPassed ? AElfConsensusBehaviour.UpdateValue : AElfConsensusBehaviour.Nothing;
             }
 
+            /// <summary>
+            /// Main Chain & Side Chains are different (because side chains have no election mechanism thus no NEXT_TERM behaviour).
+            /// </summary>
+            /// <returns></returns>
             protected abstract AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound();
         }
     }
