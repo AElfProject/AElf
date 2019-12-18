@@ -4,7 +4,7 @@ namespace AElf.OS.Network.Protocol
 {
     public interface IHandshakeProvider
     {
-        Task<Handshake> GetHandshakeAsync();
+        Task<Handshake> GetHandshakeAsync(bool withSecureEndpoint);
         Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake);
     }
 }

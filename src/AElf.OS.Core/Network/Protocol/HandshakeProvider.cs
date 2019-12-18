@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Protocol
             Logger = NullLogger<HandshakeProvider>.Instance;
         }
 
-        public async Task<Handshake> GetHandshakeAsync()
+        public async Task<Handshake> GetHandshakeAsync(bool withSecureEndpoint)
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -38,7 +38,7 @@ namespace AElf.OS.Network.Protocol
             {
                 ChainId = chain.Id,
                 Version = KernelConstants.ProtocolVersion,
-                ListeningPort = _networkOptions.ListeningPort,
+                ListeningPort = withSecureEndpoint ? _networkOptions.SecureListeningPort : _networkOptions.ListeningPort,
                 Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 BestChainHash = chain.BestChainHash,
                 BestChainHeight = chain.BestChainHeight,

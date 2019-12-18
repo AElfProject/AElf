@@ -239,7 +239,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
 
                 // send back our handshake
-                var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
+                var replyHandshake = await _handshakeProvider.GetHandshakeAsync(grpcPeer.Info.IsSecure);
                 grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
                 grpcPeer.UpdateLastSentHandshake(replyHandshake);
 

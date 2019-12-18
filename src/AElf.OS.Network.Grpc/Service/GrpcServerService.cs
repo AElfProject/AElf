@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -57,6 +58,10 @@ namespace AElf.OS.Network.Grpc
                 {
                     foreach (var authProperty in context.AuthContext.Properties)
                         Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
+                }
+                else
+                {
+                    Logger.LogDebug($"Non secure connection.");
                 }
 
                 if(!GrpcEndPointHelpers.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
