@@ -22,11 +22,6 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" >
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
     </ItemGroup>
     <Import Project="..\AllContracts.props" />
 
@@ -63,6 +58,10 @@
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
         </ContractStub>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
 </Project>
