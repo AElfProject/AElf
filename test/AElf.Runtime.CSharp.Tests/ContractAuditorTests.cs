@@ -74,7 +74,7 @@ namespace AElf.Runtime.CSharp.Tests
             // Load the DLL's from contracts folder to prevent codecov injection
             foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module.ToString()))
             {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
+                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath + ".patched")));
             }
         }
 
@@ -86,7 +86,7 @@ namespace AElf.Runtime.CSharp.Tests
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module + ".patched")))
                 .Findings;
             
             // Random usage
