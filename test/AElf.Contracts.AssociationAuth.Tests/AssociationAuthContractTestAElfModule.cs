@@ -11,11 +11,7 @@ namespace AElf.Contracts.AssociationAuth
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }

@@ -16,11 +16,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 
@@ -32,11 +28,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
         } 
     }

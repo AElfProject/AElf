@@ -12,11 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();

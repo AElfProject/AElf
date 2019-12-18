@@ -19,11 +19,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 .Replace(ServiceDescriptor
                     .Singleton<ILogEventListeningService<IBlockAcceptedLogEventHandler>,
                         OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>>());
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 }

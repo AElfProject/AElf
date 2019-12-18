@@ -50,11 +50,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             context.Services.RemoveAll<IPreExecutionPlugin>();
 
-            Configure<ContractOptions>(o =>
-            {
-                o.ContractDeploymentAuthorityRequired = false;
-                o.TransactionExecutionCounterThreshold = -1;
-            });
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 }

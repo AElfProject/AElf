@@ -34,8 +34,6 @@ namespace AElf
 
         void FireLogEvent(LogEvent logEvent);
 
-        IExecutionObserver ExecutionObserver { get; }
-
         Hash TransactionId { get; }
 
         Address Sender { get; }

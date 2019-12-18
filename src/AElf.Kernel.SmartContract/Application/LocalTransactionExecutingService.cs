@@ -25,7 +25,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        private readonly ContractOptions _contractOptions;
         public ILogger<LocalTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -33,7 +32,6 @@ namespace AElf.Kernel.SmartContract.Application
         public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
             IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot,
             IInlineTransactionValidationService inlineTransactionValidationService
         )
         {
@@ -42,7 +40,6 @@ namespace AElf.Kernel.SmartContract.Application
             _inlineTransactionValidationService = inlineTransactionValidationService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
-            _contractOptions = contractOptionsSnapshot.Value;
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }

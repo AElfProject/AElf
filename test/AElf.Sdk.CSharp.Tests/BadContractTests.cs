@@ -40,12 +40,12 @@ namespace AElf.Sdk.CSharp.Tests
                     .GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
             injectedCounter.ShouldNotBeNull();
             
-            var proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.Initialize), new[] { typeof(IExecutionObserver) });
+            var proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver), new[] { typeof(IExecutionObserver) });
             proxyCountMethod.ShouldNotBeNull();
             
-            // Initialize injected type since we don't use CSharpSmartContractProxy here
+            // Initialize injected type since we don't execute the contract the same way as mining
             proxyCountMethod.Invoke(null, new object[] {
-                    BridgeContext.ExecutionObserver
+                    new ExecutionObserver(100), 
             });
         }
         

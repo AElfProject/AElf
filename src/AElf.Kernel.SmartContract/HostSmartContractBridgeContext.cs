@@ -106,8 +106,6 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
-        
-        public IExecutionObserver ExecutionObserver => new ExecutionObserver(_contractOptions.TransactionExecutionCounterThreshold);
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
