@@ -24,8 +24,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var publicKeyBytes = triggerInformation.Pubkey;
             var pubkey = publicKeyBytes.ToHex();
 
-            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, pubkey);
-
             var information = new AElfConsensusHeaderInformation();
             switch (triggerInformation.Behaviour)
             {
@@ -105,8 +103,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 outValue, signature);
 
             Context.LogDebug(
-                () =>
-                    $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
+                () => $"Previous in value after ApplyNormalConsensusData: " +
+                      $"{updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
 
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 

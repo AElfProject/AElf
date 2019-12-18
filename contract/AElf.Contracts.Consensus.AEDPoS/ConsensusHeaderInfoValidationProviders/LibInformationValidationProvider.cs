@@ -1,5 +1,6 @@
 using Acs4;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class LibInformationValidationProvider : IHeaderInformationValidationProvider
@@ -15,7 +16,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
                  baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber))
             {
-                validationResult.Message = $"Incorrect lib information.\n" +
+                validationResult.Message = "Incorrect lib information.\n" +
                                            $"{baseRound.ConfirmedIrreversibleBlockHeight} > {providedRound.ConfirmedIrreversibleBlockHeight}\n" +
                                            $"{baseRound.ConfirmedIrreversibleBlockRoundNumber} > {providedRound.ConfirmedIrreversibleBlockRoundNumber}";
                 return validationResult;
