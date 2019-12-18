@@ -20,14 +20,16 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         private const int ReviewerCountLimit = 1024;
+
         private bool Validate(Organization organization)
         {
-            var allReviewersHaveValidWeigths = organization.Reviewers.All(r => r.Weight >= 0);
+            var allReviewersHaveValidWeights = organization.Reviewers.All(r => r.Weight >= 0);
             var withValidProposer = organization.Reviewers.Any(r => r.Weight >= organization.ProposerThreshold);
-            var withValidReleaseThreshold =
-                organization.Reviewers.Sum(reviewer => reviewer.Weight) > organization.ReleaseThreshold;
+            var withValidReleaseThreshold = organization.ReleaseThreshold >= 0 &&
+                                            organization.Reviewers.Sum(reviewer => reviewer.Weight) >
+                                            organization.ReleaseThreshold;
             var validReviewerCount = organization.Reviewers.Count <= ReviewerCountLimit;
-            return allReviewersHaveValidWeigths && withValidProposer && withValidReleaseThreshold && validReviewerCount;
+            return allReviewersHaveValidWeights && withValidProposer && withValidReleaseThreshold && validReviewerCount;
         }
 
         private bool Validate(ProposalInfo proposal)

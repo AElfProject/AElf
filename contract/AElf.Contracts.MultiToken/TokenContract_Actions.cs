@@ -227,7 +227,11 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Lock(LockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
+            if (allowance < input.Amount)
+                AssertLockAddress(input.Symbol);
+            else
+                State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
@@ -239,7 +243,6 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Unlock(UnlockInput input)
         {
-            AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());

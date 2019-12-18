@@ -12,7 +12,7 @@ namespace AElf.Contracts.ReferendumAuth
             return approvedVoteAmount >= organization.ReleaseThreshold;
         }
 
-        private void ValidateTokenContract()
+        private void RequireTokenContractStateSet()
         {
             if (State.TokenContract.Value != null)
                 return;
@@ -22,14 +22,21 @@ namespace AElf.Contracts.ReferendumAuth
 
         private void LockToken(LockInput lockInput)
         {
-            ValidateTokenContract();
+            RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(lockInput);
         }
 
         private void UnlockToken(UnlockInput unlockInput)
         {
-            ValidateTokenContract();
+            RequireTokenContractStateSet();
             State.TokenContract.Unlock.Send(unlockInput);
+        }
+        
+        private bool Validate(Organization organization)
+        {
+            var withValidTokenSymbol = !string.IsNullOrEmpty(organization.TokenSymbol);
+            var withValidReleaseThreshold = organization.ReleaseThreshold > 0;
+            return withValidTokenSymbol && withValidReleaseThreshold;
         }
 
         private bool Validate(ProposalInfo proposal)
@@ -47,6 +54,18 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(proposal != null, "Invalid proposal id.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
+        }
+
+        private long GetAllowance(Address owner, string tokenSymbol)
+        {
+            RequireTokenContractStateSet();
+            var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
+            {
+                Owner = owner,
+                Spender = Context.Self,
+                Symbol = tokenSymbol
+            }).Allowance;
+            return allowance;
         }
     }
 }

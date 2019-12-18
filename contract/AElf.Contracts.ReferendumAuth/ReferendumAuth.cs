@@ -58,6 +58,8 @@ namespace AElf.Contracts.ReferendumAuth
                 OrganizationHash = organizationHash
             };
 
+            Assert(!string.IsNullOrEmpty(organization.TokenSymbol) && organization.ReleaseThreshold > 0,
+                "Invalid organization data.");
             if (State.Organisations[organizationAddress] == null)
             {
                 State.Organisations[organizationAddress] = organization;
@@ -85,35 +87,35 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
             Context.Fire(new ProposalCreated {ProposalId = hash});
-            
+
             return hash;
         }
 
         public override BoolValue Approve(ApproveInput input)
         {
             var proposal = GetValidProposal(input.ProposalId);
+            var organization = State.Organisations[proposal.OrganizationAddress];
 
-            Assert(input.Quantity > 0, "Invalid vote.");
-            var lockAmount = input.Quantity;
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+
+            Assert(allowance > 0, "Invalid approve.");
 
             Assert(State.LockedTokenAmount[Context.Sender][input.ProposalId] == null, "Cannot approve more than once.");
             State.ApprovedTokenAmount[input.ProposalId] =
-                State.ApprovedTokenAmount[input.ProposalId].Add(lockAmount);
-
-            var organization = State.Organisations[proposal.OrganizationAddress];
+                State.ApprovedTokenAmount[input.ProposalId].Add(allowance);
 
             LockToken(new LockInput
             {
                 Address = Context.Sender,
                 Symbol = organization.TokenSymbol,
-                Amount = lockAmount,
+                Amount = allowance,
                 LockId = Context.TransactionId,
                 Usage = "Referendum."
             });
             // Register receipt
             State.LockedTokenAmount[Context.Sender][input.ProposalId] = new Receipt
             {
-                Amount = lockAmount,
+                Amount = allowance,
                 LockId = Context.TransactionId,
                 TokenSymbol = organization.TokenSymbol
             };

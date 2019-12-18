@@ -56,8 +56,7 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
                 }
             });
             foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
@@ -76,8 +75,7 @@ namespace AElf.Contracts.Economic
                         Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
                         Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
+                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
                     }
                 });
             }

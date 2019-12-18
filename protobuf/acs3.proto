@@ -24,7 +24,6 @@ service AuthorizationContract {
 
 message ApproveInput {
     aelf.Hash proposal_id = 1;
-    sint64 quantity= 2;
 }
 
 message CreateProposalInput {
