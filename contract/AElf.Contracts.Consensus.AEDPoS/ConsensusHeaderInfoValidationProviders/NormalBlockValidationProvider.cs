@@ -1,6 +1,7 @@
 using Acs4;
 using AElf.Sdk.CSharp;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class NormalBlockValidationProvider : IHeaderInformationValidationProvider

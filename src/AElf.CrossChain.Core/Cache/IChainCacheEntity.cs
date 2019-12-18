@@ -19,24 +19,26 @@ namespace AElf.CrossChain.Cache
         private BlockingCollection<IBlockCacheEntity> DequeuedBlockCacheEntities { get; } =
             new BlockingCollection<IBlockCacheEntity>(new ConcurrentQueue<IBlockCacheEntity>());
         
-        private readonly long _initTargetHeight;
+        private long _targetHeight;
         private readonly int _chainId;
         
         public ChainCacheEntity(int chainId, long chainHeight)
         {
             _chainId = chainId;
-            _initTargetHeight = chainHeight;
+            _targetHeight = chainHeight;
         }
 
         public long TargetChainHeight()
         {
+            if (BlockCacheEntities.Count >= CrossChainConstants.ChainCacheEntityCapacity)
+                return -1;
             var lastEnqueuedBlockCacheEntity = BlockCacheEntities.LastOrDefault();
             if (lastEnqueuedBlockCacheEntity != null)
                 return lastEnqueuedBlockCacheEntity.Height + 1;
             var lastDequeuedBlockCacheEntity = DequeuedBlockCacheEntities.LastOrDefault();
             if (lastDequeuedBlockCacheEntity != null) 
                 return lastDequeuedBlockCacheEntity.Height + 1;
-            return _initTargetHeight;
+            return _targetHeight;
         }
         
         public bool TryAdd(IBlockCacheEntity blockCacheEntity)
@@ -46,13 +48,15 @@ namespace AElf.CrossChain.Cache
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
             if (blockCacheEntity.Height != TargetChainHeight())
                 return false;
-            var res = BlockCacheEntities.TryAdd(blockCacheEntity);
+            var res = ValidateBlockCacheEntity(blockCacheEntity) && BlockCacheEntities.TryAdd(blockCacheEntity);
+            if (res)
+                _targetHeight = blockCacheEntity.Height + 1;
             return res;
         }
         
         /// <summary>
         /// Try take element from cached queue.
-        /// Make sure that more than <see cref="CrossChainConstants.MinimalBlockCacheEntityCount"/> block cache entities are left in <see cref="BlockCacheEntities"/>.
+        /// Make sure that more than <see cref="CrossChainConstants.DefaultBlockCacheEntityCount"/> block cache entities are left in <see cref="BlockCacheEntities"/>.
         /// </summary>
         /// <param name="height">Height of block info needed</param>
         /// <param name="blockCacheEntity"></param>
@@ -64,7 +68,7 @@ namespace AElf.CrossChain.Cache
             var cachedInQueue = DequeueBlockCacheEntitiesBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
             var lastQueuedHeight = BlockCacheEntities.LastOrDefault()?.Height ?? 0;
-            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.MinimalBlockCacheEntityCount))
+            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.DefaultBlockCacheEntityCount))
             {
                 return TryDequeue(out blockCacheEntity);
             }
@@ -73,7 +77,7 @@ namespace AElf.CrossChain.Cache
             if (blockCacheEntity != null)
                 return !isCacheSizeLimited ||
                        BlockCacheEntities.Count + DequeuedBlockCacheEntities.Count(ci => ci.Height >= height) 
-                       >= CrossChainConstants.MinimalBlockCacheEntityCount;
+                       >= CrossChainConstants.DefaultBlockCacheEntityCount;
             
             return false;
         }
@@ -128,6 +132,12 @@ namespace AElf.CrossChain.Cache
                 DequeuedBlockCacheEntities.Add(blockCacheEntity);
 
             return res;
+        }
+
+        private bool ValidateBlockCacheEntity(IBlockCacheEntity blockCacheEntity)
+        {
+            return blockCacheEntity.Height >= Constants.GenesisBlockHeight && blockCacheEntity.ChainId == _chainId &&
+                   blockCacheEntity.TransactionStatusMerkleTreeRoot != null;
         }
     }
 }

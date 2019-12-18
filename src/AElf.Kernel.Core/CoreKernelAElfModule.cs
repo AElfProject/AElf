@@ -3,7 +3,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;

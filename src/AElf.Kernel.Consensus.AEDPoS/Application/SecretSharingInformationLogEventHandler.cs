@@ -4,8 +4,6 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -23,8 +21,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
             _secretSharingService = secretSharingService;
         }
-
-        public ILogger<SecretSharingInformationLogEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {

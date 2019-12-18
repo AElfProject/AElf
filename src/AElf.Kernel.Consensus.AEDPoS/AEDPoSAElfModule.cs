@@ -14,6 +14,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using InlineTransferFromValidationProvider = AElf.Kernel.Consensus.AEDPoS.Application.InlineTransferFromValidationProvider;
+using AElf.Kernel.Txn.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {

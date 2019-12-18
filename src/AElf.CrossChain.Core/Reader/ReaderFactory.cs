@@ -12,7 +12,7 @@ namespace AElf.CrossChain
     }
 
     internal class ReaderFactory : IReaderFactory
-    {
+    {    
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
 

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Communication.Application;
@@ -31,6 +32,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     await _crossChainResponseService.ResponseParentChainBlockDataAsync(requestedHeight, remoteChainId);
                 if (parentChainBlockData == null)
                     break;
+
                 if (context.Status.StatusCode != Status.DefaultSuccess.StatusCode)
                 {
                     Logger.LogTrace(
@@ -38,9 +40,17 @@ namespace AElf.CrossChain.Communication.Grpc
                     return;
                 }
 
-                Logger.LogTrace($"Response parent chain data {parentChainBlockData.Height}");
-                await responseStream.WriteAsync(parentChainBlockData);
-                requestedHeight++;
+                try
+                {
+                    await responseStream.WriteAsync(parentChainBlockData);
+                    Logger.LogTrace($"Response parent chain data {parentChainBlockData.Height}");
+                    requestedHeight++;
+                }
+                catch (InvalidOperationException)
+                {
+                    Logger.LogWarning("Failed to write into server side stream.");
+                    return;
+                }
             }
         }
 
