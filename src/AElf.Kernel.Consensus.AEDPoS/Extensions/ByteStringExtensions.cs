@@ -1,6 +1,7 @@
 using AElf.Contracts.Consensus.AEDPoS;
 using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Consensus.AEDPoS
 {
     public static class ByteStringExtensions

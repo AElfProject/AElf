@@ -1,8 +1,9 @@
-using System.Collections.Generic;
-using AElf.Sdk.CSharp.State;
-
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    /// <summary>
+    /// Useful data for validating consensus header information.
+    /// </summary>
     public class ConsensusValidationContext
     {
         public long CurrentTermNumber { get; set; }
@@ -14,16 +15,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         public string SenderPubkey => ExtraData.SenderPubkey.ToHex();
 
+        /// <summary>
+        /// Round information fetch from StateDb.
+        /// </summary>
         public Round BaseRound { get; set; }
 
         /// <summary>
-        /// This validation focuses on the new round information.
+        /// Round information included in the consensus header extra data.
         /// </summary>
         public Round ProvidedRound => ExtraData.Round;
 
+        /// <summary>
+        /// Previous round information fetch from StateDb.
+        /// </summary>
         public Round PreviousRound { get; set; }
 
-        public LatestProviderToTinyBlocksCount LatestProviderToTinyBlocksCount { get; set; }
+        /// <summary>
+        /// This filed is to prevent one miner produces too many continues blocks
+        /// (which may cause problems to other parts).
+        /// </summary>
+        public LatestPubkeyToTinyBlocksCount LatestPubkeyToTinyBlocksCount { get; set; }
+
         public AElfConsensusHeaderInformation ExtraData { get; set; }
     }
 }

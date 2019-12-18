@@ -16,7 +16,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
-        private readonly IInValueCacheService _inValueCacheService;
+        private readonly IInValueCache _inValueCache;
         private readonly ISecretSharingService _secretSharingService;
 
         private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
@@ -24,11 +24,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            ISecretSharingService secretSharingService, IInValueCacheService inValueCacheService)
+            ISecretSharingService secretSharingService, IInValueCache inValueCache)
         {
             _accountService = accountService;
             _secretSharingService = secretSharingService;
-            _inValueCacheService = inValueCacheService;
+            _inValueCache = inValueCache;
 
             Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
         }
@@ -54,8 +54,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var newInValue = _inValueCacheService.GetInValue(hint.RoundId);
-                var previousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId);
+                var newInValue = _inValueCache.GetInValue(hint.RoundId);
+                var previousInValue = _inValueCache.GetInValue(hint.PreviousRoundId);
                 Logger.LogTrace($"New in value {newInValue} for round of id {hint.RoundId}");
                 Logger.LogTrace($"Previous in value {previousInValue} for round of id {hint.PreviousRoundId}");
                 var trigger = new AElfConsensusTriggerInformation
@@ -92,12 +92,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var inValue = _inValueCacheService.GetInValue(hint.RoundId);
+                var inValue = _inValueCache.GetInValue(hint.RoundId);
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,
                     InValue = inValue,
-                    PreviousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId),
+                    PreviousInValue = _inValueCache.GetInValue(hint.PreviousRoundId),
                     Behaviour = hint.Behaviour,
                 };
 

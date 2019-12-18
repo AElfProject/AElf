@@ -47,14 +47,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var miningInformationUpdated = new MiningInformationUpdated
             {
-                // _processingBlockMinerPubkey is set during above process.
+                // _processingBlockMinerPubkey is set during PreCheck.
                 Pubkey = _processingBlockMinerPubkey,
                 Behaviour = callerMethodName,
                 MiningTime = Context.CurrentBlockTime,
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash
             };
-            Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => $"Synced mining information: {miningInformationUpdated}");
 
             // Make sure the method GetMaximumBlocksCount executed no matter what consensus behaviour is.
@@ -311,22 +310,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="minersCountInTheory"></param>
         private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
-            LatestProviderToTinyBlocksCount currentValue;
-            if (State.LatestProviderToTinyBlocksCount.Value == null)
+            LatestPubkeyToTinyBlocksCount currentValue;
+            if (State.LatestPubkeyToTinyBlocksCount.Value == null)
             {
-                currentValue = new LatestProviderToTinyBlocksCount
+                currentValue = new LatestPubkeyToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
                     BlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(1)
                 };
-                State.LatestProviderToTinyBlocksCount.Value = currentValue;
+                State.LatestPubkeyToTinyBlocksCount.Value = currentValue;
             }
             else
             {
-                currentValue = State.LatestProviderToTinyBlocksCount.Value;
+                currentValue = State.LatestPubkeyToTinyBlocksCount.Value;
                 if (currentValue.Pubkey == _processingBlockMinerPubkey)
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = currentValue.BlocksCount.Sub(1)
@@ -334,7 +333,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = minersCountInTheory.Sub(1)

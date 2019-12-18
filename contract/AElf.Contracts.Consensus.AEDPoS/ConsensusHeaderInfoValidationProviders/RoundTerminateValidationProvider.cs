@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class RoundTerminateValidationProvider : IHeaderInformationValidationProvider
@@ -50,8 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return validationResult;
             }
 
-            // Is next term information correct?
-            //   Term Number
+            // Is next term number correct?
             return validationContext.BaseRound.TermNumber.Add(1) != extraData.Round.TermNumber
                 ? new ValidationResult {Message = "Incorrect term number for next round."}
                 : new ValidationResult {Success = true};
