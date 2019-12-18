@@ -47,5 +47,20 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
+
+        [Fact]
+        public async Task Token_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, TokenContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(TokenContractImplStub.Transfer),
+                Fees = { TokenAmount}
+            });
+            var result = await TokenContractImplStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(TokenContractImplStub.Transfer)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
     }
 }
