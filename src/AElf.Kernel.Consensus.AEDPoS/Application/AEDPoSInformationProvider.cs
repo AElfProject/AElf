@@ -8,16 +8,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     // ReSharper disable once InconsistentNaming
     internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
     {
-        private readonly IAEDPoSReaderFactory _readerFactory;
+        private readonly IConsensusReaderFactory _readerFactory;
 
-        public AEDPoSInformationProvider(IAEDPoSReaderFactory readerFactory)
+        public AEDPoSInformationProvider(IConsensusReaderFactory readerFactory)
         {
             _readerFactory = readerFactory;
         }
 
         public async Task<IEnumerable<string>> GetCurrentMinerList(ChainContext chainContext)
         {
-            var minersWithRoundNumber = await _readerFactory.Create(chainContext).GetCurrentMinerList.CallAsync(new Empty());
+            var minersWithRoundNumber =
+                await _readerFactory.Create(chainContext).GetCurrentMinerList.CallAsync(new Empty());
             return minersWithRoundNumber.Pubkeys.Select(k => k.ToHex());
         }
     }

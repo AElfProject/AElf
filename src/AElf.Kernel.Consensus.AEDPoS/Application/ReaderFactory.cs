@@ -2,20 +2,21 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    internal interface IAEDPoSReaderFactory
+    internal interface IConsensusReaderFactory
     {
         AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext);
     }
 
-    internal class AEDPoSReaderFactory : IAEDPoSReaderFactory
+    internal class ConsensusReaderFactory : IConsensusReaderFactory
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IConsensusReaderContextService _contextService;
 
-        public AEDPoSReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public ConsensusReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IConsensusReaderContextService contextService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;

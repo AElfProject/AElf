@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
