@@ -17,7 +17,11 @@ service ACS7 {
     }
     rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
     }
-    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
+    rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
+    }
+    rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){
+    }
+    rpc CreateSideChain (CreateSideChainInput) returns (aelf.SInt32Value) {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
@@ -184,4 +188,13 @@ message IndexedSideChainBlockData{
 message RecordCrossChainDataInput{
     CrossChainBlockData proposed_cross_chain_data = 1;
     aelf.Address proposer = 2;
+}
+
+message CreateSideChainInput{
+    SideChainCreationRequest side_chain_creation_request = 1;
+    aelf.Address proposer = 3;
+}
+
+message ReleaseSideChainCreationInput {
+    aelf.Hash proposalId = 1;
 }
