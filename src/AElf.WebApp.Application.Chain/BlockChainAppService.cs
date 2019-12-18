@@ -1,3 +1,4 @@
+using System;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -95,7 +96,7 @@ namespace AElf.WebApp.Application.Chain
         }
 
         /// <summary>
-        /// Get information about a given block by block height. Otionally with the list of its transactions.
+        /// Get information about a given block by block height. Optionally with the list of its transactions.
         /// </summary>
         /// <param name="blockHeight">block height</param>
         /// <param name="includeTransactions">include transactions or not</param>
@@ -147,13 +148,17 @@ namespace AElf.WebApp.Application.Chain
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
             var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
             var round = information.Round;
+            var roundId = round.RoundIdForValidation == 0
+                ? round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
+                    .Sum()
+                : round.RoundIdForValidation;
             return new RoundDto
             {
                 ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
                 RealTimeMinerInformation = round.RealTimeMinersInformation.ToDictionary(i => i.Key, i =>
                     new MinerInRoundDto
                     {
-                        Order = i.Value.Order,
+                        Order = i.Value.Order == 0 ? 1 : i.Value.Order,
                         ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
                         ActualMiningTimes = i.Value.ActualMiningTimes?.Select(t => t.ToDateTime()).ToList(),
                         ProducedTinyBlocks = i.Value.ActualMiningTimes?.Count ?? 0,
@@ -169,8 +174,7 @@ namespace AElf.WebApp.Application.Chain
                 ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
                 ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
                 IsMinerListJustChanged = round.IsMinerListJustChanged,
-                RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
-                    .Sum()
+                RoundId = roundId
             };
         }
 

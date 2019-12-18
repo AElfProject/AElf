@@ -93,7 +93,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         /// <summary>
-        /// This method is only available when the miners of this round is more than 1.
+        /// For multiple miners, return the length every mining time slot (which should be equal).
+        /// For single miner, return 4000 ms.
         /// </summary>
         /// <returns></returns>
         public int GetMiningInterval()
@@ -211,10 +212,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : new Timestamp {Seconds = long.MaxValue};
         }
 
-        public int GetMiningOrder(string publicKey)
+        /// <summary>
+        /// Get miner's order of provided round information.
+        /// If provided round doesn't contain this pubkey, return int.MaxValue.
+        /// </summary>
+        /// <param name="pubkey"></param>
+        /// <returns></returns>
+        public int GetMiningOrder(string pubkey)
         {
-            return RealTimeMinersInformation.ContainsKey(publicKey)
-                ? RealTimeMinersInformation[publicKey].Order
+            return RealTimeMinersInformation.ContainsKey(pubkey)
+                ? RealTimeMinersInformation[pubkey].Order
                 : int.MaxValue;
         }
 
@@ -272,6 +279,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
         }
 
+        /// <summary>
+        /// Change term if two thirds of miners latest ActualMiningTime meets threshold of changing term.
+        /// </summary>
+        /// <param name="blockchainStartTimestamp"></param>
+        /// <param name="currentTermNumber"></param>
+        /// <param name="timeEachTerm"></param>
+        /// <returns></returns>
         public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long timeEachTerm)
         {
             return RealTimeMinersInformation.Values

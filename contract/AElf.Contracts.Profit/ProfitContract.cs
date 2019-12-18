@@ -32,7 +32,7 @@ namespace AElf.Contracts.Profit
     {
         /// <summary>
         /// Create a Scheme of profit distribution.
-        /// At the first time,the scheme's id is unknown,it may create by transaction id and createdSchemeIds;
+        /// At the first time, the scheme's id is unknown,it may create by transaction id and createdSchemeIds;
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -722,7 +722,6 @@ namespace AElf.Contracts.Profit
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
-                        // TODO: Optimize.
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,

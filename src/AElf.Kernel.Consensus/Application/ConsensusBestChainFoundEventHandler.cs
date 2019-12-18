@@ -17,6 +17,11 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
 
+        /// <summary>
+        /// Trigger consensus mining process after event BestChainFoundEventData published by EventBus.
+        /// </summary>
+        /// <param name="eventData"></param>
+        /// <returns></returns>
         public Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             _consensusService.TriggerConsensusAsync(new ChainContext

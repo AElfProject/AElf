@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
