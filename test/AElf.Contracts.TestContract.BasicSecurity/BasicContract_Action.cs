@@ -36,7 +36,9 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Empty TestInt32State(Int32Input input)
         {
-            State.Int32Info.Value = State.Int32Info.Value.Add(input.Int32Value);
+            var hashCode = input.GetHashCode();
+            Context.LogDebug(()=>$"##Int32 HashCode: {hashCode}");
+            State.Int32Info.Value = State.Int32Info.Value.Add(hashCode); //test whether state is the same
             
             return new Empty();
         }
@@ -66,8 +68,10 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             if(string.IsNullOrEmpty(State.StringInfo.Value))
                 State.StringInfo.Value = string.Empty;
-            
-            State.StringInfo.Value = State.StringInfo.Value.Append(input.StringValue);
+
+            var hashCodeInfo = input.GetHashCode().ToString();
+            Context.LogDebug(()=>$"##String HashCode: {hashCodeInfo}");
+            State.StringInfo.Value = State.StringInfo.Value.Append(hashCodeInfo);
             
             return new Empty();
         }
