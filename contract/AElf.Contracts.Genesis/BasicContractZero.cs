@@ -185,7 +185,7 @@ namespace AElf.Contracts.Genesis
                         IsContractDeployment = true
                     }.ToByteString(),
                     OrganizationAddress = State.GenesisOwner.Value,
-                    ExpiredTime = Context.CurrentBlockTime.AddHours(24) // Maybe, get the interval from configuration
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 },
                 OriginProposer = Context.Sender
             });
@@ -228,7 +228,7 @@ namespace AElf.Contracts.Genesis
                         IsContractDeployment = false
                     }.ToByteString(),
                     OrganizationAddress = State.GenesisOwner.Value,
-                    ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 },
                 OriginProposer = Context.Sender
             });
@@ -266,7 +266,7 @@ namespace AElf.Contracts.Genesis
                         : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                     Params = input.ContractInput,
                     OrganizationAddress = State.GenesisOwner.Value,
-                    ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
                 },
                 OriginProposer = proposedInfo.Proposer
             });

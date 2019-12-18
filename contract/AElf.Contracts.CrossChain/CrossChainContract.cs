@@ -85,7 +85,7 @@ namespace AElf.Contracts.CrossChain
                 Decimals = sideChainCreationRequest.SideChainTokenDecimals,
                 IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
             };
-            CreateSideChainToken(sideChainTokenInfo, chainId);
+            CreateSideChainToken(sideChainTokenInfo, chainId, input.Proposer);
 
             var sideChainInfo = new SideChainInfo
             {
@@ -109,7 +109,7 @@ namespace AElf.Contracts.CrossChain
             Context.Fire(new SideChainCreatedEvent
             {
                 ChainId = chainId,
-                Creator = Context.Origin
+                Creator = input.Proposer
             });
             return new SInt32Value() {Value = chainId};
         }
@@ -189,8 +189,6 @@ namespace AElf.Contracts.CrossChain
         public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
         {
             AssertAddressIsParliamentContract(Context.Sender);
-            AssertAddressIsCurrentMiner(Context.Origin);
-            
             var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
             AssertIsCrossChainBlockDataAlreadyProposed(crossChainIndexingProposal);
             crossChainIndexingProposal.ProposalId = input;

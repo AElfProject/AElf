@@ -126,7 +126,7 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
-        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId)
+        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId, Address creator)
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
@@ -134,7 +134,7 @@ namespace AElf.Contracts.CrossChain
                 TokenName = sideChainTokenInfo.TokenName,
                 Decimals = sideChainTokenInfo.Decimals,
                 IsBurnable = sideChainTokenInfo.IsBurnable,
-                Issuer = Context.Origin,
+                Issuer = creator,
                 IssueChainId = chainId,
                 IsTransferDisabled = false,
                 Symbol = sideChainTokenInfo.Symbol,
@@ -294,7 +294,7 @@ namespace AElf.Contracts.CrossChain
                     {
                         ContractMethodName = nameof(CreateSideChain),
                         ToAddress = Context.Self,
-                        ExpiredTime = Context.CurrentBlockTime.AddSeconds(SideChainCreationProposalExpirationTimeLimit),
+                        ExpiredTime = Context.CurrentBlockTime.AddSeconds(SideChainCreationProposalExpirationTimePeriod),
                         Params = new CreateSideChainInput {SideChainCreationRequest = request, Proposer = proposer}
                             .ToByteString(),
                         OrganizationAddress = GetOwnerAddress()
@@ -317,7 +317,7 @@ namespace AElf.Contracts.CrossChain
                         Proposer = proposer
                     }.ToByteString(),
                     ContractMethodName = nameof(RecordCrossChainData),
-                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimePeriod),
                     OrganizationAddress = GetOwnerAddress(),
                     ToAddress = Context.Self
                 },
