@@ -68,7 +68,7 @@ namespace AElf.OS.Network.Grpc
         {
             var client = await CreateClientAsync(remoteEndpoint);
             
-            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            var handshake = await _handshakeProvider.GetHandshakeAsync(client.IsSecure);
             var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
             // verify handshake

@@ -77,8 +77,12 @@ namespace AElf.OS.Network.Grpc
             
             var serverCredentials = CreateCredentials();
             
-            // setup encrypted endpoint	
+            // setup encrypted endpoint
             _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, serverCredentials));
+            
+            // listen non secure for older version.
+            if (NetworkOptions.SecureListeningPort != 0)
+                _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.SecureListeningPort, ServerCredentials.Insecure));
             
             return Task.Run(() =>
             {

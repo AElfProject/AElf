@@ -26,6 +26,11 @@ namespace AElf.OS.Network
         /// Node Server listening Port.
         /// </summary>
         public int ListeningPort { get; set; }
+        
+        /// <summary>
+        /// Secure listening port
+        /// </summary>
+        public int SecureListeningPort { get; set; } = 0;
 
         /// <summary>
         /// The maximum number of peers accepted by this node (0 for no limit).
