@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Acs8;
@@ -47,10 +48,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             buyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        private async Task AdvanceResourceToken()
+        private async Task AdvanceResourceToken(List<string> except = null)
         {
             const long amount = 10_000_00000000;
-            var resourceTokenList = new List<string> {"CPU", "STO", "NET","RAM"};
+            var resourceTokenList = new List<string> {"CPU", "STO", "NET", "RAM"};
+            if (except != null && except.Any())
+            {
+                resourceTokenList = resourceTokenList.Except(except).ToList();
+            }
+
             foreach (var symbol in resourceTokenList)
             {
                 await TokenContractStub.Transfer.SendAsync(new TransferInput
@@ -206,9 +212,41 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         [Fact]
         public async Task CompareCpuTokenConsumption_WithoutResource()
         {
-            var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
-            cpuConsumingResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-            cpuConsumingResult.TransactionResult.Error.ShouldContain("is not enough");
+            var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            txResult.TransactionResult.Error.ShouldContain("is not enough");
+        }
+
+        [Fact]
+        public async Task Consumption_WithoutInsufficientSTO()
+        {
+            await AdvanceResourceToken(new List<string> {"STO"});
+            const long stoAmount = 100; // Not enough.
+
+            // Advance some STO tokens.
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = TestContractAddress,
+                Amount = stoAmount,
+                Symbol = "STO"
+            });
+
+            var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(stoAmount);
+            txResult.TransactionResult.ConsumedResourceTokens.Value["CPU"].ShouldBeGreaterThan(0);
+            txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
+            txResult.TransactionResult.ConsumedResourceTokens.Value["RAM"].ShouldBeGreaterThan(0);
+
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "STO"
+            })).Balance;
+            balance.ShouldBe(0);
         }
 
         [Fact]
@@ -216,17 +254,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await AdvanceResourceToken();
 
-            var (cpu, ram, net) =
+            var (cpu, ram, net, txResult1) =
                 await GetTransactionResourcesCost(DefaultTester.CpuConsumingMethod.SendAsync);
-            var (cpu1, ram1, net1) =
+            var (cpu1, ram1, net1, txResult2) =
                 await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
 
             cpu.ShouldBeGreaterThan(cpu1);
             ram.ShouldBeGreaterThan(ram1);
             net.ShouldBe(net1);
+
+            txResult1.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);
+            txResult2.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);
+            txResult1.ConsumedResourceTokens.Value["CPU"]
+                .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["CPU"]);
+            txResult1.ConsumedResourceTokens.Value["RAM"]
+                .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["RAM"]);
+            txResult1.ConsumedResourceTokens.Value["NET"]
+                .ShouldBe(txResult2.ConsumedResourceTokens.Value["NET"]);
+            txResult1.ConsumedResourceTokens.Value["STO"]
+                .ShouldBe(txResult2.ConsumedResourceTokens.Value["STO"]);
         }
 
-        private async Task<(long cpu, long ram, long net)> GetTransactionResourcesCost(
+        private async Task<(long cpu, long ram, long net, TransactionResult txResult)> GetTransactionResourcesCost(
             Func<Empty, Task<IExecutionResult<Empty>>> action)
         {
             var beforeCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -245,9 +294,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Symbol = "NET"
             })).Balance;
 
-            await action(new Empty());
+            var txResult = (await action(new Empty())).TransactionResult;
             // Mine a block to use plugin to really consume resource tokens.
-            var result = await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
 
             var afterCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -265,7 +314,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Symbol = "NET"
             })).Balance;
 
-            return (beforeCpu - afterCpu, beforeRam - afterRam, beforeNet - afterNet);
+            return (beforeCpu - afterCpu, beforeRam - afterRam, beforeNet - afterNet, txResult);
         }
     }
 }
