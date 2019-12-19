@@ -123,7 +123,6 @@ namespace AElf.Contracts.CrossChain
                 IsBurnable = sideChainTokenInfo.IsBurnable,
                 Issuer = Context.Origin,
                 IssueChainId = chainId,
-                IsTransferDisabled = false,
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply
             });

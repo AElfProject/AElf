@@ -474,14 +474,6 @@ namespace AElf.OS.Network.Grpc
             {
                 throw HandleRpcException(ex.InnerException as RpcException, requestParams.ErrorMessage);
             }
-            finally
-            {
-                if (timeRequest)
-                {
-                    requestTimer.Stop();
-                    RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
-                }
-            }
         }
 
         private void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)

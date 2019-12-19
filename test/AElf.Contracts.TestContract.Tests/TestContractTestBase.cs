@@ -302,15 +302,6 @@ namespace AElf.Contract.TestContract
                     });
                     CheckResult(resourceIssueResult.TransactionResult);
                 }
-
-                var setPriceResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
-                    new SetResourceTokenUnitPriceInput
-                    {
-                        CpuUnitPrice = 100_000L,
-                        NetUnitPrice = 100_000L,
-                        StoUnitPrice = 100_000L
-                    });
-                CheckResult(setPriceResult.TransactionResult);
             }
 
             //initialize token converter
