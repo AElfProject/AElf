@@ -474,8 +474,9 @@ namespace AElf.Contracts.TestBase
         /// Normal txs will use tx pool while system txs not.
         /// </summary>
         /// <param name="txs"></param>
+        /// <param name="addToChain"></param>
         /// <returns></returns>
-        public async Task<Block> MineAsync(List<Transaction> txs)
+        public async Task<Block> MineAsync(List<Transaction> txs, bool addToChain=true)
         {
             await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -485,10 +486,13 @@ namespace AElf.Contracts.TestBase
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
-            
-            await blockchainService.AddBlockAsync(block);
-            await blockAttachService.AttachBlockAsync(block);
-    
+
+            if (addToChain)
+            {
+                await blockchainService.AddBlockAsync(block);
+                await blockAttachService.AttachBlockAsync(block);
+            }
+
             return block;
         }
 

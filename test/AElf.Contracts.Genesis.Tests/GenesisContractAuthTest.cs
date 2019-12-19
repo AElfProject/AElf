@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -204,11 +205,21 @@ namespace AElf.Contracts.Genesis
 
             // Wait for contract code check event handler to finish its job
             // Mine a block, should include approval transaction
-            await Task.Delay(5000);
-            var block = await Tester.MineEmptyBlockAsync();
-            var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
-            txs.First(tx => tx.To == ParliamentAddress).MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+            var source = new CancellationTokenSource(20 * 1000);
+            while (!source.IsCancellationRequested)
+            {
+                var block = await Tester.MineEmptyBlockAsync();
+                var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
+                var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
+                if (parliamentTxs.Count == 0)
+                {
+                    await Task.Delay(100, source.Token);
+                    continue;
+                }
+                parliamentTxs[0].MethodName.ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+                return;
+            }
+            Assert.True(false, $"Overtime 20 seconds but still cannot verify success.");
         }
 
         [Fact]
@@ -257,13 +268,21 @@ namespace AElf.Contracts.Genesis
 
             // Wait for contract code check event handler to finish its job
             // Mine a block, should include approval transaction
-            await Task.Delay(5000);
-            var block = await Tester.MineEmptyBlockAsync();
-
-            var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
-
-            txs.First(tx => tx.To == ParliamentAddress).MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+            var source = new CancellationTokenSource(20 * 1000);
+            while (!source.IsCancellationRequested)
+            {
+                var block = await Tester.MineEmptyBlockAsync();
+                var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
+                var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
+                if (parliamentTxs.Count == 0)
+                {
+                    await Task.Delay(100, source.Token);
+                    continue;
+                }
+                parliamentTxs[0].MethodName.ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+                return;
+            }
+            Assert.True(false, $"Overtime 20 seconds but still cannot verify success.");
         }
 
         [Fact]
