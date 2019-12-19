@@ -93,7 +93,11 @@ namespace AElf.Contracts.ReferendumAuth
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                LockWhiteList =
+                {
+                    ReferendumAuthContractAddress
+                }
             });
 
             //issue default user
