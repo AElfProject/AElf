@@ -95,14 +95,11 @@ namespace AElf.Contracts.ReferendumAuth
         {
             var proposal = GetValidProposal(input.ProposalId);
             var organization = State.Organisations[proposal.OrganizationAddress];
-
-            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
-
-            Assert(allowance > 0, "Invalid approve.");
-
             Assert(State.LockedTokenAmount[Context.Sender][input.ProposalId] == null, "Cannot approve more than once.");
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
             State.ApprovedTokenAmount[input.ProposalId] =
                 State.ApprovedTokenAmount[input.ProposalId].Add(allowance);
+            Assert(allowance > 0, "Invalid approve.");
 
             LockToken(new LockInput
             {
