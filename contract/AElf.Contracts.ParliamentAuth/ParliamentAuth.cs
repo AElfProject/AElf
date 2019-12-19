@@ -160,7 +160,7 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(organization != null, "No registered organization.");
             Assert(
                 Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
-                ValidateProposerAuthority(input.OriginProposer), "Not authorized to propose.");
+                CheckProposerAuthorityIfNeeded(input.OriginProposer), "Not authorized to propose.");
             var proposalId = CreateNewProposal(input.ProposalInput);
             if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
                 Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
