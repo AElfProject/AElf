@@ -166,17 +166,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return isCurrentMiner;
             }
 
-            TryToGetCurrentRoundInformation(out var currentRound);
-            var ebpLastMiningTime = currentRound.RealTimeMinersInformation.Single(i => i.Value.IsExtraBlockProducer)
-                .Value
-                .ActualMiningTimes.LastOrDefault();
-            // Return true if current ebp didn't produce block during ebp time slot and input contained by miner list.
-            return new BoolValue
-            {
-                Value = (ebpLastMiningTime == null || ebpLastMiningTime < currentRound.GetExtraBlockMiningTime()) &&
-                        currentRound.RealTimeMinersInformation
-                            .Any(i => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Key)) == input)
-            };
+            return new BoolValue {Value = false};
         }
 
         /// <summary>
