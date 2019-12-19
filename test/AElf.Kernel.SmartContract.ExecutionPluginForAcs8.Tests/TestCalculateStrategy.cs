@@ -3,7 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 {
     public class TestCalculateTxStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
     {
@@ -37,23 +37,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         public TestCalculateCpuStrategy()
         {
-            var functionProvider = new CalculateFunctionProvider
+            var functionProvider = new CalculateFunctionProvider();
+            functionProvider.PieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
+            functionProvider.PieceWiseFuncCache[10] = new LinerCalculateWay
             {
-                PieceWiseFuncCache = new Dictionary<int, ICalculateWay>
-                {
-                    [10] = new LinerCalculateWay {Numerator = 1, Denominator = 8, ConstantValue = 10000},
-                    [100] = new LinerCalculateWay {Numerator = 1, Denominator = 4},
-                    [int.MaxValue] = new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 4,
-                        Weight = 250,
-                        WeightBase = 40,
-                        Numerator = 1,
-                        Denominator = 4,
-                        Precision = 100000000L
-                    }
-                }
+                Numerator = 1,
+                Denominator = 8,
+                ConstantValue = 10000
+            };
+            functionProvider.PieceWiseFuncCache[100] = new LinerCalculateWay
+            {
+                Numerator = 1,
+                Denominator = 4
+            };
+            functionProvider.PieceWiseFuncCache[int.MaxValue] = new PowerCalculateWay
+            {
+                Power = 2,
+                ChangeSpanBase = 4,
+                Weight = 250,
+                WeightBase = 40,
+                Numerator = 1,
+                Denominator = 4,
+                Precision = 100000000L
             };
 
             CalculateAlgorithmService =
@@ -67,22 +72,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         public TestCalculateStoStrategy()
         {
-            var functionProvider = new CalculateFunctionProvider
+            var functionProvider = new CalculateFunctionProvider();
+            functionProvider.PieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
+            functionProvider.PieceWiseFuncCache[1000000] = new LinerCalculateWay
             {
-                PieceWiseFuncCache = new Dictionary<int, ICalculateWay>
-                {
-                    [1000000] = new LinerCalculateWay {Numerator = 1, Denominator = 64, ConstantValue = 10000},
-                    [int.MaxValue] = new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 100,
-                        Weight = 250,
-                        WeightBase = 500,
-                        Numerator = 1,
-                        Denominator = 64,
-                        Precision = 100000000L
-                    }
-                }
+                Numerator = 1,
+                Denominator = 64,
+                ConstantValue = 10000
+            };
+            functionProvider.PieceWiseFuncCache[int.MaxValue] = new PowerCalculateWay
+            {
+                Power = 2,
+                ChangeSpanBase = 100,
+                Weight = 250,
+                WeightBase = 500,
+                Numerator = 1,
+                Denominator = 64,
+                Precision = 100000000L
             };
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(null, null,
@@ -95,22 +101,27 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         public TestCalculateRamStrategy()
         {
-            var functionProvider = new CalculateFunctionProvider
+            var functionProvider = new CalculateFunctionProvider();
+            functionProvider.PieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
+            functionProvider.PieceWiseFuncCache[10] = new LinerCalculateWay
             {
-                PieceWiseFuncCache = new Dictionary<int, ICalculateWay>
-                {
-                    [10] = new LinerCalculateWay {Numerator = 1, Denominator = 8, ConstantValue = 10000},
-                    [100] = new LinerCalculateWay {Numerator = 1, Denominator = 4},
-                    [int.MaxValue] = new PowerCalculateWay
-                    {
-                        Power = 2,
-                        ChangeSpanBase = 2,
-                        Weight = 250,
-                        Numerator = 1,
-                        Denominator = 4,
-                        WeightBase = 40,
-                    }
-                }
+                Numerator = 1,
+                Denominator = 8,
+                ConstantValue = 10000
+            };
+            functionProvider.PieceWiseFuncCache[100] = new LinerCalculateWay
+            {
+                Numerator = 1,
+                Denominator = 4
+            };
+            functionProvider.PieceWiseFuncCache[int.MaxValue] = new PowerCalculateWay
+            {
+                Power = 2,
+                ChangeSpanBase = 2,
+                Weight = 250,
+                Numerator = 1,
+                Denominator = 4,
+                WeightBase = 40,
             };
             CalculateAlgorithmService =
                 new CalculateAlgorithmService(null, null,
