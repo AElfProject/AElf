@@ -57,7 +57,8 @@ message TransactionFee {
 
 message ConsumedResourceTokens {
     map<string, sint64> value = 1;// symbol -> amount
-    bool is_failed_to_charge = 2;
+    map<string, sint64> owning = 2;// symbol -> amount
+    bool is_failed_to_charge = 3;
 }
 
 message LogEvent {

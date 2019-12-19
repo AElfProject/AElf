@@ -26,6 +26,11 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<Address, Address, string, long> AdvancedResourceToken { get; set; }
 
+        /// <summary>
+        /// Contract Address -> (Owning) Resource Token Symbol -> Amount.
+        /// </summary>
+        public MappedState<Address, string, long> OwningResourceToken { get; set; }
+
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
         

@@ -154,8 +154,14 @@ namespace AElf.Contracts.MultiToken
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
                 if (existingBalance < pair.Value)
                 {
-                    consumedResourceTokens.IsFailedToCharge = true;
                     bill.TokenToAmount.Add(pair.Key, existingBalance);
+                    var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
+                        .Add(pair.Value.Sub(existingBalance));
+                    State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
+
+                    consumedResourceTokens.IsFailedToCharge = true;
+                    consumedResourceTokens.Owning.Add(pair.Key, owningBalance);
+
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                 }
                 else
@@ -174,6 +180,20 @@ namespace AElf.Contracts.MultiToken
             Context.LogDebug(() => $"Finished executing ChargeResourceToken.{consumedResourceTokens}");
 
             return consumedResourceTokens;
+        }
+
+
+        public override Empty CheckResourceToken(Empty input)
+        {
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+            {
+                var balance = State.Balances[Context.Sender][symbol];
+                var owningBalance = State.OwningResourceToken[Context.Sender][symbol];
+                Assert(balance > owningBalance,
+                    $"Contract balance of {symbol} token is not enough. Owning {owningBalance}.");
+            }
+
+            return new Empty();
         }
 
         /// <summary>

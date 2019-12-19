@@ -7,6 +7,7 @@ using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -231,12 +232,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Symbol = "STO"
             });
 
-            var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(stoAmount);
-            txResult.TransactionResult.ConsumedResourceTokens.Value["CPU"].ShouldBeGreaterThan(0);
-            txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
-            txResult.TransactionResult.ConsumedResourceTokens.Value["RAM"].ShouldBeGreaterThan(0);
+            long owingSto;
+
+            {
+                var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(stoAmount);
+                owingSto = txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"];
+                owingSto.ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["CPU"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["RAM"].ShouldBeGreaterThan(0);
+            }
 
             // Mine a block to use plugin to really consume resource tokens.
             await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
@@ -247,6 +254,43 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Symbol = "STO"
             })).Balance;
             balance.ShouldBe(0);
+
+            {
+                var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+                txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
+            }
+
+            // Advance some STO tokens.
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = TestContractAddress,
+                Amount = owingSto - 1, // Still not enough
+                Symbol = "STO"
+            });
+
+            {
+                var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+                txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
+            }
+
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = TestContractAddress,
+                Amount = 2, // Not it's enough
+                Symbol = "STO"
+            });
+
+            {
+                var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(owingSto + 1);
+                txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["CPU"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["RAM"].ShouldBeGreaterThan(0);
+            }
         }
 
         [Fact]
