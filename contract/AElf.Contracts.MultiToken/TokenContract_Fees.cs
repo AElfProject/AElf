@@ -470,7 +470,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetTransactionSizeUnitPrice(SInt64Value input)
+        private void AssertIsAuthorized()
         {
             if (State.ZeroContract.Value == null)
             {
@@ -489,18 +489,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx size unit price.");
-
-            Context.Fire(new TransactionSizeFeeUnitPriceUpdated
-            {
-                UnitPrice = input.Value
-            });
-
-            Context.LogDebug(() => $"SetTransactionSizeUnitPrice: {input.Value}");
-
-            State.TransactionFeeUnitPrice.Value = input.Value;
-
-            return new Empty();
+                "No permission to set tx，cpu，sto，ram，net.");
         }
     }
 }
