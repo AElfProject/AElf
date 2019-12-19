@@ -1,16 +1,15 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -22,26 +21,12 @@ namespace AElf.Kernel.TransactionPool.Application
         public BlockIndex BlockIndex { get; set; }
     }
 
-    public interface ICalculateFunctionProvider : ITransientDependency
-    {
-        Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
-        ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; }
-    }
-
-    public class CalculateFunctionProvider : ICalculateFunctionProvider
-    {
-        public Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
-
-        public ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; } =
-            new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
-    }
-
     internal class CalculateAlgorithmService : ICalculateAlgorithmService
     {
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
-        private readonly ICalculateFunctionProvider _cacheProvider;
+        private readonly ICalculateFunctionCacheProvider _cacheCacheProvider;
 
         public ICalculateAlgorithmContext CalculateAlgorithmContext { get; } = new CalculateAlgorithmContext();
         public ILogger<CalculateAlgorithmService> Logger { get; set; }
@@ -49,33 +34,23 @@ namespace AElf.Kernel.TransactionPool.Application
         public CalculateAlgorithmService(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
             IChainBlockLinkService chainBlockLinkService,
-            ICalculateFunctionProvider cacheProvider)
+            ICalculateFunctionCacheProvider cacheCacheProvider)
         {
             _tokenStTokenContractReaderFactory = tokenStTokenContractReaderFactory;
             _blockchainService = blockchainService;
             _chainBlockLinkService = chainBlockLinkService;
-            _cacheProvider = cacheProvider;
+            _cacheCacheProvider = cacheCacheProvider;
             Logger = new NullLogger<CalculateAlgorithmService>();
         }
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
-            var forkCache = _cacheProvider.ForkCache;
-            foreach (var blockIndex in blockIndexes.Where(blockIndex => forkCache.TryGetValue(blockIndex, out _)))
-            {
-                forkCache.TryRemove(blockIndex, out _);
-            }
+            _cacheCacheProvider.RemoveFromForkCacheByBlockIndex(blockIndexes);
         }
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)
         {
-            var forkCache = _cacheProvider.ForkCache;
-            foreach (var blockIndex in blockIndexes)
-            {
-                if (!forkCache.TryGetValue(blockIndex, out var calAlgorithm)) continue;
-                _cacheProvider.PieceWiseFuncCache = calAlgorithm;
-                forkCache.TryRemove(blockIndex, out _);
-            }
+            _cacheCacheProvider.SyncCache(blockIndexes);
         }
 
         public async Task<long> CalculateAsync(int count)
@@ -109,14 +84,12 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 funcDic[func.PieceKey] = func;
             }
-
-            _cacheProvider.ForkCache[blockIndex] = funcDic;
+            _cacheCacheProvider.SetPieceWiseFunctionToForkCache(blockIndex,funcDic);
         }
 
         private async Task<Dictionary<int, ICalculateWay>> GetPieceWiseFuncUnderContextAsync()
         {
-            var forkCache = _cacheProvider.ForkCache;
-            var keys = forkCache.Keys.ToArray();
+            var keys = _cacheCacheProvider.GetForkCacheKeys();
             if (keys.Length == 0) return await GetDefaultPieceWiseFunctionAsync();
             var minHeight = keys.Select(k => k.BlockHeight).Min();
             Dictionary<int, ICalculateWay> algorithm = null;
@@ -127,7 +100,7 @@ namespace AElf.Kernel.TransactionPool.Application
             };
             do
             {
-                if (forkCache.TryGetValue(blockIndex, out var value))
+                if (_cacheCacheProvider.TryGetPieceWiseFunctionFromForkCacheByBlockIndex(blockIndex, out var value))
                 {
                     algorithm = value;
                     break;
@@ -143,9 +116,10 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private async Task<Dictionary<int, ICalculateWay>> GetDefaultPieceWiseFunctionAsync()
         {
-            if (_cacheProvider.PieceWiseFuncCache != null)
+            var tempCache = _cacheCacheProvider.GetPieceWiseFunctionFromNormalCache();
+            if (  tempCache!= null)
             {
-                return _cacheProvider.PieceWiseFuncCache;
+                return tempCache;
             }
 
             var chain = await _blockchainService.GetChainAsync();
@@ -166,10 +140,6 @@ namespace AElf.Kernel.TransactionPool.Application
                 parameters = await tokenStub.GetCalculateFeeCoefficientOfContract.CallAsync(new SInt32Value
                     {Value = CalculateAlgorithmContext.CalculateFeeTypeEnum});
             }
-
-            if (_cacheProvider.PieceWiseFuncCache == null)
-                _cacheProvider.PieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
-            _cacheProvider.PieceWiseFuncCache.Clear();
             var calWayDic = new Dictionary<int, ICalculateWay>();
             foreach (var func in parameters.Coefficients)
             {
@@ -193,9 +163,8 @@ namespace AElf.Kernel.TransactionPool.Application
                 calWayDic[func.PieceKey] = newCalculateWay;
                 calWayDic[func.PieceKey].InitParameter(func.CoefficientDic);
             }
-
-            _cacheProvider.PieceWiseFuncCache = calWayDic;
-            return _cacheProvider.PieceWiseFuncCache;
+            _cacheCacheProvider.SetPieceWiseFunctionToNormalCache(calWayDic);
+            return calWayDic;
         }
     }
 
