@@ -59,7 +59,7 @@ namespace AElf.Launcher
         
         private static void AddApplication<T>(IServiceCollection services) where T: IAbpModule
         {
-            services.AddApplication<T>();
+            services.AddApplication<T>(); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
