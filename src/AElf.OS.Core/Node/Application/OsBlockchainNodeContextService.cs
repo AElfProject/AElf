@@ -41,7 +41,8 @@ namespace AElf.OS.Node.Application
         {
             var transactions = new List<Transaction>();
 
-            transactions.Add(GetTransactionForDeployment(dto.ZeroSmartContract, Hash.Empty,
+            transactions.Add(GetTransactionForDeployment(dto.ZeroSmartContract,
+                ZeroSmartContractAddressNameProvider.Name,
                 dto.SmartContractRunnerCategory));
 
             transactions.AddRange(dto.InitializationSmartContracts

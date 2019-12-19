@@ -177,8 +177,3 @@ message TransactionBlockIndex {
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
 }
-
-message ChainContractInfo{
-    int32 chain_id = 1;
-    map<string,int64> contract_infos= 2;
-}
