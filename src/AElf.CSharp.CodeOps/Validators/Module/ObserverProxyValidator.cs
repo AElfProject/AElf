@@ -61,9 +61,14 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
                 if (!injMethod.HasSameBody(refMethod))
                 {
-                    var methodBody = string.Join("\n", injMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
+                    // TODO: Remove when solved
+                    var contractMethodBody = string.Join("\n", injMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
+                    var referenceMethodBody = string.Join("\n", refMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
                     
-                    errors.Add(new ObserverProxyValidationResult(refMethod.Name + " proxy method body is tampered.\n" + methodBody));
+                    errors.Add(new ObserverProxyValidationResult( 
+                        $"{refMethod.Name} proxy method body is tampered.\n" +
+                        $"Injected Contract: \n{contractMethodBody}\n\n" +
+                        $"Reference:\n{referenceMethodBody}"));
                 }
                 
                 if (!injMethod.HasSameParameters(refMethod))
