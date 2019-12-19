@@ -12,14 +12,9 @@ namespace AElf.Contracts.Economic
         public const long TokenConverterTokenConnectorInitialVirtualBalance = 100_000_00000000;
 
         // Resource token related.
-        public const long ResourceTokenTotalSupply = 50_000_000_00000000;
+        public const long ResourceTokenTotalSupply = 500_000_000_00000000;
         public const int ResourceTokenDecimals = 8;
-
-        public const long CpuUnitPrice = 100;
-        public const long StoUnitPrice = 100;
-        public const long NetUnitPrice = 100;
-
-//        //resource to sell
+        //resource to sell
         public const long ResourceTokenInitialVirtualBalance = 100_000;
 
         public const string NativeTokenPrefix = "nt";

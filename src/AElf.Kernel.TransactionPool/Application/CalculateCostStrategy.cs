@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using Volo.Abp.DependencyInjection;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests")]
 namespace AElf.Kernel.TransactionPool.Application
@@ -42,7 +43,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class CpuCalculateCostStrategy : CalculateCostStrategyBase, ICalculateCpuCostStrategy
+    internal class CpuCalculateCostStrategy : CalculateCostStrategyBase, ICalculateCpuCostStrategy, ISingletonDependency
     {
         public CpuCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -57,7 +58,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class StoCalculateCostStrategy : CalculateCostStrategyBase, ICalculateStoCostStrategy
+    internal class StoCalculateCostStrategy : CalculateCostStrategyBase,  ICalculateStoCostStrategy, ISingletonDependency
     {
         public StoCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -72,7 +73,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class RamCalculateCostStrategy : CalculateCostStrategyBase, ICalculateRamCostStrategy
+    internal class RamCalculateCostStrategy : CalculateCostStrategyBase, ICalculateRamCostStrategy, ISingletonDependency
     {
         public RamCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -86,7 +87,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    class NetCalculateCostStrategy : CalculateCostStrategyBase, ICalculateNetCostStrategy
+    internal class NetCalculateCostStrategy : CalculateCostStrategyBase, ICalculateNetCostStrategy, ISingletonDependency
     {
         public NetCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
@@ -101,7 +102,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    internal class TxCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
+    internal class TxCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy, ISingletonDependency
     {
         public TxCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,

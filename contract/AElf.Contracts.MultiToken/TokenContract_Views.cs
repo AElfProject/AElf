@@ -105,11 +105,6 @@ namespace AElf.Contracts.MultiToken
                 Value = _primaryTokenSymbol
             };
         }
-
-        public override SInt64Value GetTransactionSizeFeeUnitPrice(Empty input)
-        {
-            return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
-        }
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
         {
             return State.CalculateCoefficientOfContract[(FeeTypeEnum)input.Value];

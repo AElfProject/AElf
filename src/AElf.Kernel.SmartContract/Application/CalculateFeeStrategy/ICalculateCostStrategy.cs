@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -13,23 +12,23 @@ namespace AElf.Kernel.SmartContract.Application
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
 
-    public interface ICalculateTxCostStrategy : ICalculateCostStrategy, ISingletonDependency
+    public interface ICalculateTxCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateCpuCostStrategy : ICalculateCostStrategy, ISingletonDependency
+    public interface ICalculateCpuCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateRamCostStrategy : ICalculateCostStrategy, ISingletonDependency
+    public interface ICalculateRamCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateStoCostStrategy : ICalculateCostStrategy, ISingletonDependency
+    public interface ICalculateStoCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateNetCostStrategy : ICalculateCostStrategy, ISingletonDependency
+    public interface ICalculateNetCostStrategy : ICalculateCostStrategy
     {
     }
 }
