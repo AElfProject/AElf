@@ -8,6 +8,8 @@ using Volo.Abp.DependencyInjection;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests")]
 [assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests")]
+[assembly: InternalsVisibleTo("AElf.Contracts.TestContract.Tests")]
+
 namespace AElf.Kernel.TransactionPool.Application
 {
     #region concrete strategys

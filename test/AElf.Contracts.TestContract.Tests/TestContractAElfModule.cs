@@ -3,7 +3,6 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

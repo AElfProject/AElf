@@ -3,7 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Contract.TestContract
 {
     public class TestCalculateTxStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
     {
