@@ -18,7 +18,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         internal const long CpuUnitPrice = 1_00000000;
         internal const long NetUnitPrice = 1_00000000;
         internal const long StoUnitPrice = 1_00000000;
-        internal readonly string[] NativeToReourceToken = {"NTCPU", "NTSTO" ,"NTNET", "NTRAM"};
 
         //init connectors
         internal Connector ElfConnector = new Connector
@@ -317,13 +316,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-            var setResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
-            {
-                CpuUnitPrice = CpuUnitPrice,
-                NetUnitPrice = NetUnitPrice,
-                StoUnitPrice = StoUnitPrice
-            });
-            setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task InitializeTokenConverterAsync()

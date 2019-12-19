@@ -31,7 +31,6 @@ namespace AElf.Kernel.TransactionPool.Application
     public class CalculateFunctionProvider : ICalculateFunctionProvider
     {
         public Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
-        public Dictionary<int, ICalculateWay> DefaultWiseFuncCache { get; set; } = new Dictionary<int, ICalculateWay>();
 
         public ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; } =
             new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();

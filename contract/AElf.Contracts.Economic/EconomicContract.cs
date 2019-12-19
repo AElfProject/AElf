@@ -31,8 +31,6 @@ namespace AElf.Contracts.Economic
 
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
-            SetResourceTokenUnitPrice();
-            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
             State.TokenContract.InitializeCoefficient.Send(new Empty());
@@ -207,24 +205,6 @@ namespace AElf.Contracts.Economic
             });
         }
 
-        private void SetResourceTokenUnitPrice()
-        {
-            State.TokenContract.SetResourceTokenUnitPrice.Send(new SetResourceTokenUnitPriceInput
-            {
-                CpuUnitPrice = EconomicContractConstants.CpuUnitPrice,
-                StoUnitPrice = EconomicContractConstants.StoUnitPrice,
-                NetUnitPrice = EconomicContractConstants.NetUnitPrice,
-            });
-        }
-
-        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
-        {
-            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
-            {
-                Value = transactionSizeUnitPrice
-            });
-        }
-
         private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
@@ -266,7 +246,7 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",
                     VirtualBalance = EconomicContractConstants.ResourceTokenInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix.Append(resourceTokenSymbol),
                     IsDepositAccount = false
                 };
                 var nativeTokenConnector = new Connector
