@@ -219,34 +219,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 }
             }
 
-            {
-                foreach (var nativeDepositToken in NativeToReourceToken)
-                {
-                    var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
-                    {
-                        Symbol = nativeDepositToken,
-                        Decimals = 8,
-                        IsBurnable = true,
-                        TokenName = nativeDepositToken + " elf token",
-                        TotalSupply = totalSupply,
-                        Issuer = DefaultSender,
-                        LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
-                    });
-
-                    createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    {
-                        var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
-                        {
-                            Symbol = nativeDepositToken,
-                            Amount = issueAmountToConverter,
-                            To = TokenConverterAddress,
-                            Memo = $"Set for  {nativeDepositToken} elf token converter."
-                        });
-                        issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    }
-                }
-            }
-            
             //init resource token - CPU
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput

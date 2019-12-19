@@ -5,6 +5,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
 using AElf.Kernel.Txn.Application;
@@ -32,6 +33,7 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
+            context.Services.AddSingleton<ICalculateTxCostStrategy, TestCalculateTxStrategy>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }

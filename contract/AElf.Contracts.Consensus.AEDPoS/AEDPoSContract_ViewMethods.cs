@@ -128,10 +128,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return extraBlockProducer;
             }
 
-            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys)
+            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys.Except(new List<string>
+                {extraBlockProducer}))
             {
                 var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval));
+                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
                 if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
                     consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
                 {
@@ -165,7 +166,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return isCurrentMiner;
             }
 
-            return new BoolValue {Value = false};
+            TryToGetCurrentRoundInformation(out var currentRound);
+            var ebpLastMiningTime = currentRound.RealTimeMinersInformation.Single(i => i.Value.IsExtraBlockProducer)
+                .Value
+                .ActualMiningTimes.LastOrDefault();
+            // Return true if current ebp didn't produce block during ebp time slot and input contained by miner list.
+            return new BoolValue
+            {
+                Value = (ebpLastMiningTime == null || ebpLastMiningTime < currentRound.GetExtraBlockMiningTime()) &&
+                        currentRound.RealTimeMinersInformation
+                            .Any(i => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Key)) == input)
+            };
         }
 
         /// <summary>

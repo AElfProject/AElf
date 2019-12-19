@@ -31,7 +31,6 @@ namespace AElf.Contracts.MultiToken
             Decimals = 8,
             IsBurnable = true,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
-            IsTransferDisabled = false,
             Supply = 0
         };
 
@@ -46,7 +45,6 @@ namespace AElf.Contracts.MultiToken
             Decimals = 4,
             IsBurnable = false,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
-            IsTransferDisabled = false,
             Supply = 0
         };
 
@@ -61,7 +59,6 @@ namespace AElf.Contracts.MultiToken
             Decimals = 0,
             IsBurnable = true,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
-            IsTransferDisabled = true,
             Supply = 0
         };
 
@@ -168,7 +165,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
-                IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -196,7 +192,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
-                IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -259,7 +254,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = BobCoinTokenInfo.Decimals,
                 Issuer = BobCoinTokenInfo.Issuer,
                 IsBurnable = BobCoinTokenInfo.IsBurnable,
-                IsTransferDisabled = BobCoinTokenInfo.IsTransferDisabled
             });
 
             // Check token information after creating.
