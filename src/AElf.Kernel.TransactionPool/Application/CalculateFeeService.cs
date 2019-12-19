@@ -16,24 +16,28 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     #region ICalculateAlgorithm implemention
 
-    class CalculateAlgorithmContext : ICalculateAlgorithmContext
+    public class CalculateAlgorithmContext : ICalculateAlgorithmContext
     {
         public int CalculateFeeTypeEnum { get; set; }
         public BlockIndex BlockIndex { get; set; }
     }
 
-    interface ICalculateFunctionProvider : ITransientDependency
+    public interface ICalculateFunctionProvider : ITransientDependency
     {
         Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
         ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; }
     }
-    class CalculateFunctionProvider : ICalculateFunctionProvider
+
+    public class CalculateFunctionProvider : ICalculateFunctionProvider
     {
         public Dictionary<int, ICalculateWay> PieceWiseFuncCache { get; set; }
         public Dictionary<int, ICalculateWay> DefaultWiseFuncCache { get; set; } = new Dictionary<int, ICalculateWay>();
-        public ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; } = new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
+
+        public ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>> ForkCache { get; set; } =
+            new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
     }
-    class CalculateAlgorithmService : ICalculateAlgorithmService
+
+    internal class CalculateAlgorithmService : ICalculateAlgorithmService
     {
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;
         private readonly IBlockchainService _blockchainService;
@@ -54,12 +58,11 @@ namespace AElf.Kernel.TransactionPool.Application
             _cacheProvider = cacheProvider;
             Logger = new NullLogger<CalculateAlgorithmService>();
         }
-       
 
         public void RemoveForkCache(List<BlockIndex> blockIndexes)
         {
             var forkCache = _cacheProvider.ForkCache;
-            foreach (var blockIndex in blockIndexes.Where(blockIndex =>forkCache.TryGetValue(blockIndex, out _)))
+            foreach (var blockIndex in blockIndexes.Where(blockIndex => forkCache.TryGetValue(blockIndex, out _)))
             {
                 forkCache.TryRemove(blockIndex, out _);
             }
@@ -191,6 +194,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 calWayDic[func.PieceKey] = newCalculateWay;
                 calWayDic[func.PieceKey].InitParameter(func.CoefficientDic);
             }
+
             _cacheProvider.PieceWiseFuncCache = calWayDic;
             return _cacheProvider.PieceWiseFuncCache;
         }
