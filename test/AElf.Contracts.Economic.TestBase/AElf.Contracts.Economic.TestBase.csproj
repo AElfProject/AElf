@@ -81,7 +81,6 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj" />
     </ItemGroup>
 
     <ItemGroup>
