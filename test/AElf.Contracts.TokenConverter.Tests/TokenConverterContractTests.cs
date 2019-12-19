@@ -503,12 +503,14 @@ namespace AElf.Contracts.TokenConverter
                 VirtualBalance = 1000_000,
                 IsVirtualBalanceEnabled = false,
                 IsPurchaseEnabled = true,
+                Weight = "0.49",
                 RelatedSymbol = "change"
             };
             await AuthorizedStub.UpdateConnector.SendAsync(updateConnector);
             var ramConnectorAfter =
                 await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
             ramConnectorAfter.RelatedSymbol.ShouldBe("change");
+            ramConnectorAfter.Weight.ShouldBe("0.49");
         }
 
         [Fact]

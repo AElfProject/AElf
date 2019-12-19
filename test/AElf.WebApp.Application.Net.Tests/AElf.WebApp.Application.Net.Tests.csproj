@@ -18,5 +18,4 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj" />
     </ItemGroup>
-    <Import Project="..\AllContracts.props" />
 </Project>

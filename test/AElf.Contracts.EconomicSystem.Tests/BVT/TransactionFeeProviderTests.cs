@@ -34,6 +34,36 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
+        public async Task Election_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, ElectionContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(ElectionContractStub.Vote),
+                Fees = {TokenAmount}
+            });
+            var result = await ElectionContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(ElectionContractStub.Vote)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+
+        [Fact]
+        public async Task Parliament_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, ParliamentAuthContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(ParliamentAuthContractStub.Approve),
+                Fees = {TokenAmount}
+            });
+            var result = await ParliamentAuthContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(ParliamentAuthContractStub.Approve)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+
+        [Fact]
         public async Task Genesis_FeeProvider_Test()
         {
             await ExecuteProposalTransaction(Tester, ContractZeroAddress, MethodName, new MethodFees
@@ -44,6 +74,21 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var result = await BasicContractZeroStub.GetMethodFee.CallAsync(new StringValue
             {
                 Value = nameof(BasicContractZeroStub.DeploySmartContract)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+
+        [Fact]
+        public async Task TokenConverter_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(TokenConverterContractStub.Buy),
+                Fees = {TokenAmount}
+            });
+            var result = await TokenConverterContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(TokenConverterContractStub.Buy)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
