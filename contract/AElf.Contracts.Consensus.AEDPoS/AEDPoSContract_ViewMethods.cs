@@ -128,10 +128,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return extraBlockProducer;
             }
 
-            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys)
+            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys.Except(new List<string>
+                {extraBlockProducer}))
             {
                 var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval));
+                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
                 if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
                     consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
                 {
