@@ -25,7 +25,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public CalculateFunctionCacheProvider()
         {
             _forkCache = new ConcurrentDictionary<BlockIndex, Dictionary<int, ICalculateWay>>();
-            _pieceWiseFuncCache = new Dictionary<int, ICalculateWay>();
         }
 
         public Dictionary<int, ICalculateWay> GetPieceWiseFunctionFromNormalCache()
