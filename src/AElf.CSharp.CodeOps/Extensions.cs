@@ -18,8 +18,18 @@ namespace AElf.CSharp.CodeOps
                 .Where(i => i.OpCode != OpCodes.Nop).ToArray();
 
             // Compare method body
-            return !sourceMethodBodyInstructions.Where((t, i) => 
+            var r =  !sourceMethodBodyInstructions.Where((t, i) => 
                 t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString()).Any();
+
+            if (!r)
+            {
+                foreach (var ins in targetMethodBodyInstructions)
+                {
+                    Console.WriteLine(ins.ToComparableString());
+                }
+            }
+
+            return r;
         }
 
         private static string ToComparableString(this Instruction instruction)
