@@ -27,7 +27,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -276,8 +275,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Approve(ApproveInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
             Context.Fire(new Approved()
@@ -454,33 +452,6 @@ namespace AElf.Contracts.MultiToken
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
-            return new Empty();
-        }
-
-        public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
-        {
-            if (State.ZeroContract.Value == null)
-            {
-                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-            }
-
-            if (State.ParliamentAuthContract.Value == null)
-            {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            }
-
-            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
-
-            Assert(
-                contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set resource token unit price.");
-
-            State.CpuUnitPrice.Value = input.CpuUnitPrice;
-            State.NetUnitPrice.Value = input.NetUnitPrice;
-            State.StoUnitPrice.Value = input.StoUnitPrice;
             return new Empty();
         }
 

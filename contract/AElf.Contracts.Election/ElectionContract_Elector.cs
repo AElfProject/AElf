@@ -168,52 +168,57 @@ namespace AElf.Contracts.Election
 
             return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
+
         private const int DaySec = 86400;
 
         private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
         {
-            {1 * 365 * DaySec, 1.001m},           // compound interest
-            {2 * 365 * DaySec, 1.0015m},
-            {3 * 365 * DaySec, 1.002m}
+            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
+            {2.Mul(365).Mul(DaySec), 1.0015m},
+            {3.Mul(365).Mul(DaySec), 1.002m}
         };
 
-        private const decimal DefaultInterest = 1.0022m;   // if locktime > 3 years, use this interest
-        private const int Scale = 10000;   
+        private const decimal DefaultInterest = 1.0022m; // if locktime > 3 years, use this interest
+        private const int Scale = 10000;
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             long calculated = 1;
-            foreach (var instMap in _interestMap)  // calculate with different interest according to locktime
+            
+            foreach (var instMap in _interestMap) // calculate with different interest according to locktime
             {
-                if(lockTime > instMap.Key)
+                if (lockTime > instMap.Key)
                     continue;
-                calculated = calculated.Mul((long)(Pow(instMap.Value, (uint)lockTime.Div(DaySec)) * Scale));
+                calculated = calculated.Mul((long) (Pow(instMap.Value, (uint) lockTime.Div(DaySec)) * Scale));
                 break;
             }
-            if (calculated == 1)   // locktime > 3 years
-                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint)lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2));  // weight = locktime + voteAmount 
+
+            if (calculated == 1) // locktime > 3 years
+                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = locktime + voteAmount 
         }
-        
+
         private decimal Pow(decimal x, uint y)
         {
             if (y == 1)
-                return (long)x;
+                return (long) x;
             decimal a = 1m;
             if (y == 0)
                 return a;
-            BitArray e = new BitArray(BitConverter.GetBytes(y));
-            int t = e.Count;
-            for (int i = t - 1; i >= 0; --i)
+            var e = new BitArray(BitConverter.GetBytes(y));
+            var t = e.Count;
+            for (var i = t - 1; i >= 0; --i)
             {
                 a *= a;
-                if (e[i] == true)
+                if (e[i])
                 {
                     a *= x;
                 }
             }
+
             return a;
         }
-        
+
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
@@ -227,6 +232,7 @@ namespace AElf.Contracts.Election
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+            Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockDays = State.LockTimeMap[input.VoteId];
             Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
@@ -253,14 +259,18 @@ namespace AElf.Contracts.Election
             oldCandidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
             oldCandidateVotes.ObtainedActiveVotedVotesAmount =
                 oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            oldCandidateVotes.AllObtainedVotedVotesAmount =
+                oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
-            if( newCandidateVotes != null )
+            if (newCandidateVotes != null)
             {
                 newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
                 newCandidateVotes.ObtainedActiveVotedVotesAmount =
                     newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
+                newCandidateVotes.AllObtainedVotedVotesAmount =
+                    newCandidateVotes.AllObtainedVotedVotesAmount.Add(votingRecord.Amount);
                 State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
             }
             else
@@ -273,6 +283,7 @@ namespace AElf.Contracts.Election
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
             }
+
             return new Empty();
         }
 
@@ -308,7 +319,8 @@ namespace AElf.Contracts.Election
             var candidateVotes = State.CandidateVotes[votingRecord.Option];
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
-            candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            candidateVotes.ObtainedActiveVotedVotesAmount =
+                candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
             CallTokenContractUnlock(input, votingRecord.Amount);
@@ -373,6 +385,7 @@ namespace AElf.Contracts.Election
                 VoteId = input
             });
         }
+
         private void CallProfitContractRemoveBeneficiary()
         {
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
@@ -388,7 +401,7 @@ namespace AElf.Contracts.Election
             if (candidateInformation == null) return; // Just to avoid IDE warning.
             Assert(candidateInformation.IsCurrentCandidate, "Candidate quited election.");
         }
-        
+
         private void AssertValidLockSeconds(long lockSeconds)
         {
             Assert(lockSeconds >= State.MinimumLockTime.Value,
@@ -409,6 +422,10 @@ namespace AElf.Contracts.Election
             });
         }
 
+        /// <summary>
+        /// Issue VOTE tokens to this voter.
+        /// </summary>
+        /// <param name="amount"></param>
         private void CallTokenContractIssue(long amount)
         {
             State.TokenContract.Issue.Send(new IssueInput

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -87,8 +88,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_FewOtherToken_Success_Test()
         {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
             var keyPair = CoreDataCenterKeyPairs[0];
-
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
@@ -106,9 +107,31 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             userBalance.ShouldBe(50);
         }
 
+        private async Task InitialBuildConnector(string symbol)
+        {
+            var token = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = symbol,
+            }));
+            var tokenInfo = new ToBeConnectedTokenInfo
+            {
+                TokenSymbol = symbol,
+                AmountToTokenConvert = 0
+            };
+            var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
+                new IssueAmount
+                {
+                    Symbol = symbol,
+                    Amount = token.TotalSupply - token.Supply
+                })).TransactionResult;
+            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var buildConnector = (await TokenConverterContractStub.EnableConnector.SendAsync(tokenInfo)).TransactionResult;
+            buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
         [Fact]
         public async Task Donate_AllOtherToken_Success_Test()
         {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
             var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
@@ -130,8 +153,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_OtherToken_LessThan_Owned_Test()
         {
+            await InitialBuildConnector(EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol);
             var keyPair = CoreDataCenterKeyPairs[0];
-
+            
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 50);
             var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput

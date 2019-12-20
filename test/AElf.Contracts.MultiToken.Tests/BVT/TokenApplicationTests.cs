@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -812,34 +811,6 @@ namespace AElf.Contracts.MultiToken
                 Symbol = AliceCoinTokenInfo.Symbol
             });
             tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(1200L));
-        }
-
-        [Fact]
-        public async Task MultiTokenContract_SetResourceUnitPrice_Test()
-        {
-            //success
-            {
-                var transactionResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
-                    new SetResourceTokenUnitPriceInput
-                    {
-                        CpuUnitPrice = 100,
-                        NetUnitPrice = 100,
-                        StoUnitPrice = 100
-                    });
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            //failed due to without permission
-            {
-                var tokenTester = GetTester<TokenContractContainer.TokenContractStub>(TokenConverterContractAddress, User1KeyPair);
-                var transactionResult = await tokenTester.SetResourceTokenUnitPrice.SendWithExceptionAsync(new SetResourceTokenUnitPriceInput
-                {
-                    CpuUnitPrice = 100,
-                    NetUnitPrice = 100,
-                    StoUnitPrice = 100
-                });
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            }
         }
     }
 }

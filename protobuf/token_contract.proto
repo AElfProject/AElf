@@ -10,6 +10,8 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
+    rpc InitializeCoefficient (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -59,19 +61,19 @@ service TokenContract {
     }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
-    }
     rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
     }
     rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
     }
 
+    rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -106,7 +108,10 @@ service TokenContract {
     rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
 }
@@ -119,7 +124,6 @@ message TokenInfo {
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
-    bool is_transfer_disabled = 8;
     sint32 issue_chain_id = 9;
     sint64 burned = 10;
 }
@@ -132,11 +136,10 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
-    bool is_transfer_disabled = 8;
     int32 issue_chain_id = 9;
 }
 
-message RegisterNativeTokenInfoInput{
+message RegisterNativeTokenInfoInput {
     string symbol = 1;
     string tokenName = 2;
     sint64 totalSupply = 3;
@@ -379,10 +382,9 @@ message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
     aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string from_symbol = 3 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
     string memo = 5;
-    string to_symbol = 6[(aelf.is_indexed) = true];
 }
 
 message Approved {
@@ -417,4 +419,77 @@ message ChainPrimaryTokenSymbolSet {
 message TransactionSizeFeeUnitPriceUpdated {
     option (aelf.is_event) = true;
     sint64 unit_price = 1;
+}
+
+
+
+message CalculateFeeCoefficientsOfType{
+    repeated CalculateFeeCoefficient coefficients= 1;
+}
+
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, sint32> coefficient_dic = 4;
+}
+
+message NoticeUpdateCalculateFeeAlgorithm {
+    option (aelf.is_event) = true;
+    CalculateFeeCoefficientsOfType all_coefficient = 1;
+}
+
+message CoefficientFromSender {
+    sint32 piece_key = 1;
+    bool is_change_piece_key = 2;
+    bool is_liner = 3;
+    LinerCoefficient liner_coefficient = 4;
+    PowerCoefficient power_coefficient = 5;
+    NewPieceKeyCoefficient new_piece_key_coefficient = 6;
+}
+
+message LinerCoefficient{
+    sint32 numerator = 1;
+    sint32 denominator = 2;
+    sint32 constant_value = 3;
+}
+
+message PowerCoefficient{
+    sint32 numerator = 1;
+    sint32 denominator = 2;
+    sint32 constant_value = 3;
+    sint32 change_span_base = 4;
+    sint32 weight = 5;
+    sint32 weight_base = 6;
+}
+
+message NewPieceKeyCoefficient{
+    sint32 new_piece_key = 1;
+}
+
+message CoefficientFromContract {
+    FeeTypeEnum fee_type = 1;
+    CoefficientFromSender coefficient = 2;
+}
+message TokenSymbolWithAddress{
+    string token_symbol = 1;
+    aelf.Address from_address = 2;
+}
+
+message TokenStateInAddress{
+    bool value = 1;
+}
+
+enum FeeTypeEnum {
+    Cpu = 0;
+    Sto = 1;
+    Ram = 2;
+    Net = 3;
+    Tx = 4;
+}
+
+enum CalculateFunctionTypeEnum {
+    Liner = 0;
+    Power = 1;
 }
