@@ -60,7 +60,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 }
                 
                 #if DEBUG
-                injMethod.RemoveCoverLetInjectedInstructions();
+                refMethod.RemoveCoverLetInjectedInstructions();
                 #endif
 
                 if (!injMethod.HasSameBody(refMethod))
