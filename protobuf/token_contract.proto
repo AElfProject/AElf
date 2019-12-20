@@ -55,7 +55,7 @@ service TokenContract {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
     }
     rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
