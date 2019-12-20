@@ -372,8 +372,7 @@ message ValidateTokenInfoExistsInput{
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_transfer_disabled = 7;
-    sint32 issue_chain_id = 8;
+    sint32 issue_chain_id = 7;
 }
 
 // Events

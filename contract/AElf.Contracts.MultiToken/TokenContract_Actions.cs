@@ -488,7 +488,6 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[input.Symbol];
             bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
                                     tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
-                                    tokenInfo.IsTransferDisabled == input.IsTransferDisabled &&
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
                                     tokenInfo.IssueChainId == input.IssueChainId;
             Assert(validationResult, "Token validation failed.");
