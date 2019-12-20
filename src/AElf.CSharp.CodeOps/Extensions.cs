@@ -67,7 +67,7 @@ namespace AElf.CSharp.CodeOps
             foreach (var instruction in instructions)
             {
                 if (instruction.OpCode == OpCodes.Call &&
-                    instruction.Operand.ToString().StartsWith("Coverlet.Core.Instrumentation.Tracker"))
+                    instruction.Operand.ToString().Contains("Coverlet.Core.Instrumentation.Tracker"))
                 {
                     il.Remove(instruction.Previous);
                     il.Remove(instruction);
