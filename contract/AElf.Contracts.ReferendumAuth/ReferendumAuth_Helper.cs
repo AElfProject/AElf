@@ -31,6 +31,13 @@ namespace AElf.Contracts.ReferendumAuth
             ValidateTokenContract();
             State.TokenContract.Unlock.Send(unlockInput);
         }
+        
+        private bool Validate(Organization organization)
+        {
+            var withValidTokenSymbol = !string.IsNullOrEmpty(organization.TokenSymbol);
+            var withValidReleaseThreshold = organization.ReleaseThreshold > 0;
+            return withValidTokenSymbol && withValidReleaseThreshold;
+        }
 
         private bool Validate(ProposalInfo proposal)
         {

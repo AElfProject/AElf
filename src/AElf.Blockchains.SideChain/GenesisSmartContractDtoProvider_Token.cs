@@ -2,6 +2,7 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -39,6 +40,9 @@ namespace AElf.Blockchains.SideChain
                 Memo = "Initial issue",
                 To = chainPrimaryTokenInfo.Issuer
             });
+            
+            
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeCoefficient), new Empty());
                 
             return tokenInitializationCallList;
         }
