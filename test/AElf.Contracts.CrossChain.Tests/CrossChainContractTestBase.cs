@@ -230,9 +230,6 @@ namespace AElf.Contracts.CrossChain.Tests
             var requestSideChainCreation =
                 await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
             
-//            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-//            var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync();
-//            CheckResult(proposal.TransactionResult);
             var proposalId = ProposalCreated.Parser.ParseFrom(requestSideChainCreation.TransactionResult.Logs
                 .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
             return proposalId;
