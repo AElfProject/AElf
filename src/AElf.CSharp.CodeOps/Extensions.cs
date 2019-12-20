@@ -32,7 +32,11 @@ namespace AElf.CSharp.CodeOps
             }
             else if (instruction.Operand is Instruction ins) // Is probably branching to another instruction
             {
-                operandStr = ins.OpCode.ToString() + ins.Operand; // May restrict to branching to ret only
+                operandStr = ins.OpCode.ToString(); // May restrict to branching to ret only
+                // Do not check operand in DEBUG mode, due to coverlet injection
+                #if !DEBUG
+                operandStr += ins.Operand;
+                #endif
             }
             else
             {
@@ -62,9 +66,12 @@ namespace AElf.CSharp.CodeOps
 
         public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
         {
+            if (!method.IsMethodCoverlectInjected())
+                return;
+            
             var instructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
-        
+
             il.Body.SimplifyMacros();
             foreach (var instruction in instructions)
             {
@@ -76,6 +83,11 @@ namespace AElf.CSharp.CodeOps
                 }
             }
             il.Body.OptimizeMacros();
+        }
+
+        public static bool IsMethodCoverlectInjected(this MethodDefinition method)
+        {
+            return method.Body.Instructions.Any(i => i.ToString().Contains("Coverlet.Core.Instrumentation.Tracker"));
         }
 
         public static Type FindContractType(this Assembly assembly)
