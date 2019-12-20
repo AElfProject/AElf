@@ -139,7 +139,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     GenesisOwnerReleaseThreshold = 1,
                     PrivilegedProposer = DefaultSender,
-                    ProposerAuthorityRequired = true
+                    ProposerAuthorityRequired = false
                 });
             CheckResult(initializeResult.TransactionResult);
         }
@@ -188,6 +188,42 @@ namespace AElf.Contracts.CrossChain.Tests
             });
         }
 
+        internal async Task<GetAllowanceOutput> ApproveAndTransferOrganizationBalanceAsync(Address organizationAddress,long amount)
+        {
+            var approveInput = new MultiToken.ApproveInput
+            {
+                Spender = CrossChainContractAddress,
+                Symbol = "ELF",
+                Amount = amount
+            };
+            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Approve),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = approveInput.ToByteString(),
+                ToAddress = TokenContractAddress,
+                OrganizationAddress = organizationAddress
+            })).Output;
+            await ApproveWithMinersAsync(proposal);
+            await ReleaseProposalAsync(proposal);
+            
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = amount,
+                To = organizationAddress
+            });
+            
+            var allowance = (await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Symbol = "ELF",
+                Owner = organizationAddress,
+                Spender = CrossChainContractAddress
+            }));
+            
+            return allowance;
+        }
+
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount);
@@ -202,6 +238,19 @@ namespace AElf.Contracts.CrossChain.Tests
             return proposalId;
         }
 
+        internal async Task<Hash> CreateProposalAsync(string method,Address address,IMessage input)
+        {
+            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = CrossChainContractAddress,
+                ContractMethodName = method,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = address,
+                Params = input.ToByteString()
+            })).Output;
+            return proposal;
+        }
+        
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
             var transaction = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
@@ -264,14 +313,13 @@ namespace AElf.Contracts.CrossChain.Tests
             var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
-                ContractMethodName = "DisposeSideChain",
+                ContractMethodName = nameof(CrossChainContractStub.DisposeSideChain),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = disposalInput.ToByteString(),
                 ToAddress = CrossChainContractAddress,
                 OrganizationAddress = organizationAddress
-            })).TransactionResult;
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
-            return proposalId;
+            })).Output;
+            return proposal;
         }
 
         private void CheckResult(TransactionResult result)

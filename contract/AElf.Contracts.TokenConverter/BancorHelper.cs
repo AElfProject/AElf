@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.TokenConverter
 {
@@ -74,8 +75,15 @@ namespace AElf.Contracts.TokenConverter
             decimal a = amountToReceive;
             if (wf == wt)
             {
-                // if both weights are the same, the formula can be reduced
-                return (long) (bf / (bt - a) * a);
+                try
+                {
+                    // if both weights are the same, the formula can be reduced
+                    return (long) (bf / (bt - a) * a);
+                }
+                catch
+                {
+                    throw new AssertionException("Insufficient account balance to deposit");
+                }
             }
 
             decimal x = bt / (bt - a);

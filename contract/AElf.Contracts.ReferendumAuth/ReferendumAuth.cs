@@ -57,6 +57,7 @@ namespace AElf.Contracts.ReferendumAuth
                 TokenSymbol = input.TokenSymbol,
                 OrganizationHash = organizationHash
             };
+            Assert(Validate(organization), "Invalid organization data.");
 
             Assert(!string.IsNullOrEmpty(organization.TokenSymbol) && organization.ReleaseThreshold > 0,
                 "Invalid organization data.");
@@ -137,7 +138,7 @@ namespace AElf.Contracts.ReferendumAuth
             });
             return new Empty();
         }
-        
+
         public override Empty Release(Hash proposalId)
         {
             var proposalInfo = State.Proposals[proposalId];
@@ -147,10 +148,10 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(IsReleaseThresholdReached(proposalId, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
-            
-            Context.Fire(new ProposalReleased{ ProposalId = proposalId});
+
+            Context.Fire(new ProposalReleased {ProposalId = proposalId});
             State.Proposals.Remove(proposalId);
-            
+
             return new Empty();
         }
     }

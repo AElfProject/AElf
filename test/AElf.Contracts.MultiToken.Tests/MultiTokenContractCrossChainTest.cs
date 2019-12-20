@@ -406,7 +406,6 @@ namespace AElf.Contracts.MultiToken
                     Symbol = createdTokenInfo.Symbol,
                     Decimals = createdTokenInfo.Decimals,
                     Issuer = createdTokenInfo.Issuer,
-                    IsTransferDisabled = createdTokenInfo.IsTransferDisabled,
                     IsBurnable = createdTokenInfo.IsBurnable,
                     TotalSupply = createdTokenInfo.TotalSupply,
                     IssueChainId = createdTokenInfo.IssueChainId
@@ -743,7 +742,6 @@ namespace AElf.Contracts.MultiToken
                     Symbol = createdTokenInfo.Symbol,
                     Decimals = createdTokenInfo.Decimals,
                     Issuer = createdTokenInfo.Issuer,
-                    IsTransferDisabled = createdTokenInfo.IsTransferDisabled,
                     IsBurnable = createdTokenInfo.IsBurnable,
                     TotalSupply = createdTokenInfo.TotalSupply,
                     IssueChainId = createdTokenInfo.IssueChainId
@@ -1041,49 +1039,5 @@ namespace AElf.Contracts.MultiToken
         }
 
         #endregion
-
-//        [Fact]
-//        public void Test()
-//        {
-//            string txInString =
-//                "CiIKIMsNuW2LTTcVKiJF8gvXSkXuaiLp5oS+PHFZocI6rwVTEiIKII08D3yDyP0Gn2SK++fkQ/X88sX9fcOuY5hKUWmK8PDnGJ+szwIiBOej8BUqEkNyb3NzQ2hhaW5UcmFuc2ZlcjI4CiIKII9p2olpPR6wjvgTSD2KAzeZGU0bg+4lxGOuA+ONEp2aEgNFTEYYgOKiyAEomPV5MJv04QSC8QRBOE6hml/+47ajPF8xWCrad/GHwmQHdrqOK3jMFzwjJskW7jxauEb5twyl50LeQrMKmw8zQQOCF46wjT8lNLDhPgE=";
-//            var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(txInString));
-//            Assert.True(tx.VerifySignature());
-//
-//            var param = CrossChainTransferInput.Parser.ParseFrom(tx.Params);
-//            ;
-//
-//            var tx2 = new Transaction
-//            {
-//                From = Address.FromBytes(
-//                    Base58CheckEncoding.Decode("21Mr89oryCdKjcaGgQtPCiCmCqvCcV2BuPLyPk3j1GduBfKwga")),
-//                To = Address.FromBytes(
-//                    Base58CheckEncoding.Decode("25CecrU94dmMdbhC3LWMKxtoaL4Wv8PChGvVJM6PxkHAyvXEhB")),
-//                RefBlockNumber = 5494275,
-//                RefBlockPrefix = ByteString.FromBase64("OMKzaw=="),
-//                MethodName = "Transfer",
-//                Params = new TransferInput()
-//                {
-//                    To = Address.FromBytes(
-//                        Base58CheckEncoding.Decode("P485ma9uqY7hi8rZixRPqETdgwuyaFFUQNxn7q8pXzjKNASij")),
-//                    Amount = 2000,
-////                    ToChainId = 1997464,
-////                    IssueChainId = 9992731,
-//                    Symbol = "ELF",
-//                    Memo = "transfer test - dc9258b5-6e23-4626-9278-cd8991802626"
-//                }.ToByteString(),
-//                Signature = ByteString.FromBase64(
-//                    "sfl48wQquZkyb5rq8y3ArooFGkfRWSVdnRWVhYYYA2Vuola4PCgpOhAnLnkLaVEO24VdygIf7BN88zePT9Cv3AE=")
-//            };
-////            Assert.Equal(tx, tx2);
-////            Assert.True(tx2.VerifySignature());
-//
-//            Assert.Equal(tx.GetHash(), tx2.GetHash());
-//            Assert.Equal(txInString, tx2.ToByteString().ToBase64());
-//            var privateKey = "2eb0e2493fcd2bcc997a381c8f8a5ee6e7b2d51cddee4913d382333ac33482e5";
-////            var keyPair = CryptoHelper.FromPrivateKey(privateKey.ToByteString().ToByteArray());
-//            var signature = CryptoHelper.SignWithPrivateKey(privateKey.ToByteString().ToByteArray(), tx2.GetHash().ToByteArray());
-//            ;
-//        }
     }
 }

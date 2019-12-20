@@ -25,11 +25,14 @@ namespace AElf.Contracts.ParliamentAuth
             // authority check is disable,
             // or sender is in proposer white list,
             // or sender is one of miners.
-            if (!State.ProposerAuthorityRequired.Value)
-                return;
 
-            var res = ValidateProposerAuthority(Context.Sender);
-            Assert(res, "Not authorized to propose.");
+            Assert(CheckProposerAuthorityIfNeeded(Context.Sender), "Not authorized to propose.");
+        }
+
+        private bool CheckProposerAuthorityIfNeeded(Address address)
+        {
+            var result = !State.ProposerAuthorityRequired.Value;
+            return !State.ProposerAuthorityRequired.Value || ValidateProposerAuthority(address);
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
@@ -61,7 +64,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return currentParliament.Any(r => r.Equals(Context.Sender));
         }
-        
+
         private const int MaxThreshold = 10000;
 
         private bool Validate(Organization organization)
@@ -116,7 +119,7 @@ namespace AElf.Contracts.ParliamentAuth
             var currentMinerList = GetCurrentMinerList();
             return currentMinerList.Any(m => m == address);
         }
-        
+
         private void AssertCurrentMiner()
         {
             MaybeLoadConsensusContractAddress();
