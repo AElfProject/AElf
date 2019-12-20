@@ -78,6 +78,17 @@ namespace AElf.Runtime.CSharp.Tests
             }
         }
 
+        [Fact]
+        public void ContractPatcher_Test()
+        {
+            const string contract = "AElf.Contracts.MultiToken.dll";
+            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var updateCode = ContractPatcher.Patch(code);
+            code.ShouldNotBe(updateCode);
+            var exception = Record.Exception(()=>_auditorFixture.Audit(updateCode));
+            exception.ShouldBeNull();
+        }
+
         #endregion
         
         #region Negative Cases

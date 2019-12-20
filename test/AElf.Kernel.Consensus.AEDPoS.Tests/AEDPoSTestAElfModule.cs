@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
@@ -15,7 +14,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
@@ -194,6 +192,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services
                 .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
                 >();
+            //context.Services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
         }
     }
 }
