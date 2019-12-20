@@ -41,10 +41,10 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private void AnnounceElection(byte[] recoveredPublicKey)
+        private void AnnounceElection(byte[] recoveredPubkey)
         {
-            var pubkey = recoveredPublicKey.ToHex();
-            var pubkeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+            var pubkey = recoveredPubkey.ToHex();
+            var pubkeyByteString = ByteString.CopyFrom(recoveredPubkey);
 
             Assert(!State.InitialMiners.Value.Value.Contains(pubkeyByteString),
                 "Initial miner cannot announce election.");
