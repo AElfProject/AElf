@@ -19,43 +19,27 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
-        private readonly ICalculateFeeService _calService;
+        private readonly ICalculateTxCostStrategy _calStrategy;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            ICalculateFeeService calService)
+            ICalculateTxCostStrategy calStrategy)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
-            _calService = calService;
+            _calStrategy = calStrategy;
             _transactionFeeExemptionService = transactionFeeExemptionService;
-
+            
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
         private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIndentity() == "acs1");
-        }
-
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
-            Address contractAddress)
-        {
-            return new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = sender,
-                    ContractAddress = contractAddress
-                }
-            };
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -84,7 +68,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
 
                 var tokenStub = GetTokenContractStub(transactionContext.Transaction.From, tokenContractAddress);
-
                 if (transactionContext.Transaction.To == tokenContractAddress &&
                     transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
                 {
@@ -92,7 +75,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
-                var chargeFeeTransaction = await GetChargeFeeTransactionAsync(tokenStub, transactionContext);
+                var txSize = transactionContext.Transaction.Size();
+                var chainContext = new ChainContext
+                {
+                    BlockHash = transactionContext.PreviousBlockHash,
+                    BlockHeight = transactionContext.BlockHeight - 1
+                };
+                var txCost = await _calStrategy.GetCostAsync(chainContext, txSize);
+                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
+                    new ChargeTransactionFeesInput
+                    {
+                        MethodName = transactionContext.Transaction.MethodName,
+                        ContractAddress = transactionContext.Transaction.To,
+                        TransactionSizeFee = txCost,
+                        PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
+                    })).Transaction;
                 return new List<Transaction>
                 {
                     chargeFeeTransaction
@@ -105,22 +102,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
         }
 
-        private async Task<Transaction> GetChargeFeeTransactionAsync(TokenContractContainer.TokenContractStub tokenStub,
-            ITransactionContext transactionContext)
+        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+            Address contractAddress)
         {
-            var txSize = transactionContext.Transaction.Size();
-            var txCost = _calService.CalculateFee(FeeType.Tx, txSize);
-
-            var executionResult = await tokenStub.ChargeTransactionFees.SendAsync(
-                new ChargeTransactionFeesInput
+            return new TokenContractContainer.TokenContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
-                    MethodName = transactionContext.Transaction.MethodName,
-                    ContractAddress = transactionContext.Transaction.To,
-                    TransactionSizeFee = txCost,
-                    PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
-                });
-
-            return executionResult.Transaction;
+                    Sender = sender,
+                    ContractAddress = contractAddress
+                }
+            };
         }
     }
 }

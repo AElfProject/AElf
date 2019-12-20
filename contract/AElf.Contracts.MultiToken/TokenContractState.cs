@@ -48,9 +48,5 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
-
-        public Int64State CpuUnitPrice { get; set; }
-        public Int64State StoUnitPrice { get; set; }
-        public Int64State NetUnitPrice { get; set; }
     }
 }
