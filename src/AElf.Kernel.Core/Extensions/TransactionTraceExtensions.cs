@@ -56,7 +56,7 @@ namespace AElf.Kernel
                     trace.SurfaceUpError();
                     if (!trace.IsSuccessful())
                     {
-                        txTrace.Error += $"[Post-Error: {trace.Error}]";
+                        txTrace.Error += $"Post-Error: {trace.Error}";
                     }
                 }
             }
@@ -68,7 +68,7 @@ namespace AElf.Kernel
                     trace.SurfaceUpError();
                     if (!trace.IsSuccessful())
                     {
-                        txTrace.Error += $"[Pre-Error: {trace.Error}]";
+                        txTrace.Error += $"Pre-Error: {trace.Error}";
                     }
                 }
             }
