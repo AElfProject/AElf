@@ -17,15 +17,8 @@ namespace AElf.CSharp.CodeOps
                 .Where(i => i.OpCode != OpCodes.Nop).ToArray();
 
             // Compare method body
-            for (var i = 0; i < sourceMethodBodyInstructions.Count(); i++)
-            {
-                if (sourceMethodBodyInstructions[i].ToComparableString() == targetMethodBodyInstructions[i].ToComparableString())
-                    continue;
-
-                return false;
-            }
-
-            return true;
+            return !sourceMethodBodyInstructions.Where((t, i) => 
+                t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString()).Any();
         }
 
         private static string ToComparableString(this Instruction instruction)
@@ -65,7 +58,23 @@ namespace AElf.CSharp.CodeOps
                        targetType.Fields.SingleOrDefault(tp => 
                            tp.Name == sp.Name && tp.FieldType.FullName == sp.FieldType.FullName) != null);
         }
+
+        public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
+        {
+            var instructions = method.Body.Instructions;
+            var il = method.Body.GetILProcessor();
         
+            foreach (var instruction in instructions)
+            {
+                if (instruction.OpCode == OpCodes.Call &&
+                    instruction.Operand.ToString().StartsWith("Coverlet.Core.Instrumentation.Tracker"))
+                {
+                    il.Remove(instruction.Previous);
+                    il.Remove(instruction);
+                }
+            }
+        }
+
         public static Type FindContractType(this Assembly assembly)
         {
             var types = assembly.GetTypes();
