@@ -61,7 +61,7 @@ namespace AElf.CSharp.CodeOps
 
         public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
         {
-            var instructions = method.Body.Instructions;
+            var instructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
         
             foreach (var instruction in instructions)
