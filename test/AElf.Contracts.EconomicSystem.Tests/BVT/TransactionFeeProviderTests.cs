@@ -32,6 +32,46 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
+        
+        [Fact]
+        public async Task Vote_FeeProvider_Test()
+        {
+            var registerResult = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(VoteContractStub.Register)
+            });
+            registerResult.Fees.First().ShouldBe(new MethodFee
+            {
+                BasicFee = 10_00000000,
+                Symbol = "ELF"
+            });
+            
+            await ExecuteProposalTransaction(Tester, VoteContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(VoteContractStub.Register),
+                Fees = {TokenAmount}
+            });
+            var result = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(VoteContractStub.Register)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+        
+        [Fact]
+        public async Task Treasury_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(TreasuryContractStub.Donate),
+                Fees = {TokenAmount}
+            });
+            var result = await TreasuryContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(TreasuryContractStub.Donate)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
 
         [Fact]
         public async Task Election_FeeProvider_Test()

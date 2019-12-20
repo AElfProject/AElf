@@ -30,9 +30,6 @@ namespace AElf.Kernel.SmartContract
                 mockService.Setup(m => m.InitAsync());
                 return mockService.Object;
             });
-
-            context.Services.AddTransient<ICalculateStrategyProvider, CalculateStrategyProvider>();
-            context.Services.AddTransient<ICalculateFeeService, CalculateFeeService>();
         }
     }
 }
