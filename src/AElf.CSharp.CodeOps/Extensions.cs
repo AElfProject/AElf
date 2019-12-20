@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -64,6 +65,7 @@ namespace AElf.CSharp.CodeOps
             var instructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
         
+            il.Body.SimplifyMacros();
             foreach (var instruction in instructions)
             {
                 if (instruction.OpCode == OpCodes.Call &&
@@ -73,6 +75,7 @@ namespace AElf.CSharp.CodeOps
                     il.Remove(instruction);
                 }
             }
+            il.Body.OptimizeMacros();
         }
 
         public static Type FindContractType(this Assembly assembly)
