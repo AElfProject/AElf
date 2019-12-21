@@ -4,6 +4,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
@@ -55,19 +56,16 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest,
-            SideChainTokenInfo sideChainTokenInfo, int chainId)
+        private void ChargeSideChainIndexingFee(Address lockAddress, long amount, int chainId)
         {
             TransferFrom(new TransferFromInput
             {
-                From = Context.Origin,
+                From = lockAddress,
                 To = Context.Self,
-                Amount = sideChainCreationRequest.LockedTokenAmount,
+                Amount = amount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
-
-            CreateSideChainToken(sideChainTokenInfo, chainId);
+            State.IndexingBalance[chainId] = amount;
         }
 
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
@@ -85,13 +83,28 @@ namespace AElf.Contracts.CrossChain
             State.IndexingBalance[chainId] = 0;
         }
 
-        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
+        public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
+            Address proposer)
         {
-            Assert(
-                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol)
-                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
-                "Invalid side chain token name,");
-            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
+            Assert(sideChainCreationRequest.LockedTokenAmount > 0
+                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
+                "Invalid chain creation request.");
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
+            {
+                Owner = proposer,
+                Spender = Context.Self,
+                Symbol = Context.Variables.NativeSymbol
+            }).Allowance;
+            Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
+            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
+                sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+        }
+
+        private void AssertValidSideChainTokenInfo(string symbol, string tokenName, long totalSupply)
+        {
+            Assert(!string.IsNullOrEmpty(symbol) && !string.IsNullOrEmpty(tokenName), "Invalid side chain token name,");
+            Assert(totalSupply > 0, "Invalid side chain token supply.");
         }
 
         private void SetContractStateRequired(ContractReferenceState state, Hash contractSystemName)
@@ -113,7 +126,7 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
-        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId)
+        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId, Address creator)
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
@@ -121,7 +134,7 @@ namespace AElf.Contracts.CrossChain
                 TokenName = sideChainTokenInfo.TokenName,
                 Decimals = sideChainTokenInfo.Decimals,
                 IsBurnable = sideChainTokenInfo.IsBurnable,
-                Issuer = Context.Origin,
+                Issuer = creator,
                 IssueChainId = chainId,
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply
@@ -269,22 +282,46 @@ namespace AElf.Contracts.CrossChain
             return ChainHelper.GetChainId(serialNumber + Context.ChainId);
         }
 
+        private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
+        {
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            {
+                ProposalInput =
+                    new CreateProposalInput
+                    {
+                        ContractMethodName = nameof(CreateSideChain),
+                        ToAddress = Context.Self,
+                        ExpiredTime = Context.CurrentBlockTime.AddSeconds(SideChainCreationProposalExpirationTimePeriod),
+                        Params = new CreateSideChainInput {SideChainCreationRequest = request, Proposer = proposer}
+                            .ToByteString(),
+                        OrganizationAddress = GetOwnerAddress()
+                    },
+                OriginProposer = Context.Sender
+            });
+        }
+
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
             SetContractStateRequired(State.ParliamentAuthContract,
                 SmartContractConstants.ParliamentAuthContractSystemName);
-            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                Params = new RecordCrossChainDataInput
+                ProposalInput = new CreateProposalInput
                 {
-                    ProposedCrossChainData = crossChainBlockData,
-                    Proposer = proposer
-                }.ToByteString(),
-                ContractMethodName = nameof(RecordCrossChainData),
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimeLimit),
-                OrganizationAddress = GetOwnerAddress(),
-                ToAddress = Context.Self,
-                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId)
+                    Params = new RecordCrossChainDataInput
+                    {
+                        ProposedCrossChainData = crossChainBlockData,
+                        Proposer = proposer
+                    }.ToByteString(),
+                    ContractMethodName = nameof(RecordCrossChainData),
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimePeriod),
+                    OrganizationAddress = GetOwnerAddress(),
+                    ToAddress = Context.Self
+                },
+                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
+                OriginProposer = Context.Sender
             });
 
             var crossChainIndexingProposal = new CrossChainIndexingProposal
@@ -422,12 +459,25 @@ namespace AElf.Contracts.CrossChain
             var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
             if (crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.NonProposed)
                 return;
-            
-            var proposalInfo = GetProposal(crossChainIndexingProposal.ProposalId);
-            Assert(proposalInfo.ExpiredTime <= Context.CurrentBlockTime,
-                "Unable to clear cross chain indexing proposal which is not expired.");
+
+            var isExpired = CheckProposalExpired(crossChainIndexingProposal.ProposalId);
+            Assert(isExpired, "Unable to clear cross chain indexing proposal which is not expired.");
 //            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
             ResetCrossChainIndexingProposal();
+        }
+
+        private bool TryClearExpiredSideChainCreationRequestProposal(Hash proposalId, Address proposer)
+        {
+            var isExpired = CheckProposalExpired(proposalId);
+            if (isExpired)
+                State.ProposedSideChainCreationRequest.Remove(proposer);
+            return isExpired;
+        }
+        
+        private bool CheckProposalExpired(Hash proposalId)
+        {
+            var proposalInfo = GetProposal(proposalId);
+            return proposalInfo.ExpiredTime <= Context.CurrentBlockTime;
         }
     }
 }
