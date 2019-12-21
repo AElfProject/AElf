@@ -64,16 +64,20 @@ namespace AElf.Contracts.TestBase
 
         public byte[] ConsensusContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+
         public byte[] CrossChainContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
+
         public byte[] ParliamentAuthContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("ParliamentAuth")).Value;
+
         public byte[] ConfigurationContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Configuration")).Value;
 
-        
+
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
         public ECKeyPair KeyPair { get; }
@@ -118,7 +122,7 @@ namespace AElf.Contracts.TestBase
                         o.MiningInterval = 4000;
                         o.StartTimestamp = new Timestamp {Seconds = 0};
                     });
-                    
+
                     if (keyPair != null)
                     {
                         options.Services.AddTransient(o =>
@@ -195,7 +199,8 @@ namespace AElf.Contracts.TestBase
         /// Will deploy consensus contract by default.
         /// </summary>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task<OsBlockchainNodeContext> InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        public async Task<OsBlockchainNodeContext> InitialChainAsync(
+            Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
@@ -216,15 +221,16 @@ namespace AElf.Contracts.TestBase
 
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
-        
-        public async Task<OsBlockchainNodeContext> InitialChainAsyncWithAuthAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+
+        public async Task<OsBlockchainNodeContext> InitialChainAsyncWithAuthAsync(
+            Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             consensusOptions.StartTimestamp = TimestampHelper.GetUtcNow();
-            
+
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
@@ -240,8 +246,9 @@ namespace AElf.Contracts.TestBase
 
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
-        
-        public async Task<OsBlockchainNodeContext> InitialCustomizedChainAsync(int chainId, List<string> initialMiners = null, int miningInterval = 4000,
+
+        public async Task<OsBlockchainNodeContext> InitialCustomizedChainAsync(int chainId,
+            List<string> initialMiners = null, int miningInterval = 4000,
             Timestamp startTimestamp = null, Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             if (initialMiners == null)
@@ -254,7 +261,7 @@ namespace AElf.Contracts.TestBase
             {
                 startTimestamp = TimestampHelper.GetUtcNow();
             }
-            
+
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
@@ -296,8 +303,9 @@ namespace AElf.Contracts.TestBase
             return consensusMethodCallList;
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(List<string> initialMiners,
-            int miningInterval, Timestamp startTimestamp, int timeEachTerm = 604800)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateConsensusInitializationCallList(List<string> initialMiners,
+                int miningInterval, Timestamp startTimestamp, int timeEachTerm = 604800)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
@@ -316,7 +324,8 @@ namespace AElf.Contracts.TestBase
             return consensusMethodCallList;
         }
 
-        public async Task InitialSideChainAsync(int chainId,Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        public async Task InitialSideChainAsync(int chainId,
+            Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
@@ -336,7 +345,8 @@ namespace AElf.Contracts.TestBase
                     {
                         new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
                         {
-                            MethodName = nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
+                            MethodName =
+                                nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                             Params = new InitialAElfConsensusContractInput {IsSideChain = true}.ToByteString()
                         },
                     }
@@ -370,7 +380,7 @@ namespace AElf.Contracts.TestBase
         {
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
-        
+
         /// <summary>
         /// Same key pair, different chain.
         /// </summary>
@@ -474,9 +484,8 @@ namespace AElf.Contracts.TestBase
         /// Normal txs will use tx pool while system txs not.
         /// </summary>
         /// <param name="txs"></param>
-        /// <param name="addToChain"></param>
         /// <returns></returns>
-        public async Task<Block> MineAsync(List<Transaction> txs, bool addToChain=true)
+        public async Task<Block> MineAsync(List<Transaction> txs)
         {
             await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -487,11 +496,8 @@ namespace AElf.Contracts.TestBase
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
 
-            if (addToChain)
-            {
-                await blockchainService.AddBlockAsync(block);
-                await blockAttachService.AttachBlockAsync(block);
-            }
+            await blockchainService.AddBlockAsync(block);
+            await blockAttachService.AttachBlockAsync(block);
 
             return block;
         }
@@ -502,9 +508,9 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<Block> MineEmptyBlockAsync()
         {
-            return await MineAsync(new List<Transaction> {});
+            return await MineAsync(new List<Transaction> { });
         }
-        
+
         /// <summary>
         /// Gets a specified transactions from their ids
         /// </summary>
@@ -583,14 +589,14 @@ namespace AElf.Contracts.TestBase
             var tx = await GenerateTransactionAsync(contractAddress, methodName, input);
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
-                {
-                    BlockHash = preBlock.GetHash(),
-                    BlockHeight = preBlock.Height
-                }, tx, DateTime.UtcNow.ToTimestamp());
+            {
+                BlockHash = preBlock.GetHash(),
+                BlockHeight = preBlock.Height
+            }, tx, DateTime.UtcNow.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }
-        
+
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             IMessage input, DateTime dateTime)
         {
@@ -710,22 +716,27 @@ namespace AElf.Contracts.TestBase
             {
                 GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold
             });
-            
+
             return list =>
             {
-                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode,CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
+                list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name,
+                    tokenContractCallList);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
+                    crossChainContractCallList);
+                list.AddGenesisSmartContract(ParliamentAuthContractCode,
+                    ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
-                list.AddGenesisSmartContract(ConfigurationContractCode,ConfigurationSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(ConfigurationContractCode,
+                    ConfigurationSmartContractAddressNameProvider.Name);
             };
         }
-        
+
         /// <summary>
         /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,string symbol,
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,
+            string symbol,
             out long totalSupply,
             Address proposer, long parentChainHeightOfCreation = 1)
         {
@@ -786,9 +797,12 @@ namespace AElf.Contracts.TestBase
                 });
             return list =>
             {
-                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name,tokenInitializationCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,crossChainContractCallList);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
+                list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name,
+                    tokenInitializationCallList);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
+                    crossChainContractCallList);
+                list.AddGenesisSmartContract(ParliamentAuthContractCode,
+                    ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };
         }
