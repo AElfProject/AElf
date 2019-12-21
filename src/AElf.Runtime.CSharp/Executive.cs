@@ -130,7 +130,6 @@ namespace AElf.Runtime.CSharp
             finally
             {
                 CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
-                Console.WriteLine($"Usage: {CurrentTransactionContext.Trace.ExecutionUsage}");
                 Cleanup();
             }
 
