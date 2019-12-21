@@ -93,7 +93,7 @@ namespace AElf.CSharp.CodeOps
                 {
                     // Point to next
                     il.Replace(instruction, 
-                        il.Create(instruction.OpCode, targetInstruction.Next.Next));
+                        il.Create(instruction.OpCode, GetNextNonCoverletInstruction(targetInstruction.Next)));
                 }
             }
 
@@ -118,6 +118,20 @@ namespace AElf.CSharp.CodeOps
             {
                 Console.WriteLine($"{instruction.OpCode.ToString()} {instruction.Operand}");
             }
+        }
+
+        private static Instruction GetNextNonCoverletInstruction(Instruction instruction)
+        {
+            // check whether we are at the end of the method body first
+            if (instruction.Next == null) return instruction;
+            
+            // Sometimes coverlet is injecting twice, then next will be its counter value
+            var nextLine = instruction.Next;
+
+            // and next after that will be a coverlet call, then skip those 2 as well;
+            // if not, just return next line
+            return nextLine.Next.IsCoverletInjectedInstruction() ? GetNextNonCoverletInstruction(nextLine.Next) 
+                : nextLine; // Otherwise, just return next line
         }
 
         private static bool IsMethodCoverletInjected(this MethodDefinition method)
