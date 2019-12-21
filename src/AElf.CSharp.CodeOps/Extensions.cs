@@ -71,10 +71,14 @@ namespace AElf.CSharp.CodeOps
             if (!method.IsMethodCoverletInjected())
                 return;
 
+            // Print before
+            Console.WriteLine("[BEFORE]");
+            method.PrintBody();
+            
             var methodInstructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
             il.Body.SimplifyMacros();
-            
+
             // Update branching instructions if they are pointing to coverlet injected code
             foreach (var instruction in methodInstructions)
             {
@@ -102,6 +106,18 @@ namespace AElf.CSharp.CodeOps
             }
             
             il.Body.OptimizeMacros();
+            
+            // Print after
+            Console.WriteLine("[AFTER]");
+            method.PrintBody();
+        }
+
+        private static void PrintBody(this MethodDefinition method)
+        {
+            foreach (var instruction in method.Body.Instructions)
+            {
+                Console.WriteLine($"{instruction.OpCode.ToString()} {instruction.Operand}");
+            }
         }
 
         private static bool IsMethodCoverletInjected(this MethodDefinition method)
