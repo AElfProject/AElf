@@ -38,7 +38,7 @@ namespace AElf.CSharp.CodeOps
             }
             else if (instruction.Operand is Instruction ins) // Is probably branching to another instruction
             {
-                operandStr = ins.OpCode.ToString(); // May restrict to branching to ret only
+                operandStr = ins.OpCode.ToString() + ins.Operand; // May restrict to branching to ret only
             }
             else
             {
@@ -88,7 +88,8 @@ namespace AElf.CSharp.CodeOps
                 if (targetInstruction.Next.IsCoverletInjectedInstruction())
                 {
                     // Point to next
-                    instruction.Operand = targetInstruction.Next.Next;
+                    il.Replace(instruction, 
+                        il.Create(instruction.OpCode, targetInstruction.Next.Next));
                 }
             }
 
