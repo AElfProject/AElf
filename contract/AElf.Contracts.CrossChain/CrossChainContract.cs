@@ -33,20 +33,50 @@ namespace AElf.Contracts.CrossChain
 
         #region Side chain lifetime actions
 
+        public override Empty RequestSideChainCreation(SideChainCreationRequest input)
+        {
+            Assert(State.ProposedSideChainCreationRequest[Context.Sender] == null, "Request side chain creation failed.");
+            AssertValidSideChainCreationRequest(input, Context.Sender);
+            ProposeNewSideChain(input, Context.Sender);
+            State.ProposedSideChainCreationRequest[Context.Sender] = input;
+            return new Empty();
+        }
+
+        public override Empty ReleaseSideChainCreation(ReleaseSideChainCreationInput input)
+        {
+            var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
+            Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
+            if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
+                State.ParliamentAuthContract.Release.Send(input.ProposalId);
+            return new Empty();
+        }
+
         /// <summary>
         /// Create side chain. It is a proposal result from system address.
         /// </summary>
-        /// <param name="sideChainCreationRequest"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt32Value CreateSideChain(SideChainCreationRequest sideChainCreationRequest)
+        public override SInt32Value CreateSideChain(CreateSideChainInput input)
         {
             // side chain creation should be triggered by organization address from parliament.
             AssertOwnerAuthority(Context.Sender);
 
-            Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
-                "Invalid chain creation request.");
+            var proposedSideChainCreationRequest = State.ProposedSideChainCreationRequest[input.Proposer];
+            State.ProposedSideChainCreationRequest.Remove(input.Proposer);
+            var sideChainCreationRequest = input.SideChainCreationRequest;
+            Assert(
+                proposedSideChainCreationRequest != null &&
+                proposedSideChainCreationRequest.Equals(sideChainCreationRequest),
+                "Side chain creation failed without proposed data.");
+            AssertValidSideChainCreationRequest(sideChainCreationRequest, input.Proposer);
+            
+            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
+            var serialNumber = State.SideChainSerialNumber.Value;
+            int chainId = GetChainId(serialNumber);
 
+            // lock token
+            ChargeSideChainIndexingFee(input.Proposer, sideChainCreationRequest.LockedTokenAmount, chainId);
+            
             var sideChainTokenInfo = new SideChainTokenInfo
             {
                 TokenName = sideChainCreationRequest.SideChainTokenName,
@@ -55,17 +85,11 @@ namespace AElf.Contracts.CrossChain
                 Decimals = sideChainCreationRequest.SideChainTokenDecimals,
                 IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
             };
+            CreateSideChainToken(sideChainTokenInfo, chainId, input.Proposer);
 
-            AssertSideChainTokenInfo(sideChainTokenInfo);
-            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
-            var serialNumber = State.SideChainSerialNumber.Value;
-            int chainId = GetChainId(serialNumber);
-
-            // lock token and resource
-            CreateSideChainToken(sideChainCreationRequest, sideChainTokenInfo, chainId);
             var sideChainInfo = new SideChainInfo
             {
-                Proposer = Context.Origin,
+                Proposer = input.Proposer,
                 SideChainId = chainId,
                 SideChainStatus = SideChainStatus.Active,
                 SideChainCreationRequest = sideChainCreationRequest,
@@ -82,10 +106,10 @@ namespace AElf.Contracts.CrossChain
                                        initialConsensusInfo.MinerList.Pubkeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
 
-            Context.Fire(new CreationRequested()
+            Context.Fire(new SideChainCreatedEvent
             {
                 ChainId = chainId,
-                Creator = Context.Origin
+                Creator = input.Proposer
             });
             return new SInt32Value() {Value = chainId};
         }
@@ -127,7 +151,6 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             var info = State.SideChainInfo[chainId];
             Assert(info != null, "Side chain not found.");
-            Assert(Context.Origin.Equals(info.Proposer), "No permission.");
             Assert(info.SideChainStatus == SideChainStatus.Active, "Incorrect chain status.");
 
             UnlockTokenAndResource(info);
@@ -166,8 +189,6 @@ namespace AElf.Contracts.CrossChain
         public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
         {
             AssertAddressIsParliamentContract(Context.Sender);
-            AssertAddressIsCurrentMiner(Context.Origin);
-            
             var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
             AssertIsCrossChainBlockDataAlreadyProposed(crossChainIndexingProposal);
             crossChainIndexingProposal.ProposalId = input;
