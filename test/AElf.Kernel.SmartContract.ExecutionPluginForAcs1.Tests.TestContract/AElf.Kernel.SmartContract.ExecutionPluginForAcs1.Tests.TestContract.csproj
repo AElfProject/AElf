@@ -2,7 +2,6 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract</PackageId>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -16,10 +15,10 @@
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
         <ContractCode Include="..\..\protobuf\acs1_plugin_test_contract.proto">
-            <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
+            <Link>Protobuf\Proto\acs1_plugin_test_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>
