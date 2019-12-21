@@ -721,7 +721,7 @@ namespace AElf.Contracts.TestBase
         /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,string symbol,
             out long totalSupply,
             Address proposer, long parentChainHeightOfCreation = 1)
         {
@@ -758,7 +758,7 @@ namespace AElf.Contracts.TestBase
                         IsBurnable = true,
                         Issuer = Address.FromPublicKey(KeyPair.PublicKey),
                         TotalSupply = 1_000_000_000,
-                        Symbol = "TE",
+                        Symbol = symbol,
                         TokenName = "TEST",
                         IssueChainId = chainOptions.ChainId
                     },
