@@ -76,28 +76,50 @@ namespace AElf.CSharp.CodeOps
 
         public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
         {
-            if (!method.IsMethodCoverlectInjected())
+            if (!method.IsMethodCoverletInjected())
                 return;
-            
-            var instructions = method.Body.Instructions.ToList();
-            var il = method.Body.GetILProcessor();
 
+            var methodInstructions = method.Body.Instructions.ToList();
+            var il = method.Body.GetILProcessor();
             il.Body.SimplifyMacros();
-            foreach (var instruction in instructions)
+            
+            // Update branching instructions if they are pointing to coverlet injected code
+            foreach (var instruction in methodInstructions)
             {
-                if (instruction.OpCode == OpCodes.Call &&
-                    instruction.Operand.ToString().Contains("Coverlet.Core.Instrumentation.Tracker"))
+                // Skip if not a branching instruction
+                if (!Consts.JumpingOps.Contains(instruction.OpCode)) continue;
+                
+                var targetInstruction = (Instruction) instruction.Operand;
+
+                if (targetInstruction.Next == null) continue; // Probably end of method body
+                
+                if (targetInstruction.Next.IsCoverletInjectedInstruction())
                 {
-                    il.Remove(instruction.Previous);
-                    il.Remove(instruction);
+                    // Point to next
+                    instruction.Operand = targetInstruction.Next.Next;
                 }
             }
+
+            foreach (var instruction in methodInstructions
+                .Where(instruction => instruction.IsCoverletInjectedInstruction()))
+            {
+                // Remove coverlet injected instructions
+                il.Remove(instruction.Previous);
+                il.Remove(instruction);
+            }
+            
             il.Body.OptimizeMacros();
         }
 
-        public static bool IsMethodCoverlectInjected(this MethodDefinition method)
+        private static bool IsMethodCoverletInjected(this MethodDefinition method)
         {
-            return method.Body.Instructions.Any(i => i.ToString().Contains("Coverlet.Core.Instrumentation.Tracker"));
+            return method.Body.Instructions.Any(i => i.IsCoverletInjectedInstruction());
+        }
+
+        private static bool IsCoverletInjectedInstruction(this Instruction instruction)
+        {
+            return instruction.OpCode == OpCodes.Call &&
+                   instruction.Operand.ToString().Contains("Coverlet.Core.Instrumentation.Tracker");
         }
 
         public static Type FindContractType(this Assembly assembly)
