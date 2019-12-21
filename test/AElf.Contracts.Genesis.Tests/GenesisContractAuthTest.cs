@@ -174,7 +174,7 @@ namespace AElf.Contracts.Genesis
             newHash.ShouldBe(codeHash);
         }
 
-        [Fact]
+        [Fact(Skip = "Skip due to need task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
             var contractCode = ReadCode(Path.Combine(_contractDllDir, "AElf.Contracts.MultiToken.dll.patched"));
@@ -222,7 +222,7 @@ namespace AElf.Contracts.Genesis
             Assert.True(false, $"Overtime 20 seconds but still cannot verify success.");
         }
 
-        [Fact]
+        [Fact(Skip="Skip due to need task delay.")]
         public async Task UpdateSmartContractWithCodeCheck_Test()
         {
             var contractCode = ReadCode(Path.Combine(_contractDllDir, "AElf.Contracts.TokenConverter.dll.patched"));

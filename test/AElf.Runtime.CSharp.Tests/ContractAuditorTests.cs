@@ -82,7 +82,7 @@ namespace AElf.Runtime.CSharp.Tests
         public void ContractPatcher_Test()
         {
             const string contract = "AElf.Contracts.MultiToken.dll";
-            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var code = ReadCode(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, contract));
             var updateCode = ContractPatcher.Patch(code);
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(()=>_auditorFixture.Audit(updateCode));
