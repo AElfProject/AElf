@@ -64,6 +64,9 @@ namespace AElf.CSharp.CodeOps
         {
             if (!method.IsMethodCoverletInjected())
                 return;
+            
+            Console.WriteLine("[BEFORE]");
+            method.PrintBody();
 
             var methodInstructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
@@ -96,6 +99,17 @@ namespace AElf.CSharp.CodeOps
             }
             
             il.Body.OptimizeMacros();
+            
+            Console.WriteLine("[AFTER]");
+            method.PrintBody();
+        }
+        
+        private static void PrintBody(this MethodDefinition method)
+        {
+            foreach (var instruction in method.Body.Instructions)
+            {
+                Console.WriteLine($"{instruction.OpCode.ToString()} {instruction.Operand}");
+            }
         }
 
         private static Instruction GetNextNonCoverletInstruction(Instruction instruction)
