@@ -1,7 +1,7 @@
+using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
@@ -150,25 +150,20 @@ namespace AElf.Contracts.ParliamentAuth
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
             AssertAuthorizedProposer();
+            var proposalId = CreateNewProposal(input);
+            return proposalId;
+        }
 
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
-            var proposal = new ProposalInfo
-            {
-                ContractMethodName = input.ContractMethodName,
-                ExpiredTime = input.ExpiredTime,
-                Params = input.Params,
-                ToAddress = input.ToAddress,
-                OrganizationAddress = input.OrganizationAddress,
-                ProposalId = proposalId,
-                Proposer = Context.Sender
-            };
-            Assert(Validate(proposal), "Invalid proposal.");
-            Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
-            State.Proposals[proposalId] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+        public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
+        {
+            var organization = State.Organisations[input.ProposalInput.OrganizationAddress];
+            Assert(organization != null, "No registered organization.");
+            Assert(
+                Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
+                CheckProposerAuthorityIfNeeded(input.OriginProposer), "Not authorized to propose.");
+            var proposalId = CreateNewProposal(input.ProposalInput);
             if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
-                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback 
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
             return proposalId;
         }
 
