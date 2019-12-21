@@ -95,7 +95,6 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Side chain not found.");
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return new SInt64Value {Value = State.IndexingBalance[chainId]};
         }
 

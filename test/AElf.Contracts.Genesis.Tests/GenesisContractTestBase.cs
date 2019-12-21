@@ -93,7 +93,7 @@ namespace AElf.Contracts.Genesis
             AsyncHelper.RunSync(() =>
                 SideChainTester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChainTester.GetSideChainSystemContract(
-                        SideChainTester.GetCallOwnerAddress(), mainChainId, out TotalSupply,
+                        SideChainTester.GetCallOwnerAddress(), mainChainId,"STA",out TotalSupply,
                         SideChainTester.GetCallOwnerAddress())));
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
