@@ -129,12 +129,13 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
+                CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
+                Console.WriteLine($"Usage: {CurrentTransactionContext.Trace.ExecutionUsage}");
                 Cleanup();
             }
 
             var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
-            CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

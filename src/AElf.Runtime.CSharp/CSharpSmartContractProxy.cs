@@ -59,9 +59,11 @@ namespace AElf.Runtime.CSharp
         internal void Cleanup()
         {
             _methodInfos[nameof(Cleanup)].Invoke(_instance, new object[0]);
+            _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
+                .Invoke(null, new object[] { null });
         }
 
-        public void SetExecutionObserver(IExecutionObserver observer)
+        internal void SetExecutionObserver(IExecutionObserver observer)
         {
             _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
                 ?.Invoke(null, new object[] { observer });
