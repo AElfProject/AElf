@@ -20,8 +20,9 @@ namespace AElf.CSharp.CodeOps
             // Compare method body
             var r =  !sourceMethodBodyInstructions.Where((t, i) =>
             {
-                Console.WriteLine($"{t.ToComparableString()} | {targetMethodBodyInstructions[i].ToComparableString()}");
-                return t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString();
+                var compare = t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString();
+                Console.WriteLine($"{compare} | '{t.ToComparableString()}' | '{targetMethodBodyInstructions[i].ToComparableString()}'");
+                return compare;
             }).Any();
 
             return r;
@@ -38,10 +39,6 @@ namespace AElf.CSharp.CodeOps
             else if (instruction.Operand is Instruction ins) // Is probably branching to another instruction
             {
                 operandStr = ins.OpCode.ToString(); // May restrict to branching to ret only
-                // Do not check operand in DEBUG mode, due to coverlet injection
-                #if !DEBUG
-                operandStr += ins.Operand;
-                #endif
             }
             else
             {
