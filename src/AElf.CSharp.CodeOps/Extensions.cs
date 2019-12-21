@@ -130,7 +130,8 @@ namespace AElf.CSharp.CodeOps
 
             // and next after that will be a coverlet call, then skip those 2 as well;
             // if not, just return next line
-            return nextLine.Next.IsCoverletInjectedInstruction() ? GetNextNonCoverletInstruction(nextLine.Next) 
+            return nextLine.Next?.IsCoverletInjectedInstruction() ?? false ? 
+                GetNextNonCoverletInstruction(nextLine.Next) 
                 : nextLine; // Otherwise, just return next line
         }
 
