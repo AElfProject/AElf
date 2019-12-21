@@ -177,7 +177,7 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip = "Skip due to need task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var contractCode = ReadCode(Path.Combine(_contractDllDir, "AElf.Contracts.MultiToken.dll.patched"));
+            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll"));
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory,
@@ -225,7 +225,7 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip="Skip due to need task delay.")]
         public async Task UpdateSmartContractWithCodeCheck_Test()
         {
-            var contractCode = ReadCode(Path.Combine(_contractDllDir, "AElf.Contracts.TokenConverter.dll.patched"));
+            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.TokenConverter.dll"));
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Genesis
 
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
 
-            var code = ReadCode(Path.Combine(_contractDllDir, "AElf.Contracts.ReferendumAuth.dll.patched"));
+            var code = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.ReferendumAuth.dll"));
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = newAddress,

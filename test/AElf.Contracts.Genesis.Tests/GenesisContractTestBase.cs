@@ -62,7 +62,7 @@ namespace AElf.Contracts.Genesis
 
         protected readonly ECKeyPair TesterKeyPair;
         
-        protected readonly string _contractDllDir = "../../../contracts/";
+        protected readonly string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
 
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         protected ECKeyPair CreatorKeyPair => SampleECKeyPairs.KeyPairs[10];
