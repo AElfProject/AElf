@@ -132,6 +132,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (result != null)
                     {
                         result.TransactionFee = trace.TransactionFee;
+                        result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
                         transactionResults.Add(result);
                     }
 
@@ -366,6 +367,14 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
+
+                    if (postTx.MethodName == "ChargeResourceToken")
+                    {
+                        var consumedResourceTokens = new ConsumedResourceTokens();
+                        consumedResourceTokens.MergeFrom(postTrace.ReturnValue);
+                        trace.ConsumedResourceTokens = consumedResourceTokens;
+                    }
+
                     if (!postTrace.IsSuccessful())
                     {
                         return false;
