@@ -231,6 +231,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             const long stoAmount = 100; // Not enough.
 
             // Advance some STO tokens.
+            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = "STO",
+                Amount = 100_00000000L
+            });
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 To = TestContractAddress,
