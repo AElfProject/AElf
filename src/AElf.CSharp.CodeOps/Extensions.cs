@@ -18,14 +18,8 @@ namespace AElf.CSharp.CodeOps
                 .Where(i => i.OpCode != OpCodes.Nop).ToArray();
 
             // Compare method body
-            var r =  !sourceMethodBodyInstructions.Where((t, i) =>
-            {
-                var compare = t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString();
-                Console.WriteLine($"{compare} | '{t.ToComparableString()}' | '{targetMethodBodyInstructions[i].ToComparableString()}'");
-                return compare;
-            }).Any();
-
-            return r;
+            return !sourceMethodBodyInstructions.Where((t, i) => 
+                t.ToComparableString() != targetMethodBodyInstructions[i].ToComparableString()).Any();
         }
 
         private static string ToComparableString(this Instruction instruction)
@@ -102,14 +96,6 @@ namespace AElf.CSharp.CodeOps
             }
             
             il.Body.OptimizeMacros();
-        }
-
-        private static void PrintBody(this MethodDefinition method)
-        {
-            foreach (var instruction in method.Body.Instructions)
-            {
-                Console.WriteLine($"{instruction.OpCode.ToString()} {instruction.Operand}");
-            }
         }
 
         private static Instruction GetNextNonCoverletInstruction(Instruction instruction)

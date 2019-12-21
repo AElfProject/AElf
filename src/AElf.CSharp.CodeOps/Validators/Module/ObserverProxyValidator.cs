@@ -59,7 +59,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                     errors.Add(new ObserverProxyValidationResult(refMethod.Name + " is not implemented in observer proxy."));
                 }
                 
-                #if UNIT_TEST
+                #if DEBUG
                 refMethod.RemoveCoverLetInjectedInstructions();
                 #endif
 
