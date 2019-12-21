@@ -59,13 +59,12 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                     errors.Add(new ObserverProxyValidationResult(refMethod.Name + " is not implemented in observer proxy."));
                 }
                 
-                #if DEBUG
+                #if UNIT_TEST
                 refMethod.RemoveCoverLetInjectedInstructions();
                 #endif
 
                 if (!injMethod.HasSameBody(refMethod))
                 {
-                    // TODO: Remove when solved
                     var contractMethodBody = string.Join("\n", injMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
                     var referenceMethodBody = string.Join("\n", refMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
                     

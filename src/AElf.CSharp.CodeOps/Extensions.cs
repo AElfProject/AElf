@@ -71,10 +71,6 @@ namespace AElf.CSharp.CodeOps
             if (!method.IsMethodCoverletInjected())
                 return;
 
-            // Print before
-            Console.WriteLine("[BEFORE]");
-            method.PrintBody();
-            
             var methodInstructions = method.Body.Instructions.ToList();
             var il = method.Body.GetILProcessor();
             il.Body.SimplifyMacros();
@@ -106,10 +102,6 @@ namespace AElf.CSharp.CodeOps
             }
             
             il.Body.OptimizeMacros();
-            
-            // Print after
-            Console.WriteLine("[AFTER]");
-            method.PrintBody();
         }
 
         private static void PrintBody(this MethodDefinition method)
