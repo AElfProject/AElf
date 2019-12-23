@@ -4,7 +4,7 @@ jobs:
 - job: build_all_windows
   displayName: Build all tasks (Windows)
   pool:
-    vmImage: vs2017-win2016
+    vmImage: windows-2019
   steps:
   - task: DotNetCoreInstaller@0
     inputs:

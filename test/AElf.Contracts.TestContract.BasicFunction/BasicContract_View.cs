@@ -4,10 +4,18 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.TestContract.BasicFunction
 {
     /// <summary>
-    /// View methods
+    ///     View methods
     /// </summary>
     public partial class BasicFunctionContract
     {
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(BasicFunctionContract)
+            };
+        }
+
         public override MoneyOutput QueryWinMoney(Empty input)
         {
             return new MoneyOutput

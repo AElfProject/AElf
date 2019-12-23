@@ -3,6 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicSecurity";
@@ -42,33 +43,50 @@ service BasicSecurityContract {
     }
     
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryBoolState(google.protobuf.Empty) returns (BoolOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryInt32State(google.protobuf.Empty) returns (Int32Output){
+        option (aelf.is_view) = true;
     }
     rpc QueryUInt32State(google.protobuf.Empty) returns (UInt32Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryInt64State(google.protobuf.Empty) returns (Int64Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUInt64State(google.protobuf.Empty) returns (UInt64Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryStringState(google.protobuf.Empty) returns (StringOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryBytesState(google.protobuf.Empty) returns (BytesOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryProtobufState(google.protobuf.Empty) returns (ProtobufOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryComplex1State(google.protobuf.Empty) returns (Complex1Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryComplex2State(google.protobuf.Empty) returns (Complex2Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryMappedState1(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
     }
     rpc QueryMappedState2(Complex3Input) returns (TradeMessage) {
+        option (aelf.is_view) = true;
     }
     rpc QueryExternalMethod1(aelf.Address) returns (Int64Output) {
+        option (aelf.is_view) = true;
     }
     rpc QueryExternalMethod2(aelf.Address) returns (Int64Output) {
+        option (aelf.is_view) = true;
     }
 }
 

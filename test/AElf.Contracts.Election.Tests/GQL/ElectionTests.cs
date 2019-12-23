@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -184,6 +183,26 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_ToBecomeValidationDataCenter_Test()
+        {
+            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(25))
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
+            
+            //add new candidate and vote into data center
+            var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
+            await AnnounceElectionAsync(newCandidate);
+
+            var voter = VoterKeyPairs.First();
+            await
+                VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), 100 * 86400, 200);
+
+            var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
+            victories.Value.Select(o=>o.ToHex()).ShouldContain(newCandidate.PublicKey.ToHex());
+        }
+        
+        [Fact]
         public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough_Test()
         {
             const int amount = 100;
@@ -259,7 +278,7 @@ namespace AElf.Contracts.Election
 
             return validCandidates;
         }
-
+        
         public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough_Test()
         {
             await NextRound(BootMinerKeyPair);
