@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
@@ -298,7 +299,7 @@ namespace AElf.Contracts.ParliamentAuth
             await TransferToOrganizationAddressAsync(organizationAddress);
             await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
             await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
-
+            
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
             var result = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -362,6 +363,29 @@ namespace AElf.Contracts.ParliamentAuth
             var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendWithExceptionAsync(Tester);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        }
+
+        [Fact]
+        public async Task Check_ValidProposal_Test()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await TransferToOrganizationAddressAsync(organizationAddress);
+            
+            //Get valid Proposal
+            GetParliamentAuthContractTester(InitialMinersKeyPairs.Last());
+            var validProposals = await ParliamentAuthContractStub.GetValidProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(1);
+            
+            await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+            validProposals = await ParliamentAuthContractStub.GetValidProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(0);
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
