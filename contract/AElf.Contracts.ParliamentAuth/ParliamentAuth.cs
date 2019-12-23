@@ -24,7 +24,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 return new ProposalOutput();
             }
-            
+
             var organization = State.Organisations[proposal.OrganizationAddress];
             var minerList = GetCurrentMinerList();
 
@@ -65,49 +65,45 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return new BoolValue {Value = State.Organisations[input] != null};
         }
-        
-        public override ProposalIdList GetValidProposals(ProposalIdList input)
+
+        public override ProposalIdList GetNotVotedProposals(ProposalIdList input)
         {
             var result = new ProposalIdList();
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
 
             return result;
         }
-        
-        public override ProposalIdList GetNotApprovedProposals(ProposalIdList input)
+
+        public override ProposalIdList GetNotVotedPendingProposals(ProposalIdList input)
         {
             var result = new ProposalIdList();
             var currentParliament = GetCurrentMinerList();
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
                     continue;
                 var organization = State.Organisations[proposal.OrganizationAddress];
-                if (organization == null || IsReleaseThresholdReached(proposal, organization, currentParliament))
+                if (organization == null || !IsProposalStillPending(proposal, organization, currentParliament))
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
-            
+
             return result;
         }
 
         #endregion view
-        
+
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            var organizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = input.GenesisOwnerReleaseThreshold
-            };
 
             var proposerWhiteList = new ProposerWhiteList();
 
@@ -115,7 +111,16 @@ namespace AElf.Contracts.ParliamentAuth
                 proposerWhiteList.Proposers.Add(input.PrivilegedProposer);
 
             State.ProposerWhiteList.Value = proposerWhiteList;
-            
+            var organizationInput = new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseInput
+                {
+                    MinimalApprovalThreshold = AbstractDefaultOrganizationMinimalApprovalThreshold,
+                    MinimalVoteThreshold = AbstractDefaultOrganizationMinimalVoteThresholdThreshold,
+                    MaximalAbstentionThreshold = AbstractDefaultOrganizationMaximalAbstentionThreshold,
+                    MaximalRejectionThreshold = AbstractDefaultOrganizationMaximalRejectionThreshold
+                }
+            };
             var defaultOrganizationAddress = CreateOrganization(organizationInput);
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
@@ -132,7 +137,7 @@ namespace AElf.Contracts.ParliamentAuth
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             var organization = new Organization
             {
-                ReleaseThreshold = input.ReleaseThreshold,
+                ProposalReleaseThreshold = input.ProposalReleaseThreshold,
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
@@ -167,16 +172,38 @@ namespace AElf.Contracts.ParliamentAuth
             return proposalId;
         }
 
-        public override BoolValue Approve(ApproveInput approvalInput)
+        public override Empty Approve(Hash input)
         {
-            var proposal = GetValidProposal(approvalInput.ProposalId);
-            AssertProposalNotYetApprovedBySender(proposal);
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal);
             AssertSenderIsParliamentMember();
 
-            proposal.ApprovedRepresentatives.Add(Context.Sender);
-            State.Proposals[approvalInput.ProposalId] = proposal;
+            proposal.Approvals.Add(Context.Sender);
+            State.Proposals[input] = proposal;
 
-            return new BoolValue {Value = true};
+            return new Empty();
+        }
+
+        public override Empty Reject(Hash input)
+        {
+            AssertSenderIsParliamentMember();
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal);
+            proposal.Rejections.Add(Context.Sender);
+            State.Proposals[input] = proposal;
+
+            return new Empty();
+        }
+
+        public override Empty Abstain(Hash input)
+        {
+            AssertSenderIsParliamentMember();
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal);
+            proposal.Abstentions.Add(Context.Sender);
+            State.Proposals[input] = proposal;
+
+            return new Empty();
         }
 
         public override Empty Release(Hash proposalId)
@@ -190,7 +217,7 @@ namespace AElf.Contracts.ParliamentAuth
                 proposalInfo.ContractMethodName, proposalInfo.Params);
             Context.Fire(new ProposalReleased {ProposalId = proposalId});
             State.Proposals.Remove(proposalId);
-            
+
             return new Empty();
         }
 
@@ -199,10 +226,10 @@ namespace AElf.Contracts.ParliamentAuth
             AssertCurrentMiner();
             foreach (var proposalId in input.ProposalIds)
             {
-                Approve(new ApproveInput {ProposalId = proposalId});
+                Approve(proposalId);
                 Context.LogDebug(() => $"Proposal {proposalId} approved by {Context.Sender}");
             }
-            
+
             return new Empty();
         }
     }

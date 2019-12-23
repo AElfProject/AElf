@@ -31,19 +31,80 @@ namespace AElf.Contracts.ParliamentAuth
 
         private bool CheckProposerAuthorityIfNeeded(Address address)
         {
-            var result = !State.ProposerAuthorityRequired.Value;
             return !State.ProposerAuthorityRequired.Value || ValidateProposerAuthority(address);
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
-            IEnumerable<Address> currentRepresentatives)
+            ICollection<Address> parliamentMembers)
         {
-            var currentParliament = new HashSet<Address>(currentRepresentatives);
-            var approvalsCollectedFromCurrentParliament =
-                proposal.ApprovedRepresentatives.Count(a => currentParliament.Contains(a));
-            // approved >= (threshold/max) * representativeCount
-            return approvalsCollectedFromCurrentParliament * MaxThreshold >=
-                   organization.ReleaseThreshold * currentParliament.Count;
+            var isRejected = IsProposalRejected(proposal, organization, parliamentMembers);
+            if (isRejected)
+                return false;
+
+            var isAbstained = IsProposalAbstained(proposal, organization, parliamentMembers);
+            if (isAbstained)
+                return false;
+
+            return IsProposalAdoptable(proposal, organization, parliamentMembers);
+        }
+
+        private bool IsProposalStillPending(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var isRejected = IsProposalRejected(proposal, organization, parliamentMembers);
+            if (isRejected)
+                return false;
+            
+            var isAbstained = IsProposalAbstained(proposal, organization, parliamentMembers);
+            if (isAbstained)
+                return false;
+            
+            return !IsProposalAdoptable(proposal, organization, parliamentMembers);
+        }
+
+        private bool IsProposalRejected(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var rejectionMemberCount = proposal.Rejections.Count(parliamentMembers.Contains);
+            return rejectionMemberCount * AbstractVoteTotal >
+                   organization.ProposalReleaseThreshold.MaximalRejectionThreshold * parliamentMembers.Count;
+        }
+
+        private bool IsProposalAbstained(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var abstentionMemberCount = proposal.Abstentions.Count(parliamentMembers.Contains);
+            return abstentionMemberCount * AbstractVoteTotal >
+                   organization.ProposalReleaseThreshold.MaximalAbstentionThreshold * parliamentMembers.Count;
+        }
+
+        private bool IsProposalAdoptable(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var isApprovalEnough = CheckEnoughApprovals(proposal, organization, parliamentMembers);
+            if (!isApprovalEnough)
+                return false;
+
+            var isVoteThresholdReached = IsVoteThresholdReached(proposal, organization, parliamentMembers);
+            return isVoteThresholdReached;
+        }
+        
+        private bool CheckEnoughApprovals(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var approvedMemberCount = proposal.Approvals.Count(parliamentMembers.Contains);
+            return approvedMemberCount * AbstractVoteTotal >=
+                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold * parliamentMembers.Count;
+        }
+
+        private bool IsVoteThresholdReached(ProposalInfo proposal, Organization organization,
+            ICollection<Address> parliamentMembers)
+        {
+            var isVoteThresholdReached =
+                proposal.Abstentions.Concat(proposal.Approvals).Concat(proposal.Rejections)
+                    .Count(parliamentMembers.Contains) * AbstractVoteTotal >=
+                organization.ProposalReleaseThreshold.MinimalVoteThreshold * parliamentMembers.Count;
+            return isVoteThresholdReached;
         }
 
         private void MaybeLoadConsensusContractAddress()
@@ -65,11 +126,13 @@ namespace AElf.Contracts.ParliamentAuth
             return currentParliament.Any(r => r.Equals(Context.Sender));
         }
 
-        private const int MaxThreshold = 10000;
-
         private bool Validate(Organization organization)
         {
-            return organization.ReleaseThreshold > 0 && organization.ReleaseThreshold <= MaxThreshold;
+            return organization.ProposalReleaseThreshold.MinimalVoteThreshold <= AbstractVoteTotal &&
+                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal &&
+                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold > 0 &&
+                   organization.ProposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
+                   organization.ProposalReleaseThreshold.MaximalRejectionThreshold >= 0;
         }
 
         private bool Validate(ProposalInfo proposal)
@@ -94,14 +157,15 @@ namespace AElf.Contracts.ParliamentAuth
             return proposal;
         }
 
-        private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
+        private void AssertProposalNotYetVotedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyApproved(proposal, Context.Sender), "Already approved.");
+            Assert(!CheckSenderAlreadyVoted(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyApproved(ProposalInfo proposal, Address address)
+        private bool CheckSenderAlreadyVoted(ProposalInfo proposal, Address address)
         {
-            return proposal.ApprovedRepresentatives.Contains(address);
+            return proposal.Approvals.Contains(address) || proposal.Rejections.Contains(address) ||
+                   proposal.Abstentions.Contains(address);
         }
 
         private bool ValidateProposerAuthority(Address address)

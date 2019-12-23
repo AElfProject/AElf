@@ -35,22 +35,29 @@ service ParliamentAuthContract {
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
     }
-    rpc GetNotApprovedProposals(ProposalIdList) returns (ProposalIdList){
+    rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
-    rpc GetValidProposals(ProposalIdList) returns (ProposalIdList){
+    rpc GetNotVotedProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
 }
 
 message CreateOrganizationInput {
-    sint32 release_threshold = 1;
+    ProposalReleaseInput proposal_release_threshold = 1;
+}
+
+message ProposalReleaseInput {
+    sint32 minimal_approval_threshold = 1;
+    sint32 maximal_rejection_threshold = 2;
+    sint32 maximal_abstention_threshold = 3;
+    sint32 minimal_vote_threshold = 4;
 }
 
 message Organization {
-    sint32 release_threshold = 1;
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
+    ProposalReleaseInput proposal_release_threshold = 4;
 }
 
 message CreateProposalBySystemContractInput {
@@ -67,13 +74,14 @@ message ProposalInfo {
     google.protobuf.Timestamp expired_time = 5;
     aelf.Address proposer = 6;
     aelf.Address organization_address = 7;
-    repeated aelf.Address approved_representatives = 8;
+    repeated aelf.Address approvals = 8;
+    repeated aelf.Address rejections = 9;
+    repeated aelf.Address abstentions = 10;
 }
 
 message InitializeInput{
-    int32 genesis_owner_releaseThreshold = 1;
-    aelf.Address privileged_proposer = 2;
-    bool proposer_authority_required = 3;
+    aelf.Address privileged_proposer = 1;
+    bool proposer_authority_required = 2;
 }
 
 message ProposalCreated{
