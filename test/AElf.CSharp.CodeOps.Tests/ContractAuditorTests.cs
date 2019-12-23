@@ -15,7 +15,6 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
-using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
@@ -63,7 +62,6 @@ namespace AElf.CSharp.CodeOps
             typeof(ReferendumAuthContract),
             typeof(TokenConverterContract),
             typeof(TreasuryContract),
-            typeof(TestContract.TestContract),
         };
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)
