@@ -10,8 +10,8 @@ namespace AElf.Contracts.Deployer
             var sourceDllPath = args[0];
             var code = File.ReadAllBytes(sourceDllPath);
             
-            // Overwrite
-            File.WriteAllBytes(sourceDllPath, ContractPatcher.Patch(code));
+            // Save as
+            File.WriteAllBytes(sourceDllPath + ".patched", ContractPatcher.Patch(code));
         }
     }
 }

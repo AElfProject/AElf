@@ -72,8 +72,19 @@ namespace AElf.CSharp.CodeOps
             // Load the DLL's from contracts folder to prevent codecov injection
             foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module.ToString()))
             {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
+                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath + ".patched")));
             }
+        }
+
+        [Fact]
+        public void ContractPatcher_Test()
+        {
+            const string contract = "AElf.Contracts.MultiToken.dll";
+            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var updateCode = ContractPatcher.Patch(code);
+            code.ShouldNotBe(updateCode);
+            var exception = Record.Exception(()=>_auditorFixture.Audit(updateCode));
+            exception.ShouldBeNull();
         }
 
         #endregion
@@ -84,7 +95,7 @@ namespace AElf.CSharp.CodeOps
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module + ".patched")))
                 .Findings;
             
             // Should have identified that ACS1 or ACS8 is not there

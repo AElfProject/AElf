@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Sdk.CSharp;
@@ -24,7 +25,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             AsyncHelper.RunSync(InitializeContracts);
         }
 
-        [Fact(Skip = "Need to initial connector's balance.")]
+        [Fact]
         public async Task BuyResourceToken_Test()
         {
             var beforeElf = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -60,6 +61,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
             foreach (var symbol in resourceTokenList)
             {
+                await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+                {
+                    Symbol = symbol,
+                    Amount = amount
+                });
                 await TokenContractStub.Transfer.SendAsync(new TransferInput
                 {
                     To = TestContractAddress,
@@ -225,6 +231,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             const long stoAmount = 100; // Not enough.
 
             // Advance some STO tokens.
+            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = "STO",
+                Amount = 100_00000000L
+            });
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 To = TestContractAddress,

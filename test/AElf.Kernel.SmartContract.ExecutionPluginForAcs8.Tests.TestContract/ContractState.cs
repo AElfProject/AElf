@@ -1,9 +1,7 @@
 ﻿using Acs0;
-using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.Collections;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
 {

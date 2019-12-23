@@ -10,6 +10,7 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
+[assembly: InternalsVisibleTo("AElf.Kernel.TransactionPool.Tests")]
 
 namespace AElf.Kernel.TransactionPool.Application
 {

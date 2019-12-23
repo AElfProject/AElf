@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
+using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
@@ -80,8 +81,8 @@ namespace AElf.CSharp.CodeOps
 
         public ContractPolicyTests()
         {
-            _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module);
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
+            _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
+            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched");
         }
 
         [Fact]
