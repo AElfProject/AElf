@@ -75,4 +75,11 @@
               DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
               SkipUnchangedFiles="true" />
     </Target>
+    <!-- Sometimes publish command copies the contract DLL before PatchContractCode target executed -->
+    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+              SourceFiles="$(TargetDir)$(TargetName).dll" 
+              DestinationFolder="$(PublishDir)"
+              SkipUnchangedFiles="true" />
+    </Target>
 </Project>
