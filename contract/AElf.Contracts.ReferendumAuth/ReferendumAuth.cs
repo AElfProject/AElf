@@ -3,7 +3,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using ApproveInput = Acs3.ApproveInput;
 
 namespace AElf.Contracts.ReferendumAuth
 {
@@ -92,33 +91,33 @@ namespace AElf.Contracts.ReferendumAuth
             return hash;
         }
 
-        public override BoolValue Approve(ApproveInput input)
-        {
-            var proposal = GetValidProposal(input.ProposalId);
-            var organization = State.Organisations[proposal.OrganizationAddress];
-            Assert(State.LockedTokenAmount[Context.Sender][input.ProposalId] == null, "Cannot approve more than once.");
-            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
-            State.ApprovedTokenAmount[input.ProposalId] =
-                State.ApprovedTokenAmount[input.ProposalId].Add(allowance);
-            Assert(allowance > 0, "Invalid approve.");
-
-            LockToken(new LockInput
-            {
-                Address = Context.Sender,
-                Symbol = organization.TokenSymbol,
-                Amount = allowance,
-                LockId = Context.TransactionId,
-                Usage = "Referendum."
-            });
-            // Register receipt
-            State.LockedTokenAmount[Context.Sender][input.ProposalId] = new Receipt
-            {
-                Amount = allowance,
-                LockId = Context.TransactionId,
-                TokenSymbol = organization.TokenSymbol
-            };
-            return new BoolValue {Value = true};
-        }
+//        public override BoolValue Approve(ApproveInput input)
+//        {
+//            var proposal = GetValidProposal(input.ProposalId);
+//            var organization = State.Organisations[proposal.OrganizationAddress];
+//            Assert(State.LockedTokenAmount[Context.Sender][input.ProposalId] == null, "Cannot approve more than once.");
+//            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+//            State.ApprovedTokenAmount[input.ProposalId] =
+//                State.ApprovedTokenAmount[input.ProposalId].Add(allowance);
+//            Assert(allowance > 0, "Invalid approve.");
+//
+//            LockToken(new LockInput
+//            {
+//                Address = Context.Sender,
+//                Symbol = organization.TokenSymbol,
+//                Amount = allowance,
+//                LockId = Context.TransactionId,
+//                Usage = "Referendum."
+//            });
+//            // Register receipt
+//            State.LockedTokenAmount[Context.Sender][input.ProposalId] = new Receipt
+//            {
+//                Amount = allowance,
+//                LockId = Context.TransactionId,
+//                TokenSymbol = organization.TokenSymbol
+//            };
+//            return new BoolValue {Value = true};
+//        }
 
         public override Empty ReclaimVoteToken(Hash proposalId)
         {

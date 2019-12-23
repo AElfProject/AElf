@@ -113,7 +113,7 @@ namespace AElf.Contracts.ParliamentAuth
             State.ProposerWhiteList.Value = proposerWhiteList;
             var organizationInput = new CreateOrganizationInput
             {
-                ProposalReleaseThreshold = new ProposalReleaseInput
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
                     MinimalApprovalThreshold = AbstractDefaultOrganizationMinimalApprovalThreshold,
                     MinimalVoteThreshold = AbstractDefaultOrganizationMinimalVoteThresholdThreshold,

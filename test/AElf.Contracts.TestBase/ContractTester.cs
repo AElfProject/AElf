@@ -711,11 +711,8 @@ namespace AElf.Contracts.TestBase
                     IsPrivilegePreserved = true
                 });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
-            {
-                GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold
-            });
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize),
+                new ParliamentAuth.InitializeInput());
 
             return list =>
             {
@@ -783,7 +780,6 @@ namespace AElf.Contracts.TestBase
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
             {
-                GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
                 PrivilegedProposer = proposer,
                 ProposerAuthorityRequired = true
             });

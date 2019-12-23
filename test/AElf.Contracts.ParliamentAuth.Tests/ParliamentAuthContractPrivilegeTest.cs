@@ -73,7 +73,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = 20000 / Tester.InitialMinerList.Count
+//                ReleaseThreshold = 20000 / Tester.InitialMinerList.Count
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,

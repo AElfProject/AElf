@@ -54,11 +54,11 @@ namespace AElf.Contracts.ParliamentAuth
             var isRejected = IsProposalRejected(proposal, organization, parliamentMembers);
             if (isRejected)
                 return false;
-            
+
             var isAbstained = IsProposalAbstained(proposal, organization, parliamentMembers);
             if (isAbstained)
                 return false;
-            
+
             return !IsProposalAdoptable(proposal, organization, parliamentMembers);
         }
 
@@ -88,7 +88,7 @@ namespace AElf.Contracts.ParliamentAuth
             var isVoteThresholdReached = IsVoteThresholdReached(proposal, organization, parliamentMembers);
             return isVoteThresholdReached;
         }
-        
+
         private bool CheckEnoughApprovals(ProposalInfo proposal, Organization organization,
             ICollection<Address> parliamentMembers)
         {
@@ -128,11 +128,17 @@ namespace AElf.Contracts.ParliamentAuth
 
         private bool Validate(Organization organization)
         {
-            return organization.ProposalReleaseThreshold.MinimalVoteThreshold <= AbstractVoteTotal &&
-                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal &&
-                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold > 0 &&
-                   organization.ProposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
-                   organization.ProposalReleaseThreshold.MaximalRejectionThreshold >= 0;
+            var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
+
+            return proposalReleaseThreshold.MinimalVoteThreshold <= AbstractVoteTotal &&
+                   proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
+                   proposalReleaseThreshold.MinimalApprovalThreshold > 0 &&
+                   proposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
+                   proposalReleaseThreshold.MaximalRejectionThreshold >= 0 &&
+                   proposalReleaseThreshold.MaximalAbstentionThreshold +
+                   proposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal &&
+                   proposalReleaseThreshold.MaximalRejectionThreshold +
+                   proposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal;
         }
 
         private bool Validate(ProposalInfo proposal)
