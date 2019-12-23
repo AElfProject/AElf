@@ -62,7 +62,7 @@ namespace AElf.Contracts.CrossChain
             AssertOwnerAuthority(Context.Sender);
 
             var proposedSideChainCreationRequest = State.ProposedSideChainCreationRequest[input.Proposer];
-            State.ProposedSideChainCreationRequest.Remove(Context.Sender);
+            State.ProposedSideChainCreationRequest.Remove(input.Proposer);
             var sideChainCreationRequest = input.SideChainCreationRequest;
             Assert(
                 proposedSideChainCreationRequest != null &&

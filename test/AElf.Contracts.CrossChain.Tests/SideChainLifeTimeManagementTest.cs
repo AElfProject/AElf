@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Contracts.TestKit;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
@@ -59,6 +58,28 @@ namespace AElf.Contracts.CrossChain.Tests
             var secondRequestTx =
                 await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
             secondRequestTx.TransactionResult.Error.ShouldContain("Request side chain creation failed.");
+        }
+        
+        [Fact]
+        public async Task RequestSideChainCreationSecondTimeAfterRelease()
+        {
+            await InitializeCrossChainContractAsync();
+            {
+                long lockedTokenAmount = 10;
+                await ApproveBalanceAsync(lockedTokenAmount);
+                // Create proposal and approve
+                var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount);
+                await ApproveWithMinersAsync(proposalId);
+                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                    {ProposalId = proposalId});
+            }
+
+            {
+                long lockedTokenAmount = 10;
+                await ApproveBalanceAsync(lockedTokenAmount);
+                var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount);
+                proposalId.ShouldNotBeNull();
+            }
         }
         
         [Fact]

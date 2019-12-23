@@ -8,6 +8,14 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
     /// </summary>
     public partial class BasicFunctionWithParallelContract
     {
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(BasicFunctionWithParallelContract)
+            };
+        }
+
         public override MoneyOutput QueryWinMoney(Empty input)
         {
             return new MoneyOutput
