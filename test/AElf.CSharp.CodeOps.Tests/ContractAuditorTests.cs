@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Economic;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,6 +14,8 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
+using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
@@ -47,8 +51,10 @@ namespace AElf.CSharp.CodeOps
         private readonly string _contractDllDir = "../../../contracts/";
         private readonly Type[] _contracts = {
             typeof(AssociationAuthContract),
+            typeof(ConfigurationContract),
             typeof(AEDPoSContract),
             typeof(CrossChainContract),
+            typeof(EconomicContract),
             typeof(ElectionContract),
             typeof(BasicContractZero),
             typeof(TokenContract),
@@ -56,6 +62,8 @@ namespace AElf.CSharp.CodeOps
             typeof(ProfitContract),
             typeof(ReferendumAuthContract),
             typeof(TokenConverterContract),
+            typeof(TreasuryContract),
+            typeof(TestContract.TestContract),
         };
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)

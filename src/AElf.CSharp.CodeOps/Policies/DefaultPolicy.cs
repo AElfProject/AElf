@@ -3,6 +3,7 @@ using System.Globalization;
 using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
@@ -133,6 +134,11 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
+
+                .Namespace("System.Text", Permission.Denied, type => type
+                    .Type(nameof(Encoding), Permission.Denied, member => member
+                        .Member(nameof(Encoding.UTF8), Permission.Allowed)
+                        .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
                 ;
         }
 
