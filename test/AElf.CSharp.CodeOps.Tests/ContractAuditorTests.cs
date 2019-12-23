@@ -101,7 +101,7 @@ namespace AElf.CSharp.CodeOps
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched")))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module)))
                 .Findings;
             
             // Should have identified that ACS1 or ACS8 is not there
