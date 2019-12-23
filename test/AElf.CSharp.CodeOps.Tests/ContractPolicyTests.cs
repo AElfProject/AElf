@@ -82,7 +82,7 @@ namespace AElf.CSharp.CodeOps
         public ContractPolicyTests()
         {
             _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched");
+            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
         }
 
         [Fact]
