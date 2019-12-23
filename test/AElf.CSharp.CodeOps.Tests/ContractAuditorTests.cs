@@ -70,9 +70,9 @@ namespace AElf.CSharp.CodeOps
         public void CheckSystemContracts_AllShouldPass()
         {
             // Load the DLL's from contracts folder to prevent codecov injection
-            foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module.ToString()))
+            foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module + ".patched"))
             {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath + ".patched")));
+                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
             }
         }
 
