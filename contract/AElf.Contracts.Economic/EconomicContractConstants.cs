@@ -24,5 +24,7 @@ namespace AElf.Contracts.Economic
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
         public const long ElectionTokenTotalSupply = long.MaxValue;
+
+        public const int MemoMaxLength = 64;
     }
 }
