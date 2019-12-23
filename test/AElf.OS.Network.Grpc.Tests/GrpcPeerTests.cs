@@ -149,7 +149,7 @@ namespace AElf.OS.Network
             isReady = _grpcPeer.IsReady;
             isReady.ShouldBeFalse();
         }
-
+        
         private GrpcPeer MockServiceClient(string ipAddress)
         {
             var mockClient = new Mock<PeerService.PeerServiceClient>();

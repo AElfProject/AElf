@@ -3,8 +3,11 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.Performance</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.Performance</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
