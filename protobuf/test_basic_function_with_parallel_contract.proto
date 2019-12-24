@@ -121,17 +121,26 @@ service BasicFunctionWithParallelContract {
     }
 
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput) returns (TwoUserMoneyOut) {
+        option (aelf.is_view) = true;
     }
     rpc GetValue(GetValueInput) returns (GetValueOutput){
+        option (aelf.is_view) = true;
     }
 }
 

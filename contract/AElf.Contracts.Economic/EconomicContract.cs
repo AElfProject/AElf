@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -135,6 +136,7 @@ namespace AElf.Contracts.Economic
         /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
+            AssertValidMemo(input.Memo);
             if (State.ZeroContract.Value == null)
             {
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
@@ -270,6 +272,11 @@ namespace AElf.Contracts.Economic
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
                 ManagerAddress = connectorManager
             });
+        }
+
+        private void AssertValidMemo(string memo)
+        {
+            Assert(Encoding.UTF8.GetByteCount(memo) <= EconomicContractConstants.MemoMaxLength, "Invalid memo size.");
         }
     }
 }

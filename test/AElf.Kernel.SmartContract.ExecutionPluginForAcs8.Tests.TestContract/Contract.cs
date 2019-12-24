@@ -1,6 +1,8 @@
 using Acs8;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
@@ -72,6 +74,25 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
 
         public override Empty FewConsumingMethod(Empty input)
         {
+            return new Empty();
+        }
+
+        public override Empty SendTransferFromAsInlineTx(SInt64Value input)
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Amount = input.Value,
+                Symbol = "ELF"
+            });
+
             return new Empty();
         }
     }

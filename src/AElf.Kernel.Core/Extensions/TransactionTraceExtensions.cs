@@ -45,7 +45,7 @@ namespace AElf.Kernel
                 if (inline.ExecutionStatus < txTrace.ExecutionStatus)
                 {
                     txTrace.ExecutionStatus = inline.ExecutionStatus;
-                    txTrace.Error = $"Inline-Error: {inline.Error}";
+                    txTrace.Error = $"{inline.Error}";
                 }
             }
 

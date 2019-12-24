@@ -71,8 +71,15 @@
     <!-- Move dlls before codecov injection in travis -->
     <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
         <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
-              SourceFiles="$(TargetDir)$(TargetName).dll" 
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
               DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
+              SkipUnchangedFiles="true" />
+    </Target>
+    <!-- Copy patched contract dll after publish to include in publish directory -->
+    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
+              DestinationFolder="$(PublishDir)"
               SkipUnchangedFiles="true" />
     </Target>
 </Project>

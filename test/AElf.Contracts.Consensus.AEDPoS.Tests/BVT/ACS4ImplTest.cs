@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
-using AElf.Contracts.Economic.TestBase;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -41,7 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_BootMiner_Test()
         {
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_BootMiner_Test();
@@ -137,7 +136,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        //[Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_SecondMiner_Test()
         {
             var usingKeyPair = InitialCoreDataCenterKeyPairs[1];
@@ -236,7 +236,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        //[Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_ExtraBlockMiner_Test()
         {
             var usingKeyPair = BootMinerKeyPair;
@@ -320,7 +321,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var validateBeforeResult =
                 await AEDPoSContractStub.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
-            //validateBeforeResult.Success.ShouldBeTrue();
+            validateBeforeResult.Success.ShouldBeTrue();
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber++;

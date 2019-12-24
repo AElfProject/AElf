@@ -43,7 +43,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 try
                 {
                     await responseStream.WriteAsync(parentChainBlockData);
-                    Logger.LogTrace($"Response parent chain data {parentChainBlockData.Height}");
+                    //Logger.LogTrace($"Response parent chain data {parentChainBlockData.Height}");
                     requestedHeight++;
                 }
                 catch (InvalidOperationException)

@@ -503,6 +503,8 @@ namespace AElf.Contracts.TokenConverter
                 VirtualBalance = 1000_000,
                 IsVirtualBalanceEnabled = false,
                 IsPurchaseEnabled = true,
+                Weight = "0.49",
+                RelatedSymbol = "change"
             };
             var updateRet =  (await AuthorizedTokenConvertStub.UpdateConnector.SendAsync(updateConnector)).TransactionResult;
             updateRet.Status.ShouldBe(TransactionResultStatus.Mined);

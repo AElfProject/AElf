@@ -64,7 +64,7 @@ message IndexedChainHeightDict{
 }
 
 // Events
-message CreationRequested {
+message SideChainCreatedEvent {
     option (aelf.is_event) = true;
     aelf.Address creator = 1;
     int32 chainId = 2;

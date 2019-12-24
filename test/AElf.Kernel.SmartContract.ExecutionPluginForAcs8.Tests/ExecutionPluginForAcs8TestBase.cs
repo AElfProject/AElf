@@ -235,7 +235,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 {
                     Symbol = "READ",
                     Amount = issueAmount,
-                    To = DefaultSender,
+                    To = TokenConverterAddress,
                     Memo = "Set for read token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -260,7 +260,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 {
                     Symbol = "STO",
                     Amount = issueAmount,
-                    To = DefaultSender,
+                    To = TokenConverterAddress,
                     Memo = "Set for sto token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -285,7 +285,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 {
                     Symbol = "NET",
                     Amount = issueAmount,
-                    To = DefaultSender,
+                    To = TokenConverterAddress,
                     Memo = "Set for net token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -309,7 +309,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 {
                     Symbol = "WRITE",
                     Amount = issueAmount,
-                    To = DefaultSender,
+                    To = TokenConverterAddress,
                     Memo = "Set for WRITE token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
