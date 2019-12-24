@@ -71,9 +71,19 @@ namespace AElf.Contracts.ParliamentAuth
 
         private async Task<Address> CreateOrganizationAsync()
         {
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
             var createOrganizationInput = new CreateOrganizationInput
             {
-//                ReleaseThreshold = 20000 / Tester.InitialMinerList.Count
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = minimalApprovalThreshold,
+                    MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                    MaximalRejectionThreshold = maximalRejectionThreshold,
+                    MinimalVoteThreshold = minimalVoteThreshold
+                }
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
