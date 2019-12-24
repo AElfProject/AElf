@@ -15,16 +15,20 @@ jobs:
     inputs:
       filename: 'scripts/download_binary.bat'
   - task: DotNetCoreCLI@2
-      inputs:
-        command: 'custom'
-        custom: 'restore'
-        projects: 'AElf.sln'
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'AElf.sln'
+      feedsToUse: config
+      nugetConfigPath: .nuget/pipeline/NuGet.config
   - task: DotNetCoreCLI@2
+    displayName: Build
     inputs:
       command: 'build'
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
+    displayName: Test
     inputs:
       command: test
       projects: 'test/*Tests/*.csproj'
