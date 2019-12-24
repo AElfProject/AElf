@@ -87,7 +87,7 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
                     
-                    if (!IsGroupStateCacheUpdated(groupStateCache, trace, throwException))
+                    if (!TryUpdateGroupStateCache(groupStateCache, trace, throwException))
                         break;
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
@@ -113,7 +113,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        private bool IsGroupStateCacheUpdated(TieredStateCache groupStateCache, TransactionTrace trace,
+        private bool TryUpdateGroupStateCache(TieredStateCache groupStateCache, TransactionTrace trace,
             bool throwException)
         {
             if (trace == null) return false;

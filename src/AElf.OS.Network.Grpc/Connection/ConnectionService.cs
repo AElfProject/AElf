@@ -89,7 +89,7 @@ namespace AElf.OS.Network.Grpc.Connection
         public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             Logger.LogDebug($"Attempting to reach {endpoint}.");
-            var dialedPeer = await GetDialedPeerWithEndpoint(endpoint);
+            var dialedPeer = await GetDialedPeerWithEndpointAsync(endpoint);
             if (dialedPeer == null)
             {
                 return false;
@@ -178,7 +178,7 @@ namespace AElf.OS.Network.Grpc.Connection
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
 
-        private async Task<GrpcPeer> GetDialedPeerWithEndpoint(DnsEndPoint endpoint)
+        private async Task<GrpcPeer> GetDialedPeerWithEndpointAsync(DnsEndPoint endpoint)
         {
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
