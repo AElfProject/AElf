@@ -90,9 +90,9 @@
     </Target>
     <!-- Copy patched contract dll after publish to include in publish directory -->
     <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')" 
               SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
-              DestinationFolder="$(PublishDir)"
+              DestinationFiles="$(PublishDir)/$(TargetName).dll"
               SkipUnchangedFiles="true" />
     </Target>
 </Project>
