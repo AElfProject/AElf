@@ -346,33 +346,22 @@ namespace AElf.Contracts.CrossChain.Tests
             long parentChainHeightOfCreation = 10;
             var sideChainId1 =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
-
+            
             // create second side chain
             long lockedTokenAmount = 10;
             await ApproveBalanceAsync(lockedTokenAmount);
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
-
-            var sideChainId2 = ChainHelper.GetChainId(2);
-
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
-            {
-                CrossChainContractStub.CreateSideChain.GetTransaction(sideChainCreationRequest)
-            }, true);
 
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
             var sideChainBlockData1 =
                 CreateSideChainBlockData(fakeSideChainBlockHash, 1, sideChainId1, fakeTxMerkleTreeRoot);
-
-            var sideChainBlockData2 =
-                CreateSideChainBlockData(fakeSideChainBlockHash, 2, sideChainId2, fakeTxMerkleTreeRoot);
             int fakeChainId = 124;
 
-            var sideChainBlockData3 =
+            var sideChainBlockData2 =
                 CreateSideChainBlockData(fakeSideChainBlockHash, 1, fakeChainId, fakeTxMerkleTreeRoot);
             var crossChainBlockData = new CrossChainBlockData
             {
-                SideChainBlockDataList = {sideChainBlockData1, sideChainBlockData2, sideChainBlockData3}
+                SideChainBlockDataList = {sideChainBlockData1, sideChainBlockData2}
             };
 
             var txRes =

@@ -114,28 +114,26 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
-            var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
-            var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
-            Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
+            var tokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
+            Assert(tokenContractAddress != null,
+                $"Token contract address of chain {ChainHelper.ConvertChainIdToBase58(input.FromChainId)} not registered.");
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
-
-            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
-
+            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(ValidateTokenInfoExists));
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
-
-            CreateInput creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
+            ValidateTokenInfoExistsInput validateTokenInfoExistsInput =
+                ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);
 
             RegisterTokenInfo(new TokenInfo
             {
-                Symbol = creationInput.Symbol,
-                TokenName = creationInput.TokenName,
-                TotalSupply = creationInput.TotalSupply,
-                Decimals = creationInput.Decimals,
-                Issuer = creationInput.Issuer,
-                IsBurnable = creationInput.IsBurnable,
-                IssueChainId = creationInput.IssueChainId
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
             return new Empty();
         }
@@ -363,17 +361,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty CheckResourceToken(Empty input)
-        {
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
-            {
-                var balance = State.Balances[Context.Sender][symbol];
-                Assert(balance > 0, $"Contract balance of {symbol} token is not enough.");
-            }
-
-            return new Empty();
-        }
-
         public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
         {
             if (State.ZeroContract.Value == null)
@@ -484,6 +471,16 @@ namespace AElf.Contracts.MultiToken
                 advancedAmount.Sub(input.Amount);
             return new Empty();
         }
-        
+
+        public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
+                                    tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
+                                    tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
+                                    tokenInfo.IssueChainId == input.IssueChainId;
+            Assert(validationResult, "Token validation failed.");
+            return new Empty();
+        }
     }
 }

@@ -55,7 +55,7 @@ service TokenContract {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
     }
     rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -67,9 +67,11 @@ service TokenContract {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
     }
-    
     rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
     }
+    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
+    }
+
     rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
     // Views
@@ -361,6 +363,16 @@ message RegisterCrossChainTokenContractAddressInput{
     bytes transaction_bytes = 3;
     aelf.MerklePath merkle_path = 4;
     aelf.Address token_contract_address = 5;
+}
+
+message ValidateTokenInfoExistsInput{
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    sint32 issue_chain_id = 7;
 }
 
 // Events

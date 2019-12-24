@@ -99,8 +99,7 @@ namespace AElf.Contracts.Vote
                     Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     LockId = input.VoteId,
-                    Amount = input.Amount,
-                    Usage = $"Voting for {input.VotingItemId}"
+                    Amount = input.Amount
                 });
             }
 
@@ -210,8 +209,7 @@ namespace AElf.Contracts.Vote
                     Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     Amount = votingRecord.Amount,
-                    LockId = input.VoteId,
-                    Usage = $"Withdraw votes for {votingRecord.VotingItemId}"
+                    LockId = input.VoteId
                 });
             }
 
