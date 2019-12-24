@@ -100,7 +100,8 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-
+            var observer = new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, 
+                CurrentTransactionContext.ExecutionBranchThreshold);
             try
             {
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
@@ -110,7 +111,9 @@ namespace AElf.Runtime.CSharp
                         string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
                     );
                 }
-
+                
+                _smartContractProxy.SetExecutionObserver(observer);
+                
                 ExecuteTransaction(handler);
 
                 if (!handler.IsView())
@@ -129,7 +132,8 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
+                CurrentTransactionContext.Trace.ExecutionCallCount = observer.GetCallCount();
+                CurrentTransactionContext.Trace.ExecutionBranchCount = observer.GetBranchCount();
                 Cleanup();
             }
 
@@ -185,7 +189,6 @@ namespace AElf.Runtime.CSharp
             {
                 var tx = CurrentTransactionContext.Transaction;
                 var retVal = handler.Execute(tx.Params.ToByteArray());
-                _smartContractProxy.SetExecutionObserver(new ExecutionObserver(CurrentTransactionContext.ExecutionUsageThreshold));
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);

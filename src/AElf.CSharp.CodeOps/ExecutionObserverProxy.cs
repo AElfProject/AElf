@@ -18,23 +18,22 @@ namespace AElf.CSharp.CodeOps
             #endif
         }
 
-        public static void Count()
+        public static void BranchCount()
         {
             #if DEBUG
             ExecutionObserverDebugger.Test(_observer);
             #endif
             if (_observer != null)
-                _observer.Count();
+                _observer.BranchCount();
         }
-
-        public static int GetUsage()
+        
+        public static void CallCount()
         {
             #if DEBUG
             ExecutionObserverDebugger.Test(_observer);
             #endif
             if (_observer != null)
-                return _observer.GetUsage();
-            return 0;
+                _observer.CallCount();
         }
     }
 }
