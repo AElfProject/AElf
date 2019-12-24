@@ -1,8 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -12,6 +15,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
     {
         private ITriggerInformationProvider _triggerInformationProvider;
         private IAEDPoSInformationProvider _aedpoSInformationProvider;
+
         public AEDPoSTriggerInformationProviderTests()
         {
             _triggerInformationProvider = GetRequiredService<ITriggerInformationProvider>();
@@ -19,20 +23,41 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public Task GetTriggerInformationForBlockHeaderExtraData_NullConsensusCommand_Test()
+        public Task GetTriggerInformationForBlockHeaderExtraData_ConsensusCommand_Test()
         {
-            var result = _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(null);
-            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
-            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
+            var result =
+                _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
+                    consensusCommandBytes: new BytesValue());
+            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(data: result.Value);
+            triggerInformation.Behaviour.ShouldBe(expected: AElfConsensusBehaviour.UpdateValue);
+
+            result = _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
+                consensusCommandBytes: new ConsensusCommand
+                        {Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString()}
+                    .ToBytesValue());
+            triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(data: result.Value);
+            triggerInformation.Behaviour.ShouldBe(expected: AElfConsensusBehaviour.Nothing);
             return Task.CompletedTask;
         }
 
         [Fact]
-        public Task GetTriggerInformationForConsensusTransactions_NullConsensusCommand_Test()
+        public Task GetTriggerInformationForConsensusTransactions_ConsensusCommand_Test()
         {
             var result = _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(null);
             var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
             triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
+
+            result = _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(new ConsensusCommand
+            {
+                Hint = new AElfConsensusHint
+                {
+                    Behaviour = AElfConsensusBehaviour.UpdateValue
+                }.ToByteString()
+            }.ToBytesValue());
+            triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
+            triggerInformation.DecryptedPieces.Count.ShouldBe(1);
+            triggerInformation.EncryptedPieces.Count.ShouldBe(1);
+            triggerInformation.RevealedInValues.Count.ShouldBe(1);
             return Task.CompletedTask;
         }
 

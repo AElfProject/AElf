@@ -6,6 +6,14 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 {
     public partial class BasicSecurityContract
     {
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(BasicSecurityContract)
+            };
+        }
+
         public override BoolOutput QueryBoolState(Empty input)
         {
             return new BoolOutput
