@@ -16,7 +16,8 @@ jobs:
       filename: 'scripts/download_binary.bat'
   - task: DotNetCoreCLI@2
       inputs:
-        command: 'restore'
+        command: 'custom'
+        custom: 'restore'
         projects: 'AElf.sln'
   - task: DotNetCoreCLI@2
     inputs:
