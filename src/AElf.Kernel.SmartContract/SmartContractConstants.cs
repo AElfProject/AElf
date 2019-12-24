@@ -4,6 +4,6 @@ namespace AElf.Kernel.SmartContract
     {
         public const int TransactionExecutionTimePeriodLimitInMilliSeconds = 50;
         
-        public const int ExecutionUsageThreshold = 100000;
+        public const int ExecutionUsageThreshold = 1000;
     }
 }
