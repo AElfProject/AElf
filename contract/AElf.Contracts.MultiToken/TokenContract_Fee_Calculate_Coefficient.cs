@@ -124,33 +124,33 @@ namespace AElf.Contracts.MultiToken
 
         private void InitialParameters()
         {
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Cpu] = GetCpuFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
             State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Ram] = GetRamFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
             State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
             State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
         }
 
-        private CalculateFeeCoefficientsOfType GetCpuFeeInitialCoefficient()
+        private CalculateFeeCoefficientsOfType GetReadFeeInitialCoefficient()
         {
             var totalParameter = new CalculateFeeCoefficientsOfType();
-            var cpuFeeParameter1 = new CalculateFeeCoefficient
+            var readFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Cpu,
+                FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantvalue", 1000}}
             };
-            var cpuFeeParameter2 = new CalculateFeeCoefficient
+            var readFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Cpu,
+                FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 100,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
             };
-            var cpuFeeParameter3 = new CalculateFeeCoefficient
+            var readFeeParameter3 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Cpu,
+                FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =
@@ -159,9 +159,9 @@ namespace AElf.Contracts.MultiToken
                     {"weightbase", 40}
                 }
             };
-            totalParameter.Coefficients.Add(cpuFeeParameter1);
-            totalParameter.Coefficients.Add(cpuFeeParameter2);
-            totalParameter.Coefficients.Add(cpuFeeParameter3);
+            totalParameter.Coefficients.Add(readFeeParameter1);
+            totalParameter.Coefficients.Add(readFeeParameter2);
+            totalParameter.Coefficients.Add(readFeeParameter3);
             return totalParameter;
         }
 
@@ -191,26 +191,26 @@ namespace AElf.Contracts.MultiToken
             return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetRamFeeInitialCoefficient()
+        private CalculateFeeCoefficientsOfType GetWriteFeeInitialCoefficient()
         {
             var totalParameter = new CalculateFeeCoefficientsOfType();
-            var ramFeeParameter1 = new CalculateFeeCoefficient
+            var writeFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Ram,
+                FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantvalue", 10000}}
             };
-            var ramFeeParameter2 = new CalculateFeeCoefficient
+            var writeFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Ram,
+                FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 100,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
             };
-            var ramFeeParameter3 = new CalculateFeeCoefficient
+            var writeFeeParameter3 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Ram,
+                FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =
@@ -219,9 +219,9 @@ namespace AElf.Contracts.MultiToken
                     {"weightbase", 40}
                 }
             };
-            totalParameter.Coefficients.Add(ramFeeParameter1);
-            totalParameter.Coefficients.Add(ramFeeParameter2);
-            totalParameter.Coefficients.Add(ramFeeParameter3);
+            totalParameter.Coefficients.Add(writeFeeParameter1);
+            totalParameter.Coefficients.Add(writeFeeParameter2);
+            totalParameter.Coefficients.Add(writeFeeParameter3);
             return totalParameter;
         }
 

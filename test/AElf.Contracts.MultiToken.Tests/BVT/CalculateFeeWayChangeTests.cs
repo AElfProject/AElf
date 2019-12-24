@@ -79,11 +79,11 @@ namespace AElf.Contracts.MultiToken
         public async Task Cpu_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
             await InitializeCoefficientAsync();
-            var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateCpuCostStrategy>();
-            var ps = await GetCoefficentByType(FeeTypeEnum.Cpu);
+            var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateReadCostStrategy>();
+            var ps = await GetCoefficentByType(FeeTypeEnum.Read);
             var apiParam = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Cpu,
+                FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
@@ -104,7 +104,7 @@ namespace AElf.Contracts.MultiToken
 
             var apiParam2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Cpu,
+                FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
@@ -121,12 +121,12 @@ namespace AElf.Contracts.MultiToken
         public async Task Ram_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
             await InitializeCoefficientAsync();
-            var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>();
-            var ps = await GetCoefficentByType(FeeTypeEnum.Ram);
+            var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateWriteCostStrategy>();
+            var ps = await GetCoefficentByType(FeeTypeEnum.Write);
 
             var apiParam = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Ram,
+                FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
@@ -147,7 +147,7 @@ namespace AElf.Contracts.MultiToken
 
             var apiParam2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Ram,
+                FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 50,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 2}}
@@ -230,8 +230,8 @@ namespace AElf.Contracts.MultiToken
             {
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) Application.ServiceProvider
                     .GetRequiredService<ICalculateTxCostStrategy>(),
-                FeeTypeEnum.Cpu => Application.ServiceProvider.GetRequiredService<ICalculateCpuCostStrategy>(),
-                FeeTypeEnum.Ram => Application.ServiceProvider.GetRequiredService<ICalculateRamCostStrategy>(),
+                FeeTypeEnum.Read => Application.ServiceProvider.GetRequiredService<ICalculateReadCostStrategy>(),
+                FeeTypeEnum.Write => Application.ServiceProvider.GetRequiredService<ICalculateWriteCostStrategy>(),
                 FeeTypeEnum.Sto => Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>(),
                 FeeTypeEnum.Net => Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>(),
                 _ => null

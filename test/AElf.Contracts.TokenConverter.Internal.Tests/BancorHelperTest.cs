@@ -9,13 +9,13 @@ namespace AElf.Contracts.TokenConverter
         //init connector
         private Connector _elfConnector;
 
-        private Connector _ramConnector;
+        private Connector _writeConnector;
 
         public BancorHelperTest()
         {
-            _ramConnector = new Connector
+            _writeConnector = new Connector
             {
-                Symbol = "RAM",
+                Symbol = "WRITE",
                 VirtualBalance = 50_0000,
                 Weight = "0.5",
                 IsVirtualBalanceEnabled = false,
@@ -80,7 +80,7 @@ namespace AElf.Contracts.TokenConverter
         {
             var getAmountToPayout = BancorHelper.GetAmountToPayFromReturn(
                 _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
-                _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
+                _writeConnector.VirtualBalance, Decimal.Parse(_writeConnector.Weight),
                 paidElf);
             return getAmountToPayout;
         }
@@ -88,7 +88,7 @@ namespace AElf.Contracts.TokenConverter
         private long SellOperation(long paidRes)
         {
             var getReturnFromPaid = BancorHelper.GetReturnFromPaid(
-                _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
+                _writeConnector.VirtualBalance, Decimal.Parse(_writeConnector.Weight),
                 _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
                 paidRes);
             return getReturnFromPaid;

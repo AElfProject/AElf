@@ -140,10 +140,10 @@ namespace AElf.Contracts.MultiToken
 
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", input.CpuCost},
+                {"READ", input.ReadCost},
                 {"NET", input.NetCost},
                 {"STO", input.StoCost},
-                {"RAM", input.RamCost}
+                {"WRITE", input.WriteCost}
             };
 
             var bill = new TransactionFeeBill();
@@ -489,7 +489,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx，cpu，sto，ram，net.");
+                "No permission to set tx，read，sto，write，net.");
         }
     }
 }

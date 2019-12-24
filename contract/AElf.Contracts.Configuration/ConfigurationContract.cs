@@ -79,12 +79,12 @@ namespace AElf.Contracts.Configuration
             return State.RentedResourceTokenAmount[input.Value] ?? new ResourceTokenAmount();
         }
 
-        public override ResourceTokenAmount GetRemainResourceTokens(SInt32Value input)
+        public override ResourceTokenAmount GetRemainResourceTokens(Empty input)
         {
             return State.RemainResourceTokenAmount.Value ?? new ResourceTokenAmount();
         }
 
-        public override ResourceTokenAmount GetTotalResourceTokens(SInt32Value input)
+        public override ResourceTokenAmount GetTotalResourceTokens(Empty input)
         {
             return State.TotalResourceTokenAmount.Value ?? new ResourceTokenAmount();
         }
