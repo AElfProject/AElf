@@ -183,8 +183,11 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var il = method.Body.GetILProcessor();
 
             // Insert before every branching instruction
-            var branchingInstructions = method.Body.Instructions.Where(i => Consts.JumpingOps.Contains(i.OpCode)).ToList();
+            var branchingInstructions = method.Body.Instructions.Where(i => 
+                Consts.JumpingOps.Contains(i.OpCode)).ToList();
+
             il.Body.SimplifyMacros();
+            il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, counterMethodRef));
             foreach (var instruction in branchingInstructions)
             {
                 il.InsertBefore(instruction, il.Create(OpCodes.Call, counterMethodRef));
