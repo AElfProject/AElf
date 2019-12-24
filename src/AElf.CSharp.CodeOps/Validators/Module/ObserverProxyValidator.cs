@@ -13,7 +13,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private TypeDefinition _injProxyType;
         private MethodDefinition _injProxySetObserver;
-        private MethodDefinition _injProxyCount;
+        private MethodDefinition _injProxyBranchCount;
+        private MethodDefinition _injProxyCallCount;
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
@@ -32,9 +33,11 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             
             _injProxySetObserver =
                 _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.SetObserver));
-            _injProxyCount =
-                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.Count));
-
+            _injProxyBranchCount =
+                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.BranchCount));
+            _injProxyCallCount = 
+                _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.CallCount));
+                
             foreach (var typ in module.Types)
             {
                 CheckCallsFromTypes(errors, typ);
@@ -107,6 +110,12 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             if (!method.HasBody)
                 return;
 
+            // First instruction should be a call to proxy call count method
+            var firstInstruction = method.Body.Instructions.First();
+            if (!(firstInstruction.OpCode == OpCodes.Call && firstInstruction.Operand == _injProxyCallCount))
+                errors.Add(new ObserverProxyValidationResult($"Missing execution observer call count call detected. " +
+                                                             $"[{method.DeclaringType.Name} > {method.Name}]"));
+            
             // Should be a call placed before each branching opcode
             foreach (var instruction in method.Body.Instructions)
             {
@@ -114,9 +123,9 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 {
                     var proxyCallInstruction = instruction.Previous; // Previous instruction should be proxy call
 
-                    if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyCount))
+                    if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
                     {
-                        errors.Add(new ObserverProxyValidationResult($"Missing execution observer call detected. " +
+                        errors.Add(new ObserverProxyValidationResult($"Missing execution observer branch count call detected. " +
                                                                      $"[{method.DeclaringType.Name} > {method.Name}]"));
                     }                    
                 }
