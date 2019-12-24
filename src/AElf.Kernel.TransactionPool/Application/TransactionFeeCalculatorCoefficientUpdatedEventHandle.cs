@@ -17,8 +17,8 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICalculateTxCostStrategy _txCostStrategy;
-        private readonly ICalculateCpuCostStrategy _cpuCostStrategy;
-        private readonly ICalculateRamCostStrategy _ramCostStrategy;
+        private readonly ICalculateReadCostStrategy _readCostStrategy;
+        private readonly ICalculateWriteCostStrategy _writeCostStrategy;
         private readonly ICalculateNetCostStrategy _netCostStrategy;
         private readonly ICalculateStoCostStrategy _stoCostStrategy;
 
@@ -45,21 +45,21 @@ namespace AElf.Kernel.TransactionPool.Application
         public TransactionFeeCalculatorCoefficientUpdatedEventHandle(
             ISmartContractAddressService smartContractAddressService,
             ICalculateTxCostStrategy txCostStrategy,
-            ICalculateCpuCostStrategy cpuCostStrategy,
-            ICalculateRamCostStrategy ramCostStrategy,
+            ICalculateReadCostStrategy readCostStrategy,
+            ICalculateWriteCostStrategy writeCostStrategy,
             ICalculateStoCostStrategy stoCostStrategy,
             ICalculateNetCostStrategy netCostStrategy)
         {
             _smartContractAddressService = smartContractAddressService;
             _txCostStrategy = txCostStrategy;
-            _cpuCostStrategy = cpuCostStrategy;
-            _ramCostStrategy = ramCostStrategy;
+            _readCostStrategy = readCostStrategy;
+            _writeCostStrategy = writeCostStrategy;
             _stoCostStrategy = stoCostStrategy;
             _netCostStrategy = netCostStrategy;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);
@@ -73,8 +73,8 @@ namespace AElf.Kernel.TransactionPool.Application
             var selectedStrategy = firstData.FeeType switch
             {
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
-                FeeTypeEnum.Cpu => _cpuCostStrategy,
-                FeeTypeEnum.Ram => _ramCostStrategy,
+                FeeTypeEnum.Read => _readCostStrategy,
+                FeeTypeEnum.Write => _writeCostStrategy,
                 FeeTypeEnum.Sto => _stoCostStrategy,
                 FeeTypeEnum.Net => _netCostStrategy,
                 _ => throw new ArgumentOutOfRangeException()
@@ -99,6 +99,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
             if (calculateWayList.Any())
                 selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
+            return Task.CompletedTask;
         }
     }
 }

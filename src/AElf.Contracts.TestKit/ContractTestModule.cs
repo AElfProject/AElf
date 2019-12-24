@@ -69,7 +69,7 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
+                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "WRITE,STO,READ,NET";
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
