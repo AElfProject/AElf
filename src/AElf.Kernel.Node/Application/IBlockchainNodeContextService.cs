@@ -11,7 +11,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Volo.Abp.EventBus.Local;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Kernel.Node.Application
 {
@@ -42,20 +41,22 @@ namespace AElf.Kernel.Node.Application
         private readonly IChainCreationService _chainCreationService;
         private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
-        private readonly IDeployedContractAddressService _deployedContractAddressService;
         private readonly IConsensusService _consensusService;
-        
+
         public ILocalEventBus EventBus { get; set; }
 
-        public BlockchainNodeContextService(IServiceProvider serviceProvider)
+        public BlockchainNodeContextService(
+            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
+            ISmartContractAddressUpdateService smartContractAddressUpdateService,
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
         {
-            _blockchainService = serviceProvider.GetService<IBlockchainService>();
-            _chainCreationService = serviceProvider.GetService<IChainCreationService>();
-            _txHub = serviceProvider.GetService<ITxHub>();
-            _smartContractAddressUpdateService = serviceProvider.GetService<ISmartContractAddressUpdateService>();
-            _defaultContractZeroCodeProvider = serviceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            _consensusService = serviceProvider.GetService<IConsensusService>();
-            _deployedContractAddressService = serviceProvider.GetService<IDeployedContractAddressService>();
+            _blockchainService = blockchainService;
+            _chainCreationService = chainCreationService;
+            _txHub = txHub;
+            _smartContractAddressUpdateService = smartContractAddressUpdateService;
+            _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+            _consensusService = consensusService;
+
             EventBus = NullLocalEventBus.Instance;
         }
 
