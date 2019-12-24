@@ -13,7 +13,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("AssociationAuth")).Value,
-                AssociationAuthSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name,
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
 
             return l;

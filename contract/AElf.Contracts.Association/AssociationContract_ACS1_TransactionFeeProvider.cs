@@ -2,9 +2,9 @@ using Acs1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
-    public partial class AssociationAuthContract
+    public partial class AssociationContract
     {
         public override MethodFees GetMethodFee(StringValue input)
         {

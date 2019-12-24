@@ -32,8 +32,8 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
-        <ContractCode Include="..\..\protobuf\association_auth_contract.proto">
-            <Link>Protobuf\Proto\association_auth_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

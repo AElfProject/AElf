@@ -2,9 +2,9 @@ using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Acs1;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
-    public partial class AssociationAuthState : ContractState
+    public partial class AssociationState : ContractState
     {
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }

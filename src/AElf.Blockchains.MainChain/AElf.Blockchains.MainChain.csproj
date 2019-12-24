@@ -5,6 +5,9 @@
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+        </ProjectReference>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
@@ -70,11 +73,6 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs3.proto">
@@ -128,7 +126,7 @@
         <ContractStub Include="..\..\protobuf\referendum_auth_contract.proto">
             <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\association_auth_contract.proto">
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>

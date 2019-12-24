@@ -11,7 +11,7 @@ using Shouldly;
 using Xunit;
 using ApproveInput = Acs3.ApproveInput;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
     public class AssociationAuthTests : AssociationAuthContractTestBase
     {

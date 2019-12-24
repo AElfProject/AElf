@@ -44,20 +44,13 @@ service ParliamentAuthContract {
 }
 
 message CreateOrganizationInput {
-    ProposalReleaseThreshold proposal_release_threshold = 1;
-}
-
-message ProposalReleaseThreshold {
-    sint32 minimal_approval_threshold = 1;
-    sint32 maximal_rejection_threshold = 2;
-    sint32 maximal_abstention_threshold = 3;
-    sint32 minimal_vote_threshold = 4;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
 }
 
 message Organization {
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
-    ProposalReleaseThreshold proposal_release_threshold = 4;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
 }
 
 message CreateProposalBySystemContractInput {

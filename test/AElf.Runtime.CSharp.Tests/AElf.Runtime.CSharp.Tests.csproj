@@ -15,7 +15,7 @@
         <PackageReference Include="Mono.Cecil" Version="0.11.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />

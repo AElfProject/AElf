@@ -128,19 +128,6 @@ message ChainInitializationData {
     string side_chain_token_symbol = 7;
 }
 
-enum ResourceType
-{
-    UNDEFINED_RESOURCE_TYPE = 0;
-    RAM = 1;
-    CPU = 2;
-    NET = 3;
-}
-
-message ResourceTypeBalancePair {
-    ResourceType type = 1;
-    uint64 amount = 2;
-}
-
 message SideChainInfo {
     SideChainCreationRequest side_chain_creation_request = 1;
     aelf.Address proposer = 2;

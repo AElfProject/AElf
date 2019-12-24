@@ -7,6 +7,9 @@
         <NoWarn>1701;1702;0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+        </ProjectReference>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
     </ItemGroup>
@@ -38,7 +41,7 @@
         <ContractStub Include="..\..\protobuf\referendum_auth_contract.proto">
             <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\association_auth_contract.proto">
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
@@ -69,11 +72,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

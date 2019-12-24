@@ -5,6 +5,9 @@
         <ServerGarbageCollection>true</ServerGarbageCollection>
     </PropertyGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+        </ProjectReference>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
         <ProjectReference Include="..\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj" />
         <None Update="Dockerfile">
@@ -93,11 +96,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

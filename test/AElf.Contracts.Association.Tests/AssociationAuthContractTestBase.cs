@@ -12,7 +12,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
     public class AssociationAuthContractTestBase : ContractTestBase<AssociationAuthContractTestAElfModule>
     {
@@ -45,7 +45,7 @@ namespace AElf.Contracts.AssociationAuth
                     new ContractDeploymentInput()
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location))
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationContract).Assembly.Location))
                     })).Output;
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             

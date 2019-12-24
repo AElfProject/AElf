@@ -50,7 +50,7 @@ namespace AElf.Runtime.CSharp.Tests
         private readonly ContractAuditorFixture _auditorFixture;
         private readonly string _contractDllDir = "../../../contracts/";
         private readonly Type[] _contracts = {
-            typeof(AssociationAuthContract),
+            typeof(AssociationContract),
             typeof(ConfigurationContract),
             typeof(AEDPoSContract),
             typeof(CrossChainContract),

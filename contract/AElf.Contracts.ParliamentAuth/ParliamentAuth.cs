@@ -221,6 +221,16 @@ namespace AElf.Contracts.ParliamentAuth
             return new Empty();
         }
 
+        public override Empty ChangeOrganizationThreshold(ChangeOrganizationThresholdInput input)
+        {
+            Assert(Context.Sender == input.OrganizationAddress, "No permission");
+            var organization = State.Organisations[input.OrganizationAddress];
+            Assert(organization != null, "Organization not found.");
+            organization.ProposalReleaseThreshold = input.ProposalReleaseThreshold;
+            State.Organisations[input.OrganizationAddress] = organization;
+            return new Empty();
+        }
+
         public override Empty ApproveMultiProposals(ProposalIdList input)
         {
             AssertCurrentMiner();

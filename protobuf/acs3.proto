@@ -24,6 +24,8 @@ service AuthorizationContract {
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
+    rpc ChangeOrganizationThreshold(ChangeOrganizationThresholdInput)returns(google.protobuf.Empty) {
+    }
 }
 
 message CreateProposalInput {
@@ -43,4 +45,16 @@ message ProposalOutput {
     aelf.Address organization_address = 6;
     aelf.Address proposer = 7;
     bool to_be_released = 8;
+}
+
+message ProposalReleaseThreshold {
+    sint32 minimal_approval_threshold = 1;
+    sint32 maximal_rejection_threshold = 2;
+    sint32 maximal_abstention_threshold = 3;
+    sint32 minimal_vote_threshold = 4;
+}
+
+message ChangeOrganizationThresholdInput{
+    aelf.Address organization_address = 1;
+    ProposalReleaseThreshold proposal_release_threshold = 2;
 }

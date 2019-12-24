@@ -172,7 +172,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth", "contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Association", "contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth", "contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
 EndProject
@@ -200,7 +200,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote.Tests", "test\AElf.Contracts.Vote.Tests\AElf.Contracts.Vote.Tests.csproj", "{165D8639-ED9E-4056-BAA2-5AB53491EF25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth.Tests", "test\AElf.Contracts.AssociationAuth.Tests\AElf.Contracts.AssociationAuth.Tests.csproj", "{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Association.Tests", "test\AElf.Contracts.Association.Tests\AElf.Contracts.Association.Tests.csproj", "{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark.PerformanceTestContract", "bench\AElf.Benchmark.PerformanceTestContract\AElf.Benchmark.PerformanceTestContract.csproj", "{288C1125-6D4E-4663-B6AE-34E86386E452}"
 EndProject

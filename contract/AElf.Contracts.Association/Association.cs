@@ -4,9 +4,9 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
-    public partial class AssociationAuthContract : AssociationAuthContractContainer.AssociationAuthContractBase
+    public partial class AssociationContract : AssociationContractContainer.AssociationContractBase
     {
         #region View
 
@@ -49,11 +49,11 @@ namespace AElf.Contracts.AssociationAuth
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             var organization = new Organization
             {
-                ReleaseThreshold = input.ReleaseThreshold,
+                ProposalReleaseThreshold = input.ProposalReleaseThreshold,
                 OrganizationAddress = organizationAddress,
-                ProposerThreshold = input.ProposerThreshold,
-                OrganizationHash = organizationHash,
-                Reviewers = {input.Reviewers}
+                ProposerWhiteList = input.ProposerWhiteList,
+                OrganizationMemberList = input.OrganizationMemberList,
+                OrganizationHash = organizationHash
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organisations[organizationAddress] == null)
@@ -70,7 +70,7 @@ namespace AElf.Contracts.AssociationAuth
             // check authorization of proposer public key
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
-            AssertSenderIsAuthorizedProposer(organization);
+            AssertIsAuthorizedProposer(organization, Context.Sender);
             Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
             var proposal = new ProposalInfo
             {
@@ -90,19 +90,16 @@ namespace AElf.Contracts.AssociationAuth
             return hash;
         }
 
-        public override BoolValue Approve(ApproveInput input)
+        public override Empty Approve(Hash input)
         {
-            var proposal = GetValidProposal(input.ProposalId);
-            AssertProposalNotYetApprovedBySender(proposal);
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal, Context.Sender);
             var organization = GetOrganization(proposal.OrganizationAddress);
-            var reviewer = GetReviewerObjectForSender(organization);
+            AssertIsAuthorizedOrganizationMember(organization, Context.Sender);
 
-            proposal.ApprovedReviewer.Add(Context.Sender);
-            proposal.ApprovedWeight += reviewer.Weight;
-
-            State.Proposals[input.ProposalId] = proposal;
-
-            return new BoolValue {Value = true};
+            proposal.Approvals.Add(Context.Sender);
+            State.Proposals[input] = proposal;
+            return new Empty();
         }
 
         public override Empty Release(Hash proposalId)

@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.AssociationAuth
+namespace AElf.Contracts.Association
 {
     [DependsOn(typeof(ContractTestModule))]
     public class AssociationAuthContractTestAElfModule : ContractTestModule
