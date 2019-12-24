@@ -19,8 +19,6 @@ jobs:
     inputs:
       command: restore
       projects: 'AElf.sln'
-      feedsToUse: config
-      nugetConfigPath: .nuget/pipeline/NuGet.config
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
