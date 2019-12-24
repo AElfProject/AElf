@@ -10,9 +10,9 @@ namespace AElf.Contracts.Configuration
             var result = new ResourceTokenAmount();
             foreach (var symbol in amount1.Value.Keys.Union(amount2.Value.Keys))
             {
-                var amountInBill1 = amount1.Value.ContainsKey(symbol) ? amount1.Value[symbol] : 0;
-                var amountInBill2 = amount2.Value.ContainsKey(symbol) ? amount2.Value[symbol] : 0;
-                result.Value.Add(symbol, amountInBill1.Add(amountInBill2));
+                var symbolAmount1 = amount1.Value.ContainsKey(symbol) ? amount1.Value[symbol] : 0;
+                var symbolAmount2 = amount2.Value.ContainsKey(symbol) ? amount2.Value[symbol] : 0;
+                result.Value.Add(symbol, symbolAmount1.Add(symbolAmount2));
             }
 
             return result;
@@ -23,9 +23,9 @@ namespace AElf.Contracts.Configuration
             var result = new ResourceTokenAmount();
             foreach (var symbol in amount1.Value.Keys.Union(amount2.Value.Keys))
             {
-                var amountInBill1 = amount1.Value.ContainsKey(symbol) ? amount1.Value[symbol] : 0;
-                var amountInBill2 = amount2.Value.ContainsKey(symbol) ? amount2.Value[symbol] : 0;
-                result.Value.Add(symbol, amountInBill1.Sub(amountInBill2));
+                var symbolAmount1 = amount1.Value.ContainsKey(symbol) ? amount1.Value[symbol] : 0;
+                var symbolAmount2 = amount2.Value.ContainsKey(symbol) ? amount2.Value[symbol] : 0;
+                result.Value.Add(symbol, symbolAmount1.Sub(symbolAmount2));
             }
 
             return result;

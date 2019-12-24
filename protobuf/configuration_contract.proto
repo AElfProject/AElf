@@ -34,10 +34,10 @@ service Configuration {
     rpc GetRentedResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
-    rpc GetRemainResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
+    rpc GetRemainResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
-    rpc GetTotalResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
+    rpc GetTotalResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
 }

@@ -82,7 +82,10 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("Economic:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
-                    .GetConfiguration().GetValue("Economic:ResourceTokenSymbolList", "RAM,STO,CPU,NET");
+                    .GetConfiguration()
+                    .GetValue("Economic:PayTransactionFeeResourceTokenSymbolList", "WRITE,READ,STO,NET");
+                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
+                    .GetConfiguration().GetValue("Economic:PayRentedSideChainResourceTokenSymbolList", "CPU,RAM,DISK");
             });
 
             Configure<ContractOptions>(configuration.GetSection("Contract"));
