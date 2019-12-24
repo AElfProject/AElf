@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
@@ -24,6 +25,7 @@ namespace AElf.CSharp.CodeOps
         public void Audit(byte[] code, bool priority)
         {
             var findings = new List<ValidationResult>();
+            var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var policy = priority ? _priviligePolicy : _defaultPolicy;
 
@@ -35,6 +37,9 @@ namespace AElf.CSharp.CodeOps
 
                 // Run module validators
                 findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
+                
+                // Run assembly validators (run after module validators since we invoke BindService method below)
+                findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
 
                 // Run method validators
                 foreach (var typ in modDef.Types)

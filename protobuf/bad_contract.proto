@@ -26,6 +26,10 @@ service BadContract {
     rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 }
 
 message DoubleInput {

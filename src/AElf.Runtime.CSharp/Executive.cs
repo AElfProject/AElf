@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -16,14 +17,12 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
-using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
         private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -37,28 +36,10 @@ namespace AElf.Runtime.CSharp
         
         public Timestamp LastUsedTime { get; set; }
 
-        private Type FindContractType(Assembly assembly)
-        {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
-        }
-
-        private Type FindContractBaseType(Assembly assembly)
-        {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
-        }
-
-        private Type FindContractContainer(Assembly assembly)
-        {
-            var contractBase = FindContractBaseType(assembly);
-            return contractBase.DeclaringType;
-        }
-
         private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
         {
-            var methodInfo = FindContractContainer(assembly).GetMethod("BindService",
-                new[] {FindContractBaseType(assembly)});
+            var methodInfo = assembly.FindContractContainer().GetMethod("BindService",
+                new[] {assembly.FindContractBaseType()});
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
@@ -66,9 +47,8 @@ namespace AElf.Runtime.CSharp
         {
             _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
-            _contractType = FindContractType(assembly);
-            _contractInstance = Activator.CreateInstance(_contractType);
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
+            _contractInstance = Activator.CreateInstance(assembly.FindContractType());
+            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();
@@ -149,6 +129,7 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
+                CurrentTransactionContext.Trace.ExecutionUsage = _smartContractProxy.GetUsage();
                 Cleanup();
             }
 
@@ -204,6 +185,7 @@ namespace AElf.Runtime.CSharp
             {
                 var tx = CurrentTransactionContext.Transaction;
                 var retVal = handler.Execute(tx.Params.ToByteArray());
+                _smartContractProxy.SetExecutionObserver(new ExecutionObserver(CurrentTransactionContext.ExecutionUsageThreshold));
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);

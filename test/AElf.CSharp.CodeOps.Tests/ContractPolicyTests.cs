@@ -12,7 +12,7 @@ using Mono.Cecil;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.CSharp.CodeOps
 {
     public class FirstPolicy : AbstractPolicy
     {
@@ -72,7 +72,7 @@ namespace AElf.Runtime.CSharp
         }
     }
 
-    public class ContractPolicyTests : CSharpRuntimeTestBase
+    public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
         private ContractAuditor _auditor;
         private readonly string _contractDllDir = "../../../contracts/";
@@ -82,7 +82,7 @@ namespace AElf.Runtime.CSharp
         public ContractPolicyTests()
         {
             _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched");
+            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
         }
 
         [Fact]

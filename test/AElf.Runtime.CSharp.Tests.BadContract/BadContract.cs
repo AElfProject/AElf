@@ -1,9 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Math;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
 {
@@ -94,6 +92,22 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return new Empty();
         }
 
+        public override Empty TestInfiniteLoop(Empty input)
+        {
+            var list = new List<int>();
+            while (true)
+            {
+                list.Add(int.MaxValue); // Just add any value to exhaust memory
+            }
+            return new Empty();
+        }
+
+        public override Empty TestInfiniteLoopInSeparateClass(Empty input)
+        {
+            SeparateClass.UseInfiniteLoopInSeparateClass();
+            return new Empty();
+        }
+
         private class NestedClass
         {
             public static DateTime UseDeniedMemberInNestedClass()
@@ -108,6 +122,15 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public static DateTime UseDeniedMemberInSeparateClass()
         {
             return DateTime.Now;
+        }
+
+        public static void UseInfiniteLoopInSeparateClass()
+        {
+            var list = new List<int>();
+            while (true)
+            {
+                list.Add(int.MaxValue);
+            }
         }
     }
 }
