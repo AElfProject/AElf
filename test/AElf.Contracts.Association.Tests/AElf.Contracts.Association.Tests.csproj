@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>AElf.Contract.Association</RootNamespace>
+        <RootNamespace>AElf.Contracts.Association</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
@@ -18,8 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj" />
-      <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
@@ -40,4 +38,6 @@
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractStub>
     </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>

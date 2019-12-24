@@ -1,4 +1,4 @@
-using System.IO;
+using System.Linq;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -14,7 +14,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Association
 {
-    public class AssociationAuthContractTestBase : ContractTestBase<AssociationAuthContractTestAElfModule>
+    public class AssociationContractTestBase : ContractTestBase<AssociationContractTestAElfModule>
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -29,37 +29,39 @@ namespace AElf.Contracts.Association
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
-        protected Address AssociationAuthContractAddress { get; set; }
+        protected Address AssociationContractAddress { get; set; }
         
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal AssociationAuthContractContainer.AssociationAuthContractStub AssociationAuthContractStub { get; set; }
+        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; set; }
+
+        private byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
+        private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
 
         protected void DeployContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
-            //deploy AssociationAuth contract
-            AssociationAuthContractAddress = AsyncHelper.RunSync(() =>
+            //deploy Association contract
+            AssociationContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySmartContract.SendAsync(
                     new ContractDeploymentInput()
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationContract).Assembly.Location))
+                        Code = ByteString.CopyFrom(AssociationContractCode)
                     })).Output;
-            AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
+            AssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
             
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
+                        Code = ByteString.CopyFrom(TokenContractCode),
                         Name = TokenSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -72,9 +74,9 @@ namespace AElf.Contracts.Association
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
         
-        internal AssociationAuthContractContainer.AssociationAuthContractStub GetAssociationAuthContractTester(ECKeyPair keyPair)
+        internal AssociationContractContainer.AssociationContractStub GetAssociationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<AssociationAuthContractContainer.AssociationAuthContractStub>(AssociationAuthContractAddress, keyPair);
+            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, keyPair);
         }
         
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
@@ -82,7 +84,7 @@ namespace AElf.Contracts.Association
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
+            tokenContractCallList.Add(nameof(TokenContractStub.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
@@ -92,7 +94,7 @@ namespace AElf.Contracts.Association
                 Issuer = DefaultSender
             });
             //issue default user
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            tokenContractCallList.Add(nameof(TokenContractStub.Issue), new IssueInput
             {
                 Symbol = symbol,
                 Amount = totalSupply - 20 * 100_000L,

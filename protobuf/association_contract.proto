@@ -52,7 +52,7 @@ message ProposalInfo {
 }
 
 message OrganizationMemberList{
-    repeated aelf.Address organization_members = 1;
+    repeated aelf.Address organization_members = 2;
 }
 
 message ProposerWhiteList{

@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Types;
 
 namespace AElf.Contracts.Association
@@ -6,33 +7,68 @@ namespace AElf.Contracts.Association
     {
         private void AssertIsAuthorizedProposer(Organization organization, Address proposer)
         {
-            Assert(organization.ProposerWhiteList.Proposers.Contains(proposer), "Unauthorized to propose.");
+            Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
         
         private void AssertIsAuthorizedOrganizationMember(Organization organization, Address member)
         {
-            Assert(organization.OrganizationMemberList.OrganizationMembers.Contains(member),
+            Assert(organization.OrganizationMemberList.Contains(member),
                 "Unauthorized member.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
         {
-            return true;
+            var isRejected = IsProposalRejected(proposal, organization);
+            if (isRejected)
+                return false;
+
+            var isAbstained = IsProposalAbstained(proposal, organization);
+            return !isAbstained && CheckEnoughVoteAndApprovals(proposal, organization);
+        }
+        
+        private bool IsProposalRejected(ProposalInfo proposal, Organization organization)
+        {
+            var rejectionMemberCount =
+                proposal.Rejections.Count(organization.OrganizationMemberList.Contains);
+            return rejectionMemberCount > organization.ProposalReleaseThreshold.MaximalRejectionThreshold;
+        }
+
+        private bool IsProposalAbstained(ProposalInfo proposal, Organization organization)
+        {
+            var abstentionMemberCount = proposal.Abstentions.Count(organization.OrganizationMemberList.Contains);
+            return abstentionMemberCount > organization.ProposalReleaseThreshold.MaximalAbstentionThreshold;
+        }
+
+        private bool CheckEnoughVoteAndApprovals(ProposalInfo proposal, Organization organization)
+        {
+            var approvedMemberCount = proposal.Approvals.Count(organization.OrganizationMemberList.Contains);
+            var isApprovalEnough =
+                approvedMemberCount >= organization.ProposalReleaseThreshold.MinimalApprovalThreshold;
+            if (!isApprovalEnough)
+                return false;
+
+            var isVoteThresholdReached =
+                proposal.Abstentions.Concat(proposal.Approvals).Concat(proposal.Rejections).Count() >=
+                organization.ProposalReleaseThreshold.MinimalVoteThreshold;
+            return isVoteThresholdReached;
         }
 
         private bool Validate(Organization organization)
         {
+            if (organization.ProposerWhiteList.Empty() || organization.OrganizationMemberList.Empty())
+                return false;
+            
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
-
-            return proposalReleaseThreshold.MinimalVoteThreshold <= AbstractVoteTotal &&
+            var organizationMemberCount = organization.OrganizationMemberList.Count();
+            return proposalReleaseThreshold.MinimalVoteThreshold <= organizationMemberCount &&
                    proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
                    proposalReleaseThreshold.MinimalApprovalThreshold > 0 &&
                    proposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
                    proposalReleaseThreshold.MaximalRejectionThreshold >= 0 &&
                    proposalReleaseThreshold.MaximalAbstentionThreshold +
-                   proposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal &&
+                   proposalReleaseThreshold.MinimalApprovalThreshold <= organizationMemberCount &&
                    proposalReleaseThreshold.MaximalRejectionThreshold +
-                   proposalReleaseThreshold.MinimalApprovalThreshold <= AbstractVoteTotal;
+                   proposalReleaseThreshold.MinimalApprovalThreshold <= organizationMemberCount;
         }
 
         private bool Validate(ProposalInfo proposal)

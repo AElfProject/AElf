@@ -102,6 +102,30 @@ namespace AElf.Contracts.Association
             return new Empty();
         }
 
+        public override Empty Reject(Hash input)
+        {
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal, Context.Sender);
+            var organization = GetOrganization(proposal.OrganizationAddress);
+            AssertIsAuthorizedOrganizationMember(organization, Context.Sender);
+
+            proposal.Rejections.Add(Context.Sender);
+            State.Proposals[input] = proposal;
+            return new Empty();
+        }
+
+        public override Empty Abstain(Hash input)
+        {
+            var proposal = GetValidProposal(input);
+            AssertProposalNotYetVotedBySender(proposal, Context.Sender);
+            var organization = GetOrganization(proposal.OrganizationAddress);
+            AssertIsAuthorizedOrganizationMember(organization, Context.Sender);
+
+            proposal.Abstentions.Add(Context.Sender);
+            State.Proposals[input] = proposal;
+            return new Empty();
+        }
+
         public override Empty Release(Hash proposalId)
         {
             var proposalInfo = State.Proposals[proposalId];
@@ -115,6 +139,33 @@ namespace AElf.Contracts.Association
             Context.Fire(new ProposalReleased {ProposalId = proposalId});
             State.Proposals.Remove(proposalId);
             
+            return new Empty();
+        }
+
+        public override Empty ChangeOrganizationThreshold(ProposalReleaseThreshold input)
+        {
+            var organization = State.Organisations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.ProposalReleaseThreshold = input;
+            State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+
+        public override Empty ChangeOrganizationMember(OrganizationMemberList input)
+        {
+            var organization = State.Organisations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.OrganizationMemberList = input;
+            State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+
+        public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
+        {
+            var organization = State.Organisations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.ProposerWhiteList = input;
+            State.Organisations[Context.Sender] = organization;
             return new Empty();
         }
 

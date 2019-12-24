@@ -45,7 +45,7 @@ namespace AElf.Contracts.Parliament
             if (isAbstained)
                 return false;
 
-            return IsProposalAdoptable(proposal, organization, parliamentMembers);
+            return CheckEnoughVoteAndApprovals(proposal, organization, parliamentMembers);
         }
 
         private bool IsProposalStillPending(ProposalInfo proposal, Organization organization,
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Parliament
             if (isAbstained)
                 return false;
 
-            return !IsProposalAdoptable(proposal, organization, parliamentMembers);
+            return !CheckEnoughVoteAndApprovals(proposal, organization, parliamentMembers);
         }
 
         private bool IsProposalRejected(ProposalInfo proposal, Organization organization,
@@ -78,23 +78,18 @@ namespace AElf.Contracts.Parliament
                    organization.ProposalReleaseThreshold.MaximalAbstentionThreshold * parliamentMembers.Count;
         }
 
-        private bool IsProposalAdoptable(ProposalInfo proposal, Organization organization,
+        private bool CheckEnoughVoteAndApprovals(ProposalInfo proposal, Organization organization,
             ICollection<Address> parliamentMembers)
         {
-            var isApprovalEnough = CheckEnoughApprovals(proposal, organization, parliamentMembers);
+            var approvedMemberCount = proposal.Approvals.Count(parliamentMembers.Contains);
+            var isApprovalEnough = approvedMemberCount * AbstractVoteTotal >=
+                                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold *
+                                   parliamentMembers.Count;
             if (!isApprovalEnough)
                 return false;
 
             var isVoteThresholdReached = IsVoteThresholdReached(proposal, organization, parliamentMembers);
             return isVoteThresholdReached;
-        }
-
-        private bool CheckEnoughApprovals(ProposalInfo proposal, Organization organization,
-            ICollection<Address> parliamentMembers)
-        {
-            var approvedMemberCount = proposal.Approvals.Count(parliamentMembers.Contains);
-            return approvedMemberCount * AbstractVoteTotal >=
-                   organization.ProposalReleaseThreshold.MinimalApprovalThreshold * parliamentMembers.Count;
         }
 
         private bool IsVoteThresholdReached(ProposalInfo proposal, Organization organization,
