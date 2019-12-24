@@ -1,6 +1,6 @@
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public partial class ParliamentAuthContract
+    public partial class ParliamentContract
     {
         private const int AbstractDefaultOrganizationMinimalApprovalThreshold = 6666;
         private const int AbstractDefaultOrganizationMaximalAbstentionThreshold = 2000;

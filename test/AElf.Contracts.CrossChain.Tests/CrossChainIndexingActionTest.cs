@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.CSharp.Core.Utils;
 using AElf.Kernel;

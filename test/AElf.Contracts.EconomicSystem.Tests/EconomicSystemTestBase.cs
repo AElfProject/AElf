@@ -4,7 +4,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
@@ -58,7 +58,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
             GetParliamentAuthContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -121,10 +121,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
                 keyPair);
         }
 

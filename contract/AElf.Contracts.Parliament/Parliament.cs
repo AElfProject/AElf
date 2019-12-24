@@ -5,9 +5,9 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public partial class ParliamentAuthContract : ParliamentAuthContractContainer.ParliamentAuthContractBase
+    public partial class ParliamentContract : ParliamentContractContainer.ParliamentContractBase
     {
         #region View
 

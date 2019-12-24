@@ -25,8 +25,8 @@
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        <ContractReference Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 

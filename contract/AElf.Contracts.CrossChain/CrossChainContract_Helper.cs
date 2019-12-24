@@ -4,7 +4,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;

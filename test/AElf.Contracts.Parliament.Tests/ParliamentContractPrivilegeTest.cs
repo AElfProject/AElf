@@ -6,9 +6,9 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public class ParliamentAuthContractPrivilegeTest : ParliamentAuthContractPrivilegeTestBase
+    public class ParliamentAuthContractPrivilegeTest : ParliamentContractPrivilegeTestBase
     {
         [Fact]
         public async Task CreateProposal_WithPrivileged_Test()
@@ -20,7 +20,7 @@ namespace AElf.Contracts.ParliamentAuth
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Not authorized to propose.").ShouldBeTrue();
@@ -36,7 +36,7 @@ namespace AElf.Contracts.ParliamentAuth
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -50,7 +50,7 @@ namespace AElf.Contracts.ParliamentAuth
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -65,7 +65,7 @@ namespace AElf.Contracts.ParliamentAuth
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
         }
@@ -88,7 +88,7 @@ namespace AElf.Contracts.ParliamentAuth
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
+                    nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
                     createOrganizationInput);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -99,7 +99,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var result = (await Tester.ExecuteContractWithMiningAsync(
                 ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                 new Empty()));
             return Address.Parser.ParseFrom(result.ReturnValue);
         }

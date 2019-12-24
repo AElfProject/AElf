@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;

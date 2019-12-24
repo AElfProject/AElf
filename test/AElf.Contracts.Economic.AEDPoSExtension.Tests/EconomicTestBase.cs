@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -32,9 +32,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthStub =>
-            GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
-                ContractAddresses[ParliamentAuthSmartContractAddressNameProvider.Name],
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthStub =>
+            GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
         internal ElectionContractContainer.ElectionContractStub ElectionStub =>
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 TokenSmartContractAddressNameProvider.Name,
                 VoteSmartContractAddressNameProvider.Name,
                 ProfitSmartContractAddressNameProvider.Name,
-                ParliamentAuthSmartContractAddressNameProvider.Name,
+                ParliamentSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,

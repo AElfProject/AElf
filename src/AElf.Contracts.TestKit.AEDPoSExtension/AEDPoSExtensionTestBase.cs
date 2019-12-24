@@ -21,7 +21,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {VoteSmartContractAddressNameProvider.Name, "Vote"},
             {ProfitSmartContractAddressNameProvider.Name, "Profit"},
             {ElectionSmartContractAddressNameProvider.Name, "Election"},
-            {ParliamentAuthSmartContractAddressNameProvider.Name, "ParliamentAuth"},
+            {ParliamentSmartContractAddressNameProvider.Name, "Parliament"},
             {TokenSmartContractAddressNameProvider.Name, "MultiToken"},
             {TokenConverterSmartContractAddressNameProvider.Name, "TokenConverter"},
             {TreasurySmartContractAddressNameProvider.Name, "Treasury"},

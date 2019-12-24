@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Genesis
                     out _,
                     out BalanceOfStarter)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
-            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 
@@ -98,7 +98,7 @@ namespace AElf.Contracts.Genesis
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             SideParliamentAddress =
-                SideChainTester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+                SideChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
 
             SideChainMiner = SideChainTester.CreateNewContractTester(SideChainTester.InitialMinerList.First());
         }
@@ -108,14 +108,14 @@ namespace AElf.Contracts.Genesis
         {
             var tester0 = tester.CreateNewContractTester(Tester.InitialMinerList[0]);
             await tester0.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
                 {
                     ProposalId = proposalId
                 });
 
             var tester1 = tester.CreateNewContractTester(Tester.InitialMinerList[1]);
             var txResult2 = await tester1.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
                 {
                     ProposalId = proposalId
                 });
@@ -129,7 +129,7 @@ namespace AElf.Contracts.Genesis
             var basicContract = tester.GetZeroContractAddress();
             var organizationAddress = await GetGenesisAddressAsync(tester, parliamentContract);
             var proposal = await tester.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = methodName,
@@ -146,7 +146,7 @@ namespace AElf.Contracts.Genesis
             ContractTester<BasicContractZeroTestAElfModule> tester, Address parliamentContract, Hash proposalId)
         {
             var transactionResult = await tester.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
             return transactionResult;
         }
 
@@ -177,7 +177,7 @@ namespace AElf.Contracts.Genesis
         {
             var testerWithMiner = tester.CreateNewContractTester(ecKeyPair);
             return await testerWithMiner.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
                 {
                     ProposalId = proposalId
                 });
@@ -230,7 +230,7 @@ namespace AElf.Contracts.Genesis
             };
             var transactionResult =
                 await tester.ExecuteContractWithMiningAsync(parliamentContract,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
+                    nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
                     createOrganizationInput);
             return Address.Parser.ParseFrom(transactionResult.ReturnValue);
         }
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Genesis
         {
             var organizationAddress = Address.Parser.ParseFrom(await tester.CallContractMethodAsync(
                 parliamentContract,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                 new Empty()));
             return organizationAddress;
         }

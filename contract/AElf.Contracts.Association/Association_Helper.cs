@@ -17,7 +17,7 @@ namespace AElf.Contracts.Association
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
         {
-            return proposal.ApprovedWeight >= organization.ReleaseThreshold;
+            return true;
         }
 
         private bool Validate(Organization organization)

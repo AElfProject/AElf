@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;

@@ -1,6 +1,6 @@
 using Acs0;
 using Acs7;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.SideChain
@@ -12,10 +12,9 @@ namespace AElf.Blockchains.SideChain
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             parliamentInitializationCallList.Add(
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize),
-                new Contracts.ParliamentAuth.InitializeInput
+                nameof(ParliamentContractContainer.ParliamentContractStub.Initialize),
+                new Contracts.Parliament.InitializeInput
                 {
-                    GenesisOwnerReleaseThreshold = _contractOptions.GenesisOwnerReleaseThreshold,
                     PrivilegedProposer = chainInitializationData.Creator,
                     ProposerAuthorityRequired = chainInitializationData.ChainCreatorPrivilegePreserved
                 });

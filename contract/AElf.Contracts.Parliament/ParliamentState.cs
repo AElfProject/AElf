@@ -4,9 +4,9 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public class ParliamentAuthState : ContractState
+    public class ParliamentState : ContractState
     {
         public MappedState<Address, Organization> Organisations { get; set; }
 

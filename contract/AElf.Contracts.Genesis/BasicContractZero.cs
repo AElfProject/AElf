@@ -4,7 +4,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs3;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.Genesis

@@ -1,9 +1,9 @@
 using Acs1;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public partial class ParliamentAuthContract
+    public partial class ParliamentContract
     {
         public override MethodFees GetMethodFee(StringValue input)
         {

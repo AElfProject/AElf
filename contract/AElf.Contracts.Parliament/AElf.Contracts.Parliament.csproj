@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.ParliamentAuth</PackageId>
+        <PackageId>AElf.Contracts.Parliament</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
     </PropertyGroup>
@@ -32,8 +32,8 @@
         </ContractBase>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

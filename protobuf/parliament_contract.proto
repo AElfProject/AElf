@@ -3,11 +3,11 @@ syntax = "proto3";
 import "acs1.proto";
 import "acs3.proto";
 
-option csharp_namespace = "AElf.Contracts.ParliamentAuth";
+option csharp_namespace = "AElf.Contracts.Parliament";
 
-service ParliamentAuthContract {
+service ParliamentContract {
     
-    option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
+    option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
     option (aelf.base) = "acs3.proto";
     option (aelf.base) = "acs1.proto";
     

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
             var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
             parliamentTxs[0].MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+                .ShouldBe(nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals));
         }
 
         [Fact(Skip = "Skip due to need task delay.")]
@@ -262,7 +262,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
             var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
             parliamentTxs[0].MethodName
-                .ShouldBe(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals));
+                .ShouldBe(nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals));
         }
 
         [Fact]
@@ -333,7 +333,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
                     ReleaseThreshold = 1000

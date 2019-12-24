@@ -6,9 +6,9 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.ParliamentAuth
+namespace AElf.Contracts.Parliament
 {
-    public partial class ParliamentAuthContract
+    public partial class ParliamentContract
     {
         private List<Address> GetCurrentMinerList()
         {
@@ -118,7 +118,7 @@ namespace AElf.Contracts.ParliamentAuth
         private void AssertSenderIsParliamentMember()
         {
             var currentParliament = GetCurrentMinerList();
-            Assert(CheckSenderIsParliamentMember(currentParliament), "Not authorized approval.");
+            Assert(CheckSenderIsParliamentMember(currentParliament), "Unauthorized member.");
         }
 
         private bool CheckSenderIsParliamentMember(IEnumerable<Address> currentParliament)

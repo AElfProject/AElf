@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -27,7 +27,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
                     out _,
                     out _balanceOfStarter)));
-            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);
         }
@@ -56,11 +56,11 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var createProposalInput = SetBlockTransactionLimitRequest(amount);
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = "SetBlockTransactionLimit",
@@ -76,13 +76,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task ApproveWithMinersAsync(Hash proposalId)
         {
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), Tester.InitialMinerList[0],
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[0],
                 new Acs3.ApproveInput
                 {
                     ProposalId = proposalId
                 });
             var approveTransaction2 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), Tester.InitialMinerList[1],
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[1],
                 new Acs3.ApproveInput
                 {
                     ProposalId = proposalId
@@ -95,7 +95,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
             return transactionResult;
         }
         
@@ -104,11 +104,11 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var createProposalInput = address;
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = "ChangeOwnerAddress",

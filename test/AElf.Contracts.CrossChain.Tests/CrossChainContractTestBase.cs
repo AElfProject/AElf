@@ -6,7 +6,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.CrossChain;
@@ -30,7 +30,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses[TokenSmartContractAddressNameProvider.Name];
 
         protected Address ParliamentAuthContractAddress =>
-            ContractAddresses[ParliamentAuthSmartContractAddressNameProvider.Name];
+            ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
             ContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
@@ -63,13 +63,13 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #region Paliament
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
             GetParliamentAuthContractTester(DefaultKeyPair);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
                 keyPair);
         }
 
@@ -91,7 +91,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
                 TokenSmartContractAddressNameProvider.Name,
-                ParliamentAuthSmartContractAddressNameProvider.Name,
+                ParliamentSmartContractAddressNameProvider.Name,
                 CrossChainSmartContractAddressNameProvider.Name,
                 ConsensusSmartContractAddressNameProvider.Name
             }));
@@ -135,9 +135,8 @@ namespace AElf.Contracts.CrossChain.Tests
         private async Task InitializeParliamentContractAsync()
         {
             var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(
-                new ParliamentAuth.InitializeInput
+                new Parliament.InitializeInput
                 {
-                    GenesisOwnerReleaseThreshold = 1,
                     PrivilegedProposer = DefaultSender,
                     ProposerAuthorityRequired = false
                 });

@@ -7,7 +7,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
@@ -24,7 +24,7 @@ using Shouldly;
 using Virgil.Crypto;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.ApproveInput;
-using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Economic.TestBase
 {
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Economic.TestBase
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
             GetParliamentAuthContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -175,10 +175,10 @@ namespace AElf.Contracts.Economic.TestBase
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
                 keyPair);
         }
 

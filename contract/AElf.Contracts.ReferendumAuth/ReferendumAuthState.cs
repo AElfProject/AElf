@@ -1,6 +1,6 @@
 using Acs1;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -14,6 +14,6 @@ namespace AElf.Contracts.ReferendumAuth
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
     }
 }

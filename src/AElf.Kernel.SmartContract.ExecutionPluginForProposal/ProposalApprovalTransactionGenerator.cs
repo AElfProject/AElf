@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
@@ -37,7 +37,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
                 return generatedTransactions;
             
             var parliamentAuthContractAddress = _smartContractAddressService.GetAddressByContractName(
-                ParliamentAuthSmartContractAddressNameProvider.Name);
+                ParliamentSmartContractAddressNameProvider.Name);
 
             if (parliamentAuthContractAddress == null)
             {
@@ -51,7 +51,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             var generatedTransaction = new Transaction
             {
                 From = from,
-                MethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals),
+                MethodName = nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals),
                 To = parliamentAuthContractAddress,
                 RefBlockNumber = preBlockHeight,
                 RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
