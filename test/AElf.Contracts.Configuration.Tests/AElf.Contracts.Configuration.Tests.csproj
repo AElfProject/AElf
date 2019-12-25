@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Contracts.ConfigurationContract.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
         <NoWarn>0436</NoWarn>
@@ -39,6 +39,6 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
-    <Import Project="..\..\test\AllContracts.props" />
+    <Import Project="..\AllContracts.props" />
 
 </Project>

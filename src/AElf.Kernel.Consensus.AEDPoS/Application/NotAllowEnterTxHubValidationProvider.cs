@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application

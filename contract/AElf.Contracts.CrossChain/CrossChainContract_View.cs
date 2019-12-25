@@ -15,18 +15,18 @@ namespace AElf.Contracts.CrossChain
             var crossChainBlockData = new CrossChainBlockData();
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
             if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
+                crossChainBlockData.ParentChainBlockDataList.AddRange(indexedParentChainBlockData
+                    .ParentChainBlockDataList);
 
             var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
-            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
+            crossChainBlockData.SideChainBlockDataList.AddRange(indexedSideChainBlockData.SideChainBlockDataList);
             return crossChainBlockData;
         }
 
         public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(SInt64Value input)
         {
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
-            Assert(indexedSideChainBlockData != null, "Side chain block data should not be null.");
-            return indexedSideChainBlockData;
+            return indexedSideChainBlockData ?? new IndexedSideChainBlockData();
         }
 
         public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(SInt64Value input)
@@ -95,7 +95,6 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Side chain not found.");
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return new SInt64Value {Value = State.IndexingBalance[chainId]};
         }
 
@@ -178,9 +177,28 @@ namespace AElf.Contracts.CrossChain
             ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
             res.ExtraInformation.Add(resourceTokenInformation);
 
-            ByteString sideChainTokenInformation = GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenSymbol)
-                .ToByteString();
+            ByteString sideChainTokenInformation =
+                GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenSymbol)
+                    .ToByteString();
             res.ExtraInformation.Add(sideChainTokenInformation);
+            return res;
+        }
+
+        public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
+        {
+            var res = new GetPendingCrossChainIndexingProposalOutput();
+            var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
+                out var pendingCrossChainIndexingProposal);
+            Assert(exists, "Cross chain indexing with Pending status not found.");
+            SetContractStateRequired(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
+            res.Proposer = pendingCrossChainIndexingProposal.Proposer;
+            res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
+            var proposalInfo = State.ParliamentAuthContract.GetProposal
+                .Call(pendingCrossChainIndexingProposal.ProposalId);
+            res.ToBeReleased = proposalInfo.ToBeReleased;
+            res.ExpiredTime = proposalInfo.ExpiredTime;
+            res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
             return res;
         }
     }

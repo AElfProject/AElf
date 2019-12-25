@@ -1,6 +1,7 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -24,9 +25,12 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
-            services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
-            services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionSizeFeeUnitPriceUpdatedEventHandler>();
-
+            services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionFeeCalculatorCoefficientUpdatedEventHandle>();
+            services.AddSingleton<ICalculateStoCostStrategy, StoCalculateCostStrategy>();
+            services.AddSingleton<ICalculateCpuCostStrategy, CpuCalculateCostStrategy>();
+            services.AddSingleton<ICalculateNetCostStrategy, NetCalculateCostStrategy>();
+            services.AddSingleton<ICalculateRamCostStrategy, RamCalculateCostStrategy>();
+            services.AddSingleton<ICalculateTxCostStrategy, TxCalculateCostStrategy>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }

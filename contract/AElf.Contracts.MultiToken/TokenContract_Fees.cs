@@ -129,13 +129,15 @@ namespace AElf.Contracts.MultiToken
             return availableBalance >= txSizeFeeAmount;
         }
 
-        public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
+        public override ConsumedResourceTokens ChargeResourceToken(ChargeResourceTokenInput input)
         {
+            var consumedResourceTokens = new ConsumedResourceTokens();
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
-                return new Empty();
+                return consumedResourceTokens;
             }
+
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"CPU", input.CpuCost},
@@ -143,17 +145,53 @@ namespace AElf.Contracts.MultiToken
                 {"STO", input.StoCost},
                 {"RAM", input.RamCost}
             };
+
+            var bill = new TransactionFeeBill();
+
             foreach (var pair in symbolToAmount)
             {
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
-                Assert(existingBalance >= pair.Value,
-                    $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
-                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
-                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
+                if (existingBalance < pair.Value)
+                {
+                    bill.TokenToAmount.Add(pair.Key, existingBalance);
+                    var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
+                        .Add(pair.Value.Sub(existingBalance));
+                    State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
+
+                    consumedResourceTokens.IsFailedToCharge = true;
+                    consumedResourceTokens.Owning.Add(pair.Key, owningBalance);
+
+                    Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                }
+                else
+                {
+                    bill.TokenToAmount.Add(pair.Key, pair.Value);
+                }
             }
 
-            Context.LogDebug(() => "Finished executing ChargeResourceToken.");
+            foreach (var pair in bill.TokenToAmount)
+            {
+                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
+                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
+                consumedResourceTokens.Value.Add(pair.Key, pair.Value);
+            }
+
+            Context.LogDebug(() => $"Finished executing ChargeResourceToken.{consumedResourceTokens}");
+
+            return consumedResourceTokens;
+        }
+
+
+        public override Empty CheckResourceToken(Empty input)
+        {
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+            {
+                var balance = State.Balances[Context.Sender][symbol];
+                var owningBalance = State.OwningResourceToken[Context.Sender][symbol];
+                Assert(balance > owningBalance,
+                    $"Contract balance of {symbol} token is not enough. Owning {owningBalance}.");
+            }
 
             return new Empty();
         }
@@ -383,13 +421,16 @@ namespace AElf.Contracts.MultiToken
             if (totalAmount <= 0) return;
 
             var burnAmount = totalAmount.Div(10);
-            Context.SendInline(Context.Self, nameof(Burn), new BurnInput
-            {
-                Symbol = symbol,
-                Amount = burnAmount
-            });
+            if (burnAmount > 0)
+                Context.SendInline(Context.Self, nameof(Burn), new BurnInput
+                {
+                    Symbol = symbol,
+                    Amount = burnAmount
+                });
 
             var transferAmount = totalAmount.Sub(burnAmount);
+            if (transferAmount == 0)
+                return;
             if (State.TreasuryContract.Value != null)
             {
                 // Main chain would donate tx fees to dividend pool.
@@ -429,7 +470,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetTransactionSizeUnitPrice(SInt64Value input)
+        private void AssertIsAuthorized()
         {
             if (State.ZeroContract.Value == null)
             {
@@ -448,18 +489,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx size unit price.");
-
-            Context.Fire(new TransactionSizeFeeUnitPriceUpdated
-            {
-                UnitPrice = input.Value
-            });
-
-            Context.LogDebug(() => $"SetTransactionSizeUnitPrice: {input.Value}");
-
-            State.TransactionFeeUnitPrice.Value = input.Value;
-
-            return new Empty();
+                "No permission to set tx，cpu，sto，ram，net.");
         }
     }
 }

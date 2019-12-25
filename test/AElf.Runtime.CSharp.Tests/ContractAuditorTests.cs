@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Economic;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,6 +14,7 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
@@ -48,8 +51,10 @@ namespace AElf.Runtime.CSharp.Tests
         private readonly string _contractDllDir = "../../../contracts/";
         private readonly Type[] _contracts = {
             typeof(AssociationAuthContract),
+            typeof(ConfigurationContract),
             typeof(AEDPoSContract),
             typeof(CrossChainContract),
+            typeof(EconomicContract),
             typeof(ElectionContract),
             typeof(BasicContractZero),
             typeof(TokenContract),
@@ -57,6 +62,7 @@ namespace AElf.Runtime.CSharp.Tests
             typeof(ProfitContract),
             typeof(ReferendumAuthContract),
             typeof(TokenConverterContract),
+            typeof(TreasuryContract),
             typeof(TestContract.TestContract),
         };
 
@@ -74,8 +80,19 @@ namespace AElf.Runtime.CSharp.Tests
             // Load the DLL's from contracts folder to prevent codecov injection
             foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module.ToString()))
             {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
+                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath + ".patched")));
             }
+        }
+
+        [Fact]
+        public void ContractPatcher_Test()
+        {
+            const string contract = "AElf.Contracts.MultiToken.dll";
+            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var updateCode = ContractPatcher.Patch(code);
+            code.ShouldNotBe(updateCode);
+            var exception = Record.Exception(()=>_auditorFixture.Audit(updateCode));
+            exception.ShouldBeNull();
         }
 
         #endregion
@@ -86,7 +103,7 @@ namespace AElf.Runtime.CSharp.Tests
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module + ".patched")))
                 .Findings;
             
             // Random usage

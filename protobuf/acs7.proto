@@ -11,13 +11,23 @@ option (aelf.identity) = "acs7";
 
 service ACS7 {
     
-    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
+    rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
+    rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
+    }
+    rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
+    }
+    rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){
+    }
+    rpc CreateSideChain (CreateSideChainInput) returns (aelf.SInt32Value) {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
+    }
+    rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -98,8 +108,8 @@ message SideChainIndexingInformation {
 }
 
 message CrossChainBlockData {
-    repeated SideChainBlockData side_chain_block_data = 1;
-    repeated ParentChainBlockData parent_chain_block_data = 2;
+    repeated SideChainBlockData side_chain_block_data_list = 1;
+    repeated ParentChainBlockData parent_chain_block_data_list = 2;
     int64 previous_block_height = 3;
 }
 
@@ -168,9 +178,23 @@ message RequestChainCreationOutput {
 
 message IndexedParentChainBlockData{
     int64 local_chain_height = 1;
-    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
+    repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
 }
 
 message IndexedSideChainBlockData{
-    repeated acs7.SideChainBlockData side_chain_block_data = 1;
+    repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
+}
+
+message RecordCrossChainDataInput{
+    CrossChainBlockData proposed_cross_chain_data = 1;
+    aelf.Address proposer = 2;
+}
+
+message CreateSideChainInput{
+    SideChainCreationRequest side_chain_creation_request = 1;
+    aelf.Address proposer = 2;
+}
+
+message ReleaseSideChainCreationInput {
+    aelf.Hash proposalId = 1;
 }

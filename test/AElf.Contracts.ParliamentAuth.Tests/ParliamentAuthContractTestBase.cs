@@ -162,7 +162,7 @@ namespace AElf.Contracts.ParliamentAuth
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContract(
                     Tester.GetCallOwnerAddress(),
-                    mainChainId,out TotalSupply,Tester.GetCallOwnerAddress())));
+                    mainChainId,"STA",out TotalSupply,Tester.GetCallOwnerAddress())));
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.TransactionFees;
@@ -68,9 +69,10 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var calculator = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
+            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.CalculateFee(FeeType.Tx, transactionSize));   //according to the way to calculate
+            var txFee = await txCostStrategy.GetCostAsync(null, transactionSize);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + txFee);   //according to the way to calculate
 
            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
@@ -84,20 +86,21 @@ namespace AElf.Contract.TestContract
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
 
-        [Fact(Skip="Wait issue about execution order")]
+        [Fact]
         public async Task TransactionFee_Failed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);
             var feesBefore = await GetContractResourceBalance(TransactionFeesContractAddress);
 
-            var transactionResult = await TransactionFeesContractStub.FailCpuNetConsuming.SendAsync(new NetBytesInput
+            var transactionResult = await TransactionFeesContractStub.FailCpuNetConsuming.SendWithExceptionAsync(new NetBytesInput
             {
                 NetPackage = GenerateBytes(1024)
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee);
+            beforeBalance.ShouldBe(afterBalance +
+                                   transactionResult.TransactionResult.TransactionFee.Value.First().Value);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);
@@ -120,9 +123,10 @@ namespace AElf.Contract.TestContract
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var txTxSize = transactionResult.Transaction.Size();
-            var calculator = Application.ServiceProvider.GetRequiredService<ICalculateFeeService>();
+            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + calculator.CalculateFee(FeeType.Tx, txTxSize));
+            var sizeFee = await txCostStrategy.GetCostAsync(null, txTxSize);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + sizeFee);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);

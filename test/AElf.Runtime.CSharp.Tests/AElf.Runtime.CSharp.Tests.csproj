@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -16,8 +16,10 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
@@ -25,6 +27,7 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
         <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />

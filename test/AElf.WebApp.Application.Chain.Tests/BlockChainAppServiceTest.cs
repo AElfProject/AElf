@@ -1216,16 +1216,6 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task GetCurrentRoundInformation_Test()
-        {
-            var response = await GetResponseAsObjectAsync<RoundDto>("/api/blockChain/currentRoundInformation");
-            response.RoundNumber.ShouldBe(12);
-            response.TermNumber.ShouldBe(1);
-            response.RoundId.ShouldBeGreaterThan(0);
-            response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
-        }
-
-        [Fact]
         public async Task GetMerklePathByTransactionId_Success_Test()
         {
             var transactionList = new List<Transaction>();

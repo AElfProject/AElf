@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs3;
 using AElf.Types;
 using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ParliamentAuth
@@ -22,16 +24,15 @@ namespace AElf.Contracts.ParliamentAuth
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
-            // or sender is GenesisContract && origin is in proposer white list (for new contract deployment)
             // or sender is one of miners.
-            if (!State.ProposerAuthorityRequired.Value)
-                return;
-            
-            if (ValidateProposerAuthority(Context.Sender))
-                return;
 
-            Assert(Context.Sender == State.GenesisContract.Value && ValidateProposerAuthority(Context.Origin),
-                "Not authorized to propose.");
+            Assert(CheckProposerAuthorityIfNeeded(Context.Sender), "Not authorized to propose.");
+        }
+
+        private bool CheckProposerAuthorityIfNeeded(Address address)
+        {
+            var result = !State.ProposerAuthorityRequired.Value;
+            return !State.ProposerAuthorityRequired.Value || ValidateProposerAuthority(address);
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
@@ -63,7 +64,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return currentParliament.Any(r => r.Equals(Context.Sender));
         }
-        
+
         private const int MaxThreshold = 10000;
 
         private bool Validate(Organization organization)
@@ -95,12 +96,12 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyApproved(proposal), "Already approved.");
+            Assert(!CheckSenderAlreadyApproved(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyApproved(ProposalInfo proposal)
+        private bool CheckSenderAlreadyApproved(ProposalInfo proposal, Address address)
         {
-            return proposal.ApprovedRepresentatives.Contains(Context.Sender);
+            return proposal.ApprovedRepresentatives.Contains(address);
         }
 
         private bool ValidateProposerAuthority(Address address)
@@ -118,13 +119,34 @@ namespace AElf.Contracts.ParliamentAuth
             var currentMinerList = GetCurrentMinerList();
             return currentMinerList.Any(m => m == address);
         }
-        
+
         private void AssertCurrentMiner()
         {
             MaybeLoadConsensusContractAddress();
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
             Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
             Assert(isCurrentMiner, "No permission.");
+        }
+
+        private Hash CreateNewProposal(CreateProposalInput input)
+        {
+            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
+                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            var proposal = new ProposalInfo
+            {
+                ContractMethodName = input.ContractMethodName,
+                ExpiredTime = input.ExpiredTime,
+                Params = input.Params,
+                ToAddress = input.ToAddress,
+                OrganizationAddress = input.OrganizationAddress,
+                ProposalId = proposalId,
+                Proposer = Context.Sender
+            };
+            Assert(Validate(proposal), "Invalid proposal.");
+            Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
+            State.Proposals[proposalId] = proposal;
+            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+            return proposalId;
         }
     }
 }

@@ -30,10 +30,9 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractExecutiveProvider.PutExecutiveAsync(address, executive);
         }
 
-        public async Task<bool> CheckContractHash(IChainContext chainContext, Address address, Hash contractHash)
+        public void CleanIdleExecutive()
         {
-            var smartContractRegistration = await _smartContractExecutiveProvider.GetSmartContractRegistrationAsync(chainContext, address);
-            return smartContractRegistration.CodeHash == contractHash;
+            _smartContractExecutiveProvider.CleanIdleExecutive();
         }
     }
 }

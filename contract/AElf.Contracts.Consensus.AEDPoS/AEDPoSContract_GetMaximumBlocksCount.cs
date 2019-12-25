@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return flag == 0 ? num1.Div(num2) : num1.Div(num2).Add(1);
         }
 
-        internal class BlockchainMiningStatusEvaluator
+        private class BlockchainMiningStatusEvaluator
         {
             private const int AbnormalThresholdRoundsCount = 2;
 
@@ -127,7 +127,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        internal enum BlockchainMiningStatus
+        private enum BlockchainMiningStatus
         {
             Normal,
             Abnormal,

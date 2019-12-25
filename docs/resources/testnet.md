@@ -11,6 +11,8 @@ Summary of the steps to set up a node:
 
 Hardware suggestion: for the AElf testnet we use the following Amazon configuration: c5.large instance with 2 vCPUs, 4GiB RAM and a 200GiB hard drive for each node we run. We recommend using something similar per node that you want to run (one for the mainchain node and one per side chain node).
 
+**Note**: any server you use to run a node should be time synced via NTP. Failing to do this will prevent your node from syncing.
+
 ## Setup the database
 
 We currently support two key-value databases to store our nodes data: Redis and SSDB, but for the testnet we only provide snapshots for SSDB. We will configure two SSDB instances, one for chain database and one for the state database (run these on different machines for better performances).
@@ -162,6 +164,10 @@ Enter the configuration folder and run the node:
 >> cd /opt/aelf-node
 >> dotnet aelf-v0.8.2/AElf.Launcher.dll
 ```
+
+## Running a full node with the source
+
+The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF V0.8.2), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.0.100 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
 
 ## Check the node
 

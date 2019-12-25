@@ -4,11 +4,11 @@ jobs:
 - job: build_all_windows
   displayName: Build all tasks (Windows)
   pool:
-    vmImage: vs2017-win2016
+    vmImage: windows-2019
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.0.100'
+      version: '3.1.100'
   - script: choco install protoc --version 3.6.0 -y
   - script: choco install unzip
   - task: BatchScript@1
@@ -32,7 +32,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.0.100'
+      version: '3.1.100'
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - task: DotNetCoreCLI@2
@@ -53,7 +53,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.0.100' 
+      version: '3.1.100' 
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - task: DotNetCoreCLI@2

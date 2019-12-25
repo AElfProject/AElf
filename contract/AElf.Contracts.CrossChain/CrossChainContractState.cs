@@ -15,6 +15,12 @@ namespace AElf.Contracts.CrossChain
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         
+        public SingletonState<CrossChainIndexingProposal> CrossChainIndexingProposal { get; set; }
+        
+        public MappedState<Address, long> BannedMinerHeight { get; set; }
+        
+        public MappedState<Address, SideChainCreationRequest> ProposedSideChainCreationRequest { get; set; }
+        
         #region side chain
 
         public MappedState<int, SideChainInfo> SideChainInfo { get; set; }

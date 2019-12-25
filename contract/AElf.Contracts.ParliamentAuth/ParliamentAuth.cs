@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -71,7 +72,7 @@ namespace AElf.Contracts.ParliamentAuth
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
@@ -86,7 +87,7 @@ namespace AElf.Contracts.ParliamentAuth
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal)) 
+                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyApproved(proposal, Context.Sender)) 
                     continue;
                 var organization = State.Organisations[proposal.OrganizationAddress];
                 if (organization == null || IsReleaseThresholdReached(proposal, organization, currentParliament))
@@ -149,24 +150,21 @@ namespace AElf.Contracts.ParliamentAuth
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
             AssertAuthorizedProposer();
+            var proposalId = CreateNewProposal(input);
+            return proposalId;
+        }
 
-            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
-            var proposal = new ProposalInfo
-            {
-                ContractMethodName = input.ContractMethodName,
-                ExpiredTime = input.ExpiredTime,
-                Params = input.Params,
-                ToAddress = input.ToAddress,
-                OrganizationAddress = input.OrganizationAddress,
-                ProposalId = hash,
-                Proposer = Context.Sender
-            };
-            Assert(Validate(proposal), "Invalid proposal.");
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = hash});
-            
-            return hash;
+        public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
+        {
+            var organization = State.Organisations[input.ProposalInput.OrganizationAddress];
+            Assert(organization != null, "No registered organization.");
+            Assert(
+                Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
+                CheckProposerAuthorityIfNeeded(input.OriginProposer), "Not authorized to propose.");
+            var proposalId = CreateNewProposal(input.ProposalInput);
+            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
+            return proposalId;
         }
 
         public override BoolValue Approve(ApproveInput approvalInput)

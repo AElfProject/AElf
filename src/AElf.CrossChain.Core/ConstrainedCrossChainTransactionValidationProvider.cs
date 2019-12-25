@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using System.Linq;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -29,13 +25,9 @@ namespace AElf.CrossChain
 
         public bool ValidateTransaction(Transaction transaction, Hash blockHash)
         {
-            var constrainedTransaction = new Lazy<List<string>>(() =>
-                new List<string>
-                {
-                    nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData),
-                });
             if (transaction.To == _crossChainContractAddress &&
-                constrainedTransaction.Value.Contains(transaction.MethodName))
+                CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.Any(methodName =>
+                    methodName == transaction.MethodName))
             {
                 if (!_alreadyHas.ContainsKey(blockHash))
                 {

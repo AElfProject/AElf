@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    // ReSharper disable once InconsistentNaming
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
@@ -15,6 +15,8 @@ namespace AElf.Kernel.Consensus.Application
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
             _consensusService = consensusService;
+
+            Logger = NullLogger<ConsensusExtraDataProvider>.Instance;
         }
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
@@ -30,12 +32,10 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = blockHeader.Height - 1
             });
 
-            if (consensusInformation == null)
-            {
-                return ByteString.Empty;
-            }
+            if (consensusInformation == null) return ByteString.Empty;
 
             Logger.LogDebug($"Consensus extra data generated. Of size {consensusInformation.Length}");
+
             return ByteString.CopyFrom(consensusInformation);
         }
     }

@@ -21,6 +21,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Virgil.Crypto;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.ApproveInput;
 using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
@@ -514,14 +515,9 @@ namespace AElf.Contracts.Economic.TestBase
                 await SetConnector(new PairConnector
                 {
                     ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
-                    ResourceVirtualBalance = 100,
-                    IsPurchaseEnabled = true,
-                    IsResourceVirtualBalanceEnabled = true,
                     ResourceWeight = "0.05",
-                    NativeConnectorSymbol = "NTTFCC",
                     NativeWeight = "0.05",
                     NativeVirtualBalance = 1_000_000_00000000,
-                    IsNativeVirtualBalanceEnabled = true
                 });
             }
         }

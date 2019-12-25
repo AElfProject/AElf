@@ -9,7 +9,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public class FirstRoundCommandStrategy : CommandStrategyBase
+        /// <summary>
+        /// Why implement a strategy only for first round?
+        /// Because during the first round, the ExpectedMiningTimes of every miner
+        /// depends on the StartTimestamp configured before starting current blockchain,
+        /// (which AElf Main Chain use new Timestamp {Seconds = 0},)
+        /// thus we can't really give mining scheduler these data.
+        /// The ActualMiningTimes will based on Orders of these miners.
+        /// </summary>
+        private class FirstRoundCommandStrategy : CommandStrategyBase
         {
             private readonly AElfConsensusBehaviour _consensusBehaviour;
 
@@ -27,7 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         ? miningInterval
                         : Order.Add(MinersCount).Sub(1).Mul(miningInterval);
                 var arrangedMiningTime =
-                    MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime, offset);
+                    MiningTimeArrangingService.ArrangeMiningTimeWithOffset(CurrentBlockTime, offset);
                 return new ConsensusCommand
                 {
                     Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),

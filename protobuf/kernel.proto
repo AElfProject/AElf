@@ -63,6 +63,7 @@ message TransactionTrace {
     TransactionExecutingStateSet state_set = 13;
     string readable_return_value = 14;
     TransactionFee transaction_fee = 15;
+    ConsumedResourceTokens consumed_resource_tokens = 16;
 }
 
 message ExecutionReturnSet {
@@ -175,9 +176,4 @@ message TransactionBlockIndex {
     Hash block_hash = 1;
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
-}
-
-message ChainContractInfo{
-    int32 chain_id = 1;
-    map<string,int64> contract_infos= 2;
 }

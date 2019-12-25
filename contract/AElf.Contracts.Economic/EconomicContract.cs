@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -31,11 +32,9 @@ namespace AElf.Contracts.Economic
 
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
-            SetResourceTokenUnitPrice();
-            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
-
+            State.TokenContract.InitializeCoefficient.Send(new Empty());
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -60,28 +59,8 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
                 }
             });
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
-            {
-                State.TokenContract.Create.Send(new CreateInput
-                {
-                    Symbol = EconomicContractConstants.NativeTokenPrefix + symbol,
-                    TokenName = symbol + " Native Token",
-                    TotalSupply = long.MaxValue,
-                    Decimals = input.NativeTokenDecimals,
-                    IsBurnable = input.IsNativeTokenBurnable,
-                    Issuer = Context.Self,
-                    LockWhiteList =
-                    {
-                        Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
-                    }
-                });
-            }
         }
+
         private void CreateTokenConverterToken()
         {
             State.TokenContract.Create.Send(new CreateInput
@@ -120,7 +99,7 @@ namespace AElf.Contracts.Economic
                     },
                     IsBurnable = true
                 });
-                
+
                 State.TokenContract.Issue.Send(new IssueInput
                 {
                     Symbol = resourceTokenSymbol,
@@ -157,6 +136,7 @@ namespace AElf.Contracts.Economic
         /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
+            AssertValidMemo(input.Memo);
             if (State.ZeroContract.Value == null)
             {
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
@@ -178,29 +158,6 @@ namespace AElf.Contracts.Economic
             return new Empty();
         }
 
-        public override Empty IssueResourceToken(IssueResourceTokenInput input)
-        {
-            if (State.ZeroContract.Value == null)
-            {
-                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-            }
-            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
-            if (contractOwner != Context.Sender)
-            {
-                return new Empty();
-            }
-            var tokenConverter =
-                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                To = tokenConverter,
-                Memo = "Initialize for resource trade"
-            });
-            return new Empty();
-        }
-        
         /// <summary>
         /// Transfer all the tokens prepared for rewarding mining to consensus contract.
         /// </summary>
@@ -250,24 +207,6 @@ namespace AElf.Contracts.Economic
             });
         }
 
-        private void SetResourceTokenUnitPrice()
-        {
-            State.TokenContract.SetResourceTokenUnitPrice.Send(new SetResourceTokenUnitPriceInput
-            {
-                CpuUnitPrice = EconomicContractConstants.CpuUnitPrice,
-                StoUnitPrice = EconomicContractConstants.StoUnitPrice,
-                NetUnitPrice = EconomicContractConstants.NetUnitPrice,
-            });
-        }
-
-        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
-        {
-            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
-            {
-                Value = transactionSizeUnitPrice
-            });
-        }
-
         private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
@@ -309,12 +248,12 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",
                     VirtualBalance = EconomicContractConstants.ResourceTokenInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix.Append(resourceTokenSymbol),
                     IsDepositAccount = false
                 };
                 var nativeTokenConnector = new Connector
                 {
-                    Symbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    Symbol = EconomicContractConstants.NativeTokenPrefix.Append(resourceTokenSymbol),
                     IsPurchaseEnabled = true,
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.005",
@@ -325,6 +264,7 @@ namespace AElf.Contracts.Economic
                 connectors.Add(resourceTokenConnector);
                 connectors.Add(nativeTokenConnector);
             }
+
             State.TokenConverterContract.Initialize.Send(new InitializeInput
             {
                 FeeRate = EconomicContractConstants.TokenConverterFeeRate,
@@ -332,6 +272,11 @@ namespace AElf.Contracts.Economic
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
                 ManagerAddress = connectorManager
             });
+        }
+
+        private void AssertValidMemo(string memo)
+        {
+            Assert(Encoding.UTF8.GetByteCount(memo) <= EconomicContractConstants.MemoMaxLength, "Invalid memo size.");
         }
     }
 }

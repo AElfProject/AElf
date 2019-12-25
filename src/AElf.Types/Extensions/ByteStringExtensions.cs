@@ -29,5 +29,10 @@ namespace AElf
 
             return new string(c);
         }
+
+        public static bool IsNullOrEmpty(this ByteString byteString)
+        {
+            return byteString == null || byteString.IsEmpty;
+        }
     }
 }

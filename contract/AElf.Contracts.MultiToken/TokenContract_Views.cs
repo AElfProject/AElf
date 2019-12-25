@@ -95,17 +95,24 @@ namespace AElf.Contracts.MultiToken
 
         public override StringValue GetPrimaryTokenSymbol(Empty input)
         {
+            if (string.IsNullOrWhiteSpace(_primaryTokenSymbol))
+            {
+                _primaryTokenSymbol = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ??
+                                      string.Empty;
+            }
             return new StringValue
             {
-                Value = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ?? string.Empty
+                Value = _primaryTokenSymbol
             };
         }
-
-        public override SInt64Value GetTransactionSizeFeeUnitPrice(Empty input)
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
         {
-            return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
+            return State.CalculateCoefficientOfContract[(FeeTypeEnum)input.Value];
         }
-
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
+        {
+            return State.CalculateCoefficientOfSender.Value;
+        }
         #region ForTests
 
         /*

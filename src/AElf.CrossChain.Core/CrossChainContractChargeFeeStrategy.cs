@@ -1,4 +1,4 @@
-using AElf.Contracts.CrossChain;
+using System.Linq;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Types;
@@ -17,11 +17,12 @@ namespace AElf.CrossChain
         public Address ContractAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
-        public string MethodName => nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData);
+        public string MethodName => string.Empty;
 
         public bool IsFree(Transaction transaction)
         {
-            return true;
+            return CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.Any(methodName =>
+                methodName == transaction.MethodName);
         }
     }
 }

@@ -305,7 +305,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.TransactionFees", "test\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj", "{5A32215C-CE76-44B0-BD72-712CFD146852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs3", "src\AElf.Kernel.SmartContract.ExecutionPluginForAcs3\AElf.Kernel.SmartContract.ExecutionPluginForAcs3.csproj", "{F5940DE2-BF7E-4295-830E-D783BEB25497}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForProposal", "src\AElf.Kernel.SmartContract.ExecutionPluginForProposal\AElf.Kernel.SmartContract.ExecutionPluginForProposal.csproj", "{F5940DE2-BF7E-4295-830E-D783BEB25497}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps", "src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj", "{BD54B7A6-E0E0-4668-9D2B-30EB3F028386}"
 EndProject

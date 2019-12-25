@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -156,15 +155,9 @@ namespace AElf.Contracts.Election
 
             var victories = GetVictories(previousMiners);
 
-            if (victories.Contains(publicKey.ToByteString()))
-            {
-                candidateInformation.ContinualAppointmentCount =
-                    candidateInformation.ContinualAppointmentCount.Add(1);
-            }
-            else
-            {
-                candidateInformation.ContinualAppointmentCount = 0;
-            }
+            candidateInformation.ContinualAppointmentCount = victories.Contains(publicKey.ToByteString())
+                ? candidateInformation.ContinualAppointmentCount.Add(1)
+                : 0;
 
             State.CandidateInformationMap[publicKey] = candidateInformation;
         }

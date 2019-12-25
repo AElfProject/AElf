@@ -40,7 +40,7 @@ namespace AElf.Contracts.TestContract.BasicUpdate
         {
             Assert(input.Int64Value >= State.MinBet.Value && input.Int64Value <= State.MaxBet.Value,
                 $"Input balance not in boundary({State.MinBet.Value}, {State.MaxBet.Value}).");
-            Assert(input.Int64Value > State.WinerHistory[Context.Sender]);
+            //Assert(input.Int64Value > State.WinerHistory[Context.Sender]);
 
             var result = WinOrLose(input.Int64Value);
             State.LoserHistory[Context.Sender] += input.Int64Value;
@@ -82,12 +82,12 @@ namespace AElf.Contracts.TestContract.BasicUpdate
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);
             if (data < 0)
-                data = data * (-1);
+                data = data.Mul(-1);
 
             if (data % 100 == 1)
-                return betAmount * 1000;
+                return betAmount.Mul(1000);
             if (data % 50 == 5)
-                return betAmount * 50;
+                return betAmount.Mul(50);
             return 0;
         }
     }

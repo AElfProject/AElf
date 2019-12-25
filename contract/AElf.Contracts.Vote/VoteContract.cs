@@ -11,6 +11,11 @@ namespace AElf.Contracts.Vote
     /// </summary>
     public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
+        /// <summary>
+        /// To register a new voting item while filling up with details.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Register(VotingRegisterInput input)
         {
             var votingItemId = AssertValidNewVotingItem(input);
@@ -22,7 +27,6 @@ namespace AElf.Contracts.Vote
             }
 
             // Accepted currency is in white list means this token symbol supports voting.
-            //Length of symbol has been set and unnecessary to set length of AcceptedCurrency.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -81,7 +85,7 @@ namespace AElf.Contracts.Vote
                 Voter = input.Voter,
                 IsChangeTarget = input.IsChangeTarget
             };
-            //save the VotingRecords into the state.
+
             State.VotingRecords[input.VoteId] = votingRecord;
 
             UpdateVotingResult(votingItem, input.Option, input.Amount);
@@ -95,8 +99,7 @@ namespace AElf.Contracts.Vote
                     Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     LockId = input.VoteId,
-                    Amount = input.Amount,
-                    Usage = $"Voting for {input.VotingItemId}"
+                    Amount = input.Amount
                 });
             }
 
@@ -206,8 +209,7 @@ namespace AElf.Contracts.Vote
                     Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     Amount = votingRecord.Amount,
-                    LockId = input.VoteId,
-                    Usage = $"Withdraw votes for {votingRecord.VotingItemId}"
+                    LockId = input.VoteId
                 });
             }
 
@@ -369,9 +371,9 @@ namespace AElf.Contracts.Vote
             }
             else
             {
-                //Voter just is the transaction sponsor
+                // Voter = Transaction Sender
                 input.Voter = Context.Sender;
-                //VoteId just is the transaction ID;
+                // VoteId = Transaction Id;
                 input.VoteId = Context.TransactionId;
             }
 
