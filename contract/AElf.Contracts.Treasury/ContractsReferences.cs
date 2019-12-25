@@ -15,6 +15,6 @@ namespace AElf.Contracts.Treasury
         internal AEDPoSContractContainer.AEDPoSContractReferenceState AEDPoSContract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

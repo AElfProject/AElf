@@ -129,7 +129,7 @@ namespace AElf.Contracts.Association
         public override Empty Release(Hash input)
         {
             var proposalInfo = GetValidProposal(input);
-            Assert(Context.Sender == proposalInfo.Proposer, "No permission");
+            Assert(Context.Sender == proposalInfo.Proposer, "No permission.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,

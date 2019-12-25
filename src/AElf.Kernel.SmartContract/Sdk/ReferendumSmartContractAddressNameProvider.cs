@@ -5,7 +5,7 @@ namespace AElf.Kernel
 {
     public class ReferendumSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.ContractNames.ReferendumAuth");
+        public static readonly Hash Name = Hash.FromString("AElf.ContractNames.Referendum");
         public Hash ContractName => Name;
     }
 }

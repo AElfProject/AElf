@@ -6,6 +6,6 @@ namespace AElf.Contracts.Vote
     public partial class VoteContractState
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

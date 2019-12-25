@@ -25,7 +25,7 @@ namespace AElf.Contracts.Profit
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         
-        protected Address ParliamentAuthAddress{ get; set; }
+        protected Address ParliamentContractAddress{ get; set; }
         
         internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Profit
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
             
             //deploy parliament auth contract
-            ParliamentAuthAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
+            ParliamentContractAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Profit
         
         internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthAddress, keyPair);
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()

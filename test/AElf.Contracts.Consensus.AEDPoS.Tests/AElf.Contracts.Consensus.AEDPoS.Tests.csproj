@@ -18,77 +18,7 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
-    
     <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
-          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj">
-          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
-        </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
-        <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.TransactionFeeCharging\AElf.Contracts.TestContract.TransactionFeeCharging.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.MethodCallThreshold\AElf.Contracts.TestContract.MethodCallThreshold.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
@@ -155,4 +85,5 @@
         </ContractStub>
     </ItemGroup>
     
+    <Import Project="..\AllContracts.props"/>
 </Project>

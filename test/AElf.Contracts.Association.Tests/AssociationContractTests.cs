@@ -465,7 +465,7 @@ namespace AElf.Contracts.Association
                 var result = await AssociationContractStub.Release.SendWithExceptionAsync(fakeId);
                 //Proposal not found
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+                result.TransactionResult.Error.Contains("Invalid proposal id.").ShouldBeTrue();
             }
 
             var minimalApproveThreshold = 2;
@@ -492,7 +492,7 @@ namespace AElf.Contracts.Association
                 var associationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
                 var result = await associationContractStub.Release.SendWithExceptionAsync(proposalId);
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
+                result.TransactionResult.Error.ShouldContain("No permission.");
             }
         }
 
@@ -564,7 +564,7 @@ namespace AElf.Contracts.Association
                 var associationContractStub2 = GetAssociationContractTester(Reviewer2KeyPair);
                 var transactionResult2 = await associationContractStub2.Release.SendWithExceptionAsync(proposalId);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.ShouldContain("Proposal not found.");
+                transactionResult2.TransactionResult.Error.ShouldContain("Invalid proposal id.");
             }
         }
 

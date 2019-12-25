@@ -16,7 +16,7 @@ namespace AElf.Contracts.Economic
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
         internal MappedState<string, MethodFees> TransactionFees { get; set; }
     }

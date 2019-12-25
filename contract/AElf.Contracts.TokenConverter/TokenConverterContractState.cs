@@ -16,7 +16,7 @@ namespace AElf.Contracts.TokenConverter
         public MappedState<string, Connector> Connectors { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
         public SingletonState<Address> FeeReceiverAddress { get; set; }
         public SingletonState<Address> ManagerAddress { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }

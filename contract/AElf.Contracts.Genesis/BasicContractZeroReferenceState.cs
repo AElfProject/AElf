@@ -4,6 +4,6 @@ namespace AElf.Contracts.Genesis
 {
     public partial class BasicContractZeroState
     {
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

@@ -47,7 +47,7 @@ namespace AElf.Contracts.CrossChain
             var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
-                State.ParliamentAuthContract.Release.Send(input.ProposalId);
+                State.ParliamentContract.Release.Send(input.ProposalId);
             return new Empty();
         }
 

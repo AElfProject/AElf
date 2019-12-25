@@ -58,8 +58,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
-            GetParliamentAuthContractTester(BootMinerKeyPair);
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub => GetTransactionFeeChargingContractTester(BootMinerKeyPair);
@@ -121,10 +121,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                 keyPair);
         }
 

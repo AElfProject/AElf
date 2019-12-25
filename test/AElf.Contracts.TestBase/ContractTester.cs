@@ -35,7 +35,7 @@ using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenContractStub;
-using ParliamentAuthContract = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
+using ParliamentContractStub = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
@@ -70,7 +70,7 @@ namespace AElf.Contracts.TestBase
         public byte[] CrossChainContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
 
-        public byte[] ParliamentAuthContractCode =>
+        public byte[] ParliamentContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Parliament")).Value;
 
         public byte[] ConfigurationContractCode =>
@@ -710,7 +710,7 @@ namespace AElf.Contracts.TestBase
                     IsPrivilegePreserved = true
                 });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize),
+            parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize),
                 new Parliament.InitializeInput());
 
             return list =>
@@ -719,7 +719,7 @@ namespace AElf.Contracts.TestBase
                     tokenContractCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode,
+                list.AddGenesisSmartContract(ParliamentContractCode,
                     ParliamentSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,
@@ -777,7 +777,7 @@ namespace AElf.Contracts.TestBase
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new Parliament.InitializeInput
+            parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new Parliament.InitializeInput
             {
                 PrivilegedProposer = proposer,
                 ProposerAuthorityRequired = true
@@ -796,7 +796,7 @@ namespace AElf.Contracts.TestBase
                     tokenInitializationCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode,
+                list.AddGenesisSmartContract(ParliamentContractCode,
                     ParliamentSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };

@@ -214,9 +214,9 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.Owner.Value != null)
                 return State.Owner.Value;
-            SetContractStateRequired(State.ParliamentAuthContract,
+            SetContractStateRequired(State.ParliamentContract,
                 SmartContractConstants.ParliamentContractSystemName);
-            Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            Address organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;
@@ -230,9 +230,9 @@ namespace AElf.Contracts.CrossChain
 
         private void AssertAddressIsParliamentContract(Address address)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
+            SetContractStateRequired(State.ParliamentContract,
                 SmartContractConstants.ParliamentContractSystemName);
-            Assert(State.ParliamentAuthContract.Value == address, "Unauthorized behavior.");
+            Assert(State.ParliamentContract.Value == address, "Unauthorized behavior.");
         }
 
         private void AssertAddressIsCurrentMiner(Address address)
@@ -284,9 +284,9 @@ namespace AElf.Contracts.CrossChain
 
         private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
+            SetContractStateRequired(State.ParliamentContract,
                 SmartContractConstants.ParliamentContractSystemName);
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput =
                     new CreateProposalInput
@@ -304,9 +304,9 @@ namespace AElf.Contracts.CrossChain
 
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
+            SetContractStateRequired(State.ParliamentContract,
                 SmartContractConstants.ParliamentContractSystemName);
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -339,9 +339,9 @@ namespace AElf.Contracts.CrossChain
 
         private ProposalOutput GetProposal(Hash proposalId)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
+            SetContractStateRequired(State.ParliamentContract,
                 SmartContractConstants.ParliamentContractSystemName);
-            var proposal = State.ParliamentAuthContract.GetProposal.Call(proposalId);
+            var proposal = State.ParliamentContract.GetProposal.Call(proposalId);
             return proposal;
         }
 
@@ -349,7 +349,7 @@ namespace AElf.Contracts.CrossChain
         {
             var proposal = GetProposal(proposalId);
             Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
-            State.ParliamentAuthContract.Release.Send(proposal.ProposalId); // release if ready
+            State.ParliamentContract.Release.Send(proposal.ProposalId); // release if ready
             SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
                 CrossChainIndexingProposalStatus.ToBeReleased);
         }

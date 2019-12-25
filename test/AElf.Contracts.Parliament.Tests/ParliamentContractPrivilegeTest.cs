@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Contracts.Parliament
 {
-    public class ParliamentAuthContractPrivilegeTest : ParliamentContractPrivilegeTestBase
+    public class ParliamentContractPrivilegeTest : ParliamentContractPrivilegeTestBase
     {
         [Fact]
         public async Task CreateProposal_WithPrivileged_Test()

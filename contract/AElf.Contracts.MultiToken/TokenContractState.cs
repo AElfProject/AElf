@@ -46,7 +46,7 @@ namespace AElf.Contracts.MultiToken
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract
         {
             get;
             set;

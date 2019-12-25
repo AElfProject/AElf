@@ -21,12 +21,12 @@ namespace AElf.Contracts.Vote
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
-        protected Address ParliamentAuthContractAddress { get; set; }
+        protected Address ParliamentContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
 
         protected const string TestTokenSymbol = "ELF";
 
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Vote
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
             
             //deploy parliament auth contract
-            ParliamentAuthContractAddress = AsyncHelper.RunSync(()=>
+            ParliamentContractAddress = AsyncHelper.RunSync(()=>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
@@ -68,7 +68,7 @@ namespace AElf.Contracts.Vote
                         Name = ParliamentSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateParliamentInitializationCallList()
                     })).Output;
-            ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
+            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -86,9 +86,9 @@ namespace AElf.Contracts.Vote
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
         }
         
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(ECKeyPair keyPair)
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress, keyPair);
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()

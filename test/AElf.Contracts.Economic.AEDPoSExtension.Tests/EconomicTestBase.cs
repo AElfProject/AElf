@@ -32,7 +32,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthStub =>
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
             GetTester<ParliamentContractContainer.ParliamentContractStub>(
                 ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
@@ -93,7 +93,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
-                ParliamentAuthStub.Initialize.GetTransaction(new InitializeInput()),
+                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,

@@ -27,11 +27,11 @@ namespace AElf.Contracts.Genesis
             AssertSenderAddressWith(State.GenesisOwner.Value);
         }
 
-        private void RequireParliamentAuthAddressSet()
+        private void RequireParliamentContractAddressSet()
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
+                State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
         }
@@ -71,19 +71,19 @@ namespace AElf.Contracts.Genesis
 
         private bool CheckAddressIsParliamentMember(Address address)
         {
-            RequireParliamentAuthAddressSet();
-            return State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(address).Value;
+            RequireParliamentContractAddressSet();
+            return State.ParliamentContract.ValidateAddressIsParliamentMember.Call(address).Value;
         }
 
         private bool CheckOrganizationExist(Address address)
         {
-            return State.ParliamentAuthContract.ValidateOrganizationExist.Call(address).Value;
+            return State.ParliamentContract.ValidateOrganizationExist.Call(address).Value;
         }
 
         private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
         {
-            RequireParliamentAuthAddressSet();
-            return State.ParliamentAuthContract.GetProposerWhiteListContext.Call(new Empty());
+            RequireParliamentContractAddressSet();
+            return State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
         }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)

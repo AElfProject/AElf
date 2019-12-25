@@ -4,6 +4,6 @@ namespace AElf.Contracts.Association
 {
     public partial class AssociationState
     {
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

@@ -103,7 +103,7 @@ namespace AElf.Contracts.Genesis
             SideChainMiner = SideChainTester.CreateNewContractTester(SideChainTester.InitialMinerList.First());
         }
 
-        protected async Task<TransactionResult> ApproveWithMinersAsync(
+        protected async Task ApproveWithMinersAsync(
             ContractTester<BasicContractZeroTestAElfModule> tester, Address parliamentContract, Hash proposalId)
         {
             var tester0 = tester.CreateNewContractTester(Tester.InitialMinerList[0]);
@@ -111,10 +111,12 @@ namespace AElf.Contracts.Genesis
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
 
             var tester1 = tester.CreateNewContractTester(Tester.InitialMinerList[1]);
-            var txResult2 = await tester1.ExecuteContractWithMiningAsync(parliamentContract,
+            await tester1.ExecuteContractWithMiningAsync(parliamentContract,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
 
-            return txResult2;
+            var tester2 = tester.CreateNewContractTester(Tester.InitialMinerList[2]);
+            await tester2.ExecuteContractWithMiningAsync(parliamentContract,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
         }
 
         protected async Task<Hash> CreateProposalAsync(ContractTester<BasicContractZeroTestAElfModule> tester,

@@ -81,9 +81,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var approveTransaction2 = await GenerateTransactionAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[1],
                 proposalId);
+            var approveTransaction3 = await GenerateTransactionAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[2],
+                proposalId);
 
             // Mine a block with given normal txs and system txs.
-            await Tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
+            await Tester.MineAsync(
+                new List<Transaction> {approveTransaction1, approveTransaction2, approveTransaction3});
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
@@ -92,7 +96,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
             return transactionResult;
         }
-        
+
         internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(Address address)
         {
             var createProposalInput = address;

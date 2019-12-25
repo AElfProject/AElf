@@ -4,6 +4,6 @@ namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationState
     {
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

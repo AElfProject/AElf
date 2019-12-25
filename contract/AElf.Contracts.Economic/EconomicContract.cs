@@ -209,9 +209,9 @@ namespace AElf.Contracts.Economic
 
         private Address InitialConnectorManager()
         {
-            State.ParliamentAuthContract.Value =
+            State.ParliamentContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            return State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()

@@ -234,7 +234,7 @@ namespace AElf.Contracts.Parliament
             State.ProposerWhiteList.Value = input;
             return new Empty();
         }
-        
+
         public override Empty ClearProposal(Hash input)
         {
             // anyone can clear proposal if it is expired

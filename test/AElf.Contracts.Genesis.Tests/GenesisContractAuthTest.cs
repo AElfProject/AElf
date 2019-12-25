@@ -324,8 +324,7 @@ namespace AElf.Contracts.Genesis
             var address = Tester.GetCallOwnerAddress();
             var methodName = "ChangeGenesisOwner";
             var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName, address);
-            var txResult1 = await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-            txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
             var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Failed);
         }
@@ -347,8 +346,7 @@ namespace AElf.Contracts.Genesis
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
             var methodName = "ChangeGenesisOwner";
             var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName, organizationAddress);
-            var txResult1 = await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-            txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
             var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 

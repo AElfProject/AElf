@@ -287,7 +287,10 @@ namespace AElf.Contracts.MultiToken
             var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
                 tester.InitialMinerList[2], proposalId);
-            await tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
+            var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                tester.InitialMinerList[0], proposalId);
+            await tester.MineAsync(new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId, Address parliamentAddress,

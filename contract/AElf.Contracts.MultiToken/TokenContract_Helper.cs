@@ -118,9 +118,9 @@ namespace AElf.Contracts.MultiToken
             var owner = State.Owner.Value;
             if (owner != null)
                 return owner;
-            var parliamentAuthContractAddress =
+            var parliamentContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            owner = Context.Call<Address>(parliamentAuthContractAddress,
+            owner = Context.Call<Address>(parliamentContractAddress,
                 nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
                 new Empty());
             State.Owner.Value = owner;

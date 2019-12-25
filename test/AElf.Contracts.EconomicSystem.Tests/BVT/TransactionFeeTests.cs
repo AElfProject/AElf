@@ -140,7 +140,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,
@@ -160,20 +160,19 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }.ToByteString(),
                 ToAddress = VoteContractAddress
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var proposalId = createResult.Output;
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(proposalId);
-            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await ApproveWithAllMinersAsync(proposalId);
 
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task Profit_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,
@@ -193,14 +192,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }.ToByteString(),
                 ToAddress = ProfitContractAddress
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = createResult.Output;
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(proposalHash);
-            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalId = createResult.Output;
+            await ApproveWithAllMinersAsync(proposalId);
 
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -228,6 +227,16 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 VotingItemId = votingItemId
             });
+        }
+
+        private async Task ApproveWithAllMinersAsync(Hash proposalId)
+        {
+            foreach (var keyPair in InitialCoreDataCenterKeyPairs)
+            {
+                var parliamentContractStub = GetParliamentContractTester(keyPair);
+                var approveResult = await parliamentContractStub.Approve.SendAsync(proposalId);
+                approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
     }
 }

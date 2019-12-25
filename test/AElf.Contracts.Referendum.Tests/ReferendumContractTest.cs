@@ -429,12 +429,15 @@ namespace AElf.Contracts.Referendum
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
-            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            var timeStamp = TimestampHelper.GetUtcNow();
+            var proposalId =
+                await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
         
-            ReferendumContractStub = GetReferendumContractTester(SampleECKeyPairs.KeyPairs[1]);
-            var reclaimResult = await ReferendumContractStub.ReclaimVoteToken.SendWithExceptionAsync(proposalId);
-            reclaimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            reclaimResult.TransactionResult.Error.Contains("Nothing to reclaim.").ShouldBeTrue();
+            var referendumContractStub = GetReferendumContractTester(SampleECKeyPairs.KeyPairs[1]);
+            BlockTimeProvider.SetBlockTime(timeStamp.AddDays(1)); // set next block time
+            
+            var reclaimResult = await referendumContractStub.ReclaimVoteToken.SendWithExceptionAsync(proposalId);
+            reclaimResult.TransactionResult.Error.ShouldContain("Nothing to reclaim.");
         }
         
         [Fact]
@@ -466,7 +469,7 @@ namespace AElf.Contracts.Referendum
             var result = await ReferendumContractStub.Release.SendWithExceptionAsync(proposalId);
             //Proposal not found
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+            result.TransactionResult.Error.ShouldContain("Invalid proposal id.");
         }
         
         [Fact]
@@ -484,10 +487,9 @@ namespace AElf.Contracts.Referendum
             await ApproveAllowanceAsync(keyPair, amount);
             await ApproveAsync(keyPair, proposalId);
         
-            ReferendumContractStub = GetReferendumContractTester(SampleECKeyPairs.KeyPairs[3]);
-            var result = await ReferendumContractStub.Release.SendWithExceptionAsync(proposalId);
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
+            var referendumContractStub = GetReferendumContractTester(SampleECKeyPairs.KeyPairs[3]);
+            var result = await referendumContractStub.Release.SendWithExceptionAsync(proposalId);
+            result.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
         
         [Fact]
@@ -561,7 +563,7 @@ namespace AElf.Contracts.Referendum
                 var anotherReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
                 var transactionResult2 =
                     await anotherReferendumContractStub.Release.SendWithExceptionAsync(proposalId);
-                transactionResult2.TransactionResult.Error.ShouldContain("Proposal not found.");
+                transactionResult2.TransactionResult.Error.ShouldContain("Invalid proposal id.");
             }
         }
 

@@ -36,10 +36,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             if (!_transactionPackingService.IsTransactionPackingEnabled())
                 return generatedTransactions;
             
-            var parliamentAuthContractAddress = _smartContractAddressService.GetAddressByContractName(
+            var parliamentContractAddress = _smartContractAddressService.GetAddressByContractName(
                 ParliamentSmartContractAddressNameProvider.Name);
 
-            if (parliamentAuthContractAddress == null)
+            if (parliamentContractAddress == null)
             {
                 return generatedTransactions;
             }
@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             {
                 From = from,
                 MethodName = nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals),
-                To = parliamentAuthContractAddress,
+                To = parliamentContractAddress,
                 RefBlockNumber = preBlockHeight,
                 RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
                 Params = new ProposalIdList

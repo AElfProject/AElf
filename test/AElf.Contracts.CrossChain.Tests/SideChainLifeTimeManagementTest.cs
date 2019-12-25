@@ -123,8 +123,8 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await InitializeCrossChainContractAsync();
             var organizationAddress =
-                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalCreation = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalCreation = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.CreateSideChain),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
@@ -148,7 +148,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var proposalId = ProposalCreated.Parser.ParseFrom(proposalCreation.TransactionResult.Logs
                 .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
             await ApproveWithMinersAsync(proposalId);
-            var proposalRelease = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
+            var proposalRelease = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             proposalRelease.TransactionResult.Error.ShouldContain("Side chain creation failed without proposed data.");
         }
         
@@ -189,7 +189,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await InitializeCrossChainContractAsync();
 
             var organization =
-                (await ParliamentAuthContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+                (await ParliamentContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
@@ -556,8 +556,8 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task ChangeOwnerAddress()
         {
             var organizationAddress =
-                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalRes = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "ChangOwnerAddress",
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),

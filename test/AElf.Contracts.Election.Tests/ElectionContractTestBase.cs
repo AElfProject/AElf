@@ -26,10 +26,10 @@ namespace AElf.Contracts.Election
             _ = ElectionContractAddress;
             _ = TreasuryContractAddress;
             _ = TransactionFeeChargingContractAddress;
-            _ = ParliamentAuthContractAddress;
+            _ = ParliamentContractAddress;
             _ = TokenConverterContractAddress;
             _ = ConsensusContractAddress;
-            _ = ReferendumAuthContractAddress;
+            _ = ReferendumContractAddress;
         }
 
         protected void InitializeContracts()
@@ -72,8 +72,8 @@ namespace AElf.Contracts.Election
         internal new TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal new ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
-            GetParliamentAuthContractTester(BootMinerKeyPair);
+        internal new ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(BootMinerKeyPair);
 
         internal new EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
@@ -120,10 +120,10 @@ namespace AElf.Contracts.Election
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
+        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                 keyPair);
         }
 

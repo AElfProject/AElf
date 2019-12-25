@@ -396,7 +396,7 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
             var result = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
+            result.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
 
         [Fact]
@@ -417,11 +417,6 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
             var result = await ParliamentContractStub.Release.SendAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            //After release,the proposal will be deleted
-            //var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-            //getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            //getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
 
             // Check inline transaction result
             var getBalance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -468,9 +463,10 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Change_GenesisContractOwner_Test()
         {
-            var callResult = await ParliamentContractStub.GetDefaultOrganizationAddress.CallWithExceptionAsync(new Empty());
+            var callResult =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallWithExceptionAsync(new Empty());
             callResult.Value.ShouldContain("Not initialized.");
-            
+
             var initializeParliament = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
             {
                 ProposerAuthorityRequired = false
@@ -478,7 +474,7 @@ namespace AElf.Contracts.Parliament
             initializeParliament.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var contractOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             contractOwner.ShouldNotBe(new Address());
-            
+
             //no permission
             var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendWithExceptionAsync(Tester);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -496,7 +492,7 @@ namespace AElf.Contracts.Parliament
                 maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             await TransferToOrganizationAddressAsync(organizationAddress);
-            
+
             //Get valid Proposal
             GetParliamentContractTester(InitialMinersKeyPairs.Last());
             var validProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
@@ -504,7 +500,7 @@ namespace AElf.Contracts.Parliament
                 ProposalIds = {proposalId}
             });
             validProposals.ProposalIds.Count.ShouldBe(1);
-            
+
             await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
             validProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
             {

@@ -477,9 +477,9 @@ namespace AElf.Contracts.MultiToken
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
+                State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
@@ -487,7 +487,7 @@ namespace AElf.Contracts.MultiToken
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，cpu，sto，ram，net.");
         }

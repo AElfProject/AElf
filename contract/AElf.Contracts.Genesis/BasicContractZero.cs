@@ -169,10 +169,10 @@ namespace AElf.Contracts.Genesis
                 Status = ContractProposingInputStatus.Proposed
             };
             
-            RequireParliamentAuthAddressSet();
+            RequireParliamentContractAddressSet();
             
             // Create proposal for deployment
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -214,8 +214,8 @@ namespace AElf.Contracts.Genesis
             RequireAuthorityByContractInfo(info);
 
             // Create proposal for deployment
-            RequireParliamentAuthAddressSet();
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            RequireParliamentContractAddressSet();
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -253,10 +253,10 @@ namespace AElf.Contracts.Genesis
             proposedInfo.Status = ContractProposingInputStatus.PreCodeChecked;
             State.ContractProposingInputMap[proposedContractInputHash] = proposedInfo;
             
-            RequireParliamentAuthAddressSet();
+            RequireParliamentContractAddressSet();
             
             // Create proposal for deployment
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -289,7 +289,7 @@ namespace AElf.Contracts.Genesis
                 contractProposingInput.Proposer == Context.Sender, "Invalid contract proposing status.");
             contractProposingInput.Status = ContractProposingInputStatus.Approved;
             State.ContractProposingInputMap[input.ProposedContractInputHash] = contractProposingInput;
-            State.ParliamentAuthContract.Release.Send(input.ProposalId);
+            State.ParliamentContract.Release.Send(input.ProposalId);
             return new Empty();
         }
         
@@ -301,7 +301,7 @@ namespace AElf.Contracts.Genesis
                 contractProposingInput.Proposer == Context.Sender, "Invalid contract proposing status.");
             contractProposingInput.Status = ContractProposingInputStatus.CodeChecked;
             State.ContractProposingInputMap[input.ProposedContractInputHash] = contractProposingInput;
-            State.ParliamentAuthContract.Release.Send(input.ProposalId);
+            State.ParliamentContract.Release.Send(input.ProposalId);
             return new Empty();
         }
 
@@ -377,7 +377,7 @@ namespace AElf.Contracts.Genesis
             else
             {
                 AssertSenderAddressWith(State.GenesisOwner.Value);
-                RequireParliamentAuthAddressSet();
+                RequireParliamentContractAddressSet();
                 var organizationExist = CheckOrganizationExist(newOwnerAddress);
                 Assert(organizationExist, "Invalid genesis owner address.");
                 State.GenesisOwner.Value = newOwnerAddress;

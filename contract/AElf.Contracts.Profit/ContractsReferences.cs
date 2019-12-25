@@ -6,6 +6,6 @@ namespace AElf.Contracts.Profit
     public partial class ProfitContractState
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

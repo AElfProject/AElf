@@ -29,7 +29,7 @@ namespace AElf.Contracts.CrossChain.Tests
         public Address TokenContractAddress =>
             ContractAddresses[TokenSmartContractAddressNameProvider.Name];
 
-        protected Address ParliamentAuthContractAddress =>
+        protected Address ParliamentContractAddress =>
             ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
@@ -63,13 +63,13 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #region Paliament
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentAuthContractStub =>
-            GetParliamentAuthContractTester(DefaultKeyPair);
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(DefaultKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                 keyPair);
         }
 
@@ -134,7 +134,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         private async Task InitializeParliamentContractAsync()
         {
-            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(
                 new Parliament.InitializeInput
                 {
                     PrivilegedProposer = DefaultSender,
@@ -196,7 +196,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 Symbol = "ELF",
                 Amount = amount
             };
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
@@ -237,7 +237,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateProposalAsync(string method, Address address, IMessage input)
         {
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ToAddress = CrossChainContractAddress,
                 ContractMethodName = method,
@@ -250,13 +250,13 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
-            var transaction = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
+            var transaction = await ParliamentContractStub.Release.SendAsync(proposalId);
             return transaction.TransactionResult;
         }
 
         protected async Task<TransactionResult> ReleaseProposalWithExceptionAsync(Hash proposalId)
         {
-            var transaction = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
+            var transaction = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             return transaction.TransactionResult;
         }
 
@@ -279,7 +279,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                var tester = GetParliamentAuthContractTester(bp);
+                var tester = GetParliamentContractTester(bp);
                 var approveResult = await tester.Approve.SendAsync(proposalId);
                 CheckResult(approveResult.TransactionResult);
             }
@@ -301,8 +301,8 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             var disposalInput = chainId;
             var organizationAddress =
-                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.DisposeSideChain),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),

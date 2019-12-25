@@ -788,10 +788,10 @@ namespace AElf.Contracts.CrossChain.Tests
                 ParentChainBlockDataList = {parentChainBlockData}
             };
             
-            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var organizationAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
 
             // create a normal proposal
-            var proposalTx = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposalTx = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.RecordCrossChainData),
                 OrganizationAddress = organizationAddress,
@@ -813,7 +813,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
 
             // release
-            var releaseTx = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
+            var releaseTx = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             releaseTx.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             releaseTx.TransactionResult.Error.ShouldContain("Incorrect cross chain indexing proposal status.");
         }
