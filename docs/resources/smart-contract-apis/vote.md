@@ -1,6 +1,6 @@
-# vote
+# Vote Contract
 
-The Vote contract is most essentially used for voting for Block Producers.
+The Vote contract is an abstract layer for voting. Developers  implement concrete voting activity by call this contract.
 
 ## **Voting for Block Producers**:
 
