@@ -116,7 +116,7 @@ namespace AElf.Contracts.Economic.TestBase
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContract =>
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
             GetParliamentContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -499,7 +499,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task InitializeParliamentContract()
         {
-            var initializeResult = await ParliamentContract.Initialize.SendAsync(new InitializeInput
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
             {
                 PrivilegedProposer = BootMinerAddress,
                 ProposerAuthorityRequired = true
@@ -522,7 +522,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
         {
-            var genesisOwner = await ParliamentContract.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = genesisOwner,
@@ -531,7 +531,7 @@ namespace AElf.Contracts.Economic.TestBase
                 Params = input.ToByteString(),
                 ToAddress = contract
             };
-            var createResult = await ParliamentContract.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
@@ -542,7 +542,7 @@ namespace AElf.Contracts.Economic.TestBase
                 CheckResult(approveResult.TransactionResult);
             }
 
-            var releaseResult = await ParliamentContract.Release.SendAsync(proposalHash);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
 
@@ -569,7 +569,7 @@ namespace AElf.Contracts.Economic.TestBase
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress
             };
-            var createResult = await ParliamentContract.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = createResult.Output;
@@ -580,7 +580,7 @@ namespace AElf.Contracts.Economic.TestBase
                 CheckResult(approveResult.TransactionResult);
             }
 
-            var releaseResult = await ParliamentContract.Release.SendAsync(proposalHash);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
 
