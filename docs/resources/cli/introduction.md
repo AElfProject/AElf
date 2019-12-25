@@ -1,5 +1,4 @@
-# Introduction to the CLI
-
+# Introduction
 
 The **aelf-command** tool is a CLI tools built for interacting with an AElf node. This section will walk you through some of the most commonly used features and show you how to install the tool.
 
@@ -48,24 +47,17 @@ Address             : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Confirm password … ********
 ✔
 Account info has been saved to "/Users/young/.local/share/aelf/keys/2Ue31YTuB5Szy7cnr...Gi5uMQBYarYUR5oGin1sys6H.json"
-
 ```
 
 * Load wallet from private key
-```bash
-$ aelf-command load e038eea7e151eb451ba2901f7...b08ba5b76d8f288
 
-Your wallet info is :
-Private Key         : e038eea7e151eb451ba2901f7...b08ba5b76d8f288
-Public Key          : 0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea
-Address             : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
-✔ Save account info into a file? … no / yes
-✔ Enter a password … ********
-✔ Confirm password … ********
-✔
-Account info has been saved to "/Users/young/.local/share/aelf/keys/2Ue31YTuB5Szy7cnr...Gi5uMQBYarYUR5oGin1sys6H.json"
-```
+  \`\`\`bash
 
+  $ aelf-command load e038eea7e151eb451ba2901f7...b08ba5b76d8f288
+
+Your wallet info is : Private Key : e038eea7e151eb451ba2901f7...b08ba5b76d8f288 Public Key : 0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea Address : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H ✔ Save account info into a file? … no / yes ✔ Enter a password … _**\*\***_ ✔ Confirm password … _**\*\***_ ✔ Account info has been saved to "/Users/young/.local/share/aelf/keys/2Ue31YTuB5Szy7cnr...Gi5uMQBYarYUR5oGin1sys6H.json"
+
+```text
 * show wallet info you already have
 ```bash
 $ aelf-command wallet -a 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
@@ -78,6 +70,7 @@ Address             : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 Here you can get the account info and decide whether to encrypt account info and save into a file.
 
 Examples:
+
 ```bash
 $ aelf-command console -a 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
@@ -99,6 +92,7 @@ Welcome to aelf interactive console. Ctrl + C to terminate the program. Double t
 ```
 
 Any missed parameters you did not give in CLI parameters will be asked in a prompting way
+
 ```bash
 $ aelf-command console
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
@@ -118,13 +112,12 @@ Welcome to aelf interactive console. Ctrl + C to terminate the program. Double t
    ║              | 5oGin1sys6H                                ║
    ║                                                           ║
    ╚═══════════════════════════════════════════════════════════╝
-
 ```
-
 
 ### Help
 
 Type
+
 ```bash
 $ aelf-command -h
 
@@ -152,14 +145,16 @@ Commands:
   proposal [organization] [expired-time]                   Send a proposal to an origination with a specific contract method
   deploy [category] [code-path]                            Deploy a smart contract
   config <flag> [key] [value]                              Get, set, delete or list aelf-command config
-
 ```
+
 in your terminal and get useful information.
 
 Any sub-commands such as `call`, you can get `help` by typing this
+
 ```bash
 $ aelf-command call -h
 $ aelf-command send -h
 $ aelf-command console -h
 ...
 ```
+

@@ -1,10 +1,10 @@
-# aelf-web-extension
+# Browser Extension
 
 You can get more information in [Github](https://github.com/AElfProject/aelf-web-extension)
 
 ## For User
 
-[release version, please waiting](#)
+[release version, please waiting](browser-extension.md)
 
 [dev version](https://chrome.google.com/webstore/detail/aelf-explorer-extension-d/mlmlhipeonlflbcclinpbmcjdnpnmkpf)
 
@@ -12,7 +12,7 @@ If you are using qq browser,etc, you can add the extention too.
 
 ### Notice
 
-```note
+```text
 Using File:/// protocol may can not use the extenstion
 // https://developer.chrome.com/extensions/match_patterns
 Note: Access to file URLs isn't automatic. The user must visit the extensions management page and opt in to file access for each extension that requests it.
@@ -22,27 +22,25 @@ Note: Access to file URLs isn't automatic. The user must visit the extensions ma
 
 ### Interaction Flow
 
-- 1.Make sure the user get the Extension
-- 2.Connect Chain
-- 3.Initialize Contract
-- 4.Call contract methods
+* 1.Make sure the user get the Extension
+* 2.Connect Chain
+* 3.Initialize Contract
+* 4.Call contract methods
 
 ### How to use
 
-If you need complete data structure. you can [click here](#dataformat)
+If you need complete data structure. you can [click here](browser-extension.md#dataformat)
 
-- [0. Check Extension Demo](#check-extension-demo)
-- [1. GET_CHAIN_STATUS](#get-chain-status)
-- [2. CALL_AELF_CHAIN](#call-aelf-chain)
-- [3. LOGIN](#login)
-- [4. INIT_AELF_CONTRACT](#init-aelf-contract)
-- [5. CALL_AELF_CONTRACT / CALL_AELF_CONTRACT_READONLY](#call-aelf-contract)
-- [6. CHECK_PERMISSION](#check-permission)
-- [7. SET_CONTRACT_PERMISSION](#set-contract-permission)
-- [8. REMOVE_CONTRACT_PERMISSION](#remove-contract-permission)
-- [9. REMOVE_METHODS_WHITELIST](#remove-methods-whitelist)
-
-<span id="dataformat"></span>
+* [0. Check Extension Demo](browser-extension.md#check-extension-demo)
+* [1. GET\_CHAIN\_STATUS](browser-extension.md#get-chain-status)
+* [2. CALL\_AELF\_CHAIN](browser-extension.md#call-aelf-chain)
+* [3. LOGIN](browser-extension.md#login)
+* [4. INIT\_AELF\_CONTRACT](browser-extension.md#init-aelf-contract)
+* [5. CALL\_AELF\_CONTRACT / CALL\_AELF\_CONTRACT\_READONLY](browser-extension.md#call-aelf-contract)
+* [6. CHECK\_PERMISSION](browser-extension.md#check-permission)
+* [7. SET\_CONTRACT\_PERMISSION](browser-extension.md#set-contract-permission)
+* [8. REMOVE\_CONTRACT\_PERMISSION](browser-extension.md#remove-contract-permission)
+* [9. REMOVE\_METHODS\_WHITELIST](browser-extension.md#remove-methods-whitelist)
 
 ## Data Format
 
@@ -82,11 +80,9 @@ If you need complete data structure. you can [click here](#dataformat)
     }
 ```
 
-<span id="check-extension-demo"></span>
-
 ### Demo of Checking the Extension
 
-```js
+```javascript
 let nightElfInstance = null;
 class NightElfCheck {
     constructor() {
@@ -123,18 +119,15 @@ nightElfCheck.check.then(message => {
 });
 ```
 
-<span id="get-chain-status"></span>
+### 1.GET\_CHAIN\_STATUS
 
-### 1.GET_CHAIN_STATUS
+You can see the demo [./devDemos/test.html](https://github.com/hzz780/aelf-web-extension/tree/1.0/devDemos). \[demo.js just a draft\]
 
-You can see the demo [./devDemos/test.html](https://github.com/hzz780/aelf-web-extension/tree/1.0/devDemos). [demo.js just a draft]
-
-If you want to check Token Transfer Demo.
-You can [click here](https://github.com/hzz780/aelf-web-extension/tree/master/demo/token)
+If you want to check Token Transfer Demo. You can [click here](https://github.com/hzz780/aelf-web-extension/tree/master/demo/token)
 
 The methods calls act the same as the methods call of the aelf-sdk.js
 
-Note: ``` '...' ``` stands for omitted data.
+Note: `'...'` stands for omitted data.
 
 ```javascript
 const aelf = new window.NightElf.AElf({
@@ -162,9 +155,7 @@ aelf.chain.getChainStatus((error, result) => {
 // }
 ```
 
-<span id="call-aelf-chain"></span>
-
-### 2.CALL_AELF_CHAIN
+### 2.CALL\_AELF\_CHAIN
 
 ```javascript
 const txid = 'c45edfcca86f4f528cd8e30634fa4ac53801aae05365cfefc3bfe9b652fe5768';
@@ -178,8 +169,6 @@ aelf.chain.getTxResult(txid, (err, result) => {
 //     TransactionId: "ff5bcd126f9b7f22bbfd0816324390776f10ccb3fe0690efc84c5fcf6bdd3fc6"
 // }
 ```
-
-<span id="login"></span>
 
 ### 3. LOGIN
 
@@ -233,9 +222,7 @@ aelf.login({
 // }
 ```
 
-<span id="init-aelf-contract"></span>
-
-### 4.INIT_AELF_CONTRACT
+### 4.INIT\_AELF\_CONTRACT
 
 ```javascript
 // In aelf-sdk.js wallet is the realy wallet.
@@ -265,9 +252,7 @@ aelf.chain.contractAtAsync(
 // }
 ```
 
-<span id="call-aelf-contract"></span>
-
-### 5.CALL_AELF_CONTRACT / CALL_AELF_CONTRACT_READONLY
+### 5.CALL\_AELF\_CONTRACT / CALL\_AELF\_CONTRACT\_READONLY
 
 ```javascript
 // tokenContract from the contractAsync
@@ -303,9 +288,7 @@ tokenContract.Approve(
 // }
 ```
 
-<span id="check-permission"></span>
-
-### 6.CHECK_PERMISSION
+### 6.CHECK\_PERMISSION
 
 ```javascript
 aelf.checkPermission({
@@ -342,9 +325,7 @@ aelf.checkPermission({
 // }
 ```
 
-<span id="set-contract-permission"></span>
-
-### 7.SET_CONTRACT_PERMISSION
+### 7.SET\_CONTRACT\_PERMISSION
 
 ```javascript
 aelf.setContractPermission({
@@ -387,12 +368,9 @@ aelf.setContractPermission({
 //         domain: 'Dapp domain'
 //     }]
 // }
-
 ```
 
-<span id="remove-contract-permission"></span>
-
-### 8.REMOVE_CONTRACT_PERMISSION
+### 8.REMOVE\_CONTRACT\_PERMISSION
 
 ```javascript
 aelf.removeContractPermission({
@@ -420,12 +398,9 @@ aelf.removeContractPermission({
 //         domain: 'Dapp domain'
 //     }]
 // }
-
 ```
 
-<span id="remove-methods-whitelist"></span>
-
-### 9.REMOVE_METHODS_WHITELIST
+### 9.REMOVE\_METHODS\_WHITELIST
 
 ```javascript
 aelf.removeMethodsWhitelist({
@@ -460,28 +435,29 @@ aelf.removeMethodsWhitelist({
 
 1. Download the code
 
-    ```bash
+   ```bash
     git clone https://github.com/hzz780/aelf-web-extension.git
-    ```
+   ```
 
 2. Install dependent
 
-    ```bash
+   ```bash
         npm install
-    ```
+   ```
 
 3. Run webpack
 
-    ```bash
+   ```bash
         webpack -w
-    ```
+   ```
 
 4. Add to the browser
 
-    ```bash
+   ```bash
         open development mode, add the webpack output app/public.
-    ```
+   ```
 
 ## Project Information
 
-We use [ECDH](https://github.com/indutny/elliptic) to use public key to  encryt data and private key to decrypt data.
+We use [ECDH](https://github.com/indutny/elliptic) to use public key to encryt data and private key to decrypt data.
+
