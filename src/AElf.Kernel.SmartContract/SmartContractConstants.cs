@@ -4,8 +4,8 @@ namespace AElf.Kernel.SmartContract
     {
         public const int TransactionExecutionTimePeriodLimitInMilliSeconds = 50;
         
-        public const int ExecutionCallThreshold = 5000;
+        public const int ExecutionCallThreshold = 30000;
         
-        public const int ExecutionBranchThreshold = 5000;
+        public const int ExecutionBranchThreshold = 30000;
     }
 }
