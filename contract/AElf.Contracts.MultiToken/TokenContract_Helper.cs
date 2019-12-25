@@ -6,6 +6,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using System.Text;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -33,7 +34,7 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertValidMemo(string memo)
         {
-            Assert(memo.Length <= 128, "memo's length is more than 128.");
+            Assert(Encoding.UTF8.GetByteCount(memo) <= TokenContractConstants.MemoMaxLength, "Invalid memo size.");
         }
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
