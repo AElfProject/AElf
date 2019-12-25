@@ -500,6 +500,18 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Empty UpdateRentedResourceToken(UpdateRentedResourceTokenInput input)
+        {
+            AssertIsAuthorized();
+            foreach (var pair in input.ResourceAmount)
+            {
+                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(pair.Value >= 0, "Invalid amount.");
+                State.ResourceAmount[pair.Key] = pair.Value;
+            }
+            return new Empty();
+        }
+
         public override Empty SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
