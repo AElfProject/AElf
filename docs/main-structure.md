@@ -47,8 +47,6 @@
 * [Web api reference](web-api-reference/reference.md)
 * [SDK reference](sdk/js.md)
     * [JS SDK](sdk/javascript/js-sdk.md)
-        * [AElf API](sdk/javascript/aelf.md)
-        * [AElf.wallet API](sdk/javascript/wallet.md)
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Multi Token Contract](resources/smart-contract-apis/multi-token.md)
