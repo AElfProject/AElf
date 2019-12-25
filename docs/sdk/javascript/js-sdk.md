@@ -9,13 +9,14 @@ If you need more information you can check out the repo : [aelf-sdk.js](https://
 
 You can also see a full examples in `./examples`;
 
-1. Create a new instance of AElf, connect to an AELF chain node
-```js
-import AElf from 'aelf-sdk';
+1. Create a new instance of AElf, connect to an AELF chain node.
 
-// create a new instance of AElf
-const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
-```
+  ```javascript
+  import AElf from 'aelf-sdk';
+
+  // create a new instance of AElf
+  const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
+  ```
 
 2. Create or load a wallet by `AElf.wallet`
 
@@ -47,7 +48,7 @@ let tokenContractAddress;
 
 4. Get a contract instance by contract address
 
-```js
+```javascript
 const wallet = AElf.wallet.createNewWallet();
 let tokenContract;
 // Use token contract for examples to demonstrate how to get a contract instance in different ways
@@ -106,7 +107,7 @@ A contract instance consists of several contract methods, and methods have two k
 
 6. Change node endpoint by using `aelf.setProvider`
 
-```js
+```javascript
 import AElf from 'aelf-sdk';
 
 const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
@@ -205,7 +206,7 @@ _Returns_
 `Number`
 
 _Example_
-```js
+```javascript
 aelf.chain.getBlockHeight()
   .then(res => {
     console.log(res);
@@ -247,7 +248,7 @@ _Returns_
     - `transactionId - String`
 
 _Example_
-```js
+```javascript
 aelf.chain.getBlock(blockHash, false)
   .then(res => {
     console.log(res);
@@ -289,7 +290,7 @@ _Returns_
     - `transactionId - String`
 
 _Example_
-```js
+```javascript
 aelf.chain.getBlockByHeight(12, false)
   .then(res => {
     console.log(res);
@@ -332,7 +333,7 @@ _Returns_
   - `Error - String`
 
 _Example_
-```js
+```javascript
 aelf.chain.getTxResult(transactionId)
   .then(res => {
     console.log(res);
@@ -358,7 +359,7 @@ _Returns_
   - the transaction result object
 
 _Example_
-```js
+```javascript
 aelf.chain.getTxResults(blockHash, 0, 2)
   .then(res => {
     console.log(res);
@@ -447,7 +448,7 @@ _Returns_
 - `address - String`: address
 
 _Example_
-```js
+```javascript
 import AElf from 'aelf-sdk';
 const wallet = AElf.wallet.createNewWallet();
 ```
@@ -463,7 +464,7 @@ _Returns_
 `Object`: Complete wallet object.
 
 _Example_
-```js
+```javascript
 const wallet = AElf.wallet.getWalletByMnemonic(mnemonic);
 ```
 
@@ -478,7 +479,7 @@ _Returns_
 `Object`: Complete wallet object, with empty mnemonic
 
 _Example_
-```js
+```javascript
 const wallet = AElf.wallet.getWalletByPrivateKey(privateKey);
 ```
 
@@ -495,7 +496,7 @@ _Returns_
 `Object`: The object with the following structure :
 
 _Example_
-```js
+```javascript
 const result = aelf.wallet.signTransaction(rawTxn, keyPair);
 ```
 
@@ -538,7 +539,7 @@ For more information, please see the code in `src/utils/proto.js`. It is simple 
 
 ### AElf.version
 
-```js
+```javascript
 import AElf from 'aelf-sdk';
 AElf.version // eg. 3.2.23
 ```
@@ -560,4 +561,3 @@ Read out [contributing guide](./.github/CONTRIBUTING.md)
 ## About Version
 
 https://semver.org/
-
