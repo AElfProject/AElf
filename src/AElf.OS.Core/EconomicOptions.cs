@@ -13,5 +13,8 @@ namespace AElf.OS
         public string SymbolListToPayTxFee { get; set; } = "WRITE,STO,READ,NET";
         public string SymbolListToPayRental { get; set; } = "CPU,RAM,DISK";
         public long TransactionSizeFeeUnitPrice { get; set; } = 1000;
+        public int Cpu { get; set; } = 0;
+        public int Ram { get; set; } = 0;
+        public int Disk { get; set; } = 0;
     }
 }

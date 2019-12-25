@@ -7,6 +7,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
+using AElf.OS;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -21,17 +22,20 @@ namespace AElf.Blockchains.SideChain
 
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
+        private readonly EconomicOptions _economicOptions;
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
         public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions,
             IOptionsSnapshot<ContractOptions> contractOptions,
+            IOptionsSnapshot<EconomicOptions> economicOptions,
             ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
             _consensusOptions = consensusOptions.Value;
             _contractOptions = contractOptions.Value;
+            _economicOptions = economicOptions.Value;
             _codes = ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>(_contractOptions
                 .GenesisContractDir);
         }

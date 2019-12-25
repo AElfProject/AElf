@@ -16,7 +16,7 @@ namespace AElf.Contracts.MultiToken
     {
         private async Task InitializeCoefficientAsync()
         {
-            var initResult = (await TokenContractStub.InitializeCoefficient.SendAsync(new Empty())).TransactionResult;
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new InitializeInput())).TransactionResult;
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 

@@ -6,10 +6,15 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        public override Empty InitializeCoefficient(Empty empty)
+        public override Empty Initialize(InitializeInput input)
         {
             AssertIsAuthorized();
             InitialParameters();
+            foreach (var pair in input.ResourceAmount)
+            {
+                State.ResourceAmount[pair.Key] = pair.Value;
+            }
+
             return new Empty();
         }
 

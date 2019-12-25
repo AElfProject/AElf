@@ -10,6 +10,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 {

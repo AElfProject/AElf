@@ -10,7 +10,7 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
-    rpc InitializeCoefficient (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
     }
@@ -371,6 +371,10 @@ message ValidateTokenInfoExistsInput{
     sint32 issue_chain_id = 7;
 }
 
+message InitializeInput {
+    map<string, sint32> resource_amount = 1;
+}
+
 // Events
 
 message Transferred {
@@ -415,8 +419,6 @@ message TransactionSizeFeeUnitPriceUpdated {
     option (aelf.is_event) = true;
     sint64 unit_price = 1;
 }
-
-
 
 message CalculateFeeCoefficientsOfType{
     repeated CalculateFeeCoefficient coefficients= 1;

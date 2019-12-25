@@ -3,6 +3,7 @@ using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
 using Google.Protobuf.WellKnownTypes;
+using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -43,8 +44,16 @@ namespace AElf.Blockchains.SideChain
                 To = chainPrimaryTokenInfo.Issuer
             });
 
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeCoefficient),
-                new Empty());
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
+                new InitializeInput
+                {
+                    ResourceAmount =
+                    {
+                        {nameof(_economicOptions.Cpu).ToUpper(), _economicOptions.Cpu},
+                        {nameof(_economicOptions.Ram).ToUpper(), _economicOptions.Ram},
+                        {nameof(_economicOptions.Disk).ToUpper(), _economicOptions.Disk},
+                    }
+                });
 
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
                 chainInitializationData.Creator);

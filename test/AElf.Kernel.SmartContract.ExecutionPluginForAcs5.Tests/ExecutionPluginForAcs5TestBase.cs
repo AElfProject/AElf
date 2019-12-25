@@ -7,6 +7,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Shouldly;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 {
