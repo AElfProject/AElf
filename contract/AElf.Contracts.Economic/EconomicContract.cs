@@ -83,7 +83,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -239,7 +239,7 @@ namespace AElf.Contracts.Economic
                     RelatedSymbol = Context.Variables.NativeSymbol
                 }
             };
-            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee)
             {
                 var resourceTokenConnector = new Connector
                 {

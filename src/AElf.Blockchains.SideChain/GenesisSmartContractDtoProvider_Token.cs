@@ -8,7 +8,8 @@ namespace AElf.Blockchains.SideChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(ChainInitializationData chainInitializationData)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(
+            ChainInitializationData chainInitializationData)
         {
             var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[1]);
             var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
@@ -32,18 +33,22 @@ namespace AElf.Blockchains.SideChain
                     ResourceTokenList = resourceTokenList,
                     ChainPrimaryToken = chainPrimaryTokenInfo
                 });
-            
+
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = chainPrimaryTokenInfo.Symbol,
-                Amount = chainPrimaryTokenInfo.TotalSupply / SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
+                Amount = chainPrimaryTokenInfo.TotalSupply /
+                         SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
                 Memo = "Initial issue",
                 To = chainPrimaryTokenInfo.Issuer
             });
-            
-            
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeCoefficient), new Empty());
-                
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeCoefficient),
+                new Empty());
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
+                chainInitializationData.Creator);
+
             return tokenInitializationCallList;
         }
     }

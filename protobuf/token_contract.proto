@@ -12,6 +12,8 @@ option csharp_namespace = "AElf.Contracts.MultiToken";
 service TokenContract {
     rpc InitializeCoefficient (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
+    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }

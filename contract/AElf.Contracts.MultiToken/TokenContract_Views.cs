@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Value =
                 {
-                    Context.Variables.ResourceTokenSymbolNameList.Select(symbol =>
+                    Context.Variables.SymbolListToPayTxFee.Select(symbol =>
                         State.TokenInfos[symbol] ?? new TokenInfo())
                 }
             };

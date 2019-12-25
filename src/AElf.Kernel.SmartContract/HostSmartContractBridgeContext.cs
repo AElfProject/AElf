@@ -35,7 +35,7 @@ namespace AElf.Kernel.SmartContract
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
-
+    
             Variables = new ContextVariableDictionary(options.Value.ContextVariables);
 
             var self = this;

@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "WRITE,STO,READ,NET";
+                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,STO,READ,NET";
             });
 
             context.Services.AddTransient(provider =>
