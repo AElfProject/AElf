@@ -108,6 +108,24 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return new Empty();
         }
 
+        public override Empty TestInfiniteRecursiveCall(Empty input)
+        {
+            InfiniteRecursiveCall();
+            return new Empty();
+        }
+        
+        private void InfiniteRecursiveCall(string text = "")
+        {
+            text += "TEST";
+            InfiniteRecursiveCall(text);
+        }
+
+        public override Empty TestInfiniteRecursiveCallInSeparateClass(Empty input)
+        {
+            SeparateClass.UseInfiniteRecursiveCallInSeparateClass();
+            return new Empty();
+        }
+
         private class NestedClass
         {
             public static DateTime UseDeniedMemberInNestedClass()
@@ -131,6 +149,12 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             {
                 list.Add(int.MaxValue);
             }
+        }
+
+        public static void UseInfiniteRecursiveCallInSeparateClass(string text = "")
+        {
+            text += "TEST";
+            UseInfiniteRecursiveCallInSeparateClass(text);
         }
     }
 }

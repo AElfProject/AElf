@@ -2,8 +2,12 @@ namespace AElf
 {
     public interface IExecutionObserver
     {
-        void Count();
+        void BranchCount();
 
-        int GetUsage();
+        void CallCount();
+
+        int GetCallCount();
+        
+        int GetBranchCount();
     }
 }

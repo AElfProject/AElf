@@ -15,7 +15,8 @@ namespace AElf.Kernel.SmartContract.Sdk
             BlockHeight = 0;
             CallDepth = 0;
             MaxCallDepth = 4; // Default max call depth 4
-            ExecutionUsageThreshold = SmartContractConstants.ExecutionUsageThreshold;
+            ExecutionCallThreshold = SmartContractConstants.ExecutionCallThreshold;
+            ExecutionBranchThreshold = SmartContractConstants.ExecutionBranchThreshold;
         }
         public Address Origin { get; set; }
         public Address Miner { get; set; }
@@ -24,7 +25,8 @@ namespace AElf.Kernel.SmartContract.Sdk
         public Timestamp CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }
         public int MaxCallDepth { get; set; }
-        public int ExecutionUsageThreshold { get; set; }
+        public int ExecutionCallThreshold { get; set; }
+        public int ExecutionBranchThreshold { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
         public IStateCache StateCache { get; set; }

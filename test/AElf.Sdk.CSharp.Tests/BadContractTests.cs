@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Reflection;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
@@ -17,6 +19,8 @@ namespace AElf.Sdk.CSharp.Tests
         private CustomContract.BadContract Contract = new CustomContract.BadContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
+
+        private readonly MethodInfo _proxyCountMethod;
 
         public BadContractTests()
         {
@@ -40,25 +44,54 @@ namespace AElf.Sdk.CSharp.Tests
                     .GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
             injectedCounter.ShouldNotBeNull();
             
-            var proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver), new[] { typeof(IExecutionObserver) });
-            proxyCountMethod.ShouldNotBeNull();
-            
+            _proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver), new[] { typeof(IExecutionObserver) });
+            _proxyCountMethod.ShouldNotBeNull();
+        }
+
+        private void SetObserver()
+        {
             // Initialize injected type since we don't execute the contract the same way as mining
-            proxyCountMethod.Invoke(null, new object[] {
-                    new ExecutionObserver(100), 
+            _proxyCountMethod.Invoke(null, new object[] {
+                new ExecutionObserver(100, 100), 
             });
         }
         
+        private void ClearObserver()
+        {
+            // Initialize injected type since we don't execute the contract the same way as mining
+            _proxyCountMethod.Invoke(null, new object[] { null });
+        }
+
         [Fact]
         public void TestInfiniteLoop_InContractImplementation()
         {
-            Should.Throw<RuntimeBranchingThresholdExceededException>(() => Contract.TestInfiniteLoop(new Empty()));
+            SetObserver();
+            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoop(new Empty()));
+            ClearObserver();
         }
 
         [Fact]
         public void TestInfiniteLoop_InSeparateClass()
         {
-            Should.Throw<RuntimeBranchingThresholdExceededException>(() => Contract.TestInfiniteLoopInSeparateClass(new Empty()));
+            SetObserver();
+            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoopInSeparateClass(new Empty()));
+            ClearObserver();
+        }
+        
+        [Fact]
+        public void TestInfiniteRecursiveCall_InContractImplementation()
+        {
+            SetObserver();
+            Should.Throw<RuntimeCallThresholdExceededException>(() => Contract.TestInfiniteRecursiveCall(new Empty()));
+            ClearObserver();
+        }
+
+        [Fact]
+        public void TestInfiniteRecursiveCall_InSeparateClass()
+        {
+            SetObserver();
+            Should.Throw<RuntimeCallThresholdExceededException>(() => Contract.TestInfiniteRecursiveCallInSeparateClass(new Empty()));
+            ClearObserver();
         }
     }
 }

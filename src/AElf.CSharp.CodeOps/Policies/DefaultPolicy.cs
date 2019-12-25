@@ -72,7 +72,6 @@ namespace AElf.CSharp.CodeOps.Policies
                         Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(NotSupportedException), Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(ArgumentOutOfRangeException), Permission.Allowed) // From AEDPoS
-                    .Type(typeof(RuntimeBranchingThresholdExceededException), Permission.Allowed)
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)

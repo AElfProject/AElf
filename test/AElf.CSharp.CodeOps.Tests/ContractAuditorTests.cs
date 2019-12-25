@@ -61,7 +61,7 @@ namespace AElf.CSharp.CodeOps
             typeof(ProfitContract),
             typeof(ReferendumAuthContract),
             typeof(TokenConverterContract),
-            typeof(TreasuryContract),
+            typeof(TreasuryContract)
         };
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)

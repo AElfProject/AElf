@@ -30,6 +30,10 @@ service BadContract {
     rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 
     rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteRecursiveCall (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteRecursiveCallInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 }
 
 message DoubleInput {

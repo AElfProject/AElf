@@ -35,14 +35,10 @@ namespace AElf.Runtime.CSharp
                 nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize)
             }.ToDictionary(x => x, x => GetMethodInfo(instanceType, x));
 
-            // Add proxy methods
+            // Add proxy method
             _methodInfos.Add(nameof(ExecutionObserverProxy.SetObserver), 
                 _counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver), 
                     new []{ typeof(IExecutionObserver)}));
-            
-            _methodInfos.Add(nameof(ExecutionObserverProxy.GetUsage), 
-                _counterType?.GetMethod(nameof(ExecutionObserverProxy.GetUsage), 
-                    new Type[]{ }));
         }
 
         public void InternalInitialize(ISmartContractBridgeContext context)
@@ -67,12 +63,6 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
                 ?.Invoke(null, new object[] { observer });
-        }
-
-        public int GetUsage()
-        {
-            return (int) (_methodInfos[nameof(ExecutionObserverProxy.GetUsage)]
-                              ?.Invoke(null, new object[] { }) ?? 0);
         }
     }
 }

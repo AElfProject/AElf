@@ -21,17 +21,19 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var (counterProxy, observerField) = ConstructCounterProxy(module, nmspace);
 
             var proxySetObserverMethod = ConstructProxySetObserverMethod(module, observerField);
-            var proxyCountMethod = ConstructProxyCountMethod(module, observerField);
-            var proxyGetUsageMethod = ConstructProxyGetUsageMethod(module, observerField);
+            var proxyBranchCountMethod = ConstructProxyBranchCountMethod(module, observerField);
+            var proxyCallCountMethod = ConstructProxyCallCountMethod(module, observerField);
+            //var proxyGetUsageMethod = ConstructProxyGetUsageMethod(module, observerField);
             
             counterProxy.Methods.Add(proxySetObserverMethod);
-            counterProxy.Methods.Add(proxyCountMethod);
-            counterProxy.Methods.Add(proxyGetUsageMethod);
+            counterProxy.Methods.Add(proxyBranchCountMethod);
+            counterProxy.Methods.Add(proxyCallCountMethod);
+            //counterProxy.Methods.Add(proxyGetUsageMethod);
 
             // Patch the types
             foreach (var typ in module.Types)
             {
-                PatchType(typ, proxyCountMethod);
+                PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod);
             }
 
             module.Types.Add(counterProxy);
@@ -61,10 +63,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return (observerType, observerField);
         }
 
-        private MethodDefinition ConstructProxyCountMethod(ModuleDefinition module, FieldReference observerField)
+        private MethodDefinition ConstructProxyBranchCountMethod(ModuleDefinition module, FieldReference observerField)
         {
             var countMethod = new MethodDefinition(
-                nameof(ExecutionObserverProxy.Count), 
+                nameof(ExecutionObserverProxy.BranchCount), 
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
                 module.ImportReference(typeof(void))
             );
@@ -87,27 +89,24 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Callvirt, module.ImportReference(
-                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.Count))));
+                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.BranchCount))));
             il.Append(ret);
 
             return countMethod;
         }
-
-        private MethodDefinition ConstructProxyGetUsageMethod(ModuleDefinition module, FieldReference observerField)
+        
+        private MethodDefinition ConstructProxyCallCountMethod(ModuleDefinition module, FieldReference observerField)
         {
-            var getUsageMethod = new MethodDefinition(
-                nameof(ExecutionObserverProxy.GetUsage), 
+            var countMethod = new MethodDefinition(
+                nameof(ExecutionObserverProxy.CallCount), 
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
-                module.ImportReference(typeof(int))
+                module.ImportReference(typeof(void))
             );
             
-            getUsageMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
-            getUsageMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(int))));
-            
-            var il = getUsageMethod.Body.GetILProcessor();
-            
-            var setZero = il.Create(OpCodes.Ldc_I4_0);
-            var loadFirstVar = il.Create(OpCodes.Ldloc_1);
+            countMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
+            var il = countMethod.Body.GetILProcessor();
+
+            var ret = il.Create(OpCodes.Ret);
             
             #if DEBUG
             il.Emit(OpCodes.Ldsfld, observerField);
@@ -119,20 +118,13 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             il.Emit(OpCodes.Cgt_Un);
             il.Emit(OpCodes.Stloc_0);
             il.Emit(OpCodes.Ldloc_0);
-            il.Emit(OpCodes.Brfalse_S, setZero);
+            il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
-            
             il.Emit(OpCodes.Callvirt, module.ImportReference(
-                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.GetUsage))));
-            il.Emit(OpCodes.Stloc_1);
-            il.Emit(OpCodes.Br_S, loadFirstVar);
-            il.Append(setZero);
-            il.Emit(OpCodes.Stloc_1);
-            il.Emit(OpCodes.Br_S, loadFirstVar);
-            il.Append(loadFirstVar);
-            il.Emit(OpCodes.Ret);
+                typeof(IExecutionObserver).GetMethod(nameof(IExecutionObserver.CallCount))));
+            il.Append(ret);
 
-            return getUsageMethod;
+            return countMethod;
         }
 
         private MethodDefinition ConstructProxySetObserverMethod(ModuleDefinition module, FieldReference observerField)
@@ -160,22 +152,22 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return setObserverMethod;
         }
 
-        private void PatchType(TypeDefinition typ, MethodReference counterMethodRef)
+        private void PatchType(TypeDefinition typ, MethodReference branchCountRef, MethodReference callCountRef)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                PatchMethodsWithCounter(method, counterMethodRef);
+                PatchMethodsWithCounter(method, branchCountRef, callCountRef);
             }
 
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                PatchType(nestedType, counterMethodRef);
+                PatchType(nestedType, branchCountRef, callCountRef);
             }
         }
 
-        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference counterMethodRef)
+        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef, MethodReference callCountRef)
         {
             if (!method.HasBody)
                 return;
@@ -183,11 +175,14 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var il = method.Body.GetILProcessor();
 
             // Insert before every branching instruction
-            var branchingInstructions = method.Body.Instructions.Where(i => Consts.JumpingOps.Contains(i.OpCode)).ToList();
+            var branchingInstructions = method.Body.Instructions.Where(i => 
+                Consts.JumpingOps.Contains(i.OpCode)).ToList();
+
             il.Body.SimplifyMacros();
+            il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
             foreach (var instruction in branchingInstructions)
             {
-                il.InsertBefore(instruction, il.Create(OpCodes.Call, counterMethodRef));
+                il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
             }
             il.Body.OptimizeMacros();
         }
