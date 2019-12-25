@@ -73,9 +73,11 @@ service TokenContract {
     }
     rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
     }
-
     rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
+    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -373,6 +375,10 @@ message ValidateTokenInfoExistsInput{
 
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
+}
+
+message UpdateRentalInput {
+    map<string, sint64> rental = 1;
 }
 
 // Events

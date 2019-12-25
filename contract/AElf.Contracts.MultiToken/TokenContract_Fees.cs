@@ -484,6 +484,16 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
+        public override Empty UpdateRental(UpdateRentalInput input)
+        {
+            AssertIsAuthorized();
+            foreach (var pair in input.Rental)
+            {
+                State.Rental[pair.Key] = pair.Value;
+            }
+            return new Empty();
+        }
+
         public override Empty SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
@@ -572,7 +582,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx，read，sto，write，net.");
+                "No permission to set tx，read，sto，write，net, and rental.");
         }
     }
 }
