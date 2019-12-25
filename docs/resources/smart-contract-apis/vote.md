@@ -4,7 +4,7 @@ The Vote contract is an abstract layer for voting. Developers  implement concret
 
 ## **Voting for Block Producers**:
 
-For participating voting，user should register first. 
+To build a voting activity，the developer should register first. 
 
 ```Protobuf
 rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {}
@@ -20,15 +20,15 @@ message VotingRegisterInput {
 ```
 
 register requires a **VotingRegisterInput** message as parameter:
-- **start timestamp** is start time for what
-- **end timestamp** the end time for what
-- **accepted currency** valid token can be used for voting
-- **is lock token**  to do
-- **total snapshot number** todo
-- **options** todo
+- **start timestamp** activity start time
+- **end timestamp** activity end time
+- **accepted currency** indicate which token is accepted
+- **is lock token**  whether lock token 
+- **total snapshot number** number of terms
+- **options** default candidate
 
 
-After registering successfully, user is ability to vote.
+After the developer successfully build a voting activity, users are able to vote.
 
 ```Protobuf
 rpc Vote (VoteInput) returns (google.protobuf.Empty) {}
@@ -41,15 +41,34 @@ message VoteInput {
     aelf.Hash vote_id = 5;
     bool is_change_target = 6;
 }
-```
-- **voting item id** hash of user to do.
-- **voter**  address.
-- **amount** amount you vote
-- **option** todo
-- **vote id** todo
-- **is change targe** if it is your first time to vote, its value is setted defaultly to false
-- **has context.fire;** 
 
+message Voted {
+    option (aelf.is_event) = true;
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp vote_timestamp = 5;
+    string option = 6;
+    aelf.Hash vote_id = 7;
+}
+```
+- **voting item id** indicate which voting activity the user participate in
+- **voter**  voter address.
+- **amount** amount you vote
+- **option** candidate public key
+- **vote id** transaction id
+- **is change target** indicate whether you changed option
+
+- **has context.fire;** 
+Voted
+- **voting item id**  voting activity id
+- **voter** voter address
+- **snapshot number** indicate current term
+- **amount**amount you vote
+- **vote timestamp**vote time
+- **option** the candidate's public key
+- **vote id**transaction id
 
 if you regret to vote sb, you can withdraw your vote.
 
@@ -61,9 +80,9 @@ message WithdrawInput {
 }
 ```
 
-- **vote id**   vote id
+- **vote id**   transaction id
 
-Take snapshot.   todo
+Statistic the current term information by term number and save
 
 ```Protobuf
 rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {}
@@ -74,10 +93,12 @@ message TakeSnapshotInput {
 }
 ```
 
-- **voting item id** item id.
-- **snapshot number**  NO.
+- **voting item id** voting activity id.
+- **snapshot number**  the term number
 
-title todo
+
+
+vote a new candidate
 
 ```Protobuf
 rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {}
@@ -88,11 +109,11 @@ message AddOptionInput {
 }
 ```
 
-- **voting item id** item id.
-- **option**  todo
+- **voting item id** voting activity id
+- **option**  the new candidate address
 
-title todo
 
+Remove a candidate you voted
 ```Protobuf
     rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
 
@@ -102,37 +123,9 @@ message RemoveOptionInput {
 }
 ```
 
-- **voting item id** item id.
-- **option**  todo
+- **voting item id** voting activity id
+- **option**   address of the candidate you want to remove
 
-title todo
-
-```Protobuf
-rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {}
-
-message AddOptionsInput {
-    aelf.Hash voting_item_id = 1;
-    repeated string options = 2;
-}
-```
-
-- **voting item id** item id.
-- **option**  todo
-
-
-title todo
-
-```Protobuf
-rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {}
-
-message RemoveOptionsInput {
-    aelf.Hash voting_item_id = 1;
-    repeated string options = 2;
-}
-```
-
-- **voting item id** item id.
-- **option**  todo
 
 Change the manager of the token converter contract.
 
