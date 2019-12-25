@@ -42,9 +42,7 @@ namespace AElf.Contracts.Configuration
 
         public override Empty RentResourceTokens(RentResourceTokensInput input)
         {
-            Assert(
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
-                "Only cross chain contract can call this method.");
+            CheckSenderIsCrossChainContract();
             State.RemainResourceTokenAmount.Value -= input.ResourceTokenAmount;
             State.RentedResourceTokenAmount[input.ChainId.Value] = input.ResourceTokenAmount;
             return new Empty();
@@ -52,9 +50,7 @@ namespace AElf.Contracts.Configuration
 
         public override Empty UpdateRentedResourceTokens(RentResourceTokensInput input)
         {
-            Assert(
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
-                "Only cross chain contract can call this method.");
+            CheckSenderIsCrossChainContract();
             Assert(State.RentedResourceTokenAmount[input.ChainId.Value] != null, "Rented resource amount not found.");
             var change = input.ResourceTokenAmount - State.RentedResourceTokenAmount[input.ChainId.Value];
             State.RemainResourceTokenAmount.Value -= change;

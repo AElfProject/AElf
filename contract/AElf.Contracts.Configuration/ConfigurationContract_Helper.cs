@@ -31,5 +31,12 @@ namespace AElf.Contracts.Configuration
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
         }
+
+        private void CheckSenderIsCrossChainContract()
+        {
+            Assert(
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                "Only cross chain contract can call this method.");
+        }
     }
 }

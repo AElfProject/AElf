@@ -447,31 +447,30 @@ namespace AElf.Contracts.MultiToken
                 var owningRental = State.OwningRental[symbol];
                 if (owningRental > 0)
                 {
+                    // If Creator own this symbol and current balance can cover the debt, pay the debt at first.
                     if (availableBalance > owningRental)
                     {
                         donates = owningRental;
+                        // Need to update available balance,
+                        // cause existing balance not necessary equals to available balance.
                         availableBalance = availableBalance.Sub(owningRental);
                         State.OwningRental[symbol] = 0;
                     }
                 }
 
                 var rental = duration.Mul(State.ResourceAmount[symbol]).Mul(State.Rental[symbol]);
-                if (availableBalance >= rental)
+                if (availableBalance >= rental) // Success
                 {
-                    // Success
-
                     State.Balances[creator][symbol] = State.Balances[creator][symbol].Sub(rental);
                     donates = donates.Add(rental);
                 }
-                else
+                else // Fail
                 {
-                    // Fail
-
-                    // Donate all.
+                    // Donate all existing balance. Directly reset the donates.
                     donates = State.Balances[creator][symbol];
                     State.Balances[creator][symbol] = 0;
 
-                    // Update owning rental.
+                    // Update owning rental to record a new debt.
                     var own = rental.Sub(availableBalance);
                     State.OwningRental[symbol] = State.OwningRental[symbol].Add(own);
                 }
@@ -489,6 +488,8 @@ namespace AElf.Contracts.MultiToken
             AssertIsAuthorized();
             foreach (var pair in input.Rental)
             {
+                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(pair.Value >= 0, "Invalid amount.");
                 State.Rental[pair.Key] = pair.Value;
             }
             return new Empty();
