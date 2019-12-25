@@ -451,27 +451,31 @@ namespace AElf.Contracts.MultiToken
                     {
                         donates = owningRental;
                         availableBalance = availableBalance.Sub(owningRental);
+                        State.OwningRental[symbol] = 0;
                     }
                 }
-                
+
                 var rental = duration.Mul(State.ResourceAmount[symbol]).Mul(State.Rental[symbol]);
                 if (availableBalance >= rental)
                 {
                     // Success
+
                     State.Balances[creator][symbol] = State.Balances[creator][symbol].Sub(rental);
                     donates = donates.Add(rental);
                 }
                 else
                 {
+                    // Fail
+
+                    // Donate all.
+                    donates = State.Balances[creator][symbol];
                     State.Balances[creator][symbol] = 0;
-                    
+
                     // Update owning rental.
                     var own = rental.Sub(availableBalance);
                     State.OwningRental[symbol] = State.OwningRental[symbol].Add(own);
-
-                    donates = donates.Add(availableBalance);
                 }
-                
+
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
