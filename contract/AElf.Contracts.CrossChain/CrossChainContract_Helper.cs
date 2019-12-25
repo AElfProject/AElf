@@ -154,7 +154,6 @@ namespace AElf.Contracts.CrossChain
                     return;
                 }
                 State.ConfigurationContract.Value = configurationContractAddress;
-
             }
 
             State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput
