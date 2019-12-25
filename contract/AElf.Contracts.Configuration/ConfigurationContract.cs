@@ -43,8 +43,9 @@ namespace AElf.Contracts.Configuration
         public override Empty RentResourceTokens(RentResourceTokensInput input)
         {
             CheckSenderIsCrossChainContract();
-            State.RemainResourceTokenAmount.Value -= input.ResourceTokenAmount;
             State.RentedResourceTokenAmount[input.ChainId.Value] = input.ResourceTokenAmount;
+            if (State.RemainResourceTokenAmount.Value != null)
+                State.RemainResourceTokenAmount.Value -= input.ResourceTokenAmount;
             return new Empty();
         }
 
@@ -53,8 +54,9 @@ namespace AElf.Contracts.Configuration
             CheckSenderIsCrossChainContract();
             Assert(State.RentedResourceTokenAmount[input.ChainId.Value] != null, "Rented resource amount not found.");
             var change = input.ResourceTokenAmount - State.RentedResourceTokenAmount[input.ChainId.Value];
-            State.RemainResourceTokenAmount.Value -= change;
             State.RentedResourceTokenAmount[input.ChainId.Value] = input.ResourceTokenAmount;
+            if (State.RemainResourceTokenAmount.Value != null)
+                State.RemainResourceTokenAmount.Value -= change;
             return new Empty();
         }
 
@@ -69,7 +71,10 @@ namespace AElf.Contracts.Configuration
         {
             CheckOwnerAuthority();
             var change = input - State.TotalResourceTokenAmount.Value;
-            State.RemainResourceTokenAmount.Value += change;
+            if (State.RemainResourceTokenAmount.Value == null)
+                State.RemainResourceTokenAmount.Value = change;
+            else
+                State.RemainResourceTokenAmount.Value += change;
             State.TotalResourceTokenAmount.Value = input;
             return new Empty();
         }
