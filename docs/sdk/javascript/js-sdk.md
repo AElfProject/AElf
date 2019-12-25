@@ -142,7 +142,8 @@ Empty
 
 _Returns_
 
-`Object` - The chain status object with the following structure :
+`Object`
+
 - `ChainId - String`
 - `Branches - Object`
 - `NotLinkedBlocks - Object`
@@ -229,9 +230,10 @@ _Parameters_
 
 _Returns_
 
-`Object` - The block information is with the following structure :
+`Object`
+
 - `BlockHash - String`
-- `Header - Object` : The Header object with the following structure :
+- `Header - Object`
   - `PreviousBlockHash - String`
   - `MerkleTreeRootOfTransactions - String`
   - `MerkleTreeRootOfWorldState - String`
@@ -241,9 +243,9 @@ _Returns_
   - `ChainId - String`
   - `Bloom - String`
   - `SignerPubkey - String`
-- `Body - Object` : The Body object with the following structure :
+- `Body - Object`
   - `TransactionsCount - Number`
-  - `Transactions - Array` : The array of method descriptions:
+  - `Transactions - Array`
     - `transactionId - String`
 
 _Example_
@@ -271,9 +273,10 @@ _Parameters_
 
 _Returns_
 
-`Object` - The block information is with the following structure :
+`Object`
+
 - `BlockHash - String`
-- `Header - Object` : The Header object with the following structure :
+- `Header - Object`
   - `PreviousBlockHash - String`
   - `MerkleTreeRootOfTransactions - String`
   - `MerkleTreeRootOfWorldState - String`
@@ -283,9 +286,9 @@ _Returns_
   - `ChainId - String`
   - `Bloom - String`
   - `SignerPubkey - String`
-- `Body - Object` : The Body object with the following structure :
+- `Body - Object`
   - `TransactionsCount - Number`
-  - `Transactions - Array` : The array of method descriptions:
+  - `Transactions - Array`
     - `transactionId - String`
 
 _Example_
@@ -310,26 +313,27 @@ _Parameters_
 
 _Returns_
 
-`Object` - The result is with the following structure :
-  - `TransactionId - String`
-  - `Status - String`
-  - `Logs - Array` : The array of method descriptions:
-    - `Address - String`
-    - `Name - String`
-    - `Indexed - Array`
-    - `NonIndexed - String`
-  - `Bloom - String`
-  - `BlockNumber - Number`
-  - `Transaction - Object` : The transaction object with the following structure :
-    - `From - String` : address
-    - `To - String` : address
-    - `RefBlockNumber - Number`
-    - `RefBlockPrefix - String`
-    - `MethodName - String`
-    - `Params - Object`
-    - `Signature - String`
-  - `ReadableReturnValue - Object`
-  - `Error - String`
+`Object`
+
+- `TransactionId - String`
+- `Status - String`
+- `Logs - Array`
+  - `Address - String`
+  - `Name - String`
+  - `Indexed - Array`
+  - `NonIndexed - String`
+- `Bloom - String`
+- `BlockNumber - Number`
+- `Transaction - Object`
+  - `From - String`
+  - `To - String`
+  - `RefBlockNumber - Number`
+  - `RefBlockPrefix - String`
+  - `MethodName - String`
+  - `Params - Object`
+  - `Signature - String`
+- `ReadableReturnValue - Object`
+- `Error - String`
 
 _Example_
 ```javascript
@@ -438,7 +442,8 @@ _Use the api to see detailed results_
 
 _Returns_
 
-`Object` - The wallet is with the following structure :
+`Object`
+
 - `mnemonic - String`: mnemonic
 - `BIP44Path - String`: m/purpose'/coin_type'/account'/change/address_index
 - `childWallet - Object`: HD Wallet
