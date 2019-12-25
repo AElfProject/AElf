@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.ReferendumAuth</PackageId>
+        <PackageId>AElf.Contracts.Referendum</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
     </PropertyGroup>
@@ -35,8 +35,8 @@
         </ContractBase>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\referendum_auth_contract.proto">
-            <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf\Proto\referendum_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

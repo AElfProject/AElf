@@ -4,9 +4,9 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.ReferendumAuth
+namespace AElf.Contracts.Referendum
 {
-    public partial class ReferendumAuthContract : ReferendumAuthContractContainer.ReferendumAuthContractBase
+    public partial class ReferendumContract : ReferendumContractContainer.ReferendumContractBase
     {
         #region View
 

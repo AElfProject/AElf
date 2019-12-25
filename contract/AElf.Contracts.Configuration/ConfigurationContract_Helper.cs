@@ -19,7 +19,7 @@ namespace AElf.Contracts.Configuration
             if (State.Owner.Value != null)
                 return State.Owner.Value;
             ValidateContractState(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 

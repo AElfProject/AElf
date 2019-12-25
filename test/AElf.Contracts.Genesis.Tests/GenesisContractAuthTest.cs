@@ -225,7 +225,7 @@ namespace AElf.Contracts.Genesis
 
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
 
-            var code = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.ReferendumAuth.dll"));
+            var code = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.Referendum.dll"));
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = newAddress,

@@ -215,7 +215,7 @@ namespace AElf.Contracts.CrossChain
             if (State.Owner.Value != null)
                 return State.Owner.Value;
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
@@ -231,7 +231,7 @@ namespace AElf.Contracts.CrossChain
         private void AssertAddressIsParliamentContract(Address address)
         {
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             Assert(State.ParliamentAuthContract.Value == address, "Unauthorized behavior.");
         }
 
@@ -285,7 +285,7 @@ namespace AElf.Contracts.CrossChain
         private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput =
@@ -305,7 +305,7 @@ namespace AElf.Contracts.CrossChain
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
@@ -340,7 +340,7 @@ namespace AElf.Contracts.CrossChain
         private ProposalOutput GetProposal(Hash proposalId)
         {
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             var proposal = State.ParliamentAuthContract.GetProposal.Call(proposalId);
             return proposal;
         }

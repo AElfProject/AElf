@@ -188,7 +188,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote", "cont
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election", "contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj", "{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAuth", "contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj", "{8CB61BE4-D787-455B-A4F7-6DCA92F379F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Referendum", "contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj", "{8CB61BE4-D787-455B-A4F7-6DCA92F379F1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "bench\AElf.Benchmark\AElf.Benchmark.csproj", "{017DC714-0E66-40F4-830B-EB21AF09212A}"
 EndProject

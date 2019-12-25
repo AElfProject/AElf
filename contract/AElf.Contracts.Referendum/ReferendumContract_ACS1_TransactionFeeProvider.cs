@@ -2,9 +2,9 @@ using Acs1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.ReferendumAuth
+namespace AElf.Contracts.Referendum
 {
-    public partial class ReferendumAuthContract
+    public partial class ReferendumContract
     {
         public override MethodFees GetMethodFee(StringValue input)
         {
@@ -13,13 +13,13 @@ namespace AElf.Contracts.ReferendumAuth
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();

@@ -74,13 +74,13 @@ namespace AElf.Blockchains.SideChain
                 ConfigurationSmartContractAddressNameProvider.Name);
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("ReferendumAuth")).Value,
-                ReferendumAuthSmartContractAddressNameProvider.Name,
-                GenerateReferendumfInitializationCallList()
+                _codes.Single(kv => kv.Key.Contains("Referendum")).Value,
+                ReferendumSmartContractAddressNameProvider.Name,
+                GenerateReferendumInitializationCallList()
             );
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("AssociationAuth")).Value,
+                _codes.Single(kv => kv.Key.Contains("Association")).Value,
                 AssociationSmartContractAddressNameProvider.Name
             );
 

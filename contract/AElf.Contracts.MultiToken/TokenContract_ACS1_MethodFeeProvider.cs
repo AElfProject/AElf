@@ -44,7 +44,7 @@ namespace AElf.Contracts.MultiToken
             if (State.ParliamentAuthContract.Value == null)
             {
                 State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             // Parliament Auth Contract maybe not deployed.

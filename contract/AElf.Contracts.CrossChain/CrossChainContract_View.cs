@@ -191,7 +191,7 @@ namespace AElf.Contracts.CrossChain
                 out var pendingCrossChainIndexingProposal);
             Assert(exists, "Cross chain indexing with Pending status not found.");
             SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+                SmartContractConstants.ParliamentContractSystemName);
             res.Proposer = pendingCrossChainIndexingProposal.Proposer;
             res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
             var proposalInfo = State.ParliamentAuthContract.GetProposal

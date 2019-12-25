@@ -3,7 +3,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel
 {
-    public class ReferendumAuthSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
+    public class ReferendumSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
         public static readonly Hash Name = Hash.FromString("AElf.ContractNames.ReferendumAuth");
         public Hash ContractName => Name;

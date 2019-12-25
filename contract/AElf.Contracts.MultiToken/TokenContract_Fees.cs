@@ -480,7 +480,7 @@ namespace AElf.Contracts.MultiToken
             if (State.ParliamentAuthContract.Value == null)
             {
                 State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);

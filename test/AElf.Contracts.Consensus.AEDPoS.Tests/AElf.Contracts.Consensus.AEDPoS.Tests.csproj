@@ -23,6 +23,9 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
           <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
@@ -82,11 +85,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.MethodCallThreshold\AElf.Contracts.TestContract.MethodCallThreshold.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

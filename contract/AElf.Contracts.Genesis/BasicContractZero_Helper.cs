@@ -32,7 +32,7 @@ namespace AElf.Contracts.Genesis
             if (State.ParliamentAuthContract.Value == null)
             {
                 State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
         }
 
@@ -44,7 +44,7 @@ namespace AElf.Contracts.Genesis
         private void InitializeGenesisOwner(Address genesisOwner)
         {
             Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;

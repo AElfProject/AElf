@@ -2,9 +2,9 @@ using AElf.Contracts.MultiToken;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.ReferendumAuth
+namespace AElf.Contracts.Referendum
 {
-    public partial class ReferendumAuthContract
+    public partial class ReferendumContract
     {
         private bool IsReleaseThresholdReached(Hash proposalId, Organization organization)
         {

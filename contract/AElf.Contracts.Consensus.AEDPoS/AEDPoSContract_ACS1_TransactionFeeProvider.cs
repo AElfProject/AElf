@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (State.ParliamentAuthContract.Value == null)
             {
                 State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));

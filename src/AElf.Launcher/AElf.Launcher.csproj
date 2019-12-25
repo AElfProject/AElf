@@ -11,6 +11,9 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
           <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+        </ProjectReference>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
         <ProjectReference Include="..\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj" />
         <None Update="Dockerfile">
@@ -89,11 +92,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

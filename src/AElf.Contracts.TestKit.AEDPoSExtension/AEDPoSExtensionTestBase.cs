@@ -28,7 +28,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
             {CrossChainSmartContractAddressNameProvider.Name, "CrossChain"},
-            {ReferendumAuthSmartContractAddressNameProvider.Name, "ReferendumAuth"},
+            {ReferendumSmartContractAddressNameProvider.Name, "ReferendumAuth"},
         };
 
         protected IBlockMiningService BlockMiningService =>

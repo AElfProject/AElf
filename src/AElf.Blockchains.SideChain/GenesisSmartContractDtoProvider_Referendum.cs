@@ -1,5 +1,5 @@
 using Acs0;
-using AElf.Contracts.ReferendumAuth;
+using AElf.Contracts.Referendum;
 using AElf.OS.Node.Application;
 using Google.Protobuf.WellKnownTypes;
 
@@ -8,14 +8,14 @@ namespace AElf.Blockchains.SideChain
     public partial class GenesisSmartContractDtoProvider
     {
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateReferendumfInitializationCallList()
+            GenerateReferendumInitializationCallList()
         {
-            var referendumfInitializationCallList =
+            var referendumInitializationCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumfInitializationCallList.Add(
-                nameof(ReferendumAuthContractContainer.ReferendumAuthContractStub.Initialize),
+            referendumInitializationCallList.Add(
+                nameof(ReferendumContractContainer.ReferendumContractStub.Initialize),
                 new Empty());
-            return referendumfInitializationCallList;
+            return referendumInitializationCallList;
         }
     }
 }
