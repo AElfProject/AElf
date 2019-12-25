@@ -502,7 +502,6 @@ namespace AElf.Contracts.Economic.TestBase
         {
             var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = BootMinerAddress,
                 ProposerAuthorityRequired = true
             });
@@ -540,10 +539,7 @@ namespace AElf.Contracts.Economic.TestBase
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentAuthContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
-                {
-                    ProposalId = proposalHash,
-                });
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
                 CheckResult(approveResult.TransactionResult);
             }
 
@@ -581,10 +577,7 @@ namespace AElf.Contracts.Economic.TestBase
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentAuthContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
-                {
-                    ProposalId = proposalHash,
-                });
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
                 CheckResult(approveResult.TransactionResult);
             }
 

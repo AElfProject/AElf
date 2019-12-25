@@ -108,17 +108,11 @@ namespace AElf.Contracts.Genesis
         {
             var tester0 = tester.CreateNewContractTester(Tester.InitialMinerList[0]);
             await tester0.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
 
             var tester1 = tester.CreateNewContractTester(Tester.InitialMinerList[1]);
             var txResult2 = await tester1.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
 
             return txResult2;
         }
@@ -177,10 +171,7 @@ namespace AElf.Contracts.Genesis
         {
             var testerWithMiner = tester.CreateNewContractTester(ecKeyPair);
             return await testerWithMiner.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
         }
 
         internal async Task<Address> DeployAsync(ContractTester<BasicContractZeroTestAElfModule> tester,
@@ -226,7 +217,11 @@ namespace AElf.Contracts.Genesis
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = 20000 / tester.InitialMinerList.Count
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 20000 / tester.InitialMinerList.Count,
+                    MinimalVoteThreshold = 20000 / tester.InitialMinerList.Count
+                }
             };
             var transactionResult =
                 await tester.ExecuteContractWithMiningAsync(parliamentContract,

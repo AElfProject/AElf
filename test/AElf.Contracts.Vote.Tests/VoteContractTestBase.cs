@@ -64,7 +64,7 @@ namespace AElf.Contracts.Vote
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentContract).Assembly.Location)),
                         Name = ParliamentSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateParliamentInitializationCallList()
                     })).Output;
@@ -142,9 +142,8 @@ namespace AElf.Contracts.Vote
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentInitializationCallList()
         {
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new InitializeInput
+            parliamentContractCallList.Add(nameof(ParliamentContract.Initialize), new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = DefaultSender,
                 ProposerAuthorityRequired = true
             });

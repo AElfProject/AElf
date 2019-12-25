@@ -250,8 +250,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         private SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            string symbol,
-            IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+            string symbol)
         {
             var res = new SideChainCreationRequest
             {
@@ -263,9 +262,6 @@ namespace AElf.Contracts.MultiToken
                 SideChainTokenSymbol = symbol,
                 SideChainTokenName = "TEST",
             };
-//            if (resourceTypeBalancePairs != null)
-//                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
-//                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
         }
 
@@ -287,18 +283,10 @@ namespace AElf.Contracts.MultiToken
         {
             var approveTransaction1 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[1],
-                new Acs3.ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                tester.InitialMinerList[1], proposalId);
             var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[2],
-                new Acs3.ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                tester.InitialMinerList[2], proposalId);
             await tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
         }
 

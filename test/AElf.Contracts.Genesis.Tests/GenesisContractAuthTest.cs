@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs0;
+using Acs3;
 using AElf.Contracts.Parliament;
 using AElf.Kernel;
 using AElf.Kernel.Token;
@@ -336,7 +337,11 @@ namespace AElf.Contracts.Genesis
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
-                    ReleaseThreshold = 1000
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
                 });
 
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);

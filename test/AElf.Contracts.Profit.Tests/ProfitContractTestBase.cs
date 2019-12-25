@@ -164,7 +164,6 @@ namespace AElf.Contracts.Profit
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = Starter,
                 ProposerAuthorityRequired = true
             });

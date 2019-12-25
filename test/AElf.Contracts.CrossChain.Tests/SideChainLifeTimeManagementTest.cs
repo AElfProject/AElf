@@ -190,7 +190,13 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var organization =
                 (await ParliamentAuthContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
-                    {ReleaseThreshold = 1})).Output;
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    }
+                })).Output;
             var allowanceResult = await ApproveAndTransferOrganizationBalanceAsync(organization, lockedTokenAmount);
             Assert.True(allowanceResult.Spender == CrossChainContractAddress);
             Assert.True(allowanceResult.Allowance == lockedTokenAmount);

@@ -93,10 +93,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
-                ParliamentAuthStub.Initialize.GetTransaction(new InitializeInput
-                {
-                    GenesisOwnerReleaseThreshold = 6666
-                }),
+                ParliamentAuthStub.Initialize.GetTransaction(new InitializeInput()),
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,
