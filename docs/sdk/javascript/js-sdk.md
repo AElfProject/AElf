@@ -14,7 +14,7 @@ You can also see a full examples in `./examples`;
 import AElf from 'aelf-sdk';
 
 // create a new instance of AElf
-const aelf = new AElf(new AElf.providers.HttpProvider('https://127.0.0.1:8000'));
+const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
 ```
 
 2. Create or load a wallet by `AElf.wallet`
@@ -67,7 +67,7 @@ aelf.chain.contractAt(tokenContractAddress, wallet, (error, result) => {if (erro
 
 ```
 
-6. How to use contract instance
+5. How to use contract instance
 
 A contract instance consists of several contract methods, and methods have two kind ways of calling: read-only and send transactions
 
@@ -109,8 +109,8 @@ A contract instance consists of several contract methods, and methods have two k
 ```js
 import AElf from 'aelf-sdk';
 
-const aelf = new AElf(new AElf.providers.HttpProvider('https://127.0.0.1:8000'));
-aelf.setProvider(new AElf.providers.HttpProvider('https://127.0.0.1:8010'));
+const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
+aelf.setProvider(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
 ```
 
 ### Web API
@@ -124,7 +124,7 @@ The usage of these methods is based on the AElf instance, If you don't have plea
 import AElf from 'aelf-sdk';
 
 // create a new instance of AElf, change the URL if needed
-const aelf = new AElf(new AElf.providers.HttpProvider('https://127.0.0.1:8000'));
+const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
 ```
 
 #### getChainStatus
