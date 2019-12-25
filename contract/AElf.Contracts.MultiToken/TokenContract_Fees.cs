@@ -425,6 +425,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.LastPayRentTime.Value == null)
             {
+                // Initial LastPayRentTime first calling DonateResourceToken.
                 State.LastPayRentTime.Value = Context.CurrentBlockTime;
                 return;
             }
@@ -435,6 +436,9 @@ namespace AElf.Contracts.MultiToken
             {
                 return;
             }
+
+            // Update LastPayRentTime if it is ready to charge rental.
+            State.LastPayRentTime.Value = Context.CurrentBlockTime;
 
             var creator = State.SideChainCreator.Value;
 
