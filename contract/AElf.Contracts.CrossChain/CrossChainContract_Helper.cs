@@ -147,8 +147,14 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.ConfigurationContract.Value == null)
             {
-                State.ConfigurationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+                var configurationContractAddress = Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+                if (configurationContractAddress == null)
+                {
+                    // If Configuration Contract has not deployed, skip following options.
+                    return;
+                }
+                State.ConfigurationContract.Value = configurationContractAddress;
+
             }
 
             State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput

@@ -429,6 +429,7 @@ namespace AElf.Contracts.MultiToken
                 return;
             }
 
+            // We need minutes.
             var duration = (Context.CurrentBlockTime - State.LastPayRentTime.Value).Seconds.Div(60);
             if (duration == 0)
             {
