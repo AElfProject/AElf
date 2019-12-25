@@ -11,108 +11,108 @@ You can also see a full examples in `./examples`;
 
 1. Create a new instance of AElf, connect to an AELF chain node.
 
-  ```javascript
-  import AElf from 'aelf-sdk';
+    ```javascript
+    import AElf from 'aelf-sdk';
 
-  // create a new instance of AElf
-  const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
-  ```
+    // create a new instance of AElf
+    const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
+    ```
 
 2. Create or load a wallet by `AElf.wallet`
 
-```javascript
-// create a new wallet
-const newWallet = AElf.wallet.createNewWallet();
-// load a wallet by private key
-const priviteKeyWallet = AElf.wallet.getWalletByPrivateKey('xxxxxxx');
-// load a wallet by mnemonic
-const mnemonicWallet = AElf.wallet.getWalletByMnemonic('set kite ...');
-```
+    ```javascript
+    // create a new wallet
+    const newWallet = AElf.wallet.createNewWallet();
+    // load a wallet by private key
+    const priviteKeyWallet = AElf.wallet.getWalletByPrivateKey('xxxxxxx');
+    // load a wallet by mnemonic
+    const mnemonicWallet = AElf.wallet.getWalletByMnemonic('set kite ...');
+    ```
 
 3. Get a system contract address, take `AElf.ContractNames.Token` as an example
 
-```javascript
-const tokenContractName = 'AElf.ContractNames.Token';
-let tokenContractAddress;
-(async () => {
-  // get chain status
-  const chainStatus = await aelf.chain.getChainStatus();
-  // get genesis contract address
-  const GenesisContractAddress = chainStatus.GenesisContractAddress;
-  // get genesis contract instance
-  const zeroContract = await aelf.chain.contractAt(GenesisContractAddress, newWallet);
-  // Get contract address by the read only method `GetContractAddressByName` of genesis contract
-  tokenContractAddress = await zeroContract.GetContractAddressByName.call(AElf.utils.sha256(tokenContractName));
-})()
-```
+    ```javascript
+    const tokenContractName = 'AElf.ContractNames.Token';
+    let tokenContractAddress;
+    (async () => {
+      // get chain status
+      const chainStatus = await aelf.chain.getChainStatus();
+      // get genesis contract address
+      const GenesisContractAddress = chainStatus.GenesisContractAddress;
+      // get genesis contract instance
+      const zeroContract = await aelf.chain.contractAt(GenesisContractAddress, newWallet);
+      // Get contract address by the read only method `GetContractAddressByName` of genesis contract
+      tokenContractAddress = await zeroContract.GetContractAddressByName.call(AElf.utils.sha256(tokenContractName));
+    })()
+    ```
 
 4. Get a contract instance by contract address
 
-```javascript
-const wallet = AElf.wallet.createNewWallet();
-let tokenContract;
-// Use token contract for examples to demonstrate how to get a contract instance in different ways
-// in async function
-(async () => {
-  tokenContract = await aelf.chain.contractAt(tokenContractAddress, wallet)
-})();
+    ```javascript
+    const wallet = AElf.wallet.createNewWallet();
+    let tokenContract;
+    // Use token contract for examples to demonstrate how to get a contract instance in different ways
+    // in async function
+    (async () => {
+      tokenContract = await aelf.chain.contractAt(tokenContractAddress, wallet)
+    })();
 
-// promise way
-aelf.chain.contractAt(tokenContractAddress, wallet)
-  .then(result => {
-     tokenContract = result;
-  });
+    // promise way
+    aelf.chain.contractAt(tokenContractAddress, wallet)
+      .then(result => {
+        tokenContract = result;
+      });
 
-// callback way
-aelf.chain.contractAt(tokenContractAddress, wallet, (error, result) => {if (error) throw error; tokenContract = result;});
+    // callback way
+    aelf.chain.contractAt(tokenContractAddress, wallet, (error, result) => {if (error) throw error; tokenContract = result;});
 
-```
+    ```
 
 5. How to use contract instance
 
-A contract instance consists of several contract methods, and methods have two kind ways of calling: read-only and send transactions
+    A contract instance consists of several contract methods, and methods have two kind ways of calling: read-only and send transactions
 
-```javascript
-(async () => {
-  // get the balance of an address, this would not send a transaction,
-  // or store any data on the chain, or required any transaction fee, only get the balance
-  // with `.call` method, `aelf-sdk` will only call read-only method
-  const result = await tokenContract.GetBalance.call({
-    symbol: "ELF",
-    owner: "7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz"
-  });
-  console.log(result);
-  /**
-  {
-    "symbol": "ELF",
-    "owner": "2661mQaaPnzLCoqXPeys3Vzf2wtGM1kSrqVBgNY4JUaGBxEsX8",
-    "balance": "1000000000000"
-  }*/
-  // with no `.call`, `aelf-sdk` will sign and send a transaction to the chain, and return a transaction id.
-  // make sure you have enough transaction fee `ELF` in your wallet
-  const transactionId = await tokenContract.Transfer({
-    symbol: "ELF",
-    to: "7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz",
-    amount: "1000000000",
-    memo: "transfer in demo"
-  });
-  console.log(transactionId);
-  /**
-    {
-      "TransactionId": "123123"
-    }
-  */
-})()
-```
+    ```javascript
+    (async () => {
+      // get the balance of an address, this would not send a transaction,
+      // or store any data on the chain, or required any transaction fee, only get the balance
+      // with `.call` method, `aelf-sdk` will only call read-only method
+      const result = await tokenContract.GetBalance.call({
+        symbol: "ELF",
+        owner: "7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz"
+      });
+      console.log(result);
+      /**
+      {
+        "symbol": "ELF",
+        "owner": "2661mQaaPnzLCoqXPeys3Vzf2wtGM1kSrqVBgNY4JUaGBxEsX8",
+        "balance": "1000000000000"
+      }*/
+      // with no `.call`, `aelf-sdk` will sign and send a transaction to the chain, and return a transaction id.
+      // make sure you have enough transaction fee `ELF` in your wallet
+      const transactionId = await tokenContract.Transfer({
+        symbol: "ELF",
+        to: "7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz",
+        amount: "1000000000",
+        memo: "transfer in demo"
+      });
+      console.log(transactionId);
+      /**
+        {
+          "TransactionId": "123123"
+        }
+      */
+    })()
+    ```
 
 6. Change node endpoint by using `aelf.setProvider`
 
-```javascript
-import AElf from 'aelf-sdk';
+    ```javascript
+    import AElf from 'aelf-sdk';
 
-const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
-aelf.setProvider(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
-```
+    const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
+    aelf.setProvider(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
+    ```
 
 ### Web API
 
@@ -144,13 +144,12 @@ _Returns_
 
 `Object` - The chain status object with the following structure :
 - `ChainId - String`
-- `Branches - Object` : The Branches object with the following structure :
-- `'chainHash' - String : 'chainHeight' - Number`
+- `Branches - Object`
 - `NotLinkedBlocks - Object`
 - `LongestChainHeight - Number`
 - `LongestChainHash - String`
 - `GenesisBlockHash - String`
-- `GenesisContractAddress - String` :An instance of a genesis contract can be created through the GenesisContractAddress, and other contracts can be found on the instance.
+- `GenesisContractAddress - String`
 - `LastIrreversibleBlockHash - String`
 - `LastIrreversibleBlockHeight - Number`
 - `BestChainHash - String`
