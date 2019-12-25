@@ -126,18 +126,17 @@ namespace AElf.Contracts.Association
             return new Empty();
         }
 
-        public override Empty Release(Hash proposalId)
+        public override Empty Release(Hash input)
         {
-            var proposalInfo = State.Proposals[proposalId];
-            Assert(proposalInfo != null, "Proposal not found.");
-            Assert(Context.Sender == proposalInfo.Proposer, "Unable to release this proposal.");
+            var proposalInfo = GetValidProposal(input);
+            Assert(Context.Sender == proposalInfo.Proposer, "No permission");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
 
-            Context.Fire(new ProposalReleased {ProposalId = proposalId});
-            State.Proposals.Remove(proposalId);
+            Context.Fire(new ProposalReleased {ProposalId = input});
+            State.Proposals.Remove(input);
             
             return new Empty();
         }
@@ -166,6 +165,15 @@ namespace AElf.Contracts.Association
             Assert(organization != null, "Organization not found.");
             organization.ProposerWhiteList = input;
             State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+        
+        public override Empty ClearProposal(Hash input)
+        {
+            // anyone can clear proposal if it is expired
+            var proposal = State.Proposals[input];
+            Assert(proposal != null && Context.CurrentBlockTime <= proposal.ExpiredTime, "Proposal clear failed");
+            State.Proposals.Remove(input);
             return new Empty();
         }
 

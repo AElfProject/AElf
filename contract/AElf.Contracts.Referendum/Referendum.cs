@@ -1,5 +1,4 @@
 using Acs3;
-using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -24,7 +23,7 @@ namespace AElf.Contracts.Referendum
             }
 
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var readyToRelease = IsReleaseThresholdReached(proposalId, organization);
+            var readyToRelease = IsReleaseThresholdReached(proposal, organization);
             return new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -49,107 +48,114 @@ namespace AElf.Contracts.Referendum
         {
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            Assert(State.Organisations[organizationAddress] == null, "Organization already exists.");
             var organization = new Organization
             {
-                ReleaseThreshold = input.ReleaseThreshold,
+                ProposalReleaseThreshold = input.ProposalReleaseThreshold,
                 OrganizationAddress = organizationAddress,
                 TokenSymbol = input.TokenSymbol,
-                OrganizationHash = organizationHash
+                OrganizationHash = organizationHash,
+                ProposerWhiteList = input.ProposerWhiteList
             };
             Assert(Validate(organization), "Invalid organization data.");
 
-            Assert(!string.IsNullOrEmpty(organization.TokenSymbol) && organization.ReleaseThreshold > 0,
-                "Invalid organization data.");
-            if (State.Organisations[organizationAddress] == null)
-            {
-                State.Organisations[organizationAddress] = organization;
-            }
+            State.Organisations[organizationAddress] = organization;
 
             return organizationAddress;
         }
 
         public override Hash CreateProposal(CreateProposalInput input)
         {
-            var organization = State.Organisations[input.OrganizationAddress];
-            Assert(organization != null, "No registered organization.");
+            AssertProposerAuthority(input.OrganizationAddress, Context.Sender);
+            var proposalId = CreateNewProposal(input);
+            Context.Fire(new ProposalCreated {ProposalId = proposalId});
 
-            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
-            var proposal = new ProposalInfo
-            {
-                ContractMethodName = input.ContractMethodName,
-                ToAddress = input.ToAddress,
-                ExpiredTime = input.ExpiredTime,
-                Params = input.Params,
-                OrganizationAddress = input.OrganizationAddress,
-                Proposer = Context.Sender
-            };
-            Assert(Validate(proposal), "Invalid proposal.");
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = hash});
-
-            return hash;
+            return proposalId;
         }
 
-//        public override BoolValue Approve(ApproveInput input)
-//        {
-//            var proposal = GetValidProposal(input.ProposalId);
-//            var organization = State.Organisations[proposal.OrganizationAddress];
-//            Assert(State.LockedTokenAmount[Context.Sender][input.ProposalId] == null, "Cannot approve more than once.");
-//            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
-//            State.ApprovedTokenAmount[input.ProposalId] =
-//                State.ApprovedTokenAmount[input.ProposalId].Add(allowance);
-//            Assert(allowance > 0, "Invalid approve.");
-//
-//            LockToken(new LockInput
-//            {
-//                Address = Context.Sender,
-//                Symbol = organization.TokenSymbol,
-//                Amount = allowance,
-//                LockId = Context.TransactionId,
-//                Usage = "Referendum."
-//            });
-//            // Register receipt
-//            State.LockedTokenAmount[Context.Sender][input.ProposalId] = new Receipt
-//            {
-//                Amount = allowance,
-//                LockId = Context.TransactionId,
-//                TokenSymbol = organization.TokenSymbol
-//            };
-//            return new BoolValue {Value = true};
-//        }
-
-        public override Empty ReclaimVoteToken(Hash proposalId)
+        public override Empty Approve(Hash input)
         {
-            var lockReceipt = State.LockedTokenAmount[Context.Sender][proposalId];
-            Assert(lockReceipt != null, "Nothing to reclaim.");
-            var proposal = State.Proposals[proposalId];
-            Assert(proposal == null ||
-                   Context.CurrentBlockTime > proposal.ExpiredTime, "Unable to reclaim at this time.");
-            // State.LockedTokenAmount[Context.Sender][proposalId] = null;
-            UnlockToken(new UnlockInput
-            {
-                Amount = lockReceipt.Amount,
-                Address = Context.Sender,
-                LockId = lockReceipt.LockId,
-                Symbol = lockReceipt.TokenSymbol,
-                Usage = "Referendum."
-            });
+            var proposal = GetValidProposal(input);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+
+            proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
+            State.Proposals[input] = proposal;
+            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
             return new Empty();
         }
 
-        public override Empty Release(Hash proposalId)
+        public override Empty Reject(Hash input)
         {
-            var proposalInfo = State.Proposals[proposalId];
-            Assert(proposalInfo != null, "Proposal not found.");
-            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
-            var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            Assert(IsReleaseThresholdReached(proposalId, organization), "Not approved.");
-            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
-                proposalInfo.ContractMethodName, proposalInfo.Params);
+            var proposal = GetValidProposal(input);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
 
-            Context.Fire(new ProposalReleased {ProposalId = proposalId});
-            State.Proposals.Remove(proposalId);
+            proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
+            State.Proposals[input] = proposal;
+            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            return new Empty();
+        }
+
+        public override Empty Abstain(Hash input)
+        {
+            var proposal = GetValidProposal(input);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+
+            proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
+            State.Proposals[input] = proposal;
+            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            return new Empty();
+        }
+
+        public override Empty ReclaimVoteToken(Hash input)
+        {
+            var proposal = State.Proposals[input];
+            Assert(proposal == null ||
+                   Context.CurrentBlockTime > proposal.ExpiredTime, "Unable to reclaim at this time.");
+            UnlockToken(input, Context.Sender);
+            return new Empty();
+        }
+
+        public override Empty ChangeOrganizationThreshold(ProposalReleaseThreshold input)
+        {
+            var organization = State.Organisations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.ProposalReleaseThreshold = input;
+            State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+        
+        public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
+        {
+            var organization = State.Organisations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.ProposerWhiteList = input;
+            State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+
+        public override Empty ClearProposal(Hash input)
+        {
+            // anyone can clear proposal if it is expired
+            var proposal = State.Proposals[input];
+            Assert(proposal != null && Context.CurrentBlockTime <= proposal.ExpiredTime, "Proposal clear failed");
+            State.Proposals.Remove(input);
+            return new Empty();
+        }
+
+        public override Empty Release(Hash input)
+        {
+            var proposal = GetValidProposal(input);
+            Assert(Context.Sender.Equals(proposal.Proposer), "No permission.");
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            Assert(IsReleaseThresholdReached(proposal, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposal.ToAddress,
+                proposal.ContractMethodName, proposal.Params);
+
+            Context.Fire(new ProposalReleased {ProposalId = input});
+            State.Proposals.Remove(input);
 
             return new Empty();
         }

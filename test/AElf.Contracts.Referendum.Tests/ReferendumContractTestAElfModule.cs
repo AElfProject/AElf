@@ -4,10 +4,10 @@ using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.ReferendumAuth
+namespace AElf.Contracts.Referendum
 {
     [DependsOn(typeof(ContractTestModule))]
-    public class ReferendumAuthContractTestAElfModule : ContractTestModule
+    public class ReferendumContractTestAElfModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

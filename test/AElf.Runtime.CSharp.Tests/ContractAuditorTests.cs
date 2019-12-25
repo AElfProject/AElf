@@ -12,7 +12,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.ReferendumAuth;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.CSharp.CodeOps;
@@ -62,7 +62,7 @@ namespace AElf.Runtime.CSharp.Tests
             typeof(TokenContract),
             typeof(ParliamentContract),
             typeof(ProfitContract),
-            typeof(ReferendumAuthContract),
+            typeof(ReferendumContract),
             typeof(TokenConverterContract),
             typeof(TreasuryContract),
             typeof(TestContract.TestContract),

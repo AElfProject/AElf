@@ -26,7 +26,6 @@ namespace AElf.Contracts.Parliament
             }
 
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var minerList = GetCurrentMinerList();
 
             return new ProposalOutput
             {
@@ -37,7 +36,7 @@ namespace AElf.Contracts.Parliament
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization, minerList)
+                ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization)
             };
         }
 
@@ -209,10 +208,9 @@ namespace AElf.Contracts.Parliament
         public override Empty Release(Hash proposalId)
         {
             var proposalInfo = GetValidProposal(proposalId);
-            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "No permission.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            var currentParliament = GetCurrentMinerList();
-            Assert(IsReleaseThresholdReached(proposalInfo, organization, currentParliament), "Not approved.");
+            Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
             Context.Fire(new ProposalReleased {ProposalId = proposalId});
@@ -227,6 +225,22 @@ namespace AElf.Contracts.Parliament
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
             State.Organisations[Context.Sender] = organization;
+            return new Empty();
+        }
+
+        public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
+        {
+            Assert(State.DefaultOrganizationAddress.Value == Context.Sender, "No permission.");
+            State.ProposerWhiteList.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty ClearProposal(Hash input)
+        {
+            // anyone can clear proposal if it is expired
+            var proposal = State.Proposals[input];
+            Assert(proposal != null && Context.CurrentBlockTime <= proposal.ExpiredTime, "Proposal clear failed");
+            State.Proposals.Remove(input);
             return new Empty();
         }
 

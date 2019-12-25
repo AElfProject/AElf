@@ -34,9 +34,9 @@ namespace AElf.Contracts.Parliament
             return !State.ProposerAuthorityRequired.Value || ValidateProposerAuthority(address);
         }
 
-        private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
-            ICollection<Address> parliamentMembers)
+        private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
         {
+            var parliamentMembers = GetCurrentMinerList();
             var isRejected = IsProposalRejected(proposal, organization, parliamentMembers);
             if (isRejected)
                 return false;

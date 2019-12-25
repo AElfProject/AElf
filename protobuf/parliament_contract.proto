@@ -87,10 +87,6 @@ message ProposalReleased{
     aelf.Hash proposal_id = 1;
 }
 
-message ProposerWhiteList{
-    repeated aelf.Address proposers = 1;
-}
-
 message ProposalIdList{
     repeated aelf.Hash proposal_ids = 1;
 }

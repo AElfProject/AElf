@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -14,15 +15,15 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.ReferendumAuth
+namespace AElf.Contracts.Referendum
 {
-    public class ReferendumAuthContractTestBase : ContractTestBase<ReferendumAuthContractTestAElfModule>
+    public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTestAElfModule>
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         
         protected Address TokenContractAddress { get; set; }
-        protected Address ReferendumAuthContractAddress { get; set; }
+        protected Address ReferendumContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         
         protected IBlockTimeProvider BlockTimeProvider =>
@@ -30,22 +31,22 @@ namespace AElf.Contracts.ReferendumAuth
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal ReferendumAuthContractContainer.ReferendumAuthContractStub ReferendumAuthContractStub { get; set; }
+        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub { get; set; }
 
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
             
-            //deploy ReferendumAuth contract
-            ReferendumAuthContractAddress = AsyncHelper.RunSync(() =>
+            //deploy Referendum contract
+            ReferendumContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumAuthContract).Assembly.Location)),
-                    Name = Hash.FromString("AElf.ContractNames.ReferendumAuth"),
-                    TransactionMethodCallList = GenerateReferendumAuthInitializationCallList()
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumContract).Assembly.Location)),
+                    Name = Hash.FromString("AElf.ContractNames.Referendum"),
+                    TransactionMethodCallList = GenerateReferendumInitializationCallList()
                 })).Output;
-            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
@@ -69,16 +70,16 @@ namespace AElf.Contracts.ReferendumAuth
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal ReferendumAuthContractContainer.ReferendumAuthContractStub GetReferendumAuthContractTester(ECKeyPair keyPair)
+        internal ReferendumContractContainer.ReferendumContractStub GetReferendumContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ReferendumAuthContractContainer.ReferendumAuthContractStub>(ReferendumAuthContractAddress, keyPair);
+            return GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress, keyPair);
         }
         
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateReferendumAuthInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateReferendumInitializationCallList()
         {
-            var referendumAuthContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumAuthContractCallList.Add(nameof(ReferendumAuthContract.Initialize), new Empty());
-            return referendumAuthContractCallList;
+            var referendumContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            referendumContractCallList.Add(nameof(ReferendumContract.Initialize), new Empty());
+            return referendumContractCallList;
         }
         
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
@@ -96,7 +97,7 @@ namespace AElf.Contracts.ReferendumAuth
                 Issuer = DefaultSender,
                 LockWhiteList =
                 {
-                    ReferendumAuthContractAddress
+                    ReferendumContractAddress
                 }
             });
 

@@ -23,15 +23,17 @@ service ReferendumContract {
 }
 
 message CreateOrganizationInput {
-    int64 release_threshold = 1;
-    string token_symbol = 2;
+    string token_symbol = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
 }
 
 message Organization {
-    int64 release_threshold = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
     string token_symbol = 2;
     aelf.Address organization_address = 3;
     aelf.Hash organization_hash = 4;
+    acs3.ProposerWhiteList proposer_white_list = 5;
 }
 
 message Receipt {
@@ -48,6 +50,9 @@ message ProposalInfo {
     google.protobuf.Timestamp expired_time = 5;
     aelf.Address proposer = 6;
     aelf.Address organization_address = 7;
+    int64 approval_count = 8;
+    int64 rejection_count = 9;
+    int64 abstention_count = 10;
 }
 
 message ProposalCreated{

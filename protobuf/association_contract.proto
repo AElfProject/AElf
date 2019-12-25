@@ -16,8 +16,6 @@ service AssociationContract {
     }
     rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Empty){
     }
-    rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
-    }
     //view
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
@@ -27,13 +25,13 @@ service AssociationContract {
 message CreateOrganizationInput{
     OrganizationMemberList organization_member_list = 1;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
-    ProposerWhiteList proposer_white_list = 3;
+    acs3.ProposerWhiteList proposer_white_list = 3;
 }
 
 message Organization{
     OrganizationMemberList organization_member_list = 1;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
-    ProposerWhiteList proposer_white_list = 3;
+    acs3.ProposerWhiteList proposer_white_list = 3;
     aelf.Address organization_address = 4;
     aelf.Hash organization_hash = 5;
 }
@@ -53,10 +51,6 @@ message ProposalInfo {
 
 message OrganizationMemberList{
     repeated aelf.Address organization_members = 2;
-}
-
-message ProposerWhiteList{
-    repeated aelf.Address proposers = 1;
 }
 
 message ProposalCreated{

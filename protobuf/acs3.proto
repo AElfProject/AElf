@@ -21,10 +21,14 @@ service AuthorizationContract {
     }
     rpc Release(aelf.Hash) returns (google.protobuf.Empty){
     }
+    rpc ChangeOrganizationThreshold(ProposalReleaseThreshold)returns(google.protobuf.Empty) {
+    }
+    rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
+    }
+    rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty){
+    }
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
-    }
-    rpc ChangeOrganizationThreshold(ProposalReleaseThreshold)returns(google.protobuf.Empty) {
     }
 }
 
@@ -48,8 +52,12 @@ message ProposalOutput {
 }
 
 message ProposalReleaseThreshold {
-    sint32 minimal_approval_threshold = 1;
-    sint32 maximal_rejection_threshold = 2;
-    sint32 maximal_abstention_threshold = 3;
-    sint32 minimal_vote_threshold = 4;
+    int64 minimal_approval_threshold = 1;
+    int64 maximal_rejection_threshold = 2;
+    int64 maximal_abstention_threshold = 3;
+    int64 minimal_vote_threshold = 4;
+}
+
+message ProposerWhiteList{
+    repeated aelf.Address proposers = 1;
 }

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>AElf.Contracts.ReferendumAuth</RootNamespace>
+        <RootNamespace>AElf.Contracts.Referendum</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>

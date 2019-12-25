@@ -216,7 +216,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.AE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Parliament.Tests", "test\AElf.Contracts.Parliament.Tests\AElf.Contracts.Parliament.Tests.csproj", "{68B98ED7-103C-4DC6-9C89-0B90F2809284}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAuth.Tests", "test\AElf.Contracts.ReferendumAuth.Tests\AElf.Contracts.ReferendumAuth.Tests.csproj", "{3B0D744C-AFCD-441A-B960-07273CBAA9EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Referendum.Tests", "test\AElf.Contracts.Referendum.Tests\AElf.Contracts.Referendum.Tests.csproj", "{3B0D744C-AFCD-441A-B960-07273CBAA9EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "src\AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}"
 EndProject
