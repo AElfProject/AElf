@@ -438,7 +438,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Update LastPayRentTime if it is ready to charge rental.
-            State.LastPayRentTime.Value = Context.CurrentBlockTime;
+            State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
 
             var creator = State.SideChainCreator.Value;
 
@@ -478,13 +478,15 @@ namespace AElf.Contracts.MultiToken
                     // Update owning rental to record a new debt.
                     var own = rental.Sub(availableBalance);
                     State.OwningRental[symbol] = State.OwningRental[symbol].Add(own);
+                    
+                    // TODO: Fire event.
                 }
 
-                State.TreasuryContract.Donate.Send(new DonateInput
-                {
-                    Symbol = symbol,
-                    Amount = donates
-                });
+                // Side Chain donates.
+                var consensusContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                State.Balances[consensusContractAddress][symbol] =
+                    State.Balances[consensusContractAddress][symbol].Add(donates);
             }
         }
 
