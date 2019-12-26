@@ -11,7 +11,6 @@ namespace AElf.Contracts.TestContract.TransactionFees
     {
         public override Empty InitializeFeesContract(Address input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
             State.Acs8Contract.Value = input;
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
