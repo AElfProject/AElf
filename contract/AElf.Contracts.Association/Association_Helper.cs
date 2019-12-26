@@ -1,4 +1,5 @@
 using System.Linq;
+using Acs3;
 using AElf.Types;
 
 namespace AElf.Contracts.Association
@@ -85,6 +86,17 @@ namespace AElf.Contracts.Association
             Assert(proposal != null, "Invalid proposal id.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
+        }
+   
+        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(CreateOrganizationInput createOrganizationInput)
+        {
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            return new OrganizationHashAddressPair
+            {
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash
+            };
         }
 
         private void AssertProposalNotYetVotedBySender(ProposalInfo proposal, Address sender)

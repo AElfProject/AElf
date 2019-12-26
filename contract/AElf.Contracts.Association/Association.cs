@@ -39,14 +39,22 @@ namespace AElf.Contracts.Association
             };
         }
 
+        public override Address CalculateOrganizationAddress(CreateOrganizationInput input)
+        {
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            return organizationAddress;
+        }
+
         #endregion view
 
         #region Actions
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            var organizationHash = organizationHashAddressPair.OrganizationHash;
             var organization = new Organization
             {
                 ProposalReleaseThreshold = input.ProposalReleaseThreshold,
@@ -60,6 +68,11 @@ namespace AElf.Contracts.Association
             {
                 State.Organisations[organizationAddress] = organization;
             }
+            
+            Context.Fire(new OrganizationCreated
+            {
+                OrganizationAddress = organizationAddress
+            });
 
             return organizationAddress;
         }
