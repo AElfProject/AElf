@@ -17,6 +17,9 @@ namespace AElf.Contracts.TestContract.TransactionFees
         {
             var symbols = new[] {"CPU", "RAM", "NET", "STO"};
             var resources = new ResourcesOutput();
+            if (State.TokenContract.Value == null)
+                return resources;
+            
             for (var i = 0; i < symbols.Length; i++)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput

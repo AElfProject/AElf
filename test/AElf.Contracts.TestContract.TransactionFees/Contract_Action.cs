@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             //init state
-            for (var i = 0; i <= 1000; i++)
+            for (var i = 0; i <= 100; i++)
             {
                 State.TestInfo[i] = 5 * i;
             }
@@ -118,7 +118,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
         {
             Assert(input.Value>0, $"Invalid read state count {input.Value}");
             var sum = 0;
-            for (var i = 0; i <= input.Value % 1000; i++)
+            for (var i = 0; i <= input.Value % 100; i++)
             {
                 sum = sum.Add(State.TestInfo[i]);
             }
@@ -129,7 +129,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
         public override Empty WriteRamCountTest(Int32Value input)
         {
             Assert(input.Value>0, $"Invalid write state count {input.Value}");
-            for (var i = 0; i <= input.Value % 1000; i++)
+            for (var i = 0; i <= input.Value % 100; i++)
             {
                 State.TestInfo[i] = input.Value * i;
             }
