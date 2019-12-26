@@ -8,5 +8,7 @@ namespace AElf.Contracts.TestBase
         /// 30 means use default assembly loader context, for code coverage
         /// </summary>
         public const int TestRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
+
+        public const int ResourceSupply = 10000;
     }
 }
