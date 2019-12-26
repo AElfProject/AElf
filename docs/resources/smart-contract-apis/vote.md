@@ -82,7 +82,7 @@ message WithdrawInput {
 
 - **vote id**   transaction id
 
-Statistic the current term information by term number and save
+Count the current term information by term number and save it
 
 ```Protobuf
 rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {}
@@ -113,9 +113,26 @@ message AddOptionInput {
 - **option**  the new candidate address
 
 
+vote candidates
+
+```Protobuf
+rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {}
+
+message AddOptionsInput {
+    aelf.Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+```
+
+- **voting item id** voting activity id
+- **option** candidates' addresses
+
+
+
+
 Remove a candidate you voted
 ```Protobuf
-    rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
+rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
 
 message RemoveOptionInput {
     aelf.Hash voting_item_id = 1;
@@ -127,17 +144,278 @@ message RemoveOptionInput {
 - **option**   address of the candidate you want to remove
 
 
-Change the manager of the token converter contract.
+
+
+Remove candidates
+```Protobuf
+rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {}
+
+message RemoveOptionsInput {
+    aelf.Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+```
+
+- **voting item id** voting activity id
+- **option**   addresses of the candidates you want to remove
 
 ## view methods
 
 For reference, you can find here the available view methods.
 
+
+Get voting activity information
 ```Protobuf
-    rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetConnector (TokenSymbol) returns (Connector) {}
-    rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
-    rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {}
+rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {}
+
+message GetVotingItemInput {
+    aelf.Hash voting_item_id = 1;
+}
+
+message VotingItem {
+    aelf.Hash voting_item_id = 1;
+    string accepted_currency = 2;
+    bool is_lock_token = 3;
+    sint64 current_snapshot_number = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+    google.protobuf.Timestamp register_timestamp = 7;
+    google.protobuf.Timestamp start_timestamp = 8;
+    google.protobuf.Timestamp end_timestamp = 9;
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    aelf.Address sponsor = 11;
+}
 ```
+GetVotingItemInput
+- **voting item id** voting activity id
+
+VotingItem
+- **voting item id** voting activity id
+- **accepted currency** vote token
+- **is lock token** is token locked after voting
+- **current snapshot number** current term
+- **total snapshot number** total number of term
+- **register timestamp** register time
+- **start timestamp** start time
+- **end timestamp** end time
+- **current snapshot start timestamp** current term start time
+- **sponsor** activity creator
+
+
+
+
+Get voting result according to voting activity and term
+```Protobuf
+rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {}
+ 
+message GetVotingResultInput {
+    aelf.Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
+}
+
+message VotingResult {
+    aelf.Hash voting_item_id = 1;
+    map<string, sint64> results = 2; // option -> amount
+    sint64 snapshot_number = 3;
+    sint64 voters_count = 4;
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
+    sint64 votes_amount = 7;
+}
+```
+GetVotingResultInput
+- **voting item id** voting activity id
+- **snapshot number** int which term ...
+
+VotingResult
+- **voting item id** voting activity id
+- **results** candidate => votes
+- **snapshot number** term number
+- **voters count** how many voters
+- **snapshot start timestamp** start time
+- **snapshot end timestamp** end time
+- **votes amount** total votes(excluding withdraws)
+
+
+
+Get latest result according to voting activity
+```Protobuf
+rpc GetLatestVotingResult (aelf.Hash) returns (VotingResult) {}
+
+message Hash
+{
+    bytes value = 1;
+}
+
+message VotingResult {
+    aelf.Hash voting_item_id = 1;
+    map<string, sint64> results = 2; // option -> amount
+    sint64 snapshot_number = 3;
+    sint64 voters_count = 4;
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
+    sint64 votes_amount = 7;
+}
+```
+Hash
+- **value** voting activity id
+
+VotingResult
+- **voting item id** voting activity id
+- **results** candidate => votes
+- **snapshot number** term number
+- **voters count** how many voters
+- **snapshot start timestamp** start time
+- **snapshot end timestamp** end time
+- **votes amount** total votes(excluding withdraws)
+
+
+
+
+Get voting record according to transaction id
+```Protobuf
+rpc GetVotingRecord (aelf.Hash) returns (VotingRecord) {}
+
+message Hash
+{
+    bytes value = 1;
+}
+message VotingRecord {
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    google.protobuf.Timestamp vote_timestamp = 6;
+    bool is_withdrawn = 7;
+    string option = 8;
+    bool is_change_target = 9;
+}
+```
+
+Hash
+- **value** transaction id
+
+VotingRecord
+- **voting item id** voting activity id
+- **voter** voter
+- **snapshot number** term number
+- **withdraw timestamp** withdraw time
+- **vote timestamp**  vote time
+- **is withdrawn**  has withdrawn
+- **option**  candidate id
+- **is change target**  has withdrawn and vote to others
+
+
+
+
+Get voting records according to transaction ids
+```Protobuf
+rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {}
+
+
+message GetVotingRecordsInput {
+    repeated aelf.Hash ids = 1;
+}
+
+message Hash
+{
+    bytes value = 1;
+}
+
+message VotingRecords {
+    repeated VotingRecord records = 1;
+}
+
+message VotingRecord {
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    google.protobuf.Timestamp vote_timestamp = 6;
+    bool is_withdrawn = 7;
+    string option = 8;
+    bool is_change_target = 9;
+}
+
+```
+GetVotingRecordsInput
+- **ids** transaction ids
+
+Hash
+- **value**  transaction id
+
+VotingRecords
+- **records**  records
+
+
+VotingRecord
+- **voting item id** voting activity id
+- **voter** voter
+- **snapshot number** term number
+- **withdraw timestamp** withdraw time
+- **vote timestamp**  vote time
+- **is withdrawn**  has withdrawn
+- **option**  candidate id
+- **is change target**  has withdrawn and vote to others
+
+
+
+
+Get voter's withdrawn and valid transaction ids respectively
+```Protobuf
+rpc GetVotedItems (aelf.Address) returns (VotedItems) {}
+
+message Address
+{
+    bytes value = 1;
+}
+
+message VotedItems {
+    map<string, VotedIds> voted_item_vote_ids = 1;
+}
+
+message VotedIds {
+    repeated aelf.Hash active_votes = 1;
+    repeated aelf.Hash withdrawn_votes = 2;
+}
+```
+Address
+- **value** voter address
+
+VotedItems
+- **voted item vote ids**  voting activity => vote information
+
+VotedIds
+- **active votes** valid transaction id
+- **withdrawn votes**withdrawn transaction id
+
+
+
+
+
+Get voter's withdrawn and valid transaction ids respectively according to voting activity
+```Protobuf
+rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {}
+
+message GetVotingIdsInput {
+    aelf.Address voter = 1;
+    aelf.Hash voting_item_id = 2;
+}
+
+message VotedIds {
+    repeated aelf.Hash active_votes = 1;
+    repeated aelf.Hash withdrawn_votes = 2;
+}
+```
+GetVotingIdsInput
+- **voter** voter address
+- **voting item id** voting activity id
+
+
+VotedIds
+- **active votes** valid transaction id
+- **withdrawn votes**withdrawn transaction id
+
+
