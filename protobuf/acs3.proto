@@ -61,3 +61,8 @@ message ProposalReleaseThreshold {
 message ProposerWhiteList{
     repeated aelf.Address proposers = 1;
 }
+
+message OrganizationHashAddressPair{
+    aelf.Hash organization_hash = 1;
+    aelf.Address organization_address = 2;
+}

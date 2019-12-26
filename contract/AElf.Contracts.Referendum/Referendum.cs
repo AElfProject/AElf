@@ -37,6 +37,13 @@ namespace AElf.Contracts.Referendum
             };
         }
 
+        public override Address CalculateOrganizationAddress(CreateOrganizationInput input)
+        {
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            return organizationAddress;
+        }
+
         #endregion
 
         public override Empty Initialize(Empty input)
@@ -46,8 +53,9 @@ namespace AElf.Contracts.Referendum
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            var organizationHash = organizationHashAddressPair.OrganizationHash;
             Assert(State.Organisations[organizationAddress] == null, "Organization already exists.");
             var organization = new Organization
             {

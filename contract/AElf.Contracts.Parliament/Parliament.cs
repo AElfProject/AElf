@@ -46,6 +46,13 @@ namespace AElf.Contracts.Parliament
             return State.DefaultOrganizationAddress.Value;
         }
 
+        public override Address CalculateOrganizationAddress(CreateOrganizationInput input)
+        {
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            return organizationAddress;
+        }
+
         public override BoolValue ValidateAddressIsParliamentMember(Address address)
         {
             return new BoolValue {Value = ValidateParliamentMemberAuthority(address)};
@@ -131,9 +138,10 @@ namespace AElf.Contracts.Parliament
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            AssertAuthorizedProposer();
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            AssertAuthorizedProposer(Context.Sender);
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            var organizationHash = organizationHashAddressPair.OrganizationHash;
             var organization = new Organization
             {
                 ProposalReleaseThreshold = input.ProposalReleaseThreshold,
@@ -153,7 +161,7 @@ namespace AElf.Contracts.Parliament
         {
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
-            AssertAuthorizedProposer();
+            AssertAuthorizedProposer(Context.Sender);
             var proposalId = CreateNewProposal(input);
             return proposalId;
         }

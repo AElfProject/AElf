@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -19,6 +20,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
+using ProposalCreated = AElf.Contracts.Parliament.ProposalCreated;
 
 namespace AElf.Contracts.CrossChain.Tests
 {
@@ -31,6 +33,9 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected Address ParliamentContractAddress =>
             ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+
+        protected Address AssociationContractAddress =>
+            ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
             ContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
@@ -66,6 +71,8 @@ namespace AElf.Contracts.CrossChain.Tests
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultKeyPair);
 
+        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
+
         internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
@@ -93,11 +100,16 @@ namespace AElf.Contracts.CrossChain.Tests
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 CrossChainSmartContractAddressNameProvider.Name,
-                ConsensusSmartContractAddressNameProvider.Name
+                ConsensusSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitializeTokenAsync);
             AsyncHelper.RunSync(InitializeParliamentContractAsync);
+
+            AssociationContractStub =
+                GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+                    DefaultKeyPair);
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
@@ -235,17 +247,31 @@ namespace AElf.Contracts.CrossChain.Tests
             return proposalId;
         }
 
-        internal async Task<Hash> CreateProposalAsync(string method, Address address, IMessage input)
+        internal async Task<Hash> CreateParliamentProposalAsync(string method, Address address, IMessage input, Address toAddress = null)
         {
             var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
-                ToAddress = CrossChainContractAddress,
+                ToAddress = toAddress ?? CrossChainContractAddress,
                 ContractMethodName = method,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = address,
                 Params = input.ToByteString()
             })).Output;
             return proposal;
+        }
+
+        internal async Task<Hash> CreateAssociationProposalAsync(string method, Address address, IMessage input)
+        {
+            var proposalId = (await AssociationContractStub.CreateProposal.SendAsync(
+                new CreateProposalInput
+                {
+                    ToAddress = CrossChainContractAddress,
+                    ContractMethodName = method,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    OrganizationAddress = address,
+                    Params = input.ToByteString()
+                })).Output;
+            return proposalId;
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)

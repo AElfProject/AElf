@@ -19,14 +19,13 @@ namespace AElf.Contracts.Parliament
             return members;
         }
 
-        private void AssertAuthorizedProposer()
+        private void AssertAuthorizedProposer(Address proposer)
         {
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
             // or sender is one of miners.
-
-            Assert(CheckProposerAuthorityIfNeeded(Context.Sender), "Not authorized to propose.");
+            Assert(CheckProposerAuthorityIfNeeded(proposer), "Not authorized to propose.");
         }
 
         private bool CheckProposerAuthorityIfNeeded(Address address)
@@ -212,6 +211,19 @@ namespace AElf.Contracts.Parliament
             State.Proposals[proposalId] = proposal;
             Context.Fire(new ProposalCreated {ProposalId = proposalId});
             return proposalId;
+        }
+
+        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
+            CreateOrganizationInput createOrganizationInput)
+        {
+            var organizationHash =
+                Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            return new OrganizationHashAddressPair
+            {
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash
+            };
         }
     }
 }

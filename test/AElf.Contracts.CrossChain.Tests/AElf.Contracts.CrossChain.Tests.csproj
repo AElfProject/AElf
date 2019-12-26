@@ -45,6 +45,9 @@
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractMessage>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>

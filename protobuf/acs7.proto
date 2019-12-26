@@ -29,6 +29,8 @@ service ACS7 {
     }
     rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
     }
+    rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
+    }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
@@ -184,4 +186,9 @@ message CreateSideChainInput{
 
 message ReleaseSideChainCreationInput {
     aelf.Hash proposalId = 1;
+}
+
+message AdjustIndexingFeeInput{
+    int32 side_chain_id = 1;
+    int32 indexing_fee = 2;
 }

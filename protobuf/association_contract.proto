@@ -20,6 +20,9 @@ service AssociationContract {
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateOrganizationInput{
@@ -51,6 +54,11 @@ message ProposalInfo {
 
 message OrganizationMemberList{
     repeated aelf.Address organization_members = 2;
+}
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
 }
 
 message ProposalCreated{

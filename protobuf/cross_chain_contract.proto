@@ -16,9 +16,11 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangCrossChainIndexingController(aelf.Address) returns (google.protobuf.Empty) {
     }
-
+    rpc ChangSideChainLifetimeController(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
     // Views
     rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
@@ -43,6 +45,8 @@ service CrossChainContract {
     }
     rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
         option (aelf.is_view) = true;
+    }
+    rpc GetSideChainIndexingFeePrice(aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
 }
 

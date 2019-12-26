@@ -135,12 +135,28 @@ namespace AElf.Contracts.Referendum
             State.Proposals[proposalId] = proposal;
             return proposalId;
         }
+        
+        private Hash CalculateOrganizationHash(CreateOrganizationInput createOrganizationInput)
+        {
+            return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+        }
 
         private void AssertProposerAuthority(Address organizationAddress, Address proposer)
         {
             var organization = State.Organisations[organizationAddress];
             Assert(organization != null, "Organization not found.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
+        }
+
+        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(CreateOrganizationInput createOrganizationInput)
+        {
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            return new OrganizationHashAddressPair
+            {
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash
+            };
         }
     }
 }

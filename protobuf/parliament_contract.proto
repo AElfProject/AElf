@@ -41,6 +41,9 @@ service ParliamentContract {
     rpc GetNotVotedProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateOrganizationInput {

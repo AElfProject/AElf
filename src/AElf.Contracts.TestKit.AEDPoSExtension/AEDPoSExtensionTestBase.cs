@@ -29,6 +29,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
             {CrossChainSmartContractAddressNameProvider.Name, "CrossChain"},
             {ReferendumSmartContractAddressNameProvider.Name, "Referendum"},
+            {AssociationSmartContractAddressNameProvider.Name, "Association"}
         };
 
         protected IBlockMiningService BlockMiningService =>
