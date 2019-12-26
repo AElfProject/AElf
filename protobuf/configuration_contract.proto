@@ -16,14 +16,6 @@ service Configuration {
     }
     rpc ChangeOwnerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc RentResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateRentedResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
-    }
-    rpc InitialTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
-    }
     // Views
     rpc GetBlockTransactionLimit (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
@@ -31,24 +23,6 @@ service Configuration {
     rpc GetOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetRentedResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetRemainResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTotalResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-}
-
-message ResourceTokenAmount {
-    map<string, sint32> value = 1;
-}
-
-message RentResourceTokensInput {
-    aelf.SInt32Value chain_id = 1;
-    ResourceTokenAmount resource_token_amount = 2;
 }
 
 // Events
