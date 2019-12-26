@@ -15,18 +15,18 @@ namespace AElf.Contracts.TestContract.TransactionFees
 
         public override ResourcesOutput QueryContractResource(Empty input)
         {
-            var symbols = new [] { "ELF", "CPU", "RAM", "NET", "STO"};
+            var symbols = new[] {"CPU", "RAM", "NET", "STO"};
             var resources = new ResourcesOutput();
-            foreach (var symbol in symbols)
+            for (var i = 0; i < symbols.Length; i++)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
                     Owner = Context.Self,
-                    Symbol = symbol
+                    Symbol = symbols[i]
                 });
                 resources.Resources.Add(new TokenInfo
                 {
-                    Symbol = symbol,
+                    Symbol = symbols[i],
                     Amount = balance.Balance
                 });
             }
