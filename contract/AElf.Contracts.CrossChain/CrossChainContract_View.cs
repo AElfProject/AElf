@@ -201,5 +201,15 @@ namespace AElf.Contracts.CrossChain
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
             return res;
         }
+
+        public override SInt64Value GetSideChainIndexingFeePrice(SInt32Value input)
+        {
+            var sideChainInfo = State.SideChainInfo[input.Value];
+            Assert(sideChainInfo != null, "Side chain not found.");
+            return new SInt64Value
+            {
+                Value = sideChainInfo.SideChainCreationRequest.IndexingPrice
+            };
+        }
     }
 }
