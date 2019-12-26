@@ -1,6 +1,6 @@
 # aelf-sdk.js - AELF JavaScript API
 
-For dApp developers we have a javascript sdk to help interaction with the node's web API. Of course, you need to run an AELF node to use the sdk.
+For dApp developers we have a javascript sdk to help interact with the node's web API. Of course, you need to run an AELF node to use the sdk.
 If you need more information you can check out the repo : [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js)
 
 ## Basic usage
