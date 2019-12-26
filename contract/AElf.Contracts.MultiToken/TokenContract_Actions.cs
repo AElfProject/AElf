@@ -372,7 +372,7 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 < input.DonationPartsPerHundred && input.DonationPartsPerHundred < 100, "Invalid donation ratio.");
+            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100, "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;
             return new Empty();
