@@ -1,13 +1,13 @@
 # aelf-sdk.js - AELF JavaScript API
 
-For dApp developpers we have a javascript sdk, to help interaction with the JSON RPC exposed by the node. Of course, you need to run a an AELF node to use the sdk.
+For dApp developers we have a javascript sdk to help interaction with the node's web API. Of course, you need to run an AELF node to use the sdk.
 If you need more information you can check out the repo : [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js)
 
 ## Basic usage
 
 ### Examples
 
-You can also see a full examples in `./examples`;
+You can also see full examples in `./examples`;
 
 1. Create a new instance of AElf, connect to an AELF chain node.
 
@@ -18,7 +18,7 @@ You can also see a full examples in `./examples`;
     const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
     ```
 
-2. Create or load a wallet by `AElf.wallet`
+2. Create or load a wallet with `AElf.wallet`
 
     ```javascript
     // create a new wallet
@@ -70,7 +70,7 @@ You can also see a full examples in `./examples`;
 
 5. How to use contract instance
 
-    A contract instance consists of several contract methods, and methods have two kind ways of calling: read-only and send transactions
+    A contract instance consists of several contract methods and methods can be called in two ways: read-only and send transaction.
 
     ```javascript
     (async () => {
@@ -105,7 +105,7 @@ You can also see a full examples in `./examples`;
     })()
     ```
 
-6. Change node endpoint by using `aelf.setProvider`
+6. Change the node endpoint by using `aelf.setProvider`
 
     ```javascript
     import AElf from 'aelf-sdk';
@@ -116,10 +116,10 @@ You can also see a full examples in `./examples`;
 
 ### Web API
 
-*You can see how Web Api of chain node works in `{chainAddress}/swagger/index.html`*
+*You can see how the Web Api of the node works in `{chainAddress}/swagger/index.html`*
 _tip: for an example, my local address: 'http://127.0.0.1:1235/swagger/index.html'_
 
-The usage of these methods is based on the AElf instance, If you don't have please Create an AElf instance:
+The usage of these methods is based on the AElf instance, so if you don't have one please create it:
 
 ```javascript
 import AElf from 'aelf-sdk';
