@@ -16,10 +16,22 @@ namespace AElf.Contracts.MultiToken
         public MappedState<FeeTypeEnum, CalculateFeeCoefficientsOfType> CalculateCoefficientOfContract { get; set; }
         public SingletonState<CalculateFeeCoefficientsOfType> CalculateCoefficientOfSender { get; set; }
 
+        /// <summary>
+        /// Symbol -> Amount
+        /// (CPU: core)
+        /// (RAM: GiB)
+        /// (DISK: GiB)
+        /// </summary>
         public MappedState<string, int> ResourceAmount { get; set; }
 
+        /// <summary>
+        /// Symbol -> Amount (Tokens per minute)
+        /// </summary>
         public MappedState<string, long> Rental { get; set; }
 
+        /// <summary>
+        /// Symbol -> Amount
+        /// </summary>
         public MappedState<string, long> OwningRental { get; set; }
     }
 }
