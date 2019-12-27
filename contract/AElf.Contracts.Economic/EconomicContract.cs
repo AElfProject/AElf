@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -83,7 +84,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
