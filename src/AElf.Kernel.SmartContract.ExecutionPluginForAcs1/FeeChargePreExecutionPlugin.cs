@@ -67,14 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
-                var tokenStub = new TokenContractContainer.TokenContractStub
-                {
-                    __factory = new TransactionGeneratingOnlyMethodStubFactory
-                    {
-                        Sender = transactionContext.Transaction.From,
-                        ContractAddress = tokenContractAddress
-                    }
-                };
+                var tokenStub = GetTokenContractStub(transactionContext.Transaction.From, tokenContractAddress);
                 if (transactionContext.Transaction.To == tokenContractAddress &&
                     transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
                 {
@@ -107,6 +100,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
                 throw;
             }
+        }
+
+        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+            Address contractAddress)
+        {
+            return new TokenContractContainer.TokenContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
+                {
+                    Sender = sender,
+                    ContractAddress = contractAddress
+                }
+            };
         }
     }
 }
