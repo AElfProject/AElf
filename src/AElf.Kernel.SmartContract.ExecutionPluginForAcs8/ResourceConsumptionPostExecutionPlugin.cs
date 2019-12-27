@@ -40,6 +40,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
 
+        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+            Address contractAddress)
+        {
+            return new TokenContractContainer.TokenContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
+                {
+                    Sender = sender,
+                    ContractAddress = contractAddress
+                }
+            };
+        }
+
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
@@ -58,14 +71,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = tokenContractAddress
-                }
-            };
+            var tokenStub = GetTokenContractStub(transactionContext.Transaction.To, tokenContractAddress);
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
