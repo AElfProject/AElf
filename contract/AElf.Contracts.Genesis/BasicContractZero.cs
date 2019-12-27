@@ -172,7 +172,7 @@ namespace AElf.Contracts.Genesis
             RequireParliamentContractAddressSet();
             
             // Create proposal for deployment
-            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -184,11 +184,14 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         IsContractDeployment = true
                     }.ToByteString(),
-                    OrganizationAddress = State.GenesisOwner.Value,
+                    OrganizationAddress = State.GenesisOwner.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 },
                 OriginProposer = Context.Sender
-            });
+            };
+            Context.SendInline(State.GenesisOwner.Value.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .CreateProposalBySystemContract), proposalCreationInput.ToByteString());
             
             Context.Fire(new ContractProposed
             {
@@ -215,7 +218,7 @@ namespace AElf.Contracts.Genesis
 
             // Create proposal for deployment
             RequireParliamentContractAddressSet();
-            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -227,11 +230,14 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         IsContractDeployment = false
                     }.ToByteString(),
-                    OrganizationAddress = State.GenesisOwner.Value,
+                    OrganizationAddress = State.GenesisOwner.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 },
                 OriginProposer = Context.Sender
-            });
+            };
+            Context.SendInline(State.GenesisOwner.Value.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .CreateProposalBySystemContract), proposalCreationInput.ToByteString());
 
             // Fire event to trigger BPs checking contract code
             Context.Fire(new ContractProposed
@@ -244,7 +250,7 @@ namespace AElf.Contracts.Genesis
         
         public override Hash ProposeContractCodeCheck(ContractCodeCheckInput input)
         {
-            RequireSenderAuthority();
+            RequireSenderAuthority(State.GenesisOwner.Value.OwnerAddress);
             AssertDeploymentProposerAuthority(Context.Origin);
             var proposedContractInputHash = Hash.FromRawBytes(input.ContractInput.ToByteArray());
             var proposedInfo = State.ContractProposingInputMap[proposedContractInputHash];
@@ -265,7 +271,7 @@ namespace AElf.Contracts.Genesis
                         ? nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract)
                         : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                     Params = input.ContractInput,
-                    OrganizationAddress = State.GenesisOwner.Value,
+                    OrganizationAddress = State.CodeCheckController.Value,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
                 },
                 OriginProposer = proposedInfo.Proposer
@@ -308,7 +314,7 @@ namespace AElf.Contracts.Genesis
         
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            RequireSenderAuthority();
+            RequireSenderAuthority(State.CodeCheckController.Value);
             AssertDeploymentProposerAuthority(Context.Origin);
 
             var inputHash = CalculateHashFromInput(input);
@@ -326,7 +332,7 @@ namespace AElf.Contracts.Genesis
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract not found.");
-            RequireSenderAuthority();
+            RequireSenderAuthority(State.CodeCheckController.Value);
             var inputHash = CalculateHashFromInput(input);
             
             if (!TryClearContractProposingInput(inputHash, out _))
@@ -370,17 +376,17 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        public override Empty ChangeGenesisOwner(ContractControllerStuff input)
         {
             if (State.GenesisOwner.Value == null)
-                InitializeGenesisOwner(newOwnerAddress);
+                InitializeOwnerAddress(input.OwnerAddress);
             else
             {
-                AssertSenderAddressWith(State.GenesisOwner.Value);
+                AssertSenderAddressWith(State.GenesisOwner.Value.OwnerAddress);
                 RequireParliamentContractAddressSet();
-                var organizationExist = CheckOrganizationExist(newOwnerAddress);
+                var organizationExist = CheckOrganizationExist(input);
                 Assert(organizationExist, "Invalid genesis owner address.");
-                State.GenesisOwner.Value = newOwnerAddress;
+                State.GenesisOwner.Value = input;
             }
 
             return new Empty();

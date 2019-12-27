@@ -1,4 +1,5 @@
 using System.Linq;
+using Acs0;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -130,7 +131,11 @@ namespace AElf.Contracts.Parliament
             var defaultOrganizationAddress = CreateOrganization(organizationInput);
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
-            State.GenesisContract.ChangeGenesisOwner.Send(defaultOrganizationAddress);
+            State.GenesisContract.ChangeGenesisOwner.Send(new ContractControllerStuff
+            {
+                ContractAddress = Context.Self,
+                OwnerAddress = defaultOrganizationAddress
+            });
             State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
 
             return new Empty();

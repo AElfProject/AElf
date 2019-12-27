@@ -11,7 +11,7 @@ namespace AElf.Contracts.Genesis
 {
     public partial class BasicContractZero
     {
-        private void RequireSenderAuthority()
+        private void RequireSenderAuthority(Address address = null)
         {
             if (!State.Initialized.Value)
             {
@@ -24,7 +24,8 @@ namespace AElf.Contracts.Genesis
             if (!isGenesisOwnerAuthorityRequired)
                 return;
 
-            AssertSenderAddressWith(State.GenesisOwner.Value);
+            if (address != null)
+                AssertSenderAddressWith(address);
         }
 
         private void RequireParliamentContractAddressSet()
@@ -41,13 +42,20 @@ namespace AElf.Contracts.Genesis
             Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
         }
 
-        private void InitializeGenesisOwner(Address genesisOwner)
+        private void InitializeOwnerAddress(Address ownerAddress)
         {
-            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
-            Assert(genesisOwner != null, "Genesis Owner should not be null.");
-            State.GenesisOwner.Value = genesisOwner;
+            Assert(State.GenesisOwner.Value == null && State.CodeCheckController.Value == null,
+                "Genesis owner already initialized");
+            var parliamentContractAddress =
+                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
+            Assert(ownerAddress != null, "Genesis Owner should not be null.");
+            State.GenesisOwner.Value = new ContractControllerStuff
+            {
+                OwnerAddress = ownerAddress,
+                ContractAddress = parliamentContractAddress
+            };
+            State.CodeCheckController.Value = ownerAddress;
         }
 
         private Hash CalculateHashFromInput(IMessage input)
@@ -75,9 +83,11 @@ namespace AElf.Contracts.Genesis
             return State.ParliamentContract.ValidateAddressIsParliamentMember.Call(address).Value;
         }
 
-        private bool CheckOrganizationExist(Address address)
+        private bool CheckOrganizationExist(ContractControllerStuff contractControllerStuff)
         {
-            return State.ParliamentContract.ValidateOrganizationExist.Call(address).Value;
+            return Context.Call<BoolValue>(contractControllerStuff.ContractAddress,
+                nameof(Acs3.AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .ValidateOrganizationExist), contractControllerStuff.OwnerAddress.ToByteString()).Value;
         }
 
         private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
@@ -94,9 +104,9 @@ namespace AElf.Contracts.Genesis
                 Assert(
                     contractProposingInput != null, "Contract proposing data not found.");
 
-            if (contractProposingInput == null) 
+            if (contractProposingInput == null)
                 return false;
-            
+
             Assert(contractProposingInput.Status == ContractProposingInputStatus.CodeChecked,
                 "Invalid contract proposing status.");
             State.ContractProposingInputMap.Remove(inputHash);

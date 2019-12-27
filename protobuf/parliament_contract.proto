@@ -30,9 +30,6 @@ service ParliamentContract {
     rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
         option (aelf.is_view) = true;
     }
-    rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
-         option (aelf.is_view) = true;
-    }
     rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }

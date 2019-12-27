@@ -32,6 +32,9 @@ service AuthorizationContract {
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
+    rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProposalInput {

@@ -47,6 +47,11 @@ namespace AElf.Contracts.Association
             return organizationAddress;
         }
 
+        public override BoolValue ValidateOrganizationExist(Address input)
+        {
+            return new BoolValue {Value = State.Organisations[input] != null};
+        }
+        
         #endregion view
 
         #region Actions

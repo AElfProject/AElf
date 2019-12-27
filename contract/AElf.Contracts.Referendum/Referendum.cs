@@ -45,6 +45,11 @@ namespace AElf.Contracts.Referendum
             return organizationAddress;
         }
 
+        public override BoolValue ValidateOrganizationExist(Address input)
+        {
+            return new BoolValue {Value = State.Organisations[input] != null};
+        }
+        
         #endregion
 
         public override Empty Initialize(Empty input)

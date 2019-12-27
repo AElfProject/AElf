@@ -27,7 +27,7 @@ service ACS0 {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeGenesisOwner (ContractControllerStuff) returns (google.protobuf.Empty) {
     }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
@@ -146,4 +146,9 @@ message ValidateSystemContractAddressInput {
 message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
     aelf.Hash proposed_contract_input_hash = 2;
+}
+
+message ContractControllerStuff{
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
 }
