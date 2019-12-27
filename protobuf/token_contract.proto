@@ -120,6 +120,9 @@ service TokenContract {
     rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
+    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -387,6 +390,9 @@ message UpdateRentedResourceTokenInput {
     map<string, sint32> resource_amount = 1;
 }
 
+message OwningRental {
+    map<string, sint64> resource_amount = 1;
+}
 
 message CoefficientFromSender {
     sint32 piece_key = 1;

@@ -466,8 +466,8 @@ namespace AElf.Contracts.MultiToken
                 var rental = duration.Mul(State.ResourceAmount[symbol]).Mul(State.Rental[symbol]);
                 if (availableBalance >= rental) // Success
                 {
-                    State.Balances[creator][symbol] = State.Balances[creator][symbol].Sub(rental);
                     donates = donates.Add(rental);
+                    State.Balances[creator][symbol] = State.Balances[creator][symbol].Sub(donates);
                 }
                 else // Fail
                 {

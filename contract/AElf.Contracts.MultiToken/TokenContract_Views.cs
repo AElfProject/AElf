@@ -100,48 +100,32 @@ namespace AElf.Contracts.MultiToken
                 _primaryTokenSymbol = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ??
                                       string.Empty;
             }
+
             return new StringValue
             {
                 Value = _primaryTokenSymbol
             };
         }
+
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
         {
-            return State.CalculateCoefficientOfContract[(FeeTypeEnum)input.Value];
+            return State.CalculateCoefficientOfContract[(FeeTypeEnum) input.Value];
         }
+
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
         {
             return State.CalculateCoefficientOfSender.Value;
         }
-        #region ForTests
 
-        /*
-        [View]
-        
-        public string GetTokenInfo2(string symbol)
+        public override OwningRental GetOwningRental(Empty input)
         {
-            return GetTokenInfo(new GetTokenInfoInput() {Symbol = symbol}).ToString();
-        }
-
-        [View]
-        public string GetBalance2(string symbol, Address owner)
-        {
-            return GetBalance(
-                new GetBalanceInput() {Symbol = symbol, Owner = owner})?.ToString();
-        }
-
-        [View]
-        public string GetAllowance2(string symbol, Address owner, Address spender)
-        {
-            return GetAllowance(new GetAllowanceInput()
+            var owingRental = new OwningRental();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
             {
-                Owner = owner,
-                Symbol = symbol,
-                Spender = spender
-            })?.ToString();
-        }
-        */
+                owingRental.ResourceAmount[symbol] = State.OwningRental[symbol];
+            }
 
-        #endregion
+            return owingRental;
+        }
     }
 }

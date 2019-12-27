@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
@@ -56,7 +57,104 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
         }
 
-        private async Task InitialTokenContract()
+        [Fact]
+        public async Task OwnResourceTest()
+        {
+            await InitialTokenContract(false);
+
+            // Check balance before mining
+            {
+                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                cpuBalance.ShouldBe(0);
+                var ramBalance = await GetCreatorBalanceOf("RAM");
+                ramBalance.ShouldBe(0);
+                var diskBalance = await GetCreatorBalanceOf("DISK");
+                diskBalance.ShouldBe(0);
+            }
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
+            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+            owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental);
+            owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental);
+            owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental);
+        }
+
+        [Fact]
+        public async Task PayDebtTest()
+        {
+            await OwnResourceTest();
+
+            // Charge
+            foreach (var symbol in new List<string> {"CPU", "RAM", "DISK"})
+            {
+                await TokenStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = symbol,
+                    To = Creator,
+                    Amount = ResourceSupply
+                });
+            }
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
+            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+            owningRental.ResourceAmount["CPU"].ShouldBe(0);
+            owningRental.ResourceAmount["RAM"].ShouldBe(0);
+            owningRental.ResourceAmount["DISK"].ShouldBe(0);
+
+            // Check balance before mining
+            {
+                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                cpuBalance.ShouldBe(ResourceSupply - CpuAmount * Rental * 2);
+                var ramBalance = await GetCreatorBalanceOf("RAM");
+                ramBalance.ShouldBe(ResourceSupply - RamAmount * Rental * 2);
+                var diskBalance = await GetCreatorBalanceOf("DISK");
+                diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental * 2);
+            }
+        }
+
+        [Fact]
+        public async Task PayDebtTest_NotEnough()
+        {
+            await OwnResourceTest();
+
+            // Charge
+            foreach (var symbol in new List<string> {"CPU", "RAM", "DISK"})
+            {
+                await TokenStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = symbol,
+                    To = Creator,
+                    Amount = 1
+                });
+            }
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
+            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+            owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental * 2 - 1);
+            owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental * 2 - 1);
+            owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental * 2 - 1);
+
+            // Check balance before mining
+            {
+                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                cpuBalance.ShouldBe(0);
+                var ramBalance = await GetCreatorBalanceOf("RAM");
+                ramBalance.ShouldBe(0);
+                var diskBalance = await GetCreatorBalanceOf("DISK");
+                diskBalance.ShouldBe(0);
+            }
+        }
+
+        private async Task InitialTokenContract(bool issueToken = true)
         {
             if (!ParliamentStubs.Any())
             {
@@ -106,12 +204,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 }
             });
 
-            await CreateToken("CPU", ResourceSupply);
-            await CreateToken("RAM", ResourceSupply);
-            await CreateToken("DISK", ResourceSupply);
+            await CreateToken("CPU", ResourceSupply, issueToken);
+            await CreateToken("RAM", ResourceSupply, issueToken);
+            await CreateToken("DISK", ResourceSupply, issueToken);
         }
 
-        private async Task CreateToken(string symbol, long supply)
+        private async Task CreateToken(string symbol, long supply, bool issueToken)
         {
             await TokenStub.Create.SendAsync(new CreateInput
             {
@@ -122,6 +220,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 IsBurnable = true,
                 TokenName = $"{symbol} token."
             });
+
+            if (!issueToken)
+            {
+                return;
+            }
 
             await TokenStub.Issue.SendAsync(new IssueInput
             {
