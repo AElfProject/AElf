@@ -11,10 +11,19 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
     public class MethodCallReplacer : IPatcher<ModuleDefinition>
     {
         private static readonly string Sdk = "AElf.Sdk.CSharp";
-        private static readonly Dictionary<string, string> TargetMethods = new Dictionary<string, string>
+        
+        private static readonly Dictionary<string, string> MethodCallsToReplace = new Dictionary<string, string>
         {
             {"System.String::Concat", $"{Sdk}.{nameof(AElfString)}"},
             // May add System.String::Format later
+        };
+        
+        // Replace unchecked math OpCodes with checked OpCodes (overflow throws exception)
+        private static readonly Dictionary<OpCode, OpCode> OpCodesToReplace = new Dictionary<OpCode, OpCode>()
+        {
+            {OpCodes.Add, OpCodes.Add_Ovf},
+            {OpCodes.Sub, OpCodes.Sub_Ovf},
+            {OpCodes.Mul, OpCodes.Mul_Ovf}
         };
 
         public void Patch(ModuleDefinition module)
@@ -26,7 +35,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var refSdk = AssemblyDefinition.ReadAssembly(Assembly.Load(nameRefSdk.FullName).Location);
 
             // Get the type definitions mapped for target methods from SDK
-            var sdkTypes = TargetMethods.Select(kv => kv.Value).Distinct();
+            var sdkTypes = MethodCallsToReplace.Select(kv => kv.Value).Distinct();
             var sdkTypeDefs = sdkTypes
                 .Select(t => module.ImportReference(refSdk.MainModule.GetType(t)).Resolve())
                 .ToDictionary(def => def.FullName);
@@ -57,27 +66,32 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
         {
             if (!method.HasBody)
                 return;
-            
+
             var ilProcessor = method.Body.GetILProcessor();
                     
-            var instructionsToReplace = method.Body.Instructions.Where(i => 
-                    i.OpCode.Code == Code.Call && TargetMethods.Any(m => ((MethodReference) i.Operand).FullName.Contains(m.Key)))
+            var methodCallsToReplace = method.Body.Instructions.Where(i => 
+                    i.OpCode.Code == Code.Call && MethodCallsToReplace.Any(m => ((MethodReference) i.Operand).FullName.Contains(m.Key)))
                 .ToList();
 
-            foreach (var instruction in instructionsToReplace)
+            foreach (var instruction in methodCallsToReplace)
             {
                 var sysMethodRef = (MethodReference) instruction.Operand;
                 var newMethodRef = method.Module.ImportReference(GetSdkMethodReference(sdkTypeDefs, sysMethodRef));
 
-                ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Call, newMethodRef));
-                ilProcessor.Remove(instruction);
+                ilProcessor.Replace(instruction, ilProcessor.Create(OpCodes.Call, newMethodRef));
+            }
+
+            var opCodesToReplace = method.Body.Instructions.Where(i => OpCodesToReplace.Keys.Contains(i.OpCode)).ToList();
+            foreach (var instruction in opCodesToReplace)
+            {
+                ilProcessor.Replace(instruction, ilProcessor.Create(OpCodesToReplace[instruction.OpCode]));
             }
         }
 
         private MethodReference GetSdkMethodReference(Dictionary<string, TypeDefinition> sdkTypeDefs, MethodReference methodRef)
         {
             // Find the right method that has the same set of parameters and return type
-            var replaceFrom = TargetMethods[$"{methodRef.DeclaringType}::{methodRef.Name}"];
+            var replaceFrom = MethodCallsToReplace[$"{methodRef.DeclaringType}::{methodRef.Name}"];
             var methodDefinition = sdkTypeDefs[replaceFrom].Methods.Single(
                 m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
                      m.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] == 
