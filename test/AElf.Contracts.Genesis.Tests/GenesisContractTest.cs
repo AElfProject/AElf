@@ -105,7 +105,12 @@ namespace AElf.Contracts.Genesis
         {
             //without permission
             {
-                var changeResult = await DefaultTester.ChangeGenesisOwner.SendWithExceptionAsync(AnotherUser);
+                var changeResult = await DefaultTester.ChangeGenesisOwner.SendWithExceptionAsync(
+                    new ContractControllerStuff
+                    {
+                        OwnerAddress = AnotherUser,
+                        ContractAddress = ContractZeroAddress
+                    });
                 changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 changeResult.TransactionResult.Error.ShouldContain("Unauthorized to initialize");
             }

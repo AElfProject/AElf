@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
@@ -476,7 +477,8 @@ namespace AElf.Contracts.Parliament
             contractOwner.ShouldNotBe(new Address());
 
             //no permission
-            var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendWithExceptionAsync(Tester);
+            var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendWithExceptionAsync(
+                new ContractControllerStuff {ContractAddress = ParliamentContractAddress, OwnerAddress = Tester});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
         }

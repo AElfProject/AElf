@@ -201,7 +201,7 @@ namespace AElf.Contracts.GenesisUpdate
             return new Empty();
         }
 
-        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        public override Empty ChangeGenesisOwnerAddress(Address newOwnerAddress)
         {
             if (State.GenesisOwner.Value == null)
                 InitializeGenesisOwner(newOwnerAddress);

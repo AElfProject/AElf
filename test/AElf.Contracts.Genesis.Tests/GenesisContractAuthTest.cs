@@ -23,10 +23,14 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), SampleAddress.AddressList[0]);
+                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), new ContractControllerStuff
+                {
+                    OwnerAddress = SampleAddress.AddressList[0],
+                    ContractAddress = BasicContractZeroAddress
+                });
 
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+            txResult.Error.ShouldContain("Unauthorized behavior.");
         }
 
         [Fact]
@@ -345,7 +349,12 @@ namespace AElf.Contracts.Genesis
 
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
             var methodName = "ChangeGenesisOwner";
-            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName, organizationAddress);
+            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName,
+                new ContractControllerStuff
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentAddress
+                });
             await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
             var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -384,8 +393,7 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
                     .NonIndexed).ProposalId;
 
-            await ApproveWithKeyPairAsync(Tester, ParliamentAddress, codeCheckProposalId,
-                Tester.InitialMinerList.First());
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
 
             // release code check proposal and deployment completes
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -531,7 +539,11 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Tester.GetCallOwnerAddress());
+                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), new ContractControllerStuff
+                {
+                    OwnerAddress = Tester.GetCallOwnerAddress(),
+                    ContractAddress = BasicContractZeroAddress
+                });
 
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
