@@ -70,10 +70,11 @@ namespace AElf.Kernel.SmartContract.Domain
                         throw new InvalidOperationException($"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
                     }
 
+                    BlockStateSet blockStateSet;
                     //find value in block state set
                     var blockStateKey = blockHash.ToStorageKey();
-                    var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                    value = await FindValueInBlockStateAsync(blockStateSet, key, bestChainState.BlockHeight);
+                    (value, blockStateSet) =
+                        await FindValueInBlockStateAsync(key, blockStateKey, bestChainState.BlockHeight);
 
                     if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) || blockStateSet.BlockHeight <= bestChainState.BlockHeight))
                     {
@@ -89,8 +90,8 @@ namespace AElf.Kernel.SmartContract.Domain
             {
                 //best chain state is null, it will find value in block state set
                 var blockStateKey = blockHash.ToStorageKey();
-                var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                value = await FindValueInBlockStateAsync(blockStateSet, key, 0);
+                BlockStateSet blockStateSet;
+                (value, blockStateSet) = await FindValueInBlockStateAsync(key, blockStateKey, 0);
                 
                 if (value == null && blockStateSet == null)
                 {
@@ -103,10 +104,12 @@ namespace AElf.Kernel.SmartContract.Domain
             return value;
         }
 
-        private async Task<ByteString> FindValueInBlockStateAsync(BlockStateSet blockStateSet, string key,
+        private async Task<(ByteString, BlockStateSet)> FindValueInBlockStateAsync(string key, string blockStateKey,
             long bestChainHeight)
         {
             ByteString value = null;
+
+            var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
 
             while (blockStateSet != null && blockStateSet.BlockHeight > bestChainHeight)
             {
@@ -121,7 +124,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     break;
                 }
 
-                var blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
+                blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
                 if (blockStateKey != null)
                 {
@@ -133,7 +136,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 }
             }
 
-            return value;
+            return (value, blockStateSet);
         }
 
         public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
