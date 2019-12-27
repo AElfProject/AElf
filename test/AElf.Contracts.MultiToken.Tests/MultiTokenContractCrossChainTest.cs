@@ -22,8 +22,8 @@ namespace AElf.Contracts.MultiToken
         private const string SymbolForTesting = "ELFTEST";
         private const string NativeToken = "ELF";
         private static long _totalSupply = 1000L;
-        private int ParentChainHeightOfCreation = 9;
-        private Hash FakeBlockHeader = Hash.FromString("fakeBlockHeader");
+        private readonly int _parentChainHeightOfCreation = 9;
+        private readonly Hash _fakeBlockHeader = Hash.FromString("fakeBlockHeader");
         private string sideChainSymbol = "STA";
 
         #region register test
@@ -65,11 +65,11 @@ namespace AElf.Contracts.MultiToken
             // Index main chain
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
-                SideParliamentAddress, ParentChainHeightOfCreation, blockRoot, blockRoot);
+                SideParliamentAddress, _parentChainHeightOfCreation, blockRoot, blockRoot);
             //Side chain register
             var result =
                 await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath,
-                    ParentChainHeightOfCreation);
+                    _parentChainHeightOfCreation);
             Assert.True(result.Status == TransactionResultStatus.Mined);
         }
 
@@ -83,7 +83,7 @@ namespace AElf.Contracts.MultiToken
                 new RegisterCrossChainTokenContractAddressInput
                 {
                     FromChainId = MainChainId,
-                    ParentChainHeight = ParentChainHeightOfCreation,
+                    ParentChainHeight = _parentChainHeightOfCreation,
                     TokenContractAddress = TokenContractAddress,
                     TransactionBytes = validateTransaction.ToByteString()
                 });
@@ -152,13 +152,13 @@ namespace AElf.Contracts.MultiToken
             // Index main chain
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
-                SideParliamentAddress, ParentChainHeightOfCreation, blockRoot, blockRoot);
+                SideParliamentAddress, _parentChainHeightOfCreation, blockRoot, blockRoot);
             // Wrong merklePath
             merklePath.MerklePathNodes.AddRange(merklePath.MerklePathNodes);
             //Side chain register
             var result =
                 await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath,
-                    ParentChainHeightOfCreation);
+                    _parentChainHeightOfCreation);
             Assert.True(result.Status == TransactionResultStatus.Failed);
             Assert.Contains("Cross chain verification failed.", result.Error);
         }
@@ -325,11 +325,11 @@ namespace AElf.Contracts.MultiToken
 
             var merklePath = GetTransactionMerklePathAndRoot(createTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
-                SideParliamentAddress, ParentChainHeightOfCreation, blockRoot, blockRoot);
+                SideParliamentAddress, _parentChainHeightOfCreation, blockRoot, blockRoot);
             var crossChainCreateTokenInput = new CrossChainCreateTokenInput
             {
                 FromChainId = MainChainId,
-                ParentChainHeight = ParentChainHeightOfCreation,
+                ParentChainHeight = _parentChainHeightOfCreation,
                 TransactionBytes = createTransaction.ToByteString(),
                 MerklePath = merklePath
             };
@@ -600,7 +600,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
-            var height = block.Height > ParentChainHeightOfCreation ? block.Height : ParentChainHeightOfCreation;
+            var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             var transferMerKlePath = GetTransactionMerklePathAndRoot(crossChainTransferTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
@@ -648,7 +648,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
-            var height = block.Height > ParentChainHeightOfCreation ? block.Height : ParentChainHeightOfCreation;
+            var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             var transferMerKlePath = GetTransactionMerklePathAndRoot(crossChainTransferTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
@@ -700,7 +700,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
-            var height = block.Height > ParentChainHeightOfCreation ? block.Height : ParentChainHeightOfCreation;
+            var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             var transferMerKlePath = GetTransactionMerklePathAndRoot(crossChainTransferTransaction, out var blockRoot);
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
@@ -764,15 +764,15 @@ namespace AElf.Contracts.MultiToken
         private async Task<int> GenerateSideChainAsync()
         {
             var sideChainId =
-                await InitAndCreateSideChainAsync(sideChainSymbol, ParentChainHeightOfCreation, MainChainId, 100);
-            StartSideChain(sideChainId, ParentChainHeightOfCreation, sideChainSymbol);
+                await InitAndCreateSideChainAsync(sideChainSymbol, _parentChainHeightOfCreation, MainChainId, 100);
+            StartSideChain(sideChainId, _parentChainHeightOfCreation, sideChainSymbol);
             return sideChainId;
         }
 
         private async Task GenerateSideChain2Async()
         {
-            var sideChainId = await InitAndCreateSideChainAsync("STB", ParentChainHeightOfCreation, MainChainId, 100);
-            StartSideChain2(sideChainId, ParentChainHeightOfCreation, "STB");
+            var sideChainId = await InitAndCreateSideChainAsync("STB", _parentChainHeightOfCreation, MainChainId, 100);
+            StartSideChain2(sideChainId, _parentChainHeightOfCreation, "STB");
         }
 
         private async Task<Transaction> ValidateTransactionAsync(Address basicContractZeroAddress,
@@ -886,7 +886,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await MainChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
-            var height = block.Height > ParentChainHeightOfCreation ? block.Height : ParentChainHeightOfCreation;
+            var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
             var result = await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath, height);
@@ -976,9 +976,9 @@ namespace AElf.Contracts.MultiToken
         {
             var indexParentHeight = await GetParentChainHeight(tester, crossChainContract);
             var crossChainBlockData = new CrossChainBlockData();
-            var index = indexParentHeight >= ParentChainHeightOfCreation
+            var index = indexParentHeight >= _parentChainHeightOfCreation
                 ? indexParentHeight + 1
-                : ParentChainHeightOfCreation;
+                : _parentChainHeightOfCreation;
             for (var i = index; i < height; i++)
             {
                 crossChainBlockData.ParentChainBlockDataList.Add(CreateParentChainBlockData(i, MainChainId,
@@ -1049,11 +1049,11 @@ namespace AElf.Contracts.MultiToken
             var height = mainChainIndexSideChain > 1 ? mainChainIndexSideChain + 1 : 1;
             for (var i = height; i < sideTransactionHeight; i++)
             {
-                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(FakeBlockHeader, i, sideChainId,
+                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i, sideChainId,
                     root));
             }
 
-            var sideChainBlockData = CreateSideChainBlockData(FakeBlockHeader, sideTransactionHeight, sideChainId,
+            var sideChainBlockData = CreateSideChainBlockData(_fakeBlockHeader, sideTransactionHeight, sideChainId,
                 root);
             crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
 
@@ -1068,11 +1068,11 @@ namespace AElf.Contracts.MultiToken
             var height = mainChainIndexSideChain > 1 ? mainChainIndexSideChain + 1 : 1;
             for (var i = height; i < sideTransactionHeight; i++)
             {
-                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(FakeBlockHeader, i, sideChainId,
+                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i, sideChainId,
                     root));
             }
 
-            var sideChainBlockData = CreateSideChainBlockData(FakeBlockHeader, sideTransactionHeight, sideChainId,
+            var sideChainBlockData = CreateSideChainBlockData(_fakeBlockHeader, sideTransactionHeight, sideChainId,
                 root);
             crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
 
@@ -1119,9 +1119,9 @@ namespace AElf.Contracts.MultiToken
             var merkleTreeRootHash = binaryMerkleTree.Root;
 
             var indexParentHeight = await GetParentChainHeight(tester, crossChainContract);
-            var nextHeightToBeIndexed = indexParentHeight >= ParentChainHeightOfCreation
+            var nextHeightToBeIndexed = indexParentHeight >= _parentChainHeightOfCreation
                 ? indexParentHeight + 1
-                : ParentChainHeightOfCreation;
+                : _parentChainHeightOfCreation;
             var crossChainBlockData = new CrossChainBlockData();
             for (long i = nextHeightToBeIndexed; i < height; i++)
             {

@@ -478,8 +478,12 @@ namespace AElf.Contracts.MultiToken
                     // Update owning rental to record a new debt.
                     var own = rental.Sub(availableBalance);
                     State.OwningRental[symbol] = State.OwningRental[symbol].Add(own);
-                    
-                    // TODO: Fire event.
+
+                    Context.Fire(new RentalAccountBalanceInsufficient
+                    {
+                        Symbol = symbol,
+                        Amount = own
+                    });
                 }
 
                 // Side Chain donates.
@@ -487,6 +491,12 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
                 State.Balances[consensusContractAddress][symbol] =
                     State.Balances[consensusContractAddress][symbol].Add(donates);
+
+                Context.Fire(new RentalCharged()
+                {
+                    Symbol = symbol,
+                    Amount = donates
+                });
             }
         }
 

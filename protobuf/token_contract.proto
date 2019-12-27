@@ -387,67 +387,6 @@ message UpdateRentedResourceTokenInput {
     map<string, sint32> resource_amount = 1;
 }
 
-// Events
-
-message Transferred {
-    option (aelf.is_event) = true;
-    aelf.Address from = 1 [(aelf.is_indexed) = true];
-    aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    sint64 amount = 4;
-    string memo = 5;
-}
-
-message Approved {
-    option (aelf.is_event) = true;
-    aelf.Address owner = 1 [(aelf.is_indexed) = true];
-    aelf.Address spender = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    sint64 amount = 4;
-}
-
-message UnApproved {
-    option (aelf.is_event) = true;
-    aelf.Address owner = 1 [(aelf.is_indexed) = true];
-    aelf.Address spender = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    sint64 amount = 4;
-}
-
-message Burned
-{
-    option (aelf.is_event) = true;
-    aelf.Address burner = 1 [(aelf.is_indexed) = true];
-    string symbol = 2 [(aelf.is_indexed) = true];
-    sint64 amount = 3;
-}
-
-message ChainPrimaryTokenSymbolSet {
-    option (aelf.is_event) = true;
-    string token_symbol = 1;
-}
-
-message TransactionSizeFeeUnitPriceUpdated {
-    option (aelf.is_event) = true;
-    sint64 unit_price = 1;
-}
-
-message CalculateFeeCoefficientsOfType{
-    repeated CalculateFeeCoefficient coefficients= 1;
-}
-
-
-message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
-}
-
-message NoticeUpdateCalculateFeeAlgorithm {
-    option (aelf.is_event) = true;
-    CalculateFeeCoefficientsOfType all_coefficient = 1;
-}
 
 message CoefficientFromSender {
     sint32 piece_key = 1;
@@ -501,4 +440,77 @@ enum FeeTypeEnum {
 enum CalculateFunctionTypeEnum {
     Liner = 0;
     Power = 1;
+}
+
+// Events
+
+message Transferred {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+    string memo = 5;
+}
+
+message Approved {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+}
+
+message UnApproved {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+}
+
+message Burned
+{
+    option (aelf.is_event) = true;
+    aelf.Address burner = 1 [(aelf.is_indexed) = true];
+    string symbol = 2 [(aelf.is_indexed) = true];
+    sint64 amount = 3;
+}
+
+message ChainPrimaryTokenSymbolSet {
+    option (aelf.is_event) = true;
+    string token_symbol = 1;
+}
+
+message TransactionSizeFeeUnitPriceUpdated {
+    option (aelf.is_event) = true;
+    sint64 unit_price = 1;
+}
+
+message CalculateFeeCoefficientsOfType{
+    repeated CalculateFeeCoefficient coefficients= 1;
+}
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, sint32> coefficient_dic = 4;
+}
+
+message NoticeUpdateCalculateFeeAlgorithm {
+    option (aelf.is_event) = true;
+    CalculateFeeCoefficientsOfType all_coefficient = 1;
+}
+
+message RentalCharged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message RentalAccountBalanceInsufficient {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    sint64 amount = 2;
 }
