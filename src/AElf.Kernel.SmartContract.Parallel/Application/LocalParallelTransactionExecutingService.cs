@@ -61,24 +61,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             returnSets.AddRange(nonParallelizableReturnSets);
 
             var returnSetCollection = new ReturnSetCollection(returnSets);
-            var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
-            if (transactionExecutingDto.PartialBlockStateSet != null)
-            {
-                var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
-                foreach (var change in partialBlockStateSet.Changes)
-                {
-                    if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
-                    if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
-                    updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
-                }
-
-                foreach (var delete in partialBlockStateSet.Deletes)
-                {
-                    if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
-                    if (updatedPartialBlockStateSet.Changes.TryGetValue(delete, out _)) continue;
-                    updatedPartialBlockStateSet.Deletes.Add(delete);
-                }
-            }
+            var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
 
             var tasks = groupedTransactions.Parallelizables.Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
@@ -204,6 +187,31 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
 
             return returnSets;
+        }
+
+        private BlockStateSet GetUpdatedBlockStateSet(ReturnSetCollection returnSetCollection,
+            TransactionExecutingDto transactionExecutingDto)
+        {
+            var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
+            if (transactionExecutingDto.PartialBlockStateSet != null)
+            {
+                var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
+                foreach (var change in partialBlockStateSet.Changes)
+                {
+                    if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
+                    if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
+                    updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
+                }
+
+                foreach (var delete in partialBlockStateSet.Deletes)
+                {
+                    if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
+                    if (updatedPartialBlockStateSet.Changes.TryGetValue(delete, out _)) continue;
+                    updatedPartialBlockStateSet.Deletes.Add(delete);
+                }
+            }
+
+            return updatedPartialBlockStateSet;
         }
     }
 }
