@@ -70,6 +70,7 @@ namespace AElf.Contracts.TestKit
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,STO,READ,NET";
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK";
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });

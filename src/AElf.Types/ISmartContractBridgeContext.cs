@@ -23,7 +23,7 @@ namespace AElf
 
         public const string NativeSymbolName = nameof(NativeSymbol);
         public const string PayTxFeeSymbolList = nameof(SymbolListToPayTxFee);
-        public const string PayRentalSymbolList = nameof(SymbolListToPayTxFee);
+        public const string PayRentalSymbolList = nameof(SymbolListToPayRental);
     }
 
     public interface ISmartContractBridgeContext

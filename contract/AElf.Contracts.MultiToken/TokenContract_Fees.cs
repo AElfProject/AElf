@@ -527,7 +527,15 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
-            Assert(Context.Sender == Context.GetZeroSmartContractAddress(), "No permission.");
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress() ||
+                   Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()),
+                "No permission.");
             State.SideChainCreator.Value = input;
             return new Empty();
         }
