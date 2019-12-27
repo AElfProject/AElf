@@ -13,6 +13,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
+using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.CSharp.CodeOps.Validators;
@@ -174,6 +175,25 @@ namespace AElf.CSharp.CodeOps
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void CheckPatchAudit_ForUncheckedMathOpcodes()
+        {
+            // Here, we use any contract that contains unchecked math OpCode even with "Check for arithmetic overflow"
+            // checked in the project. If first section of below test case fails, need to create another contract  
+            // that iterates an array with foreach loop.
+            var contractCode = ReadCode(_contractDllDir + typeof(TransactionFeesContract).Module);
+            
+            var findings = Should.Throw<InvalidCodeException>(
+                    ()=>_auditorFixture.Audit(contractCode))
+                .Findings;
+            
+            findings.FirstOrDefault(f => f is UncheckedMathValidationResult)
+                .ShouldNotBeNull();
+            
+            // After patching, all unchecked arithmetic OpCodes should be cleared.
+            Should.NotThrow(() => _auditorFixture.Audit(ContractPatcher.Patch(contractCode)));
         }
 
         #endregion

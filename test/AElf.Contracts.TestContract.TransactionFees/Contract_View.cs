@@ -20,16 +20,16 @@ namespace AElf.Contracts.TestContract.TransactionFees
             if (State.TokenContract.Value == null)
                 return resources;
             
-            for (var i = 0; i < symbols.Length; i++)
+            foreach (var symbol in symbols)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
                     Owner = Context.Self,
-                    Symbol = symbols[i]
+                    Symbol = symbol
                 });
                 resources.Resources.Add(new TokenInfo
                 {
-                    Symbol = symbols[i],
+                    Symbol = symbol,
                     Amount = balance.Balance
                 });
             }
