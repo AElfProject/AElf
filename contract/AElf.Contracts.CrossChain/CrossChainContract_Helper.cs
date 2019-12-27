@@ -503,7 +503,7 @@ namespace AElf.Contracts.CrossChain
 
         private CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(Address sideChainCreator)
         {
-            var proposers = new[] {sideChainCreator, GetCrossChainIndexingController()};
+            var proposers = new List<Address> {sideChainCreator, GetCrossChainIndexingController()};
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
@@ -516,8 +516,8 @@ namespace AElf.Contracts.CrossChain
                 },
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
-                    MinimalApprovalThreshold = proposers.Length,
-                    MinimalVoteThreshold = proposers.Length,
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
                     MaximalRejectionThreshold = 0,
                     MaximalAbstentionThreshold = 0
                 }

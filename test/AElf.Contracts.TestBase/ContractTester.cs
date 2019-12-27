@@ -76,6 +76,9 @@ namespace AElf.Contracts.TestBase
         public byte[] ConfigurationContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Configuration")).Value;
 
+        public byte[] AssociationContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Association")).Value;
+
 
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
@@ -724,6 +727,7 @@ namespace AElf.Contracts.TestBase
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,
                     ConfigurationSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
             };
         }
 
