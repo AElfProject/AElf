@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
                     //find value in block state set
                     var blockStateSet = await FindBlockStateSetWithKeyAsync(key, bestChainState.BlockHeight, blockHash);
-                    blockStateSet.TryGetValue(key, out value);
+                    blockStateSet?.TryGetValue(key, out value);
 
                     if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) || blockStateSet.BlockHeight <= bestChainState.BlockHeight))
                     {
@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Domain
             {
                 //best chain state is null, it will find value in block state set
                 var blockStateSet = await FindBlockStateSetWithKeyAsync(key, 0, blockHash);
-                blockStateSet.TryGetValue(key, out value);
+                blockStateSet?.TryGetValue(key, out value);
                 
                 if (value == null && blockStateSet == null)
                 {
