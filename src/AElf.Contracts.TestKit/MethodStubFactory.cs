@@ -37,15 +37,10 @@ namespace AElf.Contracts.TestKit
             Transaction GetTransaction(TInput input)
             {
                 var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
-                var transaction = new Transaction
-                {
-                    From = Sender,
-                    To = ContractAddress,
-                    MethodName = method.Name,
-                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input)),
-                    RefBlockNumber = refBlockInfo.Height,
-                    RefBlockPrefix = refBlockInfo.Prefix
-                };
+                var transaction = GetTransactionWithoutSignature(input, method);
+                transaction.RefBlockNumber = refBlockInfo.Height;
+                transaction.RefBlockPrefix = refBlockInfo.Prefix;
+
                 var signature = CryptoHelper.SignWithPrivateKey(
                     KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
@@ -90,32 +85,34 @@ namespace AElf.Contracts.TestKit
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                var transaction = new Transaction
-                {
-                    From = Sender,
-                    To = ContractAddress,
-                    MethodName = method.Name,
-                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
-                };
+                var transaction = GetTransactionWithoutSignature(input, method);
                 var returnValue = await _transactionExecutor.ReadAsync(transaction);
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
             async Task<StringValue> CallWithExceptionAsync(TInput input)
             {
-                var transaction = new Transaction
-                {
-                    From = Sender,
-                    To = ContractAddress,
-                    MethodName = method.Name,
-                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
-                };
+                var transaction = GetTransactionWithoutSignature(input, method);
                 var returnValue = await _transactionExecutor.ReadWithExceptionAsync(transaction);
                 return new StringValue {Value = returnValue.Value};
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction, SendWithExceptionAsync,
                 CallWithExceptionAsync);
+        }
+
+        private Transaction GetTransactionWithoutSignature<TInput, TOutput>(TInput input, Method<TInput, TOutput> method)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            var transaction = new Transaction
+            {
+                From = Sender,
+                To = ContractAddress,
+                MethodName = method.Name,
+                Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
+            };
+
+            return transaction;
         }
     }
 }

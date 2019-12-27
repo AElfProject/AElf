@@ -89,27 +89,11 @@ namespace AElf.OS.Network.Grpc.Connection
         public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             Logger.LogDebug($"Attempting to reach {endpoint}.");
-
-            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
-            {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
-                return false;
-            }
-
-            if (_peerPool.IsPeerBlackListed(endpoint.Host))
-            {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
-                return false;
-            }
-
-            var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
-
+            var dialedPeer = await GetDialedPeerWithEndpointAsync(endpoint);
             if (dialedPeer == null)
             {
-                Logger.LogWarning($"Error dialing {endpoint}.");
                 return false;
             }
-
             var inboundPeer = _peerPool.FindPeerByPublicKey(dialedPeer.Info.Pubkey) as GrpcPeer;
             
             /* A connection already exists, this can happen when both peers dial each other at the same time. To make
@@ -192,6 +176,31 @@ namespace AElf.OS.Network.Grpc.Connection
             var bestChainHeight = peer.CurrentBlockHeight;
 
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
+        }
+
+        private async Task<GrpcPeer> GetDialedPeerWithEndpointAsync(DnsEndPoint endpoint)
+        {
+            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
+            {
+                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
+                return null;
+            }
+
+            if (_peerPool.IsPeerBlackListed(endpoint.Host))
+            {
+                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
+                return null;
+            }
+
+            var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
+
+            if (dialedPeer == null)
+            {
+                Logger.LogWarning($"Error dialing {endpoint}.");
+                return null;
+            }
+
+            return dialedPeer;
         }
 
         public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
