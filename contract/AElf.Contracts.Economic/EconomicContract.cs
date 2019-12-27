@@ -240,7 +240,7 @@ namespace AElf.Contracts.Economic
                     RelatedSymbol = Context.Variables.NativeSymbol
                 }
             };
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
             {
                 var resourceTokenConnector = new Connector
                 {
