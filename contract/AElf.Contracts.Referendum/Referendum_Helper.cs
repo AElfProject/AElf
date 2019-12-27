@@ -133,6 +133,8 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(proposal), "Invalid proposal.");
             State.Proposals[proposalId] = proposal;
+            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+
             return proposalId;
         }
         
@@ -141,7 +143,7 @@ namespace AElf.Contracts.Referendum
             return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
         }
 
-        private void AssertProposerAuthority(Address organizationAddress, Address proposer)
+        private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
             var organization = State.Organisations[organizationAddress];
             Assert(organization != null, "Organization not found.");

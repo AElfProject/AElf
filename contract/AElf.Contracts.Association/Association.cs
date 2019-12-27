@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -80,27 +81,20 @@ namespace AElf.Contracts.Association
 
         public override Hash CreateProposal(CreateProposalInput input)
         {
-            // check authorization of proposer public key
-            var organization = State.Organisations[input.OrganizationAddress];
-            Assert(organization != null, "No registered organization.");
-            AssertIsAuthorizedProposer(organization, Context.Sender);
-            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
-            var proposal = new ProposalInfo
-            {
-                ContractMethodName = input.ContractMethodName,
-                ExpiredTime = input.ExpiredTime,
-                Params = input.Params,
-                ToAddress = input.ToAddress,
-                OrganizationAddress = input.OrganizationAddress,
-                ProposalId = hash,
-                Proposer = Context.Sender
-            };
-            Assert(Validate(proposal), "Invalid proposal.");
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = hash});
-            
-            return hash;
+            AssertIsAuthorizedProposer(input.OrganizationAddress, Context.Sender);
+            var proposalId = CreateNewProposal(input);
+            return proposalId;
+        }
+
+        public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
+        {
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Not authorized to propose.");
+            AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
+            var proposalId = CreateNewProposal(input.ProposalInput);
+            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
+            return proposalId;
         }
 
         public override Empty Approve(Hash input)

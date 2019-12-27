@@ -25,6 +25,8 @@ service AuthorizationContract {
     }
     rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
     }
+    rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns (aelf.Hash){
+    }
     rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty){
     }
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
@@ -65,4 +67,10 @@ message ProposerWhiteList{
 message OrganizationHashAddressPair{
     aelf.Hash organization_hash = 1;
     aelf.Address organization_address = 2;
+}
+
+message CreateProposalBySystemContractInput {
+    acs3.CreateProposalInput proposal_input =1;
+    aelf.Address origin_proposer = 2;
+    string proposal_id_feedback_method = 3;
 }

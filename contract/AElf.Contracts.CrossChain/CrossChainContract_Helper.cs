@@ -533,7 +533,7 @@ namespace AElf.Contracts.CrossChain
             return address;
         }
 
-        private void CreateOrganizationForIndexingFeePriceAdjust(Address sideChainCreator)
+        private void CreateOrganizationForIndexingFeePriceAdjustment(Address sideChainCreator)
         {
             var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
             SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);

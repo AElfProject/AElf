@@ -138,7 +138,7 @@ namespace AElf.Contracts.Parliament
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            AssertAuthorizedProposer(Context.Sender);
+            Assert(CheckProposerAuthorityIfNeeded(Context.Sender), "Not authorized to create organization.");
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
             var organizationAddress = organizationHashAddressPair.OrganizationAddress;
             var organizationHash = organizationHashAddressPair.OrganizationHash;
@@ -159,20 +159,17 @@ namespace AElf.Contracts.Parliament
 
         public override Hash CreateProposal(CreateProposalInput input)
         {
-            var organization = State.Organisations[input.OrganizationAddress];
-            Assert(organization != null, "No registered organization.");
-            AssertAuthorizedProposer(Context.Sender);
+            AssertIsAuthorizedProposer(input.OrganizationAddress, Context.Sender);
             var proposalId = CreateNewProposal(input);
             return proposalId;
         }
 
         public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
         {
-            var organization = State.Organisations[input.ProposalInput.OrganizationAddress];
-            Assert(organization != null, "No registered organization.");
-            Assert(
-                Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender) &&
-                CheckProposerAuthorityIfNeeded(input.OriginProposer), "Not authorized to propose.");
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Not authorized to propose.");
+            AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
+
             var proposalId = CreateNewProposal(input.ProposalInput);
             if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
                 Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback

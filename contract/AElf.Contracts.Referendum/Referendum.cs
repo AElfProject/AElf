@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -74,10 +75,20 @@ namespace AElf.Contracts.Referendum
 
         public override Hash CreateProposal(CreateProposalInput input)
         {
-            AssertProposerAuthority(input.OrganizationAddress, Context.Sender);
+            AssertIsAuthorizedProposer(input.OrganizationAddress, Context.Sender);
             var proposalId = CreateNewProposal(input);
-            Context.Fire(new ProposalCreated {ProposalId = proposalId});
 
+            return proposalId;
+        }
+        
+        public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
+        {
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Not authorized to propose.");
+            AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
+            var proposalId = CreateNewProposal(input.ProposalInput);
+            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
+                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
             return proposalId;
         }
 

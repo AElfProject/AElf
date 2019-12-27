@@ -19,8 +19,10 @@ namespace AElf.Contracts.Parliament
             return members;
         }
 
-        private void AssertAuthorizedProposer(Address proposer)
+        private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
+            var organization = State.Organisations[organizationAddress];
+            Assert(organization != null, "No registered organization.");
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,

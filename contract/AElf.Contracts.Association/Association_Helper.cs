@@ -1,13 +1,17 @@
 using System.Linq;
 using Acs3;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Association
 {
     public partial class AssociationContract
     {
-        private void AssertIsAuthorizedProposer(Organization organization, Address proposer)
+        private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
+            var organization = State.Organisations[organizationAddress];
+            Assert(organization != null, "No registered organization.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
         
@@ -105,6 +109,27 @@ namespace AElf.Contracts.Association
                                  proposal.Abstentions.Contains(sender);
 
             Assert(!isAlreadyVoted, "Sender already voted.");
+        }
+        
+        private Hash CreateNewProposal(CreateProposalInput input)
+        {
+            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
+                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            var proposal = new ProposalInfo
+            {
+                ContractMethodName = input.ContractMethodName,
+                ExpiredTime = input.ExpiredTime,
+                Params = input.Params,
+                ToAddress = input.ToAddress,
+                OrganizationAddress = input.OrganizationAddress,
+                ProposalId = proposalId,
+                Proposer = Context.Sender
+            };
+            Assert(Validate(proposal), "Invalid proposal.");
+            Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
+            State.Proposals[proposalId] = proposal;
+            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+            return proposalId;
         }
     }
 }
