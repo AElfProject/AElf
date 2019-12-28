@@ -1,6 +1,6 @@
 # Election Contract
 
-The Election contract is most essentially used for voting for Block Producers.
+The Election contract is essentially used for voting for Block Producers.
 
 ## **an Election for choosing Block Producers**:
 
@@ -571,8 +571,6 @@ message SInt64Value
 ```
 
 - **value** number of voters
-
-
 
 
 
