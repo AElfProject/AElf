@@ -122,7 +122,7 @@ rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address)
 }
 ```
 
-Gets the address of a contract by its name. 
+Gets the address of a system contract by its name. 
 
 **Parameters:**
 
@@ -294,7 +294,7 @@ Creates a proposal to check the code of a contract.
 
 **Returns:**
 
-Hash of the **ContractCodeCheckInput** object.
+Hash of the proposed contract.
 
 ### function ReleaseApprovedContract
 
@@ -412,7 +412,7 @@ Change the owner of the genesis contract.
 
 **Parameters:**
 
-- **Address** - address of new owner
+- **Address** - address of new genesis owner
 
 ### function SetContractProposerRequiredState
 
@@ -424,4 +424,4 @@ Set authority of contract deployment.
 
 **Parameters:**
 
-- **google.protobuf.BoolValue** - whether contract deployment requires authority
+- **google.protobuf.BoolValue** - whether sending proposals by contract proposer requires authority
