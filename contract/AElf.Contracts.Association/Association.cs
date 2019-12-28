@@ -184,7 +184,7 @@ namespace AElf.Contracts.Association
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime <= proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }

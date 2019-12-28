@@ -70,6 +70,59 @@ namespace AElf.Contracts.Parliament
             result.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
+        [Fact]
+        public async Task Change_OrganizationProposalWhiteList_Test()
+        {
+            var organizationAddress = await GetDefaultOrganizationAddressAsync();
+            var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
+            var proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+            var authority = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue)
+                .ProposerAuthorityRequired;
+            proposers.Count.ShouldBe(1);
+            proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeTrue();
+            authority.ShouldBeTrue();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
+
+            var proposerWhiteList = new ProposerWhiteList
+            {
+                Proposers = {Tester.GetAddress(ecKeyPair)}
+            };
+            var proposalInput = CreateParliamentProposalInput(proposerWhiteList, organizationAddress);
+            var createResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                proposalInput);
+            createResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalId = Hash.Parser.ParseFrom(createResult.ReturnValue);
+
+            var miner = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
+            (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
+                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                .ShouldBe(TransactionResultStatus.Mined);
+            miner = Tester.CreateNewContractTester(Tester.InitialMinerList[1]);
+            (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
+                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                .ShouldBe(TransactionResultStatus.Mined);
+            miner = Tester.CreateNewContractTester(Tester.InitialMinerList[2]);
+            (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
+                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                .ShouldBe(TransactionResultStatus.Mined);
+
+            var releaseResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
+            releaseResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
+            proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+            authority = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue)
+                .ProposerAuthorityRequired;
+            proposers.Count.ShouldBe(1);
+            proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
+            proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
+            authority.ShouldBeTrue();
+        }
+
         private async Task<Address> CreateOrganizationAsync()
         {
             var minimalApprovalThreshold = 6667;

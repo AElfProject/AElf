@@ -178,9 +178,9 @@ namespace AElf.Contracts.Association
 
             //invalid maximalAbstentionThreshold
             {
-                var minimalApproveThreshold = 3;
+                var minimalApproveThreshold = 1;
                 var minimalVoteThreshold = 3;
-                var maximalAbstentionThreshold = 1;
+                var maximalAbstentionThreshold = 4;
                 var maximalRejectionThreshold = 0;
 
                 var createOrganizationInput = GenerateCreateOrganizationInput(minimalApproveThreshold,
@@ -257,7 +257,6 @@ namespace AElf.Contracts.Association
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
         }
-
 
         [Fact]
         public async Task Create_Proposal_Failed_Test()
@@ -448,10 +447,58 @@ namespace AElf.Contracts.Association
                 var transactionResult1 =
                     await associationContractStub.Approve.SendAsync(proposalId);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                transactionResult1.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
 
                 var transactionResult2 =
-                    await associationContractStub.Approve.SendWithExceptionAsync(proposalId);
+                    await associationContractStub.Reject.SendWithExceptionAsync(proposalId);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult2.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
+
+                var transactionResult3 =
+                    await associationContractStub.Abstain.SendWithExceptionAsync(proposalId);
+                transactionResult3.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult3.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task Check_Proposal_ToBeRelease()
+        {
+            var minimalApproveThreshold = 1;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
+            //Abstain probability >= maximalAbstentionThreshold
+            {
+                var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                await AbstainAsync(Reviewer2KeyPair, proposalId);
+                await AbstainAsync(Reviewer3KeyPair, proposalId);
+                await ApproveAsync(Reviewer1KeyPair, proposalId);
+                var result = await associationContractStub.GetProposal.CallAsync(proposalId);
+                result.ToBeReleased.ShouldBeFalse();
+            }
+            //Rejection probability > maximalRejectionThreshold
+            {
+                var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                await RejectAsync(Reviewer1KeyPair, proposalId);
+                await RejectAsync(Reviewer2KeyPair, proposalId);
+                await ApproveAsync(Reviewer1KeyPair, proposalId);
+                var result = await associationContractStub.GetProposal.CallAsync(proposalId);
+                result.ToBeReleased.ShouldBeFalse();
+            }
+            //Approve probability > minimalApprovalThreshold && voted count >= minimalVoteThreshold
+            {
+                var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                await AbstainAsync(Reviewer1KeyPair, proposalId);
+                await RejectAsync(Reviewer2KeyPair, proposalId);
+                await ApproveAsync(Reviewer3KeyPair, proposalId);
+                var result = await associationContractStub.GetProposal.CallAsync(proposalId);
+                result.ToBeReleased.ShouldBeTrue();
             }
         }
 
@@ -495,7 +542,6 @@ namespace AElf.Contracts.Association
                 result.TransactionResult.Error.ShouldContain("No permission.");
             }
         }
-
 
         [Fact]
         public async Task Release_Proposal_Success_Test()
@@ -568,6 +614,105 @@ namespace AElf.Contracts.Association
             }
         }
 
+        [Fact]
+        public async Task Change_OrganizationThreshold_Test()
+        {
+            var minimalApproveThreshold = 1;
+            var minimalVoteThreshold = 1;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
+            var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
+            await ApproveAsync(Reviewer1KeyPair, proposalId);
+            var proposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ToBeReleased.ShouldBeTrue();
+
+            var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+            {
+                MinimalVoteThreshold = 2
+            };
+
+            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, proposalReleaseThresholdInput,
+                nameof(AssociationContractStub.ChangeOrganizationThreshold), organizationAddress);
+            await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+            var result = await AssociationContractStub.Release.SendAsync(changeProposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            proposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ToBeReleased.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task Change_OrganizationMember_Test()
+        {
+            var minimalApproveThreshold = 1;
+            var minimalVoteThreshold = 1;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
+
+            var organizationMember = new OrganizationMemberList
+            {
+                OrganizationMembers = {Reviewer1}
+            };
+
+            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
+                nameof(AssociationContractStub.ChangeOrganizationMember), organizationAddress);
+            await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+            var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var organizationInfo = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
+            organizationInfo.OrganizationMemberList.OrganizationMembers.Count.ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task Change_OrganizationProposalWhitelist_Test()
+        {
+            var minimalApproveThreshold = 1;
+            var minimalVoteThreshold = 1;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
+
+            var proposerWhiteList = new ProposerWhiteList
+            {
+                Proposers = {Reviewer2}
+            };
+
+            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, proposerWhiteList,
+                nameof(AssociationContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+            await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+            var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TransferToOrganizationAddressAsync(organizationAddress);
+            var transferInput = new TransferInput()
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = Reviewer1,
+                Memo = "Transfer"
+            };
+            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Approve),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+            var result = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.ShouldContain("Unauthorized to propose.");
+        }
+
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
         {
             var transferInput = new TransferInput()
@@ -583,6 +728,26 @@ namespace AElf.Contracts.Association
                 ContractMethodName = nameof(TokenContractStub.Transfer),
                 ToAddress = TokenContractAddress,
                 Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+            var proposal = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
+            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs[0].NonIndexed)
+                .ProposalId;
+            proposal.Output.ShouldBe(proposalCreated);
+
+            return proposal.Output;
+        }
+
+        private async Task<Hash> CreateAssociationProposalAsync(ECKeyPair proposalKeyPair, IMessage input,
+            string method, Address organizationAddress)
+        {
+            var associationContractStub = GetAssociationContractTester(proposalKeyPair);
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = method,
+                ToAddress = AssociationContractAddress,
+                Params = input.ToByteString(),
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
@@ -648,6 +813,24 @@ namespace AElf.Contracts.Association
 
             var transactionResult1 =
                 await associationContractStub.Approve.SendAsync(proposalId);
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task RejectAsync(ECKeyPair reviewer, Hash proposalId)
+        {
+            var associationContractStub = GetAssociationContractTester(reviewer);
+
+            var transactionResult1 =
+                await associationContractStub.Reject.SendAsync(proposalId);
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
+        {
+            var associationContractStub = GetAssociationContractTester(reviewer);
+
+            var transactionResult1 =
+                await associationContractStub.Abstain.SendAsync(proposalId);
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }

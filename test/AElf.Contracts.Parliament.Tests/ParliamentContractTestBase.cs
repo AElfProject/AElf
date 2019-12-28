@@ -191,5 +191,19 @@ namespace AElf.Contracts.Parliament
             };
             return createProposalInput;
         }
+
+        internal CreateProposalInput CreateParliamentProposalInput(IMessage input, Address organizationAddress)
+        {
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(ParliamentContractContainer.ParliamentContractStub.ChangeOrganizationProposerWhiteList),
+                ToAddress = ParliamentAddress,
+                Params = input.ToByteString(),
+                ExpiredTime =  DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                OrganizationAddress = organizationAddress
+            };
+            return createProposalInput;
+        }
+        
     }
 }

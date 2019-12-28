@@ -137,7 +137,7 @@ namespace AElf.Contracts.Referendum
 
             return proposalId;
         }
-        
+
         private Hash CalculateOrganizationHash(CreateOrganizationInput createOrganizationInput)
         {
             return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
@@ -150,9 +150,10 @@ namespace AElf.Contracts.Referendum
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
 
-        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(CreateOrganizationInput createOrganizationInput)
+        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
+            CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+            var organizationHash = CalculateOrganizationHash(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             return new OrganizationHashAddressPair
             {
