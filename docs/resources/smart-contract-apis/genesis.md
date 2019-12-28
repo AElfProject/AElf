@@ -1,12 +1,8 @@
 # Genesis Contract
 
-## Functions
+This page describes available methods on the Genesis Contract.
 
-### Detailed Description
-
-Defines C# API functions for genesis contract.
-
-## Functions Documentation
+## Method documentation
 
 ### Views
 
@@ -17,12 +13,13 @@ rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList)
 {
 		option (aelf.is_view) = true;
 }
+
 message AddressList {
     repeated aelf.Address value = 1;
 }
 ```
 
-Get the list contains address of deployed contracts.
+Gets the list of deployed contracts.
 
 **Parameters:**
 
@@ -30,7 +27,7 @@ Get the list contains address of deployed contracts.
 
 **Returns:**
 
-Address list of the deployed contracts.
+Address list of deployed contracts.
 
 #### function CurrentContractSerialNumber
 
@@ -41,7 +38,7 @@ rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf
 }
 ```
 
-Ge serial number of genesis contract.
+Gets the current serial number of genesis contract (corresponds to the serial number that will be given to the next deployed contract).
 
 **Parameters:**
 
@@ -58,6 +55,7 @@ rpc GetContractInfo (aelf.Address) returns (ContractInfo)
 {
 		option (aelf.is_view) = true;
 }
+
 message ContractInfo {
     uint64 serial_number = 1;
     aelf.Address author = 2;
@@ -67,15 +65,15 @@ message ContractInfo {
 }
 ```
 
-Get detaiedl infomation of the specified contract.
+Gets detailed information about the specified contract.
 
 **Parameters:**
 
-- **Address** - address of specified contract
+- **Address** - address the contract
 
 **Returns:**
 
-Detailed infomation of the specified contract.
+A **ContractInfo** object that represents detailed information about the specified contract.
 
 #### function GetContractAuthor
 
@@ -105,7 +103,7 @@ rpc GetContractHash (aelf.Address) returns (aelf.Hash)
 }
 ```
 
-Get code hash of the specified contract.
+Gets the code hash of the contract at the specified address.
 
 **Parameters:**
 
@@ -113,7 +111,7 @@ Get code hash of the specified contract.
 
 **Returns:**
 
-code hash of the specified contract.
+The code hash of the contract.
 
 #### function GetContractAddressByName
 
@@ -124,15 +122,15 @@ rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address)
 }
 ```
 
-Get address of a contract by it's name. 
+Gets the address of a contract by its name. 
 
 **Parameters:**
 
-- **Hash** - name hash of a contract
+- **Hash** - name hash of the contract
 
 **Returns:**
 
-Address of the specified contract
+Address of the specified contract.
 
 #### function GetSmartContractRegistrationByAddress
 
@@ -149,7 +147,7 @@ message SmartContractRegistration {
 }
 ```
 
-Get registration of a smart contract by it's address.
+Gets the registration of a smart contract by its address.
 
 **Parameters:**
 
@@ -157,7 +155,7 @@ Get registration of a smart contract by it's address.
 
 **Returns:**
 
-Registration of the smart contract
+Registration object of the smart contract.
 
 #### function ValidateSystemContractAddress
 
@@ -173,14 +171,14 @@ message ValidateSystemContractAddressInput {
 }
 ```
 
-Validate whether the input system contract is legal.
+Validates whether the input system contract is legal.
 
 **Parameters:**
 
 ***ValidateSystemContractAddressInput*** 
 
-- **Hash** - name hash of a contract
-- **Address** - address of a contract
+- **Hash** - name hash of the contract
+- **Address** - address of the contract
 
 **Returns:**
 
@@ -211,16 +209,16 @@ message SystemContractDeploymentInput
 }
 ```
 
-Deploy a system smart contract on chain.
+Deploys a system smart contract on chain.
 
 **Parameters:**
 
 ***SystemContractDeploymentInput*** 
 
-- ***category*** - contract type 
-- ***code*** - byte array of system contract code
-- ***name*** - name hash of system contract
-- ***transaction_method_call_list*** - list of methods called by system transaction
+- **category** - contract type
+- **code** - byte array of system contract code
+- **name** - name hash of system contract
+- **transaction_method_call_list** - list of methods called by system transaction
 
 **Returns:**
 
@@ -237,18 +235,18 @@ message ContractDeploymentInput {
 }
 ```
 
-Create a proposal for deployment of new contract.
+Creates a proposal for the deployment of a new contract.
 
 **Parameters:**
 
 ***ContractDeploymentInput*** 
 
-- **category** - contract type
-- **code** - byte array of new contract codes
+- **category** - contract type (usually 0)
+- **code** - byte array that represents the contract code
 
 **Returns:**
 
-Hash of contract-deployment-input.
+Hash of the **ContractDeploymentInput** object.
 
 ### function ProposeUpdateContract
 
@@ -261,18 +259,18 @@ message ContractUpdateInput {
 }
 ```
 
-Create a proposal to update specified contract.
+Creates a proposal to update the specified contract.
 
 **Parameters:**
 
 ***ContractUpdateInput*** 
 
 - **address** - address of the contract to be updated
-- **code** - byte array of new contract codes
+- **code** - byte array of the contract's new code
 
 **Returns:**
 
-Hash of contract-update-input.
+Hash of the **ContractUpdateInput** object.
 
 ### function ProposeContractCodeCheck
 
@@ -285,19 +283,18 @@ message ContractCodeCheckInput{
 }
 ```
 
-Create a proposal to check codes of input contract.
+Creates a proposal to check the code of a contract.
 
 **Parameters:**
 
 ***ContractCodeCheckInput***
 
-- **contract_input** - byte array of the contract codes to be checked
-
-- **is_contract_deployment** - whether input contract to be deployed or updated
+- **contract_input** - byte array of the contract code to be checked
+- **is_contract_deployment** - whether the input contract is to be deployed or updated
 
 **Returns:**
 
-Hash of contract-code-check-input.
+Hash of the **ContractCodeCheckInput** object.
 
 ### function ReleaseApprovedContract
 
@@ -310,14 +307,13 @@ message ReleaseContractInput {
 }
 ```
 
-Release a contract proposal which has been approved.
+Releases a contract proposal which has been approved.
 
 **Parameters:**
 
 ***ReleaseContractInput***
 
-- **proposal_id** - hash of a proposal
-
+- **proposal_id** - hash of the proposal
 - **proposed_contract_input_hash** - input hash of the proposed contract
 
 ### function ReleaseCodeCheckedContract
@@ -331,13 +327,13 @@ message ReleaseContractInput {
 }
 ```
 
-Release the proposal which has passed code-check.
+Release the proposal which has passed the code check.
 
 **Parameters:**
 
 ***ReleaseContractInput*** 
 
-- **proposal_id** - hash of a proposal
+- **proposal_id** - hash of the proposal
 - **proposed_contract_input_hash** - input hash of the proposed contract
 
 ### function DeploySmartContract
@@ -351,14 +347,14 @@ message ContractDeploymentInput {
 }
 ```
 
-Deploy a smart contract on chain.
+Deploys a smart contract on chain.
 
 **Parameters:**
 
 ***ContractDeploymentInput*** 
 
-- **category** - contract type
-- **code** - byte array of the contract codes
+- **category** - contract type (usually 0)
+- **code** - byte array of the contract code
 
 **Returns:**
 
@@ -375,14 +371,14 @@ message ContractUpdateInput {
 }
 ```
 
-Update a smart contract on chain.
+Updates a smart contract on chain.
 
 **Parameters:**
 
 ***ContractUpdateInput***
 
 - **address** - address of the smart contract to be updated
-- **code** - byte array of new contract codes
+- **code** - byte array of the updated contract code
 
 **Returns:**
 
@@ -398,7 +394,7 @@ message InitializeInput{
 }
 ```
 
-Initialize the zero contract.
+Initializes the genesis contract.
 
 **Parameters:**
 
@@ -412,7 +408,7 @@ Initialize the zero contract.
 rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {}
 ```
 
-Change owner of the genesis contract.
+Change the owner of the genesis contract.
 
 **Parameters:**
 
@@ -428,4 +424,4 @@ Set authority of contract deployment.
 
 **Parameters:**
 
-- **google.protobuf.BoolValue ** - whether contract deployment requires authority
+- **google.protobuf.BoolValue** - whether contract deployment requires authority
