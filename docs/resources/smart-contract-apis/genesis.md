@@ -46,7 +46,7 @@ Gets the current serial number of genesis contract (corresponds to the serial nu
 
 **Returns:**
 
-Serial number of genesis contract.
+Serial number of the genesis contract.
 
 #### function GetContractInfo
 

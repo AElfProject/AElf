@@ -128,7 +128,7 @@ namespace AElf.OS.Network.Grpc
                 
                 Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await client.Channel.ShutdownAsync();
                 throw;

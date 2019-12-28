@@ -59,7 +59,7 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);
@@ -99,6 +99,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
             if (calculateWayList.Any())
                 selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
+
+            return Task.CompletedTask;
         }
     }
 }
