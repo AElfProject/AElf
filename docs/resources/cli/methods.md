@@ -300,7 +300,7 @@ Transaction: fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb is
 
 The `Result` field is the decoded result, in this example, the `Result.address` is the new deployed contract address.
 
-For more details, check the descriptions of [`aelf-command event`](#event---deserialize-the-result-return-by-executing-a-transaction).
+For more details, check the descriptions of [`aelf-command event`](#event-deserialize-the-result-return-by-executing-a-transaction).
 
 ### deploy - Deploy a smart contract
 
@@ -349,7 +349,7 @@ A transaction may be related with several `Contract Method`'s events, so the tra
 In each item:
 
 * `Address`: the contract address.
-* `Name`: name of a event published from related contract method.
+* `Name`: name of event published from related contract method.
 * `Indexed`: indexed data of event in type of base64
 * `NoIndexed`: no indexed data of event in type of base64.
 * `Result`: the decoded result, this is readable and you can use it and get what the fields means inside the `Result` by reading the contract documents or contract related protobuf files.
