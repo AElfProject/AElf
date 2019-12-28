@@ -55,6 +55,7 @@
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Multi Token Contract](resources/smart-contract-apis/multi-token.md)
+      * [Profit Contract](resources/smart-contract-apis/profit.md)
       * [Resource Contract](resources/smart-contract-apis/resource.md)
       * [Cross chain Contract](resources/smart-contract-apis/cross-chain.md)
     * [Wallet and Block Explorer](resources/wallet-and-explorer/index.md)
