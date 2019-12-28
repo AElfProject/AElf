@@ -84,7 +84,7 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
                     .GetConfiguration()
                     .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STO,NET");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = context.Services
                     .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK");
             });
 

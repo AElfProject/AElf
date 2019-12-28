@@ -427,15 +427,7 @@ namespace AElf.Contracts.Election
                     RecentlyMissedTimeSlots = 100
                 })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            //get candidate information
-            var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringValue
-            {
-                Value = pubkey
-            });
-
-            candidateInformation.ShouldBe(new CandidateInformation {Pubkey = pubkey});
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
         }
     }
 }
