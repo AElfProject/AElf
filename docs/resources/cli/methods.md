@@ -10,82 +10,95 @@
 You can specified options above in several ways, and the priority is in the order of low to high.
 
 1. `export` variables in shell.
-```bash
-# This is datadir
-export AELF_CLI_DATADIR=/Users/your/.local/share/aelf
-# This is endpoint 
-export AELF_CLI_ENDPOINT=http://127.0.0.1:8000
-# This is account
-export AELF_CLI_ACCOUNT=2Ue31YTuB5Szy7c...gtGi5uMQBYarYUR5oGin1sys6H
-```
+
+    ```bash
+    # This is datadir
+    $ export AELF_CLI_DATADIR=/Users/your/.local/share/aelf
+    # This is endpoint
+    $ export AELF_CLI_ENDPOINT=http://127.0.0.1:8000
+    # This is account
+    $ export AELF_CLI_ACCOUNT=2Ue31YTuB5Szy7c...gtGi5uMQBYarYUR5oGin1sys6H
+
+    ```
 
 2. `aelf-command` global `.aelfrc` config file
 
-The global config file is stored in the `<datadir>/.aelfrc` file, you can read the config file, but better not modify it by yourself.
+    The global config file is stored in the `<datadir>/.aelfrc` file, you can read the config file, but better not modify it by yourself.
 
-Modify this config file by `aelf-command config`.
+    Modify this config file by `aelf-command config`.
 
-  - `set`: set and save config in the file, remember just set `datadir`, `endpoint`, `account`, `password` four keys.
-    ```bash
-    $ aelf-command config set endpoint http://127.0.0.1:8000
-    $ aelf-command config -h
+    * `set`: set and save config in the file, remember just set `datadir`, `endpoint`, `account`, `password` four keys.
 
-    Usage: aelf-command config [options] <flag> [key] [value]
-    
-    get, set, delete or list aelf-command config
-    
-    Options:
-      -h, --help  output usage information
-    
-    Examples:
-    
-    aelf-command config get <key>
-    aelf-command config set <key> <value>
-    aelf-command config delete <key>
-    aelf-command config list
-    ``` 
-  - `get`: get the value of given `key` from global `.aelfrc` file
-    ```bash
-    $ aelf-command config get endpoint
-    http://127.0.0.1:8000
-    ```
-  - `delete`: delete the `<key, value>` from global `.aelfrc` file by a given key
-    ```bash
-    $ aelf-command config delete endpoint
-    ```
-  - `list`: get the list of all configs stored in global `.aelfrc` file
-    ```bash
-    $ aelf-command config list
-    endpoint=http://127.0.0.1:8000
-    ```
+      ```bash
+      $ aelf-command config set endpoint http://127.0.0.1:8000
+      ✔ Succeed!
 
-Remember `config` command only can be used to modify the global `.aelfrc` file for now, more usages such as modify working directory will be implemented in later.
+      $ aelf-command config -h
+      Usage: aelf-command config [options] <flag> [key] [value]
+
+      get, set, delete or list aelf-command config
+
+      Options:
+        -h, --help  output usage information
+
+      Examples:
+
+      $ aelf-command config get <key>
+      $ aelf-command config set <key> <value>
+      $ aelf-command config delete <key>
+      $ aelf-command config list
+      ```
+
+    * `get`: get the value of given `key` from global `.aelfrc` file
+
+      ```bash
+      $ aelf-command config get endpoint
+      http://127.0.0.1:8000
+      ```
+
+    * `delete`: delete the `<key, value>` from global `.aelfrc` file by a given key
+
+      ```bash
+      $ aelf-command config delete endpoint
+      ✔ Succeed!
+      ```
+
+    * `list`: get the list of all configs stored in global `.aelfrc` file
+
+      ```bash
+      $ aelf-command config list
+      endpoint=http://127.0.0.1:8000
+      password=password
+      ```
+
+    Remember `config` command only can be used to modify the global `.aelfrc` file for now, more usages such as modify working directory will be implemented in later.
 
 3. `aelf-command` working directory `.aelfrc` file
 
-The current working directory of `aelf-command` can have a file named `.aelfrc` and store configs, the format of this file is like global `.aelfrc` file:
+    The current working directory of `aelf-command` can have a file named `.aelfrc` and store configs, the format of this file is like global `.aelfrc` file:
 
-```text
-endpoint http://127.0.0.1:8000
-password yourpassword
-```
-each line is `<key, value>` config and a whitespace is needed to separate them.
+    ```text
+    endpoint http://127.0.0.1:8000
+    password yourpassword
+    ```
+
+    each line is `<key, value>` config and a whitespace is needed to separate them.
 
 4. `aelf-command` options.
 
-You can give common options by passing them in CLI parameters.
+    You can give common options by passing them in CLI parameters.
 
-```bash
-$ aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
-```
+    ```bash
+    aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
+    ```
 
-Notice the priority, the options given in higher priority will overwrite the lower priority.
+    Notice the priority, the options given in higher priority will overwrite the lower priority.
 
-### create - create a new account
+### create - Create a new account
 
 This command will create a new account.
 
-```bash
+```shell
 $ aelf-command create -h
 Usage: aelf-command create [options] [save-to-file]
 
@@ -104,11 +117,12 @@ aelf-command create
 Example:
 
 * Specify the cipher way to encrypt account info by passing option `-c [cipher]`, such as:
-```bash
-$ aelf-command create -c aes-128-cbc
-```
 
-### load - load an account by a given `private key` or `mnemonic`
+  ```bash
+  aelf-command create -c aes-128-cbc
+  ```
+
+### load - Load an account by a given `private key` or `mnemonic`
 
 This command allow you load an account from backup.
 
@@ -123,29 +137,30 @@ $ aelf-command load
 ...
 ```
 
-### wallet - show wallet details which include `private key`, `address`, `public key` and `mnemonic`
+### wallet - Show wallet details which include `private key`, `address`, `public key` and `mnemonic`
 
 This command allow you print wallet info.
 
 ```bash
 $ aelf-command wallet -a C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR
-⬡ AElf [Info]: Private Key         : 97ca9fbece296231f26bee0e493500810f...cbd984f69a8dc22ec9ec89ebb00 
-⬡ AElf [Info]: Public Key          : 04c30dd0c3b5abfc85a11b15dabd0de926...74fe04e92eaebf2e4fef6445d9b9b11efe6f4b70c8e86644b72621f9987dc00bb1eab44a9bd7512ea53f93937a5d0 
-⬡ AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR 
+AElf [Info]: Private Key         : 97ca9fbece296231f26bee0e493500810f...cbd984f69a8dc22ec9ec89ebb00
+AElf [Info]: Public Key          : 04c30dd0c3b5abfc85a11b15dabd0de926...74fe04e92eaebf2e4fef6445d9b9b11efe6f4b70c8e86644b72621f9987dc00bb1eab44a9bd7512ea53f93937a5d0
+AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR
 ```
 
-### proposal - create a proposal
+### proposal - Create a proposal
 
 There are some transactions you can't send directly, such as deploying a smart contract, you need to create a proposal to a specific organization which contains BP nodes, and wait for the approve.
 
 Actually, you can create proposals on any contract method.
 
 * Get an organization address or create a organization
+
 ```bash
-$ aelf-command call AElf.ContractNames.Parliament GetGenesisOwnerAddress ''
+$ aelf-command call AElf.ContractNames.Parliament GetDefaultOrganizationAddress
 ✔ Fetching contract successfully!
 ✔ Calling method successfully!
-⬡ AElf [Info]:
+AElf [Info]:
 Result:
 "BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc"
 ✔ Succeed!
@@ -156,14 +171,15 @@ Result:
 You can get the default organization address and it has all BP nodes inside, every proposal can only be released when it has got over 2/3 BP nodes approve
 
 Create an organization
+
 ```bash
-$ aelf-command send AElf.ContractNames.Parliament CreateOrganization '{"reviewers":["ada","asda"], "releaseThreshold": 660000}' 
+aelf-command send AElf.ContractNames.Parliament CreateOrganization '{"reviewers":["ada","asda"], "releaseThreshold": 660000}'
 ```
 
 * Create a proposal
+
 ```bash
 $ aelf-command proposal
-
 ? Enter an organization address: BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc
 ? Select the expired time for this proposal: 2022/09/23 22:06
 ? Enter a contract address or name: 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8
@@ -176,21 +192,20 @@ Enter required params one by one:
 ? Enter the required param <category>: 0
 ? Enter the required param <code>: /Users/home/Downloads/AElf.Contracts.TokenConverter.dll
 ? It seems that you have entered a file path, do you want to read the file content and take it as the value of <code> Yes
-⬡ AElf [Info]:
+AElf [Info]:
  { TransactionId:
    '09c8c824d2e3aea1d6cd15b7bb6cefe4e236c5b818d6a01d4f7ca0b60fe99535' }
 ✔ loading proposal id...
-⬡ AElf [Info]: Proposal id: "bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb".
+AElf [Info]: Proposal id: "bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb".
 ✔ Succeed!
 ```
 
-You can get the proposal id the get proposal status by it.
+You can get the proposal id, then get proposal status by it.
 
 * Get proposal status
 
 ```bash
 $ aelf-command call AElf.ContractNames.Parliament GetProposal bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb
-
 {
   ...
   "expiredTime": {
@@ -209,9 +224,10 @@ $ aelf-command call AElf.ContractNames.Parliament GetProposal bafe83ca4ec5b2a2f1
 * Release a proposal
 
 You can release a proposal when it got approved.
+
 ```bash
 $ aelf-command send AElf.ContractNames.Parliament Release bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb
-⬡ AElf [Info]:
+AElf [Info]:
  { TransactionId:
    '09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535' }
 ```
@@ -220,10 +236,73 @@ Get the transaction result
 
 ```bash
 $ aelf-command get-tx-result 09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535
+AElf [Info]: {
+  "TransactionId": "09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535",
+  "Status": "MINED",
+  "Logs": [
+    {
+      "Address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+      "Name": "ContractDeployed",
+      "Indexed": [
+        "CiIKIPklcv1FnKLzUEtsxyZC59it/lXsLhgWS5VpxEhR4FxE",
+        "EiIKIDKVFb+Kx1GM+Vus5MGJnCmbKmRg6d7MOuNP6FiQ9laq"
+      ],
+      "NonIndexed": "GiIKIKOmGZC08DAoVVq4bnxr6WsfKAUpflGo1WLHAKS9g+SD"
+    }
+  ],
+  "Bloom": "AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAACAAAAAAAAAAACAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAQAAA==",
+  "BlockNumber": 28411,
+  "BlockHash": "fa22e4eddff12a728895a608db99d40a4b21894f7c07df1a4fa8f0625eb914a2",
+  "Transaction": {
+    "From": "2tj7Ea67fuQfVAtQZ3WBmTv7AAJ8S9D2L4g6PpRRJei6JXk7RG",
+    "To": "29RDBXTqwnpWPSPHGatYsQXW2E17YrQUCj7QhcEZDnhPb6ThHW",
+    "RefBlockNumber": 28410,
+    "RefBlockPrefix": "0P+eTw==",
+    "MethodName": "Release",
+    "Params": "\"ad868c1e0d74127dd746ccdf3443a09459c55cf07d247df053ddf718df258c86\"",
+    "Signature": "DQcv55EBWunEFPXAbqZG20OLO5T0Sq/s0A+/iuwv1TdQqIV4318HrqFLsGpx9m3+sp5mzhAnMlrG7CSxM6EuIgA="
+  },
+  "ReturnValue": "",
+  "ReadableReturnValue": "{ }",
+  "Error": null
+}
 ```
 
+If you want to call a contract method by creating a proposal and released it, the transaction result could be confusing, you can use another `aelf-command` sub-command to get the readable result;
 
-### deploy - deploy a smart contract
+Take the example above which has deployed a smart contract by proposal, the contract address is necessary for sending transactions.
+The contract address has been given but need to be decoded. We supply `aelf-command event` to decode the results.
+
+Pass the transaction id as a parameter:
+
+```bash
+$ aelf-command event fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb
+[Info]:
+The results returned by
+Transaction: fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb is:
+[
+  {
+    "Address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+    "Name": "ContractDeployed",
+    "Indexed": [
+      "CiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
+      "EiIKIDXZGwZLKqm78WpYDXuBlyd6Dv+RMjrgOUEnwamfIA/z"
+    ],
+    "NonIndexed": "GiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
+    "Result": {
+      "author": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+      "codeHash": "35d91b064b2aa9bbf16a580d7b8197277a0eff91323ae0394127c1a99f200ff3",
+      "address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8"
+    }
+  }
+]
+```
+
+The `Result` field is the decoded result, in this example, the `Result.address` is the new deployed contract address.
+
+For more details, check the descriptions of [`aelf-command event`](#event---deserialize-the-result-return-by-executing-a-transaction).
+
+### deploy - Deploy a smart contract
 
 Deploy a smart contract to the chain
 
@@ -235,7 +314,48 @@ $ aelf-command deploy
 ? Enter the relative or absolute path of contract code › /Users/home/home
 ```
 
-### send - send a transaction
+### event - Deserialize the result return by executing a transaction
+
+Only transaction id is required as the parameter.
+
+```bash
+$ aelf-command event fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb
+[Info]:
+The results returned by
+Transaction: fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb is:
+[
+  {
+    "Address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+    "Name": "ContractDeployed",
+    "Indexed": [
+      "CiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
+      "EiIKIDXZGwZLKqm78WpYDXuBlyd6Dv+RMjrgOUEnwamfIA/z"
+    ],
+    "NonIndexed": "GiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
+    "Result": {
+      "author": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+      "codeHash": "35d91b064b2aa9bbf16a580d7b8197277a0eff91323ae0394127c1a99f200ff3",
+      "address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8"
+    }
+  }
+]
+✔ Succeed!
+```
+
+This command get the `Log` field of a transaction result and deserialize the `Log` field with the correspond protobuf descriptors.
+
+A transaction may be related with several `Contract Method`'s events, so the transaction result can include several Logs.
+
+In each item:
+
+* `Address`: the contract address.
+* `Name`: name of a event published from related contract method.
+* `Indexed`: indexed data of event in type of base64
+* `NoIndexed`: no indexed data of event in type of base64.
+* `Result`: the decoded result, this is readable and you can use it and get what the fields means inside the `Result` by reading the contract documents or contract related protobuf files.
+In this example, you can read the [protobuf file](https://github.com/AElfProject/AElf/blob/master/protobuf/acs0.proto#L95);
+
+### send - Send a transaction
 
 ```bash
 $ aelf-command send
@@ -243,24 +363,37 @@ $ aelf-command send
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
-✔ Succeed
-✔ Pick up a contract method › GetTokenInfo
-✔ Enter the method params in JSON string format … {"symbol":"ELF"}
-✔ Succeed!
+✔ Fetching contract successfully!
+? Pick up a contract method: Transfer
 
+If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+Enter the params one by one, type `Enter` to skip optional param:
+? Enter the required param <to>: C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR
+? Enter the required param <symbol>: ELF
+? Enter the required param <amount>: 100000000
+? Enter the required param <memo>: 'test command'
+The params you entered is:
+{
+  "to": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR",
+  "symbol": "ELF",
+  "amount": 100000000,
+  "memo": "'test command'"
+}
+✔ Succeed!
+AElf [Info]:
 Result:
 {
-  "TransactionId": "7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02"
+  "TransactionId": "85d4684cb6e4721a63893240f73f675ac53768679c291abeb54974ff4e063bb5"
 }
 ✔ Succeed!
 ```
 
 ```bash
-$ aelf-command send AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-$ aelf-command send WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "amount": "1000000"}'
 ```
 
-### call - call a read-only method on a contract
+### call - Call a read-only method on a contract
 
 ```bash
 $ aelf-command call
@@ -268,30 +401,39 @@ $ aelf-command call
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
-✔ Succeed
-✔ Pick up a contract method › GetTokenInfo
-✔ Enter the method params in JSON string format … {"symbol":"ELF"}
-✔ Succeed!
+✔ Fetching contract successfully!
+? Pick up a contract method: GetTokenInfo
 
+If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+Enter the params one by one, type `Enter` to skip optional param:
+? Enter the required param <symbol>: ELF
+The params you entered is:
+{
+  "symbol": "ELF"
+}
+✔ Calling method successfully!
+AElf [Info]:
 Result:
 {
   "symbol": "ELF",
-  "tokenName": "elf token",
-  "supply": "1000000000",
-  "totalSupply": "1000000000",
-  "decimals": 2,
-  "issuer": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
-  "isBurnable": true
+  "tokenName": "Native Token",
+  "supply": "99732440917954549",
+  "totalSupply": "100000000000000000",
+  "decimals": 8,
+  "issuer": "FAJcKnSpbViZfAufBFzX4nC8HtuT93rxUS4VCMACUwXWYurC2",
+  "isBurnable": true,
+  "issueChainId": 9992731,
+  "burned": "267559132045477"
 }
 ✔ Succeed!
 ```
 
 ```bash
-$ aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-$ aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
 ```
 
-### get-chain-status - get the current status of the block chain
+### get-chain-status - Get the current status of the block chain
 
 ```bash
 $ aelf-command get-chain-status
@@ -313,13 +455,12 @@ $ aelf-command get-chain-status
 }
 ```
 
-### get-tx-result - get a transaction result
+### get-tx-result - Get a transaction result
 
 ```bash
 $ aelf-command get-tx-result
-
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
-✔ Enter a valid transaction hash in hex format … 7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02
+✔ Enter a valid transaction id in hex format … 7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02
 ✔ Succeed!
 { TransactionId:
    '7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02',
@@ -344,7 +485,7 @@ $ aelf-command get-tx-result
   Error: null }
 ```
 
-### get-blk-height - get the block height
+### get-blk-height - Get the block height
 
 ```bash
 $ aelf-command get-blk-height
@@ -352,15 +493,15 @@ $ aelf-command get-blk-height
 > 7902091
 ```
 
-### get-blk-info - get the block info by a block height or a block hash
+### get-blk-info - Get the block info by a block height or a block hash
 
 You can pass a block height or a block hash to this sub-command.
 
 ```bash
 $ aelf-command get-blk-info
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
-✔ Enter a valid height … 123
-✔ Include transactions whether or not … no / yes
+✔ Enter the the URI of an AElf node: http://13.231.179.27:8000
+✔ Enter a valid height or block hash: 123
+✔ Include transactions whether or not: no / yes
 { BlockHash:
    '6034db3e02e283d3b81a4528442988d28997d3828f87cca1a89457b294517372',
   Header:
@@ -386,11 +527,10 @@ $ aelf-command get-blk-info
 ```
 
 ```bash
-$ aelf-command get-blk-info ca61c7c8f5fc1bc8af0536bc9b51c61a94f39641a93a748e72802b3678fea4a9 true
-$ aelf-command get-blk-info 12 true
+aelf-command get-blk-info ca61c7c8f5fc1bc8af0536bc9b51c61a94f39641a93a748e72802b3678fea4a9 true
 ```
 
-### console - open an interactive console
+### console - Open an interactive console
 
 ```bash
 $ aelf-command console
@@ -413,3 +553,31 @@ Welcome to aelf interactive console. Ctrl + C to terminate the program. Double t
    ║                                                           ║
    ╚═══════════════════════════════════════════════════════════╝
 ```
+
+### dapp-server - Start a socket.io server for supplying services for dApps
+
+If you're developing a dApp and you need an environment to hold wallet info and connect to the AElf chain, you can use this sub-command to start a server for dApp local development.
+
+```bash
+$ aelf-command dapp-server
+AElf [Info]: DApp server is listening on port 35443
+
+# or listen on a specified port
+$ aelf-command dapp-server --port 40334
+AElf [Info]: DApp server is listening on port 40334
+```
+
+This server use Socket.io to listen on local port `35443` and you can use [aelf-bridge](https://github.com/AElfProject/aelf-bridge) to connect to this server like this.
+
+```javascript
+import AElfBridge from 'aelf-bridge';
+const bridgeInstance = new AElfBridge({
+  proxyType: 'SOCKET.IO',
+  socketUrl: 'http://localhost:35443',
+  channelType: 'ENCRYPT'
+});
+// connect to dapp-server
+bridgeInstance.connect().then(console.log).catch(console.error);
+```
+
+checkout more information in [aelf-bridge](https://github.com/AElfProject/aelf-bridge) and [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo)
