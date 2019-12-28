@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
@@ -682,7 +683,8 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(proposalKeyPair);
             var proposal = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
             proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs[0].NonIndexed)
+            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs
+                    .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
                 .ProposalId;
             proposal.Output.ShouldBe(proposalCreated);
 

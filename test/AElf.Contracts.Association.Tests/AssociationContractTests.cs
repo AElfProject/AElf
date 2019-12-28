@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.MultiToken;
@@ -447,17 +448,16 @@ namespace AElf.Contracts.Association
                 var transactionResult1 =
                     await associationContractStub.Approve.SendAsync(proposalId);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                transactionResult1.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
 
                 var transactionResult2 =
                     await associationContractStub.Reject.SendWithExceptionAsync(proposalId);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
+                transactionResult2.TransactionResult.Error.Contains("Sender already voted").ShouldBeTrue();
 
                 var transactionResult3 =
                     await associationContractStub.Abstain.SendWithExceptionAsync(proposalId);
                 transactionResult3.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult3.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
+                transactionResult3.TransactionResult.Error.Contains("Sender already voted").ShouldBeTrue();
             }
         }
 
@@ -486,7 +486,7 @@ namespace AElf.Contracts.Association
                 var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
                 await RejectAsync(Reviewer1KeyPair, proposalId);
                 await RejectAsync(Reviewer2KeyPair, proposalId);
-                await ApproveAsync(Reviewer1KeyPair, proposalId);
+                await ApproveAsync(Reviewer3KeyPair, proposalId);
                 var result = await associationContractStub.GetProposal.CallAsync(proposalId);
                 result.ToBeReleased.ShouldBeFalse();
             }
@@ -589,7 +589,8 @@ namespace AElf.Contracts.Association
                 var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
                 var result = await associationContractStub.Release.SendAsync(proposalId);
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs[0].NonIndexed)
+                var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs
+                        .First(l => l.Name.Contains(nameof(ProposalReleased))).NonIndexed)
                     .ProposalId;
                 proposalReleased.ShouldBe(proposalId);
 
@@ -708,7 +709,7 @@ namespace AElf.Contracts.Association
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
-            var result = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
+            var result = await associationContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Unauthorized to propose.");
         }
@@ -732,7 +733,8 @@ namespace AElf.Contracts.Association
                 OrganizationAddress = organizationAddress
             };
             var proposal = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
-            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs[0].NonIndexed)
+            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs
+                    .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
                 .ProposalId;
             proposal.Output.ShouldBe(proposalCreated);
 
@@ -752,7 +754,8 @@ namespace AElf.Contracts.Association
                 OrganizationAddress = organizationAddress
             };
             var proposal = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
-            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs[0].NonIndexed)
+            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs
+                    .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
                 .ProposalId;
             proposal.Output.ShouldBe(proposalCreated);
 

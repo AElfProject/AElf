@@ -612,7 +612,8 @@ namespace AElf.Contracts.Referendum
                 var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
                 var result = await referendumContractStub.Release.SendAsync(proposalId);
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs[0].NonIndexed)
+                var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs
+                        .First(l => l.Name.Contains(nameof(ProposalReleased))).NonIndexed)
                     .ProposalId;
                 proposalReleased.ShouldBe(proposalId);
 
@@ -666,7 +667,8 @@ namespace AElf.Contracts.Referendum
             };
 
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
-            var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair, proposalReleaseThresholdInput,
+            var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
+                proposalReleaseThresholdInput,
                 nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
             await GetTokenContractTester(SampleECKeyPairs.KeyPairs[3]).Approve.SendAsync(new ApproveInput
             {
@@ -678,7 +680,7 @@ namespace AElf.Contracts.Referendum
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             var result = await ReferendumContractStub.Release.SendAsync(changeProposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeFalse();
         }
@@ -711,7 +713,7 @@ namespace AElf.Contracts.Referendum
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             var releaseResult = await ReferendumContractStub.Release.SendAsync(changeProposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var timeStamp = TimestampHelper.GetUtcNow();
             var createInput = new CreateInput()
             {
