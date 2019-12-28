@@ -22,7 +22,7 @@ message AddressList {
 }
 ```
 
-Get the list contains address of deployed contracts.
+Get the list which contains address of deployed contracts.
 
 **Parameters:**
 
@@ -41,7 +41,7 @@ rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf
 }
 ```
 
-Ge serial number of genesis contract.
+Get serial number of the genesis contract.
 
 **Parameters:**
 
@@ -49,7 +49,7 @@ Ge serial number of genesis contract.
 
 **Returns:**
 
-Serial number of genesis contract.
+Serial number of the genesis contract.
 
 #### function GetContractInfo
 
@@ -113,7 +113,7 @@ Get code hash of the specified contract.
 
 **Returns:**
 
-code hash of the specified contract.
+Code hash of the specified contract.
 
 #### function GetContractAddressByName
 
@@ -173,7 +173,7 @@ message ValidateSystemContractAddressInput {
 }
 ```
 
-Validate whether the input system contract is legal.
+Validate whether the system contract address input is legal.
 
 **Parameters:**
 
@@ -218,7 +218,7 @@ Deploy a system smart contract on chain.
 ***SystemContractDeploymentInput*** 
 
 - ***category*** - contract type 
-- ***code*** - byte array of system contract code
+- ***code*** - byte array of system contract codes
 - ***name*** - name hash of system contract
 - ***transaction_method_call_list*** - list of methods called by system transaction
 
