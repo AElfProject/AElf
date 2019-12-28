@@ -14,12 +14,14 @@ service Configuration {
     // Actions
     rpc SetBlockTransactionLimit (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
-    rpc ChangeOwnerAddress (aelf.Address) returns (google.protobuf.Empty){
+    rpc ChangeOwnerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetBlockTransactionLimit (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
     }
     rpc GetOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
     }
 }
 
