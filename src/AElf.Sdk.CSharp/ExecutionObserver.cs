@@ -20,10 +20,7 @@ namespace AElf.Sdk.CSharp
 
         public void CallCount()
         {
-            if (_callThreshold == -1)
-                return;
-
-            if (_callCount == _callThreshold)
+            if (_callThreshold != -1 && _callCount == _callThreshold)
             {
                 throw new RuntimeCallThresholdExceededException();
             }
@@ -33,10 +30,7 @@ namespace AElf.Sdk.CSharp
         
         public void BranchCount()
         {
-            if (_branchThreshold == -1)
-                return;
-
-            if (_branchCount == _branchThreshold)
+            if (_branchThreshold != -1 && _branchCount == _branchThreshold)
             {
                 throw new RuntimeBranchThresholdExceededException();
             }
