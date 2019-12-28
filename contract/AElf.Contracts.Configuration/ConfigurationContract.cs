@@ -10,7 +10,7 @@ namespace AElf.Contracts.Configuration
         {
             Assert(input.Value > 0, "Invalid input.");
             CheckOwnerAuthority();
-            
+
             var oldValue = State.BlockTransactionLimit.Value;
             var newValue = input.Value;
             State.BlockTransactionLimit.Value = newValue;
