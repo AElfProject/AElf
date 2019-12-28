@@ -33,7 +33,8 @@ namespace AElf.Runtime.CSharp
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
-        
+
+        public bool IsSystemContract { get; set; }
         public Timestamp LastUsedTime { get; set; }
 
         private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
@@ -100,8 +101,11 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            var observer = new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, 
-                CurrentTransactionContext.ExecutionBranchThreshold);
+            var observer = IsSystemContract ? 
+                new ExecutionObserver(-1, -1) : // Counters are active but no threshold
+                new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, 
+                    CurrentTransactionContext.ExecutionBranchThreshold);
+            
             try
             {
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
