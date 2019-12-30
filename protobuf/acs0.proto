@@ -33,6 +33,8 @@ service ACS0 {
     }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
+    rpc SetControllerAddressByDefault (aelf.Address) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {

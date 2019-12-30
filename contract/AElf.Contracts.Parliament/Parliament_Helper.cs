@@ -27,14 +27,11 @@ namespace AElf.Contracts.Parliament
             // authority check is disable,
             // or sender is in proposer white list,
             // or sender is one of miners.
-            Assert(CheckProposerAuthorityIfNeeded(proposer), "Not authorized to propose.");
+            Assert(
+                !organization.ProposerAuthorityRequired || ValidateAddressInWhiteList(proposer) ||
+                ValidateParliamentMemberAuthority(proposer), "Unauthorized to propose.");
         }
-
-        private bool CheckProposerAuthorityIfNeeded(Address address)
-        {
-            return !State.ProposerAuthorityRequired.Value || ValidateProposerAuthority(address);
-        }
-
+        
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
         {
             var parliamentMembers = GetCurrentMinerList();

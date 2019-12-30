@@ -27,9 +27,11 @@ service ParliamentContract {
     rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
     }
-    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
-        option (aelf.is_view) = true;
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
+//    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
+//        option (aelf.is_view) = true;
+//    }
     rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
@@ -43,9 +45,11 @@ service ParliamentContract {
 
 message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    bool proposer_authority_required = 2;
 }
 
 message Organization {
+    bool proposer_authority_required = 1;
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
@@ -86,4 +90,9 @@ message ProposalIdList{
 message GetProposerWhiteListContextOutput{
     repeated aelf.Address proposers = 1;
     bool proposer_authority_required = 2;
+}
+
+message CreateOrganizationBySystemContractInput {
+    CreateOrganizationInput organization_creation_input = 1;
+    string organization_address_feedback_method = 2;
 }

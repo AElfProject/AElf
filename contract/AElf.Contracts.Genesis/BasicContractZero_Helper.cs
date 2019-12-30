@@ -41,23 +41,7 @@ namespace AElf.Contracts.Genesis
         {
             Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
         }
-
-        private void InitializeOwnerAddress(Address ownerAddress)
-        {
-            Assert(State.ContractDeploymentController.Value == null && State.CodeCheckController.Value == null,
-                "Genesis owner already initialized");
-            var parliamentContractAddress =
-                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
-            Assert(ownerAddress != null, "Genesis Owner should not be null.");
-            State.ContractDeploymentController.Value = new ContractDeploymentControllerStuff
-            {
-                OwnerAddress = ownerAddress,
-                ContractAddress = parliamentContractAddress
-            };
-            State.CodeCheckController.Value = ownerAddress;
-        }
-
+        
         private Hash CalculateHashFromInput(IMessage input)
         {
             return Hash.FromMessage(input);
@@ -65,16 +49,16 @@ namespace AElf.Contracts.Genesis
 
         private void AssertDeploymentProposerAuthority(Address proposer)
         {
-            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            if (!isGenesisOwnerAuthorityRequired)
-                return;
-            if (!State.ContractProposerAuthorityRequired.Value)
-                return;
-            var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
-            var validationResult = proposerWhiteListContext.ProposerAuthorityRequired
-                ? proposerWhiteListContext.Proposers.Any(p => p == proposer)
-                : CheckAddressIsParliamentMember(proposer);
-            Assert(validationResult, "Proposer authority validation failed.");
+            // var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            // if (!isGenesisOwnerAuthorityRequired)
+            //     return;
+            // if (!State.ContractProposerAuthorityRequired.Value)
+            //     return;
+            // var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
+            // var validationResult = proposerWhiteListContext.ProposerAuthorityRequired
+            //     ? proposerWhiteListContext.Proposers.Any(p => p == proposer)
+            //     : CheckAddressIsParliamentMember(proposer);
+            // Assert(validationResult, "Proposer authority validation failed.");
         }
 
         private bool CheckAddressIsParliamentMember(Address address)
@@ -90,11 +74,11 @@ namespace AElf.Contracts.Genesis
                     .ValidateOrganizationExist), organizationAddress.ToByteString()).Value;
         }
 
-        private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
-        {
-            RequireParliamentContractAddressSet();
-            return State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
-        }
+        // private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
+        // {
+        //     RequireParliamentContractAddressSet();
+        //     return State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
+        // }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
         {
@@ -113,26 +97,26 @@ namespace AElf.Contracts.Genesis
             return true;
         }
 
-        private void RequireAuthorityByContractInfo(ContractInfo contractInfo)
+        private void AssertAuthorityByContractInfo(ContractInfo contractInfo, Address address)
         {
             bool validationResult;
-            var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
-            if (proposerWhiteListContext.ProposerAuthorityRequired)
+            // var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
+                                // if (proposerWhiteListContext.ProposerAuthorityRequired)
+                                // {
+                                //     validationResult = proposerWhiteListContext.Proposers.Any(p => p == Context.Sender);
+                                // }
+                                // else if (State.ContractProposerAuthorityRequired.Value)
+                                // {
+                                //     validationResult = CheckAddressIsParliamentMember(Context.Sender);
+                                // }
+                                // else 
+            if (contractInfo.IsSystemContract)
             {
-                validationResult = proposerWhiteListContext.Proposers.Any(p => p == Context.Sender);
-            }
-            else if (State.ContractProposerAuthorityRequired.Value)
-            {
-                validationResult = CheckAddressIsParliamentMember(Context.Sender);
-            }
-            else if (contractInfo.IsSystemContract)
-            {
-                validationResult = proposerWhiteListContext.Proposers.Any(p => p == Context.Sender) ||
-                                   CheckAddressIsParliamentMember(Context.Sender);
+                validationResult = address == State.ContractDeploymentController.Value.OwnerAddress;
             }
             else
             {
-                validationResult = Context.Sender == contractInfo.Author;
+                validationResult = address == contractInfo.Author;
             }
 
             Assert(validationResult, "No permission.");

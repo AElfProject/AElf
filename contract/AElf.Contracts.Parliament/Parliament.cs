@@ -1,5 +1,4 @@
 using System.Linq;
-using Acs0;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -62,14 +61,14 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateParliamentMemberAuthority(address)};
         }
 
-        public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
-        {
-            return new GetProposerWhiteListContextOutput
-            {
-                ProposerAuthorityRequired = State.ProposerAuthorityRequired.Value,
-                Proposers = {State.ProposerWhiteList.Value.Proposers}
-            };
-        }
+        // public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
+        // {
+        //     return new GetProposerWhiteListContextOutput
+        //     {
+        //         ProposerAuthorityRequired = State.ProposerAuthorityRequired.Value,
+        //         Proposers = {State.ProposerWhiteList.Value.Proposers}
+        //     };
+        // }
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
@@ -125,28 +124,57 @@ namespace AElf.Contracts.Parliament
             {
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
-                    MinimalApprovalThreshold = AbstractDefaultOrganizationMinimalApprovalThreshold,
-                    MinimalVoteThreshold = AbstractDefaultOrganizationMinimalVoteThresholdThreshold,
-                    MaximalAbstentionThreshold = AbstractDefaultOrganizationMaximalAbstentionThreshold,
-                    MaximalRejectionThreshold = AbstractDefaultOrganizationMaximalRejectionThreshold
-                }
+                    MinimalApprovalThreshold = DefaultOrganizationMinimalApprovalThreshold,
+                    MinimalVoteThreshold = DefaultOrganizationMinimalVoteThresholdThreshold,
+                    MaximalAbstentionThreshold = DefaultOrganizationMaximalAbstentionThreshold,
+                    MaximalRejectionThreshold = DefaultOrganizationMaximalRejectionThreshold
+                },
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired
             };
             var defaultOrganizationAddress = CreateOrganization(organizationInput);
-            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            // State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
-            State.GenesisContract.ChangeGenesisOwner.Send(new ContractControllerStuff
-            {
-                ContractAddress = Context.Self,
-                OwnerAddress = defaultOrganizationAddress
-            });
-            State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
+            // State.GenesisContract.ChangeGenesisOwner.Send(new ContractControllerStuff
+            // {
+            //     ContractAddress = Context.Self,
+            //     OwnerAddress = defaultOrganizationAddress
+            // });
+            // State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
 
             return new Empty();
         }
 
+        public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
+        {
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Unauthorized to create organization.");
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input.OrganizationCreationInput);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            var organizationHash = organizationHashAddressPair.OrganizationHash;
+            var organization = new Organization
+            {
+                ProposalReleaseThreshold = input.OrganizationCreationInput.ProposalReleaseThreshold,
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash,
+                ProposerAuthorityRequired = input.OrganizationCreationInput.ProposerAuthorityRequired
+            };
+            Assert(Validate(organization), "Invalid organization.");
+            if (State.Organisations[organizationAddress] == null)
+            {
+                State.Organisations[organizationAddress] = organization;
+            }
+
+            if (!string.IsNullOrEmpty(input.OrganizationAddressFeedbackMethod))
+            {
+                Context.SendInline(Context.Sender, input.OrganizationAddressFeedbackMethod, organizationAddress);
+            }
+
+            return organizationAddress;
+        }
+
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(CheckProposerAuthorityIfNeeded(Context.Sender), "Not authorized to create organization.");
+            Assert(ValidateProposerAuthority(Context.Sender), "Not authorized to create organization.");
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
             var organizationAddress = organizationHashAddressPair.OrganizationAddress;
             var organizationHash = organizationHashAddressPair.OrganizationHash;
@@ -175,7 +203,7 @@ namespace AElf.Contracts.Parliament
         public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
-                "Not authorized to propose.");
+                "Unauthorized to propose.");
             AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
 
             var proposalId = CreateNewProposal(input.ProposalInput);
