@@ -19,6 +19,7 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using AElf.Runtime.CSharp.Tests.TestContract;
 using Shouldly;
 using Xunit;
 
