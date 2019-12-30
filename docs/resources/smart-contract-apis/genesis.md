@@ -11,7 +11,7 @@ This page describes available methods on the Genesis Contract.
 ```protobuf
 rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 
 message AddressList {
@@ -34,7 +34,7 @@ Address list of deployed contracts.
 ```protobuf
 rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -53,7 +53,7 @@ Serial number of the genesis contract.
 ```protobuf
 rpc GetContractInfo (aelf.Address) returns (ContractInfo) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 
 message ContractInfo {
@@ -80,7 +80,7 @@ A **ContractInfo** object that represents detailed information about the specifi
 ```protobuf
 rpc GetContractAuthor (aelf.Address) returns (aelf.Address)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -99,7 +99,7 @@ Author of the specified contract.
 ```protobuf
 rpc GetContractHash (aelf.Address) returns (aelf.Hash) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -118,7 +118,7 @@ The code hash of the contract.
 ```protobuf
 rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -137,7 +137,7 @@ Address of the specified contract.
 ```protobuf
 rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 
 message SmartContractRegistration {
@@ -162,7 +162,7 @@ Registration object of the smart contract.
 ```protobuf
 rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 
 message ValidateSystemContractAddressInput {
