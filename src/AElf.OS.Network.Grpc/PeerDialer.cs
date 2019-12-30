@@ -75,6 +75,7 @@ namespace AElf.OS.Network.Grpc
             if (handshakeReply.Error != HandshakeError.HandshakeOk)
             {
                 Logger.LogWarning($"Handshake error: {remoteEndpoint} {handshakeReply.Error}.");
+                await client.Channel.ShutdownAsync();
                 return null;
             }
 
@@ -127,7 +128,7 @@ namespace AElf.OS.Network.Grpc
                 
                 Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await client.Channel.ShutdownAsync();
                 throw;

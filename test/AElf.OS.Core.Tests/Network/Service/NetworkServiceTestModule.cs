@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
@@ -51,7 +52,11 @@ namespace AElf.OS
                 .Returns<string>(adr =>
                 {
                     var p1 = new Mock<IPeer>();
-                    
+                    p1.Setup(m => m.RemoteEndpoint).Returns(new DnsEndPoint("127.0.0.1", 3210));
+                    p1.Setup(m => m.Info).Returns(new PeerConnectionInfo
+                    {
+                        Pubkey = "p1"
+                    });
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
                     p1.Setup(p => p.Info).Returns(new PeerConnectionInfo
@@ -188,7 +193,6 @@ namespace AElf.OS
                     .Returns<Hash>(txHash => knownTransactionHashes.TryAdd(txHash));
                 propPeerOne.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
                     .Returns<Hash>(txHash => knownTransactionHashes.HasHash(txHash));
-                
                 SetupBroadcastCallbacks(propPeerOne);
                 
                 peers = new List<IPeer> { propPeerOne.Object };

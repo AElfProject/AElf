@@ -99,7 +99,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            if (currentRound.TryToDetectEvilMiners(out var evilMiners))
+            if (State.IsMainChain.Value && // Only detect evil miners in Main Chain.
+            currentRound.TryToDetectEvilMiners(out var evilMiners))
             {
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)

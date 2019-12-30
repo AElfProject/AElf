@@ -3,38 +3,45 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.Events";
 
 service EventsContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.Events.EventsContractState";
+    option (aelf.base) = "acs1.proto";
+    
     //Actions
     rpc InitializeEvents(InitializeInput) returns (google.protobuf.Empty){
     }
-    
     rpc IssueOrder(OrderInput) returns (google.protobuf.Empty) {
     }
-    
     rpc DealOrder(DealOrderInput) returns (google.protobuf.Empty) {
     }
-    
     rpc CancelOrder(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc InlineTransferFrom(InlineTransferFromInput) returns (google.protobuf.Empty) {
     }
 
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryIssueOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-
     rpc QueryDoneOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryCanceledOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryOrderById(aelf.Hash) returns (OrderInfo) {
+        option (aelf.is_view) = true;
     }
-    
     rpc QueryOrderSubOrders(aelf.Hash) returns (DealtOrders) {
+        option (aelf.is_view) = true;
     }
 }
 
@@ -70,6 +77,14 @@ message DealtOrder {
 message DealOrderInput {
     aelf.Hash order_id = 1;
     sint64 amount = 2;
+}
+
+message InlineTransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
 }
 
 //Output
