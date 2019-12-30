@@ -37,7 +37,10 @@ namespace AElf.Contracts.Parliament
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization)
+                ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization),
+                ApprovalCount = proposal.Approvals.Count,
+                RejectionCount = proposal.Rejections.Count,
+                AbstentionCount = proposal.Abstentions.Count
             };
         }
 
@@ -234,6 +237,7 @@ namespace AElf.Contracts.Parliament
             var organization = State.Organisations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
+            Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }

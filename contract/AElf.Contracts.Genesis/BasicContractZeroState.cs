@@ -19,7 +19,7 @@ namespace AElf.Contracts.Genesis
         /// <summary>
         /// Genesis owner controls contract deployment if <see cref="ContractDeploymentAuthorityRequired"/> is true.
         /// </summary>
-        public SingletonState<ContractControllerStuff> GenesisOwner { get; set; }
+        public SingletonState<ContractDeploymentControllerStuff> ContractDeploymentController { get; set; }
         
         public SingletonState<Address> CodeCheckController { get; set; }
         

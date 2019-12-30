@@ -34,7 +34,10 @@ namespace AElf.Contracts.Referendum
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                ToBeReleased = readyToRelease
+                ToBeReleased = readyToRelease,
+                ApprovalCount = proposal.AbstentionCount,
+                RejectionCount = proposal.RejectionCount,
+                AbstentionCount = proposal.AbstentionCount
             };
         }
 
@@ -147,6 +150,7 @@ namespace AElf.Contracts.Referendum
             var organization = State.Organisations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
+            Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }
@@ -156,6 +160,7 @@ namespace AElf.Contracts.Referendum
             var organization = State.Organisations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposerWhiteList = input;
+            Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }

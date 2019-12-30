@@ -44,13 +44,13 @@ namespace AElf.Contracts.Genesis
 
         private void InitializeOwnerAddress(Address ownerAddress)
         {
-            Assert(State.GenesisOwner.Value == null && State.CodeCheckController.Value == null,
+            Assert(State.ContractDeploymentController.Value == null && State.CodeCheckController.Value == null,
                 "Genesis owner already initialized");
             var parliamentContractAddress =
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
             Assert(ownerAddress != null, "Genesis Owner should not be null.");
-            State.GenesisOwner.Value = new ContractControllerStuff
+            State.ContractDeploymentController.Value = new ContractDeploymentControllerStuff
             {
                 OwnerAddress = ownerAddress,
                 ContractAddress = parliamentContractAddress
@@ -83,11 +83,11 @@ namespace AElf.Contracts.Genesis
             return State.ParliamentContract.ValidateAddressIsParliamentMember.Call(address).Value;
         }
 
-        private bool CheckOrganizationExist(ContractControllerStuff contractControllerStuff)
+        private bool CheckOrganizationExist(Address contractAddress, Address organizationAddress)
         {
-            return Context.Call<BoolValue>(contractControllerStuff.ContractAddress,
+            return Context.Call<BoolValue>(contractAddress,
                 nameof(Acs3.AuthorizationContractContainer.AuthorizationContractReferenceState
-                    .ValidateOrganizationExist), contractControllerStuff.OwnerAddress.ToByteString()).Value;
+                    .ValidateOrganizationExist), organizationAddress.ToByteString()).Value;
         }
 
         private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()

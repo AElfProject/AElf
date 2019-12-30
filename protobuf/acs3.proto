@@ -54,6 +54,9 @@ message ProposalOutput {
     aelf.Address organization_address = 6;
     aelf.Address proposer = 7;
     bool to_be_released = 8;
+    int64 approval_count = 9;
+    int64 rejection_count = 10;
+    int64 abstention_count = 11;
 }
 
 message ProposalReleaseThreshold {
