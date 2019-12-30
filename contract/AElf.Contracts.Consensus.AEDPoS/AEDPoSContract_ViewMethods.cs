@@ -302,7 +302,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
             var isMinerListChanged = false;
-            if (previousRound.TermNumber == currentRound.TermNumber) // In same term.
+            if (IsMainChain && previousRound.TermNumber == currentRound.TermNumber) // In same term.
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
