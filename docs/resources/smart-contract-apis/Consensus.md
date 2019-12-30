@@ -36,7 +36,7 @@ PubkeyList
 
 
 
-Get current miner list represented by binary with round number
+Get current miner list represented by binary and the current round number.
 ```Protobuf
 rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {}
 
@@ -57,10 +57,10 @@ MinerList
 - **pubkeys** miners' public key
 
 
-Get round information
+Get round information.
+Q:  main_chain_miners_round_number just found in test.
 ```Protobuf
 rpc GetRoundInformation (aelf.SInt64Value) returns (Round) {}
-Q: main_chain_miners_round_number not used?
 message SInt64Value
 {
     sint64 value = 1;
@@ -68,80 +68,79 @@ message SInt64Value
 
 message Round {
     sint64 round_number = 1;
-    map<string, MinerInRound> real_time_miners_information = 2;
-    sint64 main_chain_miners_round_number = 3;
-    sint64 blockchain_age = 4;
-    string extra_block_producer_of_previous_round = 7;
-    sint64 term_number = 8;
-    sint64 confirmed_irreversible_block_height = 9;
-    sint64 confirmed_irreversible_block_round_number = 10;
-    bool is_miner_list_just_changed = 11;
-    sint64 round_id_for_validation = 12;
+    map<string, MinerInRound> real time miners information = 2;
+    sint64 main chain miners round number = 3;
+    sint64 blockchain age = 4;
+    string extra block producer of previous round = 7;
+    sint64 term number = 8;
+    sint64 confirmed irreversible block height = 9;
+    sint64 confirmed irreversible block round number = 10;
+    bool is miner list just changed = 11;
+    sint64 round id for validation = 12;
 }
 
 message MinerInRound {
     sint32 order = 1;
-    bool is_extra_block_producer = 2;
-    aelf.Hash in_value = 3;
-    aelf.Hash out_value = 4;
+    bool is extra block producer = 2;
+    aelf.Hash in value = 3;
+    aelf.Hash out value = 4;
     aelf.Hash signature = 5;
-    google.protobuf.Timestamp expected_mining_time = 6;
-    sint64 produced_blocks = 7;
-    sint64 missed_time_slots = 8;
+    google.protobuf.Timestamp expected mining time = 6;
+    sint64 produced blocks = 7;
+    sint64 missed time slots = 8;
     string pubkey = 9;
-    aelf.Hash previous_in_value = 12;
-    sint32 supposed_order_of_next_round = 13;
-    sint32 final_order_of_next_round = 14;
-    repeated google.protobuf.Timestamp actual_mining_times = 15;
-    map<string, bytes> encrypted_pieces = 16;
-    map<string, bytes> decrypted_pieces = 17;
-    sint32 produced_tiny_blocks = 18;
-    sint64 implied_irreversible_block_height = 19;
+    aelf.Hash previous in value = 12;
+    sint32 supposed order of next round = 13;
+    sint32 final order of next round = 14;
+    repeated google.protobuf.Timestamp actual mining times = 15;
+    map<string, bytes> encrypted pieces = 16;
+    map<string, bytes> decrypted pieces = 17;
+    sint32 produced tiny blocks = 18;
+    sint64 implied irreversible block height = 19;
 }
 ```
 SInt64Value
 - **value** round number
 
-
 Round
-- **round_number**round number
-- **real_time_miners_information** public key => miner information
-- **main_chain_miners_round_number** to do
-- **blockchain_age**current time - block chain start time stamp
-- **extra_block_producer_of_previous_round** the public key(hexadecimal string) of the first miner in the current term
-- **term_number**term number
-- **confirmed_irreversible_block_height** irreversible block height
-- **confirmed_irreversible_block_round_number**irreversible block round number
-- **is_miner_list_just_changed** is miner list different from the the miner list of pre term
-- **round_id_for_validation** round id,  bpInfo.ExpectedMiningTime.Seconds.sum
+- **round number**round number
+- **real time miners information** public key => miner information
+- **main chain miners round number** to do
+- **blockchain age**current time - block chain start time stamp
+- **extra block producer of previous round** the public key(hexadecimal string) of the first miner in the current term
+- **term number**term number
+- **confirmed irreversible block height** irreversible block height
+- **confirmed irreversible block round number**irreversible block round number
+- **is miner list just changed** is miner list different from the the miner list in the previous term
+- **round id for validation** round id,  bpInfo.ExpectedMiningTime.Seconds.sum
 
 
 
 MinerInRound
 - **order** mining order
 
-- **is_extra_block_producer** The first miner will be the extra block producer of first round of each term.
+- **is extra block producer** The miner who is the first miner in the first round of each term will be the extra block producer .
 
-- **in_value**  like linked node, the pre miner's public key
-- **out_value** the post miner's public key
+- **in value**  like linked node, the previous miner's public key
+- **out value** the post miner's public key
 - **signature** self signature
-- **expected_mining_time** expected mining time 
-- **produced_blocks** produced blocks
-- **missed_time_slots** missed time slots
+- **expected mining time** expected mining time 
+- **produced blocks** produced blocks
+- **missed time slots** missed time slots
 - **pubkey** public key string
-- **previous_in_value** the public key of the miner before pre miner
-- **supposed_order_of_next_round** evaluated order in next round
-- **final_order_of_next_round** e true order in the next round
-- **actual_mining_times** mining time
-- **encrypted_pieces** public key (miners in pre round) =>  message encrypted by shares information and public string represented by hexadecimal string
-- **decrypted_pieces** decrypt the encrypted pieces of miners in the pre round
-- **produced_tiny_blocks** produced tiny blocks
-- **implied_irreversible_block_height** suggest the current context's height is the irreversible block height
+- **previous in value** the public key of the miner before previous miner
+- **supposed order of next round** evaluated order in next round
+- **final order of next round** e true order in the next round
+- **actual mining times** mining time
+- **encrypted pieces** public key (miners in previous round) =>  message encrypted by shares information and public string represented by hexadecimal string
+- **decrypted pieces** decrypt the encrypted pieces of miners in the previous round
+- **produced tiny blocks** produced tiny blocks
+- **implied irreversible block height** suggest the current context's height is the irreversible block height
 
 
 
 
-Get current round number
+Get current round number.
 ```Protobuf
 rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {}
 
@@ -155,7 +154,7 @@ SInt64Value
 
 
 
-Get current round information
+Get current round information.
 ```Protobuf
  rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {}
 
@@ -192,7 +191,7 @@ SInt64Value
 
 
 
-Get current welfare reward
+Get current welfare reward.
 ```Protobuf
 rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {}
 
@@ -207,7 +206,7 @@ SInt64Value
 
 
 
-Get previous minerList
+Get previous minerList.
 ```Protobuf
 rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {}
 
@@ -222,7 +221,7 @@ MinerList
 
 
 
-Get mined blocks of previous term
+Get mined blocks during the previous term.
 ```Protobuf
 rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value) {}
 
@@ -238,7 +237,7 @@ SInt64Value
 
 
 
-Get the miner who will produce the first block in the next term.
+Get the miner who will produce the first block in the next term.The first miner whose expected mining time is greater than current bock time. If this miner can not be found, the first miner who is extra block producer will be selected.
 ```Protobuf
 rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
 
@@ -247,7 +246,7 @@ message StringValue {
 }
 ```
 StringValue
-- **value**  The first miner whose expected mining time is greater than current bock time. If this miner can not be found, the first miner who is extra block producer will be selected.
+- **value**  miner's public key
 
 
 
@@ -264,7 +263,7 @@ StringValue
 
 
 
-judge whether the miner is in the miner list in the current term.
+Judge whether the miner is in the miner list in the current term.
 ```Protobuf
 rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {}
 
@@ -277,7 +276,7 @@ Address
 - **value**  address
 
 
-Count down the next election.
+Count down to the next election.
 ```Protobuf
 rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {}
 
