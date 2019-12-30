@@ -55,22 +55,22 @@ message Voted {
 ```
 - **voting item id** indicate which voting activity the user participate in
 - **voter**  voter address.
-- **amount** amount you vote
+- **amount** vote amount
 - **option** candidate public key
 - **vote id** transaction id
-- **is change target** indicate whether you changed option
+- **is change target** indicate whether the option has been changed
 
 - **has context.fire;** 
 Voted
 - **voting item id**  voting activity id
 - **voter** voter address
 - **snapshot number** indicate current round
-- **amount**amount you vote
+- **amount** vote amount
 - **vote timestamp**vote time
 - **option** the candidate's public key
 - **vote id**transaction id
 
-if you regret to vote sb, you can withdraw your vote.
+if the voter regrets to vote somebody, he/she can withdraw his/her vote.
 
 ```Protobuf
 rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {}
@@ -98,7 +98,7 @@ message TakeSnapshotInput {
 
 
 
-Vote a candidate you never voted.
+Vote a new candidate.
 
 ```Protobuf
 rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {}
@@ -113,7 +113,7 @@ message AddOptionInput {
 - **option**  the new candidate address
 
 
-Vote candidates you never voted.
+Vote candidates.
 
 ```Protobuf
 rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {}
@@ -130,7 +130,7 @@ message AddOptionsInput {
 
 
 
-Remove a candidate from these you voted.
+Remove a candidate.
 ```Protobuf
 rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
 
@@ -141,12 +141,12 @@ message RemoveOptionInput {
 ```
 
 - **voting item id** voting activity id
-- **option**   address of the candidate you want to remove
+- **option**   address of the candidate
 
 
 
 
-Remove candidates from these you voted.
+Remove candidates.
 ```Protobuf
 rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {}
 
@@ -157,7 +157,7 @@ message RemoveOptionsInput {
 ```
 
 - **voting item id** voting activity id
-- **option**   addresses of the candidates you want to remove
+- **option**   addresses of the candidates
 
 ## view methods
 
