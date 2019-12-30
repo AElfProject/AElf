@@ -1,25 +1,25 @@
 # Introduction to the CLI
 
-The **aelf-command** tool is a CLI tools built for interacting with an AElf node. This section will walk you through some of the most commonly used features and show you how to install the tool.
+The **aelf-command** tool is a CLI tool built for interacting with an AElf node. This section will walk you through some of the most commonly used features and show you how to install the tool.
 
 ## Features
 
 * Get or Set common configs, `endpoint`, `account`, `datadir`, `password`.
-* For new learners who are not familiar with the CLI parameters, any lacked parameters will be asked in a prompting way.
+* For new users who are not familiar with the CLI parameters, any missing parameters will be asked in a prompting way.
 * Create a new `account`.
-* Load a account by a given `private key` or `mnemonic`.
+* Load an account from a given `private key` or `mnemonic`.
 * Show `wallet` details which include private key, address, public key and mnemonic.
-* Encrypt account info into `keyStore` format and save into files.
+* Encrypt account info into `keyStore` format and save to file.
 * Get current `Best Height` of the chain.
 * Get `block info` by a given `height` or `block hash`.
 * Get `transaction result` by a given `transaction id`.
 * Send a `transaction` or call a `read-only method` on a smart `contract`.
 * Deploy a smart `contract`.
 * Open a `REPL` for using `JavaScript` to interact with the chain.
-* Friendly interact, beautify with chalk & ora.
+* Friendly interactions, beautify with chalk & ora.
 * Get current chain status.
 * Create a proposal on any contract method.
-* Deserialize the result return by executing a transaction.
+* Deserialize the result returned by executing a transaction.
 * Start a socket.io server for supplying services for dApps.
 
 ## Install aelf-command
@@ -136,7 +136,7 @@ Options:
   -e, --endpoint <URI>                                     The URI of an AElf node. Eg: http://127.0.0.1:8000
   -a, --account <account>                                  The address of AElf wallet
   -p, --password <password>                                The password of encrypted keyStore
-  -d, --datadir <directory>                                The directory that contains the AElf related files. Default to be {home}/.local/share/aelf
+  -d, --datadir <directory>                                The directory that contains the AElf related files. Defaults to {home}/.local/share/aelf
   -h, --help                                               output usage information
 
 Commands:

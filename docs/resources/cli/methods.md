@@ -13,7 +13,7 @@ You can specified options above in several ways, and the priority is in the orde
 
     ```bash
     # This is datadir
-    $ export AELF_CLI_DATADIR=/Users/your/.local/share/aelf
+    $ export AELF_CLI_DATADIR=/Users/{you}/.local/share/aelf
     # This is endpoint
     $ export AELF_CLI_ENDPOINT=http://127.0.0.1:8000
     # This is account
@@ -27,7 +27,7 @@ You can specified options above in several ways, and the priority is in the orde
 
     Modify this config file by `aelf-command config`.
 
-    * `set`: set and save config in the file, remember just set `datadir`, `endpoint`, `account`, `password` four keys.
+    * `set`: set and save config in the file, remember just set the `datadir`, `endpoint`, `account`, `password` four keys.
 
       ```bash
       $ aelf-command config set endpoint http://127.0.0.1:8000
@@ -567,7 +567,7 @@ $ aelf-command dapp-server --port 40334
 AElf [Info]: DApp server is listening on port 40334
 ```
 
-This server use Socket.io to listen on local port `35443` and you can use [aelf-bridge](https://github.com/AElfProject/aelf-bridge) to connect to this server like this.
+This server uses Socket.io to listen on local port `35443` and you can use [aelf-bridge](https://github.com/AElfProject/aelf-bridge) to connect to this server like this:
 
 ```javascript
 import AElfBridge from 'aelf-bridge';
@@ -580,4 +580,4 @@ const bridgeInstance = new AElfBridge({
 bridgeInstance.connect().then(console.log).catch(console.error);
 ```
 
-checkout more information in [aelf-bridge](https://github.com/AElfProject/aelf-bridge) and [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo)
+checkout more information in [aelf-bridge](https://github.com/AElfProject/aelf-bridge) and [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo).
