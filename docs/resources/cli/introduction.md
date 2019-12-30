@@ -148,7 +148,7 @@ Commands:
   get-tx-result [tx-hash]                                  Get a transaction result
   console                                                  Open a node REPL
   create [options] [save-to-file]                          Create a new account
-  wallet                                                   Show current account details which include private key, address, public key and mnemonic
+  wallet                                                   Show wallet details which include private key, address, public key and mnemonic
   load [private-key|mnemonic] [save-to-file]               Load wallet from a private key or mnemonic
   proposal [organization] [expired-time]                   Send a proposal to an origination with a specific contract method
   deploy [category] [code-path]                            Deploy a smart contract
