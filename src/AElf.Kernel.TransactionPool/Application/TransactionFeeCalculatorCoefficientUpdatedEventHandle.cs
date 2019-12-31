@@ -99,6 +99,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
             if (calculateWayList.Any())
                 selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
+
             return Task.CompletedTask;
         }
     }

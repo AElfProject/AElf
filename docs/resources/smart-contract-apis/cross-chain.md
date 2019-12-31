@@ -166,7 +166,7 @@ the id of disposed chain
 ```protobuf
 rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) 
 {
-		option (aelf.is_view) = true;    
+    option (aelf.is_view) = true;    
 }
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
@@ -197,7 +197,7 @@ True if verification succeeded, otherwise false.
 ```protobuf
 rpc GetSideChainCreator (aelf.SInt32Value) returns (aelf.Address)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -216,7 +216,7 @@ Address of side chain creator.
 ```protobuf
 rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -235,7 +235,7 @@ Current status of side chain
 ```protobuf
 rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }   
 ```
 
@@ -254,7 +254,7 @@ Current height of the side chain.
 ```protobuf
 rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -273,7 +273,7 @@ Height of parent chain.
 ```protobuf
 rpc GetParentChainId (google.protobuf.Empty) returns (aelf.SInt32Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -292,7 +292,7 @@ Parent chain id.
 ```protobuf
 rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -311,7 +311,7 @@ Balance of the side chain
 ```protobuf
 rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIdAndHeightDict 
 {
@@ -334,7 +334,7 @@ Get id and recorded height of side chains.
 ```protobuf
 rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIndexingInformationList
 {
@@ -364,7 +364,7 @@ Get indexing information of side chains.
 ```protobuf
 rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIdAndHeightDict 
 {
@@ -389,7 +389,7 @@ Get id and recorded height of all chains.
 ```protobuf
 rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
@@ -431,7 +431,7 @@ Get indexed cross chain data by height.
 
 ```protobuf
 rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message IndexedSideChainBlockData
 {
@@ -463,7 +463,7 @@ Get block data of indexed side chain by height
 ```protobuf
 rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message CrossChainMerkleProofContext
 {
@@ -499,7 +499,7 @@ Get merkle path bound up with side chain
 ```protobuf
 rpc GetChainInitializationData (aelf.SInt32Value) returns (ChainInitializationData) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message ChainInitializationData 
 {
