@@ -720,11 +720,10 @@ namespace AElf.Contracts.TestBase
             {
                 list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name,
                     tokenContractCallList);
+                list.AddGenesisSmartContract(ParliamentContractCode, ParliamentSmartContractAddressNameProvider.Name,
+                    parliamentContractCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ParliamentContractCode,
-                    ParliamentSmartContractAddressNameProvider.Name,
-                    parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,
                     ConfigurationSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
@@ -798,11 +797,11 @@ namespace AElf.Contracts.TestBase
             {
                 list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name,
                     tokenInitializationCallList);
-                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
-                    crossChainContractCallList);
                 list.AddGenesisSmartContract(ParliamentContractCode,
                     ParliamentSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
+                    crossChainContractCallList);
             };
         }
     }

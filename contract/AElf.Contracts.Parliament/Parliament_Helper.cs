@@ -26,10 +26,16 @@ namespace AElf.Contracts.Parliament
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
-            // or sender is one of miners.
+            // or sender is one of miners when proposer whitelist is empty.
             Assert(
-                !organization.ProposerAuthorityRequired || ValidateAddressInWhiteList(proposer) ||
-                ValidateParliamentMemberAuthority(proposer), "Unauthorized to propose.");
+                !organization.ProposerAuthorityRequired || CheckProposerAuthorityIfNeeded(proposer),
+                "Unauthorized to propose.");
+        }
+        
+        private bool CheckProposerAuthorityIfNeeded(Address address)
+        {
+            return ValidateAddressInWhiteList(address) || State.ProposerWhiteList.Value.Proposers.Count == 0 &&
+                   ValidateParliamentMemberAuthority(address);
         }
         
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
@@ -210,6 +216,27 @@ namespace AElf.Contracts.Parliament
             State.Proposals[proposalId] = proposal;
             Context.Fire(new ProposalCreated {ProposalId = proposalId});
             return proposalId;
+        }
+
+        private Address CreateNewOrganization(CreateOrganizationInput input)
+        {
+            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
+            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
+            var organizationHash = organizationHashAddressPair.OrganizationHash;
+            var organization = new Organization
+            {
+                ProposalReleaseThreshold = input.ProposalReleaseThreshold,
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired
+            };
+            Assert(Validate(organization), "Invalid organization.");
+            if (State.Organisations[organizationAddress] == null)
+            {
+                State.Organisations[organizationAddress] = organization;
+            }
+
+            return organizationAddress;
         }
 
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(

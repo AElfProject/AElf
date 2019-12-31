@@ -166,7 +166,7 @@ namespace AElf.Contracts.Genesis
 
         public override Hash ProposeNewContract(ContractDeploymentInput input)
         {
-            AssertDeploymentProposerAuthority(Context.Sender);
+            // AssertDeploymentProposerAuthority(Context.Sender);
             var proposedContractInputHash = CalculateHashFromInput(input);
             Assert(State.ContractProposingInputMap[proposedContractInputHash] == null, "Already proposed.");
             State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
@@ -220,7 +220,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = input.Address;
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract does not exist.");
-            AssertAuthorityByContractInfo(info);
+            AssertAuthorityByContractInfo(info, Context.Sender);
 
             // Create proposal for deployment
             RequireParliamentContractAddressSet();
@@ -257,7 +257,7 @@ namespace AElf.Contracts.Genesis
         public override Hash ProposeContractCodeCheck(ContractCodeCheckInput input)
         {
             RequireSenderAuthority(State.ContractDeploymentController.Value.OwnerAddress);
-            AssertDeploymentProposerAuthority(Context.Origin);
+            // AssertDeploymentProposerAuthority(Context.Origin);
             var proposedContractInputHash = Hash.FromRawBytes(input.ContractInput.ToByteArray());
             var proposedInfo = State.ContractProposingInputMap[proposedContractInputHash];
             Assert(proposedInfo != null && proposedInfo.Status == ContractProposingInputStatus.Approved,
@@ -325,14 +325,14 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             RequireSenderAuthority(State.CodeCheckController.Value);
-            AssertDeploymentProposerAuthority(Context.Origin);
+            // AssertDeploymentProposerAuthority(Context.Origin);
 
             var inputHash = CalculateHashFromInput(input);
             TryClearContractProposingInput(inputHash, out var contractProposingInput);
 
             var address =
                 PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                    DecideNormalContractAuthor(contractProposingInput?.Proposer ?? Context.Sender));
+                    DecideNormalContractAuthor(contractProposingInput?.Proposer, Context.Sender));
             return address;
         }
 

@@ -61,6 +61,11 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateParliamentMemberAuthority(address)};
         }
 
+        public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
+        {
+            return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
+        }
+
         // public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
         // {
         //     return new GetProposerWhiteListContextOutput
@@ -131,16 +136,8 @@ namespace AElf.Contracts.Parliament
                 },
                 ProposerAuthorityRequired = input.ProposerAuthorityRequired
             };
-            var defaultOrganizationAddress = CreateOrganization(organizationInput);
-            // State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            var defaultOrganizationAddress = CreateNewOrganization(organizationInput);
             State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
-            // State.GenesisContract.ChangeGenesisOwner.Send(new ContractControllerStuff
-            // {
-            //     ContractAddress = Context.Self,
-            //     OwnerAddress = defaultOrganizationAddress
-            // });
-            // State.ProposerAuthorityRequired.Value = input.ProposerAuthorityRequired;
-
             return new Empty();
         }
 
@@ -148,22 +145,7 @@ namespace AElf.Contracts.Parliament
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
                 "Unauthorized to create organization.");
-            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input.OrganizationCreationInput);
-            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
-            var organizationHash = organizationHashAddressPair.OrganizationHash;
-            var organization = new Organization
-            {
-                ProposalReleaseThreshold = input.OrganizationCreationInput.ProposalReleaseThreshold,
-                OrganizationAddress = organizationAddress,
-                OrganizationHash = organizationHash,
-                ProposerAuthorityRequired = input.OrganizationCreationInput.ProposerAuthorityRequired
-            };
-            Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] == null)
-            {
-                State.Organisations[organizationAddress] = organization;
-            }
-
+            var organizationAddress = CreateNewOrganization(input.OrganizationCreationInput);
             if (!string.IsNullOrEmpty(input.OrganizationAddressFeedbackMethod))
             {
                 Context.SendInline(Context.Sender, input.OrganizationAddressFeedbackMethod, organizationAddress);
@@ -175,20 +157,7 @@ namespace AElf.Contracts.Parliament
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             Assert(ValidateProposerAuthority(Context.Sender), "Not authorized to create organization.");
-            var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
-            var organizationAddress = organizationHashAddressPair.OrganizationAddress;
-            var organizationHash = organizationHashAddressPair.OrganizationHash;
-            var organization = new Organization
-            {
-                ProposalReleaseThreshold = input.ProposalReleaseThreshold,
-                OrganizationAddress = organizationAddress,
-                OrganizationHash = organizationHash
-            };
-            Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] == null)
-            {
-                State.Organisations[organizationAddress] = organization;
-            }
+            var organizationAddress = CreateNewOrganization(input);
 
             return organizationAddress;
         }

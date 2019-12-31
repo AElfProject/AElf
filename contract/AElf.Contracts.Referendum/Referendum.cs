@@ -53,6 +53,15 @@ namespace AElf.Contracts.Referendum
             return new BoolValue {Value = State.Organisations[input] != null};
         }
         
+        public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
+        {
+            var organization = State.Organisations[input.OrganizationAddress];
+            return new BoolValue
+            {
+                Value = organization.ProposerWhiteList.Contains(input.Proposer)
+            };
+        }
+        
         #endregion
 
         public override Empty Initialize(Empty input)

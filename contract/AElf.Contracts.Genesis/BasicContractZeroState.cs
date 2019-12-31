@@ -23,9 +23,7 @@ namespace AElf.Contracts.Genesis
         
         public SingletonState<Address> CodeCheckController { get; set; }
         
-        public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; } 
-        
-        // public SingletonState<bool> ContractProposerAuthorityRequired { get; set; } 
+        public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; }
         
         public SingletonState<bool> Initialized { get; set; }
 

@@ -35,6 +35,9 @@ service AuthorizationContract {
     rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
+    rpc ValidateProposerInWhiteList(ValidateProposerInWhiteListInput) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProposalInput {
@@ -79,4 +82,9 @@ message CreateProposalBySystemContractInput {
     acs3.CreateProposalInput proposal_input =1;
     aelf.Address origin_proposer = 2;
     string proposal_id_feedback_method = 3;
+}
+
+message ValidateProposerInWhiteListInput{
+    aelf.Address proposer = 1;
+    aelf.Address organization_address = 2;
 }

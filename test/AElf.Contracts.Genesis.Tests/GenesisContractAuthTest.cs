@@ -17,13 +17,14 @@ namespace AElf.Contracts.Genesis
 {
     public class GenesisContractAuthTest : BasicContractZeroTestBase
     {
-        #region Main Chain 
+        #region Main Chain
 
         [Fact]
         public async Task Initialize_AlreadyExist_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), new ContractControllerStuff
+                nameof(ACS0Container.ACS0Stub.ChangeContractDeploymentController),
+                new ContractDeploymentControllerStuff()
                 {
                     OwnerAddress = SampleAddress.AddressList[0],
                     ContractAddress = BasicContractZeroAddress
@@ -117,7 +118,7 @@ namespace AElf.Contracts.Genesis
                 var proposingTxResult = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                     nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
                 proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                proposingTxResult.Error.Contains("Proposer authority validation failed.").ShouldBeTrue();
+                proposingTxResult.Error.ShouldContain("Unauthorized to propose.");
             }
         }
 
@@ -326,8 +327,16 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_Test_Invalid_Address()
         {
             var address = Tester.GetCallOwnerAddress();
-            var methodName = "ChangeGenesisOwner";
-            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName, address);
+            var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
+            const string proposalCreationMethodName =
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+            var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
+                contractDeploymentController.OwnerAddress, proposalCreationMethodName,
+                new ContractDeploymentControllerStuff
+                {
+                    ContractAddress = contractDeploymentController.ContractAddress,
+                    OwnerAddress = address
+                });
             await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
             var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -348,9 +357,13 @@ namespace AElf.Contracts.Genesis
                 });
 
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
-            var methodName = "ChangeGenesisOwner";
-            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress, methodName,
-                new ContractControllerStuff
+
+            var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
+            const string proposalCreationMethodName =
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+            var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
+                contractDeploymentController.OwnerAddress, proposalCreationMethodName,
+                new ContractDeploymentControllerStuff
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentAddress
@@ -443,14 +456,10 @@ namespace AElf.Contracts.Genesis
             };
 
             var otherTester = Tester.CreateNewContractTester(AnotherUserKeyPair);
-
-            var proposalId = await CreateProposalAsync(otherTester, ParliamentAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput);
-
-            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-            var releaseResult = await ReleaseProposalAsync(otherTester, ParliamentAddress, proposalId);
-            releaseResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            releaseResult.Error.Contains("Proposer authority validation failed.").ShouldBeTrue();
+            var result = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(ACS0Container.ACS0Stub.ProposeNewContract), contractDeploymentInput);
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.ShouldContain("Unauthorized to propose.");
         }
 
         [Fact]
@@ -539,7 +548,8 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), new ContractControllerStuff
+                nameof(ACS0Container.ACS0Stub.ChangeContractDeploymentController),
+                new ContractDeploymentControllerStuff()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
                     ContractAddress = BasicContractZeroAddress
@@ -578,7 +588,7 @@ namespace AElf.Contracts.Genesis
 
         #endregion
 
-        #region Side chain 
+        #region Side chain
 
         [Fact]
         public async Task DeploySmartContracts_CreatorDeploy_Test()
@@ -657,13 +667,10 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
             };
 
-            var proposalId = await CreateProposalAsync(SideChainMiner, SideParliamentAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract), contractDeploymentInput);
-
-            await ApproveWithMinersAsync(SideChainTester, SideParliamentAddress, proposalId);
-            var releaseResult = await ReleaseProposalAsync(SideChainMiner, SideParliamentAddress, proposalId);
-            releaseResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            releaseResult.Error.Contains("Proposer authority validation failed.").ShouldBeTrue();
+            var result = await SideChainMinerTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+                nameof(ACS0Container.ACS0Stub.ProposeNewContract), contractDeploymentInput);
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.ShouldContain("Unauthorized to propose.");
         }
 
         #endregion

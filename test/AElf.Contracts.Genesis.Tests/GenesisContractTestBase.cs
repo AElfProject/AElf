@@ -34,7 +34,7 @@ namespace AElf.Contracts.Genesis
         internal BasicContractZeroContainer.BasicContractZeroStub ZeroTester =>
             GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
-        
+
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
@@ -58,10 +58,10 @@ namespace AElf.Contracts.Genesis
         protected long BalanceOfStarter;
 
         protected ContractTester<BasicContractZeroTestAElfModule> SideChainTester;
-        protected ContractTester<BasicContractZeroTestAElfModule> SideChainMiner;
+        protected ContractTester<BasicContractZeroTestAElfModule> SideChainMinerTester;
 
         protected readonly ECKeyPair TesterKeyPair;
-        
+
         protected readonly string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
 
         protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
@@ -70,7 +70,7 @@ namespace AElf.Contracts.Genesis
         protected ECKeyPair AnotherMinerKeyPair => SampleECKeyPairs.KeyPairs[2];
 
         protected Address AnotherMinerAddress => Address.FromPublicKey(AnotherMinerKeyPair.PublicKey);
-        
+
         public BasicContractZeroTestBase()
         {
             TesterKeyPair = Tester.KeyPair;
@@ -93,14 +93,14 @@ namespace AElf.Contracts.Genesis
             AsyncHelper.RunSync(() =>
                 SideChainTester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChainTester.GetSideChainSystemContract(
-                        SideChainTester.GetCallOwnerAddress(), mainChainId,"STA",out TotalSupply,
+                        SideChainTester.GetCallOwnerAddress(), mainChainId, "STA", out TotalSupply,
                         SideChainTester.GetCallOwnerAddress())));
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             SideParliamentAddress =
                 SideChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
 
-            SideChainMiner = SideChainTester.CreateNewContractTester(SideChainTester.InitialMinerList.First());
+            SideChainMinerTester = SideChainTester.CreateNewContractTester(SideChainTester.InitialMinerList.First());
         }
 
         protected async Task ApproveWithMinersAsync(
@@ -120,12 +120,12 @@ namespace AElf.Contracts.Genesis
         }
 
         protected async Task<Hash> CreateProposalAsync(ContractTester<BasicContractZeroTestAElfModule> tester,
-            Address parliamentContract, string methodName, IMessage input)
+            Address contractAddress, Address organizationAddress, string methodName, IMessage input)
         {
             var basicContract = tester.GetZeroContractAddress();
-            var organizationAddress = await GetGenesisAddressAsync(tester, parliamentContract);
-            var proposal = await tester.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+            // var organizationAddress = await GetGenesisAddressAsync(tester, parliamentContractAddress);
+            var proposal = await tester.ExecuteContractWithMiningAsync(contractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = methodName,
@@ -147,12 +147,15 @@ namespace AElf.Contracts.Genesis
         }
 
         internal async Task<ReleaseContractInput> ProposeContractAsync(
-            ContractTester<BasicContractZeroTestAElfModule> tester, Address parliamentContract, string methodName,
+            ContractTester<BasicContractZeroTestAElfModule> tester, string methodName,
             IMessage input)
         {
-            var proposalId = await CreateProposalAsync(tester, parliamentContract, methodName, input);
-            await ApproveWithMinersAsync(tester, parliamentContract, proposalId);
-            var releaseResult = await ReleaseProposalAsync(tester, parliamentContract, proposalId);
+            var contractDeploymentController = await GetContractDeploymentController(tester, BasicContractZeroAddress);
+            var proposalId = await CreateProposalAsync(tester, contractDeploymentController.ContractAddress,
+                contractDeploymentController.OwnerAddress, methodName, input);
+            await ApproveWithMinersAsync(tester, contractDeploymentController.ContractAddress, proposalId);
+            var releaseResult =
+                await ReleaseProposalAsync(tester, contractDeploymentController.ContractAddress, proposalId);
             var proposedContractInputHash = CodeCheckRequired.Parser
                 .ParseFrom(releaseResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed)
                 .ProposedContractInputHash;
@@ -241,10 +244,20 @@ namespace AElf.Contracts.Genesis
                 new Empty()));
             return organizationAddress;
         }
-        
+
         protected byte[] ReadCode(string path)
         {
-            return File.Exists(path) ? File.ReadAllBytes(path) : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+            return File.Exists(path)
+                ? File.ReadAllBytes(path)
+                : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+        }
+
+        internal async Task<ContractDeploymentControllerStuff> GetContractDeploymentController<T>(
+            ContractTester<T> tester, Address genesisContractAddress) where T : ContractTestAElfModule
+        {
+            var contractDeploymentControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractDeploymentController), new Empty());
+            return ContractDeploymentControllerStuff.Parser.ParseFrom(contractDeploymentControllerByteString);
         }
     }
 }
