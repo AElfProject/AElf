@@ -7,24 +7,24 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ObserverProxyValidator : IValidator<ModuleDefinition>
     {
-        private static readonly TypeDefinition CounterProxyTypeRef =
-            AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location)
-                .MainModule.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
-
+        private readonly TypeDefinition _counterProxyTypeRef;
         private TypeDefinition _injProxyType;
         private MethodDefinition _injProxySetObserver;
         private MethodDefinition _injProxyBranchCount;
         private MethodDefinition _injProxyCallCount;
 
-        #if DEBUG
         public ObserverProxyValidator()
         {
-            foreach (var refMethod in CounterProxyTypeRef.Methods)
+            _counterProxyTypeRef = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location)
+                .MainModule.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
+            
+            #if DEBUG
+            foreach (var refMethod in _counterProxyTypeRef.Methods)
             {
                 refMethod.RemoveCoverLetInjectedInstructions();
             }
+            #endif
         }
-        #endif
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
@@ -58,12 +58,12 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private void CheckObserverProxyIsNotTampered(List<ValidationResult> errors)
         {
-            if (!_injProxyType.HasSameFields(CounterProxyTypeRef))
+            if (!_injProxyType.HasSameFields(_counterProxyTypeRef))
             {
                 errors.Add(new ObserverProxyValidationResult(_injProxyType.Name + " type has different fields."));
             }
 
-            foreach (var refMethod in CounterProxyTypeRef.Methods)
+            foreach (var refMethod in _counterProxyTypeRef.Methods)
             {
                 var injMethod = _injProxyType.Methods.SingleOrDefault(m => m.Name == refMethod.Name);
 
@@ -89,7 +89,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 }
             }
             
-            if (_injProxyType.Methods.Count != CounterProxyTypeRef.Methods.Count)
+            if (_injProxyType.Methods.Count != _counterProxyTypeRef.Methods.Count)
                 errors.Add(new ObserverProxyValidationResult("Observer type contains unusual number of methods."));
         }
 
