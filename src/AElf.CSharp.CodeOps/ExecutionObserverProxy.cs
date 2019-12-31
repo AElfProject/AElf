@@ -7,6 +7,7 @@ namespace AElf.CSharp.CodeOps
     // To be injected into contract, not used directly, used for authenticity validation
     public static class ExecutionObserverProxy
     {
+        [ThreadStatic]
         private static IExecutionObserver _observer;
 
         public static void SetObserver(IExecutionObserver observer)

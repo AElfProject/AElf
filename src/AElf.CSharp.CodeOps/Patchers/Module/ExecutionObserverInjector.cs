@@ -53,6 +53,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 module.ImportReference(typeof(IExecutionObserver)
                 )
             );
+            
+            // Counter field should be thread static (at least for the test cases)
+            observerField.CustomAttributes.Add(new CustomAttribute(
+                module.ImportReference(typeof(ThreadStaticAttribute).GetConstructor(new Type[]{}))));
 
             observerType.Fields.Add(observerField);
 
