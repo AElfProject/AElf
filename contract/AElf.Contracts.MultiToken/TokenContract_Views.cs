@@ -127,5 +127,16 @@ namespace AElf.Contracts.MultiToken
 
             return owingRental;
         }
+
+        public override ResourceUsage GetResourceUsage(Empty input)
+        {
+            var usage = new ResourceUsage();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                usage.Value.Add(symbol, State.ResourceAmount[symbol]);
+            }
+
+            return usage;
+        }
     }
 }

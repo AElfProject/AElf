@@ -77,7 +77,7 @@ service TokenContract {
     }
     rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
     }
-    rpc UpdateRentedResourceToken (UpdateRentedResourceTokenInput) returns (google.protobuf.Empty) {
+    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -121,6 +121,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
 }
@@ -386,7 +389,7 @@ message UpdateRentalInput {
     map<string, sint64> rental = 1;
 }
 
-message UpdateRentedResourceTokenInput {
+message UpdateRentedResourcesInput {
     map<string, sint32> resource_amount = 1;
 }
 
@@ -446,6 +449,10 @@ enum FeeTypeEnum {
 enum CalculateFunctionTypeEnum {
     Liner = 0;
     Power = 1;
+}
+
+message ResourceUsage {
+    map<string, sint32> value = 1;
 }
 
 // Events
