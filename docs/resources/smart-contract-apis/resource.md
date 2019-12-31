@@ -76,13 +76,13 @@ This method will add a connector for the given symbol.
 - **virtual_balance** and **is_virtual_balance_enabled** control what balance is used for the buy and sell operations. 
 
 ```Protobuf
-    rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
+rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 ```
 
 Sets the fee rate, a string formatted decimal between 0 and 1. 
 
 ```Protobuf
-    rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {}
+rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {}
 ```
 
 Change the manager of the token converter contract.
@@ -92,10 +92,10 @@ Change the manager of the token converter contract.
 For reference, you can find here the available view methods.
 
 ```Protobuf
-    rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {}
-    rpc GetConnector (TokenSymbol) returns (Connector) {}
-    rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
-    rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {}
+rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {}
+rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {}
+rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {}
+rpc GetConnector (TokenSymbol) returns (Connector) {}
+rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
+rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {}
 ```
