@@ -16,6 +16,16 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         private MethodDefinition _injProxyBranchCount;
         private MethodDefinition _injProxyCallCount;
 
+        #if DEBUG
+        public ObserverProxyValidator()
+        {
+            foreach (var refMethod in CounterProxyTypeRef.Methods)
+            {
+                refMethod.RemoveCoverLetInjectedInstructions();
+            }
+        }
+        #endif
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
             var errors = new List<ValidationResult>();
@@ -61,10 +71,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 {
                     errors.Add(new ObserverProxyValidationResult(refMethod.Name + " is not implemented in observer proxy."));
                 }
-                
-                #if DEBUG
-                refMethod.RemoveCoverLetInjectedInstructions();
-                #endif
 
                 if (!injMethod.HasSameBody(refMethod))
                 {
