@@ -26,6 +26,8 @@ service BadContract {
     rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestGetHashCode (GetHashCodeTestInput) returns (GetHashCodeTestOutput) { }
 }
 
 message DoubleInput {
@@ -51,4 +53,26 @@ message FileInfoInput {
 
 message InitLargeStringDynamicInput {
     int32 string_size_value = 1;
+}
+
+// For GetHashCode tests
+message GetHashCodeTestInput {
+    bool bool_value = 1;
+    int32 int32_value = 2;
+    uint32 u_int32_value = 3;
+    int64 int64_value = 4;
+    uint64 u_int64_value = 5;
+    string string_value = 6;
+    bytes bytes_value = 7;
+}
+
+message GetHashCodeTestOutput {
+    int32 bool_hash = 1;
+    int32 int32_hash = 2;
+    int32 uint32_hash = 3;
+    int32 int64_hash = 4;
+    int32 uint64_hash = 5;
+    int32 string_hash = 6;
+    int32 bytes_hash = 7;
+    int32 output_hash = 8;
 }

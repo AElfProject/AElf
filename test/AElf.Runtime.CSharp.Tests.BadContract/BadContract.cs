@@ -93,6 +93,21 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             
             return new Empty();
         }
+        
+        public override GetHashCodeTestOutput TestGetHashCode(GetHashCodeTestInput input)
+        {
+            return new GetHashCodeTestOutput
+            {
+                BoolHash = input.BoolValue.GetHashCode(),
+                Int32Hash = input.Int32Value.GetHashCode(),
+                Uint32Hash = input.UInt32Value.GetHashCode(),
+                Int64Hash = input.Int64Value.GetHashCode(),
+                Uint64Hash = input.UInt64Value.GetHashCode(),
+                StringHash = input.StringValue.GetHashCode(),
+                BytesHash = input.BytesValue.GetHashCode(),
+                OutputHash = input.GetHashCode()
+            };
+        }
 
         private class NestedClass
         {
