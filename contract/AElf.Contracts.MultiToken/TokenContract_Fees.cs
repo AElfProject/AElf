@@ -513,7 +513,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty UpdateRentedResources(UpdateRentedResourceTokenInput input)
+        public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
             // TODO: Permission check
 
