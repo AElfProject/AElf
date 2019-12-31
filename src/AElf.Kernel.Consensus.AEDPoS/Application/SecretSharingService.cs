@@ -149,7 +149,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 revealedInValues[pubkey] = revealedInValue;
             }
 
-            _revealedInValues.Add(secretSharingInformation.CurrentRoundId, revealedInValues);
+            _revealedInValues[secretSharingInformation.CurrentRoundId] = revealedInValues;
         }
 
         public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)
