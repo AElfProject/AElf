@@ -8,6 +8,7 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
 using Shouldly;
 using Xunit;
@@ -158,7 +159,7 @@ namespace AElf.CSharp.CodeOps
         public void Policy_UncheckedMathValidator_Test()
         {
             var validator = new UncheckedMathValidator();
-            var validateResult1 = ValidateContractCode(_badContractCode, validator);
+            var validateResult1 = ValidateContractCode(ReadCode(_contractDllDir + typeof(TestContract).Module), validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
             validateResult1.First().Message.ShouldContain("contains unsafe OpCode add");
         }
