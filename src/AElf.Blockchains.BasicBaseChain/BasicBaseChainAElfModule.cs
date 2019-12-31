@@ -105,11 +105,9 @@ namespace AElf.Blockchains.BasicBaseChain
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
-                .GetZeroSmartContractAddress();
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
-            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
+            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
 

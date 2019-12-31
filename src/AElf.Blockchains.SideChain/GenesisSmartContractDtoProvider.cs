@@ -9,7 +9,6 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS;
 using AElf.OS.Node.Application;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
@@ -40,7 +39,7 @@ namespace AElf.Blockchains.SideChain
                 .GenesisContractDir);
         }
 
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
             var genesisSmartContractDtoList = new List<GenesisSmartContractDto>();
 
@@ -80,7 +79,7 @@ namespace AElf.Blockchains.SideChain
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("ReferendumAuth")).Value,
                 ReferendumAuthSmartContractAddressNameProvider.Name,
-                GenerateReferendumfInitializationCallList()
+                GenerateReferendumInitializationCallList()
             );
 
             genesisSmartContractDtoList.AddGenesisSmartContract(

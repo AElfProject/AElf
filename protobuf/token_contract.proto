@@ -77,7 +77,7 @@ service TokenContract {
     }
     rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
     }
-    rpc UpdateRentedResourceToken (UpdateRentedResourceTokenInput) returns (google.protobuf.Empty) {
+    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -386,7 +386,7 @@ message UpdateRentalInput {
     map<string, sint64> rental = 1;
 }
 
-message UpdateRentedResourceTokenInput {
+message UpdateRentedResourcesInput {
     map<string, sint32> resource_amount = 1;
 }
 

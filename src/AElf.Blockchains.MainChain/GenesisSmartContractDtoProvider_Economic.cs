@@ -11,7 +11,7 @@ namespace AElf.Blockchains.MainChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForEconomic()
+        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForEconomic()
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
@@ -39,7 +39,7 @@ namespace AElf.Blockchains.MainChain
                     TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                 });
 
-            //TODO: Maybe should be removed after testing.
+            // Issue remain native tokens to first initial miner (temporarily).
             economicContractMethodCallList.Add(
                 nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                 {

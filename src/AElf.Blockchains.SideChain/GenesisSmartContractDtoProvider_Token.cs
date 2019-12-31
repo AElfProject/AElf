@@ -2,7 +2,6 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
-using Google.Protobuf.WellKnownTypes;
 using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Blockchains.SideChain

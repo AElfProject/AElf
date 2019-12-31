@@ -512,7 +512,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty UpdateRentedResourceToken(UpdateRentedResourceTokenInput input)
+        public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
             AssertIsAuthorized();
             foreach (var pair in input.ResourceAmount)
