@@ -176,7 +176,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             // Insert before every branching instruction
             var branchingInstructions = method.Body.Instructions.Where(i => 
-                Consts.JumpingOps.Contains(i.OpCode)).ToList();
+                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
 
             il.Body.SimplifyMacros();
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));

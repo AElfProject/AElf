@@ -119,7 +119,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Should be a call placed before each branching opcode
             foreach (var instruction in method.Body.Instructions)
             {
-                if (Consts.JumpingOps.Contains(instruction.OpCode))
+                if (Constants.JumpingOpCodes.Contains(instruction.OpCode))
                 {
                     var proxyCallInstruction = instruction.Previous; // Previous instruction should be proxy call
 

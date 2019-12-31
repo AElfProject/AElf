@@ -3,9 +3,9 @@ using Mono.Cecil.Cil;
 
 namespace AElf.CSharp.CodeOps
 {
-    public static class Consts
+    public static class Constants
     {
-        public static readonly HashSet<OpCode> JumpingOps = new HashSet<OpCode>
+        public static readonly HashSet<OpCode> JumpingOpCodes = new HashSet<OpCode>
         {
             OpCodes.Beq,
             OpCodes.Beq_S,
