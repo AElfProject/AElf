@@ -502,7 +502,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
-            AssertIsAuthorized();
+            // TODO: Permission check
+
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -514,7 +515,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
-            AssertIsAuthorized();
+            // TODO: Permission check
+
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");

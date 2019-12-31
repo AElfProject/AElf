@@ -123,6 +123,9 @@ service TokenContract {
     rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
         option (aelf.is_view) = true;
     }
+    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -446,6 +449,10 @@ enum FeeTypeEnum {
 enum CalculateFunctionTypeEnum {
     Liner = 0;
     Power = 1;
+}
+
+message ResourceUsage {
+    map<string, sint32> value = 1;
 }
 
 // Events
