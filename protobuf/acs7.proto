@@ -149,6 +149,7 @@ message SideChainCreationRequest {
     sint64 side_chain_token_total_supply = 7;
     sint32 side_chain_token_decimals = 8;
     bool is_side_chain_token_burnable = 9;
+    map<string, sint32> initial_resource_amount = 10; 
 }
 
 message SideChainTokenInfo {

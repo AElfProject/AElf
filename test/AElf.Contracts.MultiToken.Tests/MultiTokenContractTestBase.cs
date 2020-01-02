@@ -248,7 +248,7 @@ namespace AElf.Contracts.MultiToken
             var height = SInt64Value.Parser.ParseFrom(result);
             return height.Value;
         }
-        
+
         private SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
             string symbol)
         {
@@ -381,7 +381,7 @@ namespace AElf.Contracts.MultiToken
                 }
             }
         }
-        
+
         private async Task ApproveBalanceAsync(long amount)
         {
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
@@ -409,7 +409,7 @@ namespace AElf.Contracts.MultiToken
         {
             var crossChainInitializationTransaction = await MainChainTester.GenerateTransactionAsync(
                 CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new InitializeInput
+                nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new CrossChain.InitializeInput
                 {
                     ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
                     CreationHeightOnParentChain = parentChainHeightOfCreation

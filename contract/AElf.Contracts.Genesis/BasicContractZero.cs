@@ -135,7 +135,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = codeHash
+                CodeHash = codeHash,
+                IsSystemContract = info.IsSystemContract
             };
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -371,7 +372,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = info.Category,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = newCodeHash
+                CodeHash = newCodeHash,
+                IsSystemContract = info.IsSystemContract
             };
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;

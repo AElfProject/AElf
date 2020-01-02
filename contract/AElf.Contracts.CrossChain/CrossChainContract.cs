@@ -110,6 +110,11 @@ namespace AElf.Contracts.CrossChain
                                        initialConsensusInfo.MinerList.Pubkeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
 
+            var initialResourceAmount = input.SideChainCreationRequest?.InitialResourceAmount;
+            if (initialResourceAmount != null)
+            {
+                InitialResourceUsage(chainId, initialResourceAmount);
+            }
             CreateOrganizationForIndexingFeePriceAdjustment(input.Proposer);
             Context.Fire(new SideChainCreatedEvent
             {

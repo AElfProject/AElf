@@ -11,7 +11,7 @@ namespace AElf.Contracts.Referendum
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }

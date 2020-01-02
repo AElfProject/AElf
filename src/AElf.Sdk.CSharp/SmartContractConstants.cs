@@ -16,6 +16,7 @@ namespace AElf.Sdk.CSharp
         public static readonly Hash EconomicContractSystemName = Hash.FromString("AElf.ContractNames.Economic");
         public static readonly Hash ReferendumContractSystemName = Hash.FromString("AElf.ContractNames.Referendum");
         public static readonly Hash AssociationContractSystemName = Hash.FromString("AElf.ContractNames.Association");
+        public static readonly Hash ConfigurationContractSystemName = Hash.FromString("AElf.ContractNames.Configuration");
 
         public static readonly int AElfStringLengthLimitInContract = 15360;
     }

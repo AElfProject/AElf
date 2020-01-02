@@ -76,6 +76,14 @@ namespace AElf.Contracts.Election
 
         public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
         {
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+            
+            Assert(State.AEDPoSContract.Value == Context.Sender, "No permission.");
+
             SavePreviousTermInformation(input);
 
             // Update snapshot of corresponding voting record by the way.
@@ -86,12 +94,6 @@ namespace AElf.Contracts.Election
             });
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
-
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
 
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
@@ -171,6 +173,10 @@ namespace AElf.Contracts.Election
         /// <returns></returns>
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only consensus contract can update candidate information.");
+
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
             if (candidateInformation == null)
             {
@@ -203,6 +209,10 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
         {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only consensus contract can update candidate information.");
+
             foreach (var updateCandidateInformationInput in input.Value)
             {
                 UpdateCandidateInformation(updateCandidateInformationInput);

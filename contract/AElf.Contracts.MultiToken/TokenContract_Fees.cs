@@ -3,6 +3,7 @@ using System.Linq;
 using Acs1;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -140,10 +141,10 @@ namespace AElf.Contracts.MultiToken
 
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", input.CpuCost},
+                {"READ", input.ReadCost},
                 {"NET", input.NetCost},
                 {"STO", input.StoCost},
-                {"RAM", input.RamCost}
+                {"WRITE", input.WriteCost}
             };
 
             var bill = new TransactionFeeBill();
@@ -185,7 +186,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
             {
                 var balance = State.Balances[Context.Sender][symbol];
                 var owningBalance = State.OwningResourceToken[Context.Sender][symbol];
@@ -359,10 +360,23 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
+            PayTransactionFee(isMainChain);
+
+            if (!isMainChain)
+            {
+                PayRental();
+            }
+
+            return new Empty();
+        }
+
+        private void PayTransactionFee(bool isMainChain)
+        {
             var transactions = Context.GetPreviousBlockTransactions();
 
             Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
             {
                 var totalAmount = 0L;
                 foreach (var transaction in transactions)
@@ -405,7 +419,126 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             }
+        }
 
+        private void PayRental()
+        {
+            if (State.LastPayRentTime.Value == null)
+            {
+                // Initial LastPayRentTime first calling DonateResourceToken.
+                State.LastPayRentTime.Value = Context.CurrentBlockTime;
+                return;
+            }
+
+            // We need minutes.
+            var duration = (Context.CurrentBlockTime - State.LastPayRentTime.Value).Seconds.Div(60);
+            if (duration == 0)
+            {
+                return;
+            }
+
+            // Update LastPayRentTime if it is ready to charge rental.
+            State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
+
+            var creator = State.SideChainCreator.Value;
+
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                var donates = 0L;
+
+                var availableBalance = State.Balances[creator][symbol];
+
+                // Try to update owning rental.
+                var owningRental = State.OwningRental[symbol];
+                if (owningRental > 0)
+                {
+                    // If Creator own this symbol and current balance can cover the debt, pay the debt at first.
+                    if (availableBalance > owningRental)
+                    {
+                        donates = owningRental;
+                        // Need to update available balance,
+                        // cause existing balance not necessary equals to available balance.
+                        availableBalance = availableBalance.Sub(owningRental);
+                        State.OwningRental[symbol] = 0;
+                    }
+                }
+
+                var rental = duration.Mul(State.ResourceAmount[symbol]).Mul(State.Rental[symbol]);
+                if (availableBalance >= rental) // Success
+                {
+                    donates = donates.Add(rental);
+                    State.Balances[creator][symbol] = State.Balances[creator][symbol].Sub(donates);
+                }
+                else // Fail
+                {
+                    // Donate all existing balance. Directly reset the donates.
+                    donates = State.Balances[creator][symbol];
+                    State.Balances[creator][symbol] = 0;
+
+                    // Update owning rental to record a new debt.
+                    var own = rental.Sub(availableBalance);
+                    State.OwningRental[symbol] = State.OwningRental[symbol].Add(own);
+
+                    Context.Fire(new RentalAccountBalanceInsufficient
+                    {
+                        Symbol = symbol,
+                        Amount = own
+                    });
+                }
+
+                // Side Chain donates.
+                var consensusContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                State.Balances[consensusContractAddress][symbol] =
+                    State.Balances[consensusContractAddress][symbol].Add(donates);
+
+                Context.Fire(new RentalCharged()
+                {
+                    Symbol = symbol,
+                    Amount = donates
+                });
+            }
+        }
+
+        public override Empty UpdateRental(UpdateRentalInput input)
+        {
+            // TODO: Permission check
+
+            foreach (var pair in input.Rental)
+            {
+                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(pair.Value >= 0, "Invalid amount.");
+                State.Rental[pair.Key] = pair.Value;
+            }
+            return new Empty();
+        }
+
+        public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
+        {
+            // TODO: Permission check
+
+            foreach (var pair in input.ResourceAmount)
+            {
+                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(pair.Value >= 0, "Invalid amount.");
+                State.ResourceAmount[pair.Key] = pair.Value;
+            }
+            return new Empty();
+        }
+
+        public override Empty SetSideChainCreator(Address input)
+        {
+            Assert(State.SideChainCreator.Value == null, "Creator already set.");
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress() ||
+                   Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()),
+                "No permission.");
+            State.SideChainCreator.Value = input;
             return new Empty();
         }
 
@@ -489,7 +622,7 @@ namespace AElf.Contracts.MultiToken
                 contractOwner == Context.Sender ||
                 Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx，cpu，sto，ram，net.");
+                "No permission to set tx，read，sto，write，net, and rental.");
         }
     }
 }

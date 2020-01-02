@@ -165,7 +165,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {

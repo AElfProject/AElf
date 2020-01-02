@@ -3,6 +3,7 @@ using System.Linq;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -11,6 +12,7 @@ using AElf.CSharp.Core.Utils;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
 using ProposalInfo = AElf.Contracts.Parliament.ProposalInfo;
@@ -141,6 +143,29 @@ namespace AElf.Contracts.CrossChain
                 IssueChainId = chainId,
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply
+            });
+        }
+
+        private void InitialResourceUsage(int chainId, MapField<string, int> initialResourceAmount)
+        {
+            if (State.ConfigurationContract.Value == null)
+            {
+                var configurationContractAddress = Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+                if (configurationContractAddress == null)
+                {
+                    // If Configuration Contract has not deployed, skip following options.
+                    return;
+                }
+                State.ConfigurationContract.Value = configurationContractAddress;
+            }
+
+            State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput
+            {
+                ChainId = new SInt32Value {Value = chainId},
+                ResourceTokenAmount = new ResourceTokenAmount
+                {
+                    Value = {initialResourceAmount.ToDictionary(i => i.Key, i => i.Value)}
+                }
             });
         }
 
