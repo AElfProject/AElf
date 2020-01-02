@@ -33,14 +33,14 @@ namespace AElf.Contracts.Configuration
 
         private void CheckSenderIsParliamentAuthOrZeroContract()
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             Assert(
-                State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) == Context.Sender ||
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) == Context.Sender ||
                 Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
         }
 
