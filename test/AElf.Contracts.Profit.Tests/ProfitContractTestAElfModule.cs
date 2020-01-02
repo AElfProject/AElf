@@ -12,7 +12,7 @@ namespace AElf.Contracts.Profit
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 }

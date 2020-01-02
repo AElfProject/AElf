@@ -20,7 +20,7 @@ namespace AElf.Contracts.Economic.TestBase
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
 
             context.Services.AddSingleton<ITransactionExecutor, EconomicTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
@@ -33,6 +33,8 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
+
+            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
     }
 }
