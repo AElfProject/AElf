@@ -138,11 +138,6 @@ namespace AElf.Contracts.Referendum
             return proposalId;
         }
 
-        private Hash CalculateOrganizationHash(CreateOrganizationInput createOrganizationInput)
-        {
-            return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
-        }
-
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
             var organization = State.Organisations[organizationAddress];
@@ -153,7 +148,7 @@ namespace AElf.Contracts.Referendum
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = CalculateOrganizationHash(createOrganizationInput);
+            var organizationHash = Hash.FromMessage(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             return new OrganizationHashAddressPair
             {

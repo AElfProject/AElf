@@ -235,6 +235,11 @@ namespace AElf.Contracts.Parliament
             {
                 State.Organisations[organizationAddress] = organization;
             }
+            
+            Context.Fire(new OrganizationCreated
+            {
+                OrganizationAddress = organizationAddress
+            });
 
             return organizationAddress;
         }
@@ -242,8 +247,7 @@ namespace AElf.Contracts.Parliament
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash =
-                Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(createOrganizationInput));
+            var organizationHash = Hash.FromMessage(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             return new OrganizationHashAddressPair
             {

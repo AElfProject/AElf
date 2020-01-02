@@ -88,3 +88,18 @@ message ValidateProposerInWhiteListInput{
     aelf.Address proposer = 1;
     aelf.Address organization_address = 2;
 }
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}

@@ -52,21 +52,6 @@ message ProposalInfo {
     repeated aelf.Address abstentions = 10;
 }
 
-message OrganizationMemberList{
+message OrganizationMemberList {
     repeated aelf.Address organization_members = 2;
-}
-
-message OrganizationCreated{
-    option (aelf.is_event) = true;
-    aelf.Address organization_address = 1;
-}
-
-message ProposalCreated{
-    option (aelf.is_event) = true;
-    aelf.Hash proposal_id = 1;
-}
-
-message ProposalReleased{
-    option (aelf.is_event) = true;
-    aelf.Hash proposal_id = 1;
 }

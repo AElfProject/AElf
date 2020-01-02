@@ -86,7 +86,10 @@ namespace AElf.Contracts.Referendum
             Assert(Validate(organization), "Invalid organization data.");
 
             State.Organisations[organizationAddress] = organization;
-
+            Context.Fire(new OrganizationCreated
+            {
+                OrganizationAddress = organizationAddress
+            });
             return organizationAddress;
         }
 
