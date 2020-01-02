@@ -1,3 +1,4 @@
+using Acs3;
 using Acs7;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -190,12 +191,13 @@ namespace AElf.Contracts.CrossChain
             var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
                 out var pendingCrossChainIndexingProposal);
             Assert(exists, "Cross chain indexing with Pending status not found.");
-            SetContractStateRequired(State.ParliamentContract,
-                SmartContractConstants.ParliamentContractSystemName);
+            var crossChainIndexingController = GetCrossChainIndexingController();
+
             res.Proposer = pendingCrossChainIndexingProposal.Proposer;
             res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
-            var proposalInfo = State.ParliamentContract.GetProposal
-                .Call(pendingCrossChainIndexingProposal.ProposalId);
+            var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
+                pendingCrossChainIndexingProposal.ProposalId);
             res.ToBeReleased = proposalInfo.ToBeReleased;
             res.ExpiredTime = proposalInfo.ExpiredTime;
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;

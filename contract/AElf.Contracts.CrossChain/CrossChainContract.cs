@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -48,7 +49,9 @@ namespace AElf.Contracts.CrossChain
             var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
-                State.ParliamentContract.Release.Send(input.ProposalId);
+                Context.SendInline(State.SideChainLifeTimeController.Value.ContractAddress,
+                    nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
+                    input.ProposalId);
             return new Empty();
         }
 
@@ -366,16 +369,20 @@ namespace AElf.Contracts.CrossChain
 
         #endregion Cross chain actions
 
-        public override Empty ChangCrossChainIndexingController(Address input)
+        public override Empty ChangeCrossChainIndexingController(AuthorityStuff input)
         {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            Assert(input.ContractAddress == State.ParliamentContract.Value && ValidateAuthorityStuffExists(input),
+                "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
             return new Empty();
         }
 
-        public override Empty ChangSideChainLifetimeController(Address input)
+        public override Empty ChangeSideChainLifetimeController(AuthorityStuff input)
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
+            Assert(ValidateAuthorityStuffExists(input), "Invalid authority input.");
             State.SideChainLifeTimeController.Value = input;
             return new Empty();
         }
