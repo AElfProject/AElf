@@ -10,7 +10,9 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
-    rpc InitializeCoefficient (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
@@ -71,9 +73,13 @@ service TokenContract {
     }
     rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
     }
-
     rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
+    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -112,6 +118,12 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
 }
@@ -224,8 +236,8 @@ message TransactionFeeBill {
 message ChargeResourceTokenInput {
     sint64 net_cost = 1;
     sint64 sto_cost = 2;
-    sint64 cpu_cost = 3;
-    sint64 ram_cost = 4;
+    sint64 read_cost = 3;
+    sint64 write_cost = 4;
     aelf.Address caller = 5;
 }
 
@@ -306,12 +318,6 @@ message ReturnTaxInput {
     aelf.Address return_tax_receiver_address = 2;
 }
 
-message SetResourceTokenUnitPriceInput {
-    sint64 cpu_unit_price = 1;
-    sint64 sto_unit_price = 2;
-    sint64 net_unit_price = 3;
-}
-
 message AdvanceResourceTokenInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
@@ -375,6 +381,80 @@ message ValidateTokenInfoExistsInput{
     sint32 issue_chain_id = 7;
 }
 
+message InitializeInput {
+    map<string, sint32> resource_amount = 1;
+}
+
+message UpdateRentalInput {
+    map<string, sint64> rental = 1;
+}
+
+message UpdateRentedResourcesInput {
+    map<string, sint32> resource_amount = 1;
+}
+
+message OwningRental {
+    map<string, sint64> resource_amount = 1;
+}
+
+message CoefficientFromSender {
+    sint32 piece_key = 1;
+    bool is_change_piece_key = 2;
+    bool is_liner = 3;
+    LinerCoefficient liner_coefficient = 4;
+    PowerCoefficient power_coefficient = 5;
+    NewPieceKeyCoefficient new_piece_key_coefficient = 6;
+}
+
+message LinerCoefficient{
+    sint32 numerator = 1;
+    sint32 denominator = 2;
+    sint32 constant_value = 3;
+}
+
+message PowerCoefficient{
+    sint32 numerator = 1;
+    sint32 denominator = 2;
+    sint32 constant_value = 3;
+    sint32 change_span_base = 4;
+    sint32 weight = 5;
+    sint32 weight_base = 6;
+}
+
+message NewPieceKeyCoefficient{
+    sint32 new_piece_key = 1;
+}
+
+message CoefficientFromContract {
+    FeeTypeEnum fee_type = 1;
+    CoefficientFromSender coefficient = 2;
+}
+message TokenSymbolWithAddress{
+    string token_symbol = 1;
+    aelf.Address from_address = 2;
+}
+
+message TokenStateInAddress{
+    bool value = 1;
+}
+
+enum FeeTypeEnum {
+    Read = 0;
+    Sto = 1;
+    Write = 2;
+    Net = 3;
+    Tx = 4;
+}
+
+enum CalculateFunctionTypeEnum {
+    Liner = 0;
+    Power = 1;
+}
+
+message ResourceUsage {
+    map<string, sint32> value = 1;
+}
+
 // Events
 
 message Transferred {
@@ -420,12 +500,9 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-
-
 message CalculateFeeCoefficientsOfType{
     repeated CalculateFeeCoefficient coefficients= 1;
 }
-
 
 message CalculateFeeCoefficient {
     sint32 piece_key = 1;
@@ -439,56 +516,14 @@ message NoticeUpdateCalculateFeeAlgorithm {
     CalculateFeeCoefficientsOfType all_coefficient = 1;
 }
 
-message CoefficientFromSender {
-    sint32 piece_key = 1;
-    bool is_change_piece_key = 2;
-    bool is_liner = 3;
-    LinerCoefficient liner_coefficient = 4;
-    PowerCoefficient power_coefficient = 5;
-    NewPieceKeyCoefficient new_piece_key_coefficient = 6;
+message RentalCharged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    sint64 amount = 2;
 }
 
-message LinerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-}
-
-message PowerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-    sint32 change_span_base = 4;
-    sint32 weight = 5;
-    sint32 weight_base = 6;
-}
-
-message NewPieceKeyCoefficient{
-    sint32 new_piece_key = 1;
-}
-
-message CoefficientFromContract {
-    FeeTypeEnum fee_type = 1;
-    CoefficientFromSender coefficient = 2;
-}
-message TokenSymbolWithAddress{
-    string token_symbol = 1;
-    aelf.Address from_address = 2;
-}
-
-message TokenStateInAddress{
-    bool value = 1;
-}
-
-enum FeeTypeEnum {
-    Cpu = 0;
-    Sto = 1;
-    Ram = 2;
-    Net = 3;
-    Tx = 4;
-}
-
-enum CalculateFunctionTypeEnum {
-    Liner = 0;
-    Power = 1;
+message RentalAccountBalanceInsufficient {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    sint64 amount = 2;
 }

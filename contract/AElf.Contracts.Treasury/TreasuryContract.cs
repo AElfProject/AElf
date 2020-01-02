@@ -69,6 +69,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(Empty input)
         {
+            Assert(State.TreasuryHash.Value == null, "Already ininitialized.");
             var managingSchemeIds = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
                 Manager = Context.Self
@@ -146,7 +147,7 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -157,6 +158,7 @@ namespace AElf.Contracts.Treasury
                 Amount = input.Amount,
                 Memo = "Donate to treasury.",
             });
+
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
@@ -167,6 +169,7 @@ namespace AElf.Contracts.Treasury
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
+
             if (input.Symbol != Context.Variables.NativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);
@@ -211,6 +214,7 @@ namespace AElf.Contracts.Treasury
                 Symbol = symbol,
                 Amount = amount
             });
+
             Context.SendInline(Context.Self, nameof(DonateAll), new DonateAllInput
             {
                 Symbol = Context.Variables.NativeSymbol

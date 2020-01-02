@@ -2,7 +2,11 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.Contracts.TestBase;
+using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,17 +15,19 @@ namespace AElf.Contracts.ConfigurationContract.Tests
     public class ConfigurationContractTest : ConfigurationContractTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
+
         public ConfigurationContractTest(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }
+
         [Fact]
         public async Task Set_Block_Transaction_Limit_Authorized()
         {
             var proposalId = await SetBlockTransactionLimitProposalAsync(100);
             await ApproveWithMinersAsync(proposalId);
             var transactionResult = await ReleaseProposalAsync(proposalId);
-            
+
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
 
             var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Old;
@@ -66,7 +72,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var proposalId = await SetBlockTransactionLimitProposalAsync(100);
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
-            
+
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
@@ -75,7 +81,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).Old;
             var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).New;
             var limit = Int32Value.Parser.ParseFrom(transactionResult.ReturnValue).Value;
-            
+
             Assert.True(oldLimit == 100);
             Assert.True(newLimit == 0);
             Assert.True(limit == 100);
@@ -110,6 +116,42 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("Not authorized to do this.", transactionResult.Error);
+        }
+
+        [Fact]
+        public async Task InitialTotalResourceTokensTest()
+        {
+            // Check total resource token amount.
+            {
+                var transactionResult =
+                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                        nameof(ConfigurationContainer.ConfigurationStub.GetTotalResourceTokens),
+                        new Empty());
+                var resourceTokenAmount = new ResourceTokenAmount();
+                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
+                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
+                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
+                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
+                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+            }
+
+            // Check remain resource token amount.
+            {
+                var transactionResult =
+                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                        nameof(ConfigurationContainer.ConfigurationStub.GetRemainResourceTokens),
+                        new Empty());
+                var resourceTokenAmount = new ResourceTokenAmount();
+                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
+                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
+                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
+                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
+                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+            }
         }
     }
 }

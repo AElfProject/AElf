@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -34,7 +35,7 @@ namespace AElf.Contracts.Economic
             SetTreasurySchemeIdsToElectionContract();
 
             InitializeTokenConverterContract();
-            State.TokenContract.InitializeCoefficient.Send(new Empty());
+            State.TokenContract.Initialize.Send(new MultiToken.InitializeInput());
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -83,7 +84,8 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
+                .SymbolListToPayRental))
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -239,7 +241,8 @@ namespace AElf.Contracts.Economic
                     RelatedSymbol = Context.Variables.NativeSymbol
                 }
             };
-            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
+                .SymbolListToPayRental))
             {
                 var resourceTokenConnector = new Connector
                 {

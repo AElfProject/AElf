@@ -16,11 +16,11 @@ namespace AElf.Kernel.SmartContract.Application
     {
     }
 
-    public interface ICalculateCpuCostStrategy : ICalculateCostStrategy
+    public interface ICalculateReadCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateRamCostStrategy : ICalculateCostStrategy
+    public interface ICalculateWriteCostStrategy : ICalculateCostStrategy
     {
     }
 

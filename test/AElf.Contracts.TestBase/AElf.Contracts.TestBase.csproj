@@ -68,5 +68,8 @@
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\stub\configuration_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>
