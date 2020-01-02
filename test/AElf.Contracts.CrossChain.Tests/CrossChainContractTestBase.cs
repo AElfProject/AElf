@@ -20,7 +20,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
-using ProposalCreated = AElf.Contracts.Parliament.ProposalCreated;
 
 namespace AElf.Contracts.CrossChain.Tests
 {

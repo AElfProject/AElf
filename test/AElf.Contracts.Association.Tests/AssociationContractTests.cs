@@ -11,7 +11,6 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-
 namespace AElf.Contracts.Association
 {
     public class AssociationContractTests : AssociationContractTestBase
@@ -65,8 +64,7 @@ namespace AElf.Contracts.Association
                 getOrganization.ProposerWhiteList.ShouldBe(createOrganizationInput.ProposerWhiteList);
                 getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
                 getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
-                getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                    Hash.FromMessage(AssociationContractAddress), Hash.FromMessage(createOrganizationInput)));
+                getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
             }
         }
 
@@ -629,20 +627,40 @@ namespace AElf.Contracts.Association
             var proposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeTrue();
 
-            var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+
             {
-                MinimalVoteThreshold = 2
-            };
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 2
+                };
 
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-            var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, proposalReleaseThresholdInput,
-                nameof(AssociationContractStub.ChangeOrganizationThreshold), organizationAddress);
-            await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-            var result = await AssociationContractStub.Release.SendAsync(changeProposalId);
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair,
+                    proposalReleaseThresholdInput,
+                    nameof(associationContractStub.ChangeOrganizationThreshold), organizationAddress);
+                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+                var result = await associationContractStub.Release.SendWithExceptionAsync(changeProposalId);
+                result.TransactionResult.Error.ShouldContain("Invalid organization.");
+            }
 
-            proposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
-            proposal.ToBeReleased.ShouldBeFalse();
+            {
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 2,
+                    MinimalApprovalThreshold = minimalApproveThreshold
+                };
+
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair,
+                    proposalReleaseThresholdInput,
+                    nameof(associationContractStub.ChangeOrganizationThreshold), organizationAddress);
+                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+                var result = await associationContractStub.Release.SendAsync(changeProposalId);
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                proposal = await associationContractStub.GetProposal.CallAsync(proposalId);
+                proposal.ToBeReleased.ShouldBeFalse();
+            }
         }
 
         [Fact]
@@ -655,20 +673,36 @@ namespace AElf.Contracts.Association
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
 
-            var organizationMember = new OrganizationMemberList
             {
-                OrganizationMembers = {Reviewer1}
-            };
+                var organizationMember = new OrganizationMemberList
+                {
+                    OrganizationMembers = {Reviewer1}
+                };
 
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-            var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                nameof(AssociationContractStub.ChangeOrganizationMember), organizationAddress);
-            await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-            var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
-            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
+                    nameof(associationContractStub.ChangeOrganizationMember), organizationAddress);
+                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+                var releaseResult = await associationContractStub.Release.SendWithExceptionAsync(changeProposalId);
+                releaseResult.TransactionResult.Error.ShouldContain("Invalid organization.");
+            }
 
-            var organizationInfo = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
-            organizationInfo.OrganizationMemberList.OrganizationMembers.Count.ShouldBe(1);
+            {
+                var organizationMember = new OrganizationMemberList
+                {
+                    OrganizationMembers = {Reviewer1, Reviewer2}
+                };
+
+                AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
+                    nameof(AssociationContractStub.ChangeOrganizationMember), organizationAddress);
+                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
+                var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+                releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var organizationInfo = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
+                organizationInfo.OrganizationMemberList.ShouldBe(organizationMember);
+            }
         }
 
         [Fact]

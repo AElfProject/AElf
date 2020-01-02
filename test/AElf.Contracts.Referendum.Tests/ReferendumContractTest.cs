@@ -60,8 +60,7 @@ namespace AElf.Contracts.Referendum
             getOrganization.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(minimalVoteThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalAbstentionThreshold.ShouldBe(maximalAbstentionThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalRejectionThreshold.ShouldBe(maximalRejectionThreshold);
-            getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                Hash.FromMessage(ReferendumContractAddress), Hash.FromMessage(createOrganizationInput)));
+            getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
         }
 
         [Fact]
@@ -280,6 +279,8 @@ namespace AElf.Contracts.Referendum
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var userBalanceBeforeApprove =
+                await GetBalanceAsync("ELF", Address.FromPublicKey(keyPair.PublicKey));
             long amount = 1000;
             await GetTokenContractTester(keyPair).Approve.SendAsync(new ApproveInput
             {
@@ -291,7 +292,7 @@ namespace AElf.Contracts.Referendum
             await referendumContractStub.Approve.SendAsync(proposalId);
             var userBalance =
                 await GetBalanceAsync("ELF", Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey));
-            userBalance.ShouldBe(10000 - 1000);
+            userBalance.ShouldBe(userBalanceBeforeApprove - amount);
 
             var transactionResult2 = await referendumContractStub.Approve.SendWithExceptionAsync(proposalId);
             transactionResult2.TransactionResult.Error.ShouldContain("Allowance not enough.");
@@ -650,39 +651,49 @@ namespace AElf.Contracts.Referendum
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
-            await GetTokenContractTester(SampleECKeyPairs.KeyPairs[3]).Approve.SendAsync(new ApproveInput
-            {
-                Amount = minimalApproveThreshold,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
-
+            var keyPair = SampleECKeyPairs.KeyPairs[3];
+            await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
             await ApproveAsync(SampleECKeyPairs.KeyPairs[3], proposalId);
             var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeTrue();
 
-            var proposalReleaseThresholdInput = new ProposalReleaseThreshold
             {
-                MinimalVoteThreshold = 20000
-            };
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 20000
+                };
 
-            ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
-            var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
-                proposalReleaseThresholdInput,
-                nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
-            await GetTokenContractTester(SampleECKeyPairs.KeyPairs[3]).Approve.SendAsync(new ApproveInput
+                var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
+                var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
+                    proposalReleaseThresholdInput,
+                    nameof(referendumContractStub.ChangeOrganizationThreshold), organizationAddress);
+                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
+                await ApproveAsync(SampleECKeyPairs.KeyPairs[3], changeProposalId);
+                referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
+                var result = await referendumContractStub.Release.SendWithExceptionAsync(changeProposalId);
+                result.TransactionResult.Error.ShouldContain("Invalid organization.");
+            }
+            
             {
-                Amount = minimalApproveThreshold,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
-            await ApproveAsync(SampleECKeyPairs.KeyPairs[3], changeProposalId);
-            ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
-            var result = await ReferendumContractStub.Release.SendAsync(changeProposalId);
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 20000,
+                    MinimalApprovalThreshold = minimalApproveThreshold
+                };
 
-            proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
-            proposal.ToBeReleased.ShouldBeFalse();
+                ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
+                var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
+                    proposalReleaseThresholdInput,
+                    nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
+                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
+                await ApproveAsync(SampleECKeyPairs.KeyPairs[3], changeProposalId);
+                var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
+                var result = await referendumContractStub.Release.SendAsync(changeProposalId);
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                proposal = await referendumContractStub.GetProposal.CallAsync(proposalId);
+                proposal.ToBeReleased.ShouldBeFalse();
+            }
         }
 
         [Fact]

@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -12,7 +11,6 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInput;
-using ProposalCreated = AElf.Contracts.Parliament.ProposalCreated;
 
 namespace AElf.Contracts.CrossChain.Tests
 {
@@ -181,7 +179,7 @@ namespace AElf.Contracts.CrossChain.Tests
             );
             var status = result.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to do this.", result.TransactionResult.Error);
+            Assert.Contains("Unauthorized behavior.", result.TransactionResult.Error);
         }
 
         [Fact]
@@ -561,35 +559,105 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             var organizationAddress =
                 await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            
+            var newOrganizationAddress = (await ParliamentContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 3333,
+                    MaximalRejectionThreshold = 3333,
+                    MinimalApprovalThreshold = 3333,
+                    MinimalVoteThreshold = 3333
+                }
+            })).Output;
             var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
-                ContractMethodName = nameof(CrossChainContractStub.ChangCrossChainIndexingController),
+                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = DefaultSender.ToByteString(),
+                Params = new AuthorityStuff
+                {
+                    ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
+                }.ToByteString(),
                 ToAddress = CrossChainContractAddress,
                 OrganizationAddress = organizationAddress
             });
 
             var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
             await ApproveWithMinersAsync(proposalId);
-            await ReleaseProposalAsync(proposalId);
+            var releaseResult = (await ParliamentContractStub.Release.SendAsync(proposalId)).TransactionResult;
+            releaseResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        [Fact]
+        public async Task ChangeOwnerAddress_InvalidOwnerAddress()
+        {
+            var organizationAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
 
-            var res = await CrossChainContractStub.ChangCrossChainIndexingController.SendAsync(DefaultSender);
+            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = new AuthorityStuff
+                {
+                    ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
+                }.ToByteString(),
+                ToAddress = CrossChainContractAddress,
+                OrganizationAddress = organizationAddress
+            });
 
-            var status = res.TransactionResult.Status;
-            Assert.True(status == TransactionResultStatus.Mined);
+            var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId)).TransactionResult;
+            releaseResult.Error.ShouldContain("Invalid authority input.");
+        }
+
+        [Fact]
+        public async Task ChangeOwnerAddress_InvalidContractAddress()
+        {
+            var organizationAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var newOrganizationAddress = (await ParliamentContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 3333,
+                    MaximalRejectionThreshold = 3333,
+                    MinimalApprovalThreshold = 3333,
+                    MinimalVoteThreshold = 3333
+                }
+            })).Output;
+            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = new AuthorityStuff
+                {
+                    ContractAddress = CrossChainContractAddress, OwnerAddress = newOrganizationAddress
+                }.ToByteString(),
+                ToAddress = CrossChainContractAddress,
+                OrganizationAddress = organizationAddress
+            });
+
+            var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId)).TransactionResult;
+            releaseResult.Error.ShouldContain("Invalid authority input.");
         }
 
         [Fact]
         public async Task ChangeOwnerAddress_NotAuthorized()
         {
             var res =
-                (await CrossChainContractStub.ChangCrossChainIndexingController.SendWithExceptionAsync(DefaultSender))
-                .TransactionResult;
+                (await CrossChainContractStub.ChangeCrossChainIndexingController.SendWithExceptionAsync(
+                    new AuthorityStuff
+                    {
+                        ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
+                    })).TransactionResult;
 
             var status = res.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to do this.", res.Error);
+            Assert.Contains("Unauthorized behavior.", res.Error);
         }
 
         [Fact]

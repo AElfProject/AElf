@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
@@ -45,7 +46,7 @@ namespace AElf.Contracts.Parliament
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        internal ACS0Container.ACS0Stub BasicContractStub { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
@@ -66,7 +67,6 @@ namespace AElf.Contracts.Parliament
                     DefaultSenderKeyPair
                 ));
             ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
-
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
@@ -87,9 +87,9 @@ namespace AElf.Contracts.Parliament
         }
 
 
-        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
 
         internal AEDPoSContractContainer.AEDPoSContractStub GetConsensusContractTester(ECKeyPair keyPair)
@@ -141,6 +141,11 @@ namespace AElf.Contracts.Parliament
                 {Pubkeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
             await ConsensusContractStub.FirstRound.SendAsync(
                 minerList.GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
+        }
+        
+        internal async Task InitializeParliamentContracts()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput());
         }
     }
 
@@ -204,6 +209,5 @@ namespace AElf.Contracts.Parliament
             };
             return createProposalInput;
         }
-        
     }
 }

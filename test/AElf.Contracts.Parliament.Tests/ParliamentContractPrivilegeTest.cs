@@ -23,7 +23,7 @@ namespace AElf.Contracts.Parliament
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Not authorized to propose.").ShouldBeTrue();
+            result.Error.Contains("Unauthorized to propose.").ShouldBeTrue();
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task CreateProposal_WithoutPrivilege_Test()
         {
-            var organizationAddress = await CreateOrganizationAsync();
+            var organizationAddress = await CreateOrganizationAsync(true);
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
@@ -77,11 +77,9 @@ namespace AElf.Contracts.Parliament
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
             var proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
-            var authority = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue)
-                .ProposerAuthorityRequired;
+
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeTrue();
-            authority.ShouldBeTrue();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 
             var proposerWhiteList = new ProposerWhiteList
@@ -115,15 +113,12 @@ namespace AElf.Contracts.Parliament
             result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
             proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
-            authority = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue)
-                .ProposerAuthorityRequired;
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
-            authority.ShouldBeTrue();
         }
 
-        private async Task<Address> CreateOrganizationAsync()
+        private async Task<Address> CreateOrganizationAsync(bool proposerAuthorityRequired = false)
         {
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
@@ -137,7 +132,8 @@ namespace AElf.Contracts.Parliament
                     MaximalAbstentionThreshold = maximalAbstentionThreshold,
                     MaximalRejectionThreshold = maximalRejectionThreshold,
                     MinimalVoteThreshold = minimalVoteThreshold
-                }
+                },
+                ProposerAuthorityRequired = proposerAuthorityRequired
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,

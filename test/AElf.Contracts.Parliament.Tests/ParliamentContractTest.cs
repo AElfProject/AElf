@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -51,6 +52,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Get_Organization_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 10000 / MinersCount;
             var maximalAbstentionThreshold = 2000 / MinersCount;
             var maximalRejectionThreshold = 3000 / MinersCount;
@@ -66,8 +68,9 @@ namespace AElf.Contracts.Parliament
                     MinimalVoteThreshold = minimalVoteThreshold
                 }
             };
+            var minerParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs.First());
             var transactionResult =
-                await ParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                await minerParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
             var organizationCalculated = ParliamentContractStub.CalculateOrganizationAddress
                 .CallAsync(createOrganizationInput).Result;
             var organizationAddress = transactionResult.Output;
@@ -79,8 +82,7 @@ namespace AElf.Contracts.Parliament
             getOrganization.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(minimalVoteThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalAbstentionThreshold.ShouldBe(maximalAbstentionThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalRejectionThreshold.ShouldBe(maximalRejectionThreshold);
-            getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                Hash.FromMessage(ParliamentContractAddress), Hash.FromMessage(createOrganizationInput)));
+            getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
         }
 
         [Fact]
@@ -94,6 +96,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Get_Proposal_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -128,6 +131,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Create_OrganizationFailed_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -144,11 +148,13 @@ namespace AElf.Contracts.Parliament
             {
                 ProposalReleaseThreshold = proposalReleaseThreshold.Clone()
             };
+            
+            var minerParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
 
             {
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to create organization.");
             }
 
             {
@@ -158,7 +164,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold.MaximalAbstentionThreshold = 0;
                 createOrganizationInput.ProposalReleaseThreshold.MaximalRejectionThreshold = 0;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
@@ -166,7 +172,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MinimalApprovalThreshold = 0;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -175,7 +181,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MinimalApprovalThreshold = -1;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -184,7 +190,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MaximalAbstentionThreshold = -1;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -193,7 +199,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MaximalAbstentionThreshold = 3334;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -202,7 +208,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MaximalRejectionThreshold = 3334;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -211,7 +217,7 @@ namespace AElf.Contracts.Parliament
                 createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
                 createOrganizationInput.ProposalReleaseThreshold.MinimalApprovalThreshold = 10001;
                 var transactionResult =
-                    await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
+                    await minerParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
@@ -220,6 +226,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Create_ProposalFailed_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -301,6 +308,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Approve_Proposal_NotAuthorizedApproval_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -318,6 +326,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Approve_Proposal_ExpiredTime_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -326,15 +335,16 @@ namespace AElf.Contracts.Parliament
                 maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
-            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-            var error = await ParliamentContractStub.Approve.CallWithExceptionAsync(proposalId);
+            var error = await parliamentContractStub.Approve.CallWithExceptionAsync(proposalId);
             error.Value.ShouldContain("Invalid proposal.");
         }
 
         [Fact]
         public async Task Approve_Proposal_ApprovalAlreadyExists_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -360,6 +370,8 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Check_Proposal_ToBeReleased()
         {
+            await InitializeParliamentContracts();
+
             {
                 var minimalApprovalThreshold = 3000;
                 var maximalAbstentionThreshold = 3000;
@@ -432,6 +444,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Release_NotEnoughApprove_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -461,6 +474,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Release_WrongSender_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -481,6 +495,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Release_Proposal_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -509,6 +524,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Release_Proposal_AlreadyReleased_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -537,32 +553,11 @@ namespace AElf.Contracts.Parliament
             transactionResult3.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult3.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
         }
-
-        [Fact]
-        public async Task Change_GenesisContractOwner_Test()
-        {
-            var callResult =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallWithExceptionAsync(new Empty());
-            callResult.Value.ShouldContain("Not initialized.");
-
-            var initializeParliament = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
-            {
-                ProposerAuthorityRequired = false
-            });
-            initializeParliament.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var contractOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            contractOwner.ShouldNotBe(new Address());
-
-            //no permission
-            var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendWithExceptionAsync(
-                new ContractControllerStuff {ContractAddress = ParliamentContractAddress, OwnerAddress = Tester});
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
-        }
-
+        
         [Fact]
         public async Task Change_OrganizationThreshold_Test()
         {
+            await InitializeParliamentContracts();
             var minimalApprovalThreshold = 3000;
             var maximalAbstentionThreshold = 3000;
             var maximalRejectionThreshold = 3000;
@@ -574,32 +569,54 @@ namespace AElf.Contracts.Parliament
             var proposal = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeTrue();
 
-            var proposalReleaseThresholdInput = new ProposalReleaseThreshold
             {
-                MinimalVoteThreshold = 6000
-            };
-            var createProposalInput = new CreateProposalInput
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 6000
+                };
+                var createProposalInput = new CreateProposalInput
+                {
+                    ContractMethodName = nameof(ParliamentContractStub.ChangeOrganizationThreshold),
+                    ToAddress = ParliamentContractAddress,
+                    Params = proposalReleaseThresholdInput.ToByteString(),
+                    ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                    OrganizationAddress = organizationAddress
+                };
+                var changeProposal = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
+                changeProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var changeProposalId = changeProposal.Output;
+                await ApproveAsync(InitialMinersKeyPairs[0], changeProposalId);
+                var result = await ParliamentContractStub.Release.SendWithExceptionAsync(changeProposalId);
+                result.TransactionResult.Error.ShouldContain("Invalid organization.");
+            }
             {
-                ContractMethodName = nameof(ParliamentContractStub.ChangeOrganizationThreshold),
-                ToAddress = ParliamentContractAddress,
-                Params = proposalReleaseThresholdInput.ToByteString(),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
-                OrganizationAddress = organizationAddress
-            };
-            var changeProposal = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
-            changeProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var changeProposalId = changeProposal.Output;
-            await ApproveAsync(InitialMinersKeyPairs[0], changeProposalId);
-            var result = await ParliamentContractStub.Release.SendAsync(changeProposalId);
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            proposal = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
-            proposal.ToBeReleased.ShouldBeFalse();
+                var proposalReleaseThresholdInput = new ProposalReleaseThreshold
+                {
+                    MinimalVoteThreshold = 6000,
+                    MinimalApprovalThreshold = minimalApprovalThreshold
+                };
+                var createProposalInput = new CreateProposalInput
+                {
+                    ContractMethodName = nameof(ParliamentContractStub.ChangeOrganizationThreshold),
+                    ToAddress = ParliamentContractAddress,
+                    Params = proposalReleaseThresholdInput.ToByteString(),
+                    ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                    OrganizationAddress = organizationAddress
+                };
+                var changeProposal = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
+                changeProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var changeProposalId = changeProposal.Output;
+                await ApproveAsync(InitialMinersKeyPairs[0], changeProposalId);
+                var result = await ParliamentContractStub.Release.SendAsync(changeProposalId);
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
         public async Task Check_ValidProposal_Test()
         {
+            await InitializeParliamentContracts();
+
             var minimalApprovalThreshold = 6000;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -610,13 +627,13 @@ namespace AElf.Contracts.Parliament
             await TransferToOrganizationAddressAsync(organizationAddress);
 
             //Get valid Proposal
-            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[2]);
-            var validProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[2]);
+            var validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
             {
                 ProposalIds = {proposalId}
             });
             validProposals.ProposalIds.Count.ShouldBe(1);
-            var notVotedProposals = await ParliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
+            var notVotedProposals = await parliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
             {
                 ProposalIds = {proposalId}
             });
@@ -624,19 +641,19 @@ namespace AElf.Contracts.Parliament
 
             await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
             await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
-            validProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
             {
                 ProposalIds = {proposalId}
             });
             validProposals.ProposalIds.Count.ShouldBe(0);
 
-            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[2]);
-            validProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[2]);
+            validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
             {
                 ProposalIds = {proposalId}
             });
             validProposals.ProposalIds.Count.ShouldBe(0);
-            notVotedProposals = await ParliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
+            notVotedProposals = await parliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
             {
                 ProposalIds = {proposalId}
             });
@@ -646,6 +663,8 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Clear_ExpiredProposal_Test()
         {
+            await InitializeParliamentContracts();
+
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -680,8 +699,8 @@ namespace AElf.Contracts.Parliament
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
-            ParliamentContractStub = GetParliamentContractTester(proposalKeyPair);
-            var proposal = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
+            var parliamentContractStub = GetParliamentContractTester(proposalKeyPair);
+            var proposal = await parliamentContractStub.CreateProposal.SendAsync(createProposalInput);
             proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs
                     .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
@@ -704,8 +723,9 @@ namespace AElf.Contracts.Parliament
                     MinimalVoteThreshold = minimalVoteThreshold
                 }
             };
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
             var transactionResult =
-                await ParliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                await parliamentContractStub.CreateOrganization.SendAsync(createOrganizationInput);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             return transactionResult.Output;
@@ -724,25 +744,25 @@ namespace AElf.Contracts.Parliament
 
         private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId)
         {
-            ParliamentContractStub = GetParliamentContractTester(reviewer);
+            var parliamentContractStub = GetParliamentContractTester(reviewer);
             var transactionResult =
-                await ParliamentContractStub.Approve.SendAsync(proposalId);
+                await parliamentContractStub.Approve.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task RejectionAsync(ECKeyPair reviewer, Hash proposalId)
         {
-            ParliamentContractStub = GetParliamentContractTester(reviewer);
+            var parliamentContractStub = GetParliamentContractTester(reviewer);
             var transactionResult =
-                await ParliamentContractStub.Reject.SendAsync(proposalId);
+                await parliamentContractStub.Reject.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
         {
-            ParliamentContractStub = GetParliamentContractTester(reviewer);
+            var parliamentContractStub = GetParliamentContractTester(reviewer);
             var transactionResult =
-                await ParliamentContractStub.Abstain.SendAsync(proposalId);
+                await parliamentContractStub.Abstain.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }

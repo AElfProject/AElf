@@ -66,14 +66,13 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
         }
 
-        // public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
-        // {
-        //     return new GetProposerWhiteListContextOutput
-        //     {
-        //         ProposerAuthorityRequired = State.ProposerAuthorityRequired.Value,
-        //         Proposers = {State.ProposerWhiteList.Value.Proposers}
-        //     };
-        // }
+        public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
+        {
+            return new GetProposerWhiteListContextOutput
+            {
+                Proposers = {State.ProposerWhiteList.Value.Proposers}
+            };
+        }
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
@@ -156,7 +155,7 @@ namespace AElf.Contracts.Parliament
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(ValidateProposerAuthority(Context.Sender), "Not authorized to create organization.");
+            Assert(ValidateProposerAuthority(Context.Sender), "Unauthorized to create organization.");
             var organizationAddress = CreateNewOrganization(input);
 
             return organizationAddress;

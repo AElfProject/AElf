@@ -116,7 +116,7 @@ namespace AElf.Contracts.Referendum
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = 10000,
+                    Amount = 100_000,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "Issue token to users"
                 });

@@ -29,9 +29,9 @@ service ParliamentContract {
     }
     rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
-//    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
-//        option (aelf.is_view) = true;
-//    }
+    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
+        option (aelf.is_view) = true;
+    }
     rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
@@ -79,7 +79,6 @@ message ProposalIdList{
 
 message GetProposerWhiteListContextOutput{
     repeated aelf.Address proposers = 1;
-    bool proposer_authority_required = 2;
 }
 
 message CreateOrganizationBySystemContractInput {
