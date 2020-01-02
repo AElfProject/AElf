@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -727,7 +728,25 @@ namespace AElf.Contracts.TestBase
                     ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(ConfigurationContractCode,
-                    ConfigurationSmartContractAddressNameProvider.Name);
+                    ConfigurationSmartContractAddressNameProvider.Name, new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+                    {
+                        Value =
+                        {
+                            new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
+                            {
+                                MethodName = nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens),
+                                Params = new ResourceTokenAmount
+                                {
+                                    Value =
+                                    {
+                                        {"CPU", SmartContractTestConstants.ResourceSupply},
+                                        {"RAM", SmartContractTestConstants.ResourceSupply},
+                                        {"DISK", SmartContractTestConstants.ResourceSupply}
+                                    }
+                                }.ToByteString()
+                            }
+                        }
+                    });
             };
         }
 

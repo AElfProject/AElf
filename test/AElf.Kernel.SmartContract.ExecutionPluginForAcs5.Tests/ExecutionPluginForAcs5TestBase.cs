@@ -7,6 +7,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Shouldly;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 {
@@ -22,9 +23,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             IsVirtualBalanceEnabled = true
         };
 
-        internal Connector RamConnector = new Connector
+        internal Connector WriteConnector = new Connector
         {
-            Symbol = "RAM",
+            Symbol = "WRITE",
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
@@ -115,10 +116,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     Decimals = 2,
                     IsBurnable = true,
-                    TokenName = "ram token",
+                    TokenName = "WRITE token",
                     TotalSupply = 1000_0000L,
                     Issuer = DefaultSender
                 });
@@ -127,7 +128,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     Amount = 1000_000L,
                     To = DefaultSender,
                     Memo = "Set for net token converter."
@@ -140,12 +141,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         {
             var input = new InitializeInput
             {
-                BaseTokenSymbol = "RAM",
+                BaseTokenSymbol = "WRITE",
                 FeeRate = "0.005",
                 ManagerAddress = ManagerAddress,
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
-                Connectors = { ELFConnector, RamConnector }
+                Connectors = { ELFConnector, WriteConnector }
             };
 
             var initializeResult = await TokenConverterContractStub.Initialize.SendAsync(input);

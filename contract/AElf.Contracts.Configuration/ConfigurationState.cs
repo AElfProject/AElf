@@ -11,5 +11,14 @@ namespace AElf.Contracts.Configuration
         public SingletonState<Address> Owner { get; set; }
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        /// <summary>
+        /// Chain Id (of side chain) -> Resource Usage Information
+        /// </summary>
+        public MappedState<int, ResourceTokenAmount> RentedResourceTokenAmount { get; set; }
+
+        public SingletonState<ResourceTokenAmount> TotalResourceTokenAmount { get; set; }
+
+        public SingletonState<ResourceTokenAmount> RemainResourceTokenAmount { get; set; }
     }
 }

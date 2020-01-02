@@ -51,7 +51,7 @@ namespace AElf.Contract.TestContract
             
             var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             
-            acs8After["CPU"].ShouldBeLessThan(acs8Before["CPU"]);
+            acs8After["READ"].ShouldBeLessThan(acs8Before["READ"]);
             acs8After["NET"].ShouldBeLessThan(acs8Before["NET"]);
             acs8After["STO"].ShouldBeLessThan(acs8Before["STO"]);
         }
@@ -77,11 +77,11 @@ namespace AElf.Contract.TestContract
            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             
-            acs8After["CPU"].ShouldBe(acs8Before["CPU"]);
+            acs8After["READ"].ShouldBe(acs8Before["READ"]);
             acs8After["NET"].ShouldBe(acs8Before["NET"]);
             acs8After["STO"].ShouldBe(acs8Before["STO"]);
             
-            feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);
+            feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
             feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
@@ -103,7 +103,7 @@ namespace AElf.Contract.TestContract
                                    transactionResult.TransactionResult.TransactionFee.Value.First().Value);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
-            feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);
+            feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
             feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
@@ -129,7 +129,7 @@ namespace AElf.Contract.TestContract
             beforeBalance.ShouldBe(afterBalance + DefaultFee + sizeFee);
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
-            feesAfter["CPU"].ShouldBeLessThan(feesBefore["CPU"]);
+            feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
             feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }

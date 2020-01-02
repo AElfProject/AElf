@@ -33,9 +33,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         }
     }
 
-    public class TestCalculateCpuStrategy : CalculateCostStrategyBase, ICalculateCpuCostStrategy
+    public class TestCalculateReadStrategy : CalculateCostStrategyBase, ICalculateReadCostStrategy
     {
-        public TestCalculateCpuStrategy()
+        public TestCalculateReadStrategy()
         {
             var functionProvider = new CalculateFunctionCacheProvider();
             var pieceWiseFuncCache = new Dictionary<int, ICalculateWay>
@@ -88,9 +88,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         }
     }
 
-    public class TestCalculateRamStrategy : CalculateCostStrategyBase, ICalculateRamCostStrategy
+    public class TestCalculateWriteStrategy : CalculateCostStrategyBase, ICalculateWriteCostStrategy
     {
-        public TestCalculateRamStrategy()
+        public TestCalculateWriteStrategy()
         {
             var functionProvider = new CalculateFunctionCacheProvider();
             var pieceWiseFuncCache = new Dictionary<int, ICalculateWay>

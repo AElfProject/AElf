@@ -22,6 +22,7 @@ namespace AElf.Launcher
         {
             _configuration = configuration;
         }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -36,6 +37,7 @@ namespace AElf.Launcher
                     AddApplication<MainChainAElfModule>(services);
                     break;
             }
+
             services.AddCors(options =>
             {
                 options.AddPolicy(DefaultCorsPolicyName, builder =>
@@ -56,13 +58,14 @@ namespace AElf.Launcher
                 });
             });
         }
-        
-        private static void AddApplication<T>(IServiceCollection services) where T: IAbpModule
+
+        private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
         {
-            services.AddApplication<T>(); 
+            services.AddApplication<T>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // ReSharper disable once UnusedMember.Global
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var cultureInfo = CultureInfo.InvariantCulture;

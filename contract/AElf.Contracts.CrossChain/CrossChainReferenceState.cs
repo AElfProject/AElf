@@ -1,4 +1,5 @@
 using Acs0;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
@@ -12,5 +13,7 @@ namespace AElf.Contracts.CrossChain
         
         internal ACS0Container.ACS0ReferenceState GenesisContract { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set;}
+        internal ConfigurationContainer.ConfigurationReferenceState ConfigurationContract { get; set; }
+
     }
 }
