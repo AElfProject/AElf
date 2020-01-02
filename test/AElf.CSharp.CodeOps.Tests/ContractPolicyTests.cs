@@ -8,11 +8,12 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.CSharp.CodeOps
 {
     public class FirstPolicy : AbstractPolicy
     {
@@ -72,7 +73,7 @@ namespace AElf.Runtime.CSharp
         }
     }
 
-    public class ContractPolicyTests : CSharpRuntimeTestBase
+    public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
         private ContractAuditor _auditor;
         private readonly string _contractDllDir = "../../../contracts/";
@@ -82,7 +83,7 @@ namespace AElf.Runtime.CSharp
         public ContractPolicyTests()
         {
             _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module + ".patched");
+            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
         }
 
         [Fact]
@@ -158,7 +159,7 @@ namespace AElf.Runtime.CSharp
         public void Policy_UncheckedMathValidator_Test()
         {
             var validator = new UncheckedMathValidator();
-            var validateResult1 = ValidateContractCode(_badContractCode, validator);
+            var validateResult1 = ValidateContractCode(ReadCode(_contractDllDir + typeof(TestContract).Module), validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
             validateResult1.First().Message.ShouldContain("contains unsafe OpCode add");
         }

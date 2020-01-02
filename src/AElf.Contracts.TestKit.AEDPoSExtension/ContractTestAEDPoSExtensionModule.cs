@@ -46,10 +46,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
+            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
 
             context.Services.RemoveAll<IPreExecutionPlugin>();
 
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 }

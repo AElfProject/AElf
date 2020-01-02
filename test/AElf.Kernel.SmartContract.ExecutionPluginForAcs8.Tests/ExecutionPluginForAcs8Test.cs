@@ -42,7 +42,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             });
             approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var buyResult = await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput
+            var buyResult = await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput
             {
                 Symbol = "READ",
                 Amount = 100_00000000,
@@ -100,9 +100,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+            await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -114,9 +114,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            await TestContractStub.FewConsumingMethod.SendAsync(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -142,9 +142,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.StoConsumingMethod.SendAsync(new Empty());
+            await TestContractStub.StoConsumingMethod.SendAsync(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -156,9 +156,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            await TestContractStub.FewConsumingMethod.SendAsync(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -184,12 +184,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.NetConsumingMethod.SendAsync(new NetConsumingMethodInput
+            await TestContractStub.NetConsumingMethod.SendAsync(new NetConsumingMethodInput
             {
                 Blob = ByteString.CopyFrom("NetConsumingMethod vs FewConsumingMethod", Encoding.Default)
             });
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -203,9 +203,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            await TestContractStub.FewConsumingMethod.SendAsync(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -219,7 +219,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         [Fact]
         public async Task CompareCpuTokenConsumption_WithoutResource()
         {
-            var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             txResult.TransactionResult.Error.ShouldContain("is not enough");
         }
@@ -246,7 +246,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             long owingSto;
 
             {
-                var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+                var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(stoAmount);
                 owingSto = txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"];
@@ -257,7 +257,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             }
 
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -267,7 +267,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             balance.ShouldBe(0);
 
             {
-                var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+                var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
                 txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
             }
@@ -281,7 +281,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             });
 
             {
-                var txResult = await DefaultTester.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+                var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
                 txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
             }
@@ -294,7 +294,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             });
 
             {
-                var txResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+                var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(owingSto + 1);
                 txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"].ShouldBeGreaterThan(0);
@@ -310,9 +310,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             await AdvanceResourceToken();
 
             var (read, write, net, txResult1) =
-                await GetTransactionResourcesCost(DefaultTester.CpuConsumingMethod.SendAsync);
+                await GetTransactionResourcesCost(TestContractStub.CpuConsumingMethod.SendAsync);
             var (read1, write1, net1, txResult2) =
-                await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
+                await GetTransactionResourcesCost(TestContractStub.FewConsumingMethod.SendAsync);
 
             read.ShouldBeGreaterThan(read1);
             write.ShouldBeGreaterThan(write1);
@@ -351,7 +351,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
             var txResult = (await action(new Empty())).TransactionResult;
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
 
             var afterRead = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -370,6 +370,35 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             })).Balance;
 
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeNet - afterNet, txResult);
+        }
+
+        [Fact]
+        public async Task SendTransferFromAsInlineTxTest()
+        {
+            await AdvanceResourceToken();
+
+            var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "ELF"
+            });
+            var txResult =
+                await TestContractStub.SendTransferFromAsInlineTx.SendAsync(new SInt64Value
+                {
+                    Value = balanceBefore.Balance * 2
+                });
+            // Success though insufficient balance to do transfer. Because the TransferFrom inline tx cancelled.
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // Check balance
+            {
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = TestContractAddress,
+                    Symbol = "ELF"
+                })).Balance;
+                balance.ShouldBe(balanceBefore.Balance);
+            }
         }
     }
 }
