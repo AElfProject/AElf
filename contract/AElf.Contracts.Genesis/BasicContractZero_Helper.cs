@@ -40,17 +40,17 @@ namespace AElf.Contracts.Genesis
         {
             Assert(Context.Sender == address, "Unauthorized behavior.");
         }
-        
+
         private Hash CalculateHashFromInput(IMessage input)
         {
             return Hash.FromMessage(input);
         }
 
-        private bool CheckOrganizationExist(Address contractAddress, Address organizationAddress)
+        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
         {
-            return Context.Call<BoolValue>(contractAddress,
-                nameof(Acs3.AuthorizationContractContainer.AuthorizationContractReferenceState
-                    .ValidateOrganizationExist), organizationAddress.ToByteString()).Value;
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
+                authorityStuff.OwnerAddress).Value;
         }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)

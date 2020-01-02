@@ -27,10 +27,6 @@ service ACS0 {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeContractDeploymentController (ContractDeploymentControllerStuff) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeCodeCheckController (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
     rpc SetControllerAddressByDefault (aelf.Address) returns (google.protobuf.Empty) {
@@ -50,9 +46,6 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractDeploymentController (google.protobuf.Empty) returns (ContractDeploymentControllerStuff) {
         option (aelf.is_view) = true;
     }
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
@@ -153,9 +146,4 @@ message ValidateSystemContractAddressInput {
 message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
     aelf.Hash proposed_contract_input_hash = 2;
-}
-
-message ContractDeploymentControllerStuff {
-    aelf.Address contract_address = 1;
-    aelf.Address owner_address = 2;
 }

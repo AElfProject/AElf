@@ -70,9 +70,14 @@ namespace AElf.Contracts.Genesis
             return State.DeployedContractAddressList.Value;
         }
 
-        public override ContractDeploymentControllerStuff GetContractDeploymentController(Empty input)
+        public override AuthorityStuff GetContractDeploymentController(Empty input)
         {
             return State.ContractDeploymentController.Value;
+        }
+
+        public override AuthorityStuff GetCodeCheckController(Empty input)
+        {
+            return State.CodeCheckController.Value;
         }
 
         #endregion Views
@@ -267,8 +272,8 @@ namespace AElf.Contracts.Genesis
 
             RequireParliamentContractAddressSet();
 
-            // Create proposal for deployment
-            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            var codeCheckController = State.CodeCheckController.Value;
+            var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -277,11 +282,15 @@ namespace AElf.Contracts.Genesis
                         ? nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract)
                         : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                     Params = input.ContractInput,
-                    OrganizationAddress = State.CodeCheckController.Value,
+                    OrganizationAddress = codeCheckController.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
                 },
                 OriginProposer = proposedInfo.Proposer
-            });
+            };
+            // Create proposal for deployment
+            Context.SendInline(codeCheckController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .CreateProposalBySystemContract), proposalCreationInput);
 
             // Fire event to trigger BPs checking contract code
             Context.Fire(new CodeCheckRequired
@@ -311,20 +320,23 @@ namespace AElf.Contracts.Genesis
         public override Empty ReleaseCodeCheckedContract(ReleaseContractInput input)
         {
             var contractProposingInput = State.ContractProposingInputMap[input.ProposedContractInputHash];
+
             Assert(
                 contractProposingInput != null &&
                 contractProposingInput.Status == ContractProposingInputStatus.PreCodeChecked &&
                 contractProposingInput.Proposer == Context.Sender, "Invalid contract proposing status.");
             contractProposingInput.Status = ContractProposingInputStatus.CodeChecked;
             State.ContractProposingInputMap[input.ProposedContractInputHash] = contractProposingInput;
-            State.ParliamentContract.Release.Send(input.ProposalId);
+            var codeCheckController = State.CodeCheckController.Value;
+            Context.SendInline(codeCheckController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release), input.ProposalId);
             return new Empty();
         }
 
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            RequireSenderAuthority(State.CodeCheckController.Value);
+            RequireSenderAuthority(State.CodeCheckController.Value?.OwnerAddress);
             // AssertDeploymentProposerAuthority(Context.Origin);
 
             var inputHash = CalculateHashFromInput(input);
@@ -342,7 +354,7 @@ namespace AElf.Contracts.Genesis
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract not found.");
-            RequireSenderAuthority(State.CodeCheckController.Value);
+            RequireSenderAuthority(State.CodeCheckController.Value?.OwnerAddress);
             var inputHash = CalculateHashFromInput(input);
 
             if (!TryClearContractProposingInput(inputHash, out _))
@@ -394,31 +406,31 @@ namespace AElf.Contracts.Genesis
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
-            State.ContractDeploymentController.Value = new ContractDeploymentControllerStuff
+            var defaultAuthority = new AuthorityStuff
             {
                 OwnerAddress = input,
                 ContractAddress = parliamentContractAddress
             };
-            State.CodeCheckController.Value = input;
+            State.ContractDeploymentController.Value = defaultAuthority;
+            State.CodeCheckController.Value = defaultAuthority;
             return new Empty();
         }
 
-        public override Empty ChangeContractDeploymentController(ContractDeploymentControllerStuff input)
+        public override Empty ChangeContractDeploymentController(AuthorityStuff input)
         {
             AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
-            var organizationExist = CheckOrganizationExist(input.ContractAddress, input.OwnerAddress);
-            Assert(organizationExist, "Invalid contract deployment controller address.");
+            var organizationExist = CheckOrganizationExist(input);
+            Assert(organizationExist, "Invalid authority input.");
             State.ContractDeploymentController.Value = input;
-
             return new Empty();
         }
 
-        public override Empty ChangeCodeCheckController(Address input)
+        public override Empty ChangeCodeCheckController(AuthorityStuff input)
         {
-            AssertSenderAddressWith(State.CodeCheckController.Value);
+            AssertSenderAddressWith(State.CodeCheckController.Value.OwnerAddress);
             RequireParliamentContractAddressSet();
-            var organizationExist = CheckOrganizationExist(State.ParliamentContract.Value, input);
-            Assert(organizationExist, "Invalid code check controller address.");
+            Assert(State.ParliamentContract.Value == input.ContractAddress && CheckOrganizationExist(input),
+                "Invalid authority input.");
             State.CodeCheckController.Value = input;
             return new Empty();
         }

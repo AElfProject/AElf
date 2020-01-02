@@ -16,9 +16,9 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangCrossChainIndexingController(aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeCrossChainIndexingController(AuthorityStuff) returns (google.protobuf.Empty) {
     }
-    rpc ChangSideChainLifetimeController(aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainLifetimeController(AuthorityStuff) returns (google.protobuf.Empty) {
     }
     
     // Views
@@ -101,6 +101,11 @@ message GetPendingCrossChainIndexingProposalOutput{
     bool to_be_released = 3;
     acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
     google.protobuf.Timestamp expired_time = 5;
+}
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
 }
 
 enum CrossChainIndexingProposalStatus{

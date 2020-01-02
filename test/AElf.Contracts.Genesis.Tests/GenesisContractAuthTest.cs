@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
@@ -12,6 +10,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
+using ProposalCreated = Acs3.ProposalCreated;
 
 namespace AElf.Contracts.Genesis
 {
@@ -23,8 +22,8 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeContractDeploymentController),
-                new ContractDeploymentControllerStuff()
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                new AuthorityStuff()
                 {
                     OwnerAddress = SampleAddress.AddressList[0],
                     ContractAddress = BasicContractZeroAddress
@@ -332,7 +331,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
-                new ContractDeploymentControllerStuff
+                new AuthorityStuff
                 {
                     ContractAddress = contractDeploymentController.ContractAddress,
                     OwnerAddress = address
@@ -363,7 +362,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
-                new ContractDeploymentControllerStuff
+                new AuthorityStuff
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentAddress
@@ -548,8 +547,8 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeContractDeploymentController),
-                new ContractDeploymentControllerStuff()
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                new AuthorityStuff()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
                     ContractAddress = BasicContractZeroAddress
