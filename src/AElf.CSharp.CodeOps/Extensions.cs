@@ -73,7 +73,7 @@ namespace AElf.CSharp.CodeOps
             foreach (var instruction in methodInstructions)
             {
                 // Skip if not a branching instruction
-                if (!Consts.JumpingOps.Contains(instruction.OpCode)) continue;
+                if (!Constants.JumpingOpCodes.Contains(instruction.OpCode)) continue;
                 
                 var targetInstruction = (Instruction) instruction.Operand;
 
