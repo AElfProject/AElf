@@ -28,6 +28,14 @@ service BadContract {
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
     rpc TestGetHashCode (GetHashCodeTestInput) returns (GetHashCodeTestOutput) { }
+
+    rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteRecursiveCall (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteRecursiveCallInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 }
 
 message DoubleInput {

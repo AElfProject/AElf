@@ -372,7 +372,7 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 < input.DonationPartsPerHundred && input.DonationPartsPerHundred < 100, "Invalid donation ratio.");
+            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100, "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;
             return new Empty();
@@ -383,7 +383,7 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
-            foreach (var symbol in input.Symbols.Except(Context.Variables.ResourceTokenSymbolNameList))
+            foreach (var symbol in input.Symbols.Except(Context.Variables.SymbolListToPayTxFee))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
@@ -446,7 +446,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.ResourceTokenSymbolNameList.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]

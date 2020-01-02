@@ -64,7 +64,11 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
+            var executive = new Executive(assembly, _executivePlugins)
+            {
+                ContractHash = reg.CodeHash,
+                IsSystemContract = reg.IsSystemContract
+            };
 
             return await Task.FromResult(executive);
         }

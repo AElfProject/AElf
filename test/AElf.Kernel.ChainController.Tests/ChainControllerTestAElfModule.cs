@@ -37,19 +37,19 @@ namespace AElf.Kernel.ChainController
             });
             services.AddSingleton(provider =>
             {
-                var mockCpuCostStrategy = new Mock<ICalculateCpuCostStrategy>();
-                mockCpuCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
+                var mockReadCostStrategy = new Mock<ICalculateReadCostStrategy>();
+                mockReadCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
-                return mockCpuCostStrategy.Object;
+                return mockReadCostStrategy.Object;
             });
             services.AddSingleton(provider =>
             {
-                var mockRamCostStrategy = new Mock<ICalculateRamCostStrategy>();
-                mockRamCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
+                var mockWriteCostStrategy = new Mock<ICalculateWriteCostStrategy>();
+                mockWriteCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
-                return mockRamCostStrategy.Object;
+                return mockWriteCostStrategy.Object;
             });
             services.AddSingleton(provider =>
             {

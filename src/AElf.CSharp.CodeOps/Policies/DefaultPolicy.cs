@@ -6,7 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
 using Mono.Cecil;
@@ -29,6 +31,8 @@ namespace AElf.CSharp.CodeOps.Policies
             WhitelistOthers();
 
             UseMethodValidators();
+            UseModuleValidators();
+            UseAssemblyValidators();
         }
 
         private void WhitelistAssemblies()
@@ -89,8 +93,7 @@ namespace AElf.CSharp.CodeOps.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied)
-                        .Member(nameof(string.Concat), Permission.Denied))
+                        .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
@@ -146,6 +149,23 @@ namespace AElf.CSharp.CodeOps.Policies
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
+            });
+        }
+
+        private void UseModuleValidators()
+        {
+            ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
+            {
+                new ObserverProxyValidator(), 
+                //new RecursiveCallValidator(), 
+            });
+        }
+
+        private void UseAssemblyValidators()
+        {
+            AssemblyValidators.AddRange(new IValidator<Assembly>[]
+            {
+                new AcsValidator(),
             });
         }
     }

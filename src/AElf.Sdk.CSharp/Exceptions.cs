@@ -60,4 +60,14 @@ namespace AElf.Sdk.CSharp
         {
         }
     }
+    
+    [Serializable]
+    public class RuntimeCallThresholdExceededException : BaseAElfException
+    {
+    }
+    
+    [Serializable]
+    public class RuntimeBranchThresholdExceededException : BaseAElfException
+    {
+    }
 }

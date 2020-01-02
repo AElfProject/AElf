@@ -57,7 +57,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ExecuteProposalTransaction(Tester, TokenContractAddress, "UpdateCoefficientFromSender",
                     new CoefficientFromContract
                     {
-                        FeeType = FeeTypeEnum.Cpu,
+                        FeeType = FeeTypeEnum.Read,
                         Coefficient = new CoefficientFromSender
                         {
                             IsChangePieceKey = false,

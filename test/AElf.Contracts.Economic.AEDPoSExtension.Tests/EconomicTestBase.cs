@@ -16,6 +16,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
+using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {

@@ -209,7 +209,7 @@ namespace AElf.Contracts.MultiToken
 
             await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
 
-            await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+            await TokenConverterContractStub.Initialize.SendAsync(new TokenConverter.InitializeInput
             {
                 Connectors = {RamConnector, BaseConnector},
                 TokenContractAddress = TokenContractAddress,

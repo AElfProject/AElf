@@ -39,5 +39,60 @@ namespace AElf.Contracts.Configuration
             var address = GetOwnerAddress();
             return address;
         }
+
+        public override Empty RentResourceTokens(RentResourceTokensInput input)
+        {
+            CheckSenderIsCrossChainContract();
+            State.RentedResourceTokenAmount[input.ChainId.Value] = input.ResourceTokenAmount;
+            if (State.RemainResourceTokenAmount.Value != null)
+                State.RemainResourceTokenAmount.Value -= input.ResourceTokenAmount;
+            return new Empty();
+        }
+
+        public override Empty UpdateRentedResourceTokens(RentResourceTokensInput input)
+        {
+            CheckSenderIsCrossChainContract();
+            Assert(State.RentedResourceTokenAmount[input.ChainId.Value] != null, "Rented resource amount not found.");
+            var change = input.ResourceTokenAmount - State.RentedResourceTokenAmount[input.ChainId.Value];
+            State.RentedResourceTokenAmount[input.ChainId.Value] = input.ResourceTokenAmount;
+            if (State.RemainResourceTokenAmount.Value != null)
+                State.RemainResourceTokenAmount.Value -= change;
+            return new Empty();
+        }
+
+        public override Empty InitialTotalResourceTokens(ResourceTokenAmount input)
+        {
+            CheckSenderIsParliamentAuthOrZeroContract();
+            State.TotalResourceTokenAmount.Value = input;
+            State.RemainResourceTokenAmount.Value = input;
+            return new Empty();
+        }
+
+        public override Empty UpdateTotalResourceTokens(ResourceTokenAmount input)
+        {
+            CheckOwnerAuthority();
+            var change = input - State.TotalResourceTokenAmount.Value;
+            if (State.RemainResourceTokenAmount.Value == null)
+                State.RemainResourceTokenAmount.Value = change;
+            else
+                State.RemainResourceTokenAmount.Value += change;
+            State.TotalResourceTokenAmount.Value = input;
+            return new Empty();
+        }
+
+        public override ResourceTokenAmount GetRentedResourceTokens(SInt32Value input)
+        {
+            return State.RentedResourceTokenAmount[input.Value] ?? new ResourceTokenAmount();
+        }
+
+        public override ResourceTokenAmount GetRemainResourceTokens(Empty input)
+        {
+            return State.RemainResourceTokenAmount.Value ?? new ResourceTokenAmount();
+        }
+
+        public override ResourceTokenAmount GetTotalResourceTokens(Empty input)
+        {
+            return State.TotalResourceTokenAmount.Value ?? new ResourceTokenAmount();
+        }
     }
 }

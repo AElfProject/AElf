@@ -50,8 +50,8 @@ service ResourceContract {
 
 enum ResourceType {
     UNDEFINED_RESOURCE_TYPE = 0;
-    RAM = 1;
-    CPU = 2;
+    WRITE = 1;
+    READ = 2;
     NET = 3;
     STO = 4;
 }

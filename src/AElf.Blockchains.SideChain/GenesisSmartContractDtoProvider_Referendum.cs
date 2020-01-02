@@ -8,14 +8,14 @@ namespace AElf.Blockchains.SideChain
     public partial class GenesisSmartContractDtoProvider
     {
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateReferendumfInitializationCallList()
+            GenerateReferendumInitializationCallList()
         {
-            var referendumfInitializationCallList =
+            var referendumInitializationCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumfInitializationCallList.Add(
+            referendumInitializationCallList.Add(
                 nameof(ReferendumAuthContractContainer.ReferendumAuthContractStub.Initialize),
                 new Empty());
-            return referendumfInitializationCallList;
+            return referendumInitializationCallList;
         }
     }
 }

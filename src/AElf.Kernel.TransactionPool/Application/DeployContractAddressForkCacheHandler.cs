@@ -7,21 +7,21 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class TransactionFeeCalculatorCoefficientForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
-        private readonly ICalculateCpuCostStrategy _cpuCostStrategy;
-        private readonly ICalculateRamCostStrategy _ramCostStrategy;
+        private readonly ICalculateReadCostStrategy _readCostStrategy;
+        private readonly ICalculateWriteCostStrategy _writeCostStrategy;
         private readonly ICalculateNetCostStrategy _netCostStrategy;
         private readonly ICalculateStoCostStrategy _stoCostStrategy;
         private readonly ICalculateTxCostStrategy _txCostStrategy;
 
         public TransactionFeeCalculatorCoefficientForkCacheHandler(
-            ICalculateCpuCostStrategy cpuCostStrategy,
-            ICalculateRamCostStrategy ramCostStrategy,
+            ICalculateReadCostStrategy readCostStrategy,
+            ICalculateWriteCostStrategy writeCostStrategy,
             ICalculateStoCostStrategy stoCostStrategy,
             ICalculateNetCostStrategy netCostStrategy,
             ICalculateTxCostStrategy txCostStrategy)
         {
-            _cpuCostStrategy = cpuCostStrategy;
-            _ramCostStrategy = ramCostStrategy;
+            _readCostStrategy = readCostStrategy;
+            _writeCostStrategy = writeCostStrategy;
             _stoCostStrategy = stoCostStrategy;
             _netCostStrategy = netCostStrategy;
             _txCostStrategy = txCostStrategy;
@@ -29,8 +29,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
-            _cpuCostStrategy.RemoveForkCache(blockIndexes);
-            _ramCostStrategy.RemoveForkCache(blockIndexes);
+            _readCostStrategy.RemoveForkCache(blockIndexes);
+            _writeCostStrategy.RemoveForkCache(blockIndexes);
             _stoCostStrategy.RemoveForkCache(blockIndexes);
             _netCostStrategy.RemoveForkCache(blockIndexes);
             _txCostStrategy.RemoveForkCache(blockIndexes);
@@ -39,8 +39,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes)
         {
-            _cpuCostStrategy.SetIrreversedCache(blockIndexes);
-            _ramCostStrategy.SetIrreversedCache(blockIndexes);
+            _readCostStrategy.SetIrreversedCache(blockIndexes);
+            _writeCostStrategy.SetIrreversedCache(blockIndexes);
             _stoCostStrategy.SetIrreversedCache(blockIndexes);
             _netCostStrategy.SetIrreversedCache(blockIndexes);
             _txCostStrategy.SetIrreversedCache(blockIndexes);

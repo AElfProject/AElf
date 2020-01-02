@@ -1,5 +1,6 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {
@@ -152,6 +153,22 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         {
             State.ReadonlyBool.Value = input.BoolValue;
             return new BoolOutput {BoolValue = State.ReadonlyBool.Value};
+        }
+
+        public override StringOutput TestArrayIterateForeach(Empty input)
+        {
+            // Iterating array via foreach loop causes unchecked arithmetic opcodes
+            // This is to be used for contract policy tests
+            
+            var words = new[] { "TEST", "FOREACH", "LOOP" };
+            var merged = "";
+            
+            foreach (var word in words)
+            {
+                merged += $" {word}";
+            }
+
+            return new StringOutput {StringValue = merged};
         }
     }
 }
