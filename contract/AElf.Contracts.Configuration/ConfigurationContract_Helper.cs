@@ -31,7 +31,7 @@ namespace AElf.Contracts.Configuration
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
         }
 
-        private void CheckSenderIsParliamentAuthOrZeroContract()
+        private void CheckSenderIsParliamentOrZeroContract()
         {
             if (State.ParliamentContract.Value == null)
             {

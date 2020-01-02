@@ -62,7 +62,7 @@ namespace AElf.Contracts.Configuration
 
         public override Empty InitialTotalResourceTokens(ResourceTokenAmount input)
         {
-            CheckSenderIsParliamentAuthOrZeroContract();
+            CheckSenderIsParliamentOrZeroContract();
             State.TotalResourceTokenAmount.Value = input;
             State.RemainResourceTokenAmount.Value = input;
             return new Empty();

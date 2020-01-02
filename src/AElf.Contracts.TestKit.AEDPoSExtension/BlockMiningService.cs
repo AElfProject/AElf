@@ -110,7 +110,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     _consensusContractAddress = address;
                 }
 
-                if (name == ParliamentAuthSmartContractAddressNameProvider.Name)
+                if (name == ParliamentSmartContractAddressNameProvider.Name)
                 {
                     _parliamentContractAddress = address;
                 }
