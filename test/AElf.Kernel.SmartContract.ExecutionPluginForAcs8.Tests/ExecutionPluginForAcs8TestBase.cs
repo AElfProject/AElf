@@ -106,7 +106,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         internal Address TokenContractAddress { get; set; }
         internal Address TokenConverterAddress { get; set; }
         internal Address TreasuryContractAddress { get; set; }
-        internal TestContract.ContractContainer.ContractStub DefaultTester { get; set; }
+        internal TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
@@ -171,7 +171,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
                 TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
                     DefaultSenderKeyPair);
-                DefaultTester =
+                TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }
         }

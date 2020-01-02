@@ -7,7 +7,7 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class UncheckedMathValidator : IValidator<MethodDefinition>
     {
-        private readonly HashSet<OpCode> unsafeOpCodes = new HashSet<OpCode>
+        private readonly HashSet<OpCode> _uncheckedOpCodes = new HashSet<OpCode>
         {
             OpCodes.Add,
             OpCodes.Sub,
@@ -23,11 +23,11 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             
             foreach (var instruction in method.Body.Instructions)
             {
-                if (!unsafeOpCodes.Contains(instruction.OpCode))
+                if (!_uncheckedOpCodes.Contains(instruction.OpCode))
                     continue;
                 
                 errors.Add(
-                    new UnsafeMathValidationResult( $"{method.Name} contains unsafe OpCode " + instruction.OpCode)
+                    new UncheckedMathValidationResult( $"{method.Name} contains unsafe OpCode " + instruction.OpCode)
                             .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
             }
             
@@ -35,9 +35,9 @@ namespace AElf.CSharp.CodeOps.Validators.Method
         }
     }
     
-    public class UnsafeMathValidationResult : ValidationResult
+    public class UncheckedMathValidationResult : ValidationResult
     {
-        public UnsafeMathValidationResult(string message) : base(message)
+        public UncheckedMathValidationResult(string message) : base(message)
         {
         }
     }

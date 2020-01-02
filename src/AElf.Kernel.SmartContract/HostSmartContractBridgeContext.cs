@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -26,16 +27,18 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
-
+        private readonly ContractOptions _contractOptions;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
-            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options)
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options, 
+            IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
-    
+            _contractOptions = contractOptions.Value;
+
             Variables = new ContextVariableDictionary(options.Value.ContextVariables);
 
             var self = this;

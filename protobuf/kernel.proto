@@ -64,6 +64,8 @@ message TransactionTrace {
     string readable_return_value = 14;
     TransactionFee transaction_fee = 15;
     ConsumedResourceTokens consumed_resource_tokens = 16;
+    int32 execution_call_count = 17;
+    int32 execution_branch_count = 18;
 }
 
 message ExecutionReturnSet {

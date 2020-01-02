@@ -1,30 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.CSharp.CodeOps;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
     public class CSharpSmartContractProxy
     {
-        private static MethodInfo GetMethedInfo(Type type, string name)
+        private static MethodInfo GetMethodInfo(Type type, string name)
         {
             return type.GetMethod(name,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
         }
 
         private object _instance;
+        private Type _counterType;
 
         private Dictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
 
-        public CSharpSmartContractProxy(object instance)
+        public CSharpSmartContractProxy(object instance, Type counterType)
         {
             _instance = instance;
+            _counterType = counterType;
             InitializeMethodInfos(_instance.GetType());
         }
 
@@ -32,10 +32,14 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(GetChanges),nameof(Cleanup),nameof(InternalInitialize)
-            }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
-        }
+                nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize)
+            }.ToDictionary(x => x, x => GetMethodInfo(instanceType, x));
 
+            // Add proxy method
+            _methodInfos.Add(nameof(ExecutionObserverProxy.SetObserver), 
+                _counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver), 
+                    new []{ typeof(IExecutionObserver)}));
+        }
 
         public void InternalInitialize(ISmartContractBridgeContext context)
         {
@@ -51,6 +55,14 @@ namespace AElf.Runtime.CSharp
         internal void Cleanup()
         {
             _methodInfos[nameof(Cleanup)].Invoke(_instance, new object[0]);
+            _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
+                ?.Invoke(null, new object[] { null });
+        }
+
+        internal void SetExecutionObserver(IExecutionObserver observer)
+        {
+            _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
+                ?.Invoke(null, new object[] { observer });
         }
     }
 }

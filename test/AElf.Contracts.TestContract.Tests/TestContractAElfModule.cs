@@ -14,7 +14,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
 
@@ -26,7 +26,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateTxCostStrategy, TestCalculateTxStrategy>();
             context.Services.AddSingleton<ICalculateReadCostStrategy, TestCalculateReadStrategy>();
