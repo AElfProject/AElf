@@ -77,7 +77,7 @@ After a successfully vote, a **Voted** event log can be found in the transaction
 
 ## **Withdraw**
 
-if the voter regrets to vote somebody, he/she can withdraw the token that he/she has voted.
+If the voter regrets to vote somebody, he/she can withdraw the token that he/she has voted.
 
 ```Protobuf
 rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {}
@@ -216,7 +216,7 @@ message VotingItem {
 **GetVotingItemInput**:
 - **voting item id**: voting activity id.
 
-**VotingItem**:
+**returns(VotingItem)**:
 - **voting item id**: voting activity id.
 - **accepted currency**: vote token.
 - **is lock token**: is token locked after voting.
@@ -255,7 +255,7 @@ message VotingResult {
 - **voting item id**: voting activity id.
 - **snapshot number**: round number.
 
-**VotingResult**:
+**returns(VotingResult)**:
 - **voting item id**: voting activity id.
 - **results**: candidate => votes.
 - **snapshot number**: round number.
@@ -290,7 +290,7 @@ message VotingResult {
 **Hash**:
 - **value**: voting activity id.
 
-**VotingResult**:
+**returns(VotingResult)**:
 - **voting item id**: voting activity id.
 - **results**: candidate => votes.
 - **snapshot number**: round number.
@@ -326,7 +326,7 @@ message VotingRecord {
 **Hash**:
 - **value**: transaction id.
 
-**VotingRecord**:
+**returns(VotingRecord)**:
 - **voting item id**: voting activity id.
 - **voter**: voter's address.
 - **snapshot number**: round number.
@@ -376,7 +376,7 @@ message VotingRecord {
 **Hash**:
 - **value**: transaction id.
 
-**VotingRecords**:
+**returns(VotingRecords)**:
 - **records**: records.
 
 **VotingRecord**:
@@ -414,7 +414,7 @@ message VotedIds {
 **Address**:
 - **value**: voter address.
 
-**VotedItems**:
+**returns(VotedItems)**:
 - **voted item vote ids**: voting activity id => vote information.
 
 **VotedIds**:
@@ -443,7 +443,7 @@ message VotedIds {
 - **voter**: voter address.
 - **voting item id**: voting activity id.
 
-**VotedIds**:
+**returns(VotedIds)**:
 - **active votes**: valid transaction id.
 - **withdrawn votes**: withdrawn transaction id.
 

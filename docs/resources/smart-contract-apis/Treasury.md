@@ -68,7 +68,7 @@ message SInt64Value
 }
 ```
 
-**SInt64Value**:
+**returns(SInt64Value)**:
 - **value**: amount of native token.
 
 ###GetWelfareRewardAmountSample
@@ -90,7 +90,7 @@ message GetWelfareRewardAmountSampleOutput {
 **GetWelfareRewardAmountSampleInput**:
 - **value**: a array of locking time.
 
-**GetWelfareRewardAmountSampleOutput**:
+**returns(GetWelfareRewardAmountSampleOutput)**:
 - **value**: a array of welfare.
 
 ###GetTreasurySchemeId
@@ -106,5 +106,5 @@ message Hash
 }
 ```
 
-**Hash**:
+**returns(Hash)**:
 - **value**: scheme id.
