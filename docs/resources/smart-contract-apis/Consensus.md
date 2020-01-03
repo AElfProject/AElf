@@ -18,7 +18,7 @@ message MinerList {
 ```
 
 **returns**:
-- **pubkeys**: miners' public key.
+- **pubkeys**: miners' public keys.
 
 ### GetCurrentMinerPubkeyList
 
@@ -33,11 +33,11 @@ message PubkeyList {
 ```
 
 **returns**:
-- **pubkeys**: miners' public key（hexadecimal string.
+- **pubkeys**: miners' public keys（hexadecimal string).
 
 ### GetCurrentMinerListWithRoundNumber
 
-Get current miner list represented by binary and the current round number.
+Get current miners list represented by binary and the current round number.
 
 ```Protobuf
 rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {}
@@ -53,13 +53,13 @@ message MinerList {
 ```
 
 **returns**:
-- **miner list**: miner list.
+- **miner list**: miners list.
 - **round number**: current round number.
 
 **MinerList**:
-- **pubkeys**: miners' public key.
+- **pubkeys**: miners' public keys.
 
-### GetCurrentMinerListWithRoundNumber
+### GetRoundInformation
 
 Get round information.
 
@@ -124,7 +124,7 @@ message MinerInRound {
 - **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
 - **in value**: like linked node, the previous miner's public key
 - **out value**: the post miner's public key
-- **signature*: self signature
+- **signature**: self signature
 - **expected mining time**: expected mining time 
 - **produced blocks**: produced blocks
 - **missed time slots**: missed time slots
@@ -160,7 +160,6 @@ Get current round information.
 
 ```Protobuf
  rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {}
-
 ```
 
 **returns**:
@@ -180,7 +179,7 @@ Get current round information.
 - **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
 - **in value**: like linked node, the previous miner's public key
 - **out value**: the post miner's public key
-- **signature*: self signature
+- **signature**: self signature
 - **expected mining time**: expected mining time 
 - **produced blocks**: produced blocks
 - **missed time slots**: missed time slots
@@ -200,7 +199,6 @@ Get previous round information.
 
 ```Protobuf
 rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
-
 ```
 
 **returns**:
@@ -220,7 +218,7 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 - **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
 - **in value**: like linked node, the previous miner's public key
 - **out value**: the post miner's public key
-- **signature*: self signature
+- **signature**: self signature
 - **expected mining time**: expected mining time 
 - **produced blocks**: produced blocks
 - **missed time slots**: missed time slots
@@ -279,7 +277,7 @@ message MinerList {
 ```
 
 **MinerList**:
-- **pubkeys**: public key represented by hexadecimal string of miners in the previous term.
+- **pubkeys**: public keys(represented by hexadecimal string) of miners in the previous term.
 
 ### GetMinedBlocksOfPreviousTerm
 

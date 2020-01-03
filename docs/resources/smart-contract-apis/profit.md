@@ -27,9 +27,9 @@ message SchemeCreated {
 
 **CreateSchemeInput**:
 - **manager**: the schemes manager Address, defaults to the transaction sender.
-- **profit_receiving_due_period_count** optional, defaults to 10.
-- **is_release_all_balance_every_time_by_default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
-- **delay_distribute_period_count** distribute bonus after terms.
+- **profit receiving due period_count** optional, defaults to 10.
+- **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
+- **delay distribute period count** distribute bonus after terms.
 
 **returns**:
 - **value**: the newly created scheme id.
@@ -224,10 +224,10 @@ message DistributeProfitsInput {
 ```
 
 **DistributeProfitsInput**:
-- **scheme id** scheme id.
-- **period** term， here should be the current term.
-- **amount** number.
-- **symbol** token symbol.
+- **scheme id**: scheme id.
+- **period**: term， here should be the current term.
+- **amount**: number.
+- **symbol**: token symbol.
 
 ## **Reset manager**
 
@@ -244,7 +244,7 @@ message ResetManagerInput {
 
 **ResetManagerInput**:
 - **scheme id**: scheme id.
-- **new manager**: new manager.
+- **new manager**: new manager's address.
 
 ## view methods
 
@@ -267,7 +267,7 @@ message CreatedSchemeIds {
 ```
 
 **GetManagingSchemeIdsInput**:
-- **manager**: manager address.
+- **manager**: manager's address.
 
 **returns**:
 - **scheme ids**: list of scheme ids.
@@ -284,8 +284,8 @@ rpc GetScheme (aelf.Hash) returns (Scheme) {}
 - **value**: scheme id.
 
 **SchemeBeneficiaryShare**;
-- **scheme id** sub scheme's id
-- **shares** sub scheme shares
+- **scheme id**: sub scheme's id.
+- **shares**: sub scheme shares.
 
 ### GetSchemeAddress
 
@@ -368,11 +368,11 @@ message ProfitDetail {
 - **details** profit details.
 
 **ProfitDetail**:
-- **start period** start period.
-- **end period** end period.
-- **shares** shares.
-- **last profit period** last period the scheme distribute.
-- **is weight removed** is expired.
+- **start period**: start period.
+- **end period**: end period.
+- **shares**: shares indicating the weight used to calculate the profit in the future.
+- **last profit period**: last period the scheme distribute.
+- **is weight removed**: is it expired.
 
 ### GetProfitAmount
 
