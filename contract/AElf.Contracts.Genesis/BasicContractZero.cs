@@ -101,14 +101,16 @@ namespace AElf.Contracts.Genesis
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code, bool isSystemContract, Address author)
         {
             if (name != null)
-                Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+                Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
 
+            var codeHash = Hash.FromRawBytes(code);
+            
+            Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
+            
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
-
-            var codeHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
