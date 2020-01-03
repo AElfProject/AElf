@@ -4,15 +4,13 @@ using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain;
 using AElf.OS.Node.Application;
-using AElf.Types;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Blockchains.MainChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForCrossChain(
-            Address zeroContractAddress)
+        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForCrossChain()
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(

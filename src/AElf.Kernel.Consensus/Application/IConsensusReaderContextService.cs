@@ -8,7 +8,6 @@ namespace AElf.Kernel.Consensus.Application
     public interface IConsensusReaderContextService
     {
         Timestamp GetBlockTime();
-        void SetBlockTime(Timestamp blockTime);
         Task<Address> GetAccountAsync();
     }
 
@@ -26,11 +25,6 @@ namespace AElf.Kernel.Consensus.Application
         public Timestamp GetBlockTime()
         {
             return _blockTimeProvider.GetBlockTime();
-        }
-
-        public void SetBlockTime(Timestamp blockTime)
-        {
-            _blockTimeProvider.SetBlockTime(blockTime);
         }
 
         public async Task<Address> GetAccountAsync()

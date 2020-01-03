@@ -130,7 +130,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
+            var proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
                 Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
             var proposal = new ProposalInfo
             {

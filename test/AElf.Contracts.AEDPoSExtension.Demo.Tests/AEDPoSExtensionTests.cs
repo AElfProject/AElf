@@ -160,41 +160,5 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(3);
             }
         }
-
-        [Fact(Skip = "Redo this later.")]
-        public async Task<Hash> RequestRandomNumber_Test()
-        {
-            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new Empty());
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
-            {
-                transaction
-            });
-
-            var transactionTrace = TransactionTraceProvider.GetTransactionTrace(transaction.GetHash());
-
-            return Hash.Parser.ParseFrom(transactionTrace.ReturnValue);
-        }
-
-        [Fact(Skip = "Redo this later.")]
-        public async Task GetRandomNumber_WithNotEnoughParticipators_Test()
-        {
-            var hash = await RequestRandomNumber_Test();
-
-            // Can't get random number.
-            {
-                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
-                randomHash.Value.Count().ShouldBe(0);
-            }
-
-            BlockMiningService.SkipTime(4);
-
-            await BlockMiningService.MineBlockAsync(40);
-
-            // Can't get random number.
-            {
-                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
-                randomHash.Value.Count().ShouldBe(0);
-            }
-        }
     }
 }

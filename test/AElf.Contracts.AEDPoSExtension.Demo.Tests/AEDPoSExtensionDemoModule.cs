@@ -14,7 +14,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<AEDPoSExtensionDemoModule>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IBlockValidationService, BlockValidationService>();
         }

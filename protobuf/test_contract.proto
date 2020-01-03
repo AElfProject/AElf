@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "aelf/options.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Runtime.CSharp.Tests.TestContract";
@@ -33,6 +34,9 @@ service TestContract {
     rpc TestMapped1State(Complex3Input) returns (TradeMessage) {
     }
     rpc TestReadonlyState(BoolInput) returns (BoolOutput) {
+    }
+    rpc TestArrayIterateForeach(google.protobuf.Empty) returns (StringOutput) {
+        option (aelf.is_view) = true;
     }
 }
 

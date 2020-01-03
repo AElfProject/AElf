@@ -10,13 +10,12 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 {
     public class ExecutionPluginForAcs8TestBase : ContractTestBase<ExecutionPluginForAcs8TestModule>
     {
-        internal const long CpuUnitPrice = 1_00000000;
-        internal const long NetUnitPrice = 1_00000000;
         internal const long StoUnitPrice = 1_00000000;
 
         //init connectors
@@ -29,23 +28,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             IsVirtualBalanceEnabled = true
         };
 
-        internal Connector CpuConnector = new Connector
+        internal Connector ReadConnector = new Connector
         {
-            Symbol = "CPU",
+            Symbol = "READ",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTCPU"
+            RelatedSymbol = "NTREAD"
         };
-        internal Connector NativeToCpuConnector = new Connector
+        internal Connector NativeToReadConnector = new Connector
         {
-            Symbol = "NTCPU",
+            Symbol = "NTREAD",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,
-            RelatedSymbol = "CPU"
+            RelatedSymbol = "READ"
         };
         
         internal Connector StoConnector = new Connector
@@ -84,30 +83,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             IsVirtualBalanceEnabled = true,// For testing
             RelatedSymbol = "NET"
         };
-        internal Connector RamConnector = new Connector
+        internal Connector WriteConnector = new Connector
         {
-            Symbol = "RAM",
+            Symbol = "WRITE",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTRAM"
+            RelatedSymbol = "NTWRITE"
         };
-        internal Connector NativeToRamConnector = new Connector
+        internal Connector NativeToWriteConnector = new Connector
         {
-            Symbol = "NTRAM",
+            Symbol = "NTWRITE",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "RAM"
+            RelatedSymbol = "WRITE"
         };
 
         internal Address TestContractAddress { get; set; }
         internal Address TokenContractAddress { get; set; }
         internal Address TokenConverterAddress { get; set; }
         internal Address TreasuryContractAddress { get; set; }
-        internal TestContract.ContractContainer.ContractStub DefaultTester { get; set; }
+        internal TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
@@ -172,7 +171,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
                 TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
                     DefaultSenderKeyPair);
-                DefaultTester =
+                TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }
         }
@@ -222,10 +221,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "CPU",
+                    Symbol = "READ",
                     Decimals = 2,
                     IsBurnable = true,
-                    TokenName = "cpu token",
+                    TokenName = "read token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
                     LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
@@ -235,10 +234,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = "CPU",
+                    Symbol = "READ",
                     Amount = issueAmount,
                     To = TokenConverterAddress,
-                    Memo = "Set for cpu token converter."
+                    Memo = "Set for read token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
@@ -292,14 +291,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-            //init resource token - RAM
+            //init resource token - WRITE
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     Decimals = 2,
                     IsBurnable = true,
-                    TokenName = "ram token",
+                    TokenName = "WRITE token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
                     LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
@@ -309,10 +308,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     Amount = issueAmount,
                     To = TokenConverterAddress,
-                    Memo = "Set for ram token converter."
+                    Memo = "Set for WRITE token converter."
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
@@ -329,8 +328,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 FeeReceiverAddress = FeeReceiverAddress,
                 Connectors =
                 {
-                    ElfConnector, CpuConnector, StoConnector, NetConnector, NativeToCpuConnector, NativeToStoConnector,
-                    NativeToNetConnector, RamConnector, NativeToRamConnector
+                    ElfConnector, ReadConnector, StoConnector, NetConnector, NativeToReadConnector, NativeToStoConnector,
+                    NativeToNetConnector, WriteConnector, NativeToWriteConnector
                 }
             };
 

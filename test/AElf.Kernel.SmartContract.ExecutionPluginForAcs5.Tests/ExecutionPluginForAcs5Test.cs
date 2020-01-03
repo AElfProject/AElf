@@ -99,17 +99,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = DefaultSender,
-                Symbol = "RAM"
+                Symbol = "WRITE"
             })).Balance;
             
             //enough ELF
             {
                 var transferResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
                     Amount = ramBalance,
-                    Memo = "transfer ram to other user"
+                    Memo = "transfer write to other user"
                 });
                 transferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
@@ -122,24 +122,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         public async Task CheckMultipleThreshold_Enough_RAM()
         {
             const long elfFeeAmount = 10;
-            const long ramFeeAmount = 20;
+            const long writeFeeAmount = 20;
 
             await InitializeContracts();
-            await SetMultipleThresholdFee(elfFeeAmount, ramFeeAmount);
+            await SetMultipleThresholdFee(elfFeeAmount, writeFeeAmount);
             
-            var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var writeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = DefaultSender,
-                Symbol = "RAM"
+                Symbol = "WRITE"
             })).Balance;
             
-            //enough RAM
+            //enough WRITE
             {
                 var transferResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
                 {
                     Symbol = "ELF",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
-                    Amount = ramBalance,
+                    Amount = writeBalance,
                     Memo = "transfer elf to other user"
                 });
                 transferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -163,13 +163,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 Owner = DefaultSender,
                 Symbol = "ELF"
             })).Balance;
-            var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var writeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = DefaultSender,
-                Symbol = "RAM"
+                Symbol = "WRITE"
             })).Balance;
             
-            //both ELF and RAM are not enough
+            //both ELF and WRITE are not enough
             {
                 var transferElfResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
                 {
@@ -180,14 +180,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 });
                 transferElfResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
-                var transferRamResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+                var transferWriteResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
                 {
-                    Symbol = "RAM",
+                    Symbol = "WRITE",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
-                    Amount = ramBalance - (ramFeeAmount - 50),
-                    Memo = "transfer ram to other user"
+                    Amount = writeBalance - (ramFeeAmount - 50),
+                    Memo = "transfer write to other user"
                 });
-                transferRamResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                transferWriteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 var dummy = await DefaultTester.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
@@ -213,7 +213,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             callingThreshold.SymbolToAmount["ELF"].ShouldBe(callingFee);
         }
 
-        private async Task SetMultipleThresholdFee(long elfFeeAmount, long ramFeeAmount)
+        private async Task SetMultipleThresholdFee(long elfFeeAmount, long writeFeeAmount)
         {
             var setThresholdResult = await DefaultTester.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
             {
@@ -221,7 +221,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 SymbolToAmount =
                 {
                     { "ELF", elfFeeAmount },
-                    { "RAM", ramFeeAmount }
+                    { "WRITE", writeFeeAmount }
                 },
                 ThresholdCheckType = ThresholdCheckType.Balance
             });
@@ -232,7 +232,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 Value = nameof(DefaultTester.DummyMethod)
             });
             callingThreshold.SymbolToAmount["ELF"].ShouldBe(elfFeeAmount);
-            callingThreshold.SymbolToAmount["RAM"].ShouldBe(ramFeeAmount); 
+            callingThreshold.SymbolToAmount["WRITE"].ShouldBe(writeFeeAmount); 
         }
     }
 }
