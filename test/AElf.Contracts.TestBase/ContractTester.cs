@@ -741,7 +741,8 @@ namespace AElf.Contracts.TestBase
                                     {
                                         {"CPU", SmartContractTestConstants.ResourceSupply},
                                         {"RAM", SmartContractTestConstants.ResourceSupply},
-                                        {"DISK", SmartContractTestConstants.ResourceSupply}
+                                        {"DISK", SmartContractTestConstants.ResourceSupply},
+                                        {"NET", SmartContractTestConstants.ResourceSupply},
                                     }
                                 }.ToByteString()
                             }
