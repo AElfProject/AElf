@@ -4,7 +4,7 @@ The Election contract is essentially used for voting for Block Producers.
 
 ## **an Election for choosing Block Producers**:
 
-To be a Block Producer, user should register to be a candidate first. Besides, as a candidate, the user should pay 100000 ELF as a deposit. If the data center is not full, the user will be added in automatically and get one weight(10 weight limited)for sharing bonus in the future.
+To be a Block Producer, user should register to be a candidate first. Besides, as a candidate, the user should pay some ELF as a deposit. If the data center is not full, the user will be added in automatically and get one weight(10 weight limited)for sharing bonus in the future.
 
 ```Protobuf
 rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -40,7 +40,6 @@ message VoteMinerInput {
 
 Before the end time, you are able to change your vote target to other candidates.
 
-Q: public key, address
 ```Protobuf
 rpc ChangeVotingOption (ChangeVotingOptionInput) returns google.protobuf.Empty){}
 
@@ -589,7 +588,7 @@ message SInt64Value
 
 ### GetPageableCandidateInformation
 
-Get some candidates' information according to the page's index and records length
+Get some candidates' information according to the page's index and records length.
 
 ```Protobuf
 rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {}

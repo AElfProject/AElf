@@ -2,7 +2,7 @@
 
 The Treasury contract is essentially used for distributing bonus' to voters and candidates during the election process.
 
-## ** description**:
+## **Donate**
 
 Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, they will be first converted to the native token.
 
@@ -60,7 +60,7 @@ For reference, you can find here the available view methods.
 Get the Treasury's total balance of the native token from the Treasury.
 
 ```Protobuf
-rpc GetCurrentTreasuryBalance (google.protobuf.Empty)returns(aelf.SInt64Value){}
+rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value){}
 
 message SInt64Value
 {
@@ -68,10 +68,10 @@ message SInt64Value
 }
 ```
 
-**returns(SInt64Value)**:
+**returns**:
 - **value**: amount of native token.
 
-###GetWelfareRewardAmountSample
+### GetWelfareRewardAmountSample
 
 Test the welfare bonus gotten base on 10000 Vote Token. The input is a array of locking time, and the output is the corresponding welfare. 
 
@@ -90,10 +90,10 @@ message GetWelfareRewardAmountSampleOutput {
 **GetWelfareRewardAmountSampleInput**:
 - **value**: a array of locking time.
 
-**returns(GetWelfareRewardAmountSampleOutput)**:
+**returns**:
 - **value**: a array of welfare.
 
-###GetTreasurySchemeId
+### GetTreasurySchemeId
 
 Get treasury scheme id. If it does not exist, it will return hash.empty.
 
@@ -106,5 +106,5 @@ message Hash
 }
 ```
 
-**returns(Hash)**:
+**returns**:
 - **value**: scheme id.
