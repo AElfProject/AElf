@@ -149,7 +149,7 @@ namespace AElf.Contract.TestContract
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
         internal static readonly List<string> ResourceTokenSymbols = new List<string> {"WRITE", "READ", "TRAFFIC", "STORAGE"};
-        internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTWRITE", "NTREAD", "NTNET", "NTSTO"};
+        internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTWRITE", "NTREAD", "NTTRAFFIC", "NTSTORAGE"};
 
         protected async Task DeployTestContracts()
         {

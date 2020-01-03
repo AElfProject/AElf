@@ -309,14 +309,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await AdvanceResourceToken();
 
-            var (read, write, net, txResult1) =
+            var (read, write, traffic, txResult1) =
                 await GetTransactionResourcesCost(TestContractStub.CpuConsumingMethod.SendAsync);
-            var (read1, write1, net1, txResult2) =
+            var (read1, write1, traffic1, txResult2) =
                 await GetTransactionResourcesCost(TestContractStub.FewConsumingMethod.SendAsync);
 
             read.ShouldBeGreaterThan(read1);
             write.ShouldBeGreaterThan(write1);
-            net.ShouldBe(net1);
+            traffic.ShouldBe(traffic1);
 
             txResult1.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);
             txResult2.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);

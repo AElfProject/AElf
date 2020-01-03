@@ -54,11 +54,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTSTO"
+            RelatedSymbol = "NTSTORAGE"
         };
         internal Connector NativeToStoConnector = new Connector
         {
-            Symbol = "NTSTO",
+            Symbol = "NTSTORAGE",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
@@ -72,11 +72,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTNET"
+            RelatedSymbol = "NTTRAFFIC"
         };
         internal Connector NativeToNetConnector = new Connector
         {
-            Symbol = "NTNET",
+            Symbol = "NTTRAFFIC",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,

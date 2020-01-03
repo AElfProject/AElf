@@ -60,7 +60,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental);
                 var netBalance = await GetCreatorBalanceOf("NET");
-                diskBalance.ShouldBe(ResourceSupply - NetAmount * Rental);
+                netBalance.ShouldBe(ResourceSupply - NetAmount * Rental);
             }
         }
 
@@ -127,7 +127,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental * 2);
                 var netBalance = await GetCreatorBalanceOf("NET");
-                diskBalance.ShouldBe(ResourceSupply - NetAmount * Rental * 2);
+                netBalance.ShouldBe(ResourceSupply - NetAmount * Rental * 2);
             }
         }
 
