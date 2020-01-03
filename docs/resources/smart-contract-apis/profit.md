@@ -242,6 +242,7 @@ message ResetManagerInput {
 }
 ```
 
+**ResetManagerInput**:
 - **scheme id**: scheme id.
 - **new manager**: new manager.
 
@@ -356,19 +357,19 @@ message ProfitDetail {
 }
 ```
 
-GetProfitDetailsInput
-- **scheme id** scheme id
-- **beneficiary**  beneficiary
+**GetProfitDetailsInput**:
+- **scheme id** scheme id.
+- **beneficiary**  beneficiary.
 
-ProfitDetails
+**ProfitDetails**:
 - **details** details
 
-ProfitDetail
-- **start period** start period
-- **end period** end period
-- **shares** shares
-- **last profit period** last period the scheme distribute
-- **is weight removed** is expired
+**ProfitDetail**:
+- **start period** start period.
+- **end period** end period.
+- **shares** shares.
+- **last profit period** last period the scheme distribute.
+- **is weight removed** is expired.
 
 ### GetProfitAmount
 

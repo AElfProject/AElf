@@ -10,12 +10,15 @@ To be a Block Producer, user should register to be a candidate first. Besides, a
 rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 ```
 
+## **QuitElection**
 
 Although you have been a candidate, you are able to quit the election given that you are not a miner. If you quit successfully, you can get your deposite back， and you will lose your weight to get bonus in the future.
 
 ```Protobuf
 rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 ```
+
+## **Vote**
 
 Vote a candidate to be elected. The token you vote will be locked till the end time. According to the number of token you voted and its lock time, you can get corresponding weight for sharing the bonus in the future.
 ```Protobuf
@@ -28,12 +31,15 @@ message VoteMinerInput {
 }
 ```
 
-- **candidate pubkey**   candidate public key
-- **amount**   amount token to vote
-- **end timestamp**  before which, your vote works.
+**VoteMinerInput**:
+- **candidate pubkey**: candidate public key
+- **amount**: amount token to vote
+- **end timestamp**: before which, your vote works.
 
+## **ChangeVotingOption**
 
 Before the end time, you are able to change your vote target to other candidates.
+
 Q: public key, address
 ```Protobuf
 rpc ChangeVotingOption (ChangeVotingOptionInput) returns google.protobuf.Empty){}
@@ -44,10 +50,11 @@ message ChangeVotingOptionInput {
 }
 ```
 
-- **voting vote id** transaction id.
-- **candidate pubkey**  new candidate public key
+**ChangeVotingOptionInput**:
+- **voting vote id**: transaction id.
+- **candidate pubkey**: new candidate public key
 
-
+## **Withdraw**
 
 After the lock time, your deposit token will be unlocked, and you can withdraw them.
 
@@ -60,11 +67,15 @@ message Hash
 }
 ```
 
-- **value**  transaction id
+**Hash**:
+- **value**: transaction id
 
+## view methods
 
+For reference, you can find here the available view methods.
 
-## **an Election for choosing Block Producers (Views)**:
+### GetCandidates
+
 Get all candidates' public key.
 
 ```Protobuf
@@ -75,8 +86,10 @@ message PubkeyList {
 }
 ```
 
+**PubkeyList**:
 - **value** public key array of candidates
 
+### GetVotedCandidates
 
 Get all candidates whose number of vote is greater than 0.
 
@@ -88,11 +101,10 @@ message PubkeyList {
 }
 ```
 
+**PubkeyList**:
 - **value** public key array of candidates
 
-
-
-
+### GetCandidateInformation
 
 Get the Candidate information. If the candidate does not exist, it will return a candidate without any information to you.
 
@@ -115,19 +127,19 @@ message CandidateInformation {
 
 ```
 
-StringValue
-- **value** public key (hexadecimal string) of the candidate
+**StringValue**:
+- **value**: public key (hexadecimal string) of the candidate
 
-CandidateInformation
-- **pubkey** public key (hexadecimal string)
-- **terms** indicate which terms have the candidate participated
-- **produced blocks** the number of blocks the candidate has produced 
-- **missed time slots** the time the candidate failed to produce blocks
-- **continual appointment count** the time the candidate continue to participate in the election
-- **announcement transaction id** the transaction id that the candidate announce
-- **is current candidate** indicate whether the candidate can be elected in the current term.
+**CandidateInformation**:
+- **pubkey**: public key (represented by hexadecimal string).
+- **terms**: indicate which terms have the candidate participated.
+- **produced blocks**: the number of blocks the candidate has produced. 
+- **missed time slots**: the time the candidate failed to produce blocks.
+- **continual appointment count**: the time the candidate continue to participate in the election.
+- **announcement transaction id**: the transaction id that the candidate announce.
+- **is current candidate**: indicate whether the candidate can be elected in the current term.
 
-
+### GetVictories
 
 Get the block producers' public key in the current round.
 
@@ -139,10 +151,10 @@ message PubkeyList {
 }
 ```
 
+**PubkeyList**:
 - **value** the array of public key who has been elected as block producer
 
-
-
+### GetTermSnapshot
 
 Get election's information according to term id.
 
@@ -159,14 +171,16 @@ message TermSnapshot {
     map<string, sint64> election_result = 3;
 }
 ```
-GetTermSnapshotInput
-- **term number ** term id
 
-TermSnapshot
-- **end round number** the last term id be saved
-- **mined blocks** number of blocks produced in previous term
-- **election result** candidate => votes
+**GetTermSnapshotInput**:
+- **term number **: term id.
 
+**TermSnapshot**:
+- **end round number**: the last term id be saved.
+- **mined blocks**: number of blocks produced in previous term.
+- **election result**: candidate => votes.
+
+### GetMinersCount
 
 Count miners.
 
@@ -179,10 +193,10 @@ message SInt32Value
 }
 ```
 
-- **value** the total number of miners (block producer)
+**SInt32Value**:
+- **value**: the total number of miners (block producer).
 
-
-
+### GetElectionResult
 
 Get election result by term id.
 
@@ -200,19 +214,17 @@ message ElectionResult {
 }
 ```
 
-GetElectionResultInput
-- **term number** term id
+**GetElectionResultInput**:
+- **term number**: term id.
 
-ElectionResult
-- **term number** term id
-- **results** candidate => votes
-- **is active** indicates that if the term number you input is the current term
+**ElectionResult**:
+- **term number**: term id.
+- **results**: candidate => votes.
+- **is active**: indicates that if the term number you input is the current term.
 
+### GetElectorVote
 
-
-
-
-Get voter info.
+Get voter's information.
 
 ```Protobuf
 rpc GetElectorVote (google.protobuf.StringValue) returns (ElectorVote) {}
@@ -231,19 +243,20 @@ message ElectorVote {
     bytes pubkey = 7;
 }
 ```
-StringValue
-- **value** the public key(hexadecimal string) of voter
 
-ElectorVote
-- **active voting record ids** transaction ids, in which transactions you vote
-- **withdrawn voting record ids** transaction ids
-- **active voted votes amount**  the number of token you vote and is valid(in case of withdraw)
-- **all voted votes amount**  the number of token you have voted
-- **active voting records** no record in this api
-- **withdrawn votes records** no record in this api
-- **pubkey** voter public key (byte string)
+**StringValue**:
+- **value**: the public key(hexadecimal string) of voter.
 
+**ElectorVote**:
+- **active voting record ids**: transaction ids, in which transactions you voted.
+- **withdrawn voting record ids**: transaction ids.
+- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **all voted votes amount**: the number of token you have voted.
+- **active voting records**: no record in this api.
+- **withdrawn votes records**: no record in this api.
+- **pubkey**: voter public key (byte string).
 
+### GetElectorVoteWithRecords
 
 Get voter's information with transactions' excluding withdrawn concrete information.
 
@@ -280,35 +293,33 @@ message ElectionVotingRecord {
 }
 ```
 
-StringValue
-- **value** the public key(hexadecimal string) of voter
+**StringValue**:
+- **value**: the public key(hexadecimal string) of voter.
 
-ElectorVote
-- **active voting record ids** transaction ids, in which transactions you vote
-- **withdrawn voting record ids** transaction ids
-- **active voted votes amount**  the number of token you vote and is valid(in case of withdraw)
-- **all voted votes amount**  the number of token you have voted
-- **active voting records** records of the vote transaction with detail information
-- **withdrawn votes records** no record in this api
-- **pubkey** voter public key (byte string)
+**ElectorVote**:
+- **active voting record ids**: transaction ids, in which transactions you vote.
+- **withdrawn voting record ids**: transaction ids.
+- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **all voted votes amount**: the number of token you have voted.
+- **active voting records**: records of the vote transaction with detail information.
+- **withdrawn votes records**: no record in this api.
+- **pubkey**: voter public key (byte string).
 
+**ElectionVotingRecord**:
+- **voter**: voter address.
+- **candidate**: public key.
+- **amount**: vote amount.
+- **term number**: snapshot number.
+- **vote id**: transaction id.
+- **lock time**: time left to unlock token.
+- **unlock timestamp**: unlock date.
+- **withdraw timestamp**: withdraw date.
+- **vote timestamp**: vote date.
+- **is withdrawn**: has withdrawn.
+- **weight**: vote weight for sharing bonus. 
+- **is change target**: whether vote others.
 
-ElectionVotingRecord
-- **voter** voter address
-- **candidate** public key 
-- **amount** vote amount
-- **term number**  snapshot number
-- **vote id** transaction id
-- **lock time** time left to unlock token
-- **unlock timestamp**  unlock date
-- **withdraw timestamp** withdraw date
-- **vote timestamp** vote date
-- **is withdrawn** has withdrawn at least one time
-- **weight**  vote weight for sharing bonus 
-- **is change target** whether vote others
-
-
-
+### GetElectorVoteWithAllRecords
 
 Get voter information with all transactions' including withdrawn concrete information
 
@@ -345,33 +356,34 @@ message ElectionVotingRecord {
     bool is_change_target = 15;
 }
 ```
-StringValue
-- **value** the public key(hexadecimal string) of voter
 
-ElectorVote
-- **active voting record ids** transaction ids, in which transactions you vote
-- **withdrawn voting record ids** transaction ids
-- **active voted votes amount**  the number of token you vote and is valid(in case of withdraw)
-- **all voted votes amount**  the number of token you have voted
-- **active voting records** records of transactions that are active
-- **withdrawn votes records** records of transactions in which withdraw is true 
-- **pubkey** voter public key (byte string)
+**StringValue**:
+- **value**: the public key(hexadecimal string) of voter.
 
-ElectionVotingRecord
-- **voter** voter address
-- **candidate** public key 
-- **amount** vote amount
-- **term number**  snapshot number
-- **vote id** transaction id
-- **lock time** time left to unlock token
-- **unlock timestamp**  unlock date
-- **withdraw timestamp** withdraw date
-- **vote timestamp** vote date
-- **is withdrawn** has withdrawn at least one time
-- **weight**  vote weight for sharing bonus 
-- **is change target** whether vote others
+**ElectorVote**:
+- **active voting record ids**: transaction ids, in which transactions you vote.
+- **withdrawn voting record ids**: transaction ids.
+- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **all voted votes amount**: the number of token you have voted.
+- **active voting records**: records of transactions that are active.
+- **withdrawn votes records**: records of transactions in which withdraw is true.
+- **pubkey**: voter public key (byte string).
 
+**ElectorVote**:
+- **voter**: voter address.
+- **candidate**: public key. 
+- **amount**: vote amount.
+- **term number**:  snapshot number.
+- **vote id**: transaction id.
+- **lock time**: time left to unlock token.
+- **unlock timestamp**: unlock date.
+- **withdraw timestamp**: withdraw date.
+- **vote timestamp**: vote date.
+- **is withdrawn**: has withdrawn.
+- **weight**: vote weight for sharing bonus. 
+- **is change target**: whether vote others.
 
+### GetCandidateVote
 
 Get the statistic information about vote transactions of a candidate.
 
@@ -392,19 +404,22 @@ message CandidateVote {
     bytes pubkey = 7;
 }
 ```
-StringValue
-- **value** public key of the candidate.
 
-CandidateVote
-- **obtained active voting record ids** vote transaction ids
-- **obtained withdrawn voting record ids** withdraw transaction ids
-- **obtained active voted votes amount** the valid number of vote token in current
-- **all obtained voted votes amount** total number of vote token the candidate has got
-- **obtained active voting records** no records in this api
-- **obtained withdrawn votes records** no records in this api
+**StringValue**:
+- **value**: public key of the candidate.
 
+**CandidateVote**:
+- **obtained active voting record ids**: vote transaction ids.
+- **obtained withdrawn voting record ids**: withdraw transaction ids.
+- **obtained active voted votes amount**: the valid number of vote token in current.
+- **all obtained voted votes amount**: total number of vote token the candidate has got.
+- **obtained active voting records**: no records in this api.
+- **obtained withdrawn votes records**: no records in this api.
+
+### GetCandidateVoteWithRecords
 
 Get the statistic information about vote transactions of a candidate with the detail information of the transactions that is not withdrawn.
+
 ```Protobuf
 rpc GetCandidateVoteWithRecords (google.protobuf.StringValue) returns (CandidateVote) {}
 
@@ -437,34 +452,32 @@ message ElectionVotingRecord {
 }
 ```
 
-StringValue
-- **value** public key of the candidate.
+**StringValue**:
+- **value**: public key of the candidate.
 
-CandidateVote
-- **obtained active voting record ids** vote transaction ids
-- **obtained withdrawn voting record ids** withdraw transaction ids
-- **obtained active voted votes amount** the valid number of vote token in current
-- **all obtained voted votes amount** total number of vote token the candidate has got
-- **obtained active voting records** the records of the transaction without withdrawing
-- **obtained withdrawn votes records** no records in this api
+**CandidateVote**:
+- **obtained active voting record ids**: vote transaction ids.
+- **obtained withdrawn voting record ids**: withdraw transaction ids.
+- **obtained active voted votes amount**: the valid number of vote token in current.
+- **all obtained voted votes amount**: total number of vote token the candidate has got.
+- **obtained active voting records**: the records of the transaction without withdrawing.
+- **obtained withdrawn votes records**: no records in this api.
 
-ElectionVotingRecord
-- **voter** voter address
-- **candidate** public key 
-- **amount** vote amount
-- **term number**  snapshot number
-- **vote id** transaction id
-- **lock time** time left to unlock token
-- **unlock timestamp**  unlock date
-- **withdraw timestamp** withdraw date
-- **vote timestamp** vote date
-- **is withdrawn** has withdrawn at least one time
-- **weight**  vote weight for sharing bonus 
-- **is change target** whether vote others
+**ElectionVotingRecord**:
+- **voter** voter address.
+- **candidate** public key. 
+- **amount** vote amount.
+- **term number**  snapshot number.
+- **vote id** transaction id.
+- **lock time** time left to unlock token.
+- **unlock timestamp**  unlock date.
+- **withdraw timestamp** withdraw date.
+- **vote timestamp** vote date.
+- **is withdrawn** indicates whether the vote has been withdrawn.
+- **weight**  vote weight for sharing bonus. 
+- **is change target** whether vote others.
 
-
-
-
+### GetCandidateVoteWithAllRecords
 
 Get the statistic information about vote transactions of a candidate with the detail information of all the transactions.
 
@@ -501,34 +514,32 @@ message ElectionVotingRecord {
 }
 ```
 
-StringValue
-- **value** public key of the candidate.
+**StringValue**:
+- **value**: public key of the candidate.
 
-CandidateVote
-- **obtained active voting record ids** vote transaction ids
-- **obtained withdrawn voting record ids** withdraw transaction ids
-- **obtained active voted votes amount** the valid number of vote token in current
-- **all obtained voted votes amount** total number of vote token the candidate has got
-- **obtained active voting records** the records of the transaction without withdrawing
-- **obtained withdrawn votes records** the records of the transaction withdrawing the vote token
+**CandidateVote**:
+- **obtained active voting record ids**: vote transaction ids.
+- **obtained withdrawn voting record ids**: withdraw transaction ids.
+- **obtained active voted votes amount**: the valid number of vote token in current.
+- **all obtained voted votes amount**: total number of vote token the candidate has got.
+- **obtained active voting records**: the records of the transaction without withdrawing.
+- **obtained withdrawn votes records**: the records of the transaction withdrawing the vote token.
 
-ElectionVotingRecord
-- **voter** voter address
-- **candidate** public key 
-- **amount** vote amount
-- **term number**  snapshot number
-- **vote id** transaction id
-- **lock time** time left to unlock token
-- **unlock timestamp**  unlock date
-- **withdraw timestamp** withdraw date
-- **vote timestamp** vote date
-- **is withdrawn** has withdrawn at least one time
-- **weight**  vote weight for sharing bonus 
-- **is change target** whether vote others
+**ElectionVotingRecord**:
+- **voter**: voter address.
+- **candidate**: public key. 
+- **amount**: vote amount.
+- **term number**: snapshot number.
+- **vote id**: transaction id.
+- **lock time**: time left to unlock token.
+- **unlock timestamp**: unlock date.
+- **withdraw timestamp**: withdraw date.
+- **vote timestamp**: vote date.
+- **is withdrawn**: indicates whether the vote has been withdrawn.
+- **weight**: vote weight for sharing bonus.
+- **is change target**: whether vote others.
 
-
-
-
+### GetVotersCount
 
 Get the total number of voters.
 
@@ -541,9 +552,10 @@ message SInt64Value
 }
 ```
 
-- **value** number of voters
+**SInt64Value**:
+- **value**: number of voters.
 
-
+### GetVotesAmount
 
 Get the total number of vote token (not count that has been withdrawn).
 
@@ -556,14 +568,15 @@ message SInt64Value
 }
 ```
 
-- **value** number of vote token
+**SInt64Value**:
+- **value**: number of vote token.
 
+### GetCurrentMiningReward
 
-
-Get current block reward (produced block Number multiplies unit reward)
+Get current block reward (produced block Number multiplies unit reward).
 
 ```Protobuf
- rpc GetCurrentMiningReward (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetCurrentMiningReward (google.protobuf.Empty) returns (aelf.SInt64Value) {}
 
 message SInt64Value
 {
@@ -571,27 +584,10 @@ message SInt64Value
 }
 ```
 
-- **value** number of ELF that rewards miner for producing blocks
+**SInt64Value**:
+- **value**: number of ELF that rewards miner for producing blocks.
 
-
-
-GetWelfareRewardAmountSample  
-Q: not be used now
-
-```Protobuf
-rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {}
-
-message GetWelfareRewardAmountSampleInput {
-    repeated sint64 value = 1;
-}
-
-message GetWelfareRewardAmountSampleOutput {
-    repeated sint64 value = 1;
-}
-```
-- **value** hash id of all candidate.
-
-
+### GetPageableCandidateInformation
 
 Get some candidates' information according to the page's index and records length
 
@@ -622,27 +618,28 @@ message CandidateInformation {
     bool is_current_candidate = 7;
 }
 ```
-PageInformation
-- **start** start index
-- **length** number of records
 
-GetPageableCandidateInformationOutput
-- **CandidateDetail**  candidate detail information
+**PageInformation**:
+- **start**: start index.
+- **length**: number of records.
 
-CandidateDetail
-- **candidate information** candidate information
-- **obtained votes amount** obtained votes amount
+**GetPageableCandidateInformationOutput**:
+- **CandidateDetail**: candidate detail information.
 
-CandidateInformation
-- **pubkey** public key (hexadecimal string)
-- **terms** indicate which terms have the candidate participated
-- **produced blocks** the number of blocks the candidate has produced 
-- **missed time slots** the time the candidate failed to produce blocks
-- **continual appointment count** the time the candidate continue to participate in the election
-- **announcement transaction id** the transaction id that the candidate announce
-- **is current candidate** indicate whether the candidate can be elected in the current term.
+**CandidateDetail**:
+- **candidate information**: candidate information.
+- **obtained votes amount**: obtained votes amount.
 
+**CandidateInformation**:
+- **pubkey**: public key (hexadecimal string).
+- **terms**: indicate which terms have the candidate participated.
+- **produced blocks**: the number of blocks the candidate has produced. 
+- **missed time slots**: the time the candidate failed to produce blocks.
+- **continual appointment count**: the time the candidate continue to participate in the election.
+- **announcement transaction id**: the transaction id that the candidate announce.
+- **is current candidate**: indicate whether the candidate can be elected in the current term.
 
+### GetMinerElectionVotingItemId
 
 Get the voting activity id.
 
@@ -655,11 +652,13 @@ message Hash
 }
 ```
 
-- **value** voting item id
+**Hash**:
+- **value**: voting item id.
 
-
+### GetDataCenterRankingList
 
 Get data center ranking list.
+
 ```Protobuf
 rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {}
 
@@ -669,6 +668,7 @@ message DataCenterRankingList {
 }
 ```
 
-- **data centers** the top n * 5 candidates with concrete vote amount
-- **minimum votes** not used
+**DataCenterRankingList**:
+- **data centers**: the top n * 5 candidates with voted amount.
+- **minimum votes**: not be used.
 
