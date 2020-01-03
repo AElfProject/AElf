@@ -311,6 +311,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps.Tests", "test\AElf.CSharp.CodeOps.Tests\AElf.CSharp.CodeOps.Tests.csproj", "{8E054D47-BF33-4335-A7D5-084942CFD675}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenHolder", "contract\AElf.Contracts.TokenHolder\AElf.Contracts.TokenHolder.csproj", "{005575E0-4C3E-4F05-9A91-82AC7583D98C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -885,6 +887,10 @@ Global
 		{8E054D47-BF33-4335-A7D5-084942CFD675}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E054D47-BF33-4335-A7D5-084942CFD675}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E054D47-BF33-4335-A7D5-084942CFD675}.Release|Any CPU.Build.0 = Release|Any CPU
+		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1042,5 +1048,6 @@ Global
 		{F5940DE2-BF7E-4295-830E-D783BEB25497} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{BD54B7A6-E0E0-4668-9D2B-30EB3F028386} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{8E054D47-BF33-4335-A7D5-084942CFD675} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{005575E0-4C3E-4F05-9A91-82AC7583D98C} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 	EndGlobalSection
 EndGlobal

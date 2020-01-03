@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TokenHolder";
+
+service TokenHolderContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.TokenHolder.TokenHolderContractState";
+    option (aelf.base) = "acs1.proto";
+    
+    // Actions
+    rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty) {
+    }
+    rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+    rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateTokenHolderProfitSchemeInput {
+    string symbol = 1;
+}
+
+message AddTokenHolderBeneficiaryInput {
+}
+
+message RemoveTokenHolderBeneficiaryInput {
+}
+
+message ContributeProfitsInput {
+    sint64 amount = 1;
+}
+
+message ClaimProfitsInput {
+}
+
+message DistributeProfitsInput {
+}
+
+message RegisterForProfitsInput {
+}
+
+message WithdrawInput {
+}
+
+message TokenHolderProfitScheme {
+    string symbol = 1;
+    aelf.Hash scheme_id = 2;
+}

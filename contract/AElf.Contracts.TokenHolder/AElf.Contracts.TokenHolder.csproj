@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.TokenHolder</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\reference\basic_contract_zero.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\token_holder_contract.proto">
+            <Link>Protobuf\Proto\token_holder_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="obj\Debug\netstandard2.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Protobuf\Generated\Acs5.g.cs" />
+      <Compile Remove="Protobuf\Generated\Acs3.g.cs" />
+      <Compile Remove="Protobuf\Generated\Acs3.c.cs" />
+      <Compile Remove="Protobuf\Generated\Acs1.g.cs" />
+      <Compile Remove="Protobuf\Generated\Acs1.c.cs" />
+      <Compile Remove="Protobuf\Generated\Acs0.g.cs" />
+      <Compile Remove="Protobuf\Generated\Acs0.c.cs" />
+    </ItemGroup>
+</Project>
