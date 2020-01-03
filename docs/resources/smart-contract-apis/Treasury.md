@@ -1,10 +1,10 @@
 # Treasury Contract
 
-The Treasury contract is essentially used for distributing bonus to voters and candidates in the election.
+The Treasury contract is essentially used for distributing bonus' to voters and candidates during the election process.
 
 ## ** description**:
 
-Donate token from caller to treasury virtual address. If the token is not native token in the current chain, it will be transferred to the native token firstly.
+Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, they will be first converted to the native token.
 
 ```Protobuf
 rpc Donate (DonateInput) returns (google.protobuf.Empty) {}
@@ -27,7 +27,7 @@ message DonationReceived {
 - **symbol**: token symbol.
 - **amount**: token amount.
 
-After a successful donate, a **DonationReceived** event log can be found in the transaction result.
+After a successful donation a **DonationReceived** event log can be found in the transaction result.
 
 **DonationReceived**:
 - **from**: from address.
@@ -38,7 +38,7 @@ After a successful donate, a **DonationReceived** event log can be found in the 
 
 ## **Donate all tokens**
 
-Donate all token(transfer to native token) from caller to treasury virtual address. (by call Donate described above).
+Donate all token (transfer to native token) from caller to the treasury (by calling **Donate** described above).
 
 ```Protobuf
 rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {}
@@ -57,7 +57,7 @@ For reference, you can find here the available view methods.
 
 ### GetCurrentTreasuryBalance
 
-Get total balance of the native token on the Treasury virtual address.
+Get the Treasury's total balance of the native token from the Treasury.
 
 ```Protobuf
 rpc GetCurrentTreasuryBalance (google.protobuf.Empty)returns(aelf.SInt64Value){}
