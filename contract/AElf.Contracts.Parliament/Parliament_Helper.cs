@@ -248,7 +248,7 @@ namespace AElf.Contracts.Parliament
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,

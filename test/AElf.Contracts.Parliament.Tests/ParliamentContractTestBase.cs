@@ -28,7 +28,7 @@ namespace AElf.Contracts.Parliament
         protected const int MiningInterval = 4000;
         protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
-        protected byte[] TokenContractCoe => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        protected byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         protected byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         protected byte[] DPoSConsensusCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
 
@@ -71,7 +71,7 @@ namespace AElf.Contracts.Parliament
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    TokenContractCoe,
+                    TokenContractCode,
                     TokenSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);

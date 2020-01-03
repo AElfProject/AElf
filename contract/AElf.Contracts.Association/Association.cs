@@ -156,7 +156,7 @@ namespace AElf.Contracts.Association
             Assert(Context.Sender == proposalInfo.Proposer, "No permission.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
-            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+            Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
 
             Context.Fire(new ProposalReleased {ProposalId = input});

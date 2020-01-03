@@ -192,7 +192,7 @@ namespace AElf.Contracts.Referendum
             Assert(Context.Sender.Equals(proposal.Proposer), "No permission.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposal, organization), "Not approved.");
-            Context.SendVirtualInline(organization.OrganizationHash, proposal.ToAddress,
+            Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposal.ToAddress,
                 proposal.ContractMethodName, proposal.Params);
 
             Context.Fire(new ProposalReleased {ProposalId = input});

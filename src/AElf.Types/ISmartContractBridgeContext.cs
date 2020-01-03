@@ -64,8 +64,11 @@ namespace AElf
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
 
+        void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+            ByteString args);
+        
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
-
+        Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress);
         Address GetZeroSmartContractAddress();
 
         Address GetZeroSmartContractAddress(int chainId);

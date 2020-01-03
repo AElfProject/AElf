@@ -95,7 +95,7 @@ namespace AElf.Contracts.Association
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
