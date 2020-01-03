@@ -111,32 +111,32 @@ message MinerInRound {
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
-- **blockchain age**: current time - block chain start time stamp.
-- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner in the current term.
-- **term number**: term number.
+- **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second. 
+- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner, who comes from the last term, in the current term.
+- **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous term.
-- **round id for validation**: round id, bpInfo.ExpectedMiningTime.Seconds.sum.
+- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
-- **order**: mining order.
-- **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
-- **in value**: like linked node, the previous miner's public key
-- **out value**: the post miner's public key
-- **signature**: self signature
-- **expected mining time**: expected mining time 
-- **produced blocks**: produced blocks
-- **missed time slots**: missed time slots
-- **pubkey**: public key string
-- **previous in value**: the public key of the miner before previous miner
-- **supposed order of next round**: evaluated order in next round
-- **final order of next round**: the true order in the next round
-- **actual mining times**: mining time.
-- **encrypted pieces**: public key (miners in previous round) =>  message encrypted by shares information and public string represented by hexadecimal string.
-- **decrypted pieces**: decrypt the encrypted pieces of miners in the previous round.
+- **order**: the order of miners producing block.
+- **is extra block producer**: The miner who is the first miner in the first round of each term.
+- **in value**: the previous miner's public key.
+- **out value**: the post miner's public key.
+- **signature**: self signature.
+- **expected mining time**: expected mining time.
+- **produced blocks**: produced blocks.
+- **missed time slots**: missed time slots.
+- **pubkey**: public key string.
+- **previous in value**: previous miner's previous miner's public key.
+- **supposed order of next round**: evaluated order in next round.
+- **final order of next round**: the real order in the next round.
+- **actual mining times**: the real mining time.
+- **encrypted pieces**: public key (miners in the current round) =>  message encrypted by shares information and public key(represented by hexadecimal string).
+- **decrypted pieces**: the message of miners in the previous round.
 - **produced tiny blocks**: produced tiny blocks.
-- **implied irreversible block height**: suggest the current context's height is the irreversible block height.
+- **implied irreversible block height**: miner records a irreversible block height.
 
 ### GetCurrentRoundNumber
 
@@ -166,32 +166,32 @@ Get current round information.
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
-- **blockchain age**: current time - block chain start time stamp.
-- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner in the current term.
-- **term number**: term number.
+- **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second. 
+- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner, who comes from the last term, in the current term.
+- **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous term.
-- **round id for validation**: round id, bpInfo.ExpectedMiningTime.Seconds.sum.
+- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
-- **order**: mining order.
-- **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
-- **in value**: like linked node, the previous miner's public key
-- **out value**: the post miner's public key
-- **signature**: self signature
-- **expected mining time**: expected mining time 
-- **produced blocks**: produced blocks
-- **missed time slots**: missed time slots
-- **pubkey**: public key string
-- **previous in value**: the public key of the miner before previous miner
-- **supposed order of next round**: evaluated order in next round
-- **final order of next round**: the true order in the next round
-- **actual mining times**: mining time.
-- **encrypted pieces**: public key (miners in previous round) =>  message encrypted by shares information and public string represented by hexadecimal string.
-- **decrypted pieces**: decrypt the encrypted pieces of miners in the previous round.
+- **order**: the order of miners producing block.
+- **is extra block producer**: The miner who is the first miner in the first round of each term.
+- **in value**: the previous miner's public key.
+- **out value**: the post miner's public key.
+- **signature**: self signature.
+- **expected mining time**: expected mining time.
+- **produced blocks**: produced blocks.
+- **missed time slots**: missed time slots.
+- **pubkey**: public key string.
+- **previous in value**: previous miner's previous miner's public key.
+- **supposed order of next round**: evaluated order in next round.
+- **final order of next round**: the real order in the next round.
+- **actual mining times**: the real mining time.
+- **encrypted pieces**: public key (miners in the current round) =>  message encrypted by shares information and public key(represented by hexadecimal string).
+- **decrypted pieces**: the message of miners in the previous round.
 - **produced tiny blocks**: produced tiny blocks.
-- **implied irreversible block height**: suggest the current context's height is the irreversible block height.
+- **implied irreversible block height**: miner records a irreversible block height.
 
 ### GetPreviousRoundInformation
 
@@ -205,32 +205,32 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
-- **blockchain age**: current time - block chain start time stamp.
-- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner in the current term.
-- **term number**: term number.
+- **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second. 
+- **extra block producer of previous round**: the public key(hexadecimal string) of the first miner, who comes from the last term, in the current term.
+- **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous term.
-- **round id for validation**: round id, bpInfo.ExpectedMiningTime.Seconds.sum.
+- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
-- **order**: mining order.
-- **is extra block producer**: The miner who is the first miner in the first round of each term will be the extra block producer.
-- **in value**: like linked node, the previous miner's public key
-- **out value**: the post miner's public key
-- **signature**: self signature
-- **expected mining time**: expected mining time 
-- **produced blocks**: produced blocks
-- **missed time slots**: missed time slots
-- **pubkey**: public key string
-- **previous in value**: the public key of the miner before previous miner
-- **supposed order of next round**: evaluated order in next round
-- **final order of next round**: the true order in the next round
-- **actual mining times**: mining time.
-- **encrypted pieces**: public key (miners in previous round) =>  message encrypted by shares information and public string represented by hexadecimal string.
-- **decrypted pieces**: decrypt the encrypted pieces of miners in the previous round.
+- **order**: the order of miners producing block.
+- **is extra block producer**: The miner who is the first miner in the first round of each term.
+- **in value**: the previous miner's public key.
+- **out value**: the post miner's public key.
+- **signature**: self signature.
+- **expected mining time**: expected mining time.
+- **produced blocks**: produced blocks.
+- **missed time slots**: missed time slots.
+- **pubkey**: public key string.
+- **previous in value**: previous miner's previous miner's public key.
+- **supposed order of next round**: evaluated order in next round.
+- **final order of next round**: the real order in the next round.
+- **actual mining times**: the real mining time.
+- **encrypted pieces**: public key (miners in the current round) =>  message encrypted by shares information and public key(represented by hexadecimal string).
+- **decrypted pieces**: the message of miners in the previous round.
 - **produced tiny blocks**: produced tiny blocks.
-- **implied irreversible block height**: suggest the current context's height is the irreversible block height.
+- **implied irreversible block height**: miner records a irreversible block height.
 
 ### GetCurrentTermNumber
 
@@ -246,7 +246,7 @@ message SInt64Value
 ```
 
 **returns**:
-- **value**: current term number.
+- **value**: the current term number.
 
 ### GetCurrentWelfareReward
 
@@ -262,7 +262,7 @@ message SInt64Value
 ```
 
 **returns**:
-- **value**: current welfare reward.
+- **value**: the current welfare reward.
 
 ### GetPreviousMinerList
 
@@ -298,7 +298,7 @@ message SInt64Value
 
 ### GetNextMinerPubkey
 
-Get the miner who will produce the first block in the next term.The first miner whose expected mining time is greater than current bock time. If this miner can not be found, the first miner who is extra block producer will be selected.
+Get the miner who will produce the block next, which means the miner is the first one whose expecting mining time is greater than the current time. If this miner can not be found, the first miner who is extra block producer will be selected.
 
 ```Protobuf
 rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
@@ -308,11 +308,11 @@ message StringValue {
 }
 ```
 **returns**:
-- **value**: miner's public key.
+- **value**: the miner's public key.
 
 ### GetCurrentMinerPubkey
 
-Get the miner who producing the first block in the current term.
+Get the current miner. 
 
 ```Protobuf
 rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
@@ -327,7 +327,7 @@ message StringValue {
 
 ### IsCurrentMiner
 
-Judge whether the miner is in the miner list in the current term.
+Judge whether the miner is the current miner.
 
 ```Protobuf
 rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {}
