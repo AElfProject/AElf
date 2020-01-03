@@ -116,7 +116,7 @@ message TakeSnapshotInput {
 - **voting item id**: voting activity id.
 - **snapshot number**: the round number.
 
-## **TakeSnapshot**
+## **AddOption**
 
 Vote a new candidate.
 
@@ -216,7 +216,7 @@ message VotingItem {
 **GetVotingItemInput**:
 - **voting item id**: voting activity id.
 
-**returns(VotingItem)**:
+**returns**:
 - **voting item id**: voting activity id.
 - **accepted currency**: vote token.
 - **is lock token**: is token locked after voting.
@@ -255,7 +255,7 @@ message VotingResult {
 - **voting item id**: voting activity id.
 - **snapshot number**: round number.
 
-**returns(VotingResult)**:
+**returns**:
 - **voting item id**: voting activity id.
 - **results**: candidate => votes.
 - **snapshot number**: round number.
@@ -290,7 +290,7 @@ message VotingResult {
 **Hash**:
 - **value**: voting activity id.
 
-**returns(VotingResult)**:
+**returns**:
 - **voting item id**: voting activity id.
 - **results**: candidate => votes.
 - **snapshot number**: round number.
@@ -326,7 +326,7 @@ message VotingRecord {
 **Hash**:
 - **value**: transaction id.
 
-**returns(VotingRecord)**:
+**returns**:
 - **voting item id**: voting activity id.
 - **voter**: voter's address.
 - **snapshot number**: round number.
@@ -376,7 +376,7 @@ message VotingRecord {
 **Hash**:
 - **value**: transaction id.
 
-**returns(VotingRecords)**:
+**returns**:
 - **records**: records.
 
 **VotingRecord**:
@@ -414,7 +414,7 @@ message VotedIds {
 **Address**:
 - **value**: voter address.
 
-**returns(VotedItems)**:
+**returns**:
 - **voted item vote ids**: voting activity id => vote information.
 
 **VotedIds**:
@@ -443,7 +443,7 @@ message VotedIds {
 - **voter**: voter address.
 - **voting item id**: voting activity id.
 
-**returns(VotedIds)**:
+**returns**:
 - **active votes**: valid transaction id.
 - **withdrawn votes**: withdrawn transaction id.
 

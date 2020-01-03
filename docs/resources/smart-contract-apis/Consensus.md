@@ -17,7 +17,7 @@ message MinerList {
 }
 ```
 
-**MinerList**:
+**returns**:
 - **pubkeys**: miners' public key.
 
 ### GetCurrentMinerPubkeyList
@@ -32,7 +32,7 @@ message PubkeyList {
 }
 ```
 
-**PubkeyList**:
+**returns**:
 - **pubkeys**: miners' public key（hexadecimal string.
 
 ### GetCurrentMinerListWithRoundNumber
@@ -52,7 +52,7 @@ message MinerList {
 }
 ```
 
-**MinerListWithRoundNumber**:
+**returns**:
 - **miner list**: miner list.
 - **round number**: current round number.
 
@@ -107,7 +107,7 @@ message MinerInRound {
 **SInt64Value**:
 - **value**: round number.
 
-**Round**:
+**returns**:
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
@@ -151,7 +151,7 @@ message SInt64Value
 }
 ```
 
-**SInt64Value**:
+**returns**:
 - **value**: number of current round.
 
 ### GetCurrentRoundInformation
@@ -163,7 +163,7 @@ Get current round information.
 
 ```
 
-**Round**:
+**returns**:
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
@@ -203,7 +203,7 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 
 ```
 
-**Round**:
+**returns**:
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
@@ -247,7 +247,7 @@ message SInt64Value
 }
 ```
 
-**SInt64Value**:
+**returns**:
 - **value**: current term number.
 
 ### GetCurrentWelfareReward
@@ -263,7 +263,7 @@ message SInt64Value
 }
 ```
 
-**SInt64Value**:
+**returns**:
 - **value**: current welfare reward.
 
 ### GetPreviousMinerList
@@ -295,7 +295,7 @@ message SInt64Value
 
 ```
 
-**SInt64Value**:
+**returns**:
 - **value**: the number of mined blocks of previous term.
 
 ### GetNextMinerPubkey
@@ -309,7 +309,7 @@ message StringValue {
   string value = 1;
 }
 ```
-**StringValue**:
+**returns**:
 - **value**: miner's public key.
 
 ### GetCurrentMinerPubkey
@@ -324,7 +324,7 @@ message StringValue {
 }
 ```
 
-**StringValue**:
+**returns**:
 - **value**: miner's public key.
 
 ### IsCurrentMiner
@@ -343,7 +343,7 @@ message Address
 **Address**:
 - **value**: miner's address.
 
-**BoolValue**:
+**returns**:
 - **value**: indicates if the input miner is the current miner.
 
 ### GetNextElectCountDown
@@ -359,5 +359,5 @@ message SInt64Value
 }
 ```
 
-**SInt64Value**:
+**returns**:
 - **value**: total seconds to next election.

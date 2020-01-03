@@ -269,7 +269,7 @@ message CreatedSchemeIds {
 **GetManagingSchemeIdsInput**:
 - **manager**: manager address.
 
-**CreatedSchemeIds**:
+**returns**:
 - **scheme ids**: list of scheme ids.
 
 ### GetScheme
@@ -301,8 +301,11 @@ message SchemePeriod {
 ```
 
 **SchemePeriod**:
-- **scheme_id**: scheme id.
+- **scheme id**: scheme id.
 - **period**: period number.
+
+**returns**:
+- **value**: scheme's virtual address.
 
 ### GetDistributedProfitsInfo
 
@@ -327,7 +330,7 @@ message DistributedProfitsInfo {
 - **scheme_id**: scheme id.
 - **period**:  term number.
 
-**DistributedProfitsInfo**:
+**returns**:
 - **total shares**: total shares, -1 indicates failed to get the information.
 - **profits amount**: token symbol => reside amount.
 - **is released**: is released.
@@ -361,8 +364,8 @@ message ProfitDetail {
 - **scheme id** scheme id.
 - **beneficiary**  beneficiary.
 
-**ProfitDetails**:
-- **details** details
+**returns**:
+- **details** profit details.
 
 **ProfitDetail**:
 - **start period** start period.
@@ -393,5 +396,5 @@ message SInt64Value
 - **scheme_id**: scheme id.
 - **symbol**: token symbol.
 
-**SInt64Value**:
+**returns**:
 - **value**: amount of tokens.

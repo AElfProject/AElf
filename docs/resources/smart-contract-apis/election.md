@@ -86,7 +86,7 @@ message PubkeyList {
 }
 ```
 
-**returns(PubkeyList)**:
+**returns**:
 - **value** public key array of candidates
 
 ### GetVotedCandidates
@@ -101,7 +101,7 @@ message PubkeyList {
 }
 ```
 
-**returns(PubkeyList)**:
+**returns**:
 - **value** public key array of candidates
 
 ### GetCandidateInformation
@@ -130,7 +130,7 @@ message CandidateInformation {
 **StringValue**:
 - **value**: public key (hexadecimal string) of the candidate
 
-**returns(CandidateInformation)**:
+**returns**:
 - **pubkey**: public key (represented by hexadecimal string).
 - **terms**: indicate which terms have the candidate participated.
 - **produced blocks**: the number of blocks the candidate has produced. 
@@ -151,7 +151,7 @@ message PubkeyList {
 }
 ```
 
-**returns(PubkeyList)**:
+**returns**:
 - **value** the array of public key who has been elected as block producer
 
 ### GetTermSnapshot
@@ -175,7 +175,7 @@ message TermSnapshot {
 **GetTermSnapshotInput**:
 - **term number **: term id.
 
-**returns(TermSnapshot)**:
+**returns**:
 - **end round number**: the last term id be saved.
 - **mined blocks**: number of blocks produced in previous term.
 - **election result**: candidate => votes.
@@ -193,7 +193,7 @@ message SInt32Value
 }
 ```
 
-**returns(SInt32Value)**:
+**returns**:
 - **value**: the total number of miners (block producer).
 
 ### GetElectionResult
@@ -217,7 +217,7 @@ message ElectionResult {
 **GetElectionResultInput**:
 - **term number**: term id.
 
-**returns(ElectionResult)**:
+**returns**:
 - **term number**: term id.
 - **results**: candidate => votes.
 - **is active**: indicates that if the term number you input is the current term.
@@ -247,7 +247,7 @@ message ElectorVote {
 **StringValue**:
 - **value**: the public key(hexadecimal string) of voter.
 
-**returns(ElectorVote)**:
+**returns**:
 - **active voting record ids**: transaction ids, in which transactions you voted.
 - **withdrawn voting record ids**: transaction ids.
 - **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
@@ -296,7 +296,7 @@ message ElectionVotingRecord {
 **StringValue**:
 - **value**: the public key(hexadecimal string) of voter.
 
-**returns(ElectorVote)**:
+**returns**:
 - **active voting record ids**: transaction ids, in which transactions you vote.
 - **withdrawn voting record ids**: transaction ids.
 - **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
@@ -360,7 +360,7 @@ message ElectionVotingRecord {
 **StringValue**:
 - **value**: the public key(hexadecimal string) of voter.
 
-**returns(ElectorVote)**:
+**returns**:
 - **active voting record ids**: transaction ids, in which transactions you vote.
 - **withdrawn voting record ids**: transaction ids.
 - **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
@@ -408,7 +408,7 @@ message CandidateVote {
 **StringValue**:
 - **value**: public key of the candidate.
 
-**returns(CandidateVote)**:
+**returns**:
 - **obtained active voting record ids**: vote transaction ids.
 - **obtained withdrawn voting record ids**: withdraw transaction ids.
 - **obtained active voted votes amount**: the valid number of vote token in current.
@@ -455,7 +455,7 @@ message ElectionVotingRecord {
 **StringValue**:
 - **value**: public key of the candidate.
 
-**returns(CandidateVote)**:
+**returns**:
 - **obtained active voting record ids**: vote transaction ids.
 - **obtained withdrawn voting record ids**: withdraw transaction ids.
 - **obtained active voted votes amount**: the valid number of vote token in current.
@@ -517,7 +517,7 @@ message ElectionVotingRecord {
 **StringValue**:
 - **value**: public key of the candidate.
 
-**returns(CandidateVote)**:
+**returns**:
 - **obtained active voting record ids**: vote transaction ids.
 - **obtained withdrawn voting record ids**: withdraw transaction ids.
 - **obtained active voted votes amount**: the valid number of vote token in current.
@@ -552,7 +552,7 @@ message SInt64Value
 }
 ```
 
-**returns(SInt64Value)**:
+**returns**:
 - **value**: number of voters.
 
 ### GetVotesAmount
@@ -568,7 +568,7 @@ message SInt64Value
 }
 ```
 
-**returns(SInt64Value)**:
+**returns**:
 - **value**: number of vote token.
 
 ### GetCurrentMiningReward
@@ -584,7 +584,7 @@ message SInt64Value
 }
 ```
 
-**returns(SInt64Value)**:
+**returns**:
 - **value**: number of ELF that rewards miner for producing blocks.
 
 ### GetPageableCandidateInformation
@@ -623,7 +623,7 @@ message CandidateInformation {
 - **start**: start index.
 - **length**: number of records.
 
-**returns(GetPageableCandidateInformationOutput)**:
+**returns**:
 - **CandidateDetail**: candidate detail information.
 
 **CandidateDetail**:
@@ -652,7 +652,7 @@ message Hash
 }
 ```
 
-**returns(Hash)**:
+**returns**:
 - **value**: voting item id.
 
 ### GetDataCenterRankingList
@@ -668,7 +668,7 @@ message DataCenterRankingList {
 }
 ```
 
-**returns(DataCenterRankingList)**:
+**returns**:
 - **data centers**: the top n * 5 candidates with voted amount.
 - **minimum votes**: not be used.
 
