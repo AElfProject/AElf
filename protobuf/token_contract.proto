@@ -440,9 +440,9 @@ message TokenStateInAddress{
 
 enum FeeTypeEnum {
     Read = 0;
-    Sto = 1;
+    Storage = 1;
     Write = 2;
-    Net = 3;
+    Traffic = 3;
     Tx = 4;
 }
 

@@ -53,7 +53,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         private async Task AdvanceResourceToken(List<string> except = null)
         {
             const long amount = 10_000_00000000;
-            var resourceTokenList = new List<string> {"READ", "STO", "NET", "WRITE"};
+            var resourceTokenList = new List<string> {"READ", "WRITE", "STORAGE", "TRAFFIC"};
             if (except != null && except.Any())
             {
                 resourceTokenList = resourceTokenList.Except(except).ToList();
@@ -136,7 +136,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await AdvanceResourceToken();
 
-            const string symbol = "STO";
+            const string symbol = "STORAGE";
 
             var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -178,7 +178,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await AdvanceResourceToken();
 
-            const string symbol = "NET";
+            const string symbol = "TRAFFIC";
 
             var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -227,20 +227,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         [Fact]
         public async Task Consumption_WithoutInsufficientSTO()
         {
-            await AdvanceResourceToken(new List<string> {"STO"});
+            await AdvanceResourceToken(new List<string> {"STORAGE"});
             const long stoAmount = 100; // Not enough.
 
-            // Advance some STO tokens.
+            // Advance some STORAGE tokens.
             await TokenConverterContractStub.Buy.SendAsync(new BuyInput
             {
-                Symbol = "STO",
+                Symbol = "STORAGE",
                 Amount = 100_00000000L
             });
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 To = TestContractAddress,
                 Amount = stoAmount,
-                Symbol = "STO"
+                Symbol = "STORAGE"
             });
 
             long owingSto;
@@ -248,11 +248,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(stoAmount);
-                owingSto = txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"];
+                txResult.TransactionResult.ConsumedResourceTokens.Value["STORAGE"].ShouldBe(stoAmount);
+                owingSto = txResult.TransactionResult.ConsumedResourceTokens.Owning["STORAGE"];
                 owingSto.ShouldBeGreaterThan(0);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["READ"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["TRAFFIC"].ShouldBeGreaterThan(0);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["WRITE"].ShouldBeGreaterThan(0);
             }
 
@@ -262,7 +262,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
-                Symbol = "STO"
+                Symbol = "STORAGE"
             })).Balance;
             balance.ShouldBe(0);
 
@@ -272,12 +272,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
             }
 
-            // Advance some STO tokens.
+            // Advance some STORAGE tokens.
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 To = TestContractAddress,
                 Amount = owingSto - 1, // Still not enough
-                Symbol = "STO"
+                Symbol = "STORAGE"
             });
 
             {
@@ -290,16 +290,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 To = TestContractAddress,
                 Amount = 2, // Not it's enough
-                Symbol = "STO"
+                Symbol = "STORAGE"
             });
 
             {
                 var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["STO"].ShouldBe(owingSto + 1);
-                txResult.TransactionResult.ConsumedResourceTokens.Owning["STO"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["STORAGE"].ShouldBe(owingSto + 1);
+                txResult.TransactionResult.ConsumedResourceTokens.Owning["STORAGE"].ShouldBeGreaterThan(0);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["READ"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["NET"].ShouldBeGreaterThan(0);
+                txResult.TransactionResult.ConsumedResourceTokens.Value["TRAFFIC"].ShouldBeGreaterThan(0);
                 txResult.TransactionResult.ConsumedResourceTokens.Value["WRITE"].ShouldBeGreaterThan(0);
             }
         }
@@ -324,10 +324,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["READ"]);
             txResult1.ConsumedResourceTokens.Value["WRITE"]
                 .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["WRITE"]);
-            txResult1.ConsumedResourceTokens.Value["NET"]
-                .ShouldBe(txResult2.ConsumedResourceTokens.Value["NET"]);
-            txResult1.ConsumedResourceTokens.Value["STO"]
-                .ShouldBe(txResult2.ConsumedResourceTokens.Value["STO"]);
+            txResult1.ConsumedResourceTokens.Value["TRAFFIC"]
+                .ShouldBe(txResult2.ConsumedResourceTokens.Value["TRAFFIC"]);
+            txResult1.ConsumedResourceTokens.Value["STORAGE"]
+                .ShouldBe(txResult2.ConsumedResourceTokens.Value["STORAGE"]);
         }
 
         private async Task<(long read, long write, long net, TransactionResult txResult)> GetTransactionResourcesCost(
@@ -346,7 +346,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             var beforeNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
-                Symbol = "NET"
+                Symbol = "TRAFFIC"
             })).Balance;
 
             var txResult = (await action(new Empty())).TransactionResult;
@@ -366,7 +366,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             var afterNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
-                Symbol = "NET"
+                Symbol = "TRAFFIC"
             })).Balance;
 
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeNet - afterNet, txResult);

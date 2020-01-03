@@ -148,7 +148,7 @@ namespace AElf.Contract.TestContract
             Acs8ContractStub { get; set; }
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
-        internal static readonly List<string> ResourceTokenSymbols = new List<string> {"WRITE", "READ", "NET", "STO"};
+        internal static readonly List<string> ResourceTokenSymbols = new List<string> {"WRITE", "READ", "TRAFFIC", "STORAGE"};
         internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTWRITE", "NTREAD", "NTNET", "NTSTO"};
 
         protected async Task DeployTestContracts()

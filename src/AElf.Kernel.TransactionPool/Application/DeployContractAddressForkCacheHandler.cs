@@ -9,21 +9,21 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly ICalculateReadCostStrategy _readCostStrategy;
         private readonly ICalculateWriteCostStrategy _writeCostStrategy;
-        private readonly ICalculateNetCostStrategy _netCostStrategy;
-        private readonly ICalculateStoCostStrategy _stoCostStrategy;
+        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
+        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
         private readonly ICalculateTxCostStrategy _txCostStrategy;
 
         public TransactionFeeCalculatorCoefficientForkCacheHandler(
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
-            ICalculateStoCostStrategy stoCostStrategy,
-            ICalculateNetCostStrategy netCostStrategy,
+            ICalculateStorageCostStrategy storageCostStrategy,
+            ICalculateTrafficCostStrategy trafficCostStrategy,
             ICalculateTxCostStrategy txCostStrategy)
         {
             _readCostStrategy = readCostStrategy;
             _writeCostStrategy = writeCostStrategy;
-            _stoCostStrategy = stoCostStrategy;
-            _netCostStrategy = netCostStrategy;
+            _storageCostStrategy = storageCostStrategy;
+            _trafficCostStrategy = trafficCostStrategy;
             _txCostStrategy = txCostStrategy;
         }
 
@@ -31,8 +31,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _readCostStrategy.RemoveForkCache(blockIndexes);
             _writeCostStrategy.RemoveForkCache(blockIndexes);
-            _stoCostStrategy.RemoveForkCache(blockIndexes);
-            _netCostStrategy.RemoveForkCache(blockIndexes);
+            _storageCostStrategy.RemoveForkCache(blockIndexes);
+            _trafficCostStrategy.RemoveForkCache(blockIndexes);
             _txCostStrategy.RemoveForkCache(blockIndexes);
             return Task.CompletedTask;
         }
@@ -41,8 +41,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _readCostStrategy.SetIrreversedCache(blockIndexes);
             _writeCostStrategy.SetIrreversedCache(blockIndexes);
-            _stoCostStrategy.SetIrreversedCache(blockIndexes);
-            _netCostStrategy.SetIrreversedCache(blockIndexes);
+            _storageCostStrategy.SetIrreversedCache(blockIndexes);
+            _trafficCostStrategy.SetIrreversedCache(blockIndexes);
             _txCostStrategy.SetIrreversedCache(blockIndexes);
             return Task.CompletedTask;
         }
