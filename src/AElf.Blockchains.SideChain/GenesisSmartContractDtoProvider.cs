@@ -57,19 +57,10 @@ namespace AElf.Blockchains.SideChain
                 GenerateTokenInitializationCallList(chainInitializationData));
 
             genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
-                CrossChainSmartContractAddressNameProvider.Name,
-                GenerateCrossChainInitializationCallList(chainInitializationData));
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Parliament")).Value,
                 ParliamentSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList(chainInitializationData));
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationSmartContractAddressNameProvider.Name);
-
+            
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Referendum")).Value,
                 ReferendumSmartContractAddressNameProvider.Name,
@@ -81,6 +72,14 @@ namespace AElf.Blockchains.SideChain
                 AssociationSmartContractAddressNameProvider.Name
             );
 
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
+                CrossChainSmartContractAddressNameProvider.Name,
+                GenerateCrossChainInitializationCallList(chainInitializationData));
+            
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
+                ConfigurationSmartContractAddressNameProvider.Name);
             return genesisSmartContractDtoList;
         }
     }
