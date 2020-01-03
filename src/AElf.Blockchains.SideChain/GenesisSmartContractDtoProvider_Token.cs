@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
@@ -48,9 +49,8 @@ namespace AElf.Blockchains.SideChain
                 {
                     ResourceAmount =
                     {
-                        {nameof(_economicOptions.Cpu).ToUpper(), _economicOptions.Cpu},
-                        {nameof(_economicOptions.Ram).ToUpper(), _economicOptions.Ram},
-                        {nameof(_economicOptions.Disk).ToUpper(), _economicOptions.Disk},
+                        chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
+                            kv => kv.Value)
                     }
                 });
 

@@ -10,7 +10,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
-using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -37,7 +36,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
-            ContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
+            ContractAddresses[SmartContractConstants.CrossChainContractSystemName];
 
         public Address ConsensusContractAddress =>
             ContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
@@ -98,7 +97,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name,
+                SmartContractConstants.CrossChainContractSystemName,
                 ConsensusSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name
             }));

@@ -128,6 +128,7 @@ message ChainInitializationData {
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
     string side_chain_token_symbol = 7;
+    map<string, sint32> initial_resource_amount = 8;
 }
 
 message SideChainInfo {
