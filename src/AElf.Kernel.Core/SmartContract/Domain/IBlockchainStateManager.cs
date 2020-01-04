@@ -150,7 +150,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash ||
                 (chainStateInfo.Status == ChainStateMergingStatus.Merged &&
-                 chainStateInfo.BlockHash == blockState.BlockHash))
+                 chainStateInfo.MergingBlockHash == blockState.BlockHash))
             {
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;
                 chainStateInfo.MergingBlockHash = blockStateHash;
