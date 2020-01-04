@@ -1,3 +1,5 @@
+using Acs1;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -14,5 +16,9 @@ namespace AElf.Contracts.TestContract.Performance
         public MappedState<Address, string> Content { get; set; }
         
         public MappedState<Address, long, long> MapContent { get; set; }
+        
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
     }
 }
