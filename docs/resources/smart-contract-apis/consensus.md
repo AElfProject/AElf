@@ -7,7 +7,7 @@ For reference, you can find here the available view methods.
 
 ### GetCurrentMinerList
 
-Get current miner list represented by binary.
+Gets the list of current miners.
 
 ```Protobuf
 rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {}
@@ -33,11 +33,11 @@ message PubkeyList {
 ```
 
 **returns**:
-- **pubkeys**: miner's public keys（hexadecimal string).
+- **pubkeys**: miner's public key (hexadecimal string).
 
 ### GetCurrentMinerListWithRoundNumber
 
-Gets the list of current miners along with the round number, the miner list is binary encoded.
+Gets the list of current miners along with the round number.
 
 ```Protobuf
 rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {}
@@ -139,7 +139,7 @@ message MinerInRound {
 
 ### GetCurrentRoundNumber
 
-Gets current round number.
+Gets the current round number.
 
 ```Protobuf
 rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {}
@@ -155,7 +155,7 @@ message SInt64Value
 
 ### GetCurrentRoundInformation
 
-Gets the current round information.
+Gets the current round's information.
 
 ```Protobuf
  rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {}
@@ -265,7 +265,7 @@ message SInt64Value
 
 ### GetPreviousMinerList
 
-Gets the previous minerList.
+Gets the miners of the previous term.
 
 ```Protobuf
 rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {}
@@ -276,7 +276,7 @@ message MinerList {
 ```
 
 **MinerList**:
-- **pubkeys**: public keys(represented by hexadecimal string) of miners in the previous term.
+- **pubkeys**: public keys (represented by hexadecimal strings) of miners in the previous term.
 
 ### GetMinedBlocksOfPreviousTerm
 

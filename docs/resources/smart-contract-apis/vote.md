@@ -4,7 +4,7 @@ The Vote contract is an abstract layer for voting. Developers implement concrete
 
 ## **Voting for Block Producers**:
 
-To build a voting activity，the developer should register first. 
+To build a voting activity, the developer should register first.
 
 ```Protobuf
 rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {}
@@ -101,7 +101,7 @@ After a successful vote, a **Withdrawn** event log can be found in the transacti
 
 ## **TakeSnapshot**
 
-Distributing profits and saving the state every round.
+Distributes profits and saves the state every round.
 
 ```Protobuf
 rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {}

@@ -142,13 +142,13 @@ message BeneficiaryShare {
 ```
 
 **AddBeneficiariesInput**:
-- **scheme id**: scheme id
-- **beneficiary shares**: share information to beneficiaries
-- **end period**: end time
+- **scheme id**: scheme id.
+- **beneficiary shares**: share information to beneficiaries.
+- **end period**: end time.
 
 **BeneficiaryShare**
-- **beneficiary**: beneficiary address
-- **shares**: shares to beneficiary
+- **beneficiary**: beneficiary address.
+- **shares**: shares to beneficiary.
 
 ## **Remove beneficiaries**
 
@@ -283,7 +283,7 @@ rpc GetScheme (aelf.Hash) returns (Scheme) {}
 **Hash**:
 - **value**: scheme id.
 
-**SchemeBeneficiaryShare**;
+**SchemeBeneficiaryShare**:
 - **scheme id**: sub scheme's id.
 - **shares**: sub scheme shares.
 
