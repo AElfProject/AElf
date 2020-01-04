@@ -4,7 +4,7 @@ The Election contract is essentially used for voting for Block Producers.
 
 ## **AnnounceElection**:
 
-To be a block producer, a user should first register to be a candidate and lock some ELF as a deposit. If the data center is not full, the user will be added in automatically and get one weight (10 weight limited) for sharing bonus in the future.
+To be a block producer, a user should first register to be a candidate and lock some token as a deposit. If the data center is not full, the user will be added in automatically and get one weight (10 weight limited) for sharing bonus in the future.
 
 ```Protobuf
 rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -12,7 +12,7 @@ rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
 ## **QuitElection**
 
-A candidate is able to quit the election provided he is not currently elected. If you quit successfully, the candidate will get his locked tokens back and will not receive anymore bonus'.
+A candidate is able to quit the election provided he is not currently elected. If you quit successfully, the candidate will get his locked tokens back and will not receive anymore bonus.
 
 ```Protobuf
 rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -194,7 +194,7 @@ message SInt32Value
 ```
 
 **returns**:
-- **value**: the total number of miners (block producers).
+- **value**: the total number of block producers.
 
 ### GetElectionResult
 
@@ -250,10 +250,10 @@ message ElectorVote {
 **returns**:
 - **active voting record ids**: transaction ids, in which transactions you voted.
 - **withdrawn voting record ids**: transaction ids.
-- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **active voted votes amount**: the number(excluding the withdrawn) of token you vote.
 - **all voted votes amount**: the number of token you have voted.
-- **active voting records**: no record in this api.
-- **withdrawn votes records**: no record in this api.
+- **active voting records**: no records in this api.
+- **withdrawn votes records**: no records in this api.
 - **pubkey**: voter public key (byte string).
 
 ### GetElectorVoteWithRecords
@@ -299,10 +299,10 @@ message ElectionVotingRecord {
 **returns**:
 - **active voting record ids**: transaction ids, in which transactions you vote.
 - **withdrawn voting record ids**: transaction ids.
-- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **active voted votes amount**: the number(excluding the withdrawn) of token you vote.
 - **all voted votes amount**: the number of token you have voted.
 - **active voting records**: records of the vote transaction with detail information.
-- **withdrawn votes records**: no record in this api.
+- **withdrawn votes records**: no records in this api.
 - **pubkey**: voter public key (byte string).
 
 **ElectionVotingRecord**:
@@ -315,7 +315,7 @@ message ElectionVotingRecord {
 - **unlock timestamp**: unlock date.
 - **withdraw timestamp**: withdraw date.
 - **vote timestamp**: vote date.
-- **is withdrawn**: has withdrawn.
+- **is withdrawn**: indicates if the vote has been withdrawn.
 - **weight**: vote weight for sharing bonus. 
 - **is change target**: whether vote others.
 
@@ -363,7 +363,7 @@ message ElectionVotingRecord {
 **returns**:
 - **active voting record ids**: transaction ids, in which transactions you vote.
 - **withdrawn voting record ids**: transaction ids.
-- **active voted votes amount**: the number of token you vote and is valid(in case of withdraw).
+- **active voted votes amount**: the number(excluding the withdrawn) of token you vote.
 - **all voted votes amount**: the number of token you have voted.
 - **active voting records**: records of transactions that are active.
 - **withdrawn votes records**: records of transactions in which withdraw is true.
@@ -373,13 +373,13 @@ message ElectionVotingRecord {
 - **voter**: voter address.
 - **candidate**: public key. 
 - **amount**: vote amount.
-- **term number**:  snapshot number.
+- **term number**: snapshot number.
 - **vote id**: transaction id.
 - **lock time**: time left to unlock token.
 - **unlock timestamp**: unlock date.
 - **withdraw timestamp**: withdraw date.
 - **vote timestamp**: vote date.
-- **is withdrawn**: has withdrawn.
+- **is withdrawn**: indicates if the vote has been withdrawn.
 - **weight**: vote weight for sharing bonus. 
 - **is change target**: whether vote others.
 
@@ -410,7 +410,7 @@ message CandidateVote {
 
 **returns**:
 - **obtained active voting record ids**: vote transaction ids.
-- **obtained withdrawn voting record ids**: withdraw transaction ids.
+- **obtained withdrawn voting record ids**: withdrawn transaction ids.
 - **obtained active voted votes amount**: the valid number of vote token in current.
 - **all obtained voted votes amount**: total number of vote token the candidate has got.
 - **obtained active voting records**: no records in this api.
@@ -418,7 +418,7 @@ message CandidateVote {
 
 ### GetCandidateVoteWithRecords
 
-Gets statistical information about vote transactions of a candidate with the detailed information of the transactions that is not withdrawn.
+Gets statistical information about vote transactions of a candidate with the detailed information of the transactions that are not withdrawn.
 
 ```Protobuf
 rpc GetCandidateVoteWithRecords (google.protobuf.StringValue) returns (CandidateVote) {}
@@ -519,7 +519,7 @@ message ElectionVotingRecord {
 
 **returns**:
 - **obtained active voting record ids**: vote transaction ids.
-- **obtained withdrawn voting record ids**: withdraw transaction ids.
+- **obtained withdrawn voting record ids**: withdrawn transaction ids.
 - **obtained active voted votes amount**: the valid number of vote token in current.
 - **all obtained voted votes amount**: total number of vote token the candidate has got.
 - **obtained active voting records**: the records of the transaction without withdrawing.
@@ -624,7 +624,7 @@ message CandidateInformation {
 - **length**: number of records.
 
 **returns**:
-- **CandidateDetail**: candidate detail information.
+- **CandidateDetail**: candidates' detailed information.
 
 **CandidateDetail**:
 - **candidate information**: candidate information.
@@ -669,6 +669,6 @@ message DataCenterRankingList {
 ```
 
 **returns**:
-- **data centers**: the top n * 5 candidates with voted amount.
+- **data centers**: the top n * 5 candidates with vote amount.
 - **minimum votes**: not be used.
 

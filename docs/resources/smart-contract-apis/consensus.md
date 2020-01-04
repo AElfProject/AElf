@@ -265,7 +265,7 @@ message SInt64Value
 
 ### GetPreviousMinerList
 
-Gets the miners of the previous term.
+Gets the miners in the previous term.
 
 ```Protobuf
 rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {}
@@ -293,7 +293,7 @@ message SInt64Value
 ```
 
 **returns**:
-- **value**: the number of mined blocks of previous term.
+- **value**: the number of mined blocks.
 
 ### GetNextMinerPubkey
 

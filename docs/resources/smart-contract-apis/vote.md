@@ -22,8 +22,8 @@ message VotingRegisterInput {
 **VotingRegisterInput**:
 - **start timestamp**: activity start time.
 - **end timestamp**: activity end time.
-- **accepted currency**: indicate which token is accepted.
-- **is lock token**: whether lock token. 
+- **accepted currency**: the token symbol which will be accepted.
+- **is lock token**: indicates whether the token will be locked after voting. 
 - **total snapshot number**: number of terms.
 - **options**: default candidate.
 
@@ -57,18 +57,18 @@ message Voted {
 
 **VoteInput**:
 - **voting item id**: indicates which voting activity the user participate in.
-- **voter**: voter address.
+- **voter**: voter's address.
 - **amount**: vote amount.
-- **option**: candidate public key.
+- **option**: candidate's public key.
 - **vote id**: transaction id.
-- **is change target**: indicate whether the option has been changed.
+- **is change target**: indicates whether the option is changed.
 
 After a successfully vote, a **Voted** event log can be found in the transaction result. 
 
 **Voted**:
 - **voting item id**: voting activity id.
-- **voter**: voter address.
-- **snapshot number**: indicate current round.
+- **voter**: voter's address.
+- **snapshot number**: the current round.
 - **amount**: vote amount.
 - **vote timestamp**: vote time.
 - **option**: the candidate's public key.
@@ -77,7 +77,7 @@ After a successfully vote, a **Voted** event log can be found in the transaction
 
 ## **Withdraw**
 
-A voter can withdraw the token that he/she has locked for votes.
+A voter can withdraw the token after the lock time.
 
 ```Protobuf
 rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {}
@@ -219,7 +219,7 @@ message VotingItem {
 **returns**:
 - **voting item id**: voting activity id.
 - **accepted currency**: vote token.
-- **is lock token**: is token locked after voting.
+- **is lock token**: indicates if the token will be locked after voting.
 - **current snapshot number**: current round.
 - **total snapshot number**: total number of round.
 - **register timestamp**: register time.
@@ -257,7 +257,7 @@ message VotingResult {
 
 **returns**:
 - **voting item id**: voting activity id.
-- **results**: candidate => votes.
+- **results**: candidate => vote amount.
 - **snapshot number**: round number.
 - **voters count**: how many voters.
 - **snapshot start timestamp**: start time.
@@ -292,7 +292,7 @@ message VotingResult {
 
 **returns**:
 - **voting item id**: voting activity id.
-- **results**: candidate => votes.
+- **results**: candidate => vote amount.
 - **snapshot number**: round number.
 - **voters count**: how many voters.
 - **snapshot start timestamp**: start time.
@@ -332,7 +332,7 @@ message VotingRecord {
 - **snapshot number**: round number.
 - **withdraw timestamp**: withdraw time.
 - **vote timestamp**: vote time.
-- **is withdrawn**: has withdrawn.
+- **is withdrawn**: indicate whether the vote has been withdrawn.
 - **option**: candidate id.
 - **is change target**: has withdrawn and vote to others.
 
@@ -385,7 +385,7 @@ message VotingRecord {
 - **snapshot number**: round number.
 - **withdraw timestamp**: withdraw time.
 - **vote timestamp**: vote time.
-- **is withdrawn**: indicates whether the vote is withdrawn.
+- **is withdrawn**: indicates whether the vote has been withdrawn.
 - **option**: candidate id.
 - **is change target**: has withdrawn and vote to others.
 
@@ -412,7 +412,7 @@ message VotedIds {
 ```
 
 **Address**:
-- **value**: voter address.
+- **value**: voter's address.
 
 **returns**:
 - **voted item vote ids**: voting activity id => vote information.
@@ -440,7 +440,7 @@ message VotedIds {
 ```
 
 **GetVotingIdsInput**:
-- **voter**: voter address.
+- **voter**: voter's address.
 - **voting item id**: voting activity id.
 
 **returns**:
