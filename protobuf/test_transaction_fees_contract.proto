@@ -78,7 +78,7 @@ message ReadWriteInput {
 }
 
 message ResourcesOutput {
-    repeated TokenInfo Resources = 1;
+    repeated TokenInfo resources = 1;
 }
 
 message TokenInfo {
