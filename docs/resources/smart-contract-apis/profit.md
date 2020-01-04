@@ -26,7 +26,7 @@ message SchemeCreated {
 ```
 
 **CreateSchemeInput**:
-- **manager**: the schemes manager Address, defaults to the transaction sender.
+- **manager**: the scheme manager's Address, defaults to the transaction sender.
 - **profit receiving due period_count** optional, defaults to 10.
 - **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
 - **delay distribute period count** distribute bonus after terms.

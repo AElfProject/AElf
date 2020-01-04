@@ -1,6 +1,6 @@
 # Vote Contract
 
-The Vote contract is an abstract layer for voting. Developers  implement concrete voting activity by call this contract.
+The Vote contract is an abstract layer for voting. Developers implement concrete voting activities by calling this contract.
 
 ## **Voting for Block Producers**:
 
@@ -77,7 +77,7 @@ After a successfully vote, a **Voted** event log can be found in the transaction
 
 ## **Withdraw**
 
-If the voter regrets to vote somebody, he/she can withdraw the token that he/she has voted.
+A voter can withdraw the token that he/she has locked for votes.
 
 ```Protobuf
 rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {}
@@ -94,7 +94,7 @@ message Withdrawn {
 **WithdrawInput**:
 - **vote id**: transaction id.
 
-After a successfully vote, a **Withdrawn** event log can be found in the transaction result. 
+After a successful vote, a **Withdrawn** event log can be found in the transaction result. 
 
 **Withdrawn**:
 - **vote id**: transaction id.
@@ -118,7 +118,7 @@ message TakeSnapshotInput {
 
 ## **AddOption**
 
-Vote a new candidate.
+Adds an option (a choice) to a voting activity.
 
 ```Protobuf
 rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {}
@@ -131,11 +131,11 @@ message AddOptionInput {
 
 **AddOptionInput**:
 - **voting item id**: voting activity id.
-- **option**: the new candidate address.
+- **option**: the new option.
 
 ## **AddOptions**
 
-Vote candidates.
+Adds multiple options (choices) to a voting activity.
 
 ```Protobuf
 rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {}
@@ -147,11 +147,11 @@ message AddOptionsInput {
 ```
 **AddOptionsInput**:
 - **voting item id**: voting activity id.
-- **option**: candidates' addresses.
+- **option**: the list of new options.
 
 ## **RemoveOption**
 
-Remove a candidate.
+Removes an option from a voting activity.
 
 ```Protobuf
 rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
@@ -164,11 +164,11 @@ message RemoveOptionInput {
 
 **RemoveOptionInput**:
 - **voting item id**: voting activity id.
-- **option**: address of the candidate.
+- **option**: the option to remove.
 
 ## **RemoveOptions**
 
-Remove candidates.
+Removes multiple options from a voting activity.
 
 ```Protobuf
 rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {}
@@ -181,7 +181,7 @@ message RemoveOptionsInput {
 
 **RemoveOptionsInput**:
 - **voting item id**: voting activity id.
-- **option**: addresses of the candidates.
+- **option**: the options to remove.
 
 ## view methods
 
@@ -189,7 +189,7 @@ For reference, you can find here the available view methods.
 
 ### GetVotingItem
 
-Get information of the voting activity.
+Gets the information related to a voting activity.
 
 ```Protobuf
 rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {}
@@ -230,7 +230,7 @@ message VotingItem {
 
 ### GetVotingResult
 
-Get a voting result according to voting activity id and round number.
+Gets a voting result according to the provided voting activity id and round number.
 
 ```Protobuf
 rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {}
@@ -266,7 +266,7 @@ message VotingResult {
 
 ### GetLatestVotingResult
 
-Get the latest result according to voting activity.
+Gets the latest result of the provided voting activity.
 
 ```Protobuf
 rpc GetLatestVotingResult (aelf.Hash) returns (VotingResult) {}
@@ -301,7 +301,7 @@ message VotingResult {
 
 ### GetVotingRecord
 
-Get the voting record according to a transaction id.
+Get the voting record for the given record ID.
 
 ```Protobuf
 rpc GetVotingRecord (aelf.Hash) returns (VotingRecord) {}
@@ -338,7 +338,7 @@ message VotingRecord {
 
 ### GetVotingRecords
 
-Get the voting records according to transaction ids.
+Get the voting records for the given record IDs.
 
 ```Protobuf
 rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {}
