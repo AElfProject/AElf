@@ -111,6 +111,16 @@ namespace AElf.Kernel
                 var mockTriggerInformationProvider = new Mock<ITriggerInformationProvider>();
                 return mockTriggerInformationProvider.Object;
             });
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
+                    .Returns(ByteString.Empty);
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
+                    .Returns(ByteString.CopyFromUtf8("test"));
+                return mockService.Object;
+            });
         }
     }
 }
