@@ -303,6 +303,15 @@ namespace AElf.Kernel
             };
 
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+            
+            chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.BlockHash.ShouldBe(_tv[1].BlockHash);
+            chainStateInfo.BlockHeight.ShouldBe(_tv[1].BlockHeight);
+            chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
+            chainStateInfo.MergingBlockHash.ShouldBeNull();
+
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(_tv[1].BlockHash);
+            blockStateSet.ShouldBeNull();
         }
         
         [Fact]
@@ -318,6 +327,11 @@ namespace AElf.Kernel
 
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
             
+            chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.BlockHash.ShouldBe(_tv[1].BlockHash);
+            chainStateInfo.BlockHeight.ShouldBe(_tv[1].BlockHeight);
+            chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
+            chainStateInfo.MergingBlockHash.ShouldBeNull();
         }
         
         [Fact]
@@ -347,6 +361,14 @@ namespace AElf.Kernel
 
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
             
+            chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.BlockHash.ShouldBe(_tv[1].BlockHash);
+            chainStateInfo.BlockHeight.ShouldBe(_tv[1].BlockHeight);
+            chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
+            chainStateInfo.MergingBlockHash.ShouldBeNull();
+
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(_tv[1].BlockHash);
+            blockStateSet.ShouldBeNull();
         }
     }
 }
