@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "acs1.proto";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
@@ -9,6 +10,8 @@ option csharp_namespace = "AElf.Contracts.TestContract.Performance";
 
 service PerformanceContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.Performance.PerformanceContractState";
+    option (aelf.base) = "acs1.proto";
+    
     //Actions
     rpc InitialPerformanceContract (InitialPerformanceInput) returns (google.protobuf.Empty) {
     }
@@ -42,7 +45,13 @@ service PerformanceContract {
 
     rpc ComputeLevel4 (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    
+    rpc InfiniteLoopWhile (NumberInput) returns (google.protobuf.Empty) {
+    }
 
+    rpc InfiniteLoopFor (NumberInput) returns (google.protobuf.Empty) {
+    }
+    
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
         option (aelf.is_view) = true;
