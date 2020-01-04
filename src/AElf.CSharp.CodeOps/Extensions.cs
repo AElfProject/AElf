@@ -57,6 +57,10 @@ namespace AElf.CSharp.CodeOps
                 case nameof(OpCodes.Callvirt):
                     return ((MethodReference) previousInstruction.Operand).ReturnType;
                 
+                // This is to cast the type in stack (constraints to operand type before calling callvirt)
+                case nameof(OpCodes.Constrained):
+                    return (TypeReference) previousInstruction.Operand;
+                        
                 default:
                     throw new InvalidCodeException("Cannot identify instance type for instance method call.");
             }
