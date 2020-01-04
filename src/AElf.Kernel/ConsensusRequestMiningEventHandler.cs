@@ -8,7 +8,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -30,13 +29,17 @@ namespace AElf.Kernel
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ConsensusRequestMiningEventHandler(IServiceProvider serviceProvider)
+        public ConsensusRequestMiningEventHandler(IMinerService minerService,
+            IBlockAttachService blockAttachService,
+            ITaskQueueManager taskQueueManager,
+            IBlockchainService blockchainService,
+            IConsensusService consensusService)
         {
-            _minerService = serviceProvider.GetService<IMinerService>();
-            _blockAttachService = serviceProvider.GetService<IBlockAttachService>();
-            _taskQueueManager = serviceProvider.GetService<ITaskQueueManager>();
-            _blockchainService = serviceProvider.GetService<IBlockchainService>();
-            _consensusService = serviceProvider.GetService<IConsensusService>();
+            _minerService = minerService;
+            _blockAttachService = blockAttachService;
+            _taskQueueManager = taskQueueManager;
+            _blockchainService = blockchainService;
+            _consensusService = consensusService;
 
             Logger = NullLogger<ConsensusRequestMiningEventHandler>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
