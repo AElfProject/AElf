@@ -21,6 +21,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
@@ -46,16 +47,13 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         private bool _isSkipped;
 
-        public BlockMiningService(ITestDataProvider testDataProvider,
-            IContractTesterFactory contractTesterFactory,
-            ISmartContractAddressService smartContractAddressService,
-            ITransactionResultService transactionResultService)
+        public BlockMiningService(IServiceProvider serviceProvider)
         {
             RegisterAssemblyResolveEvent();
-            _contractTesterFactory = contractTesterFactory;
-            _smartContractAddressService = smartContractAddressService;
-            _testDataProvider = testDataProvider;
-            _transactionResultService = transactionResultService;
+            _contractTesterFactory = serviceProvider.GetRequiredService<IContractTesterFactory>();
+            _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
+            _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
+            _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
         private static void RegisterAssemblyResolveEvent()
