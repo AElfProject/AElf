@@ -91,6 +91,30 @@ namespace AElf.Contracts.TestContract.Performance
             return new Empty();
         }
 
+        public override Empty InfiniteLoopWhile(NumberInput input)
+        {
+            var count = input.Number;
+            while (true)
+            {
+                count--;
+                if(count <=0) break;
+                
+                CalculateFibonacci(10);
+            }
+            
+            return new Empty();
+        }
+
+        public override Empty InfiniteLoopFor(NumberInput input)
+        {
+            for (var i = 0; i < input.Number; i++)
+            {
+                CalculateFibonacci(10);
+            }
+            
+            return new Empty();
+        }
+
         private static long CalculateFibonacci(long n)
         {
             if (n == 0 || n == 1)
