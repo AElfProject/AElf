@@ -250,7 +250,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         private SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            string symbol)
+            string symbol, params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
         {
             var res = new SideChainCreationRequest
             {
@@ -261,13 +261,19 @@ namespace AElf.Contracts.MultiToken
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = symbol,
                 SideChainTokenName = "TEST",
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
             };
             return res;
         }
 
         private async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount, string symbol)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, symbol);
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, symbol,
+                new SideChainTokenInitialIssue
+                {
+                    Address = MainChainTester.GetCallOwnerAddress(),
+                    Amount = 100
+                });
             var requestSideChainCreationResult =
                 await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                     nameof(CrossChainContractContainer.CrossChainContractStub.RequestSideChainCreation),
@@ -290,7 +296,8 @@ namespace AElf.Contracts.MultiToken
             var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
                 tester.InitialMinerList[0], proposalId);
-            await tester.MineAsync(new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
+            await tester.MineAsync(
+                new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId, Address parliamentAddress,

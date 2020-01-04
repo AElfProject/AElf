@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
+using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.Kernel;
 using AElf.Kernel.Token;
@@ -10,6 +11,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
+using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInput;
 using ProposalCreated = Acs3.ProposalCreated;
 
 namespace AElf.Contracts.Genesis
@@ -390,8 +392,8 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
                 .ProposedContractInputHash;
 
-            await ApproveWithKeyPairAsync(Tester, ParliamentAddress, contractProposalId,
-                Tester.InitialMinerList.First());
+            var tester = Tester.CreateNewContractTester(Tester.InitialMinerList.First());
+            await ApproveWithTesterAsync(tester, ParliamentAddress, contractProposalId);
 
             // release contract code and trigger code check proposal
             var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -429,6 +431,109 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
 
             author.ShouldBe(BasicContractZeroAddress);
+        }
+
+        [Fact]
+        public async Task ChangeContractZeroOwnerByAssociation_Test()
+        {
+            var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(AssociationContractAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.CreateOrganization),
+                new Association.CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {AnotherMinerAddress}
+                    },
+                    OrganizationMemberList = new OrganizationMemberList
+                    {
+                        OrganizationMembers = {AnotherMinerAddress}
+                    }
+                });
+
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+
+            var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
+            const string proposalCreationMethodName =
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+            var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
+                contractDeploymentController.OwnerAddress, proposalCreationMethodName,
+                new AuthorityStuff
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = AssociationContractAddress
+                });
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var contractDeploymentControllerAfterChanged =
+                await GetContractDeploymentController(Tester, BasicContractZeroAddress);
+
+            contractDeploymentControllerAfterChanged.ContractAddress.ShouldBe(AssociationContractAddress);
+            contractDeploymentControllerAfterChanged.OwnerAddress.ShouldBe(organizationAddress);
+
+            // test deployment with only one miner
+            var contractDeploymentInput = new ContractDeploymentInput()
+            {
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            };
+
+            var anotherMinerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
+
+            // propose contract code
+            var proposingTxResult = await anotherMinerTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
+
+            var contractProposalId = ProposalCreated.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
+                .ProposalId;
+
+            var proposedContractInputHash = ContractProposed.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
+                .ProposedContractInputHash;
+
+            await ApproveWithTesterAsync(anotherMinerTester, AssociationContractAddress, contractProposalId);
+
+            // release contract code and trigger code check proposal
+            var releaseApprovedContractTxResult = await anotherMinerTester.ExecuteContractWithMiningAsync(
+                BasicContractZeroAddress,
+                nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+                {
+                    ProposalId = contractProposalId,
+                    ProposedContractInputHash = proposedContractInputHash
+                });
+
+            var codeCheckProposalId = ProposalCreated.Parser
+                .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                    .NonIndexed).ProposalId;
+
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
+
+            // release code check proposal and deployment completes
+            var deploymentResult = await anotherMinerTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                new ReleaseContractInput
+                    {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
+
+            var creator = ContractDeployed.Parser
+                .ParseFrom(deploymentResult.Logs.First(l => l.Name.Contains(nameof(ContractDeployed))).Indexed[0])
+                .Author;
+
+            creator.ShouldBe(AnotherMinerAddress);
+
+            var deployAddress = ContractDeployed.Parser
+                .ParseFrom(deploymentResult.Logs.First(l => l.Name.Contains(nameof(ContractDeployed))).NonIndexed)
+                .Address;
+            var author = Address.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
+
+            author.ShouldBe(AnotherMinerAddress);
         }
 
         [Fact]

@@ -12,7 +12,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Association
 {
-    public class AssociationContractTestBase : ContractTestBase<AssociationContractTestAElfModule>
+    public class AssociationContractTestBase<T> : ContractTestBase<T> where T : ContractTestModule
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -34,6 +34,8 @@ namespace AElf.Contracts.Association
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; set; }
 
+        internal AssociationContractContainer.AssociationContractStub AnotherChainAssociationContractStub { get; set; }
+        
         private byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
 
@@ -60,7 +62,7 @@ namespace AElf.Contracts.Association
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeTokenAsync());
         }
-
+        
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);

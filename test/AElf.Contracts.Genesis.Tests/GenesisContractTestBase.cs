@@ -49,6 +49,7 @@ namespace AElf.Contracts.Genesis
         protected Address ParliamentAddress;
         protected Address BasicContractZeroAddress;
         protected Address TokenContractAddress;
+        protected Address AssociationContractAddress;
 
         protected Address SideBasicContractZeroAddress;
         protected Address SideTokenContractAddress;
@@ -82,6 +83,7 @@ namespace AElf.Contracts.Genesis
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+            AssociationContractAddress = Tester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
         }
 
         protected void StartSideChain()
@@ -170,13 +172,11 @@ namespace AElf.Contracts.Genesis
             };
         }
 
-        internal async Task<TransactionResult> ApproveWithKeyPairAsync(
-            ContractTester<BasicContractZeroTestAElfModule> tester, Address parliamentContract, Hash proposalId,
-            ECKeyPair ecKeyPair)
+        internal async Task<TransactionResult> ApproveWithTesterAsync(
+            ContractTester<BasicContractZeroTestAElfModule> tester, Address contractAddress, Hash proposalId)
         {
-            var testerWithMiner = tester.CreateNewContractTester(ecKeyPair);
-            return await testerWithMiner.ExecuteContractWithMiningAsync(parliamentContract,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId);
+            return await tester.ExecuteContractWithMiningAsync(contractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve), proposalId);
         }
 
         internal async Task<Address> DeployAsync(ContractTester<BasicContractZeroTestAElfModule> tester,

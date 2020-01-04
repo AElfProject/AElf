@@ -45,10 +45,14 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
 
+        protected ECKeyPair AnotherKeyPair => SampleECKeyPairs.KeyPairs.Last();
+
         protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(AEDPoSExtensionConstants.InitialKeyPairCount).ToList();
 
         protected Address DefaultSender => Address.FromPublicKey(DefaultKeyPair.PublicKey);
+
+        protected Address AnotherSenderAddress => Address.FromPublicKey(AnotherKeyPair.PublicKey);
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
@@ -75,6 +79,12 @@ namespace AElf.Contracts.CrossChain.Tests
             ECKeyPair keyPair)
         {
             return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                keyPair);
+        }
+
+        internal AssociationContractContainer.AssociationContractStub GetAssociationContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
                 keyPair);
         }
 
@@ -236,7 +246,11 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount);
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, new SideChainTokenInitialIssue
+            {
+                Address = DefaultSender,
+                Amount = 100
+            });
             var requestSideChainCreation =
                 await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
 
@@ -245,28 +259,31 @@ namespace AElf.Contracts.CrossChain.Tests
             return proposalId;
         }
 
-        internal async Task<Hash> CreateParliamentProposalAsync(string method, Address address, IMessage input, Address toAddress = null)
+        internal async Task<Hash> CreateParliamentProposalAsync(string method, Address organizationAddress,
+            IMessage input, Address toAddress = null)
         {
             var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ToAddress = toAddress ?? CrossChainContractAddress,
                 ContractMethodName = method,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = address,
+                OrganizationAddress = organizationAddress,
                 Params = input.ToByteString()
             })).Output;
             return proposal;
         }
 
-        internal async Task<Hash> CreateAssociationProposalAsync(string method, Address address, IMessage input)
+        internal async Task<Hash> CreateAssociationProposalAsync(string method, Address organizationAddress,
+            Address toAddress,
+            IMessage input, AssociationContractContainer.AssociationContractStub authorizationContractStub = null)
         {
-            var proposalId = (await AssociationContractStub.CreateProposal.SendAsync(
+            var proposalId = (await (authorizationContractStub ?? AssociationContractStub).CreateProposal.SendAsync(
                 new CreateProposalInput
                 {
-                    ToAddress = CrossChainContractAddress,
+                    ToAddress = toAddress,
                     ContractMethodName = method,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    OrganizationAddress = address,
+                    OrganizationAddress = organizationAddress,
                     Params = input.ToByteString()
                 })).Output;
             return proposalId;
@@ -284,7 +301,8 @@ namespace AElf.Contracts.CrossChain.Tests
             return transaction.TransactionResult;
         }
 
-        internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount)
+        internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
+            params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
         {
             var res = new SideChainCreationRequest
             {
@@ -295,6 +313,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = "TE",
                 SideChainTokenName = "TEST",
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
             };
             return res;
         }
@@ -321,7 +340,7 @@ namespace AElf.Contracts.CrossChain.Tests
             return true;
         }
 
-        internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
+        internal async Task<Hash> DisposeSideChainProposalAsync(SInt32Value chainId)
         {
             var disposalInput = chainId;
             var organizationAddress =

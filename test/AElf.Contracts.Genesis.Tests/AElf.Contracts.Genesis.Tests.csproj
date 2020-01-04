@@ -43,6 +43,9 @@
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\reference\association_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractStub>

@@ -256,7 +256,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId = await InitAndCreateSideChainAsync(parentChainId);
             await ApproveBalanceAsync(100_000L);
 
-            var proposalId = await DisposalSideChainProposalAsync(new SInt32Value {Value = sideChainId});
+            var proposalId = await DisposeSideChainProposalAsync(new SInt32Value {Value = sideChainId});
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 

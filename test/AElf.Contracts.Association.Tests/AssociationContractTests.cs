@@ -13,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Association
 {
-    public class AssociationContractTests : AssociationContractTestBase
+    public class AssociationContractTests : AssociationContractTestBase<AssociationContractTestAElfModule>
     {
         public AssociationContractTests()
         {
@@ -65,6 +65,51 @@ namespace AElf.Contracts.Association
                 getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
                 getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
                 getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
+            }
+        }
+        
+        [Fact]
+        public async Task Create_OrganizationOnMultiChains_Test()
+        {
+            //failed case
+            {
+                var organization =
+                    await AssociationContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                organization.ShouldBe(new Organization());
+            }
+
+            //normal case
+            {
+                var minimalApproveThreshold = 2;
+                var minimalVoteThreshold = 3;
+                var maximalAbstentionThreshold = 1;
+                var maximalRejectionThreshold = 1;
+                var createOrganizationInput = new CreateOrganizationInput
+                {
+                    OrganizationMemberList = new OrganizationMemberList
+                    {
+                        OrganizationMembers = {Reviewer1, Reviewer2, Reviewer3}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = minimalApproveThreshold,
+                        MinimalVoteThreshold = minimalVoteThreshold,
+                        MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                        MaximalRejectionThreshold = maximalRejectionThreshold
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {Reviewer1}
+                    }
+                };
+                var transactionResult =
+                    await AssociationContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var organizationAddress = transactionResult.Output;
+
+                var organizationAddressOnAnotherChain =
+                    await new SideChainAssociationContractTestBase().CreateOrganization(createOrganizationInput);
+                organizationAddressOnAnotherChain.ShouldBe(organizationAddress);
             }
         }
 
