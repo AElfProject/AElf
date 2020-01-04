@@ -63,8 +63,9 @@ namespace AElf.Sdk.CSharp.Tests
             output.Uint32Hash.ShouldBe(-1);
             output.Int64Hash.ShouldBe(-2147483648);
             output.Uint64Hash.ShouldBe(0);
-            output.StringHash.ShouldBe(100);
+            output.StringHash.ShouldBe(-806870568);
             output.BytesHash.ShouldBe(-347977704);
+            output.OutputHash.ShouldBe(615147968);
         }
     }
 }

@@ -1,7 +1,22 @@
+using System.Text;
+
 namespace AElf.Sdk.CSharp
 {
     public class AElfString
     {
+        public static int GetHashCode(string str)
+        {
+            var bytes = Encoding.Unicode.GetBytes(str);
+            
+            var ret = 23;
+            foreach (var b in bytes)
+            {
+                ret = (ret * 31) + b;
+            }
+            
+            return ret;
+        }
+        
         public static string Concat(string[] values)
         {
             return ValidatedString(string.Concat(values));
