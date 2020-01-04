@@ -338,6 +338,8 @@ namespace AElf.Contracts.Genesis
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
+            
+            Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
             info.CodeHash = newCodeHash;
             State.ContractInfos[contractAddress] = info;
