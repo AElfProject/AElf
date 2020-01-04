@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -36,7 +37,9 @@ namespace AElf.WebApp.Application.Chain.Tests
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
 
-        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] GenesisContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
+        
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
@@ -45,6 +48,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -56,16 +60,17 @@ namespace AElf.WebApp.Application.Chain.Tests
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
+            _smartContractExecutiveProvider = GetRequiredService<ISmartContractExecutiveProvider>();
         }
 
         [Fact]
         public async Task Deploy_Contract_Success_Test()
         {
-            var keyPair = CryptoHelper.GenerateKeyPair();
+            var accountAddress = await _accountService.GetAccountAsync();
             var chain = await _blockchainService.GetChainAsync();
             var transaction = new Transaction
             {
-                From = Address.FromPublicKey(keyPair.PublicKey),
+                From = accountAddress,
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(BasicContractZero.DeploySmartContract),
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
@@ -77,8 +82,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
             };
             transaction.Signature =
-                ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
-                    transaction.GetHash().ToByteArray()));
+                ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
 
             var parameters = new Dictionary<string, string>
             {
@@ -90,6 +94,110 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters);
 
             sendTransactionResponse.TransactionId.ShouldBe(transaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(transaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        [Fact]
+        public async Task Update_Contract_Success_Test()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var deployTransaction = new Transaction
+            {
+                From = accountAddress,
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(BasicContractZero.DeploySmartContract),
+                Params = ByteString.CopyFrom(new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(TokenContractCode)
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            deployTransaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(deployTransaction.GetHash().ToByteArray()));
+
+            var parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", deployTransaction.ToByteArray().ToHex()}
+            };
+
+            var sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(deployTransaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(deployTransaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
+            var transaction = new Transaction
+            {
+                From = accountAddress,
+                To = address,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.GetTokenInfo),
+                Params = ByteString.CopyFrom(new GetTokenInfoInput
+                {
+                    Symbol = "ELF"
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            transaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
+
+            parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", transaction.ToByteArray().ToHex()}
+            };
+
+            sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(transaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
+            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            response.Transaction.Params.ShouldBe(GetTokenInfoInput.Parser.ParseFrom(transaction.Params).ToString());
+            
+            var updateTransaction = new Transaction
+            {
+                From = accountAddress,
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(BasicContractZero.UpdateSmartContract),
+                Params = ByteString.CopyFrom(new ContractUpdateInput
+                {
+                    Address = address,
+                    Code = ByteString.CopyFrom(GenesisContractCode)
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            updateTransaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(updateTransaction.GetHash().ToByteArray()));
+            
+            parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", updateTransaction.ToByteArray().ToHex()}
+            };
+
+            sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(updateTransaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            transactionResult = await _osTestHelper.GetTransactionResultsAsync(updateTransaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
+            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            response.Transaction.Params.ShouldBe(GetTokenInfoInput.Parser.ParseFrom(transaction.Params).ToString());
         }
 
         [Fact]

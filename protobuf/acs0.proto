@@ -51,6 +51,9 @@ service ACS0 {
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
+    rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
+        option (aelf.is_view) = true;
+    }
     rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
         option (aelf.is_view) = true;
     }

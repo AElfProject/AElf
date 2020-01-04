@@ -57,6 +57,11 @@ namespace AElf.Contracts.Genesis
 
             return State.SmartContractRegistrations[info.CodeHash];
         }
+        
+        public override SmartContractRegistration GetSmartContractRegistration(Hash input)
+        {
+            return State.SmartContractRegistrations[input];
+        }
 
         public override Empty ValidateSystemContractAddress(ValidateSystemContractAddressInput input)
         {
