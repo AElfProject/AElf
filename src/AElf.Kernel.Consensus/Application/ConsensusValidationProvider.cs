@@ -1,10 +1,9 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Txn.Application;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,13 +18,17 @@ namespace AElf.Kernel.Consensus.Application
         private readonly int _systemTransactionCount;
         public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
-        public ConsensusValidationProvider(IServiceProvider serviceProvider)
+        public ConsensusValidationProvider(IConsensusService consensusService,
+            ITransactionPackingService transactionPackingService,
+            IBlockchainService blockchainService,
+            IConsensusExtraDataExtractor consensusExtraDataExtractor,
+            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
-            _consensusService = serviceProvider.GetService<IConsensusService>();
-            _transactionPackingService = serviceProvider.GetService<ITransactionPackingService>();
-            _blockchainService = serviceProvider.GetService<IBlockchainService>();
-            _consensusExtraDataExtractor = serviceProvider.GetService<IConsensusExtraDataExtractor>();
-            _systemTransactionCount = serviceProvider.GetServices<ISystemTransactionGenerator>().Count();
+            _consensusService = consensusService;
+            _transactionPackingService = transactionPackingService;
+            _blockchainService = blockchainService;
+            _consensusExtraDataExtractor = consensusExtraDataExtractor;
+            _systemTransactionCount = systemTransactionGenerators.Count();
 
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
