@@ -200,10 +200,9 @@ namespace AElf.Contracts.CrossChain
             var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
                 pendingCrossChainIndexingProposal.ProposalId);
-            Assert(proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress,
-                "Incorrect organization address.");
 
-            res.ToBeReleased = proposalInfo.ToBeReleased;
+            res.ToBeReleased = proposalInfo.ToBeReleased &&
+                               proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
             res.ExpiredTime = proposalInfo.ExpiredTime;
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
             return res;
