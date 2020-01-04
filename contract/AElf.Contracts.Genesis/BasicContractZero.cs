@@ -87,7 +87,7 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
             Assert(!State.Initialized.Value || !State.ContractDeploymentAuthorityRequired.Value,
-                "Genesis contract already initialized.");
+                "System contract deployment failed.");
             RequireSenderAuthority();
             var name = input.Name;
             var category = input.Category;

@@ -228,7 +228,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol);
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
-            if (allowance >= input.Amount) 
+            if (allowance >= input.Amount)
                 State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
@@ -375,7 +375,8 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100, "Invalid donation ratio.");
+            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100,
+                "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;
             return new Empty();

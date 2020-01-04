@@ -62,7 +62,7 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override SInt32Value CreateSideChain(CreateSideChainInput input)
         {
-            // side chain creation should be triggered by organization address from parliament.
+            // side chain creation should be triggered by organization address.
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
             var proposedSideChainCreationRequest = State.ProposedSideChainCreationRequest[input.Proposer];
@@ -115,6 +115,7 @@ namespace AElf.Contracts.CrossChain
             {
                 InitialResourceUsage(chainId, initialResourceAmount);
             }
+            
             CreateOrganizationForIndexingFeePriceAdjustment(input.Proposer);
             Context.Fire(new SideChainCreatedEvent
             {
@@ -188,7 +189,7 @@ namespace AElf.Contracts.CrossChain
 
         #endregion Side chain lifetime actions
 
-        #region Cross chain actions
+        #region Cross chain indexing actions
 
         /// <summary>
         /// Propose cross chain block data to be indexed and create a proposal.

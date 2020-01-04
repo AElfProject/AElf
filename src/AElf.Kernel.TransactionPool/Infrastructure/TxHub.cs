@@ -203,7 +203,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var transaction in eventData.Transactions)
             {
                 if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
+                {
+                    Logger.LogWarning("Already too many transaction processing job enqueued.");
                     break;
+                }
 
                 var queuedTransaction = new QueuedTransaction
                 {
@@ -218,18 +221,27 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
             if (_allTransactions.Count > _transactionOptions.PoolLimit)
+            {
+                Logger.LogWarning("Tx pool is full.");
                 return;
+            }
 
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
                 return;
 
             if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
+            {
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} already expired.");
                 return;
+            }
 
             var validationResult =
                 await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction.Transaction);
             if (!validationResult)
+            {
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return;
+            }
 
             var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
             if (hasTransaction)
@@ -238,7 +250,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (!addSuccess)
+            {
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
                 return;
+            }
 
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);

@@ -3,6 +3,7 @@ syntax = "proto3";
 import "acs7.proto";
 import "google/protobuf/wrappers.proto";
 import "acs1.proto";
+import "acs3.proto";
 import public "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";
@@ -47,6 +48,16 @@ service CrossChainContract {
         option (aelf.is_view) = true;
     }
     rpc GetSideChainIndexingFeePrice(aelf.SInt32Value) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (AuthorityStuff){
+        option (aelf.is_view) = true;
+    }
+    rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (AuthorityStuff){
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainIndexingFeeController(aelf.SInt32Value) returns (GetSideChainIndexingFeeControllerOutput){
+        option (aelf.is_view) = true;
     }
 }
 
@@ -113,4 +124,9 @@ enum CrossChainIndexingProposalStatus{
     PROPOSED = 1;
     PENDING = 2;
     TO_BE_RELEASED = 3;
+}
+
+message GetSideChainIndexingFeeControllerOutput {
+    AuthorityStuff authorityStuff = 1;
+    bytes organization_creation_input_bytes = 2;
 }

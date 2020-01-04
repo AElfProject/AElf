@@ -168,7 +168,8 @@ namespace AElf.Contracts.CrossChain
                 Creator = sideChainInfo.Proposer,
                 CreationTimestamp = sideChainInfo.CreationTimestamp,
                 ChainCreatorPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved,
-                InitialResourceAmount = {sideChainInfo.SideChainCreationRequest.InitialResourceAmount}
+                InitialResourceAmount = {sideChainInfo.SideChainCreationRequest.InitialResourceAmount},
+                SideChainTokenInitialIssueList = {sideChainInfo.SideChainCreationRequest.SideChainTokenInitialIssueList}
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);
@@ -212,6 +213,35 @@ namespace AElf.Contracts.CrossChain
             return new SInt64Value
             {
                 Value = sideChainInfo.SideChainCreationRequest.IndexingPrice
+            };
+        }
+
+        public override AuthorityStuff GetCrossChainIndexingController(Empty input)
+        {
+            return GetCrossChainIndexingController();
+        }
+
+        public override AuthorityStuff GetSideChainLifetimeController(Empty input)
+        {
+            return GetSideChainLifetimeController();
+        }
+
+        public override GetSideChainIndexingFeeControllerOutput GetSideChainIndexingFeeController(SInt32Value input)
+        {
+            var sideChainInfo = State.SideChainInfo[input.Value];
+            var proposer = sideChainInfo.Proposer;
+            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
+            var organizationCreationInput = GenerateOrganizationInputForIndexingFeePrice(proposer);
+            var sideChainIndexingFeeControllerAddress =
+                CalculateSideChainIndexingFeeControllerOrganizationAddress(organizationCreationInput);
+            return new GetSideChainIndexingFeeControllerOutput
+            {
+                AuthorityStuff = new AuthorityStuff
+                {
+                    OwnerAddress = sideChainIndexingFeeControllerAddress,
+                    ContractAddress = State.AssociationContract.Value
+                },
+                OrganizationCreationInputBytes = organizationCreationInput.ToByteString()
             };
         }
     }

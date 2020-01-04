@@ -128,7 +128,8 @@ message ChainInitializationData {
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
     string side_chain_token_symbol = 7;
-    map<string, sint32> initial_resource_amount = 8;
+    repeated SideChainTokenInitialIssue SideChainTokenInitialIssueList = 9;
+    map<string, sint32> initial_resource_amount = 10;
 }
 
 message SideChainInfo {
@@ -150,7 +151,13 @@ message SideChainCreationRequest {
     sint64 side_chain_token_total_supply = 7;
     sint32 side_chain_token_decimals = 8;
     bool is_side_chain_token_burnable = 9;
-    map<string, sint32> initial_resource_amount = 10; 
+    repeated SideChainTokenInitialIssue SideChainTokenInitialIssueList = 10;
+    map<string, sint32> initial_resource_amount = 11; 
+}
+
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
 }
 
 message SideChainTokenInfo {
@@ -167,7 +174,7 @@ message RequestChainCreationOutput {
     aelf.Hash proposal_id = 2;
 }
 
-message IndexedParentChainBlockData{
+message IndexedParentChainBlockData {
     int64 local_chain_height = 1;
     repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
 }

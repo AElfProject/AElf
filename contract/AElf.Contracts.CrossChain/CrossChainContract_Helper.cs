@@ -91,8 +91,11 @@ namespace AElf.Contracts.CrossChain
         public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
-            Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
+            Assert(
+                sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
+                sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
+                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                 "Invalid chain creation request.");
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
@@ -150,12 +153,14 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.ConfigurationContract.Value == null)
             {
-                var configurationContractAddress = Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+                var configurationContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
                 if (configurationContractAddress == null)
                 {
                     // If Configuration Contract has not deployed, skip following options.
                     return;
                 }
+
                 State.ConfigurationContract.Value = configurationContractAddress;
             }
 
@@ -277,7 +282,7 @@ namespace AElf.Contracts.CrossChain
             var crossChainIndexingController = GetCrossChainIndexingController();
             Assert(crossChainIndexingController.OwnerAddress == address, "Unauthorized behavior.");
         }
-        
+
         private void AssertSideChainLifetimeControllerAuthority(Address address)
         {
             var sideChainLifetimeController = GetSideChainLifetimeController();
@@ -380,7 +385,7 @@ namespace AElf.Contracts.CrossChain
                 ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
                 OriginProposer = Context.Sender
             };
-            
+
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
@@ -565,15 +570,21 @@ namespace AElf.Contracts.CrossChain
             };
             return createOrganizationInput;
         }
-        
+
         private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(Address sideChainCreator)
         {
             var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
-            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
-            var address = State.AssociationContract.CalculateOrganizationAddress.Call(createOrganizationInput);
+            var address = CalculateSideChainIndexingFeeControllerOrganizationAddress(createOrganizationInput);
             return address;
         }
-        
+
+        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(CreateOrganizationInput input)
+        {
+            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
+            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
+            return address;
+        }
+
         private void CreateOrganizationForIndexingFeePriceAdjustment(Address sideChainCreator)
         {
             // be careful that this organization is useless after SideChainLifetimeController changed
