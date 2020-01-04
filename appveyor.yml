@@ -21,5 +21,6 @@ install:
   - cmd: dir c:\projects\aelf\scripts\
 
 build_script:
+  - ps: dotnet restore AElf.sln
   - ps: dotnet build AElf.sln
   - ps: dotnet test AElf.sln
