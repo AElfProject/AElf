@@ -161,7 +161,7 @@ namespace AElf.Contracts.Profit
 
             if (input.EndPeriod == 0)
             {
-                // Which means this profit Beneficiary will never expired.
+                // Which means this profit Beneficiary will never expired unless removed.
                 input.EndPeriod = long.MaxValue;
             }
 

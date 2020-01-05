@@ -33,11 +33,37 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
-        public override Empty ContributeProfits(ContributeProfitsInput input)
+        public override Empty AddBeneficiary(AddTokenHolderBeneficiaryInput input)
         {
-            var scheme = State.TokenHolderProfitSchemes[Context.Sender];
+            var scheme = GetValidScheme(Context.Sender);
             Assert(scheme != null, "Token holder profit scheme not found.");
             UpdateTokenHolderProfitScheme(ref scheme);
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = scheme.SchemeId,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = input.Beneficiary,
+                    Shares = input.Shares
+                }
+            });
+            return new Empty();
+        }
+
+        public override Empty RemoveBeneficiary(RemoveTokenHolderBeneficiaryInput input)
+        {
+            var scheme = GetValidScheme(Context.Sender);
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = input.Beneficiary
+            });
+            return new Empty();
+        }
+
+        public override Empty ContributeProfits(ContributeProfitsInput input)
+        {
+            var scheme = GetValidScheme(input.SchemeManager);
             State.ProfitContract.ContributeProfits.Send(new Profit.ContributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
@@ -45,6 +71,81 @@ namespace AElf.Contracts.TokenHolder
                 Amount = input.Amount
             });
             return new Empty();
+        }
+
+        public override Empty DistributeProfits(DistributeProfitsInput input)
+        {
+            var scheme = GetValidScheme(input.SchemeManager);
+            State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+            {
+                SchemeId = scheme.SchemeId,
+                Symbol = input.Symbol ?? scheme.Symbol,
+                Period = scheme.Period
+            });
+            return new Empty();
+        }
+
+        public override Empty RegisterForProfits(RegisterForProfitsInput input)
+        {
+            var scheme = GetValidScheme(input.SchemeManager);
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                LockId = Context.TransactionId,
+                Symbol = scheme.Symbol,
+                Address = Context.Sender,
+                Amount = input.Amount,
+            });
+            State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = scheme.SchemeId,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = Context.Sender,
+                    Shares = input.Amount
+                }
+            });
+            return new Empty();
+        }
+
+        public override Empty Withdraw(Address input)
+        {
+            var scheme = GetValidScheme(input);
+            var amount = State.TokenContract.GetLockedAmount.Call(new GetLockedAmountInput
+            {
+                Address = Context.Sender,
+                LockId = State.LockIds[input][Context.Sender],
+                Symbol = scheme.Symbol
+            }).Amount;
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                Address = Context.Sender,
+                LockId = State.LockIds[input][Context.Sender],
+                Amount = amount,
+                Symbol = scheme.Symbol
+            });
+
+            // TODO: Remove this key.
+            State.LockIds[input][Context.Sender] = null;
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = Context.Sender
+            });
+            return new Empty();
+        }
+
+        public override TokenHolderProfitScheme GetScheme(Address input)
+        {
+            return State.TokenHolderProfitSchemes[input] ?? new TokenHolderProfitScheme();
+        }
+
+        private TokenHolderProfitScheme GetValidScheme(Address manager)
+        {
+            var scheme = State.TokenHolderProfitSchemes[manager];
+            Assert(scheme != null, "Token holder profit scheme not found.");
+            UpdateTokenHolderProfitScheme(ref scheme);
+            return scheme;
         }
 
         private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme)

@@ -44,16 +44,4 @@
             <Link>Protobuf\Proto\token_holder_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="obj\Debug\netstandard2.0" />
-    </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="Protobuf\Generated\Acs5.g.cs" />
-      <Compile Remove="Protobuf\Generated\Acs3.g.cs" />
-      <Compile Remove="Protobuf\Generated\Acs3.c.cs" />
-      <Compile Remove="Protobuf\Generated\Acs1.g.cs" />
-      <Compile Remove="Protobuf\Generated\Acs1.c.cs" />
-      <Compile Remove="Protobuf\Generated\Acs0.g.cs" />
-      <Compile Remove="Protobuf\Generated\Acs0.c.cs" />
-    </ItemGroup>
 </Project>
