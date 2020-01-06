@@ -75,9 +75,8 @@ namespace AElf.Contracts.TokenConverter
                 targetConnector.Weight = input.Weight.ToString(CultureInfo.InvariantCulture);
             }
 
-            if (input.VirtualBalance > 0)
+            if (targetConnector.IsDepositAccount && input.VirtualBalance > 0)
                 targetConnector.VirtualBalance = input.VirtualBalance;
-            targetConnector.IsVirtualBalanceEnabled = input.IsVirtualBalanceEnabled;
             return new Empty();
         }
 

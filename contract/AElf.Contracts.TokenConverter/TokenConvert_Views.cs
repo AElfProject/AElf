@@ -85,7 +85,17 @@ namespace AElf.Contracts.TokenConverter
                 NeedAmount = needDeposit,
                 AmountOutOfTokenConvert = amountOutOfTokenConvert
             };
-            
+        }
+        
+        public override Int64Value GetDepositConnectorBalance(StringValue symbolInput)
+        {
+            var connector = State.Connectors[symbolInput.Value];
+            Assert(connector != null && !connector.IsDepositAccount, $"token symbol is invalid");
+            var ntSymbol = connector.RelatedSymbol;
+            return new Int64Value
+            {
+                Value = State.Connectors[ntSymbol].VirtualBalance + State.DepositBalance[ntSymbol]
+            };
         }
     }
 }

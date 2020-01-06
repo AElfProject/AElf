@@ -211,9 +211,14 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = await GetBalanceAsync(WriteSymbol, DefaultSender);
-            balanceOfTesterRam.ShouldBe(1000L);
+            var balanceOfTesterWrite = await GetBalanceAsync(WriteSymbol, DefaultSender);
+            balanceOfTesterWrite.ShouldBe(1000L);
 
+            var ElfBalanceLoggedInTokenConvert = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
+            ElfBalanceLoggedInTokenConvert.Value.ShouldBe(ELFConnector.VirtualBalance + amountToPay);
             var balanceOfElfToken = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
             balanceOfElfToken.ShouldBe(amountToPay);
 

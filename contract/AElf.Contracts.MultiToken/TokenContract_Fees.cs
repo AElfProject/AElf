@@ -100,31 +100,49 @@ namespace AElf.Contracts.MultiToken
         {
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
+            var availableTokenSymbol = input.PrimaryTokenSymbol;
             if (bill.TokenToAmount.Any())
             {
                 symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
                 amountChargedForBaseFee = bill.TokenToAmount.First().Value;
             }
 
-            var availableBalance = symbolChargedForBaseFee == input.PrimaryTokenSymbol
+            var availableBalance = symbolChargedForBaseFee == availableTokenSymbol
                 // Available balance need to deduct amountChargedForBaseFee
-                ? State.Balances[Context.Sender][input.PrimaryTokenSymbol].Sub(amountChargedForBaseFee)
-                : State.Balances[Context.Sender][input.PrimaryTokenSymbol];
+                ? State.Balances[Context.Sender][availableTokenSymbol].Sub(amountChargedForBaseFee)
+                : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
+            
+            if (availableBalance < txSizeFeeAmount && State.ExtraAvailableTokenInfos.Value !=null && State.ExtraAvailableTokenInfos.Value.AllAvailableTokens.Any())
+            {
+                var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
+                var availableTokenBalanceOrderList =
+                    allExtraTokenInfo.OrderByDescending(GetBalanceCalculatedBaseOnPrimaryToken);
+                var availableTokenInfoWithMostBalance = availableTokenBalanceOrderList.FirstOrDefault();
+                if (availableTokenInfoWithMostBalance != null &&
+                    GetBalanceCalculatedBaseOnPrimaryToken(availableTokenInfoWithMostBalance) > availableBalance)
+                {
+                    availableTokenSymbol = availableTokenInfoWithMostBalance.TokenSymbol;
+                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableTokenInfoWithMostBalance.AddedTokenWeight)
+                        .Div(availableTokenInfoWithMostBalance.BaseTokenWeight);
+                    availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
+                }
+            }
+            
             var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (input.PrimaryTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
+            if (availableTokenSymbol == null) return availableBalance >= txSizeFeeAmount; // todo
 
-            if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
+            if (symbolChargedForBaseFee == availableTokenSymbol)
             {
-                bill.TokenToAmount[input.PrimaryTokenSymbol] =
-                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(chargeAmount);
+                bill.TokenToAmount[availableTokenSymbol] =
+                    bill.TokenToAmount[availableTokenSymbol].Add(chargeAmount);
             }
             else
             {
-                bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
+                bill.TokenToAmount.Add(availableTokenSymbol, chargeAmount);
             }
 
             return availableBalance >= txSizeFeeAmount;
@@ -197,6 +215,40 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
+        {
+            AssertAuthenticatedByAll();
+            Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
+                "weight should be greater than 0");
+            if( State.ExtraAvailableTokenInfos.Value == null)
+                State.ExtraAvailableTokenInfos.Value = new AllAvailableTokenInfo();
+            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
+            Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
+            allExtraTokenInfo.Add(input);
+            return new Empty();
+        }
+
+        public override Empty UpdateAvailableTokenInfo(AvailableTokenInfo input)
+        {
+            AssertAuthenticatedByAll();
+            Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
+                "weight should be greater than 0");
+            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
+            var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.TokenSymbol);
+            Assert(tokenInfo != null, $"dose not find token symbol {input.TokenSymbol}");
+            tokenInfo.AddedTokenWeight = input.AddedTokenWeight;
+            tokenInfo.BaseTokenWeight = input.BaseTokenWeight;
+            return new Empty();
+        }
+        public override Empty RemoveAvailableTokenInfo(StringValue input)
+        {
+            AssertAuthenticatedByAll();
+            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
+            var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
+            Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
+            allExtraTokenInfo.Remove(tokenInfo);
+            return new Empty();
+        }
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -510,6 +562,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.Rental[pair.Key] = pair.Value;
             }
+
             return new Empty();
         }
 
@@ -523,6 +576,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
+
             return new Empty();
         }
 
@@ -623,6 +677,14 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
+        }
+
+        private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
+        {
+            var availableTokenSymbol = tokenInfo.TokenSymbol;
+            var availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
+            return availableBalance.Mul(tokenInfo.BaseTokenWeight)
+                .Div(tokenInfo.AddedTokenWeight);
         }
     }
 }

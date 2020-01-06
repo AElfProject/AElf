@@ -9,6 +9,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -177,7 +178,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
         [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
         [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
-        public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2, long fee3,
+        public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2,
+            long fee3,
             string chargedSymbol, long chargedAmount, bool isChargingSuccessful)
         {
             await DeployContractsAsync();
@@ -232,6 +234,43 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             })).Balance;
 
             (originBalance - finalBalance).ShouldBe(chargedAmount);
+        }
+
+        [Fact]
+        public async Task Extra_Available_Token_Use_Test()
+        {
+            await DeployContractsAsync();
+            const string addTokenSymbol = "MO";
+            const int baseTokenWeight = 1;
+            const int addTokenWeight = 2;
+            await CreateAndIssueTokenAsync(addTokenSymbol, 60000000);
+            await CreateAndIssueTokenAsync("ELF",  30000000);
+            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
+
+            var addAvailableTokenRet = (await TokenContractStub.AddAvailableTokenInfo.SendAsync(new AvailableTokenInfo
+            {
+                TokenSymbol = addTokenSymbol,
+                AddedTokenWeight = addTokenWeight,
+                BaseTokenWeight = baseTokenWeight
+            })).TransactionResult;
+            addAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = addTokenSymbol
+            });
+            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var size = dummy.Transaction.Size();
+            var elfFee = await txCostStrategy.GetCostAsync(null, size);
+            var availableTokenCost = dummy.TransactionResult.TransactionFee.Value[addTokenSymbol];
+            availableTokenCost.ShouldBe(elfFee.Mul(addTokenWeight).Div(baseTokenWeight));
+            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = addTokenSymbol
+            });
+            after.Balance.ShouldBe(before.Balance - availableTokenCost);
         }
     }
 }

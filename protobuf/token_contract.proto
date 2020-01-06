@@ -79,7 +79,12 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-
+    rpc AddAvailableTokenInfo(AvailableTokenInfo) returns (google.protobuf.Empty){
+    }
+    rpc UpdateAvailableTokenInfo(AvailableTokenInfo) returns (google.protobuf.Empty){
+    }
+    rpc RemoveAvailableTokenInfo(google.protobuf.StringValue) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -124,6 +129,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (AllAvailableTokenInfo){
         option (aelf.is_view) = true;
     }
 }
@@ -526,4 +534,14 @@ message RentalAccountBalanceInsufficient {
     option (aelf.is_event) = true;
     string symbol = 1;
     sint64 amount = 2;
+}
+
+message AvailableTokenInfo{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}
+
+message AllAvailableTokenInfo{
+    repeated AvailableTokenInfo all_available_tokens = 1;
 }
