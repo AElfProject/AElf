@@ -21,7 +21,7 @@ namespace AElf.Contracts.TokenHolder
 
             State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
             {
-                Manager = Context.Self,
+                Manager = Context.Sender,
                 IsReleaseAllBalanceEveryTimeByDefault = true,
                 CanRemoveBeneficiaryDirectly = true
             });
@@ -203,16 +203,16 @@ namespace AElf.Contracts.TokenHolder
         {
             var scheme = State.TokenHolderProfitSchemes[manager];
             Assert(scheme != null, "Token holder profit scheme not found.");
-            UpdateTokenHolderProfitScheme(ref scheme);
+            UpdateTokenHolderProfitScheme(ref scheme, manager);
             return scheme;
         }
 
-        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme)
+        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme, Address manager)
         {
             if (scheme.SchemeId != null) return;
             var originSchemeId = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
-                Manager = Context.Self
+                Manager = manager
             }).SchemeIds.FirstOrDefault();
             Assert(originSchemeId != null, "Origin scheme not found.");
             var originScheme = State.ProfitContract.GetScheme.Call(originSchemeId);
