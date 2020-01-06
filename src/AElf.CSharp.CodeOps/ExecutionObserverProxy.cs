@@ -1,5 +1,4 @@
 using System;
-using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 
 namespace AElf.CSharp.CodeOps

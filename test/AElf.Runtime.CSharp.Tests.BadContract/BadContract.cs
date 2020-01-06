@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
@@ -91,8 +92,8 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             
             return new Empty();
         }
-        
-        public override GetHashCodeTestOutput TestGetHashCode(GetHashCodeTestInput input)
+
+        public override GetHashCodeTestOutput TestGetHashCodeFromInput(GetHashCodeTestInput input)
         {
             return new GetHashCodeTestOutput
             {
@@ -105,6 +106,23 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 BytesHash = input.BytesValue.GetHashCode(),
                 RepeatedStringHash = input.RepeatedStringValue.GetHashCode(),
                 OutputHash = input.GetHashCode()
+            };
+        }
+
+        public override GetHashCodeTestOutput TestGetHashCodeFromContract(Empty input)
+        {
+            var str = "GetHashCode Test";
+            return new GetHashCodeTestOutput
+            {
+                BoolHash = true.GetHashCode(),
+                Int32Hash = int.MaxValue.GetHashCode(),
+                Uint32Hash = uint.MaxValue.GetHashCode(),
+                Int64Hash = long.MaxValue.GetHashCode(),
+                Uint64Hash = ulong.MaxValue.GetHashCode(),
+                StringHash = str.GetHashCode(),
+                // Test getting hash code from other types
+                BytesHash = new object().GetHashCode(),
+                RepeatedStringHash = new Hash().GetHashCode()
             };
         }
 

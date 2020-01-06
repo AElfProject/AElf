@@ -1,6 +1,3 @@
-using System;
-using System.Text;
-
 namespace AElf.Sdk.CSharp
 {
     public class AElfString

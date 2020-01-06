@@ -27,7 +27,9 @@ service BadContract {
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
-    rpc TestGetHashCode (GetHashCodeTestInput) returns (GetHashCodeTestOutput) { }
+    rpc TestGetHashCodeFromInput (GetHashCodeTestInput) returns (GetHashCodeTestOutput) { }
+    
+    rpc TestGetHashCodeFromContract (google.protobuf.Empty) returns (GetHashCodeTestOutput) { }
 
     rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 
