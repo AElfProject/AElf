@@ -26,6 +26,8 @@ service TokenHolderContract {
     }
     rpc Withdraw (aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) {
         option (aelf.is_view) = true;
@@ -58,6 +60,12 @@ message DistributeProfitsInput {
 message RegisterForProfitsInput {
     aelf.Address scheme_manager = 1;
     sint64 amount = 2;
+}
+
+message ClaimProfitsInput {
+    aelf.Address scheme_manager = 1;
+    aelf.Address beneficiary = 2;
+    string symbol = 3;
 }
 
 message TokenHolderProfitScheme {

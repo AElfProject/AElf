@@ -76,6 +76,8 @@ namespace AElf.Contracts.TokenHolder
         public override Empty DistributeProfits(DistributeProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
+            Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName) ||
+                   Context.Sender == input.SchemeManager, "No permission to distribute profits.");
             State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
@@ -131,6 +133,19 @@ namespace AElf.Contracts.TokenHolder
             {
                 SchemeId = scheme.SchemeId,
                 Beneficiary = Context.Sender
+            });
+            return new Empty();
+        }
+
+        public override Empty ClaimProfits(ClaimProfitsInput input)
+        {
+            var scheme = GetValidScheme(input.SchemeManager);
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            State.ProfitContract.ClaimProfits.Send(new Profit.ClaimProfitsInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = beneficiary,
+                Symbol = input.Symbol
             });
             return new Empty();
         }

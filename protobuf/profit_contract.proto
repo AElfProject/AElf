@@ -112,6 +112,7 @@ message BeneficiaryShare {
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
     string symbol = 2;
+    aelf.Address beneficiary = 3;
 }
 
 message DistributeProfitsInput {

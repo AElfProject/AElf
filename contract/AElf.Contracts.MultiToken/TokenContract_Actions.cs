@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -372,7 +373,8 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100, "Invalid donation ratio.");
+            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100,
+                "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;
             return new Empty();
@@ -383,35 +385,55 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
-            foreach (var symbol in input.Symbols.Except(Context.Variables.SymbolListToPayTxFee))
+            Assert(
+                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                    .Contains(input.Symbol), "Invalid token symbol.");
+            var profits = State.Balances[input.ContractAddress][input.Symbol];
+            State.Balances[input.ContractAddress][input.Symbol] = 0;
+            var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
+            State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
+            if (State.TreasuryContract.Value != null)
             {
-                var profits = State.Balances[input.ContractAddress][symbol];
-                State.Balances[input.ContractAddress][symbol] = 0;
-                var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
-                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
-                if (State.TreasuryContract.Value != null)
+                // Main Chain.
+                State.TreasuryContract.Donate.Send(new DonateInput
                 {
-                    // Main Chain.
-                    State.TreasuryContract.Donate.Send(new DonateInput
-                    {
-                        Symbol = symbol,
-                        Amount = donates
-                    });
-                }
-                else
+                    Symbol = input.Symbol,
+                    Amount = donates
+                });
+            }
+            else
+            {
+                // Side Chain.
+                Transfer(new TransferInput
                 {
-                    // Side Chain.
-                    Transfer(new TransferInput
-                    {
-                        To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
-                        Amount = donates,
-                        Symbol = symbol
-                    });
+                    To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
+                    Amount = donates,
+                    Symbol = input.Symbol
+                });
+            }
+
+            State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol] =
+                State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol]
+                    .Add(profits.Sub(donates));
+
+            if (State.TokenHolderContract.Value == null)
+            {
+                var tokenHolderContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+                if (tokenHolderContractAddress == null)
+                {
+                    return new Empty();
                 }
 
-                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
-                    State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
+                State.TokenHolderContract.Value = tokenHolderContractAddress;
             }
+
+            // Release token holders profits.
+            State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
+            {
+                SchemeManager = input.ContractAddress,
+                Symbol = input.Symbol
+            });
 
             return new Empty();
         }

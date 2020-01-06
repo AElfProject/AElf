@@ -654,12 +654,14 @@ namespace AElf.Contracts.Profit
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
             Assert(profitDetails != null, "Profit details not found.");
             if (profitDetails == null || scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Context.LogDebug(
-                () => $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()}.");
+                () =>
+                    $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()} for {beneficiary}.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -667,7 +669,7 @@ namespace AElf.Contracts.Profit
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
-                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
+                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2)}");
 
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
@@ -682,16 +684,16 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress);
+                ProfitAllPeriods(scheme, input.Symbol, profitDetail, beneficiary, profitVirtualAddress);
             }
 
-            State.ProfitDetailsMap[input.SchemeId][Context.Sender] = new ProfitDetails {Details = {availableDetails}};
+            State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
 
             return new Empty();
         }
 
         private long ProfitAllPeriods(Scheme scheme, string symbol, ProfitDetail profitDetail,
-            Address profitVirtualAddress, bool isView = false)
+            Address profitVirtualAddress, Address beneficiary, bool isView = false)
         {
             var totalAmount = 0L;
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
@@ -718,14 +720,14 @@ namespace AElf.Contracts.Profit
                 if (!isView)
                 {
                     Context.LogDebug(() =>
-                        $"{Context.Sender} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
+                        $"{beneficiary} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,
-                            To = Context.Sender,
+                            To = beneficiary,
                             Symbol = symbol,
                             Amount = amount
                         });
@@ -741,14 +743,14 @@ namespace AElf.Contracts.Profit
 
             return totalAmount;
         }
-        
+
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
         {
             if (state.Value != null)
                 return;
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
-        
+
         private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId)
         {
             var scheme = new Scheme
