@@ -1,9 +1,9 @@
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 
 namespace AElf.Contracts.TestContract.TransactionFees
 {
@@ -11,14 +11,18 @@ namespace AElf.Contracts.TestContract.TransactionFees
     {
         public override Empty InitializeFeesContract(Address input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
             State.Acs8Contract.Value = input;
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            //init state
+            for (var i = 0; i <= 100; i++)
+            {
+                State.TestInfo[i] = 5 * i;
+            }
             
             return new Empty();
         }
-
+        
         public override Empty MessCpuNetConsuming(NetBytesInput input)
         {
             State.Acs8Contract.CpuConsumingMethod.Send(new Empty());
@@ -107,6 +111,49 @@ namespace AElf.Contracts.TestContract.TransactionFees
             
             Context.SendInline(State.TokenContract.Value, "NotExist", ByteString.CopyFromUtf8("fake parameter"));
             
+            return new Empty();
+        }
+
+        public override Empty ReadCpuCountTest(Int32Value input)
+        {
+            Assert(input.Value>0, $"Invalid read state count {input.Value}");
+            var sum = 0;
+            for (var i = 0; i <= input.Value % 100; i++)
+            {
+                sum = sum.Add(State.TestInfo[i]);
+            }
+            
+            return new Empty();
+        }
+
+        public override Empty WriteRamCountTest(Int32Value input)
+        {
+            Assert(input.Value>0, $"Invalid write state count {input.Value}");
+            for (var i = 0; i <= input.Value % 100; i++)
+            {
+                State.TestInfo[i] = input.Value * i;
+            }
+            
+            return new Empty();
+        }
+
+        public override Empty ComplexCountTest(ReadWriteInput input)
+        {
+            Assert(input.Read>0 && input.Write>0, "Invalid write/read state count input.");
+            WriteRamCountTest(new Int32Value
+            {
+                Value = input.Write
+            });
+            ReadCpuCountTest(new Int32Value
+            {
+                Value = input.Read
+            });
+            
+            return new Empty();
+        }
+
+        public override Empty NoReadWriteCountTest(StringValue input)
+        {
             return new Empty();
         }
     }

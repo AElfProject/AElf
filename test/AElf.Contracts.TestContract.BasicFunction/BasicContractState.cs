@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -17,5 +18,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
 
         public MappedState<Address, long> WinerHistory { get; set; }
         public MappedState<Address, long> LoserHistory { get; set; }
+        
+        public MappedState<string, MethodFees> MethodFees { get; set; }
     }
 }
