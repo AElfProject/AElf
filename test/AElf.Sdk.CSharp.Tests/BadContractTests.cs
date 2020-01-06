@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
@@ -92,6 +93,31 @@ namespace AElf.Sdk.CSharp.Tests
             SetObserver();
             Should.Throw<RuntimeCallThresholdExceededException>(() => Contract.TestInfiniteRecursiveCallInSeparateClass(new Empty()));
             ClearObserver();
+        }
+        
+        [Fact]
+        public void TestGetHashCodeInContract()
+        {
+            var str = "GetHashCode Test";
+            var output = Contract.TestGetHashCode(new CustomContract.GetHashCodeTestInput
+            {
+                BoolValue = true,
+                Int32Value = Int32.MaxValue,
+                UInt32Value = UInt32.MaxValue,
+                Int64Value = Int64.MaxValue,
+                UInt64Value = UInt64.MaxValue,
+                StringValue = str,
+                BytesValue = ByteString.CopyFromUtf8(str)
+            });
+            
+            output.BoolHash.ShouldBe(1);
+            output.Int32Hash.ShouldBe(2147483647);
+            output.Uint32Hash.ShouldBe(-1);
+            output.Int64Hash.ShouldBe(-2147483648);
+            output.Uint64Hash.ShouldBe(0);
+            output.StringHash.ShouldBe(-806870568);
+            output.BytesHash.ShouldBe(-347977704);
+            output.OutputHash.ShouldBe(615147968);
         }
     }
 }
