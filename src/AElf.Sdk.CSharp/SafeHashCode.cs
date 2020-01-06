@@ -10,9 +10,12 @@ namespace AElf.Sdk.CSharp
         {
             switch (obj)
             {
+                // If it is a string; 
                 case string str:
+                    // call deterministic GetHashCode for strings
                     return GetHashCode(str);
                 
+                // If it is a IMessage inherited type;
                 case IMessage _:
                 {
                     // Call overriden method from the message implementation
@@ -23,11 +26,14 @@ namespace AElf.Sdk.CSharp
                     return ret != null ? (int) ret : 0;
                 }
                 
+                // If it is a byte string;
                 case ByteString bString:
+                    // It is ok to call protobuf implemented one, since it is also deterministic
                     return bString.GetHashCode();
                 
+                // If it is an unusual type
                 default:
-                    // If an usual type, return 0
+                    // Just return a fixed value
                     return 0;
             }
         }
