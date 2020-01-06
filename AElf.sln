@@ -313,6 +313,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenHolder", "contract\AElf.Contracts.TokenHolder\AElf.Contracts.TokenHolder.csproj", "{005575E0-4C3E-4F05-9A91-82AC7583D98C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.A", "test\AElf.Contracts.TestContract.A\AElf.Contracts.TestContract.A.csproj", "{87755332-3CAF-4305-BB2E-7470C24DA655}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.B", "test\AElf.Contracts.TestContract.B\AElf.Contracts.TestContract.B.csproj", "{496EAD56-5E85-4C76-B680-7AB268DF44C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.C", "test\AElf.Contracts.TestContract.C\AElf.Contracts.TestContract.C.csproj", "{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -891,6 +897,18 @@ Global
 		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{005575E0-4C3E-4F05-9A91-82AC7583D98C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87755332-3CAF-4305-BB2E-7470C24DA655}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87755332-3CAF-4305-BB2E-7470C24DA655}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87755332-3CAF-4305-BB2E-7470C24DA655}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87755332-3CAF-4305-BB2E-7470C24DA655}.Release|Any CPU.Build.0 = Release|Any CPU
+		{496EAD56-5E85-4C76-B680-7AB268DF44C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{496EAD56-5E85-4C76-B680-7AB268DF44C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{496EAD56-5E85-4C76-B680-7AB268DF44C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{496EAD56-5E85-4C76-B680-7AB268DF44C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1049,5 +1067,8 @@ Global
 		{BD54B7A6-E0E0-4668-9D2B-30EB3F028386} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{8E054D47-BF33-4335-A7D5-084942CFD675} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{005575E0-4C3E-4F05-9A91-82AC7583D98C} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{87755332-3CAF-4305-BB2E-7470C24DA655} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{496EAD56-5E85-4C76-B680-7AB268DF44C5} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
