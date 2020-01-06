@@ -9,6 +9,7 @@ namespace AElf.Kernel.SmartContract.Domain
     public interface ISmartContractCodeHistoryProvider
     {
         SmartContractCodeHistory GetSmartContractCodeHistory(Address address);
+        void SetSmartContractCodeHistory(Address address,SmartContractCodeHistory smartContractCodeHistory);
         void AddSmartContractCode(Address address, Hash codeHash, BlockIndex blockIndex);
         Dictionary<Address,List<SmartContractCode>> Remove(List<BlockIndex> blockIndexes);
     }
@@ -25,6 +26,11 @@ namespace AElf.Kernel.SmartContract.Domain
             return codeHistory;
         }
         
+        public void SetSmartContractCodeHistory(Address address, SmartContractCodeHistory smartContractCodeHistory)
+        {
+            _addressSmartContractCodeHistoryMappingCache[address] = smartContractCodeHistory;
+        }
+
         public void AddSmartContractCode(Address address, Hash codeHash, BlockIndex blockIndex)
         {
             if(!_addressSmartContractCodeHistoryMappingCache.TryGetValue(address,out var codeHistory))

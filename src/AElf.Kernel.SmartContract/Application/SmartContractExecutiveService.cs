@@ -362,7 +362,7 @@ namespace AElf.Kernel.SmartContract.Application
                 else
                 {
                     executiveZero =
-                        await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
+                        await GetHistoryExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
                 }
 
                 return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, codeHash);

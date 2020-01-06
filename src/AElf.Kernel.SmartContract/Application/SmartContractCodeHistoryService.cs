@@ -29,15 +29,18 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var smartContractCodeHistory = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
             if (smartContractCodeHistory != null) return smartContractCodeHistory;
-            return  await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
+            smartContractCodeHistory = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
+            if(smartContractCodeHistory != null)
+                _smartContractCodeHistoryProvider.SetSmartContractCodeHistory(address, smartContractCodeHistory);
+            return smartContractCodeHistory;
         }
 
         public async Task AddSmartContractCodeAsync(Address address, Hash codeHash, BlockIndex blockIndex)
         {
-            _smartContractCodeHistoryProvider.AddSmartContractCode(address,codeHash,blockIndex);
-            var smartContractCodeHistory = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address) ??
+            var smartContractCodeHistory = await GetSmartContractCodeHistoryAsync(address) ??
                                            new SmartContractCodeHistory();
-            smartContractCodeHistory.Codes.Add(new SmartContractCode
+            _smartContractCodeHistoryProvider.AddSmartContractCode(address, codeHash, blockIndex);
+            smartContractCodeHistory.Codes.AddIfNotContains(new SmartContractCode
             {
                 BlockHash = blockIndex.BlockHash,
                 BlockHeight = blockIndex.BlockHeight,
