@@ -9,63 +9,6 @@ namespace AElf.CSharp.CodeOps
 {
     public static class Extensions
     {
-        public static TypeReference GetInstanceTypeInStack(this Instruction instruction, MethodDefinition methodDef)
-        {
-            if (instruction.OpCode == OpCodes.Call)
-            {
-                // If it is a call instruction, it is a static method call,
-                // not an instance method call, so we don't care about the instance type
-                return null;
-            }
-
-            // Try to static identify the first element in stack during runtime
-            var previousInstruction = instruction.Previous;
-            var methodVariables = methodDef.Body.Variables;
-            var methodParameters = methodDef.Parameters;
-            switch (previousInstruction.OpCode.Code.ToString())
-            {
-                // From input parameters (arguments)
-                case nameof(OpCodes.Ldarg_0): // this (loads itself to stack)
-                    return methodDef.DeclaringType;
-                case nameof(OpCodes.Ldarg_1):
-                    return methodParameters[0].ParameterType;
-                case nameof(OpCodes.Ldarg_2):
-                    return methodParameters[1].ParameterType;
-                case nameof(OpCodes.Ldarg_3):
-                    return methodParameters[2].ParameterType;
-                case nameof(OpCodes.Ldarg):
-                    return methodParameters[(short) previousInstruction.Operand - 1].ParameterType;
-                
-                // From method variables
-                case nameof(OpCodes.Ldloc_0):
-                    return methodVariables[0].VariableType;
-                case nameof(OpCodes.Ldloc_1):
-                    return methodVariables[1].VariableType;
-                case nameof(OpCodes.Ldloc_2):
-                    return methodVariables[2].VariableType;
-                case nameof(OpCodes.Ldloc_3):
-                    return methodVariables[3].VariableType;
-                case nameof(OpCodes.Ldloc):
-                    return methodVariables[(short) previousInstruction.Operand].VariableType;
-                
-                // From field
-                case nameof(OpCodes.Ldfld):
-                    return ((FieldReference) previousInstruction.Operand).FieldType;
-
-                // From method call
-                case nameof(OpCodes.Call):
-                case nameof(OpCodes.Callvirt):
-                    return ((MethodReference) previousInstruction.Operand).ReturnType;
-                
-                // This is to cast the type in stack (constraints to operand type before calling callvirt)
-                case nameof(OpCodes.Constrained):
-                    return (TypeReference) previousInstruction.Operand;
-                        
-                default:
-                    throw new InvalidCodeException("Cannot identify instance type for instance method call.");
-            }
-        }
-
         public static bool HasSameBody(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
         {
             // Exclude nop opcodes (compile in debug mode adds nop to be able to place breakpoint, ignore those)
