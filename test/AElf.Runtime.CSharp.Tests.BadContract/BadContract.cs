@@ -103,6 +103,7 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 Uint64Hash = input.UInt64Value.GetHashCode(),
                 StringHash = input.StringValue.GetHashCode(),
                 BytesHash = input.BytesValue.GetHashCode(),
+                RepeatedStringHash = input.RepeatedStringValue.GetHashCode(),
                 OutputHash = input.GetHashCode()
             };
         }

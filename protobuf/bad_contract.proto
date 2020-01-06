@@ -71,7 +71,8 @@ message GetHashCodeTestInput {
     int64 int64_value = 4;
     uint64 u_int64_value = 5;
     string string_value = 6;
-    bytes bytes_value = 7;
+    repeated string repeated_string_value = 8;
+    bytes bytes_value = 9;
 }
 
 message GetHashCodeTestOutput {
@@ -82,5 +83,6 @@ message GetHashCodeTestOutput {
     int32 uint64_hash = 5;
     int32 string_hash = 6;
     int32 bytes_hash = 7;
-    int32 output_hash = 8;
+    int32 repeated_string_hash = 8;
+    int32 output_hash = 9;
 }

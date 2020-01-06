@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
@@ -96,9 +97,10 @@ namespace AElf.Sdk.CSharp.Tests
         }
         
         [Fact]
-        public void TestGetHashCodeInContract()
+        public void TestGetHashCode_InContract()
         {
             var str = "GetHashCode Test";
+
             var output = Contract.TestGetHashCode(new CustomContract.GetHashCodeTestInput
             {
                 BoolValue = true,
@@ -107,6 +109,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Int64Value = Int64.MaxValue,
                 UInt64Value = UInt64.MaxValue,
                 StringValue = str,
+                RepeatedStringValue = { str, str },
                 BytesValue = ByteString.CopyFromUtf8(str)
             });
             
@@ -117,6 +120,7 @@ namespace AElf.Sdk.CSharp.Tests
             output.Uint64Hash.ShouldBe(0);
             output.StringHash.ShouldBe(-806870568);
             output.BytesHash.ShouldBe(-347977704);
+            output.RepeatedStringHash.ShouldBe(0);
             output.OutputHash.ShouldBe(615147968);
         }
     }
