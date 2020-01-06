@@ -50,6 +50,7 @@ message RemoveTokenHolderBeneficiaryInput {
 message ContributeProfitsInput {
     aelf.Address scheme_manager = 1;
     sint64 amount = 2;
+    string symbol = 3;
 }
 
 message DistributeProfitsInput {

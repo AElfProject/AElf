@@ -423,6 +423,8 @@ namespace AElf.Contracts.MultiToken
 
         private void PayRental()
         {
+            var creator = State.SideChainCreator.Value;
+            if (creator == null) return;
             if (State.LastPayRentTime.Value == null)
             {
                 // Initial LastPayRentTime first calling DonateResourceToken.
@@ -439,8 +441,6 @@ namespace AElf.Contracts.MultiToken
 
             // Update LastPayRentTime if it is ready to charge rental.
             State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
-
-            var creator = State.SideChainCreator.Value;
 
             foreach (var symbol in Context.Variables.SymbolListToPayRental)
             {

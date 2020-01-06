@@ -22,7 +22,8 @@ namespace AElf.Contracts.TokenHolder
             State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
             {
                 Manager = Context.Sender,
-                IsReleaseAllBalanceEveryTimeByDefault = true
+                IsReleaseAllBalanceEveryTimeByDefault = true,
+                CanRemoveBeneficiaryDirectly = true
             });
 
             State.TokenHolderProfitSchemes[Context.Sender] = new TokenHolderProfitScheme
@@ -36,15 +37,31 @@ namespace AElf.Contracts.TokenHolder
         public override Empty AddBeneficiary(AddTokenHolderBeneficiaryInput input)
         {
             var scheme = GetValidScheme(Context.Sender);
-            Assert(scheme != null, "Token holder profit scheme not found.");
-            UpdateTokenHolderProfitScheme(ref scheme);
+            var detail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = input.Beneficiary
+            });
+            var shares = input.Shares;
+            if (detail.Details.Any())
+            {
+                // Only keep one detail.
+
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = scheme.SchemeId,
+                    Beneficiary = input.Beneficiary
+                });
+                shares.Add(detail.Details.Single().Shares);
+            }
+
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
                 BeneficiaryShare = new BeneficiaryShare
                 {
                     Beneficiary = input.Beneficiary,
-                    Shares = input.Shares
+                    Shares = shares
                 }
             });
             return new Empty();
@@ -64,10 +81,23 @@ namespace AElf.Contracts.TokenHolder
         public override Empty ContributeProfits(ContributeProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
             State.ProfitContract.ContributeProfits.Send(new Profit.ContributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
-                Symbol = scheme.Symbol,
+                Symbol = input.Symbol,
                 Amount = input.Amount
             });
             return new Empty();
@@ -82,14 +112,22 @@ namespace AElf.Contracts.TokenHolder
             {
                 SchemeId = scheme.SchemeId,
                 Symbol = input.Symbol ?? scheme.Symbol,
-                Period = scheme.Period
+                Period = scheme.Period.Add(1)
             });
+            scheme.Period = scheme.Period.Add(1);
+            State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
             return new Empty();
         }
 
         public override Empty RegisterForProfits(RegisterForProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             State.TokenContract.Lock.Send(new LockInput
             {
                 LockId = Context.TransactionId,
@@ -113,6 +151,12 @@ namespace AElf.Contracts.TokenHolder
         public override Empty Withdraw(Address input)
         {
             var scheme = GetValidScheme(input);
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var amount = State.TokenContract.GetLockedAmount.Call(new GetLockedAmountInput
             {
                 Address = Context.Sender,

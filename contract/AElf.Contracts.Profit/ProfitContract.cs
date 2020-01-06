@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -45,16 +46,17 @@ namespace AElf.Contracts.Profit
                 input.ProfitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount;
             }
 
+            var manager = input.Manager ?? Context.Sender;
             var schemeId = Context.TransactionId;
             // Why? Because one transaction may create many profit items via inline transactions.
-            var createdSchemeIds = State.ManagingSchemeIds[Context.Sender]?.SchemeIds;
+            var createdSchemeIds = State.ManagingSchemeIds[manager]?.SchemeIds;
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
                 // So we choose this way to avoid profit id conflicts in aforementioned situation.
                 schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
             }
 
-            var scheme = GetNewScheme(input, schemeId);
+            var scheme = GetNewScheme(input, schemeId, manager);
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -70,7 +72,7 @@ namespace AElf.Contracts.Profit
                 schemeIds.SchemeIds.Add(schemeId);
             }
 
-            State.ManagingSchemeIds[Context.Sender] = schemeIds;
+            State.ManagingSchemeIds[scheme.Manager] = schemeIds;
 
             Context.LogDebug(() => $"Created scheme {State.SchemeInfos[schemeId]}");
 
@@ -171,7 +173,10 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can add beneficiary.");
+            Assert(
+                Context.Sender == scheme.Manager || Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can add beneficiary.");
 
             Context.LogDebug(() =>
                 $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
@@ -238,10 +243,14 @@ namespace AElf.Contracts.Profit
 
             if (scheme == null || currentDetail == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can remove beneficiary.");
+            Assert(Context.Sender == scheme.Manager || Context.Sender ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can remove beneficiary.");
 
-            var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
+                ? currentDetail.Details.ToList()
+                : currentDetail.Details
+                    .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
             if (!expiryDetails.Any()) return new Empty();
 
@@ -318,7 +327,9 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
+            Assert(Context.Sender == scheme.Manager || Context.Sender ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can distribute profits.");
 
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
@@ -684,7 +695,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, input.Symbol, profitDetail, beneficiary, profitVirtualAddress);
+                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress, beneficiary);
             }
 
             State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
@@ -751,18 +762,19 @@ namespace AElf.Contracts.Profit
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
 
-        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId)
+        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId, Address manager)
         {
             var scheme = new Scheme
             {
                 SchemeId = schemeId,
                 // The address of general ledger for current profit item.
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Manager = input.Manager == null ? Context.Sender : input.Manager,
+                Manager = manager,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
-                DelayDistributePeriodCount = input.DelayDistributePeriodCount
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount,
+                CanRemoveBeneficiaryDirectly = input.CanRemoveBeneficiaryDirectly
             };
 
             return scheme;

@@ -24,7 +24,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name),
                 _smartContractAddressService.GetAddressByContractName(ElectionSmartContractAddressNameProvider.Name),
                 _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name),
-                _smartContractAddressService.GetAddressByContractName(TreasurySmartContractAddressNameProvider.Name)
+                _smartContractAddressService.GetAddressByContractName(TreasurySmartContractAddressNameProvider.Name),
+                _smartContractAddressService.GetAddressByContractName(TokenHolderSmartContractAddressNameProvider.Name),
             }.Contains(transaction.From);
         }
     }

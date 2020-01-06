@@ -61,6 +61,7 @@ message CreateSchemeInput {
     bool is_release_all_balance_every_time_by_default = 2;
     sint32 delay_distribute_period_count = 3;
     aelf.Address manager = 4;
+    bool can_remove_beneficiary_directly = 5;
 }
 
 message Scheme {
@@ -75,6 +76,7 @@ message Scheme {
     sint32 delay_distribute_period_count = 10;
     map<sint64, sint64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
     aelf.Address manager = 12;
+    bool can_remove_beneficiary_directly = 13;
 }
 
 message SchemeBeneficiaryShare {
