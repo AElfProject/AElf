@@ -305,6 +305,7 @@ message ProfitReceivingInformation {
 message ReceiveProfitsInput {
     aelf.Address contract_address = 1;
     string symbol = 2;
+    sint64 amount = 3;
 }
 
 message TransferToContractInput {
