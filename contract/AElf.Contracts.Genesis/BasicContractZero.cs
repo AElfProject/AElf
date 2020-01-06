@@ -400,7 +400,7 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty SetControllerAddressByDefault(Address input)
+        public override Empty SetInitialControllerAddress(Address input)
         {
             Assert(State.ContractDeploymentController.Value == null && State.CodeCheckController.Value == null,
                 "Genesis owner already initialized");
@@ -442,25 +442,8 @@ namespace AElf.Contracts.Genesis
             Assert(!State.Initialized.Value, "Genesis contract already initialized.");
             var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             Assert(Context.Sender == address, "Unauthorized to set genesis contract state.");
-            // State.ContractProposerAuthorityRequired.Value = input.Value;
 
-            RequireParliamentContractAddressSet();
-            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
-            {
-                OrganizationCreationInput = new CreateOrganizationInput
-                {
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
-                    {
-                        MinimalApprovalThreshold = MinimalApprovalThreshold,
-                        MinimalVoteThreshold = MinimalVoteThresholdThreshold,
-                        MaximalRejectionThreshold = MaximalRejectionThreshold,
-                        MaximalAbstentionThreshold = MaximalAbstentionThreshold
-                    },
-                    ProposerAuthorityRequired = input.Value
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetControllerAddressByDefault)
-            });
-
+            CreateParliamentOrganizationForInitialControllerAddress(input.Value);
             return new Empty();
         }
 

@@ -521,7 +521,7 @@ namespace AElf.Contracts.CrossChain
             return proposalInfo.ExpiredTime <= Context.CurrentBlockTime;
         }
 
-        private void CreateInitialOrganizationForControllerAddress()
+        private void CreateInitialOrganizationForInitialControllerAddress()
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
@@ -535,7 +535,8 @@ namespace AElf.Contracts.CrossChain
                         MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
                         MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
                     },
-                    ProposerAuthorityRequired = false
+                    ProposerAuthorityRequired = false,
+                    ParliamentMemberProposingAllowed = true
                 },
                 OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
             });
@@ -594,6 +595,15 @@ namespace AElf.Contracts.CrossChain
             return Context.Call<BoolValue>(authorityStuff.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
                 authorityStuff.OwnerAddress).Value;
+        }
+
+        private bool ValidateParliamentOrganization(Address organizationAddress,
+            bool isParliamentMemberProposingRequired)
+        {
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            var organization = State.ParliamentContract.GetOrganization.Call(organizationAddress);
+            return organization != null &&
+                   (!isParliamentMemberProposingRequired || organization.ParliamentMemberProposingAllowed);
         }
     }
 }

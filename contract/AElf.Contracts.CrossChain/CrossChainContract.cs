@@ -21,8 +21,8 @@ namespace AElf.Contracts.CrossChain
             {
                 Status = CrossChainIndexingProposalStatus.NonProposed
             };
-            
-            CreateInitialOrganizationForControllerAddress();
+
+            CreateInitialOrganizationForInitialControllerAddress();
             if (Context.CurrentHeight != Constants.GenesisBlockHeight)
                 return new Empty();
 
@@ -132,7 +132,7 @@ namespace AElf.Contracts.CrossChain
             {
                 InitialResourceUsage(chainId, initialResourceAmount);
             }
-            
+
             CreateOrganizationForIndexingFeePriceAdjustment(input.Proposer);
             Context.Fire(new SideChainCreatedEvent
             {
@@ -396,8 +396,9 @@ namespace AElf.Contracts.CrossChain
         {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            Assert(input.ContractAddress == State.ParliamentContract.Value && ValidateAuthorityStuffExists(input),
-                "Invalid authority input.");
+            Assert(
+                input.ContractAddress == State.ParliamentContract.Value &&
+                ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
             return new Empty();
         }

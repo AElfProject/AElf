@@ -213,16 +213,17 @@ namespace AElf.Contracts.CrossChain.Tests
             long lockedTokenAmount = 10;
             await InitializeCrossChainContractAsync();
 
-            var organization =
+            var organizationAddress =
                 (await ParliamentContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
                         MinimalApprovalThreshold = 1,
                         MinimalVoteThreshold = 1
-                    }
+                    },
+                    ParliamentMemberProposingAllowed = true
                 })).Output;
-            var allowanceResult = await ApproveAndTransferOrganizationBalanceAsync(organization, lockedTokenAmount);
+            var allowanceResult = await ApproveAndTransferOrganizationBalanceAsync(organizationAddress, lockedTokenAmount);
             Assert.True(allowanceResult.Spender == CrossChainContractAddress);
             Assert.True(allowanceResult.Allowance == lockedTokenAmount);
 
@@ -234,7 +235,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 });
             var createProposal = await CreateParliamentProposalAsync(
                 nameof(CrossChainContractStub.RequestSideChainCreation),
-                organization, createSideChainCreationInput);
+                organizationAddress, createSideChainCreationInput);
             await ApproveWithMinersAsync(createProposal);
             var release = await ReleaseProposalAsync(createProposal);
             Assert.True(release.Status == TransactionResultStatus.Mined);
@@ -246,7 +247,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var releaseInput = new ReleaseSideChainCreationInput {ProposalId = createSideChainProposalId};
             var releaseProposal = await CreateParliamentProposalAsync(
                 nameof(CrossChainContractStub.ReleaseSideChainCreation),
-                organization, releaseInput);
+                organizationAddress, releaseInput);
             await ApproveWithMinersAsync(releaseProposal);
             var releaseRelease = await ReleaseProposalAsync(releaseProposal);
             Assert.True(releaseRelease.Status == TransactionResultStatus.Mined);
@@ -256,7 +257,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     .NonIndexed);
             var chainId = sideChainCreatedEvent.ChainId;
             var creator = sideChainCreatedEvent.Creator;
-            Assert.True(creator == organization);
+            Assert.True(creator == organizationAddress);
 
             var chainLockedBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {Symbol = "ELF", Owner = CrossChainContractAddress});
@@ -600,7 +601,8 @@ namespace AElf.Contracts.CrossChain.Tests
                         MaximalRejectionThreshold = 3333,
                         MinimalApprovalThreshold = 3333,
                         MinimalVoteThreshold = 3333
-                    }
+                    },
+                    ParliamentMemberProposingAllowed = true
                 })).Output;
             var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
