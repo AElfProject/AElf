@@ -21,7 +21,7 @@ namespace AElf.Contracts.TokenHolder
 
             State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
             {
-                Manager = Context.Sender,
+                Manager = Context.Self,
                 IsReleaseAllBalanceEveryTimeByDefault = true,
                 CanRemoveBeneficiaryDirectly = true
             });
@@ -212,7 +212,7 @@ namespace AElf.Contracts.TokenHolder
             if (scheme.SchemeId != null) return;
             var originSchemeId = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
-                Manager = Context.Sender
+                Manager = Context.Self
             }).SchemeIds.FirstOrDefault();
             Assert(originSchemeId != null, "Origin scheme not found.");
             var originScheme = State.ProfitContract.GetScheme.Call(originSchemeId);

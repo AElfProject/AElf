@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Acs0;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
@@ -10,6 +11,7 @@ using AElf.Contracts.TestContract.DApp;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -120,7 +122,7 @@ namespace AElf.Contracts.TokenHolder
                                         MethodName = nameof(DAppContractStub.Initialize),
                                         Params = new AElf.Contracts.TestContract.DApp.InitializeInput
                                             {
-                                                ProfitReceiver = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey)
+                                                ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
                                             }.ToByteString()
                                     }
                                 }
@@ -128,6 +130,15 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
                 UserKeyPairs.First());
+
+            AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+                .DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
+                        Name = ConsensusSmartContractAddressNameProvider.Name
+                    }));
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)

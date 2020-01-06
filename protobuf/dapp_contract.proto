@@ -30,8 +30,7 @@ message InitializeInput {
 }
 
 message DepositInput {
-    string symbol = 1;
-    sint64 amount = 2;
+    sint64 amount = 1;
 }
 
 message WithdrawInput {

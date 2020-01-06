@@ -113,6 +113,14 @@ namespace AElf.Contracts.TestContract.DApp
                 Amount = DAppConstants.UseFee
             });
 
+            // Contribute 1/3 profits (ELF) to profit scheme.
+            State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
+            {
+                SchemeManager = Context.Self,
+                Amount = DAppConstants.UseFee.Div(3),
+                Symbol = Context.Variables.NativeSymbol
+            });
+
             // Update profile.
             var profile = State.Profiles[Context.Sender];
             profile.Records.Add(new Record
@@ -135,7 +143,12 @@ namespace AElf.Contracts.TestContract.DApp
                 Decimals = DAppConstants.Decimal,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                TotalSupply = DAppConstants.TotalSupply
+                TotalSupply = DAppConstants.TotalSupply,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                    Context.Self
+                }
             });
         }
 
@@ -143,7 +156,7 @@ namespace AElf.Contracts.TestContract.DApp
         {
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
-                Symbol = Context.Variables.NativeSymbol
+                Symbol = DAppConstants.Symbol
             });
         }
 

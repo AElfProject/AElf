@@ -133,7 +133,7 @@ namespace AElf.Contracts.TokenHolder
         }
 
         [Fact]
-        public async Task DistributeProfitsTest()
+        public async Task DistributeProfits_ClaimWithProfitContract()
         {
             await AddBeneficiaryTest();
 
@@ -159,6 +159,44 @@ namespace AElf.Contracts.TokenHolder
             await userProfitStub.ClaimProfits.SendAsync(new Profit.ClaimProfitsInput
             {
                 SchemeId = tokenHolderProfitScheme.SchemeId,
+                Symbol = "ELF"
+            });
+            
+            {
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = UserAddresses.First(),
+                    Symbol = "ELF"
+                })).Balance;
+                balance.ShouldBe((long) (TokenHolderContractTestConstants.NativeTokenTotalSupply * 0.1) + 10000);
+            }
+        }
+        
+        [Fact]
+        public async Task DistributeProfits_ClaimWithTokenHolderContract()
+        {
+            await AddBeneficiaryTest();
+
+            await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
+            {
+                SchemeManager = Starter,
+                Symbol = "ELF"
+            });
+
+            {
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = UserAddresses.First(),
+                    Symbol = "ELF"
+                })).Balance;
+                balance.ShouldBe((long) (TokenHolderContractTestConstants.NativeTokenTotalSupply * 0.1));
+            }
+
+            var userTokenHolderStub =
+                GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress, UserKeyPairs.First());
+            await userTokenHolderStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeManager = Starter,
                 Symbol = "ELF"
             });
             
