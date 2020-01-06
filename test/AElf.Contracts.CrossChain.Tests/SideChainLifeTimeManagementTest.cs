@@ -142,13 +142,13 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task CreateSideChainCreation_WithoutRequest()
         {
             await InitializeCrossChainContractAsync();
-            var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
             var proposalCreation = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.CreateSideChain),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-                OrganizationAddress = organizationAddress,
+                OrganizationAddress = oldOrganizationAddress,
                 ToAddress = CrossChainContractAddress,
                 Params = new CreateSideChainInput
                 {
@@ -587,8 +587,9 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeIndexingController()
         {
-            var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            await InitializeCrossChainContractAsync();
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
 
             var newOrganizationAddress = (await ParliamentContractStub.CreateOrganization.SendAsync(
                 new CreateOrganizationInput
@@ -610,7 +611,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
                 ToAddress = CrossChainContractAddress,
-                OrganizationAddress = organizationAddress
+                OrganizationAddress = oldOrganizationAddress
             });
 
             var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -627,9 +628,9 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeIndexingController_InvalidOwnerAddress()
         {
-            var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-
+            await InitializeCrossChainContractAsync();
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
             var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
@@ -639,7 +640,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                 }.ToByteString(),
                 ToAddress = CrossChainContractAddress,
-                OrganizationAddress = organizationAddress
+                OrganizationAddress = oldOrganizationAddress
             });
 
             var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -652,8 +653,9 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeIndexingController_NotParliamentOrganization()
         {
-            var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            await InitializeCrossChainContractAsync();
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
             var newOrganizationAddress = (await AssociationContractStub.CreateOrganization.SendAsync(
                 new Association.CreateOrganizationInput
                 {
@@ -682,7 +684,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
                 ToAddress = CrossChainContractAddress,
-                OrganizationAddress = organizationAddress
+                OrganizationAddress = oldOrganizationAddress
             });
 
             var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -695,6 +697,7 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeIndexingController_NotAuthorized()
         {
+            await InitializeCrossChainContractAsync();
             var newOrganizationAddress = (await ParliamentContractStub.CreateOrganization.SendAsync(
                 new CreateOrganizationInput
                 {
@@ -722,8 +725,9 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeSideChainLifeTimeController()
         {
-            var originOrganizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            await InitializeCrossChainContractAsync();
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
 
             var newOrganizationAddress = (await AssociationContractStub.CreateOrganization.SendAsync(
                 new Association.CreateOrganizationInput
@@ -754,7 +758,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
                 ToAddress = CrossChainContractAddress,
-                OrganizationAddress = originOrganizationAddress
+                OrganizationAddress = oldOrganizationAddress
             });
 
             var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -771,8 +775,9 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeSideChainLifeTimeController_Failed()
         {
-            var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            await InitializeCrossChainContractAsync();
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
 
             {
                 // invalid new owner address
@@ -785,7 +790,7 @@ namespace AElf.Contracts.CrossChain.Tests
                         ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                     }.ToByteString(),
                     ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
+                    OrganizationAddress = oldOrganizationAddress
                 });
 
                 var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -803,10 +808,10 @@ namespace AElf.Contracts.CrossChain.Tests
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     Params = new AuthorityStuff
                     {
-                        ContractAddress = AssociationContractAddress, OwnerAddress = organizationAddress
+                        ContractAddress = AssociationContractAddress, OwnerAddress = oldOrganizationAddress
                     }.ToByteString(),
                     ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
+                    OrganizationAddress = oldOrganizationAddress
                 });
 
                 var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
@@ -874,7 +879,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 });
 
             var parliamentOrganizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
                 parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
             await ApproveWithMinersAsync(approveProposalId);
@@ -933,10 +938,10 @@ namespace AElf.Contracts.CrossChain.Tests
                     }
                 })).Output;
 
-            var originOrganizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var oldSideChainLifetimeController =
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var sideChainLifetimeControllerChangeProposalId = await CreateParliamentProposalAsync(
-                nameof(CrossChainContractStub.ChangeSideChainLifetimeController), originOrganizationAddress,
+                nameof(CrossChainContractStub.ChangeSideChainLifetimeController), oldSideChainLifetimeController,
                 new AuthorityStuff
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newSideChainLifetimeControllerAddress
@@ -957,10 +962,8 @@ namespace AElf.Contracts.CrossChain.Tests
                         SideChainId = sideChainId
                     });
 
-                var parliamentOrganizationAddress =
-                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
                 var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
-                    parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
+                    oldSideChainLifetimeController, indexingFeeAdjustProposalId, AssociationContractAddress);
                 await ApproveWithMinersAsync(approveProposalId);
                 await ParliamentContractStub.Release.SendAsync(approveProposalId);
                 await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);

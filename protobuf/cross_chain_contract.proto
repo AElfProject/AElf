@@ -17,6 +17,8 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
+    rpc SetInitialControllerAddress(aelf.Address) returns (google.protobuf.Empty){
+    }
     rpc ChangeCrossChainIndexingController(AuthorityStuff) returns (google.protobuf.Empty) {
     }
     rpc ChangeSideChainLifetimeController(AuthorityStuff) returns (google.protobuf.Empty) {

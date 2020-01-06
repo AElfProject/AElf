@@ -13,7 +13,7 @@ namespace AElf.Contracts.CrossChain
         
         public SingletonState<AuthorityStuff> CrossChainIndexingController { get; set; }
 
-        public SingletonState<AuthorityStuff> SideChainLifeTimeController { get; set; }
+        public SingletonState<AuthorityStuff> SideChainLifetimeController { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         

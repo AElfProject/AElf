@@ -246,11 +246,12 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, new SideChainTokenInitialIssue
-            {
-                Address = DefaultSender,
-                Amount = 100
-            });
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
+                new SideChainTokenInitialIssue
+                {
+                    Address = DefaultSender,
+                    Amount = 100
+                });
             var requestSideChainCreation =
                 await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
 
@@ -344,7 +345,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             var disposalInput = chainId;
             var organizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.DisposeSideChain),

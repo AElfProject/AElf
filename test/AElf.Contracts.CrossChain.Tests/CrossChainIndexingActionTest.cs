@@ -786,8 +786,9 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ParentChainBlockDataList = {parentChainBlockData}
             };
-            
-            var organizationAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+            var organizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
 
             // create a normal proposal
             var proposalTx = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput

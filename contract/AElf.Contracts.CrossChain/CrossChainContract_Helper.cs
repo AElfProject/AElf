@@ -14,8 +14,6 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
-using ProposalInfo = AElf.Contracts.Parliament.ProposalInfo;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -245,36 +243,12 @@ namespace AElf.Contracts.CrossChain
 
         private AuthorityStuff GetCrossChainIndexingController()
         {
-            var crossChainIndexingController = State.CrossChainIndexingController.Value;
-            if (crossChainIndexingController != null)
-                return crossChainIndexingController;
-            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            Address organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            var authorityStuff = new AuthorityStuff
-            {
-                OwnerAddress = organizationAddress,
-                ContractAddress = State.ParliamentContract.Value
-            };
-            State.CrossChainIndexingController.Value = authorityStuff;
-
-            return authorityStuff;
+            return State.CrossChainIndexingController.Value;
         }
 
         private AuthorityStuff GetSideChainLifetimeController()
         {
-            var sideChainLifetimeController = State.SideChainLifeTimeController.Value;
-            if (sideChainLifetimeController != null)
-                return sideChainLifetimeController;
-            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            var authorityStuff = new AuthorityStuff
-            {
-                OwnerAddress = organizationAddress,
-                ContractAddress = State.ParliamentContract.Value
-            };
-            State.SideChainLifeTimeController.Value = authorityStuff;
-
-            return authorityStuff;
+            return State.SideChainLifetimeController.Value;
         }
 
         private void AssertCrossChainIndexingControllerAuthority(Address address)
@@ -547,10 +521,31 @@ namespace AElf.Contracts.CrossChain
             return proposalInfo.ExpiredTime <= Context.CurrentBlockTime;
         }
 
-        private CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(Address sideChainCreator)
+        private void CreateInitialOrganizationForControllerAddress()
+        {
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Parliament.CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
+                        MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
+                        MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
+                        MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
+                    },
+                    ProposerAuthorityRequired = false
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+            });
+        }
+
+        private Association.CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
+            Address sideChainCreator)
         {
             var proposers = new List<Address> {sideChainCreator, GetSideChainLifetimeController().OwnerAddress};
-            var createOrganizationInput = new CreateOrganizationInput
+            var createOrganizationInput = new Association.CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
@@ -578,7 +573,8 @@ namespace AElf.Contracts.CrossChain
             return address;
         }
 
-        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(CreateOrganizationInput input)
+        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(
+            Association.CreateOrganizationInput input)
         {
             SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);

@@ -15,13 +15,14 @@ namespace AElf.Contracts.CrossChain
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
             State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal
             {
                 Status = CrossChainIndexingProposalStatus.NonProposed
             };
+            
+            CreateInitialOrganizationForControllerAddress();
             if (Context.CurrentHeight != Constants.GenesisBlockHeight)
                 return new Empty();
 
@@ -29,6 +30,22 @@ namespace AElf.Contracts.CrossChain
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
 
+            return new Empty();
+        }
+
+        public override Empty SetInitialControllerAddress(Address input)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
+            var parliamentContractAddress = State.ParliamentContract.Value;
+            Assert(parliamentContractAddress == Context.Sender, "No permission.");
+            var initialAuthorityStuff = new AuthorityStuff
+            {
+                OwnerAddress = input,
+                ContractAddress = parliamentContractAddress
+            };
+            State.CrossChainIndexingController.Value = initialAuthorityStuff;
+            State.SideChainLifetimeController.Value = initialAuthorityStuff;
             return new Empty();
         }
 
@@ -49,7 +66,7 @@ namespace AElf.Contracts.CrossChain
             var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
-                Context.SendInline(State.SideChainLifeTimeController.Value.ContractAddress,
+                Context.SendInline(State.SideChainLifetimeController.Value.ContractAddress,
                     nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
                     input.ProposalId);
             return new Empty();
@@ -389,7 +406,7 @@ namespace AElf.Contracts.CrossChain
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
             Assert(ValidateAuthorityStuffExists(input), "Invalid authority input.");
-            State.SideChainLifeTimeController.Value = input;
+            State.SideChainLifetimeController.Value = input;
             return new Empty();
         }
     }
