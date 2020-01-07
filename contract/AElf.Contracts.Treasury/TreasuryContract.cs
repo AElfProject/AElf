@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -69,7 +70,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(Empty input)
         {
-            Assert(State.TreasuryHash.Value == null, "Already ininitialized.");
+            Assert(State.TreasuryHash.Value == null, "Already initialized.");
             var managingSchemeIds = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
                 Manager = Context.Self
@@ -541,9 +542,54 @@ namespace AElf.Contracts.Treasury
             return State.TreasuryHash.Value ?? Hash.Empty;
         }
 
+        private const int DaySec = 86400;
+
+        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
+        {
+            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
+            {2.Mul(365).Mul(DaySec), 1.0015m},
+            {3.Mul(365).Mul(DaySec), 1.002m}
+        };
+
+        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
+        private const int Scale = 10000;
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
+            long calculated = 1;
+
+            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
+            {
+                if (lockTime > instMap.Key)
+                    continue;
+                calculated = calculated.Mul((long) (Pow(instMap.Value, (uint) lockTime.Div(DaySec)) * Scale));
+                break;
+            }
+
+            if (calculated == 1) // lockTime > 3 years
+                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+        }
+
+        private static decimal Pow(decimal x, uint y)
+        {
+            if (y == 1)
+                return (long) x;
+            decimal a = 1m;
+            if (y == 0)
+                return a;
+            var e = new BitArray(BitConverter.GetBytes(y));
+            var t = e.Count;
+            for (var i = t - 1; i >= 0; --i)
+            {
+                a *= a;
+                if (e[i])
+                {
+                    a *= x;
+                }
+            }
+
+            return a;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace AElf.Contracts.TokenHolder
             State.TokenHolderProfitSchemes[Context.Sender] = new TokenHolderProfitScheme
             {
                 Symbol = input.Symbol,
-                MinimumLockTime = input.MinimumLockTime
+                MinimumLockMinutes = input.MinimumLockMinutes
             };
 
             return new Empty();
@@ -165,7 +165,7 @@ namespace AElf.Contracts.TokenHolder
             }).Amount;
 
             var lockId = State.LockIds[input][Context.Sender];
-            Assert(State.LockTimestamp[lockId].AddHours(scheme.MinimumLockTime) < Context.CurrentBlockTime, "Cannot withdraw.");
+            Assert(State.LockTimestamp[lockId].AddMinutes(scheme.MinimumLockMinutes) < Context.CurrentBlockTime, "Cannot withdraw.");
 
             State.TokenContract.Unlock.Send(new UnlockInput
             {
