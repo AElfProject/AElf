@@ -81,6 +81,12 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 var sysMethodRef = (MethodReference) instruction.Operand;
                 var newMethodRef = method.Module.ImportReference(GetSdkMethodReference(sdkTypeDefs, sysMethodRef, instruction.OpCode));
 
+                if (instruction.Previous.OpCode == OpCodes.Constrained)
+                {
+                    // Dealing with enum, box instead of constrain when making call to SDK static method
+                    ilProcessor.Replace(instruction.Previous, ilProcessor.Create(OpCodes.Box, (TypeDefinition) instruction.Previous.Operand));                    
+                }
+
                 ilProcessor.Replace(instruction, ilProcessor.Create(OpCodes.Call, newMethodRef));
             }
 
