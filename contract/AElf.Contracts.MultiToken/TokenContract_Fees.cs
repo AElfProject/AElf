@@ -112,15 +112,11 @@ namespace AElf.Contracts.MultiToken
                 ? State.Balances[Context.Sender][availableTokenSymbol].Sub(amountChargedForBaseFee)
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
-            
             if (availableBalance < txSizeFeeAmount && State.ExtraAvailableTokenInfos.Value !=null && State.ExtraAvailableTokenInfos.Value.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
-                var availableTokenBalanceOrderList =
-                    allExtraTokenInfo.OrderByDescending(GetBalanceCalculatedBaseOnPrimaryToken);
-                var availableTokenInfoWithMostBalance = availableTokenBalanceOrderList.FirstOrDefault();
-                if (availableTokenInfoWithMostBalance != null &&
-                    GetBalanceCalculatedBaseOnPrimaryToken(availableTokenInfoWithMostBalance) > availableBalance)
+                var availableTokenInfoWithMostBalance = allExtraTokenInfo.FirstOrDefault(x => GetBalanceCalculatedBaseOnPrimaryToken(x) > txSizeFeeAmount);
+                if (availableTokenInfoWithMostBalance != null)
                 {
                     availableTokenSymbol = availableTokenInfoWithMostBalance.TokenSymbol;
                     txSizeFeeAmount = txSizeFeeAmount.Mul(availableTokenInfoWithMostBalance.AddedTokenWeight)
@@ -128,12 +124,12 @@ namespace AElf.Contracts.MultiToken
                     availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
                 }
             }
-            
+
             var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (availableTokenSymbol == null) return availableBalance >= txSizeFeeAmount; // todo
+            if (availableTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
 
             if (symbolChargedForBaseFee == availableTokenSymbol)
             {
