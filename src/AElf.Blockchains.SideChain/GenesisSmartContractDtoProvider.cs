@@ -76,10 +76,12 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationData));
-            
+
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationSmartContractAddressNameProvider.Name);
+                ConfigurationSmartContractAddressNameProvider.Name,
+                GenerateConfigurationInitializationCallList(chainInitializationData));
+            
             return genesisSmartContractDtoList;
         }
     }

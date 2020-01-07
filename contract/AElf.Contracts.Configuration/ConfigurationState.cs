@@ -20,5 +20,7 @@ namespace AElf.Contracts.Configuration
         public SingletonState<ResourceTokenAmount> TotalResourceTokenAmount { get; set; }
 
         public SingletonState<ResourceTokenAmount> RemainResourceTokenAmount { get; set; }
+
+        public SingletonState<ContractFeeChargingPolicy> ContractFeeChargingPolicy { get; set; }
     }
 }

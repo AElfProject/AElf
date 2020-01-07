@@ -68,6 +68,13 @@ namespace AElf.Contracts.Configuration
             return new Empty();
         }
 
+        public override Empty SetContractFeeChargingPolicy(SetContractFeeChargingPolicyInput input)
+        {
+            CheckSenderIsParliamentOrZeroContract();
+            State.ContractFeeChargingPolicy.Value = input.ContractFeeChargingPolicy;
+            return new Empty();
+        }
+
         public override Empty UpdateTotalResourceTokens(ResourceTokenAmount input)
         {
             CheckOwnerAuthority();
@@ -93,6 +100,14 @@ namespace AElf.Contracts.Configuration
         public override ResourceTokenAmount GetTotalResourceTokens(Empty input)
         {
             return State.TotalResourceTokenAmount.Value ?? new ResourceTokenAmount();
+        }
+
+        public override GetContractFeeChargingPolicyOutput GetContractFeeChargingPolicy(Empty input)
+        {
+            return new GetContractFeeChargingPolicyOutput
+            {
+                ContractFeeChargingPolicy = State.ContractFeeChargingPolicy.Value
+            };
         }
     }
 }

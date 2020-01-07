@@ -153,5 +153,37 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
             }
         }
+
+        [Fact]
+        public async Task SetContractFeeChargingPolicy_NoPermission()
+        {
+            var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.SetContractFeeChargingPolicy),
+                new SetContractFeeChargingPolicyInput
+                {
+                    ContractFeeChargingPolicy = ContractFeeChargingPolicy.AnyContractFeeType
+                });
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("No permission.");
+        }
+
+        [Fact]
+        public async Task SetContractFeeChargingPolicy_Test()
+        {
+            const ContractFeeChargingPolicy contractFeeChargingPolicy = ContractFeeChargingPolicy.AnyContractFeeType;
+            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress, new SetContractFeeChargingPolicyInput
+            {
+                ContractFeeChargingPolicy = contractFeeChargingPolicy
+            }, nameof(ConfigurationContainer.ConfigurationStub.SetContractFeeChargingPolicy));
+            proposalId.ShouldNotBeNull();
+            await ApproveWithMinersAsync(proposalId);
+            var releaseTxResult = await ReleaseProposalAsync(proposalId);
+            releaseTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var actual = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.GetContractFeeChargingPolicy), new Empty());
+            GetContractFeeChargingPolicyOutput.Parser.ParseFrom(actual).ContractFeeChargingPolicy
+                .ShouldBe(contractFeeChargingPolicy);
+        }
     }
 }
