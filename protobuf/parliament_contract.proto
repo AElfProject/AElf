@@ -46,6 +46,7 @@ service ParliamentContract {
 message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
     bool proposer_authority_required = 2;
+    bool parliament_member_proposing_allowed = 3;
 }
 
 message Organization {
@@ -53,6 +54,7 @@ message Organization {
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
+    bool parliament_member_proposing_allowed = 5;
 }
 
 message ProposalInfo {

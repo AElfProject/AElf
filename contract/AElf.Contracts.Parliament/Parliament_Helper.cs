@@ -26,18 +26,13 @@ namespace AElf.Contracts.Parliament
             // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
-            // or sender is one of miners when proposer whitelist is empty.
+            // or sender is one of miners when member proposing allowed.
             Assert(
-                !organization.ProposerAuthorityRequired || CheckProposerAuthorityIfNeeded(proposer),
+                !organization.ProposerAuthorityRequired || ValidateAddressInWhiteList(proposer) ||
+                organization.ParliamentMemberProposingAllowed && ValidateParliamentMemberAuthority(proposer),
                 "Unauthorized to propose.");
         }
-        
-        private bool CheckProposerAuthorityIfNeeded(Address address)
-        {
-            return ValidateAddressInWhiteList(address) || State.ProposerWhiteList.Value.Proposers.Count == 0 &&
-                   ValidateParliamentMemberAuthority(address);
-        }
-        
+
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization)
         {
             var parliamentMembers = GetCurrentMinerList();
@@ -173,11 +168,6 @@ namespace AElf.Contracts.Parliament
                    proposal.Abstentions.Contains(address);
         }
 
-        private bool ValidateProposerAuthority(Address address)
-        {
-            return ValidateAddressInWhiteList(address) || ValidateParliamentMemberAuthority(address);
-        }
-
         private bool ValidateAddressInWhiteList(Address address)
         {
             return State.ProposerWhiteList.Value.Proposers.Any(p => p == address);
@@ -228,14 +218,15 @@ namespace AElf.Contracts.Parliament
                 ProposalReleaseThreshold = input.ProposalReleaseThreshold,
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash,
-                ProposerAuthorityRequired = input.ProposerAuthorityRequired
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organisations[organizationAddress] == null)
             {
                 State.Organisations[organizationAddress] = organization;
             }
-            
+
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
@@ -248,7 +239,8 @@ namespace AElf.Contracts.Parliament
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress =
+                Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,

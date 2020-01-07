@@ -29,7 +29,7 @@ service ACS0 {
     }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
-    rpc SetControllerAddressByDefault (aelf.Address) returns (google.protobuf.Empty) {
+    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
 
     // Views

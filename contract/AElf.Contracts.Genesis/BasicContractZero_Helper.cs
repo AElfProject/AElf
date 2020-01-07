@@ -1,6 +1,7 @@
 using System;
 using Acs0;
 using Acs3;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -68,6 +69,30 @@ namespace AElf.Contracts.Genesis
                 "Invalid contract proposing status.");
             State.ContractProposingInputMap.Remove(inputHash);
             return true;
+        }
+
+        private void CreateParliamentOrganizationForInitialControllerAddress(bool proposerAuthorityRequired)
+        {
+            RequireParliamentContractAddressSet();
+            var parliamentProposerWhitelist = State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
+
+            var isWhiteListEmpty = parliamentProposerWhitelist.Proposers.Count == 0;
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = MinimalApprovalThreshold,
+                        MinimalVoteThreshold = MinimalVoteThresholdThreshold,
+                        MaximalRejectionThreshold = MaximalRejectionThreshold,
+                        MaximalAbstentionThreshold = MaximalAbstentionThreshold
+                    },
+                    ProposerAuthorityRequired = proposerAuthorityRequired,
+                    ParliamentMemberProposingAllowed = isWhiteListEmpty
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+            });
         }
 
         private void AssertAuthorityByContractInfo(ContractInfo contractInfo, Address address)

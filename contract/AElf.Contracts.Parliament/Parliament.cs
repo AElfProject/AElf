@@ -65,13 +65,13 @@ namespace AElf.Contracts.Parliament
         {
             return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
         }
-
+        
         public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
         {
-            return new GetProposerWhiteListContextOutput
-            {
-                Proposers = {State.ProposerWhiteList.Value.Proposers}
-            };
+            var res = new GetProposerWhiteListContextOutput();
+            var whitelist = State.ProposerWhiteList.Value;
+            res.Proposers.AddRange(whitelist.Proposers);
+            return res;
         }
 
         public override BoolValue ValidateOrganizationExist(Address input)
@@ -133,7 +133,8 @@ namespace AElf.Contracts.Parliament
                     MaximalAbstentionThreshold = DefaultOrganizationMaximalAbstentionThreshold,
                     MaximalRejectionThreshold = DefaultOrganizationMaximalRejectionThreshold
                 },
-                ProposerAuthorityRequired = input.ProposerAuthorityRequired
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                ParliamentMemberProposingAllowed = true
             };
             var defaultOrganizationAddress = CreateNewOrganization(organizationInput);
             State.DefaultOrganizationAddress.Value = defaultOrganizationAddress;
@@ -155,7 +156,8 @@ namespace AElf.Contracts.Parliament
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(ValidateProposerAuthority(Context.Sender), "Unauthorized to create organization.");
+            Assert(ValidateAddressInWhiteList(Context.Sender) || ValidateParliamentMemberAuthority(Context.Sender),
+                "Unauthorized to create organization.");
             var organizationAddress = CreateNewOrganization(input);
 
             return organizationAddress;
