@@ -105,15 +105,18 @@ namespace AElf.Contracts.Genesis
             }
 
             {
+                // Deployment of the same contract code will fail and return null address
                 var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
-                address.ShouldNotBeNull();
+                address.ShouldBeNull();
             }
 
             {
+                // Deployment of the same contract code will fail and return null address
                 var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
                 var address = await DeployAsync(minerTester, ParliamentAddress, contractDeploymentInput);
-                address.ShouldNotBeNull();
+                address.ShouldBeNull();
             }
+            
             {
                 var otherTester = Tester.CreateNewContractTester(AnotherUserKeyPair);
                 var proposingTxResult = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
