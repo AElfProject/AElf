@@ -111,16 +111,27 @@ namespace AElf.Contracts.Genesis
             }
 
             {
-                // Deployment of the same contract code will fail and return null address
+                var newContractDeploymentInput = new ContractDeploymentInput
+                {
+                    Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Referendum")).Value)
+                };
+
                 var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
-                var address = await DeployAsync(minerTester, ParliamentAddress, contractDeploymentInput);
-                address.ShouldBeNull();
+                var address = await DeployAsync(minerTester, ParliamentAddress, newContractDeploymentInput);
+                address.ShouldNotBeNull();
             }
-            
+
             {
+                var newContractDeploymentInput = new ContractDeploymentInput
+                {
+                    Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Configuration")).Value)
+                };
+
                 var otherTester = Tester.CreateNewContractTester(AnotherUserKeyPair);
                 var proposingTxResult = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
+                    nameof(BasicContractZero.ProposeNewContract), newContractDeploymentInput);
                 proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 proposingTxResult.Error.ShouldContain("Unauthorized to propose.");
             }

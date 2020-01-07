@@ -185,10 +185,11 @@ namespace AElf.Contracts.Genesis
             var proposingTxResult = await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
 
-            var proposalCreatedEvent = proposingTxResult.Logs.FirstOrDefault(l => l.Name.Contains(nameof(ProposalCreated)));
+            var proposalCreatedEvent =
+                proposingTxResult.Logs.FirstOrDefault(l => l.Name.Contains(nameof(ProposalCreated)));
             if (proposalCreatedEvent == null)
                 return null;
-            
+
             var proposalId = ProposalCreated.Parser
                 .ParseFrom(proposalCreatedEvent.NonIndexed)
                 .ProposalId;
@@ -216,9 +217,10 @@ namespace AElf.Contracts.Genesis
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             var deploymentEvent = deploymentResult.Logs.FirstOrDefault(l => l.Name.Contains(nameof(ContractDeployed)));
-            
-            var address = deploymentEvent != null ? 
-                ContractDeployed.Parser.ParseFrom(deploymentEvent.NonIndexed).Address : null;
+
+            var address = deploymentEvent != null
+                ? ContractDeployed.Parser.ParseFrom(deploymentEvent.NonIndexed).Address
+                : null;
             return address;
         }
 
