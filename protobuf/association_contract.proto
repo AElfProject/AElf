@@ -53,5 +53,5 @@ message ProposalInfo {
 }
 
 message OrganizationMemberList {
-    repeated aelf.Address organization_members = 2;
+    repeated aelf.Address organization_members = 1;
 }
