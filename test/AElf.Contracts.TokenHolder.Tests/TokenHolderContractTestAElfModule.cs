@@ -1,4 +1,5 @@
 using AElf.Contracts.TestKit;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,8 @@ namespace AElf.Contracts.TokenHolder
         {
             context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
+            context.Services.RemoveAll<IPostExecutionPlugin>();
+            context.Services.RemoveAll<ISystemTransactionGenerator>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }

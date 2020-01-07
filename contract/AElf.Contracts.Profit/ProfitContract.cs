@@ -264,8 +264,6 @@ namespace AElf.Contracts.Profit
                 }
             }
 
-            State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
-
             // Clear old profit details.
             if (currentDetail.Details.Count != 0)
             {

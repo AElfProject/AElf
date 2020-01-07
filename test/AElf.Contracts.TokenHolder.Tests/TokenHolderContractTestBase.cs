@@ -39,6 +39,7 @@ namespace AElf.Contracts.TokenHolder
         protected Address ParliamentAuthAddress { get; set; }
         protected Address TokenHolderContractAddress { get; set; }
         protected Address DAppContractAddress { get; set; }
+        protected Address ConsensusContractAddress { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
@@ -131,14 +132,14 @@ namespace AElf.Contracts.TokenHolder
             DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
                 UserKeyPairs.First());
 
-            AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
                         Name = ConsensusSmartContractAddressNameProvider.Name
-                    }));
+                    })).Output;
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)

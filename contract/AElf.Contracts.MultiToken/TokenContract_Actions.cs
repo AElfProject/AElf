@@ -388,13 +388,16 @@ namespace AElf.Contracts.MultiToken
             Assert(
                 !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
                     .Contains(input.Symbol), "Invalid token symbol.");
-            var profits = State.Balances[input.ContractAddress][input.Symbol];
-            State.Balances[input.ContractAddress][input.Symbol] = 0;
+            var profits = input.Amount == 0 ? State.Balances[input.ContractAddress][input.Symbol] : input.Amount;
+            State.Balances[input.ContractAddress][input.Symbol] =
+                State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
             var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
-            State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
+            
             if (State.TreasuryContract.Value != null)
             {
                 // Main Chain.
+                // Increase balance of Token Contract then distribute donates.
+                State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = input.Symbol,
@@ -404,17 +407,16 @@ namespace AElf.Contracts.MultiToken
             else
             {
                 // Side Chain.
-                Transfer(new TransferInput
-                {
-                    To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
-                    Amount = donates,
-                    Symbol = input.Symbol
-                });
+                var consensusContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                State.Balances[consensusContractAddress][input.Symbol] =
+                    State.Balances[consensusContractAddress][input.Symbol].Add(donates);
             }
 
+            var actualProfits = profits.Sub(donates);
             State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol] =
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol]
-                    .Add(profits.Sub(donates));
+                    .Add(actualProfits);
 
             if (State.TokenHolderContract.Value == null)
             {
