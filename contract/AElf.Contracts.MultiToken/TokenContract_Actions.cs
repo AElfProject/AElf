@@ -430,7 +430,7 @@ namespace AElf.Contracts.MultiToken
                 State.TokenHolderContract.Value = tokenHolderContractAddress;
             }
 
-            // Release token holders profits.
+            // Distribute token holders profits.
             State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeManager = input.ContractAddress,

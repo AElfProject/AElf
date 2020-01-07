@@ -1,5 +1,6 @@
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenHolder
 {
@@ -11,5 +12,7 @@ namespace AElf.Contracts.TokenHolder
         /// Contract address (Manager address) -> Beneficiary address -> Lock id.
         /// </summary>
         public MappedState<Address, Address, Hash> LockIds { get; set; }
+
+        public MappedState<Hash, Timestamp> LockTimestamp { get; set; }
     }
 }

@@ -66,6 +66,7 @@ namespace AElf.Contracts.TokenHolder
             (await GetFirstUserBalance("APP")).ShouldBe(50_00000000);
 
             const long baseBalance = (long) (TokenHolderContractTestConstants.NativeTokenTotalSupply * 0.1);
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {

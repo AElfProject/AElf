@@ -50,6 +50,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
 
             // Check balance before mining
             {
@@ -84,6 +85,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
 
             var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental);
@@ -108,6 +110,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 });
             }
 
+            await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
@@ -147,6 +150,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 });
             }
 
+            await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();

@@ -9,6 +9,7 @@ using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -40,7 +41,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 // You can deploy more system contracts by adding system contract name to current list.
                 TokenSmartContractAddressNameProvider.Name,
-                ParliamentAuthSmartContractAddressNameProvider.Name
+                ParliamentAuthSmartContractAddressNameProvider.Name,
+                ElectionSmartContractAddressNameProvider.Name
             }));
         }
 

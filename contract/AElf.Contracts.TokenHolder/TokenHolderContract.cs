@@ -1,15 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenHolder
 {
-    public partial class TokenHolderContract : TokenHolderContractContainer.TokenHolderContractBase
+    public class TokenHolderContract : TokenHolderContractContainer.TokenHolderContractBase
     {
         public override Empty CreateScheme(CreateTokenHolderProfitSchemeInput input)
         {
@@ -28,7 +26,8 @@ namespace AElf.Contracts.TokenHolder
 
             State.TokenHolderProfitSchemes[Context.Sender] = new TokenHolderProfitScheme
             {
-                Symbol = input.Symbol
+                Symbol = input.Symbol,
+                MinimumLockTime = input.MinimumLockTime
             };
 
             return new Empty();
@@ -136,6 +135,7 @@ namespace AElf.Contracts.TokenHolder
                 Amount = input.Amount,
             });
             State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
+            State.LockTimestamp[Context.TransactionId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
@@ -163,16 +163,19 @@ namespace AElf.Contracts.TokenHolder
                 LockId = State.LockIds[input][Context.Sender],
                 Symbol = scheme.Symbol
             }).Amount;
+
+            var lockId = State.LockIds[input][Context.Sender];
+            Assert(State.LockTimestamp[lockId].AddHours(scheme.MinimumLockTime) < Context.CurrentBlockTime, "Cannot withdraw.");
+
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 Address = Context.Sender,
-                LockId = State.LockIds[input][Context.Sender],
+                LockId = lockId,
                 Amount = amount,
                 Symbol = scheme.Symbol
             });
 
-            // TODO: Remove this key.
-            State.LockIds[input][Context.Sender] = null;
+            State.LockIds[input].Remove(Context.Sender);
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
