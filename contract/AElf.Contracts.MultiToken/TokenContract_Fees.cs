@@ -225,6 +225,9 @@ namespace AElf.Contracts.MultiToken
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
             allExtraTokenInfo.Add(input);
+            var newTokens = new AllAvailableTokenInfo();
+            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
+            State.ExtraAvailableTokenInfos.Value = newTokens;
             return new Empty();
         }
 
@@ -238,6 +241,9 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo != null, $"dose not find token symbol {input.TokenSymbol}");
             tokenInfo.AddedTokenWeight = input.AddedTokenWeight;
             tokenInfo.BaseTokenWeight = input.BaseTokenWeight;
+            var newTokens = new AllAvailableTokenInfo();
+            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
+            State.ExtraAvailableTokenInfos.Value = newTokens;
             return new Empty();
         }
         public override Empty RemoveAvailableTokenInfo(StringValue input)
@@ -247,6 +253,9 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
             Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
             allExtraTokenInfo.Remove(tokenInfo);
+            var newTokens = new AllAvailableTokenInfo();
+            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
+            State.ExtraAvailableTokenInfos.Value = newTokens;
             return new Empty();
         }
         /// <summary>
