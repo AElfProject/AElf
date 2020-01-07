@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "aelf/options.proto";
+import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -66,6 +67,12 @@ message InitLargeStringDynamicInput {
 }
 
 // For GetHashCode tests
+enum Color {
+    Black = 0;
+    White = 1;
+    Blue = 2;
+}
+
 message GetHashCodeTestInput {
     bool bool_value = 1;
     int32 int32_value = 2;
@@ -73,7 +80,8 @@ message GetHashCodeTestInput {
     int64 int64_value = 4;
     uint64 u_int64_value = 5;
     string string_value = 6;
-    repeated string repeated_string_value = 8;
+    repeated string repeated_string_value = 7;
+    Color enum_value = 8;
     bytes bytes_value = 9;
 }
 
@@ -86,5 +94,6 @@ message GetHashCodeTestOutput {
     int32 string_hash = 6;
     int32 bytes_hash = 7;
     int32 repeated_string_hash = 8;
-    int32 output_hash = 9;
+    int32 enum_hash = 9;
+    int32 input_hash = 10;
 }

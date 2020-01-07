@@ -109,6 +109,7 @@ namespace AElf.Sdk.CSharp.Tests
                 UInt64Value = UInt64.MaxValue,
                 StringValue = str,
                 RepeatedStringValue = { str, str },
+                EnumValue = CustomContract.Color.Black,
                 BytesValue = ByteString.CopyFromUtf8(str)
             });
             
@@ -117,10 +118,11 @@ namespace AElf.Sdk.CSharp.Tests
             output.Uint32Hash.ShouldBe(-1);
             output.Int64Hash.ShouldBe(-2147483648);
             output.Uint64Hash.ShouldBe(0);
-            output.StringHash.ShouldBe(-806870568);
+            output.StringHash.ShouldBe(1417273651);
             output.BytesHash.ShouldBe(-347977704);
             output.RepeatedStringHash.ShouldBe(0);
-            output.OutputHash.ShouldBe(615147968);
+            output.EnumHash.ShouldBe(0);
+            output.InputHash.ShouldBe(-1086609109);
         }
         
         [Fact]
@@ -133,10 +135,11 @@ namespace AElf.Sdk.CSharp.Tests
             output.Uint32Hash.ShouldBe(-1);
             output.Int64Hash.ShouldBe(-2147483648);
             output.Uint64Hash.ShouldBe(0);
-            output.StringHash.ShouldBe(-806870568);
+            output.StringHash.ShouldBe(1417273651);
             output.BytesHash.ShouldBe(0);
             output.RepeatedStringHash.ShouldBe(1);
-            output.OutputHash.ShouldBe(0);
+            output.EnumHash.ShouldBe(0);
+            output.InputHash.ShouldBe(1417273651); // For StringValue
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Text;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
@@ -14,6 +15,9 @@ namespace AElf.Sdk.CSharp
                 case string str:
                     // call deterministic GetHashCode for strings
                     return GetHashCode(str);
+                
+                case StringValue str: 
+                    return GetHashCode(str.Value);
                 
                 // If it is a IMessage inherited type;
                 case IMessage _:
@@ -40,15 +44,21 @@ namespace AElf.Sdk.CSharp
         
         private static int GetHashCode(string str)
         {
-            var bytes = Encoding.Unicode.GetBytes(str);
-            
-            var ret = 23;
-            foreach (var b in bytes)
+            unchecked
             {
-                ret = (ret * 31) + b;
+                var hash1 = 5381;
+                var hash2 = hash1;
+
+                for(var i = 0; i < str.Length && str[i] != '\0'; i += 2)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                    if (i == str.Length - 1 || str[i + 1] == '\0')
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+                }
+
+                return hash1 + (hash2 * 1566083941);
             }
-            
-            return ret;
         }
     }
 }

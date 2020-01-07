@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -95,7 +96,7 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public override GetHashCodeTestOutput TestGetHashCodeFromInput(GetHashCodeTestInput input)
         {
-            return new GetHashCodeTestOutput
+            var output = new GetHashCodeTestOutput
             {
                 BoolHash = input.BoolValue.GetHashCode(),
                 Int32Hash = input.Int32Value.GetHashCode(),
@@ -105,14 +106,18 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 StringHash = input.StringValue.GetHashCode(),
                 BytesHash = input.BytesValue.GetHashCode(),
                 RepeatedStringHash = input.RepeatedStringValue.GetHashCode(),
-                OutputHash = input.GetHashCode()
+                EnumHash = input.EnumValue.GetHashCode(),
+                InputHash = input.GetHashCode()
             };
+
+            return output;
         }
 
         public override GetHashCodeTestOutput TestGetHashCodeFromContract(Empty input)
         {
             var str = "GetHashCode Test";
-            return new GetHashCodeTestOutput
+
+            var output = new GetHashCodeTestOutput
             {
                 BoolHash = true.GetHashCode(),
                 Int32Hash = int.MaxValue.GetHashCode(),
@@ -120,10 +125,15 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 Int64Hash = long.MaxValue.GetHashCode(),
                 Uint64Hash = ulong.MaxValue.GetHashCode(),
                 StringHash = str.GetHashCode(),
+                EnumHash = Color.Black.GetHashCode(),
+                
                 // Test getting hash code from other types
                 BytesHash = new object().GetHashCode(),
-                RepeatedStringHash = new Hash().GetHashCode()
+                RepeatedStringHash = new Hash().GetHashCode(),
+                InputHash = new StringValue { Value = str }.GetHashCode()
             };
+
+            return output;
         }
 
         public override Empty TestInfiniteLoop(Empty input)
