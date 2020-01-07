@@ -112,11 +112,14 @@ namespace AElf.Contracts.MultiToken
                 ? State.Balances[Context.Sender][availableTokenSymbol].Sub(amountChargedForBaseFee)
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
+            
             if (availableBalance < txSizeFeeAmount && State.ExtraAvailableTokenInfos.Value !=null && State.ExtraAvailableTokenInfos.Value.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
-                var availableTokenInfoWithMostBalance = allExtraTokenInfo.FirstOrDefault(x => GetBalanceCalculatedBaseOnPrimaryToken(x) > txSizeFeeAmount);
-                if (availableTokenInfoWithMostBalance != null)
+                var availableTokenBalanceOrderList =
+                    allExtraTokenInfo.OrderByDescending(GetBalanceCalculatedBaseOnPrimaryToken);
+                var availableTokenInfoWithMostBalance = availableTokenBalanceOrderList.First();
+                if (GetBalanceCalculatedBaseOnPrimaryToken(availableTokenInfoWithMostBalance) > availableBalance)
                 {
                     availableTokenSymbol = availableTokenInfoWithMostBalance.TokenSymbol;
                     txSizeFeeAmount = txSizeFeeAmount.Mul(availableTokenInfoWithMostBalance.AddedTokenWeight)
