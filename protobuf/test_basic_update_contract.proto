@@ -23,6 +23,19 @@ service BasicUpdateContract {
     }
     rpc UpdateStopBet(google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    //GetHashCode test
+    rpc GetHashCodeStringValue(google.protobuf.StringValue) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetHashCodeInt32Value(google.protobuf.Int32Value) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetHashCodeInt64Value(google.protobuf.Int64Value) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetHashCodeBytesValue(google.protobuf.BytesValue) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetHashCodeEnumValue(EnumInput) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetHashCodeComplexValue(ComplexInput) returns (google.protobuf.Int32Value) {
+    }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -70,4 +83,22 @@ message MoneyOutput {
 
 message BetStatus {
     bool bool_value = 1;
+}
+
+//CodeHash test input
+message EnumInput {
+     Color info = 1;
+}
+
+message ComplexInput {
+    string string_value = 1;
+    int32 int_value = 2;
+    int64 long_value = 3;
+    Color enum_value = 4;
+}
+
+enum Color {
+    Black = 0;
+    White = 1;
+    Blue = 2;
 }
