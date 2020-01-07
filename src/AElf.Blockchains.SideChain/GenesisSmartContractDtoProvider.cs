@@ -92,6 +92,11 @@ namespace AElf.Blockchains.SideChain
                 ProfitSmartContractAddressNameProvider.Name
             );
 
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("TokenHolder")).Value,
+                TokenHolderSmartContractAddressNameProvider.Name
+            );
+
             return genesisSmartContractDtoList;
         }
     }

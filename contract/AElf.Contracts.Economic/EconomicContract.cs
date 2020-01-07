@@ -57,7 +57,8 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
                 }
             });
         }
