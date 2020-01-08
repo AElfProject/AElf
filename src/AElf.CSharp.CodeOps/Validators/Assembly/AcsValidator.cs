@@ -14,7 +14,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
     {
         public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcsDto requiredAcs)
         {
-            if (!requiredAcs.RequireAll && requiredAcs.AcsList.Count == 0)
+            if (requiredAcs.AcsList.Count == 0)
                 return Enumerable.Empty<ValidationResult>(); // No ACS required
             
             var acsBaseList = GetServiceDescriptorIdentities(GetServerServiceDefinition(assembly));
