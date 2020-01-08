@@ -22,7 +22,7 @@ service Configuration {
     }
     rpc InitialTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
     }
-    rpc SetContractFeeChargingPolicy (SetContractFeeChargingPolicyInput) returns (google.protobuf.Empty) {
+    rpc SetRequiredAcsInContracts (RequiredAcsInContracts) returns (google.protobuf.Empty) {
     }
     rpc UpdateTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
     }
@@ -42,7 +42,7 @@ service Configuration {
     rpc GetTotalResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractFeeChargingPolicy (google.protobuf.Empty) returns (GetContractFeeChargingPolicyOutput) {
+    rpc GetRequiredAcsInContracts (google.protobuf.Empty) returns (RequiredAcsInContracts) {
         option (aelf.is_view) = true;
     }
 }
@@ -51,19 +51,9 @@ message ResourceTokenAmount {
     map<string, sint32> value = 1;
 }
 
-message SetContractFeeChargingPolicyInput {
-    ContractFeeChargingPolicy contract_fee_charging_policy = 1;
-}
-
-enum ContractFeeChargingPolicy {
-    UNDEFINED = 0;
-    NONE_CONTRACT_FEE = 1;
-    ANY_CONTRACT_FEE_TYPE = 2;
-    ALL_CONTRACT_FEE_TYPES = 3;
-}
-
-message GetContractFeeChargingPolicyOutput {
-    ContractFeeChargingPolicy contract_fee_charging_policy = 2;
+message RequiredAcsInContracts {
+    repeated string acs_list = 1;
+    bool require_all = 2;
 }
 
 message RentResourceTokensInput {

@@ -5,25 +5,38 @@ using AElf.CSharp.Core;
 
 namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
-    public class AcsValidator : IValidator<System.Reflection.Assembly>
+    public class RequiredAcsDto
     {
-        private static readonly string[] RequiredAcs = 
+        public bool RequireAll;
+        public List<string> AcsList;
+    }
+    public class AcsValidator
+    {
+        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcsDto requiredAcs)
         {
-            "acs1",
-            "acs8"
-        };
-
-        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly)
-        {
+            if (!requiredAcs.RequireAll && requiredAcs.AcsList.Count == 0)
+                return Enumerable.Empty<ValidationResult>(); // No ACS required
+            
             var acsBaseList = GetServiceDescriptorIdentities(GetServerServiceDefinition(assembly));
             
-            // Contracts should have either acs1 or acs8 as a base
-            // so that one of the plugins will be active at execution
-            if (!acsBaseList.Any(a => RequiredAcs.Contains(a)))
-                return new List<ValidationResult>
-                {
-                    new AcsValidationResult("Contract should have at least ACS1 or ACS8 as base.")
-                };
+            if (requiredAcs.RequireAll)
+            {
+                // Contract should have all listed ACS as a base
+                if (!acsBaseList.All(a => requiredAcs.AcsList.Contains(a)))
+                    return new List<ValidationResult>
+                    {
+                        new AcsValidationResult($"Contract should have at least {string.Join(" or ", requiredAcs.AcsList)} as base.")
+                    };                
+            }
+            else
+            {
+                // Contract should have at least one of the listed ACS in the list as a base
+                if (!acsBaseList.Any(a => requiredAcs.AcsList.Contains(a)))
+                    return new List<ValidationResult>
+                    {
+                        new AcsValidationResult($"Contract should have all {string.Join(", ", requiredAcs.AcsList)} as base.")
+                    };
+            }
 
             return Enumerable.Empty<ValidationResult>();
         }

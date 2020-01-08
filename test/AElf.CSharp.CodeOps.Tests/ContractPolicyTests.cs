@@ -5,6 +5,7 @@ using AElf.Contracts.Genesis;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
@@ -79,11 +80,17 @@ namespace AElf.CSharp.CodeOps
         private readonly string _contractDllDir = "../../../contracts/";
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
+        private readonly RequiredAcsDto _requiredAcs;
 
         public ContractPolicyTests()
         {
             _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
             _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
+            _requiredAcs = new RequiredAcsDto
+            {
+                AcsList = new[] {"acs1", "acs8"}.ToList(), 
+                RequireAll = false
+            };
         }
 
         [Fact]
@@ -180,7 +187,7 @@ namespace AElf.CSharp.CodeOps
 
             _auditor = new ContractAuditor(whiteList, blackList);
 
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, true));
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs, true));
         }
 
         private static List<ValidationResult> ValidateContractCode(byte[] code, IValidator<MethodDefinition> validator)
