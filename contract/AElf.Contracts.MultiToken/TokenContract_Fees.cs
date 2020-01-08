@@ -217,6 +217,8 @@ namespace AElf.Contracts.MultiToken
         public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
         {
             AssertAuthenticatedByAll();
+            Assert(!string.IsNullOrEmpty(input.TokenSymbol) & input.TokenSymbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
                 "weight should be greater than 0");
             if( State.ExtraAvailableTokenInfos.Value == null)
@@ -694,8 +696,15 @@ namespace AElf.Contracts.MultiToken
         {
             var availableTokenSymbol = tokenInfo.TokenSymbol;
             var availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
-            return availableBalance.Mul(tokenInfo.BaseTokenWeight)
-                .Div(tokenInfo.AddedTokenWeight);
+            try
+            {
+                return availableBalance.Mul(tokenInfo.BaseTokenWeight)
+                    .Div(tokenInfo.AddedTokenWeight);
+            } 
+            catch
+            {
+                return long.MaxValue;
+            }
         }
     }
 }

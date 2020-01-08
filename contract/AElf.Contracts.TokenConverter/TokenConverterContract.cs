@@ -77,6 +77,7 @@ namespace AElf.Contracts.TokenConverter
 
             if (targetConnector.IsDepositAccount && input.VirtualBalance > 0)
                 targetConnector.VirtualBalance = input.VirtualBalance;
+            State.Connectors[input.Symbol] = targetConnector;
             return new Empty();
         }
 
