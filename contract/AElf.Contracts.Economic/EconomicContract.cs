@@ -57,7 +57,7 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName)
                 }
             });
         }
@@ -211,9 +211,9 @@ namespace AElf.Contracts.Economic
 
         private Address InitialConnectorManager()
         {
-            State.ParliamentAuthContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            return State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            State.ParliamentContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()

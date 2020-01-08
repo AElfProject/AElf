@@ -29,6 +29,8 @@ service ACS7 {
     }
     rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
     }
+    rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
+    }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
@@ -126,19 +128,8 @@ message ChainInitializationData {
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
     string side_chain_token_symbol = 7;
-}
-
-enum ResourceType
-{
-    UNDEFINED_RESOURCE_TYPE = 0;
-    WRITE = 1;
-    READ = 2;
-    NET = 3;
-}
-
-message ResourceTypeBalancePair {
-    ResourceType type = 1;
-    uint64 amount = 2;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
+    map<string, sint32> initial_resource_amount = 9;
 }
 
 message SideChainInfo {
@@ -160,7 +151,13 @@ message SideChainCreationRequest {
     sint64 side_chain_token_total_supply = 7;
     sint32 side_chain_token_decimals = 8;
     bool is_side_chain_token_burnable = 9;
-    map<string, sint32> initial_resource_amount = 10; 
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
+    map<string, sint32> initial_resource_amount = 11; 
+}
+
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
 }
 
 message SideChainTokenInfo {
@@ -177,7 +174,7 @@ message RequestChainCreationOutput {
     aelf.Hash proposal_id = 2;
 }
 
-message IndexedParentChainBlockData{
+message IndexedParentChainBlockData {
     int64 local_chain_height = 1;
     repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
 }
@@ -197,5 +194,10 @@ message CreateSideChainInput{
 }
 
 message ReleaseSideChainCreationInput {
-    aelf.Hash proposalId = 1;
+    aelf.Hash proposal_id = 1;
+}
+
+message AdjustIndexingFeeInput{
+    int32 side_chain_id = 1;
+    int32 indexing_fee = 2;
 }

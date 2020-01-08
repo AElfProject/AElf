@@ -1,6 +1,6 @@
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -12,6 +12,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

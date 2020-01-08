@@ -18,9 +18,8 @@ namespace AElf.Contracts.Configuration
         {
             if (State.Owner.Value != null)
                 return State.Owner.Value;
-            ValidateContractState(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            var organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;
@@ -32,16 +31,16 @@ namespace AElf.Contracts.Configuration
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
         }
 
-        private void CheckSenderIsParliamentAuthOrZeroContract()
+        private void CheckSenderIsParliamentOrZeroContract()
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             Assert(
-                State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) == Context.Sender ||
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) == Context.Sender ||
                 Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
         }
 

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
@@ -20,10 +20,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             var parliamentContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ParliamentAuthSmartContractAddressNameProvider.Name);
+                _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
 
             return Task.FromResult(transaction.To != parliamentContractAddress || transaction.MethodName !=
-                                   nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
+                                   nameof(ParliamentContractContainer.ParliamentContractStub
                                        .ApproveMultiProposals));
         }
     }

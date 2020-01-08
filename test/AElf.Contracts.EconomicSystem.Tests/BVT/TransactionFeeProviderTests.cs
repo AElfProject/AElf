@@ -91,14 +91,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Parliament_FeeProvider_Test()
         {
-            await ExecuteProposalTransaction(Tester, ParliamentAuthContractAddress, MethodName, new MethodFees
+            await ExecuteProposalTransaction(Tester, ParliamentContractAddress, MethodName, new MethodFees
             {
-                MethodName = nameof(ParliamentAuthContractStub.Approve),
+                MethodName = nameof(ParliamentContractStub.Approve),
                 Fees = {TokenAmount}
             });
-            var result = await ParliamentAuthContractStub.GetMethodFee.CallAsync(new StringValue
+            var result = await ParliamentContractStub.GetMethodFee.CallAsync(new StringValue
             {
-                Value = nameof(ParliamentAuthContractStub.Approve)
+                Value = nameof(ParliamentContractStub.Approve)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }

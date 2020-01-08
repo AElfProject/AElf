@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -16,7 +16,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
@@ -33,9 +33,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthStub =>
-            GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
-                ContractAddresses[ParliamentAuthSmartContractAddressNameProvider.Name],
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
         internal ElectionContractContainer.ElectionContractStub ElectionStub =>
@@ -65,12 +65,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 TokenSmartContractAddressNameProvider.Name,
                 VoteSmartContractAddressNameProvider.Name,
                 ProfitSmartContractAddressNameProvider.Name,
-                ParliamentAuthSmartContractAddressNameProvider.Name,
+                ParliamentSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 EconomicSmartContractAddressNameProvider.Name,
-                ReferendumAuthSmartContractAddressNameProvider.Name
+                ReferendumSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitialEconomicSystem);
@@ -94,10 +94,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
-                ParliamentAuthStub.Initialize.GetTransaction(new InitializeInput
-                {
-                    GenesisOwnerReleaseThreshold = 6666
-                }),
+                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,

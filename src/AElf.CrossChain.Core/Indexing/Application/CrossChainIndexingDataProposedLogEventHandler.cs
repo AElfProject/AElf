@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForProposal;

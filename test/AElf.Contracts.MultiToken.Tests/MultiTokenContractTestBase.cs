@@ -9,7 +9,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
@@ -137,7 +137,7 @@ namespace AElf.Contracts.MultiToken
             CrossChainContractAddress =
                 MainChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = MainChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-            ParliamentAddress = MainChainTester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+            ParliamentAddress = MainChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
         }
 
@@ -155,7 +155,7 @@ namespace AElf.Contracts.MultiToken
                 SideChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             SideParliamentAddress =
-                SideChainTester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+                SideChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             SideConsensusAddress = SideChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
         }
 
@@ -173,7 +173,7 @@ namespace AElf.Contracts.MultiToken
                 SideChain2Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             Side2TokenContractAddress = SideChain2Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             Side2ParliamentAddress =
-                SideChain2Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+                SideChain2Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             Side2ConsensusAddress = SideChain2Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
         }
 
@@ -250,8 +250,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         private SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            string symbol,
-            IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+            string symbol, params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
         {
             var res = new SideChainCreationRequest
             {
@@ -262,16 +261,19 @@ namespace AElf.Contracts.MultiToken
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = symbol,
                 SideChainTokenName = "TEST",
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
             };
-//            if (resourceTypeBalancePairs != null)
-//                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
-//                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
         }
 
         private async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount, string symbol)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, symbol);
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, symbol,
+                new SideChainTokenInitialIssue
+                {
+                    Address = MainChainTester.GetCallOwnerAddress(),
+                    Amount = 100
+                });
             var requestSideChainCreationResult =
                 await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                     nameof(CrossChainContractContainer.CrossChainContractStub.RequestSideChainCreation),
@@ -286,27 +288,23 @@ namespace AElf.Contracts.MultiToken
             ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
         {
             var approveTransaction1 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve),
-                tester.InitialMinerList[1],
-                new Acs3.ApproveInput
-                {
-                    ProposalId = proposalId
-                });
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                tester.InitialMinerList[1], proposalId);
             var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve),
-                tester.InitialMinerList[2],
-                new Acs3.ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            await tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                tester.InitialMinerList[2], proposalId);
+            var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                tester.InitialMinerList[0], proposalId);
+            await tester.MineAsync(
+                new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId, Address parliamentAddress,
             ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
         {
             var transactionResult = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
             return transactionResult;
         }
 
@@ -317,11 +315,11 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await tester.ExecuteContractWithMiningAsync(
                     parliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress),
+                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = method,

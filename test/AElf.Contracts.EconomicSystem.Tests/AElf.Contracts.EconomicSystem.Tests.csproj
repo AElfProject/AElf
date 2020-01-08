@@ -68,12 +68,12 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -144,8 +144,8 @@
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf/Proto/parliament_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs7;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.CSharp.Core.Utils;
@@ -14,6 +13,8 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
+using ProposalCreated = Acs3.ProposalCreated;
+using ProposalReleased = Acs3.ProposalReleased;
 
 namespace AElf.Contracts.MultiToken
 {
