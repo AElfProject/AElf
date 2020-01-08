@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,6 +7,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Vote;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -37,7 +37,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
 
-        private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] ConfigurationContractCode => Codes.Single(kv => kv.Key.Contains("Configuration")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         
         private readonly IBlockchainService _blockchainService;
@@ -76,7 +76,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(TokenContractCode)
+                    Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -112,7 +112,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(TokenContractCode)
+                    Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -138,22 +138,23 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 BlockHash = deployBlock.GetHash(),
                 BlockHeight = deployBlock.Height,
-                CodeHash = Hash.FromRawBytes(TokenContractCode)
+                CodeHash = Hash.FromRawBytes(VoteContractCode)
             };
             var smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
             smartContractCodeHistoryInCache.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInCache.Codes[0].ShouldBe(smartContractCode);
+            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
             var smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
             smartContractCodeHistoryInDb.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInDb.Codes[0].ShouldBe(smartContractCode);
+            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
             var transaction = new Transaction
             {
                 From = accountAddress,
                 To = address,
-                MethodName = nameof(TokenContractContainer.TokenContractStub.GetTokenInfo),
-                Params = ByteString.CopyFrom(new GetTokenInfoInput
+                MethodName = nameof(VoteContractContainer.VoteContractStub.GetVotingResult),
+                Params = ByteString.CopyFrom(new GetVotingResultInput
                 {
-                    Symbol = "ELF"
+                    SnapshotNumber = 1,
+                    VotingItemId = Hash.Empty
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -175,7 +176,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
                 $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-            response.Transaction.Params.ShouldBe(GetTokenInfoInput.Parser.ParseFrom(transaction.Params).ToString());
+            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
             
             var updateTransaction = new Transaction
             {
@@ -185,7 +186,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Params = ByteString.CopyFrom(new ContractUpdateInput
                 {
                     Address = address,
-                    Code = ByteString.CopyFrom(VoteContractCode)
+                    Code = ByteString.CopyFrom(ConfigurationContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -209,21 +210,21 @@ namespace AElf.WebApp.Application.Chain.Tests
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
                 $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-            response.Transaction.Params.ShouldBe(GetTokenInfoInput.Parser.ParseFrom(transaction.Params).ToString());
+            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
             var updateSmartContractCode = new SmartContractCode
             {
                 BlockHash = updateBlock.GetHash(),
                 BlockHeight = updateBlock.Height,
-                CodeHash = Hash.FromRawBytes(VoteContractCode)
+                CodeHash = Hash.FromRawBytes(ConfigurationContractCode)
             };
             smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
             smartContractCodeHistoryInCache.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInCache.Codes[0].ShouldBe(smartContractCode);
-            smartContractCodeHistoryInCache.Codes[1].ShouldBe(updateSmartContractCode);
+            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            smartContractCodeHistoryInCache.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
             smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
             smartContractCodeHistoryInDb.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInDb.Codes[0].ShouldBe(smartContractCode);
-            smartContractCodeHistoryInDb.Codes[1].ShouldBe(updateSmartContractCode);
+            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            smartContractCodeHistoryInDb.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
         }
 
         [Fact]
