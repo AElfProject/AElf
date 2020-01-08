@@ -128,8 +128,8 @@ message ChainInitializationData {
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
     string side_chain_token_symbol = 7;
-    repeated SideChainTokenInitialIssue SideChainTokenInitialIssueList = 9;
-    map<string, sint32> initial_resource_amount = 10;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
+    map<string, sint32> initial_resource_amount = 9;
 }
 
 message SideChainInfo {
@@ -151,7 +151,7 @@ message SideChainCreationRequest {
     sint64 side_chain_token_total_supply = 7;
     sint32 side_chain_token_decimals = 8;
     bool is_side_chain_token_burnable = 9;
-    repeated SideChainTokenInitialIssue SideChainTokenInitialIssueList = 10;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
     map<string, sint32> initial_resource_amount = 11; 
 }
 
@@ -194,7 +194,7 @@ message CreateSideChainInput{
 }
 
 message ReleaseSideChainCreationInput {
-    aelf.Hash proposalId = 1;
+    aelf.Hash proposal_id = 1;
 }
 
 message AdjustIndexingFeeInput{

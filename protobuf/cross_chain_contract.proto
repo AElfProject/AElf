@@ -129,6 +129,6 @@ enum CrossChainIndexingProposalStatus{
 }
 
 message GetSideChainIndexingFeeControllerOutput {
-    AuthorityStuff authorityStuff = 1;
+    AuthorityStuff authority_stuff = 1;
     bytes organization_creation_input_bytes = 2;
 }
