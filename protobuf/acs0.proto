@@ -27,9 +27,9 @@ service ACS0 {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
+    }
+    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
 
     // Views

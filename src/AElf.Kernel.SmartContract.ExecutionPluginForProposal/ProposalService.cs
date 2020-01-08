@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
             var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight, from)
-                .GetNotApprovedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
+                .GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
 
             return result?.ProposalIds.ToList();
         }
@@ -39,7 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
         {
             var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetValidProposals
+            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotVotedPendingProposals
                 .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
             if (result == null)
                 return;

@@ -2,7 +2,7 @@ namespace AElf.Contracts.Economic.TestBase
 {
     public enum Contracts
     {
-        AssociationAuth,
+        Association,
         Configuration,
         AEDPoS,
         CrossChain,
@@ -10,9 +10,9 @@ namespace AElf.Contracts.Economic.TestBase
         Election,
         Genesis,
         MultiToken,
-        ParliamentAuth,
+        Parliament,
         Profit,
-        ReferendumAuth,
+        Referendum,
         TransactionFee,
         TokenConverter,
         Treasury,

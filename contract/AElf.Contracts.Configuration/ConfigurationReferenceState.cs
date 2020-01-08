@@ -1,9 +1,9 @@
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 
 namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationState
     {
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

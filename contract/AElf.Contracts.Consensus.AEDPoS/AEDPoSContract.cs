@@ -193,13 +193,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty SetMaximumMinersCount(SInt32Value input)
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            var genesisOwnerAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();

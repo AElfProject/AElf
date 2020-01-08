@@ -41,16 +41,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             // Parliament Auth Contract maybe not deployed.
-            if (State.ParliamentAuthContract.Value != null)
+            if (State.ParliamentContract.Value != null)
             {
-                var genesisOwnerAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+                var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
                 Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
             }
 
