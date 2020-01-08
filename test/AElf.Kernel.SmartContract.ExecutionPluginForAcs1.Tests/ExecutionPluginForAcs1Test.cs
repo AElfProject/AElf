@@ -235,42 +235,5 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
             (originBalance - finalBalance).ShouldBe(chargedAmount);
         }
-
-        [Fact]
-        public async Task Extra_Available_Token_Use_Test()
-        {
-            await DeployContractsAsync();
-            const string addTokenSymbol = "MO";
-            const int baseTokenWeight = 1;
-            const int addTokenWeight = 2;
-            await CreateAndIssueTokenAsync(addTokenSymbol, 60000000);
-            await CreateAndIssueTokenAsync("ELF",  30000000);
-            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
-
-            var addAvailableTokenRet = (await TokenContractStub.AddAvailableTokenInfo.SendAsync(new AvailableTokenInfo
-            {
-                TokenSymbol = addTokenSymbol,
-                AddedTokenWeight = addTokenWeight,
-                BaseTokenWeight = baseTokenWeight
-            })).TransactionResult;
-            addAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = addTokenSymbol
-            });
-            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var size = dummy.Transaction.Size();
-            var elfFee = await txCostStrategy.GetCostAsync(null, size);
-            var availableTokenCost = dummy.TransactionResult.TransactionFee.Value[addTokenSymbol];
-            availableTokenCost.ShouldBe(elfFee.Mul(addTokenWeight).Div(baseTokenWeight));
-            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = addTokenSymbol
-            });
-            after.Balance.ShouldBe(before.Balance - availableTokenCost);
-        }
     }
 }

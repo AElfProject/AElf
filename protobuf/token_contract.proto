@@ -235,6 +235,7 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
+    repeated AvailableTokenInfo all_available_tokens = 5;
 }
 
 message TransactionFeeBill {
@@ -463,6 +464,27 @@ message ResourceUsage {
     map<string, sint32> value = 1;
 }
 
+message CalculateFeeCoefficientsOfType{
+    repeated CalculateFeeCoefficient coefficients= 1;
+}
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, sint32> coefficient_dic = 4;
+}
+
+message AvailableTokenInfo{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}
+
+message AllAvailableTokenInfo{
+    repeated AvailableTokenInfo all_available_tokens = 1;
+}
+
 // Events
 
 message Transferred {
@@ -508,17 +530,6 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message CalculateFeeCoefficientsOfType{
-    repeated CalculateFeeCoefficient coefficients= 1;
-}
-
-message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
-}
-
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
     CalculateFeeCoefficientsOfType all_coefficient = 1;
@@ -536,12 +547,7 @@ message RentalAccountBalanceInsufficient {
     sint64 amount = 2;
 }
 
-message AvailableTokenInfo{
-    string token_symbol = 1;
-    sint32 base_token_weight = 2;
-    sint32 added_token_weight = 3;
-}
-
-message AllAvailableTokenInfo{
-    repeated AvailableTokenInfo all_available_tokens = 1;
+message ExtraTokenListModified {
+    option (aelf.is_event) = true;
+    AllAvailableTokenInfo all_token_infos = 1;
 }

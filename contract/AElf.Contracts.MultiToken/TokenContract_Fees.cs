@@ -113,9 +113,9 @@ namespace AElf.Contracts.MultiToken
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
             
-            if (availableBalance < txSizeFeeAmount && State.ExtraAvailableTokenInfos.Value !=null && State.ExtraAvailableTokenInfos.Value.AllAvailableTokens.Any())
+            if (availableBalance < txSizeFeeAmount && input.AllAvailableTokens.Any())
             {
-                var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
+                var allExtraTokenInfo = input.AllAvailableTokens;
                 var availableTokenBalanceOrderList =
                     allExtraTokenInfo.OrderByDescending(GetBalanceCalculatedBaseOnPrimaryToken);
                 var availableTokenInfoWithMostBalance = availableTokenBalanceOrderList.First();
@@ -224,9 +224,7 @@ namespace AElf.Contracts.MultiToken
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
             allExtraTokenInfo.Add(input);
-            var newTokens = new AllAvailableTokenInfo();
-            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
-            State.ExtraAvailableTokenInfos.Value = newTokens;
+            SyncExtraTokenList();
             return new Empty();
         }
 
@@ -240,9 +238,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo != null, $"dose not find token symbol {input.TokenSymbol}");
             tokenInfo.AddedTokenWeight = input.AddedTokenWeight;
             tokenInfo.BaseTokenWeight = input.BaseTokenWeight;
-            var newTokens = new AllAvailableTokenInfo();
-            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
-            State.ExtraAvailableTokenInfos.Value = newTokens;
+            SyncExtraTokenList();
             return new Empty();
         }
         public override Empty RemoveAvailableTokenInfo(StringValue input)
@@ -252,11 +248,10 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
             Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
             allExtraTokenInfo.Remove(tokenInfo);
-            var newTokens = new AllAvailableTokenInfo();
-            newTokens.AllAvailableTokens.AddRange(allExtraTokenInfo);
-            State.ExtraAvailableTokenInfos.Value = newTokens;
+            SyncExtraTokenList();
             return new Empty();
         }
+        
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -686,7 +681,15 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-
+        private void SyncExtraTokenList()
+        {
+            var changedCacheData = State.ExtraAvailableTokenInfos.Value;
+            State.ExtraAvailableTokenInfos.Value = changedCacheData;
+            Context.Fire(new ExtraTokenListModified
+            {
+                AllTokenInfos = changedCacheData
+            });
+        }
         private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
         {
             var availableTokenSymbol = tokenInfo.TokenSymbol;
