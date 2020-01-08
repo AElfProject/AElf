@@ -69,5 +69,27 @@ namespace AElf.Contracts.TestContract.BasicUpdate
                 Value = result
             };
         }
+
+        public override Int32Value GetHashCodeMapStringValue(MapStringInput input)
+        {
+            var result = input.GetHashCode();
+            Context.LogDebug(()=>$"## GetHashCodeMapStringValue {input} => {result}");
+            
+            return new Int32Value
+            {
+                Value = result
+            };
+        }
+
+        public override Int32Value GetHashCodeMapEnumValue(MapEnumInput input)
+        {
+            var result = input.GetHashCode();
+            Context.LogDebug(()=>$"## GetHashCodeMapEnumValue {input} => {result}");
+            
+            return new Int32Value
+            {
+                Value = result
+            };
+        }
     }
 }

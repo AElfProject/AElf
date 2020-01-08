@@ -36,6 +36,10 @@ service BasicUpdateContract {
     }
     rpc GetHashCodeComplexValue(ComplexInput) returns (google.protobuf.Int32Value) {
     }
+    rpc GetHashCodeMapStringValue(MapStringInput) returns (google.protobuf.Int32Value){
+    }
+    rpc GetHashCodeMapEnumValue(MapEnumInput) returns (google.protobuf.Int32Value) {
+    }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -95,6 +99,14 @@ message ComplexInput {
     int32 int_value = 2;
     int64 long_value = 3;
     Color enum_value = 4;
+}
+
+message MapStringInput {
+    map<string, string> info = 1;
+}
+
+message MapEnumInput {
+    map<string, Color> info = 1;
 }
 
 enum Color {
