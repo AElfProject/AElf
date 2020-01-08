@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp;
@@ -6,8 +8,22 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.DApp
 {
-    public class DAppContract : DAppContainer.DAppBase
+    public partial class DAppContract : DAppContainer.DAppBase
     {
+        //just for unit cases
+        public override Empty InitializeForUnitTest(InitializeInput input)
+        {
+            State.TokenHolderContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+            CreateToken(true);
+            CreateTokenHolderProfitScheme();
+            SetProfitReceivingInformation(input.ProfitReceiver);
+            return new Empty();
+        }
+
         public override Empty Initialize(InitializeInput input)
         {
             State.TokenHolderContract.Value =
@@ -134,8 +150,12 @@ namespace AElf.Contracts.TestContract.DApp
             return new Empty();
         }
 
-        private void CreateToken()
+        private void CreateToken(bool includingSelf = false)
         {
+            var lockWhiteList = new List<Address>
+                {Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)};
+            if (includingSelf)
+                lockWhiteList.Add(Context.Self);
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = DAppConstants.Symbol,
@@ -146,8 +166,7 @@ namespace AElf.Contracts.TestContract.DApp
                 TotalSupply = DAppConstants.TotalSupply,
                 LockWhiteList =
                 {
-                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
-                    Context.Self
+                    lockWhiteList
                 }
             });
         }

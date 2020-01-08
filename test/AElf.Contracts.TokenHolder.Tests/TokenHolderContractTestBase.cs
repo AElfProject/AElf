@@ -120,7 +120,7 @@ namespace AElf.Contracts.TokenHolder
                                 {
                                     new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
                                     {
-                                        MethodName = nameof(DAppContractStub.Initialize),
+                                        MethodName = nameof(DAppContractStub.InitializeForUnitTest),
                                         Params = new AElf.Contracts.TestContract.DApp.InitializeInput
                                             {
                                                 ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
