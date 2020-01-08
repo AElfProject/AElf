@@ -1,5 +1,5 @@
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 
 namespace AElf.Contracts.TokenHolder
@@ -8,6 +8,6 @@ namespace AElf.Contracts.TokenHolder
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

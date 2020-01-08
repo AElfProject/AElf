@@ -1,3 +1,4 @@
+using Acs3;
 using Acs7;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -166,7 +167,9 @@ namespace AElf.Contracts.CrossChain
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer,
                 CreationTimestamp = sideChainInfo.CreationTimestamp,
-                ChainCreatorPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved
+                ChainCreatorPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved,
+                InitialResourceAmount = {sideChainInfo.SideChainCreationRequest.InitialResourceAmount},
+                SideChainTokenInitialIssueList = {sideChainInfo.SideChainCreationRequest.SideChainTokenInitialIssueList}
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);
@@ -190,16 +193,58 @@ namespace AElf.Contracts.CrossChain
             var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
                 out var pendingCrossChainIndexingProposal);
             Assert(exists, "Cross chain indexing with Pending status not found.");
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+            var crossChainIndexingController = GetCrossChainIndexingController();
+
             res.Proposer = pendingCrossChainIndexingProposal.Proposer;
             res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
-            var proposalInfo = State.ParliamentAuthContract.GetProposal
-                .Call(pendingCrossChainIndexingProposal.ProposalId);
-            res.ToBeReleased = proposalInfo.ToBeReleased;
+            var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
+                pendingCrossChainIndexingProposal.ProposalId);
+
+            res.ToBeReleased = proposalInfo.ToBeReleased &&
+                               proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
             res.ExpiredTime = proposalInfo.ExpiredTime;
             res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
             return res;
+        }
+
+        public override SInt64Value GetSideChainIndexingFeePrice(SInt32Value input)
+        {
+            var sideChainInfo = State.SideChainInfo[input.Value];
+            Assert(sideChainInfo != null, "Side chain not found.");
+            return new SInt64Value
+            {
+                Value = sideChainInfo.SideChainCreationRequest.IndexingPrice
+            };
+        }
+
+        public override AuthorityStuff GetCrossChainIndexingController(Empty input)
+        {
+            return GetCrossChainIndexingController();
+        }
+
+        public override AuthorityStuff GetSideChainLifetimeController(Empty input)
+        {
+            return GetSideChainLifetimeController();
+        }
+
+        public override GetSideChainIndexingFeeControllerOutput GetSideChainIndexingFeeController(SInt32Value input)
+        {
+            var sideChainInfo = State.SideChainInfo[input.Value];
+            var proposer = sideChainInfo.Proposer;
+            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
+            var organizationCreationInput = GenerateOrganizationInputForIndexingFeePrice(proposer);
+            var sideChainIndexingFeeControllerAddress =
+                CalculateSideChainIndexingFeeControllerOrganizationAddress(organizationCreationInput);
+            return new GetSideChainIndexingFeeControllerOutput
+            {
+                AuthorityStuff = new AuthorityStuff
+                {
+                    OwnerAddress = sideChainIndexingFeeControllerAddress,
+                    ContractAddress = State.AssociationContract.Value
+                },
+                OrganizationCreationInputBytes = organizationCreationInput.ToByteString()
+            };
         }
     }
 }

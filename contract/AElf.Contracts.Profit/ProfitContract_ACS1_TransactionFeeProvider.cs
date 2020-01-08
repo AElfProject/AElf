@@ -37,9 +37,9 @@ namespace AElf.Contracts.Profit
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
+            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
 
-            Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
             Assert(input.Fees.Count <= ProfitContractConstants.TokenAmountLimit, "Invalid input.");
             State.TransactionFees[input.MethodName] = input;
 

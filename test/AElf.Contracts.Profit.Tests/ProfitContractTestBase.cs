@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -14,7 +14,7 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Profit
 {
@@ -24,9 +24,9 @@ namespace AElf.Contracts.Profit
         protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
-
-        protected Address ParliamentAuthAddress { get; set; }
-
+        
+        protected Address ParliamentContractAddress{ get; set; }
+        
         internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
@@ -42,8 +42,8 @@ namespace AElf.Contracts.Profit
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
-
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentContractStub { get; set; }
+        
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
 
         protected void InitializeContracts()
         {
@@ -71,15 +71,15 @@ namespace AElf.Contracts.Profit
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
-
+            
             //deploy parliament auth contract
-            ParliamentAuthAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+            ParliamentContractAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
-                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentContract).Assembly.Location)),
+                        Name = ParliamentSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateParliamentInitializationCallList()
                     })).Output;
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
@@ -99,12 +99,10 @@ namespace AElf.Contracts.Profit
         {
             return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
-
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentContractTester(
-            ECKeyPair keyPair)
+        
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthAddress,
-                keyPair);
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
@@ -168,7 +166,6 @@ namespace AElf.Contracts.Profit
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = Starter,
                 ProposerAuthorityRequired = true
             });

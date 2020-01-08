@@ -27,8 +27,8 @@
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

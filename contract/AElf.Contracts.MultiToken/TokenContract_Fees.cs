@@ -529,14 +529,14 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             Assert(Context.Sender == Context.GetZeroSmartContractAddress() ||
-                   Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()),
+                   Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
                 "No permission.");
             State.SideChainCreator.Value = input;
             return new Empty();
@@ -610,17 +610,17 @@ namespace AElf.Contracts.MultiToken
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }

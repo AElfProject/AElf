@@ -1,6 +1,6 @@
 using Acs0;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
@@ -48,7 +48,7 @@ namespace AElf.Contracts.MultiToken
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract
         {
             get;
             set;

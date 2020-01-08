@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
-using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -29,11 +29,14 @@ namespace AElf.Contracts.CrossChain.Tests
         public Address TokenContractAddress =>
             ContractAddresses[TokenSmartContractAddressNameProvider.Name];
 
-        protected Address ParliamentAuthContractAddress =>
-            ContractAddresses[ParliamentAuthSmartContractAddressNameProvider.Name];
+        protected Address ParliamentContractAddress =>
+            ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+
+        protected Address AssociationContractAddress =>
+            ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
-            ContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
+            ContractAddresses[SmartContractConstants.CrossChainContractSystemName];
 
         public Address ConsensusContractAddress =>
             ContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
@@ -42,10 +45,14 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
 
+        protected ECKeyPair AnotherKeyPair => SampleECKeyPairs.KeyPairs.Last();
+
         protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(AEDPoSExtensionConstants.InitialKeyPairCount).ToList();
 
         protected Address DefaultSender => Address.FromPublicKey(DefaultKeyPair.PublicKey);
+
+        protected Address AnotherSenderAddress => Address.FromPublicKey(AnotherKeyPair.PublicKey);
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
@@ -63,13 +70,21 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #region Paliament
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
-            GetParliamentAuthContractTester(DefaultKeyPair);
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(DefaultKeyPair);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
+
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                keyPair);
+        }
+
+        internal AssociationContractContainer.AssociationContractStub GetAssociationContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
                 keyPair);
         }
 
@@ -91,13 +106,18 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
                 TokenSmartContractAddressNameProvider.Name,
-                ParliamentAuthSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name,
-                ConsensusSmartContractAddressNameProvider.Name
+                ParliamentSmartContractAddressNameProvider.Name,
+                SmartContractConstants.CrossChainContractSystemName,
+                ConsensusSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitializeTokenAsync);
             AsyncHelper.RunSync(InitializeParliamentContractAsync);
+
+            AssociationContractStub =
+                GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+                    DefaultKeyPair);
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
@@ -134,10 +154,9 @@ namespace AElf.Contracts.CrossChain.Tests
 
         private async Task InitializeParliamentContractAsync()
         {
-            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(
-                new ParliamentAuth.InitializeInput
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(
+                new Parliament.InitializeInput
                 {
-                    GenesisOwnerReleaseThreshold = 1,
                     PrivilegedProposer = DefaultSender,
                     ProposerAuthorityRequired = false
                 });
@@ -173,7 +192,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                TokenContractStub.Approve.GetTransaction(new MultiToken.ApproveInput
+                TokenContractStub.Approve.GetTransaction(new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
                     Symbol = "ELF",
@@ -191,13 +210,13 @@ namespace AElf.Contracts.CrossChain.Tests
         internal async Task<GetAllowanceOutput> ApproveAndTransferOrganizationBalanceAsync(Address organizationAddress,
             long amount)
         {
-            var approveInput = new MultiToken.ApproveInput
+            var approveInput = new ApproveInput
             {
                 Spender = CrossChainContractAddress,
                 Symbol = "ELF",
                 Amount = amount
             };
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
@@ -225,10 +244,14 @@ namespace AElf.Contracts.CrossChain.Tests
             return allowance;
         }
 
-        internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
-            IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+        internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount);
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
+                new SideChainTokenInitialIssue
+                {
+                    Address = DefaultSender,
+                    Amount = 100
+                });
             var requestSideChainCreation =
                 await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
 
@@ -237,33 +260,50 @@ namespace AElf.Contracts.CrossChain.Tests
             return proposalId;
         }
 
-        internal async Task<Hash> CreateProposalAsync(string method, Address address, IMessage input)
+        internal async Task<Hash> CreateParliamentProposalAsync(string method, Address organizationAddress,
+            IMessage input, Address toAddress = null)
         {
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
-                ToAddress = CrossChainContractAddress,
+                ToAddress = toAddress ?? CrossChainContractAddress,
                 ContractMethodName = method,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = address,
+                OrganizationAddress = organizationAddress,
                 Params = input.ToByteString()
             })).Output;
             return proposal;
         }
 
+        internal async Task<Hash> CreateAssociationProposalAsync(string method, Address organizationAddress,
+            Address toAddress,
+            IMessage input, AssociationContractContainer.AssociationContractStub authorizationContractStub = null)
+        {
+            var proposalId = (await (authorizationContractStub ?? AssociationContractStub).CreateProposal.SendAsync(
+                new CreateProposalInput
+                {
+                    ToAddress = toAddress,
+                    ContractMethodName = method,
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    OrganizationAddress = organizationAddress,
+                    Params = input.ToByteString()
+                })).Output;
+            return proposalId;
+        }
+
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
-            var transaction = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
+            var transaction = await ParliamentContractStub.Release.SendAsync(proposalId);
             return transaction.TransactionResult;
         }
 
         protected async Task<TransactionResult> ReleaseProposalWithExceptionAsync(Hash proposalId)
         {
-            var transaction = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
+            var transaction = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             return transaction.TransactionResult;
         }
 
         internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+            params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
         {
             var res = new SideChainCreationRequest
             {
@@ -274,10 +314,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = "TE",
                 SideChainTokenName = "TEST",
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
             };
-//            if (resourceTypeBalancePairs != null)
-//                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
-//                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
         }
 
@@ -285,11 +323,8 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                var tester = GetParliamentAuthContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
-                {
-                    ProposalId = proposalId,
-                });
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalId);
                 CheckResult(approveResult.TransactionResult);
             }
         }
@@ -306,12 +341,12 @@ namespace AElf.Contracts.CrossChain.Tests
             return true;
         }
 
-        internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
+        internal async Task<Hash> DisposeSideChainProposalAsync(SInt32Value chainId)
         {
             var disposalInput = chainId;
             var organizationAddress =
-                await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposal = (await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
+            var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.DisposeSideChain),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),

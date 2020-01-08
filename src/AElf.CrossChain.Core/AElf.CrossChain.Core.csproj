@@ -24,8 +24,8 @@
          <ContractBase Include="..\..\protobuf\acs7.proto">
             <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractBase>
-        <ContractMessage Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>

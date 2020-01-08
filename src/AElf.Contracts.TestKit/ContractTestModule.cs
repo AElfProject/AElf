@@ -74,6 +74,7 @@ namespace AElf.Contracts.TestKit
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+            Configure<ChainOptions>(options => options.ChainId = ChainId);
 
             #region Infra
 
@@ -127,7 +128,7 @@ namespace AElf.Contracts.TestKit
 
             var dto = new OsBlockchainNodeContextStartDto
             {
-                ChainId = ChainId,
+                ChainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
             };

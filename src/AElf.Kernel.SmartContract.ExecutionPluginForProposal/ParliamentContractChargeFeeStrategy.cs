@@ -1,4 +1,4 @@
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
 using AElf.Types;
@@ -15,10 +15,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         }
 
         public Address ContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(ParliamentAuthSmartContractAddressNameProvider.Name);
+            _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
 
         public string MethodName =>
-            nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.ApproveMultiProposals);
+            nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals);
         
         public bool IsFree(Transaction transaction)
         {
