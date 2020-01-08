@@ -55,7 +55,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
 
             var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount - 1, lockedTokenAmount,
-                new SideChainTokenInitialIssue
+                GetValidResourceAmount(), new SideChainTokenInitialIssue
                 {
                     Address = DefaultSender,
                     Amount = 100
@@ -96,7 +96,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             {
                 var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount - 1, lockedTokenAmount,
-                    new SideChainTokenInitialIssue
+                    GetValidResourceAmount(), new SideChainTokenInitialIssue
                     {
                         Address = DefaultSender,
                         Amount = 100
@@ -112,6 +112,20 @@ namespace AElf.Contracts.CrossChain.Tests
 
             {
                 var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
+                    GetValidResourceAmount(), new SideChainTokenInitialIssue
+                    {
+                        Address = DefaultSender,
+                        Amount = 100
+                    });
+                var requestSideChainCreation =
+                    await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
+
+                requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                requestSideChainCreation.TransactionResult.Error.ShouldContain("Invalid chain creation request.");
+            }
+
+            {
+                var createProposalInput = CreateSideChainCreationRequest(10, 0, GetValidResourceAmount(),
                     new SideChainTokenInitialIssue
                     {
                         Address = DefaultSender,
@@ -125,16 +139,45 @@ namespace AElf.Contracts.CrossChain.Tests
             }
 
             {
-                var createProposalInput = CreateSideChainCreationRequest(10, 0, new SideChainTokenInitialIssue
+                foreach (var t in ResourceTokenSymbolList)
                 {
-                    Address = DefaultSender,
-                    Amount = 100
-                });
-                var requestSideChainCreation =
-                    await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
+                    // invalid resource token
+                    var resourceAmount = GetValidResourceAmount();
+                    resourceAmount.Remove(t);
+                    var createProposalInput = CreateSideChainCreationRequest(1, lockedTokenAmount,
+                        resourceAmount, new SideChainTokenInitialIssue
+                        {
+                            Address = DefaultSender,
+                            Amount = 100
+                        });
+                    var requestSideChainCreation =
+                        await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(
+                            createProposalInput);
 
-                requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                requestSideChainCreation.TransactionResult.Error.ShouldContain("Invalid chain creation request.");
+                    requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                    requestSideChainCreation.TransactionResult.Error.ShouldContain(
+                        "Invalid side chain resource token request.");
+                }
+
+                foreach (var t in ResourceTokenSymbolList)
+                {
+                    // invalid resource token
+                    var resourceAmount = GetValidResourceAmount();
+                    resourceAmount[t] = 0;
+                    var createProposalInput = CreateSideChainCreationRequest(1, lockedTokenAmount,
+                        resourceAmount, new SideChainTokenInitialIssue
+                        {
+                            Address = DefaultSender,
+                            Amount = 100
+                        });
+                    var requestSideChainCreation =
+                        await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(
+                            createProposalInput);
+
+                    requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                    requestSideChainCreation.TransactionResult.Error.ShouldContain(
+                        "Invalid side chain resource token request.");
+                }
             }
         }
 
@@ -191,7 +234,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
 
             var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount,
-                new SideChainTokenInitialIssue
+                GetValidResourceAmount(), new SideChainTokenInitialIssue
                 {
                     Address = DefaultSender,
                     Amount = 100
@@ -223,12 +266,13 @@ namespace AElf.Contracts.CrossChain.Tests
                     },
                     ParliamentMemberProposingAllowed = true
                 })).Output;
-            var allowanceResult = await ApproveAndTransferOrganizationBalanceAsync(organizationAddress, lockedTokenAmount);
+            var allowanceResult =
+                await ApproveAndTransferOrganizationBalanceAsync(organizationAddress, lockedTokenAmount);
             Assert.True(allowanceResult.Spender == CrossChainContractAddress);
             Assert.True(allowanceResult.Allowance == lockedTokenAmount);
 
             var createSideChainCreationInput = CreateSideChainCreationRequest(1, lockedTokenAmount,
-                new SideChainTokenInitialIssue
+                GetValidResourceAmount(), new SideChainTokenInitialIssue
                 {
                     Address = DefaultSender,
                     Amount = 100

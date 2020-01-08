@@ -13,12 +13,15 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
+using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
 
 namespace AElf.Contracts.CrossChain.Tests
 {
@@ -101,6 +104,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 keyPair);
         }
 
+        protected readonly List<string> ResourceTokenSymbolList;
+
         public CrossChainContractTestBase()
         {
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
@@ -118,6 +123,9 @@ namespace AElf.Contracts.CrossChain.Tests
             AssociationContractStub =
                 GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
                     DefaultKeyPair);
+
+            ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
+                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
@@ -244,10 +252,11 @@ namespace AElf.Contracts.CrossChain.Tests
             return allowance;
         }
 
-        internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount)
+        internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
+            Dictionary<string, int> resourceAmount = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
-                new SideChainTokenInitialIssue
+                resourceAmount ?? GetValidResourceAmount(), new SideChainTokenInitialIssue
                 {
                     Address = DefaultSender,
                     Amount = 100
@@ -303,7 +312,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
+            Dictionary<string, int> resourceAmount, params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
         {
             var res = new SideChainCreationRequest
             {
@@ -314,9 +323,15 @@ namespace AElf.Contracts.CrossChain.Tests
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = "TE",
                 SideChainTokenName = "TEST",
-                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
+                InitialResourceAmount = {resourceAmount}
             };
             return res;
+        }
+
+        internal Dictionary<string, int> GetValidResourceAmount()
+        {
+            return ResourceTokenSymbolList.ToDictionary(resource => resource, resource => 1);
         }
 
         protected async Task ApproveWithMinersAsync(Hash proposalId)
