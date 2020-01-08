@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
-using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,14 +21,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {VoteSmartContractAddressNameProvider.Name, "Vote"},
             {ProfitSmartContractAddressNameProvider.Name, "Profit"},
             {ElectionSmartContractAddressNameProvider.Name, "Election"},
-            {ParliamentAuthSmartContractAddressNameProvider.Name, "ParliamentAuth"},
+            {ParliamentSmartContractAddressNameProvider.Name, "Parliament"},
             {TokenSmartContractAddressNameProvider.Name, "MultiToken"},
             {TokenConverterSmartContractAddressNameProvider.Name, "TokenConverter"},
             {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
             {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
-            {CrossChainSmartContractAddressNameProvider.Name, "CrossChain"},
-            {ReferendumAuthSmartContractAddressNameProvider.Name, "ReferendumAuth"},
+            {SmartContractConstants.CrossChainContractSystemName, "CrossChain"},
+            {ReferendumSmartContractAddressNameProvider.Name, "Referendum"},
+            {AssociationSmartContractAddressNameProvider.Name, "Association"}
         };
 
         protected IBlockMiningService BlockMiningService =>

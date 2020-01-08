@@ -22,12 +22,12 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 _smartContractAddressService.GetAddressByContractName(VoteSmartContractAddressNameProvider.Name),
                 _smartContractAddressService.GetAddressByContractName(ProfitSmartContractAddressNameProvider.Name),
-                _smartContractAddressService.GetAddressByContractName(AssociationAuthSmartContractAddressNameProvider
+                _smartContractAddressService.GetAddressByContractName(AssociationSmartContractAddressNameProvider
                     .Name),
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                _smartContractAddressService.GetAddressByContractName(ParliamentAuthSmartContractAddressNameProvider
+                _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider
                     .Name),
-                _smartContractAddressService.GetAddressByContractName(ReferendumAuthSmartContractAddressNameProvider
+                _smartContractAddressService.GetAddressByContractName(ReferendumSmartContractAddressNameProvider
                     .Name),
                 _smartContractAddressService.GetAddressByContractName(TokenConverterSmartContractAddressNameProvider
                     .Name),

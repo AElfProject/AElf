@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs3;
 using Acs7;
+using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
@@ -88,8 +89,11 @@ namespace AElf.Contracts.CrossChain
         public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
-            Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
+            Assert(
+                sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
+                sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
+                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                 "Invalid chain creation request.");
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
@@ -147,12 +151,14 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.ConfigurationContract.Value == null)
             {
-                var configurationContractAddress = Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+                var configurationContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
                 if (configurationContractAddress == null)
                 {
                     // If Configuration Contract has not deployed, skip following options.
                     return;
                 }
+
                 State.ConfigurationContract.Value = configurationContractAddress;
             }
 
@@ -235,29 +241,32 @@ namespace AElf.Contracts.CrossChain
             return GetCousinChainMerkleTreeRoot(parentChainHeight);
         }
 
-        private Address GetOwnerAddress()
+        private AuthorityStuff GetCrossChainIndexingController()
         {
-            if (State.Owner.Value != null)
-                return State.Owner.Value;
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.Owner.Value = organizationAddress;
-
-            return State.Owner.Value;
+            return State.CrossChainIndexingController.Value;
         }
 
-        private void AssertOwnerAuthority(Address address)
+        private AuthorityStuff GetSideChainLifetimeController()
         {
-            var owner = GetOwnerAddress();
-            Assert(owner.Equals(address), "Not authorized to do this.");
+            return State.SideChainLifetimeController.Value;
+        }
+
+        private void AssertCrossChainIndexingControllerAuthority(Address address)
+        {
+            var crossChainIndexingController = GetCrossChainIndexingController();
+            Assert(crossChainIndexingController.OwnerAddress == address, "Unauthorized behavior.");
+        }
+
+        private void AssertSideChainLifetimeControllerAuthority(Address address)
+        {
+            var sideChainLifetimeController = GetSideChainLifetimeController();
+            Assert(sideChainLifetimeController.OwnerAddress == address, "Unauthorized behavior.");
         }
 
         private void AssertAddressIsParliamentContract(Address address)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            Assert(State.ParliamentAuthContract.Value == address, "Unauthorized behavior.");
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            Assert(State.ParliamentContract.Value == address, "Unauthorized behavior.");
         }
 
         private void AssertAddressIsCurrentMiner(Address address)
@@ -309,29 +318,31 @@ namespace AElf.Contracts.CrossChain
 
         private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            var sideChainLifeTimeController = GetSideChainLifetimeController();
+            var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput =
                     new CreateProposalInput
                     {
                         ContractMethodName = nameof(CreateSideChain),
                         ToAddress = Context.Self,
-                        ExpiredTime = Context.CurrentBlockTime.AddSeconds(SideChainCreationProposalExpirationTimePeriod),
+                        ExpiredTime =
+                            Context.CurrentBlockTime.AddSeconds(SideChainCreationProposalExpirationTimePeriod),
                         Params = new CreateSideChainInput {SideChainCreationRequest = request, Proposer = proposer}
                             .ToByteString(),
-                        OrganizationAddress = GetOwnerAddress()
+                        OrganizationAddress = sideChainLifeTimeController.OwnerAddress
                     },
                 OriginProposer = Context.Sender
-            });
+            };
+            Context.SendInline(sideChainLifeTimeController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .CreateProposalBySystemContract), proposalCreationInput);
         }
 
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            State.ParliamentAuthContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            var crossChainIndexingController = GetCrossChainIndexingController();
+            var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
                 {
@@ -342,13 +353,16 @@ namespace AElf.Contracts.CrossChain
                     }.ToByteString(),
                     ContractMethodName = nameof(RecordCrossChainData),
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimePeriod),
-                    OrganizationAddress = GetOwnerAddress(),
+                    OrganizationAddress = crossChainIndexingController.OwnerAddress,
                     ToAddress = Context.Self
                 },
                 ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
                 OriginProposer = Context.Sender
-            });
+            };
 
+            Context.SendInline(crossChainIndexingController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                    .CreateProposalBySystemContract), proposalCreationInput);
             var crossChainIndexingProposal = new CrossChainIndexingProposal
             {
                 Proposer = proposer,
@@ -362,19 +376,21 @@ namespace AElf.Contracts.CrossChain
             });
         }
 
-        private ProposalOutput GetProposal(Hash proposalId)
+        private ProposalOutput GetCrossChainIndexingProposal(Hash proposalId)
         {
-            SetContractStateRequired(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
-            var proposal = State.ParliamentAuthContract.GetProposal.Call(proposalId);
-            return proposal;
+            var crossChainIndexingController = GetCrossChainIndexingController();
+            return Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal), proposalId);
         }
 
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
-            var proposal = GetProposal(proposalId);
+            var proposal = GetCrossChainIndexingProposal(proposalId);
             Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
-            State.ParliamentAuthContract.Release.Send(proposal.ProposalId); // release if ready
+            var crossChainIndexingController = GetCrossChainIndexingController();
+            Context.SendInline(crossChainIndexingController.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
+                proposal.ProposalId); // release if ready
             SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
                 CrossChainIndexingProposalStatus.ToBeReleased);
         }
@@ -498,11 +514,96 @@ namespace AElf.Contracts.CrossChain
                 State.ProposedSideChainCreationRequest.Remove(proposer);
             return isExpired;
         }
-        
+
         private bool CheckProposalExpired(Hash proposalId)
         {
-            var proposalInfo = GetProposal(proposalId);
+            var proposalInfo = GetCrossChainIndexingProposal(proposalId);
             return proposalInfo.ExpiredTime <= Context.CurrentBlockTime;
+        }
+
+        private void CreateInitialOrganizationForInitialControllerAddress()
+        {
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Parliament.CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
+                        MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
+                        MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
+                        MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
+                    },
+                    ProposerAuthorityRequired = false,
+                    ParliamentMemberProposingAllowed = true
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+            });
+        }
+
+        private Association.CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
+            Address sideChainCreator)
+        {
+            var proposers = new List<Address> {sideChainCreator, GetSideChainLifetimeController().OwnerAddress};
+            var createOrganizationInput = new Association.CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {proposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {proposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            return createOrganizationInput;
+        }
+
+        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(Address sideChainCreator)
+        {
+            var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
+            var address = CalculateSideChainIndexingFeeControllerOrganizationAddress(createOrganizationInput);
+            return address;
+        }
+
+        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(
+            Association.CreateOrganizationInput input)
+        {
+            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
+            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
+            return address;
+        }
+
+        private void CreateOrganizationForIndexingFeePriceAdjustment(Address sideChainCreator)
+        {
+            // be careful that this organization is useless after SideChainLifetimeController changed
+            var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
+            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
+            State.AssociationContract.CreateOrganization.Send(createOrganizationInput);
+        }
+
+        private bool ValidateAuthorityStuffExists(AuthorityStuff authorityStuff)
+        {
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
+                authorityStuff.OwnerAddress).Value;
+        }
+
+        private bool ValidateParliamentOrganization(Address organizationAddress,
+            bool isParliamentMemberProposingRequired)
+        {
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            var organization = State.ParliamentContract.GetOrganization.Call(organizationAddress);
+            return organization != null &&
+                   (!isParliamentMemberProposingRequired || organization.ParliamentMemberProposingAllowed);
         }
     }
 }

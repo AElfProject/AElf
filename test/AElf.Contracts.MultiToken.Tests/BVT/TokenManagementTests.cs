@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -20,10 +21,12 @@ namespace AElf.Contracts.MultiToken
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
         private const long TotalSupply = 1000_000_000_00000000;
+        private readonly int _chainId;
+        
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
-        private TokenInfo AliceCoinTokenInfo { get; set; } = new TokenInfo
+        private TokenInfo AliceCoinTokenInfo => new TokenInfo
         {
             Symbol = "ALICE",
             TokenName = "For testing multi-token contract",
@@ -31,7 +34,8 @@ namespace AElf.Contracts.MultiToken
             Decimals = 8,
             IsBurnable = true,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
-            Supply = 0
+            Supply = 0,
+            IssueChainId = _chainId
         };
 
         /// <summary>
@@ -144,6 +148,7 @@ namespace AElf.Contracts.MultiToken
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
             }
+            _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
         }
 
         private async Task MultiTokenContract_Create_Test()

@@ -16,4 +16,6 @@ service BasicContractZero {
     rpc GetContractDeploymentAuthorityRequired (google.protobuf.Empty) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc ChangeGenesisOwnerAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
 }

@@ -27,8 +27,8 @@
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractMessage>
     </ItemGroup>
     <ItemGroup>

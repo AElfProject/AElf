@@ -161,9 +161,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 InitialAcs3Stubs();
             }
 
-            await ParliamentStubs.First().Initialize.SendAsync(new ParliamentAuth.InitializeInput
+            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 6666
             });
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());

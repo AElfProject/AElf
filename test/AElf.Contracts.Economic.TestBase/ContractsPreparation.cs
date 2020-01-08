@@ -7,7 +7,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
@@ -21,10 +21,9 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Virgil.Crypto;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.ApproveInput;
-using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Economic.TestBase
 {
@@ -82,13 +81,13 @@ namespace AElf.Contracts.Economic.TestBase
 
         private Address _parliamentAddress;
 
-        protected Address ParliamentAuthContractAddress =>
-            GetOrDeployContract(Contracts.ParliamentAuth, ref _parliamentAddress);
+        protected Address ParliamentContractAddress =>
+            GetOrDeployContract(Contracts.Parliament, ref _parliamentAddress);
         
         private Address _referendumAddress;
 
-        protected Address ReferendumAuthContractAddress =>
-            GetOrDeployContract(Contracts.ReferendumAuth, ref _referendumAddress);
+        protected Address ReferendumContractAddress =>
+            GetOrDeployContract(Contracts.Referendum, ref _referendumAddress);
 
         #endregion
 
@@ -117,8 +116,8 @@ namespace AElf.Contracts.Economic.TestBase
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
-            GetParliamentAuthContractTester(BootMinerKeyPair);
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub => GetTransactionFeeChargingContractTester(BootMinerKeyPair);
@@ -175,10 +174,10 @@ namespace AElf.Contracts.Economic.TestBase
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                 keyPair);
         }
 
@@ -240,7 +239,7 @@ namespace AElf.Contracts.Economic.TestBase
             Hash hash;
             switch (contract)
             {
-                case Contracts.ParliamentAuth:
+                case Contracts.Parliament:
                     hash = Hash.FromString("AElf.ContractNames.Parliament");
                     break;
                 case Contracts.AEDPoS:
@@ -279,11 +278,11 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ElectionContractAddress;
             _ = TreasuryContractAddress;
             _ = TransactionFeeChargingContractAddress;
-            _ = ParliamentAuthContractAddress;
+            _ = ParliamentContractAddress;
             _ = TokenConverterContractAddress;
             _ = ConsensusContractAddress;
             _ = MethodCallThresholdContractAddress;
-            _ = ReferendumAuthContractAddress;
+            _ = ReferendumContractAddress;
             _ = TokenContractAddress;
         }
 
@@ -500,9 +499,8 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task InitializeParliamentContract()
         {
-            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = BootMinerAddress,
                 ProposerAuthorityRequired = true
             });
@@ -524,7 +522,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
         {
-            var genesisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = genesisOwner,
@@ -533,21 +531,18 @@ namespace AElf.Contracts.Economic.TestBase
                 Params = input.ToByteString(),
                 ToAddress = contract
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                var tester = GetParliamentAuthContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
-                {
-                    ProposalId = proposalHash,
-                });
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
                 CheckResult(approveResult.TransactionResult);
             }
 
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
 
@@ -574,21 +569,18 @@ namespace AElf.Contracts.Economic.TestBase
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = createResult.Output;
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                var tester = GetParliamentAuthContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
-                {
-                    ProposalId = proposalHash,
-                });
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
                 CheckResult(approveResult.TransactionResult);
             }
 
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
 

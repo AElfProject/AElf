@@ -196,10 +196,27 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
+        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+        {
+            TransactionContext.Trace.InlineTransactions.Add(new Transaction
+            {
+                From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress),
+                To = toAddress,
+                MethodName = methodName,
+                Params = args
+            });
+        }
+
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
                 virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
+        }
+
+        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
+        {
+            var systemHashName = GetSystemContractNameToAddressMapping().First(kv => kv.Value == Self).Key;
+            return Address.FromPublicKey(systemHashName.Value.Concat(virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address GetZeroSmartContractAddress()

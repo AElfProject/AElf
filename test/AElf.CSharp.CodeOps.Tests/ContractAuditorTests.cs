@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -10,9 +10,9 @@ using AElf.Contracts.Economic;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.ReferendumAuth;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -20,7 +20,6 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.Runtime.CSharp.Tests.BadContract;
-using AElf.Runtime.CSharp.Tests.TestContract;
 using Shouldly;
 using Xunit;
 
@@ -50,8 +49,10 @@ namespace AElf.CSharp.CodeOps
     {
         private readonly ContractAuditorFixture _auditorFixture;
         private readonly string _contractDllDir = "../../../contracts/";
-        private readonly Type[] _contracts = {
-            typeof(AssociationAuthContract),
+
+        private readonly Type[] _contracts =
+        {
+            typeof(AssociationContract),
             typeof(ConfigurationContract),
             typeof(AEDPoSContract),
             typeof(CrossChainContract),
@@ -59,9 +60,9 @@ namespace AElf.CSharp.CodeOps
             typeof(ElectionContract),
             typeof(BasicContractZero),
             typeof(TokenContract),
-            typeof(ParliamentAuthContract),
+            typeof(ParliamentContract),
             typeof(ProfitContract),
-            typeof(ReferendumAuthContract),
+            typeof(ReferendumContract),
             typeof(TokenConverterContract),
             typeof(TreasuryContract)
         };
@@ -71,9 +72,9 @@ namespace AElf.CSharp.CodeOps
             // Use fixture to instantiate auditor only once
             _auditorFixture = auditorFixture;
         }
-        
+
         #region Positive Cases
-        
+
         [Fact]
         public void CheckSystemContracts_AllShouldPass()
         {
@@ -91,12 +92,12 @@ namespace AElf.CSharp.CodeOps
             var code = ReadCode(Path.Combine(_contractDllDir, contract));
             var updateCode = ContractPatcher.Patch(code);
             code.ShouldNotBe(updateCode);
-            var exception = Record.Exception(()=>_auditorFixture.Audit(updateCode));
+            var exception = Record.Exception(() => _auditorFixture.Audit(updateCode));
             exception.ShouldBeNull();
         }
 
         #endregion
-        
+
         #region Negative Cases
 
         [Fact]
@@ -110,69 +111,69 @@ namespace AElf.CSharp.CodeOps
             findings.FirstOrDefault(f => f is AcsValidationResult).ShouldNotBeNull();
             
             // Random usage
-            LookFor(findings, 
-                    "UpdateStateWithRandom", 
+            LookFor(findings,
+                    "UpdateStateWithRandom",
                     i => i.Namespace == "System" && i.Type == "Random")
                 .ShouldNotBeNull();
-            
+
             // DateTime UtcNow usage
-            LookFor(findings, 
-                    "UpdateStateWithCurrentTime", 
+            LookFor(findings,
+                    "UpdateStateWithCurrentTime",
                     i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_UtcNow")
                 .ShouldNotBeNull();
-            
+
             // DateTime Now usage
-            LookFor(findings, 
+            LookFor(findings,
                     "UpdateStateWithCurrentTime",
                     i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
                 .ShouldNotBeNull();
-            
+
             // DateTime Today usage
-            LookFor(findings, 
+            LookFor(findings,
                     "UpdateStateWithCurrentTime",
                     i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Today")
                 .ShouldNotBeNull();
-            
+
             // Double type usage
-            LookFor(findings, 
+            LookFor(findings,
                     "UpdateDoubleState",
                     i => i.Namespace == "System" && i.Type == "Double")
                 .ShouldNotBeNull();
-            
+
             // Float type usage
-            LookFor(findings, 
+            LookFor(findings,
                     "UpdateFloatState",
-                    i => i.Namespace == "System" && i.Type == "Single") 
+                    i => i.Namespace == "System" && i.Type == "Single")
                 .ShouldNotBeNull();
-            
+
             // Disk Ops usage
-            LookFor(findings, 
+            LookFor(findings,
                     "WriteFileToNode",
                     i => i.Namespace == "System.IO")
                 .ShouldNotBeNull();
-            
+
             // String constructor usage
-            LookFor(findings, 
+            LookFor(findings,
                     "InitLargeStringDynamic",
                     i => i.Namespace == "System" && i.Type == "String" && i.Member == ".ctor")
                 .ShouldNotBeNull();
-            
+
             // Denied member use in nested class
-            LookFor(findings, 
+            LookFor(findings,
                     "UseDeniedMemberInNestedClass",
                     i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
                 .ShouldNotBeNull();
-            
+
             // Denied member use in separate class
-            LookFor(findings, 
+            LookFor(findings,
                     "UseDeniedMemberInSeparateClass",
                     i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
                 .ShouldNotBeNull();
-            
+
             // Large array initialization
             findings.FirstOrDefault(f => f is ArrayValidationResult && f.Info.ReferencingMethod == "InitLargeArray")
                 .ShouldNotBeNull();
-            
+
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
@@ -198,19 +199,22 @@ namespace AElf.CSharp.CodeOps
         }
 
         #endregion
-        
+
         #region Test Helpers
-        
+
         byte[] ReadCode(string path)
         {
-            return File.Exists(path) ? File.ReadAllBytes(path) : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+            return File.Exists(path)
+                ? File.ReadAllBytes(path)
+                : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
         }
-        
+
         Info LookFor(IEnumerable<ValidationResult> findings, string referencingMethod, Func<Info, bool> criteria)
         {
-            return findings.Select(f => f.Info).FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
+            return findings.Select(f => f.Info)
+                .FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
         }
-        
+
         #endregion
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -203,7 +204,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var transaction in eventData.Transactions)
             {
                 if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
+                {
+                    Logger.LogWarning("Already too many transaction processing job enqueued.");
                     break;
+                }
 
                 var queuedTransaction = new QueuedTransaction
                 {
@@ -211,54 +215,77 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                await _processTransactionJobs.SendAsync(queuedTransaction);
+                var sendResult = await _processTransactionJobs.SendAsync(queuedTransaction);
+                if (!sendResult)
+                    Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
         private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if (_allTransactions.Count > _transactionOptions.PoolLimit)
-                return;
-
-            if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
-                return;
-
-            if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
-                return;
-
-            var validationResult =
-                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction.Transaction);
-            if (!validationResult)
-                return;
-
-            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
-            if (hasTransaction)
-                return;
-
-            await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
-            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (!addSuccess)
-                return;
-
-            var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
-            UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
-
-            if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
-                return;
-
-            if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+            try
             {
-                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
-                    Transaction = queuedTransaction.Transaction
-                });
+                    Logger.LogWarning("Tx pool is full.");
+                    return;
+                }
+
+                if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
+                    return;
+
+                if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
+                {
+                    Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} already expired.");
+                    return;
+                }
+
+                var validationResult =
+                    await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
+                        .Transaction);
+                if (!validationResult)
+                {
+                    Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
+                    return;
+                }
+
+                var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+                if (hasTransaction)
+                    return;
+
+                await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+                var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                if (!addSuccess)
+                {
+                    Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
+                    return;
+                }
+
+                var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
+                UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
+
+                if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
+                    return;
+
+                if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+                {
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                    {
+                        Transaction = queuedTransaction.Transaction
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Process transaction failed.");
+                throw;
             }
         }
 
         public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
-            
+
             return Task.CompletedTask;
         }
 

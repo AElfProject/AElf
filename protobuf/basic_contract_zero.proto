@@ -11,8 +11,18 @@ service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
     option (aelf.base) = "acs0.proto";
     option (aelf.base) = "acs1.proto";
-    
+
+    rpc ChangeContractDeploymentController (AuthorityStuff) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeCodeCheckController (AuthorityStuff) returns (google.protobuf.Empty) {
+    }
     rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityStuff) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCodeCheckController(google.protobuf.Empty) returns (AuthorityStuff){
         option (aelf.is_view) = true;
     }
 }
@@ -28,8 +38,12 @@ message ContractProposingInput{
 
 enum ContractProposingInputStatus {
     PROPOSED = 0;
-    PRE_APPROVED = 1;
-    APPROVED = 2;
-    PRE_CODE_CHECKED = 3;
-    CODE_CHECKED = 4;
+    APPROVED = 1;
+    PRE_CODE_CHECKED = 2;
+    CODE_CHECKED = 3;
+}
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
 }
