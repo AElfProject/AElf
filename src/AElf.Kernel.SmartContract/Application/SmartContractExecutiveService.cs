@@ -87,7 +87,7 @@ namespace AElf.Kernel.SmartContract.Application
             var smartContractCodeHistory =
                 await _smartContractCodeHistoryService.GetSmartContractCodeHistoryAsync(address);
             var smartContractCodes = smartContractCodeHistory.Codes
-                .Where(c => c.BlockHeight <= chainContext.BlockHeight).OrderByDescending(c => c.BlockHeight);
+                .Where(c => c.BlockHeight <= chainContext.BlockHeight).OrderByDescending(c => c.BlockHeight).ToList();
             
             foreach (var smartContractCode in smartContractCodes)
             {
@@ -97,6 +97,8 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     continue;
                 }
+                var pool = _smartContractExecutiveProvider.GetPool(address, smartContractCode.CodeHash);
+                if (pool.TryTake(out var executive)) return executive;
                 var smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(
                     new ChainContext
                     {
@@ -106,7 +108,9 @@ namespace AElf.Kernel.SmartContract.Application
                     address,
                     smartContractCode.CodeHash);
                 if(smartContractRegistration == null) continue;
-                return await GetExecutiveAsync(smartContractRegistration);
+                executive = await GetExecutiveAsync(smartContractRegistration);
+
+                return executive;
             }
             return null;
         }
