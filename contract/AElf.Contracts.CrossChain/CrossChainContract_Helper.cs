@@ -105,11 +105,22 @@ namespace AElf.Contracts.CrossChain
             Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
             AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
                 sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+            AssertValidResourceTokenAmount(sideChainCreationRequest);
+        }
+
+        private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
+        {
+            var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
+            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            {
+                Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
+                    "Invalid side chain resource token request.");
+            }
         }
 
         private void AssertValidSideChainTokenInfo(string symbol, string tokenName, long totalSupply)
         {
-            Assert(!string.IsNullOrEmpty(symbol) && !string.IsNullOrEmpty(tokenName), "Invalid side chain token name,");
+            Assert(!string.IsNullOrEmpty(symbol) && !string.IsNullOrEmpty(tokenName), "Invalid side chain token name.");
             Assert(totalSupply > 0, "Invalid side chain token supply.");
         }
 
