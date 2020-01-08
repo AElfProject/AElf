@@ -27,7 +27,8 @@ namespace AElf.Contracts.TokenHolder
             State.TokenHolderProfitSchemes[Context.Sender] = new TokenHolderProfitScheme
             {
                 Symbol = input.Symbol,
-                MinimumLockMinutes = input.MinimumLockMinutes
+                MinimumLockMinutes = input.MinimumLockMinutes,
+                AutoDistributeThreshold = {input.AutoDistributeThreshold}
             };
 
             return new Empty();
@@ -145,6 +146,26 @@ namespace AElf.Contracts.TokenHolder
                     Shares = input.Amount
                 }
             });
+            
+            // Check auto-distribute threshold.
+            foreach (var threshold in scheme.AutoDistributeThreshold)
+            {
+                var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
+                var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Owner = originScheme.VirtualAddress,
+                    Symbol = threshold.Key
+                }).Balance;
+                if (balance < threshold.Value) continue;
+                State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+                {
+                    SchemeId = scheme.SchemeId,
+                    Symbol = threshold.Key,
+                    Period = scheme.Period.Add(1)
+                });
+                scheme.Period = scheme.Period.Add(1);
+                State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+            }
             return new Empty();
         }
 

@@ -37,6 +37,7 @@ service TokenHolderContract {
 message CreateTokenHolderProfitSchemeInput {
     string symbol = 1;
     sint64 minimum_lock_minutes = 2;
+    map<string, sint64> auto_distribute_threshold = 3;
 }
 
 message AddTokenHolderBeneficiaryInput {
@@ -75,4 +76,5 @@ message TokenHolderProfitScheme {
     aelf.Hash scheme_id = 2;
     sint64 period = 3;
     sint64 minimum_lock_minutes = 4;
+    map<string, sint64> auto_distribute_threshold = 5;
 }
