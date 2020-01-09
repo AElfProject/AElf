@@ -391,6 +391,7 @@ namespace AElf.Contracts.MultiToken
             Assert(
                 !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
                     .Contains(input.Symbol), "Invalid token symbol.");
+            Assert(input.Amount <= State.Balances[input.ContractAddress][input.Symbol], "Invalid profit amount.");
             var profits = input.Amount == 0 ? State.Balances[input.ContractAddress][input.Symbol] : input.Amount;
             State.Balances[input.ContractAddress][input.Symbol] =
                 State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
