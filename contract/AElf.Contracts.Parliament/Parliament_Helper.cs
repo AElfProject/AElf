@@ -247,5 +247,29 @@ namespace AElf.Contracts.Parliament
                 OrganizationHash = organizationHash
             };
         }
+
+        private void RequiredMethodFeeControllerSet()
+        {
+            if (State.MethodFeeController.Value != null) return;
+
+            var defaultAuthority = new AuthorityStuff
+            {
+                OwnerAddress = State.DefaultOrganizationAddress.Value,
+                ContractAddress = Context.Self
+            };
+
+            State.MethodFeeController.Value = defaultAuthority;
+        }
+
+        private void AssertSenderAddressWith(Address address)
+        {
+            Assert(Context.Sender == address, "Unauthorized behavior.");
+        }
+
+        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        {
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(ValidateOrganizationExist), authorityStuff.OwnerAddress).Value;
+        }
     }
 }

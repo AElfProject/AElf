@@ -1,5 +1,4 @@
 using Acs1;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Association
@@ -13,13 +12,9 @@ namespace AElf.Contracts.Association
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            RequiredMethodFeeControllerSet();
 
-            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();

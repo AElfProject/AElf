@@ -12,7 +12,9 @@ namespace AElf.Contracts.Parliament
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            Assert(Context.Sender == GetDefaultOrganizationAddress(new Empty()));
+            RequiredMethodFeeControllerSet();
+
+            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();

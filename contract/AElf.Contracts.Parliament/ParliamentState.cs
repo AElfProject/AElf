@@ -19,5 +19,6 @@ namespace AElf.Contracts.Parliament
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<ProposerWhiteList> ProposerWhiteList { get; set; }
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }

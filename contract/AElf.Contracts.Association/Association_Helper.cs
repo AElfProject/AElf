@@ -3,6 +3,7 @@ using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Association
 {
@@ -130,6 +131,35 @@ namespace AElf.Contracts.Association
             State.Proposals[proposalId] = proposal;
             Context.Fire(new ProposalCreated {ProposalId = proposalId});
             return proposalId;
+        }
+
+        private void RequiredMethodFeeControllerSet()
+        {
+            if (State.MethodFeeController.Value != null) return;
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            var defaultAuthority = new AuthorityStuff
+            {
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
+                ContractAddress = State.ParliamentContract.Value
+            };
+
+            State.MethodFeeController.Value = defaultAuthority;
+        }
+
+        private void AssertSenderAddressWith(Address address)
+        {
+            Assert(Context.Sender == address, "Unauthorized behavior.");
+        }
+
+        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        {
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(ValidateOrganizationExist), authorityStuff.OwnerAddress).Value;
         }
     }
 }

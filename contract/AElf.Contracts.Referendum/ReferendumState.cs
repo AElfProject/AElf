@@ -1,4 +1,5 @@
 using Acs1;
+using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
@@ -14,5 +15,6 @@ namespace AElf.Contracts.Referendum
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }
