@@ -125,7 +125,7 @@ namespace AElf.Contracts.TokenHolder
 
         public override Empty DistributeProfits(DistributeProfitsInput input)
         {
-            var scheme = GetValidScheme(input.SchemeManager);
+            var scheme = GetValidScheme(input.SchemeManager, true);
             Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName) ||
                    Context.Sender == input.SchemeManager, "No permission to distribute profits.");
             State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
@@ -243,17 +243,17 @@ namespace AElf.Contracts.TokenHolder
             return State.TokenHolderProfitSchemes[input] ?? new TokenHolderProfitScheme();
         }
 
-        private TokenHolderProfitScheme GetValidScheme(Address manager)
+        private TokenHolderProfitScheme GetValidScheme(Address manager, bool updateSchemePeriod = false)
         {
             var scheme = State.TokenHolderProfitSchemes[manager];
             Assert(scheme != null, "Token holder profit scheme not found.");
-            UpdateTokenHolderProfitScheme(ref scheme, manager);
+            UpdateTokenHolderProfitScheme(ref scheme, manager, updateSchemePeriod);
             return scheme;
         }
 
-        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme, Address manager)
+        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme, Address manager, bool updateSchemePeriod)
         {
-            if (scheme.SchemeId != null) return;
+            if (scheme.SchemeId != null && !updateSchemePeriod) return;
             var originSchemeId = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
                 Manager = manager
@@ -261,6 +261,7 @@ namespace AElf.Contracts.TokenHolder
             Assert(originSchemeId != null, "Origin scheme not found.");
             var originScheme = State.ProfitContract.GetScheme.Call(originSchemeId);
             scheme.SchemeId = originScheme.SchemeId;
+            scheme.Period = originScheme.CurrentPeriod;
             State.TokenHolderProfitSchemes[Context.Sender] = scheme;
         }
     }
