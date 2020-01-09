@@ -70,11 +70,32 @@ namespace AElf.Contracts.TokenHolder
         public override Empty RemoveBeneficiary(RemoveTokenHolderBeneficiaryInput input)
         {
             var scheme = GetValidScheme(Context.Sender);
+
+            var detail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                Beneficiary = input.Beneficiary,
+                SchemeId = scheme.SchemeId
+            }).Details.Single();
+            var lockedAmount = detail.Shares;
+            Assert(lockedAmount <= input.Amount, "Incorrect amount.");
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput 
             {
                 SchemeId = scheme.SchemeId,
                 Beneficiary = input.Beneficiary
             });
+            if (lockedAmount > input.Amount)
+            {
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput 
+                {
+                    SchemeId = scheme.SchemeId,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = input.Beneficiary,
+                        Shares = lockedAmount.Sub(input.Amount)
+                    }
+                });
+            }
+
             return new Empty();
         }
 

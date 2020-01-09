@@ -108,6 +108,12 @@ namespace AElf.Contracts.TestContract.DApp
                 Amount = input.Amount
             });
 
+            State.TokenHolderContract.RemoveBeneficiary.Send(new RemoveTokenHolderBeneficiaryInput
+            {
+                Beneficiary = Context.Sender,
+                Amount = input.Amount
+            });
+
             // Update profile.
             var profile = State.Profiles[Context.Sender];
             profile.Records.Add(new Record

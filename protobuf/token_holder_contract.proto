@@ -47,6 +47,7 @@ message AddTokenHolderBeneficiaryInput {
 
 message RemoveTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
+    sint64 amount = 2;
 }
 
 message ContributeProfitsInput {
