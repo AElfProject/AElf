@@ -183,7 +183,8 @@ namespace AElf.Contracts.CrossChain
             }
             
             State.IndexingBalance[chainId] = newBalance;
-
+            sideChainInfo.SideChainStatus = SideChainStatus.Active;
+            State.SideChainInfo[chainId] = sideChainInfo;
             return new Empty();
         }
 
@@ -220,6 +221,9 @@ namespace AElf.Contracts.CrossChain
                 CalculateSideChainIndexingFeeControllerOrganizationAddress(sideChainCreator);
             Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
             info.IndexingPrice = input.IndexingFee;
+            var balance = State.IndexingBalance[input.SideChainId];
+            if (balance < info.IndexingPrice)
+                info.SideChainStatus = SideChainStatus.InsufficientBalance;
             State.SideChainInfo[input.SideChainId] = info;
             return new Empty();
         }

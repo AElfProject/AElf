@@ -49,6 +49,7 @@ namespace AElf.Contracts.CrossChain.Tests
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
 
         protected ECKeyPair AnotherKeyPair => SampleECKeyPairs.KeyPairs.Last();
+        protected Address AnotherSender => Address.FromPublicKey(AnotherKeyPair.PublicKey);
 
         protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(AEDPoSExtensionConstants.InitialKeyPairCount).ToList();
@@ -67,7 +68,7 @@ namespace AElf.Contracts.CrossChain.Tests
         internal TokenContractContainer.TokenContractStub TokenContractStub =>
             GetTester<TokenContractContainer.TokenContractStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                DefaultKeyPair);
 
         #endregion
 
@@ -101,6 +102,13 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             return GetTester<CrossChainContractContainer.CrossChainContractStub>(
                 CrossChainContractAddress,
+                keyPair);
+        }
+
+        internal TokenContractContainer.TokenContractStub GetTokenContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<TokenContractContainer.TokenContractStub>(
+                TokenContractAddress,
                 keyPair);
         }
 
@@ -142,15 +150,16 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0, long lockedTokenAmount = 10, bool withException = false)
+            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, ECKeyPair keyPair = null, bool withException = false)
         {
             await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId, withException);
-            await ApproveBalanceAsync(lockedTokenAmount);
-            var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount);
+            await ApproveBalanceAsync(lockedTokenAmount, keyPair);
+            var proposalId = await CreateSideChainProposalAsync(indexingFee, lockedTokenAmount, keyPair);
             await ApproveWithMinersAsync(proposalId);
 
+            var crossChainContractStub = keyPair == null ? CrossChainContractStub : GetCrossChainContractStub(keyPair);
             var releaseTx =
-                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                await crossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
                     {ProposalId = proposalId});
             var sideChainCreatedEvent = SideChainCreatedEvent.Parser
                 .ParseFrom(releaseTx.TransactionResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
@@ -196,17 +205,18 @@ namespace AElf.Contracts.CrossChain.Tests
             });
         }
 
-        protected async Task ApproveBalanceAsync(long amount)
+        protected async Task ApproveBalanceAsync(long amount, ECKeyPair keyPair = null)
         {
+            var tokenContractStub = keyPair == null ? TokenContractStub : GetTokenContractStub(keyPair);
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                TokenContractStub.Approve.GetTransaction(new ApproveInput
+                tokenContractStub.Approve.GetTransaction(new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
                     Symbol = "ELF",
                     Amount = amount
                 }),
-                TokenContractStub.GetAllowance.GetTransaction(new GetAllowanceInput
+                tokenContractStub.GetAllowance.GetTransaction(new GetAllowanceInput
                 {
                     Symbol = "ELF",
                     Owner = DefaultSender,
@@ -253,6 +263,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
+            ECKeyPair keyPair = null,
             Dictionary<string, int> resourceAmount = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
@@ -261,8 +272,9 @@ namespace AElf.Contracts.CrossChain.Tests
                     Address = DefaultSender,
                     Amount = 100
                 });
+            var crossChainContractStub = keyPair == null ? CrossChainContractStub : GetCrossChainContractStub(keyPair);
             var requestSideChainCreation =
-                await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
+                await crossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
 
             var proposalId = ProposalCreated.Parser.ParseFrom(requestSideChainCreation.TransactionResult.Logs
                 .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;

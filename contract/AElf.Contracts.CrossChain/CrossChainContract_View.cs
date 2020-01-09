@@ -60,11 +60,11 @@ namespace AElf.Contracts.CrossChain
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
 
-        public override SInt32Value GetChainStatus(SInt32Value input)
+        public override GetChainStatusOutput GetChainStatus(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain not found.");
-            return new SInt32Value() {Value = (int) info.SideChainStatus};
+            return new GetChainStatusOutput {Status = info.SideChainStatus};
         }
 
         public override SInt64Value GetSideChainHeight(SInt32Value input)

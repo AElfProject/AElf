@@ -20,8 +20,10 @@ using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
@@ -120,6 +122,8 @@ namespace AElf.Contracts.MultiToken
         protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChainTester;
         protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChain2Tester;
 
+        protected readonly List<string> ResourceTokenSymbolList;
+
         protected int MainChainId;
 
         public MultiTokenContractCrossChainTestBase()
@@ -139,6 +143,9 @@ namespace AElf.Contracts.MultiToken
             TokenContractAddress = MainChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ParliamentAddress = MainChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
+
+            ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
+                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
         }
 
         protected void StartSideChain(int chainId, long height, string symbol)
@@ -261,7 +268,8 @@ namespace AElf.Contracts.MultiToken
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = symbol,
                 SideChainTokenName = "TEST",
-                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
+                InitialResourceAmount = {ResourceTokenSymbolList.ToDictionary(resource => resource, resource => 1)}
             };
             return res;
         }

@@ -41,7 +41,7 @@ namespace AElf.Contracts.CrossChain.Tests
             Assert.True(creator == DefaultSender);
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = chainId});
-            Assert.True(chainStatus.Value == (int) SideChainStatus.Active);
+            Assert.True(chainStatus.Status == SideChainStatus.Active);
 
             var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
             Assert.True(parentChain.Equals(new SInt32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
@@ -308,7 +308,7 @@ namespace AElf.Contracts.CrossChain.Tests
             Assert.True(chainLockedBalance.Balance == lockedTokenAmount);
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = chainId});
-            Assert.True(chainStatus.Value == (int) SideChainStatus.Active);
+            Assert.True(chainStatus.Status == SideChainStatus.Active);
 
             var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
             Assert.True(parentChain.Equals(new SInt32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
@@ -508,7 +508,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 Value = sideChainId
             });
 
-            Assert.True(chainStatus.Value == (int) SideChainStatus.Terminated);
+            Assert.True(chainStatus.Status == SideChainStatus.Terminated);
             var res = await CrossChainContractStub.Recharge.SendWithExceptionAsync(rechargeInput);
 
             var status = res.TransactionResult.Status;
@@ -563,7 +563,7 @@ namespace AElf.Contracts.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Mined);
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = chainId});
-            Assert.True(chainStatus.Value == (int) SideChainStatus.Terminated);
+            Assert.True(chainStatus.Status == SideChainStatus.Terminated);
 
             var balanceAfterDisposal = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

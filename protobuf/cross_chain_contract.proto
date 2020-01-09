@@ -31,7 +31,7 @@ service CrossChainContract {
     rpc GetSideChainCreator (aelf.SInt32Value) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value) {
+    rpc GetChainStatus (aelf.SInt32Value) returns (GetChainStatusOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value) {
@@ -150,4 +150,8 @@ message SideChainInfo {
     int64 indexing_price = 6;
     bool is_privilege_preserved = 7;
     map<string, int64> arrears_info = 8;
+}
+
+message GetChainStatusOutput{
+    SideChainStatus status = 1;
 }
