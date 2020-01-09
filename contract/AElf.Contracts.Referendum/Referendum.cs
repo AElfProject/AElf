@@ -35,7 +35,7 @@ namespace AElf.Contracts.Referendum
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
                 ToBeReleased = readyToRelease,
-                ApprovalCount = proposal.AbstentionCount,
+                ApprovalCount = proposal.ApprovalCount,
                 RejectionCount = proposal.RejectionCount,
                 AbstentionCount = proposal.AbstentionCount
             };
