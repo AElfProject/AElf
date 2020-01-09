@@ -70,7 +70,7 @@ namespace AElf.Contracts.TokenHolder
         public override Empty RemoveBeneficiary(RemoveTokenHolderBeneficiaryInput input)
         {
             var scheme = GetValidScheme(Context.Sender);
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput 
             {
                 SchemeId = scheme.SchemeId,
                 Beneficiary = input.Beneficiary
