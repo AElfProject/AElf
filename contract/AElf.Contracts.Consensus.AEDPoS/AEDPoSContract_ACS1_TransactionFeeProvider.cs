@@ -9,10 +9,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
+        #region Views
+
         public override MethodFees GetMethodFee(StringValue input)
         {
             return State.TransactionFees[input.Value];
         }
+
+        public override AuthorityStuff GetMethodFeeController(Empty input)
+        {
+            return State.MethodFeeController.Value;
+        }
+
+        #endregion
 
         public override Empty SetMethodFee(MethodFees input)
         {

@@ -8,6 +8,8 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteContract
     {
+        #region Views
+
         public override MethodFees GetMethodFee(StringValue input)
         {
             var tokenAmounts = State.TransactionFees[input.Value];
@@ -37,6 +39,13 @@ namespace AElf.Contracts.Vote
             }
         }
 
+        public override AuthorityStuff GetMethodFeeController(Empty input)
+        {
+            return State.MethodFeeController.Value;
+        }
+
+        #endregion
+        
         public override Empty SetMethodFee(MethodFees input)
         {
             RequiredMethodFeeControllerSet();

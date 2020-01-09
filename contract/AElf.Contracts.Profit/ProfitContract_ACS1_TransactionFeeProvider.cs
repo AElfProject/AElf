@@ -8,6 +8,8 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract
     {
+        #region Views
+
         public override MethodFees GetMethodFee(StringValue input)
         {
             var methodFees = State.TransactionFees[input.Value];
@@ -37,6 +39,13 @@ namespace AElf.Contracts.Profit
             }
         }
 
+        public override AuthorityStuff GetMethodFeeController(Empty input)
+        {
+            return State.MethodFeeController.Value;
+        }
+
+        #endregion
+        
         public override Empty SetMethodFee(MethodFees input)
         {
             Assert(input.Fees.Count <= ProfitContractConstants.TokenAmountLimit, "Invalid input.");

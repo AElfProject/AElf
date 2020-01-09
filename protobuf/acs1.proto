@@ -22,6 +22,10 @@ service MethodFeeProviderContract {
     rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityStuff) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message MethodFees {

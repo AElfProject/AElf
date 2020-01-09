@@ -10,6 +10,8 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
+        #region Views
+        
         public override MethodFees GetMethodFee(StringValue input)
         {
             var officialTokenContractAddress =
@@ -40,6 +42,13 @@ namespace AElf.Contracts.MultiToken
 
             return State.MethodFees[input.Value] ?? new MethodFees();
         }
+
+        public override AuthorityStuff GetMethodFeeController(Empty input)
+        {
+            return State.MethodFeeController.Value;
+        }
+
+        #endregion
 
         public override Empty SetMethodFee(MethodFees input)
         {
