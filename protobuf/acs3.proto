@@ -38,8 +38,6 @@ service AuthorizationContract {
     rpc ValidateProposerInWhiteList(ValidateProposerInWhiteListInput) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
-    rpc ChangeMethodFeeController (acs3.AuthorityStuff) returns (google.protobuf.Empty) {
-    }
 }
 
 message CreateProposalInput {
@@ -104,9 +102,4 @@ message ProposalReleased{
 message OrganizationCreated{
     option (aelf.is_event) = true;
     aelf.Address organization_address = 1;
-}
-
-message AuthorityStuff {
-    aelf.Address contract_address = 1;
-    aelf.Address owner_address = 2;
 }
