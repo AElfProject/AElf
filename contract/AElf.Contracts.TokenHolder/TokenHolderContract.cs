@@ -77,7 +77,6 @@ namespace AElf.Contracts.TokenHolder
                 SchemeId = scheme.SchemeId
             }).Details.Single();
             var lockedAmount = detail.Shares;
-            Assert(lockedAmount <= input.Amount, "Incorrect amount.");
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput 
             {
                 SchemeId = scheme.SchemeId,
