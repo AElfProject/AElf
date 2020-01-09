@@ -132,3 +132,22 @@ message GetSideChainIndexingFeeControllerOutput {
     AuthorityStuff authority_stuff = 1;
     bytes organization_creation_input_bytes = 2;
 }
+
+enum SideChainStatus
+{
+    FATAL = 0;
+    ACTIVE = 1;
+    INSUFFICIENT_BALANCE = 2;
+    TERMINATED = 3;
+}
+
+message SideChainInfo {
+    aelf.Address proposer = 1;
+    SideChainStatus side_chain_status = 2;
+    int32 side_chain_id = 3;
+    google.protobuf.Timestamp creation_timestamp = 4;
+    int64 creation_height_on_parent_chain = 5;
+    int64 indexing_price = 6;
+    bool is_privilege_preserved = 7;
+    map<string, int64> arrears_info = 8;
+}
