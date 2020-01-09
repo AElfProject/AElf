@@ -5,7 +5,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class ExtraAcceptedTokenForkCacheHandle: IForkCacheHandler, ITransientDependency
+    public class ExtraAcceptedTokenForkCacheHandle : IForkCacheHandler, ITransientDependency
     {
         private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
 
@@ -13,6 +13,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _extraAcceptedTokenService = extraAcceptedTokenService;
         }
+
         public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
             _extraAcceptedTokenService.RemoveFromForkCacheByBlockIndex(blockIndexes);

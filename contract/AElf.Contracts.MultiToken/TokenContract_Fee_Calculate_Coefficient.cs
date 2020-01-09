@@ -28,7 +28,8 @@ namespace AElf.Contracts.MultiToken
             if (coefficientInfoInState == null)
                 return new Empty();
             var coefficient = coefficientInput.Coefficient;
-            var funcCoefficient = coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
+            var funcCoefficient =
+                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             if (funcCoefficient == null)
                 return new Empty();
             if (!IsModifiedDbData(coefficientInput.Coefficient, funcCoefficient)) return new Empty();
@@ -51,7 +52,8 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
-            var funcCoefficient = coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
+            var funcCoefficient =
+                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
             if (funcCoefficient == null)
             {
                 return new Empty();
@@ -132,15 +134,15 @@ namespace AElf.Contracts.MultiToken
 
         private void InitialParameters()
         {
-            if(State.CalculateCoefficientOfContract[FeeTypeEnum.Read] == null || State.CalculateCoefficientOfContract[FeeTypeEnum.Read].Coefficients.Count == 0)
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Read] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            if(State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] == null || State.CalculateCoefficientOfContract[FeeTypeEnum.Sto].Coefficients.Count == 0)
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
-            if(State.CalculateCoefficientOfContract[FeeTypeEnum.Write] == null || State.CalculateCoefficientOfContract[FeeTypeEnum.Write].Coefficients.Count == 0)
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Write] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            if(State.CalculateCoefficientOfContract[FeeTypeEnum.Net] == null || State.CalculateCoefficientOfContract[FeeTypeEnum.Net].Coefficients.Count == 0)
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Net] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
-            if(State.CalculateCoefficientOfSender.Value == null || State.CalculateCoefficientOfSender.Value.Coefficients.Count == 0)
+            if (State.CalculateCoefficientOfSender.Value == null)
                 State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
         }
 

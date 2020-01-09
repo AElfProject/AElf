@@ -138,6 +138,7 @@ namespace AElf.Contracts.MultiToken
 
             return usage;
         }
+
         public override AllAvailableTokenInfo GetAvailableTokenInfos(Empty input)
         {
             return State.ExtraAvailableTokenInfos.Value;

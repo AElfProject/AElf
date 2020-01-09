@@ -21,9 +21,9 @@ namespace AElf.Kernel.TransactionPool.Application
         public ILogger<ExtraAcceptedTokenService> Logger { get; set; }
 
         public ExtraAcceptedTokenService(IExtraAcceptedTokensCacheProvider cacheProvider,
-                                         IChainBlockLinkService chainBlockLinkService,
-                                         ITokenContractReaderFactory tokenStTokenContractReaderFactory,
-                                         IBlockchainService blockchainService)
+            IChainBlockLinkService chainBlockLinkService,
+            ITokenContractReaderFactory tokenStTokenContractReaderFactory,
+            IBlockchainService blockchainService)
         {
             _cacheProvider = cacheProvider;
             _chainBlockLinkService = chainBlockLinkService;
@@ -31,10 +31,12 @@ namespace AElf.Kernel.TransactionPool.Application
             _blockchainService = blockchainService;
             Logger = new NullLogger<ExtraAcceptedTokenService>();
         }
-        public async Task<Dictionary<string, Tuple<int, int>>> GetExtraAcceptedTokensInfoAsync(IChainContext chainContext)
+
+        public async Task<Dictionary<string, Tuple<int, int>>> GetExtraAcceptedTokensInfoAsync(
+            IChainContext chainContext)
         {
             var keys = _cacheProvider.GetForkCacheKeys();
-            if (keys.Length == 0) 
+            if (keys.Length == 0)
                 return await GetExtraAcceptedTokensInfoFromCacheAsync();
             var blockIndex = new BlockIndex
             {
@@ -50,14 +52,17 @@ namespace AElf.Kernel.TransactionPool.Application
                     tokenInfoDic = value;
                     break;
                 }
+
                 var link = _chainBlockLinkService.GetCachedChainBlockLink(blockIndex.BlockHash);
                 blockIndex.BlockHash = link?.PreviousBlockHash;
                 blockIndex.BlockHeight--;
             } while (blockIndex.BlockHash != null && blockIndex.BlockHeight >= minHeight);
-            
+
             return tokenInfoDic ?? await GetExtraAcceptedTokensInfoFromCacheAsync();
         }
-        public void SetExtraAcceptedTokenInfoToForkCache(BlockIndex index, Dictionary<string, Tuple<int, int>> tokenInfos)
+
+        public void SetExtraAcceptedTokenInfoToForkCache(BlockIndex index,
+            Dictionary<string, Tuple<int, int>> tokenInfos)
         {
             _cacheProvider.SetExtraAcceptedTokenInfoToForkCache(index, tokenInfos);
         }
@@ -89,9 +94,11 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 foreach (var tokenInfo in tokenInfos.AllAvailableTokens)
                 {
-                    tokenInfoDic[tokenInfo.TokenSymbol] = Tuple.Create(tokenInfo.BaseTokenWeight, tokenInfo.AddedTokenWeight);
+                    tokenInfoDic[tokenInfo.TokenSymbol] =
+                        Tuple.Create(tokenInfo.BaseTokenWeight, tokenInfo.AddedTokenWeight);
                 }
             }
+
             _cacheProvider.SetExtraAcceptedTokenInfoToCache(tokenInfoDic);
             return tokenInfoDic;
         }

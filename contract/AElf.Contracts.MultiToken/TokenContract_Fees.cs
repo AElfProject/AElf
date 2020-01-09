@@ -112,7 +112,7 @@ namespace AElf.Contracts.MultiToken
                 ? State.Balances[Context.Sender][availableTokenSymbol].Sub(amountChargedForBaseFee)
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
-            
+
             if (availableBalance < txSizeFeeAmount && input.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = input.AllAvailableTokens;
@@ -221,7 +221,7 @@ namespace AElf.Contracts.MultiToken
                 "Invalid symbol.");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
                 "weight should be greater than 0");
-            if( State.ExtraAvailableTokenInfos.Value == null)
+            if (State.ExtraAvailableTokenInfos.Value == null)
                 State.ExtraAvailableTokenInfos.Value = new AllAvailableTokenInfo();
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
@@ -243,6 +243,7 @@ namespace AElf.Contracts.MultiToken
             SyncExtraTokenList();
             return new Empty();
         }
+
         public override Empty RemoveAvailableTokenInfo(StringValue input)
         {
             AssertAuthenticatedByAll();
@@ -253,7 +254,7 @@ namespace AElf.Contracts.MultiToken
             SyncExtraTokenList();
             return new Empty();
         }
-        
+
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -683,6 +684,7 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
+
         private void SyncExtraTokenList()
         {
             var changedCacheData = State.ExtraAvailableTokenInfos.Value;
@@ -692,6 +694,7 @@ namespace AElf.Contracts.MultiToken
                 AllTokenInfos = changedCacheData
             });
         }
+
         private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
         {
             var availableTokenSymbol = tokenInfo.TokenSymbol;
@@ -700,7 +703,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return availableBalance.Mul(tokenInfo.BaseTokenWeight)
                     .Div(tokenInfo.AddedTokenWeight);
-            } 
+            }
             catch
             {
                 return long.MaxValue;

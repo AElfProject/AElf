@@ -19,6 +19,7 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
         private LogEvent _interestedEvent;
         private ILogger<ExtraAcceptedTokenUpdatedEventHandle> Logger { get; set; }
+
         public LogEvent InterestedEvent
         {
             get
@@ -36,12 +37,13 @@ namespace AElf.Kernel.TransactionPool.Application
         }
 
         public ExtraAcceptedTokenUpdatedEventHandle(ISmartContractAddressService smartContractAddressService,
-                                                    IExtraAcceptedTokenService extraAcceptedTokenService)
+            IExtraAcceptedTokenService extraAcceptedTokenService)
         {
             _smartContractAddressService = smartContractAddressService;
             _extraAcceptedTokenService = extraAcceptedTokenService;
             Logger = NullLogger<ExtraAcceptedTokenUpdatedEventHandle>.Instance;
         }
+
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new ExtraTokenListModified();
@@ -59,6 +61,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 newTokenInfoDic[tokenInfo.TokenSymbol] =
                     Tuple.Create(tokenInfo.BaseTokenWeight, tokenInfo.AddedTokenWeight);
             }
+
             _extraAcceptedTokenService.SetExtraAcceptedTokenInfoToForkCache(blockIndex, newTokenInfoDic);
             return Task.CompletedTask;
         }
