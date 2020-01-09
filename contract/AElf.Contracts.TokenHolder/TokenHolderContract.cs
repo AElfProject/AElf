@@ -82,7 +82,8 @@ namespace AElf.Contracts.TokenHolder
                 SchemeId = scheme.SchemeId,
                 Beneficiary = input.Beneficiary
             });
-            if (lockedAmount > input.Amount)
+            if (lockedAmount > input.Amount &&
+                input.Amount != 0) // If input.Amount == 0, means just remove this beneficiary.
             {
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput 
                 {

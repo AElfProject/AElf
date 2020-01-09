@@ -519,7 +519,12 @@ namespace AElf.Contracts.Treasury
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(shares).Div(totalShares));
+                // In case of arithmetic overflow
+                var decimalAmount = (decimal) totalAmount[Context.Variables.NativeSymbol];
+                var decimalShares = (decimal) shares;
+                var decimalTotalShares = (decimal) totalShares;
+                var amount = decimalAmount * decimalShares / decimalTotalShares;
+                output.Value.Add((long) amount);
             }
 
             return output;

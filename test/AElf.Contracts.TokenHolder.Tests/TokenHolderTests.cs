@@ -123,7 +123,7 @@ namespace AElf.Contracts.TokenHolder
 
             await TokenHolderContractStub.RemoveBeneficiary.SendAsync(new RemoveTokenHolderBeneficiaryInput
             {
-                Beneficiary = UserAddresses.First(),
+                Beneficiary = UserAddresses.First()
             });
             
             {

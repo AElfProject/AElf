@@ -515,7 +515,7 @@ namespace AElf.Contracts.Profit
                 // General ledger of this sub profit item.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
-                var amount = subScheme.Shares.Mul(input.Amount).Div(totalShares);
+                var amount = SafeCalculateProfits(subScheme.Shares, input.Amount, totalShares);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -723,8 +723,8 @@ namespace AElf.Contracts.Profit
                 }
 
                 Context.LogDebug(() => $"Released profit information: {distributedProfitsInformation}");
-                var amount = profitDetail.Shares.Mul(distributedProfitsInformation.ProfitsAmount[symbol])
-                    .Div(distributedProfitsInformation.TotalShares);
+                var amount = SafeCalculateProfits(profitDetail.Shares,
+                    distributedProfitsInformation.ProfitsAmount[symbol], distributedProfitsInformation.TotalShares);
 
                 if (!isView)
                 {
@@ -776,6 +776,14 @@ namespace AElf.Contracts.Profit
             };
 
             return scheme;
+        }
+
+        private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
+        {
+            var decimalTotalAmount = (decimal) totalAmount;
+            var decimalShares = (decimal) shares;
+            var decimalTotalShares = (decimal) totalShares;
+            return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
         }
     }
 }
