@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -41,19 +43,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            // Parliament Auth Contract maybe not deployed.
-            if (State.ParliamentContract.Value != null)
-            {
-                var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-                Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
-            }
-
+            RequiredMethodFeeControllerSet();
+            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
             foreach (var symbolToAmount in input.Fees)
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
@@ -63,6 +54,19 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Empty ChangeMethodFeeController(AuthorityStuff input)
+        {
+            RequiredMethodFeeControllerSet();
+            AssertSenderAddressWith(State.MethodFeeController.Value.OwnerAddress);
+            var organizationExist = CheckOrganizationExist(input);
+            Assert(organizationExist, "Invalid authority input.");
+
+            State.MethodFeeController.Value = input;
+            return new Empty();
+        }
+
+        #region private methods
+
         private List<string> GetMethodFeeSymbols()
         {
             var symbols = new List<string>();
@@ -70,5 +74,41 @@ namespace AElf.Contracts.MultiToken
             if (primaryTokenSymbol != string.Empty) symbols.Add(primaryTokenSymbol);
             return symbols;
         }
+
+        private void RequiredMethodFeeControllerSet()
+        {
+            if (State.MethodFeeController.Value != null) return;
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            var defaultAuthority = new AuthorityStuff();
+
+            // Parliament Auth Contract maybe not deployed.
+            if (State.ParliamentContract.Value != null)
+            {
+                defaultAuthority.OwnerAddress =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+                defaultAuthority.ContractAddress = State.ParliamentContract.Value;
+            }
+
+            State.MethodFeeController.Value = defaultAuthority;
+        }
+
+        private void AssertSenderAddressWith(Address address)
+        {
+            Assert(Context.Sender == address, "Unauthorized behavior.");
+        }
+
+        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        {
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(ParliamentContractContainer.ParliamentContractReferenceState.ValidateOrganizationExist),
+                authorityStuff.OwnerAddress).Value;
+        }
+
+        #endregion
     }
 }

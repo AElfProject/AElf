@@ -22,6 +22,8 @@ namespace AElf.Contracts.CrossChain
         public MappedState<Address, long> BannedMinerHeight { get; set; }
         
         public MappedState<Address, SideChainCreationRequest> ProposedSideChainCreationRequest { get; set; }
+
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
         
         #region side chain
 

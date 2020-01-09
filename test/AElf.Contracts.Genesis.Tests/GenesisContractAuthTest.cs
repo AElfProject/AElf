@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;

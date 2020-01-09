@@ -43,7 +43,6 @@ message MethodFeeSet {
     sint64 new_fee = 4;
 }
 
-
 message AuthorityStuff {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;

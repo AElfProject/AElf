@@ -1,4 +1,5 @@
 using Acs0;
+using Acs1;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
@@ -53,5 +54,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
+
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }

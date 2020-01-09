@@ -1,5 +1,4 @@
 using System.Linq;
-using Acs1;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -199,17 +198,6 @@ namespace AElf.Contracts.Referendum
             Context.Fire(new ProposalReleased {ProposalId = input});
             State.Proposals.Remove(input);
 
-            return new Empty();
-        }
-
-        public override Empty ChangeMethodFeeController(AuthorityStuff input)
-        {
-            RequiredMethodFeeControllerSet();
-            AssertSenderAddressWith(State.MethodFeeController.Value.OwnerAddress);
-            var organizationExist = CheckOrganizationExist(input);
-            Assert(organizationExist, "Invalid authority input.");
-
-            State.MethodFeeController.Value = input;
             return new Empty();
         }
     }

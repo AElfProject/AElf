@@ -22,5 +22,6 @@ namespace AElf.Contracts.TokenConverter
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         public MappedState<string, long> DepositBalance { get; set; }
 
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }

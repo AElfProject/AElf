@@ -30,5 +30,7 @@ namespace AElf.Contracts.Genesis
 
         public SingletonState<AddressList> DeployedContractAddressList { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }

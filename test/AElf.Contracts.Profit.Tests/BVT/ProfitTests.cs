@@ -17,7 +17,7 @@ namespace AElf.Contracts.Profit.BVT
                 MethodName = "OnlyTest"
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.ShouldContain("Assertion failed");
+            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
         }
     }
 }

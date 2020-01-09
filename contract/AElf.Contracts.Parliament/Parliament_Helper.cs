@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
 using Acs3;
 using AElf.Types;
 using AElf.Sdk.CSharp;
@@ -247,30 +246,6 @@ namespace AElf.Contracts.Parliament
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
-        }
-
-        private void RequiredMethodFeeControllerSet()
-        {
-            if (State.MethodFeeController.Value != null) return;
-
-            var defaultAuthority = new AuthorityStuff
-            {
-                OwnerAddress = State.DefaultOrganizationAddress.Value,
-                ContractAddress = Context.Self
-            };
-
-            State.MethodFeeController.Value = defaultAuthority;
-        }
-
-        private void AssertSenderAddressWith(Address address)
-        {
-            Assert(Context.Sender == address, "Unauthorized behavior.");
-        }
-
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
-        {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
-                nameof(ValidateOrganizationExist), authorityStuff.OwnerAddress).Value;
         }
     }
 }

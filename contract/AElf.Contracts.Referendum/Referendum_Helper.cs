@@ -1,10 +1,8 @@
-using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Referendum
 {
@@ -157,35 +155,6 @@ namespace AElf.Contracts.Referendum
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
-        }
-
-        private void RequiredMethodFeeControllerSet()
-        {
-            if (State.MethodFeeController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            var defaultAuthority = new AuthorityStuff
-            {
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
-                ContractAddress = State.ParliamentContract.Value
-            };
-
-            State.MethodFeeController.Value = defaultAuthority;
-        }
-
-        private void AssertSenderAddressWith(Address address)
-        {
-            Assert(Context.Sender == address, "Unauthorized behavior.");
-        }
-
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
-        {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
-                nameof(ValidateOrganizationExist), authorityStuff.OwnerAddress).Value;
         }
     }
 }

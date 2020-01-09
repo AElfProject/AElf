@@ -25,5 +25,7 @@ namespace AElf.Contracts.Vote
         public MappedState<Address, VotedItems> VotedItemsMap { get; set; }
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
     }
 }
