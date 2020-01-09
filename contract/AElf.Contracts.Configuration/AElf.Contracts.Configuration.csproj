@@ -22,8 +22,8 @@
         <ContractCode Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf/Proto/configuration_contract.proto</Link>
         </ContractCode>
-        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        <ContractReference Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractReference>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>

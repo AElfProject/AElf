@@ -1,7 +1,7 @@
 using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -118,10 +118,10 @@ namespace AElf.Contracts.MultiToken
             var owner = State.Owner.Value;
             if (owner != null)
                 return owner;
-            var parliamentAuthContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            owner = Context.Call<Address>(parliamentAuthContractAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetDefaultOrganizationAddress),
+            var parliamentContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            owner = Context.Call<Address>(parliamentContractAddress,
+                nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
                 new Empty());
             State.Owner.Value = owner;
             return owner;

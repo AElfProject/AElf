@@ -172,9 +172,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth", "contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Association", "contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth", "contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Parliament", "contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj", "{DD0F7490-8BED-4DFD-B717-DC995F4746A0}"
 EndProject
@@ -188,7 +188,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote", "cont
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election", "contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj", "{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAuth", "contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj", "{8CB61BE4-D787-455B-A4F7-6DCA92F379F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Referendum", "contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj", "{8CB61BE4-D787-455B-A4F7-6DCA92F379F1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "bench\AElf.Benchmark\AElf.Benchmark.csproj", "{017DC714-0E66-40F4-830B-EB21AF09212A}"
 EndProject
@@ -200,7 +200,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote.Tests", "test\AElf.Contracts.Vote.Tests\AElf.Contracts.Vote.Tests.csproj", "{165D8639-ED9E-4056-BAA2-5AB53491EF25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth.Tests", "test\AElf.Contracts.AssociationAuth.Tests\AElf.Contracts.AssociationAuth.Tests.csproj", "{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Association.Tests", "test\AElf.Contracts.Association.Tests\AElf.Contracts.Association.Tests.csproj", "{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark.PerformanceTestContract", "bench\AElf.Benchmark.PerformanceTestContract\AElf.Benchmark.PerformanceTestContract.csproj", "{288C1125-6D4E-4663-B6AE-34E86386E452}"
 EndProject
@@ -214,9 +214,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.AEDPoS.Tests", "test\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj", "{5B862F43-7859-4B19-817B-6B673D85E318}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth.Tests", "test\AElf.Contracts.ParliamentAuth.Tests\AElf.Contracts.ParliamentAuth.Tests.csproj", "{68B98ED7-103C-4DC6-9C89-0B90F2809284}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Parliament.Tests", "test\AElf.Contracts.Parliament.Tests\AElf.Contracts.Parliament.Tests.csproj", "{68B98ED7-103C-4DC6-9C89-0B90F2809284}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAuth.Tests", "test\AElf.Contracts.ReferendumAuth.Tests\AElf.Contracts.ReferendumAuth.Tests.csproj", "{3B0D744C-AFCD-441A-B960-07273CBAA9EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Referendum.Tests", "test\AElf.Contracts.Referendum.Tests\AElf.Contracts.Referendum.Tests.csproj", "{3B0D744C-AFCD-441A-B960-07273CBAA9EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "src\AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}"
 EndProject

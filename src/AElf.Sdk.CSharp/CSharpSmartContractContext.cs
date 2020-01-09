@@ -87,9 +87,21 @@ namespace AElf.Sdk.CSharp
             _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName, args);
         }
 
+        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+        {
+            _smartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
+                methodName, args);
+        }
+
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress);
+        }
+        
+        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
+        {
+            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
+                virtualAddress);
         }
 
         public Address GetZeroSmartContractAddress()

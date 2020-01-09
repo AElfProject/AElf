@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.CSharp.Core.Utils;
 using AElf.Kernel;
@@ -257,7 +256,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId = await InitAndCreateSideChainAsync(parentChainId);
             await ApproveBalanceAsync(100_000L);
 
-            var proposalId = await DisposalSideChainProposalAsync(new SInt32Value {Value = sideChainId});
+            var proposalId = await DisposeSideChainProposalAsync(new SInt32Value {Value = sideChainId});
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
@@ -787,11 +786,12 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ParentChainBlockDataList = {parentChainBlockData}
             };
-            
-            var organizationAddress = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+            var organizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
 
             // create a normal proposal
-            var proposalTx = await ParliamentAuthContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposalTx = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.RecordCrossChainData),
                 OrganizationAddress = organizationAddress,
@@ -813,7 +813,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
 
             // release
-            var releaseTx = await ParliamentAuthContractStub.Release.SendWithExceptionAsync(proposalId);
+            var releaseTx = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             releaseTx.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             releaseTx.TransactionResult.Error.ShouldContain("Incorrect cross chain indexing proposal status.");
         }

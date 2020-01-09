@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
+using Acs3;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 
