@@ -17,8 +17,9 @@ namespace AElf.Contracts.TestContract.DApp
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
-
-            CreateToken(true);
+            State.ProfitReceiver.Value = input.ProfitReceiver;
+            
+            CreateToken(input.ProfitReceiver,true);
             CreateTokenHolderProfitScheme();
             SetProfitReceivingInformation(input.ProfitReceiver);
             return new Empty();
@@ -31,8 +32,9 @@ namespace AElf.Contracts.TestContract.DApp
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
-
-            CreateToken();
+            State.ProfitReceiver.Value = input.ProfitReceiver;
+            
+            CreateToken(input.ProfitReceiver);
             CreateTokenHolderProfitScheme();
             SetProfitReceivingInformation(input.ProfitReceiver);
             return new Empty();
@@ -167,7 +169,7 @@ namespace AElf.Contracts.TestContract.DApp
             return new Empty();
         }
 
-        private void CreateToken(bool isLockWhiteListIncludingSelf = false)
+        private void CreateToken(Address profitReceiver, bool isLockWhiteListIncludingSelf = false)
         {
             var lockWhiteList = new List<Address>
                 {Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)};
@@ -186,6 +188,14 @@ namespace AElf.Contracts.TestContract.DApp
                 {
                     lockWhiteList
                 }
+            });
+            
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                To = profitReceiver,
+                Amount = DAppConstants.TotalSupply / 5,
+                Symbol = State.Symbol.Value,
+                Memo = "Issue token for profit receiver"
             });
         }
 
