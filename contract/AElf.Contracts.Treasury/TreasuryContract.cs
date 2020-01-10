@@ -147,6 +147,12 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
+
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
             var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.RelatedSymbol != null;
@@ -206,12 +212,6 @@ namespace AElf.Contracts.Treasury
 
         private void ConvertToNativeToken(string symbol, long amount)
         {
-            if (State.TokenConverterContract.Value == null)
-            {
-                State.TokenConverterContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            }
-
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,
