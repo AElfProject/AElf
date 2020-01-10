@@ -5,11 +5,13 @@ using Acs2;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
@@ -37,6 +39,19 @@ namespace AElf.Contracts.MultiToken
         protected long BobCoinTotalAmount => 1_000_000_000_0000L;
         protected Address TokenContractAddress { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub;
+        
+        protected Address ParliamentContractAddress { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        public byte[] ParliamentContractCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+        
+        protected Address AssociationContractAddress { get; set; }
+        internal AssociationContractContainer.AssociationContractStub AssociationContractStub;
+        public byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
+        
+        protected Address ReferendumContractAddress { get; set; }
+        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
+        public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
+
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultAddress => Address.FromPublicKey(DefaultKeyPair.PublicKey);
         protected ECKeyPair User1KeyPair { get; } = SampleECKeyPairs.KeyPairs[10];

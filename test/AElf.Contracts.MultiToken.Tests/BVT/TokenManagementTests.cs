@@ -1,11 +1,16 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Contracts.Association;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -147,6 +152,42 @@ namespace AElf.Contracts.MultiToken
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
+            }
+            
+            //ParliamentContract
+            {
+                var code = ParliamentContractCode;
+                ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                ParliamentContractStub =
+                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                        DefaultKeyPair);
+            }
+            
+            //AssociationContract
+            {
+                 var code = AssociationContractCode;
+                 AssociationContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                     AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                 AssociationContractStub =
+                     GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+                         DefaultKeyPair);
+            }
+
+            //ReferendumContract
+            {
+                var code = ReferendumContractCode;
+                ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                ReferendumContractStub =
+                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
+                        DefaultKeyPair);
+            }
+            //ConsensusContract
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
+                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    ConsensusSmartContractAddressNameProvider.Name, DefaultKeyPair));
             }
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
         }

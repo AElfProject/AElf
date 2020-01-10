@@ -85,6 +85,20 @@ service TokenContract {
     }
     rpc RemoveAvailableTokenInfo(google.protobuf.StringValue) returns (google.protobuf.Empty){
     }
+    rpc SubmitAddAvailableTokenInfoProposal(AvailableTokenInfo) returns (google.protobuf.Empty){
+    }
+    rpc SubmitRemoveAvailableTokenInfoProposal(google.protobuf.StringValue) returns (google.protobuf.Empty){
+    }
+    rpc SubmitUpdateAvailableTokenInfoProposal(AvailableTokenInfo) returns (google.protobuf.Empty){
+    }
+    rpc SetExtraAvailableTokenProposal(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    rpc SubmitUpdateCoefficientFromContractProposal(CoefficientFromContract) returns (google.protobuf.Empty){
+    }
+    rpc SubmitUpdateCoefficientFromSenderProposal(CoefficientFromSender) returns (google.protobuf.Empty){
+    }
+    rpc SetCoefficientTokenProposal(aelf.Hash) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;

@@ -815,48 +815,5 @@ namespace AElf.Contracts.MultiToken
             tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(1200L));
         }
         
-        [Fact]
-        public async Task Modify_Available_Token_Test()
-        {
-            const string addTokenSymbol = "MO";
-            const int addTokenWeight = 2;
-            const int baseTokenWeight = 1;
-            var allAvailableTokenInfoBefore = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
-            allAvailableTokenInfoBefore.AllAvailableTokens.Count.ShouldBe(0);
-            var addAvailableTokenRet = (await TokenContractStub.AddAvailableTokenInfo.SendAsync(new AvailableTokenInfo
-            {
-                TokenSymbol = addTokenSymbol,
-                AddedTokenWeight = addTokenWeight,
-                BaseTokenWeight = baseTokenWeight
-            })).TransactionResult;
-            addAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
-            allAvailableTokenInfo.AllAvailableTokens.SingleOrDefault(x => x.TokenSymbol == addTokenSymbol).ShouldNotBeNull();
-
-            var updateAvailableTokenRet = (await TokenContractStub.UpdateAvailableTokenInfo.SendAsync(new AvailableTokenInfo
-            {
-                TokenSymbol = addTokenSymbol,
-                AddedTokenWeight = 5,
-                BaseTokenWeight = 3
-            })).TransactionResult;
-            updateAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty());
-            var updatedTokenInfo =
-                allAvailableTokenInfo.AllAvailableTokens.Single(x => x.TokenSymbol == addTokenSymbol);
-            updatedTokenInfo.BaseTokenWeight.ShouldBe(3);
-            updatedTokenInfo.AddedTokenWeight.ShouldBe(5);
-            
-            var removeAvailableTokenRet = (await TokenContractStub.RemoveAvailableTokenInfo.SendAsync( new StringValue
-                {
-                    Value = addTokenSymbol
-                }
-            )).TransactionResult;
-            removeAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty());
-            allAvailableTokenInfo.AllAvailableTokens.Count.ShouldBe(0);
-        }
     }
 }

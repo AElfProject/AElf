@@ -216,7 +216,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
         {
-            AssertAuthenticatedByAll();
+            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
             Assert(!string.IsNullOrEmpty(input.TokenSymbol) & input.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
@@ -227,12 +227,13 @@ namespace AElf.Contracts.MultiToken
             Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
             allExtraTokenInfo.Add(input);
             SyncExtraTokenList();
+            //State.ProposalMap.Remove(ExtraAvailableToken);
             return new Empty();
         }
 
         public override Empty UpdateAvailableTokenInfo(AvailableTokenInfo input)
         {
-            AssertAuthenticatedByAll();
+            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
                 "weight should be greater than 0");
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
@@ -241,17 +242,19 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.AddedTokenWeight = input.AddedTokenWeight;
             tokenInfo.BaseTokenWeight = input.BaseTokenWeight;
             SyncExtraTokenList();
+            //State.ProposalMap.Remove(ExtraAvailableToken);
             return new Empty();
         }
 
         public override Empty RemoveAvailableTokenInfo(StringValue input)
         {
-            AssertAuthenticatedByAll();
+            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
             Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
             allExtraTokenInfo.Remove(tokenInfo);
             SyncExtraTokenList();
+            // State.ProposalMap.Remove(ExtraAvailableToken);
             return new Empty();
         }
 

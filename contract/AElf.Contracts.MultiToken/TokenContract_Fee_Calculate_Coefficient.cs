@@ -1,6 +1,5 @@
 using System.Linq;
 using AElf.Sdk.CSharp;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -23,15 +22,14 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            AssertIsAuthorized();
+            Assert(Context.Sender == State.AssociationOrganizationForUpdateCoefficient.Value, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
             if (coefficientInfoInState == null)
                 return new Empty();
             var coefficient = coefficientInput.Coefficient;
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            if (funcCoefficient == null)
-                return new Empty();
+            Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
             if (!IsModifiedDbData(coefficientInput.Coefficient, funcCoefficient)) return new Empty();
             State.CalculateCoefficientOfContract[coefficientInput.FeeType] = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
@@ -45,7 +43,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            AssertIsAuthorized();
+            Assert(Context.Sender == State.AssociationOrganizationForUpdateCoefficient.Value, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
             if (coefficientInfoInState == null)
             {
@@ -54,10 +52,7 @@ namespace AElf.Contracts.MultiToken
 
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
-            if (funcCoefficient == null)
-            {
-                return new Empty();
-            }
+            Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
 
             if (!IsModifiedDbData(coefficientInput, funcCoefficient)) return new Empty();
             State.CalculateCoefficientOfSender.Value = coefficientInfoInState;

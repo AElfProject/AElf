@@ -1,6 +1,8 @@
 using Acs0;
+using AElf.Contracts.Association;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -33,6 +35,11 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
+        public SingletonState<Address> OrganizationForUpdateExtraAvailableToken { get; set; }
+        public SingletonState<Address> ParliamentOrganization { get; set; }
+        public SingletonState<Address> OrganizationForUpdateCoefficient { get; set; }
+        public SingletonState<Address> AssociationOrganizationForExtraAvailableToken { get; set; }
+        public SingletonState<Address> AssociationOrganizationForUpdateCoefficient { get; set; }
         
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -43,16 +50,15 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         public SingletonState<AllAvailableTokenInfo> ExtraAvailableTokenInfos { get; set; }
+        public MappedState<string, Hash> ProposalMap { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract
-        {
-            get;
-            set;
-        }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
+        internal AssociationContractContainer.AssociationContractReferenceState AssociationContract { get; set; }
+        internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
     }
 }

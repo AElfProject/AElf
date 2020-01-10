@@ -142,10 +142,5 @@ namespace AElf.Contracts.MultiToken
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
         }
-
-        private void AssertAuthenticatedByAll()
-        {
-            
-        }
     }
 }
