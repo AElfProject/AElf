@@ -69,7 +69,7 @@ namespace AElf.Contracts.TestContract.DApp
             // (All) DApp Contract can't use TransferFrom method directly.
             State.TokenContract.TransferToContract.Send(new TransferToContractInput
             {
-                Symbol = Context.Variables.NativeSymbol,
+                Symbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value,
                 Amount = input.Amount
             });
 
