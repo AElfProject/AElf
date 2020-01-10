@@ -263,7 +263,8 @@ namespace AElf.Contracts.MultiToken
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
             {
-                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value ||
+                    IsContributingProfits(input))
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
@@ -277,6 +278,35 @@ namespace AElf.Contracts.MultiToken
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
+        }
+
+
+        private bool IsContributingProfits(TransferFromInput input)
+        {
+            if (!State.TokenInfos[input.Symbol].IsProfitable) return false;
+
+            if (Context.Sender == State.ProfitContract.Value)
+            {
+                // Sender is Profit Contract, wants to transfer tokens from general ledger virtual address
+                // to period virtual address or sub schemes.
+                return true;
+            }
+
+            var tokenHolderContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            if (Context.Sender == tokenHolderContractAddress && IsDAppContractAddress(input.From) &&
+                input.To == tokenHolderContractAddress)
+            {
+                // Sender is Token Holder Contract, wants to transfer tokens from DApp Contract to himself.
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsDAppContractAddress(Address address)
+        {
+            return State.ProfitReceivingInfos[address] != null;
         }
 
         public override Empty Approve(ApproveInput input)
