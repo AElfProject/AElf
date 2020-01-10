@@ -62,7 +62,8 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.NativeTokenInfo.Issuer,
                 Decimals = input.NativeTokenInfo.Decimals,
                 IsBurnable = true,
-                IssueChainId = input.NativeTokenInfo.IssueChainId
+                IssueChainId = input.NativeTokenInfo.IssueChainId,
+                IsProfitable = input.NativeTokenInfo.IsProfitable
             };
 
             RegisterTokenInfo(nativeTokenInfo);
