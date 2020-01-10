@@ -293,7 +293,10 @@ namespace AElf.Contracts.MultiToken
         {
             if (!State.TokenInfos[input.Symbol].IsProfitable) return false;
 
-            if (Context.Sender == State.ProfitContract.Value)
+            if (Context.Sender == State.ProfitContract.Value ||
+                Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
+            )
             {
                 // Sender is Profit Contract, wants to transfer tokens from general ledger virtual address
                 // to period virtual address or sub schemes.

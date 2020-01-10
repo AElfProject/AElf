@@ -148,11 +148,13 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
+            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var canExchangeWithNativeSymbol = connector.RelatedSymbol != null;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = isNativeSymbol
+                To = isNativeSymbol || !canExchangeWithNativeSymbol
                     ? State.TreasuryVirtualAddress.Value
                     : Context.Self,
                 Symbol = input.Symbol,
@@ -171,7 +173,7 @@ namespace AElf.Contracts.Treasury
                 Memo = "Donate to treasury."
             });
 
-            if (input.Symbol != Context.Variables.NativeSymbol)
+            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);
             }
