@@ -115,6 +115,12 @@ namespace AElf.Contracts.TokenHolder
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Spender = State.ProfitContract.Value,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
             State.ProfitContract.ContributeProfits.Send(new Profit.ContributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
