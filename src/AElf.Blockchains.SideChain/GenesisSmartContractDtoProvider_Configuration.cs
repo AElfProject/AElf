@@ -1,6 +1,8 @@
+using System.Linq;
 using Acs0;
 using Acs7;
 using AElf.Contracts.Configuration;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.SideChain
@@ -12,12 +14,10 @@ namespace AElf.Blockchains.SideChain
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.SetContractFeeChargingPolicy),
-                new SetContractFeeChargingPolicyInput
+                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
+                new RequiredAcsInContracts()
                 {
-                    ContractFeeChargingPolicy = chainInitializationData.ChainCreatorPrivilegePreserved
-                        ? ContractFeeChargingPolicy.NoneContractFee
-                        : ContractFeeChargingPolicy.AnyContractFeeType
+                    AcsList = chainInitializationData.ChainCreatorPrivilegePreserved ? SmartContractConstants.ContractFeeStrategyAcsList : ""
                 });
             return crossChainMethodCallList;
         }

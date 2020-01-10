@@ -53,7 +53,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             return new RequiredAcsDto
             {
-                AcsList = returned.AcsList.ToList(),
+                AcsList = returned.AcsList.Split(',').ToList(),
                 RequireAll = returned.RequireAll
             };
         }
