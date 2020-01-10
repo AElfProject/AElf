@@ -3,7 +3,6 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <ServerGarbageCollection>true</ServerGarbageCollection>
-        <IsLauncher>true</IsLauncher>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />

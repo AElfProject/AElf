@@ -135,12 +135,21 @@ namespace AElf.Contracts.TestContract.DApp
                 Amount = DAppConstants.UseFee
             });
 
+            var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
+            var contributeAmount = DAppConstants.UseFee.Div(3);
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Spender = State.TokenHolderContract.Value,
+                Symbol = primaryTokenSymbol,
+                Amount = contributeAmount
+            });
+
             // Contribute 1/3 profits (ELF) to profit scheme.
             State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
             {
                 SchemeManager = Context.Self,
-                Amount = DAppConstants.UseFee.Div(3),
-                Symbol = Context.Variables.NativeSymbol
+                Amount = contributeAmount,
+                Symbol = primaryTokenSymbol
             });
 
             // Update profile.
