@@ -293,7 +293,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (!State.TokenInfos[input.Symbol].IsProfitable) return false;
 
-            if (Context.Sender == State.ProfitContract.Value ||
+            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
                 Context.Sender ==
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
             )
