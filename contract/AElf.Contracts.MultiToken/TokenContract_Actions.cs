@@ -28,7 +28,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsProfitable = input.IsProfitable,
+                IsProfitable = true,// TODO: input.IsProfitable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
