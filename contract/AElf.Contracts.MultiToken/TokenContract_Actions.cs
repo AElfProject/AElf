@@ -280,7 +280,13 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
+        /// <summary>
+        /// Because Profit Contract Addresses in different chains are different,
+        /// so we use a property (is_profitable) in TokenInfo in order to indicate whether
+        /// Profit Contract Address of current chain should be in the white list or not.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         private bool IsContributingProfits(TransferFromInput input)
         {
             if (!State.TokenInfos[input.Symbol].IsProfitable) return false;

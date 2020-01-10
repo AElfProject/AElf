@@ -150,6 +150,7 @@ message CreateInput {
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
     int32 issue_chain_id = 9;
+    bool is_profitable = 10;
 }
 
 message RegisterNativeTokenInfoInput {

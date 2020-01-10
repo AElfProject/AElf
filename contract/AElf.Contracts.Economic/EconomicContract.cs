@@ -50,6 +50,7 @@ namespace AElf.Contracts.Economic
                 Decimals = input.NativeTokenDecimals,
                 IsBurnable = input.IsNativeTokenBurnable,
                 Issuer = Context.Self,
+                IsProfitable = true,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
@@ -73,6 +74,7 @@ namespace AElf.Contracts.Economic
                 Decimals = EconomicContractConstants.TokenConverterTokenDecimals,
                 Issuer = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
                 IsBurnable = true,
+                IsProfitable = true,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
@@ -95,6 +97,7 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
+                    IsProfitable = true,
                     LockWhiteList =
                     {
                         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),

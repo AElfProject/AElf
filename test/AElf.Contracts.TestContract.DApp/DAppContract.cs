@@ -31,7 +31,7 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             if(input.Symbol != string.Empty)
                 DAppConstants.Symbol = input.Symbol;
-            
+
             CreateToken();
             CreateTokenHolderProfitScheme();
             SetProfitReceivingInformation(input.ProfitReceiver);
@@ -160,11 +160,11 @@ namespace AElf.Contracts.TestContract.DApp
             return new Empty();
         }
 
-        private void CreateToken(bool includingSelf = false)
+        private void CreateToken(bool isLockWhiteListIncludingSelf = false)
         {
             var lockWhiteList = new List<Address>
                 {Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)};
-            if (includingSelf)
+            if (isLockWhiteListIncludingSelf)
                 lockWhiteList.Add(Context.Self);
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -173,6 +173,7 @@ namespace AElf.Contracts.TestContract.DApp
                 Decimals = DAppConstants.Decimal,
                 Issuer = Context.Self,
                 IsBurnable = true,
+                IsProfitable = true,
                 TotalSupply = DAppConstants.TotalSupply,
                 LockWhiteList =
                 {
