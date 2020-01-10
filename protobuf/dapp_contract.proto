@@ -44,6 +44,7 @@ message Record {
     RecordType type = 1;
     google.protobuf.Timestamp timestamp = 2;
     string description = 3;
+    string symbol = 4;
 }
 
 message Profile {

@@ -10,7 +10,7 @@ namespace AElf.Contracts.TestContract.DApp
     {
         internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-
+        public SingletonState<string> Symbol { get; set; }
         public MappedState<Address, Profile> Profiles { get; set; }
         
         public MappedState<string, MethodFees> MethodFees { get; set; }

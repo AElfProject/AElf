@@ -16,6 +16,7 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
 
             CreateToken(true);
             CreateTokenHolderProfitScheme();
@@ -29,8 +30,7 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            if(input.Symbol != string.Empty)
-                DAppConstants.Symbol = input.Symbol;
+            State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
 
             CreateToken();
             CreateTokenHolderProfitScheme();
@@ -47,7 +47,7 @@ namespace AElf.Contracts.TestContract.DApp
             };
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = DAppConstants.Symbol,
+                Symbol = State.Symbol.Value,
                 Amount = DAppConstants.ForNewUser,
                 To = Context.Sender
             });
@@ -58,7 +58,7 @@ namespace AElf.Contracts.TestContract.DApp
             {
                 Type = RecordType.SignUp,
                 Timestamp = Context.CurrentBlockTime,
-                Description = $"{DAppConstants.Symbol} +{DAppConstants.ForNewUser}"
+                Description = $"{State.Symbol.Value} +{DAppConstants.ForNewUser}"
             });
             State.Profiles[Context.Sender] = profile;
 
@@ -76,7 +76,7 @@ namespace AElf.Contracts.TestContract.DApp
 
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = DAppConstants.Symbol,
+                Symbol = State.Symbol.Value,
                 Amount = input.Amount,
                 To = Context.Sender
             });
@@ -87,7 +87,7 @@ namespace AElf.Contracts.TestContract.DApp
             {
                 Type = RecordType.Deposit,
                 Timestamp = Context.CurrentBlockTime,
-                Description = $"{DAppConstants.Symbol} +{input.Amount}"
+                Description = $"{State.Symbol.Value} +{input.Amount}"
             });
             State.Profiles[Context.Sender] = profile;
 
@@ -98,7 +98,7 @@ namespace AElf.Contracts.TestContract.DApp
         {
             State.TokenContract.TransferToContract.Send(new TransferToContractInput
             {
-                Symbol = DAppConstants.Symbol,
+                Symbol = State.Symbol.Value,
                 Amount = input.Amount
             });
 
@@ -121,7 +121,7 @@ namespace AElf.Contracts.TestContract.DApp
             {
                 Type = RecordType.Withdraw,
                 Timestamp = Context.CurrentBlockTime,
-                Description = $"{DAppConstants.Symbol} -{input.Amount}"
+                Description = $"{State.Symbol.Value} -{input.Amount}"
             });
             State.Profiles[Context.Sender] = profile;
 
@@ -132,19 +132,25 @@ namespace AElf.Contracts.TestContract.DApp
         {
             State.TokenContract.TransferToContract.Send(new TransferToContractInput
             {
-                Symbol = DAppConstants.Symbol,
+                Symbol = State.Symbol.Value,
                 Amount = DAppConstants.UseFee
             });
-
-            var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
+            if (input.Symbol == string.Empty)
+                input.Symbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
             var contributeAmount = DAppConstants.UseFee.Div(3);
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Spender = State.TokenHolderContract.Value,
+                Symbol = input.Symbol,
+                Amount = contributeAmount
+            });
 
             // Contribute 1/3 profits (ELF) to profit scheme.
             State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
             {
                 SchemeManager = Context.Self,
                 Amount = contributeAmount,
-                Symbol = primaryTokenSymbol
+                Symbol = input.Symbol
             });
 
             // Update profile.
@@ -153,7 +159,8 @@ namespace AElf.Contracts.TestContract.DApp
             {
                 Type = RecordType.Withdraw,
                 Timestamp = Context.CurrentBlockTime,
-                Description = $"{DAppConstants.Symbol} -{DAppConstants.UseFee}"
+                Description = $"{State.Symbol.Value} -{DAppConstants.UseFee}",
+                Symbol = input.Symbol
             });
             State.Profiles[Context.Sender] = profile;
 
@@ -168,7 +175,7 @@ namespace AElf.Contracts.TestContract.DApp
                 lockWhiteList.Add(Context.Self);
             State.TokenContract.Create.Send(new CreateInput
             {
-                Symbol = DAppConstants.Symbol,
+                Symbol = State.Symbol.Value,
                 TokenName = "DApp Token",
                 Decimals = DAppConstants.Decimal,
                 Issuer = Context.Self,
@@ -186,7 +193,7 @@ namespace AElf.Contracts.TestContract.DApp
         {
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
-                Symbol = DAppConstants.Symbol
+                Symbol = State.Symbol.Value
             });
         }
 
