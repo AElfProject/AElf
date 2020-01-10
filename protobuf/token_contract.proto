@@ -136,9 +136,9 @@ message TokenInfo {
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
+    bool is_profitable = 8;
     sint32 issue_chain_id = 9;
     sint64 burned = 10;
-    bool is_profitable = 11;
 }
 
 message CreateInput {
@@ -149,8 +149,8 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
+    bool is_profitable = 8;
     int32 issue_chain_id = 9;
-    bool is_profitable = 10;
 }
 
 message RegisterNativeTokenInfoInput {
@@ -160,8 +160,8 @@ message RegisterNativeTokenInfoInput {
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
+    bool is_profitable = 7;
     sint32 issue_chain_id = 8;
-    bool is_profitable = 9;
 }
 
 message RegisterNativeAndResourceTokenInfoInput {
