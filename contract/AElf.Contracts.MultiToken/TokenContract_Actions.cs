@@ -269,7 +269,9 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 }
 
-                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+                Assert(false,
+                    $"[TransferFrom]Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}.\n" +
+                    $"From:{input.From}\tSpender:{Context.Sender}\tTo:{input.To}");
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
@@ -464,7 +466,9 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 }
 
-                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+                Assert(false,
+                    $"[TransferToContract]Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}." +
+                    $"From:{Context.Origin}\tSpender & To:{Context.Sender}");
             }
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
