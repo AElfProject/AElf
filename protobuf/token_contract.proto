@@ -161,6 +161,7 @@ message RegisterNativeTokenInfoInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     sint32 issue_chain_id = 8;
+    bool is_profitable = 9;
 }
 
 message RegisterNativeAndResourceTokenInfoInput {
