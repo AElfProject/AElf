@@ -68,9 +68,9 @@ message InitLargeStringDynamicInput {
 
 // For GetHashCode tests
 enum Color {
-    Black = 0;
-    White = 1;
-    Blue = 2;
+    BLACK = 0;
+    WHITE = 1;
+    BLUE = 2;
 }
 
 message GetHashCodeTestInput {
