@@ -133,7 +133,7 @@ namespace AElf.Contracts.TokenHolder
             {
                 SchemeId = scheme.SchemeId,
                 Symbol = input.Symbol ?? scheme.Symbol,
-                Period = scheme.Period.Add(1)
+                Period = scheme.Period
             });
             scheme.Period = scheme.Period.Add(1);
             State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
