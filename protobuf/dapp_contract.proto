@@ -28,6 +28,7 @@ service DApp {
 
 message InitializeInput {
     aelf.Address profit_receiver = 1;
+    string symbol = 2;
 }
 
 message DepositInput {

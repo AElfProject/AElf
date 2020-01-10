@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp;
@@ -30,7 +29,9 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-
+            if(input.Symbol != string.Empty)
+                DAppConstants.Symbol = input.Symbol;
+            
             CreateToken();
             CreateTokenHolderProfitScheme();
             SetProfitReceivingInformation(input.ProfitReceiver);
