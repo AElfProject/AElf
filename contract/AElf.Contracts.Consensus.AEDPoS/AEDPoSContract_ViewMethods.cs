@@ -517,5 +517,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
             return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
+
+        public override Round GetProducedBlocks(SInt64Value input)
+        {
+            var round = State.Rounds[input.Value];
+            if (round == null || round.RoundId == 0) return new Round();
+            var result = new Round();
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                result.RealTimeMinersInformation[minerInRound.Key] = new MinerInRound
+                {
+                    ProducedBlocks = minerInRound.Value.ProducedBlocks
+                };
+            }
+
+            return result;
+        }
     }
 }

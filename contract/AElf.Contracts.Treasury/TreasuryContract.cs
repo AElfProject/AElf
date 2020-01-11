@@ -319,14 +319,14 @@ namespace AElf.Contracts.Treasury
                 .ToList();
 
             var previousMiners = State.AEDPoSContract.GetPreviousMinerList.Call(new Empty()).Pubkeys.ToList();
-            var previousMinerAddress = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
+            var previousMinerAddresses = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
 
-            UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddress);
+            UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddresses);
 
             UpdateReElectionRewardWeights(endPeriod, previousMiners.Select(m => m.ToHex()).ToList(),
-                previousMinerAddress, victories);
+                previousMinerAddresses, victories);
 
-            UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
+            UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddresses);
         }
 
         /// <summary>
@@ -347,6 +347,10 @@ namespace AElf.Contracts.Treasury
             };
             State.ProfitContract.RemoveBeneficiaries.Send(basicRewardProfitSubBeneficiaries);
 
+            var producedBlocks = State.AEDPoSContract.GetProducedBlocks.Call(new SInt64Value
+            {
+                Value = endPeriod.Sub(1)
+            });
             var basicRewardProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.BasicRewardHash.Value,
