@@ -99,6 +99,19 @@ service TokenContract {
     }
     rpc SetCoefficientTokenProposal(aelf.Hash) returns (google.protobuf.Empty){
     }
+    rpc SetParliamentOrganizationForCoefficient(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc SetReferendumOrganizationForCoefficient(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc SetAssociateOrganizationForCoefficient(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc SetParliamentOrganizationForExtraToken(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc SetNormalOrganizationForExtraToken(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc SetAssociateOrganizationForExtraToken(aelf.Address) returns (google.protobuf.Empty){
+    }
+
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;

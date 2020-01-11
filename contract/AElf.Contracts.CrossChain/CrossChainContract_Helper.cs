@@ -524,7 +524,7 @@ namespace AElf.Contracts.CrossChain
         private void CreateInitialOrganizationForInitialControllerAddress()
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new Parliament.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Parliament.CreateOrganizationInput
                 {

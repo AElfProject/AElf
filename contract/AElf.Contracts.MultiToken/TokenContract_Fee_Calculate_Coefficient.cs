@@ -23,7 +23,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForUpdateCoefficient.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.AssociationOrganizationForCoefficient.Value, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
             if (coefficientInfoInState == null)
                 return new Empty();
@@ -44,7 +44,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForUpdateCoefficient.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.AssociationOrganizationForCoefficient.Value, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
             if (coefficientInfoInState == null)
             {

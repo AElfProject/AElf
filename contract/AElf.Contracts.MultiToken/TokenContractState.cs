@@ -36,11 +36,12 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
-        public SingletonState<Address> OrganizationForUpdateExtraAvailableToken { get; set; }
-        public SingletonState<Address> ParliamentOrganization { get; set; }
-        public SingletonState<Address> OrganizationForUpdateCoefficient { get; set; }
-        public SingletonState<Address> AssociationOrganizationForExtraAvailableToken { get; set; }
-        public SingletonState<Address> AssociationOrganizationForUpdateCoefficient { get; set; }
+        public SingletonState<Address> NormalOrganizationForToken { get; set; }
+        public SingletonState<Address> ParliamentOrganizationForCoefficient { get; set; }
+        public SingletonState<Address> ParliamentOrganizationForExtraToken { get; set; }
+        public SingletonState<Address> ReferendumOrganizationForCoefficient { get; set; }
+        public SingletonState<Address> AssociationOrganizationForToken { get; set; }
+        public SingletonState<Address> AssociationOrganizationForCoefficient { get; set; }
         public SingletonState<Address> DefaultProposer { get; set; }
         
         /// <summary>

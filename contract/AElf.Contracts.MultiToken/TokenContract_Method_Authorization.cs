@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Acs3;
-using AElf.Contracts.Association;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -18,8 +17,9 @@ namespace AElf.Contracts.MultiToken
 
         private void InitializeOrganization(Address defaultProposer)
         {
-            if (State.OrganizationForUpdateExtraAvailableToken.Value != null &&
-                State.OrganizationForUpdateCoefficient.Value != null && State.ParliamentOrganization.Value != null)
+            if (State.NormalOrganizationForToken.Value != null &&
+                State.ReferendumOrganizationForCoefficient.Value != null &&
+                State.ParliamentOrganizationForCoefficient.Value != null)
                 return;
             if (State.ParliamentContract.Value == null)
             {
@@ -42,196 +42,260 @@ namespace AElf.Contracts.MultiToken
             State.DefaultProposer.Value = defaultProposer == null
                 ? State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
                 : defaultProposer;
-            CalculateAndInitializeOrganizationAddress();
-            CreateParliamentOrganization();
+            CreateParliamentOrganizationForCoefficient();
             CreateOrganizationForUpdateCoefficient();
+
+            CreateParliamentOrganizationForExtraToken();
             CreateOrganizationForUpdateAvailableToken();
-            CreateAssociationOrganizationForUpdateExtraToken();
-            CreateAssociationOrganizationForUpdateCoefficient();
         }
-
-        private void CalculateAndInitializeOrganizationAddress()
+        private void CreateParliamentOrganizationForCoefficient()
         {
-            State.ParliamentOrganization.Value =
-                State.AssociationContract.CalculateOrganizationAddress.Call(GetParliamentOrganizationInput());
-            // State.ParliamentOrganization.Value =
-            //     State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.OrganizationForUpdateCoefficient.Value =
-                State.ReferendumContract.CalculateOrganizationAddress.Call(
-                    GetOrganizationForUpdateUpdateCoefficientInput());
-            State.OrganizationForUpdateExtraAvailableToken.Value =
-                State.AssociationContract.CalculateOrganizationAddress.Call(
-                    GetOrganizationForUpdateAvailableTokenInput());
-            State.AssociationOrganizationForExtraAvailableToken.Value =
-                State.AssociationContract.CalculateOrganizationAddress.Call(
-                    GetAssociationOrganizationForExtraAvailableTokenInput());
-            State.AssociationOrganizationForUpdateCoefficient.Value =
-                State.AssociationContract.CalculateOrganizationAddress.Call(
-                    GetAssociationOrganizationForUpdateCoefficientInput());
-        }
-
-        // private void CreateParliamentOrganization()
-        // {
-        //     State.ParliamentOrganization.Value = State.ParliamentContract.CreateOrganization.Call(
-        //         new Parliament.CreateOrganizationInput
-        //         {
-        //             ProposerAuthorityRequired = true,
-        //             ProposalReleaseThreshold = new ProposalReleaseThreshold
-        //             {
-        //                 MinimalApprovalThreshold = 5, //todo
-        //                 MinimalVoteThreshold = 8,
-        //                 MaximalRejectionThreshold = 0,
-        //                 MaximalAbstentionThreshold = 0
-        //             },
-        //             ParliamentMemberProposingAllowed = true
-        //         });
-        // }
-        private void CreateParliamentOrganization()
-        {
-            State.AssociationContract.CreateOrganization.Send(GetParliamentOrganizationInput());
-        }
-
-        private CreateOrganizationInput GetParliamentOrganizationInput()
-        {
-            var proposerAddress = State.DefaultProposer.Value;
-            var proposers = new List<Address> {proposerAddress};
-            var whiteList = new List<Address> {proposerAddress, State.AssociationContract.Value};
-            return new CreateOrganizationInput
-            {
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {proposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {whiteList}
-                }
-            };
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(
+                GetParliamentOrganizationForCoefficientInput());
         }
 
         private void CreateOrganizationForUpdateCoefficient()
         {
-            State.ReferendumContract.CreateOrganization.Send(GetOrganizationForUpdateUpdateCoefficientInput());
-        }
-
-        private Referendum.CreateOrganizationInput GetOrganizationForUpdateUpdateCoefficientInput()
-        {
-            var proposerAddress = State.DefaultProposer.Value;
-            var whiteList = new List<Address> {proposerAddress, State.AssociationContract.Value};
-            return new Referendum.CreateOrganizationInput
-            {
-                TokenSymbol = State.NativeTokenSymbol.Value,
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = whiteList.Count, // todo
-                    MinimalVoteThreshold = whiteList.Count, //todo
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {whiteList}
-                }
-            };
-        }
-
-        private void CreateOrganizationForUpdateAvailableToken()
-        {
-            State.AssociationContract.CreateOrganization.Send(GetOrganizationForUpdateAvailableTokenInput());
-        }
-
-        private CreateOrganizationInput GetOrganizationForUpdateAvailableTokenInput()
-        {
-            var proposerAddress = State.DefaultProposer.Value;
-            var proposers = new List<Address> {proposerAddress};
-            var whiteList = new List<Address> {proposerAddress, State.AssociationContract.Value};
-            return new CreateOrganizationInput
-            {
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {proposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {whiteList}
-                }
-            };
+            State.ReferendumContract.CreateOrganizationBySystemContract.Send(GetOrganizationForCoefficientInput());
         }
 
         private void CreateAssociationOrganizationForUpdateCoefficient()
         {
-            State.AssociationContract.CreateOrganization.Send(GetAssociationOrganizationForUpdateCoefficientInput());
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationOrganizationForCoefficientInput());
         }
 
-        private CreateOrganizationInput GetAssociationOrganizationForUpdateCoefficientInput()
+        private void CreateParliamentOrganizationForExtraToken()
         {
-            var proposers = new List<Address>
-                {State.OrganizationForUpdateCoefficient.Value, State.ParliamentOrganization.Value};
-            var proposerAddress = State.DefaultProposer.Value;
-            return new CreateOrganizationInput
-            {
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {proposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {proposerAddress, State.AssociationContract.Value}
-                }
-            };
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(
+                GetParliamentOrganizationForExtraTokenInput());
+        }
+
+        private void CreateOrganizationForUpdateAvailableToken()
+        {
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetNormalOrganizationForTokenInput());
         }
 
         private void CreateAssociationOrganizationForUpdateExtraToken()
         {
-            State.AssociationContract.CreateOrganization.Send(GetAssociationOrganizationForExtraAvailableTokenInput());
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationOrganizationForExtraTokenInput());
         }
 
-        private CreateOrganizationInput GetAssociationOrganizationForExtraAvailableTokenInput()
+        #endregion
+
+        #region organization create input
+
+        private Parliament.CreateOrganizationBySystemContractInput GetParliamentOrganizationForCoefficientInput()
         {
-            var proposers = new List<Address>
-                {State.OrganizationForUpdateExtraAvailableToken.Value, State.ParliamentOrganization.Value};
-            var proposerAddress =State.DefaultProposer.Value;
-            return new CreateOrganizationInput
+            return new Parliament.CreateOrganizationBySystemContractInput
             {
-                OrganizationMemberList = new OrganizationMemberList
+                OrganizationCreationInput = new Parliament.CreateOrganizationInput
                 {
-                    OrganizationMembers = {proposers}
+                    ProposerAuthorityRequired = true,
+                    ParliamentMemberProposingAllowed = true,
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MaximalAbstentionThreshold = 7,
+                        MaximalRejectionThreshold = 8,
+                        MinimalApprovalThreshold = 2,
+                        MinimalVoteThreshold = 2
+                    }
                 },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {proposerAddress, State.AssociationContract.Value}
-                }
+                OrganizationAddressFeedbackMethod = nameof(SetParliamentOrganizationForCoefficient)
             };
         }
 
+        private Referendum.CreateOrganizationBySystemContractInput GetOrganizationForCoefficientInput()
+        {
+            var whiteList = new List<Address> {State.DefaultProposer.Value, State.AssociationContract.Value};
+            return new Referendum.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Referendum.CreateOrganizationInput
+                {
+                    TokenSymbol = State.NativeTokenSymbol.Value,
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = whiteList.Count, // todo
+                        MinimalVoteThreshold = whiteList.Count, //todo
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {whiteList}
+                    }
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetReferendumOrganizationForCoefficient)
+            };
+        }
+
+        private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForCoefficientInput()
+        {
+            var proposers = new List<Address>
+                {State.ReferendumOrganizationForCoefficient.Value, State.ParliamentOrganizationForCoefficient.Value};
+            var proposerAddress = State.DefaultProposer.Value;
+            return new Association.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Association.CreateOrganizationInput
+                {
+                    OrganizationMemberList = new Association.OrganizationMemberList
+                    {
+                        OrganizationMembers = {proposers}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {proposerAddress, State.AssociationContract.Value}
+                    }
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetAssociateOrganizationForCoefficient)
+
+            };
+        }
+
+        private Parliament.CreateOrganizationBySystemContractInput GetParliamentOrganizationForExtraTokenInput()
+        {
+            return new Parliament.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Parliament.CreateOrganizationInput
+                {
+                    ProposerAuthorityRequired = true,
+                    ParliamentMemberProposingAllowed = true,
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MaximalAbstentionThreshold = 7,
+                        MaximalRejectionThreshold = 8,
+                        MinimalApprovalThreshold = 2,
+                        MinimalVoteThreshold = 2
+                    }
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetParliamentOrganizationForExtraToken)
+            };
+        }
+
+        private Association.CreateOrganizationBySystemContractInput GetNormalOrganizationForTokenInput()
+        {
+            var proposerAddress = State.DefaultProposer.Value;
+            var proposers = new List<Address> {proposerAddress};
+            var whiteList = new List<Address> {proposerAddress, State.AssociationContract.Value};
+            return new Association.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Association.CreateOrganizationInput
+                {
+                    OrganizationMemberList = new Association.OrganizationMemberList
+                    {
+                        OrganizationMembers = {proposers}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {whiteList}
+                    }
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetNormalOrganizationForExtraToken)
+            };
+        }
+
+        private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForExtraTokenInput()
+        {
+            var proposers = new List<Address>
+            {
+                State.DefaultProposer.Value, State.NormalOrganizationForToken.Value, State.ParliamentOrganizationForExtraToken.Value
+            };
+            var proposerWhiteList = new List<Address>
+            {
+                State.DefaultProposer.Value
+            };
+            return new Association.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Association.CreateOrganizationInput
+                {
+                    OrganizationMemberList = new Association.OrganizationMemberList
+                    {
+                        OrganizationMembers = {proposers}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {proposerWhiteList}
+                    }
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetAssociateOrganizationForExtraToken)
+            };
+        }
+
+        #endregion
+        
+        #region recall back for setting organization and proposal id
+
+        public override Empty SetParliamentOrganizationForCoefficient(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.ParliamentOrganizationForCoefficient.Value == null)
+                State.ParliamentOrganizationForCoefficient.Value = input;
+            if(State.AssociationOrganizationForCoefficient.Value == null && State.ReferendumOrganizationForCoefficient.Value != null)
+                CreateAssociationOrganizationForUpdateCoefficient();
+            return new Empty();
+        }
+        public override Empty SetReferendumOrganizationForCoefficient(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.ReferendumOrganizationForCoefficient.Value == null)
+                State.ReferendumOrganizationForCoefficient.Value = input;
+            if(State.AssociationOrganizationForCoefficient.Value == null && State.ParliamentOrganizationForCoefficient.Value != null)
+                CreateAssociationOrganizationForUpdateCoefficient();
+            return new Empty();
+        }
+        public override Empty SetAssociateOrganizationForCoefficient(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.AssociationOrganizationForCoefficient.Value == null)
+                State.AssociationOrganizationForCoefficient.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty SetParliamentOrganizationForExtraToken(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.ParliamentOrganizationForExtraToken.Value == null)
+                State.ParliamentOrganizationForExtraToken.Value = input;
+            if(State.AssociationOrganizationForToken.Value == null && State.NormalOrganizationForToken.Value != null)
+                CreateAssociationOrganizationForUpdateExtraToken();
+            return new Empty();
+        }
+        public override Empty SetNormalOrganizationForExtraToken(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.NormalOrganizationForToken.Value == null)
+                State.NormalOrganizationForToken.Value = input;
+            if(State.AssociationOrganizationForToken.Value == null &&  State.ParliamentOrganizationForExtraToken.Value != null)
+                CreateAssociationOrganizationForUpdateExtraToken();
+            return new Empty();
+        }
+        public override Empty SetAssociateOrganizationForExtraToken(Address input)
+        {
+            Assert(input != null, "invalid address");
+            if(State.AssociationOrganizationForToken.Value == null)
+                State.AssociationOrganizationForToken.Value = input;
+            return new Empty();
+        }
         #endregion
 
         #region proposal about available token list setting
@@ -260,24 +324,23 @@ namespace AElf.Contracts.MultiToken
             // State.ProposalMap[ExtraAvailableToken] = proposalId;
             State.AssociationContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                OriginProposer = Context.Sender,
+                OriginProposer = State.DefaultProposer.Value,
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = State.AssociationContract.Value,
-                    OrganizationAddress = State.OrganizationForUpdateExtraAvailableToken.Value,
+                    OrganizationAddress = State.NormalOrganizationForToken.Value,
                     Params = proposalId.ToByteString(),
                     ContractMethodName = nameof(Approve),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1)
                 }
             });
-            // State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
-            State.AssociationContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                OriginProposer = Context.Sender,
+                OriginProposer = State.DefaultProposer.Value,
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = State.AssociationContract.Value,
-                    OrganizationAddress = State.ParliamentOrganization.Value,
+                    OrganizationAddress = State.ParliamentOrganizationForExtraToken.Value,
                     Params = proposalId.ToByteString(),
                     ContractMethodName = nameof(Approve),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1)
@@ -295,7 +358,7 @@ namespace AElf.Contracts.MultiToken
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = Context.Self,
-                    OrganizationAddress = State.AssociationOrganizationForExtraAvailableToken.Value,
+                    OrganizationAddress = State.AssociationOrganizationForToken.Value,
                     Params = tokenSymbol == null ? tokenInfo.ToByteString() : tokenSymbol.ToByteString(),
                     ContractMethodName = recallMethod,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1)
@@ -326,24 +389,23 @@ namespace AElf.Contracts.MultiToken
             // State.ProposalMap[ExtraAvailableToken] = proposalId;
             State.ReferendumContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                OriginProposer = Context.Sender,
+                OriginProposer = State.DefaultProposer.Value,
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = State.AssociationContract.Value,
-                    OrganizationAddress = State.OrganizationForUpdateCoefficient.Value,
+                    OrganizationAddress = State.ReferendumOrganizationForCoefficient.Value,
                     Params = proposalId.ToByteString(),
                     ContractMethodName = nameof(Approve),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1)
                 }
             });
-            //State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
-            State.AssociationContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
+            State.ParliamentContract.CreateProposalBySystemContract.Send(new CreateProposalBySystemContractInput
             {
-                OriginProposer = Context.Sender,
+                OriginProposer = State.DefaultProposer.Value,
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = State.AssociationContract.Value,
-                    OrganizationAddress = State.ParliamentOrganization.Value,
+                    OrganizationAddress = State.ParliamentOrganizationForCoefficient.Value,
                     Params = proposalId.ToByteString(),
                     ContractMethodName = nameof(Approve),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1)
@@ -361,7 +423,7 @@ namespace AElf.Contracts.MultiToken
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = Context.Self,
-                    OrganizationAddress = State.AssociationOrganizationForUpdateCoefficient.Value,
+                    OrganizationAddress = State.AssociationOrganizationForCoefficient.Value,
                     Params = coefficientFromContractInput == null
                         ? coefficientFromSenderInput.ToByteString()
                         : coefficientFromContractInput.ToByteString(),

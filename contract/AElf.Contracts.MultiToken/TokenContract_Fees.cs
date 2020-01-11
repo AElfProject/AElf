@@ -216,7 +216,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
         {
-            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.AssociationOrganizationForToken.Value, "proposal must be passed by organization");
             Assert(!string.IsNullOrEmpty(input.TokenSymbol) & input.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
@@ -233,7 +233,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateAvailableTokenInfo(AvailableTokenInfo input)
         {
-            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.AssociationOrganizationForToken.Value, "proposal must be passed by organization");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
                 "weight should be greater than 0");
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
@@ -248,7 +248,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RemoveAvailableTokenInfo(StringValue input)
         {
-            Assert(Context.Sender == State.AssociationOrganizationForExtraAvailableToken.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.AssociationOrganizationForToken.Value, "proposal must be passed by organization");
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
             Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
