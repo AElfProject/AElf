@@ -8,8 +8,9 @@ namespace AElf.CSharp.CodeOps
     public static class ContractPatcher
     {
         private static readonly IPatcher<ModuleDefinition>[] ModulePatchers = {
-            new ExecutionObserverInjector(),
-            new MethodCallReplacer()
+            new MethodRemover(),
+            new MethodCallReplacer(),
+            new ExecutionObserverInjector()
         };
 
         public static byte[] Patch(byte[] code)
