@@ -70,13 +70,22 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var ilProcessor = method.Body.GetILProcessor();
                     
             var methodCallsToReplace = method.Body.Instructions.Where(i => 
-                    i.OpCode.Code == Code.Call && MethodCallsToReplace.Any(m => ((MethodReference) i.Operand).FullName.Contains(m.Key)))
+                    (i.OpCode.Code == Code.Call || i.OpCode.Code == Code.Callvirt) && 
+                    MethodCallsToReplace.Any(m => 
+                        ((MethodReference) i.Operand).FullName.Contains(m.Key))
+                )
                 .ToList();
 
             foreach (var instruction in methodCallsToReplace)
             {
                 var sysMethodRef = (MethodReference) instruction.Operand;
-                var newMethodRef = method.Module.ImportReference(GetSdkMethodReference(sdkTypeDefs, sysMethodRef));
+                var newMethodRef = method.Module.ImportReference(GetSdkMethodReference(sdkTypeDefs, sysMethodRef, instruction.OpCode));
+
+                if (instruction.Previous.OpCode == OpCodes.Constrained)
+                {
+                    // Dealing with enum, box instead of constrain when making call to SDK static method
+                    ilProcessor.Replace(instruction.Previous, ilProcessor.Create(OpCodes.Box, (TypeDefinition) instruction.Previous.Operand));                    
+                }
 
                 ilProcessor.Replace(instruction, ilProcessor.Create(OpCodes.Call, newMethodRef));
             }
@@ -88,15 +97,30 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             }
         }
 
-        private MethodReference GetSdkMethodReference(Dictionary<string, TypeDefinition> sdkTypeDefs, MethodReference methodRef)
+        private MethodReference GetSdkMethodReference(Dictionary<string, TypeDefinition> sdkTypeDefs, MethodReference methodRef, OpCode opCode)
         {
             // Find the right method that has the same set of parameters and return type
-            var replaceFrom = MethodCallsToReplace[$"{methodRef.DeclaringType}::{methodRef.Name}"];
-            var methodDefinition = sdkTypeDefs[replaceFrom].Methods.Single(
-                m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
-                     m.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] == 
-                     methodRef.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] // Method Name & Parameters
-            );
+            var replaceFromType = MethodCallsToReplace[$"{methodRef.DeclaringType}::{methodRef.Name}"];
+
+            MethodDefinition methodDefinition;
+            if (opCode == OpCodes.Call)
+            {
+                methodDefinition = sdkTypeDefs[replaceFromType].Methods.Single(
+                    m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
+                         m.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] == 
+                         methodRef.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] // Method Name & Parameters
+                );
+            }
+            else
+            {
+                // First in stack will be the first input parameter for the method (for callvirt)
+                methodDefinition = sdkTypeDefs[replaceFromType].Methods.Single(
+                    m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
+                         m.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] == 
+                         methodRef.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1]
+                             .Replace("(", "(System.Object") // Instance as object, parameters
+                );
+            }
 
             return methodDefinition;
         }
