@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
@@ -129,8 +130,16 @@ namespace AElf.Contracts.Treasury
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            UpdateTreasurySubItemsShares(input.TermNumber);
+            MaybeLoadElectionContractAddress();
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            {
+                Value = input.TermNumber.Sub(1)
+            });
+            var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
+                .ToList();
+            UpdateTreasurySubItemsSharesBeforeDistribution(previousTermInformation, victories);
             ReleaseTreasurySubProfitItems(input.TermNumber);
+            UpdateTreasurySubItemsSharesAfterDistribution(previousTermInformation, victories);
 
             Context.LogDebug(() => "Leaving Release.");
             return new Empty();
@@ -304,26 +313,32 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void UpdateTreasurySubItemsShares(long endPeriod)
+        private void MaybeLoadElectionContractAddress()
         {
             if (State.ElectionContract.Value == null)
             {
                 State.ElectionContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             }
+        }
 
-            var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
-                .ToList();
+        private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation, List<string> victories)
+        {
+            var previousMinerAddresses = previousTermInformation.RealTimeMinersInformation.Keys
+                .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
 
-            var previousMiners = State.AEDPoSContract.GetPreviousMinerList.Call(new Empty()).Pubkeys.ToList();
-            var previousMinerAddresses = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
+            UpdateBasicMinerRewardWeights(previousTermInformation.TermNumber, victories, previousMinerAddresses);
+        }
 
-            UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddresses);
+        private void UpdateTreasurySubItemsSharesAfterDistribution(Round previousTermInformation, List<string> victories)
+        {
+            var previousMinerAddresses = previousTermInformation.RealTimeMinersInformation.Keys
+                .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
 
-            UpdateReElectionRewardWeights(endPeriod, previousMiners.Select(m => m.ToHex()).ToList(),
+            UpdateReElectionRewardWeights(previousTermInformation.TermNumber.Add(1), previousTermInformation.RealTimeMinersInformation.Keys.ToList(),
                 previousMinerAddresses, victories);
 
-            UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddresses);
+            UpdateVotesWeightRewardWeights(previousTermInformation.TermNumber.Add(1), victories, previousMinerAddresses);
         }
 
         /// <summary>
@@ -344,10 +359,6 @@ namespace AElf.Contracts.Treasury
             };
             State.ProfitContract.RemoveBeneficiaries.Send(basicRewardProfitSubBeneficiaries);
 
-            var producedBlocks = State.AEDPoSContract.GetProducedBlocks.Call(new SInt64Value
-            {
-                Value = endPeriod.Sub(1)
-            });
             var basicRewardProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.BasicRewardHash.Value,

@@ -85,7 +85,7 @@ service AEDPoSContract {
     rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetProducedBlocks (aelf.SInt64Value) returns (Round) {
+    rpc GetPreviousTermInformation (aelf.SInt64Value) returns (Round) {
         option (aelf.is_view) = true;
     }
 }
