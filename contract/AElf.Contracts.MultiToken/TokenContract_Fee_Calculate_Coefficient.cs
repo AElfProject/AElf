@@ -8,14 +8,14 @@ namespace AElf.Contracts.MultiToken
     {
         public override Empty Initialize(InitializeInput input)
         {
-            AssertIsAuthorized();
+            Assert(!State.IsContractInitialized.Value, "MultiToken has been initialized");
             InitialParameters();
-            InitializeOrganization();
+            InitializeOrganization(input.DefaultProposer);
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
-
+            State.IsContractInitialized.Value = true;
             return new Empty();
         }
 

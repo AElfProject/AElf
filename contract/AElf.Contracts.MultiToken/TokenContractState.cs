@@ -32,6 +32,7 @@ namespace AElf.Contracts.MultiToken
         /// Contract Address -> (Owning) Resource Token Symbol -> Amount.
         /// </summary>
         public MappedState<Address, string, long> OwningResourceToken { get; set; }
+        public BoolState IsContractInitialized { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
@@ -40,6 +41,7 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<Address> OrganizationForUpdateCoefficient { get; set; }
         public SingletonState<Address> AssociationOrganizationForExtraAvailableToken { get; set; }
         public SingletonState<Address> AssociationOrganizationForUpdateCoefficient { get; set; }
+        public SingletonState<Address> DefaultProposer { get; set; }
         
         /// <summary>
         /// symbol -> address -> is in white list.

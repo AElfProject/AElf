@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -823,26 +825,26 @@ namespace AElf.Contracts.MultiToken
             var parliamentRet = (await ParliamentContractStub.Initialize.SendAsync(new Parliament.InitializeInput
             {
                 ProposerAuthorityRequired = true,
-                PrivilegedProposer = ManagerAddress
+                PrivilegedProposer = DefaultAddress
             })).TransactionResult;
             parliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
-
+            
             var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 TokenName = "NtELF",
                 Decimals = 2,
                 IsBurnable = true,
                 TotalSupply = 10000_0000,
-                Issuer = ManagerAddress,
+                Issuer = DefaultAddress,
                 Symbol = "EE"
             })).TransactionResult;
             createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
             
-            var initResult = (await TokenContractStub.Initialize.SendAsync(new InitializeInput())).TransactionResult;
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                DefaultProposer = DefaultAddress
+            })).TransactionResult;
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var allAvailableTokenInfoBefore = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
-            allAvailableTokenInfoBefore.AllAvailableTokens.Count.ShouldBe(0);
 
             const string addTokenSymbol = "MO";
             const int addTokenWeight = 2;
@@ -854,9 +856,9 @@ namespace AElf.Contracts.MultiToken
                 BaseTokenWeight = baseTokenWeight
             })).TransactionResult;
             addAvailableTokenProposalSubmitRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            
-            
+
+            var allAvailableTokenInfoBefore = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
+            allAvailableTokenInfoBefore.AllAvailableTokens.Count.ShouldBe(0);
             // var addAvailableTokenRet = (await TokenContractStub.AddAvailableTokenInfo.SendAsync(new AvailableTokenInfo
             // {
             //     TokenSymbol = addTokenSymbol,

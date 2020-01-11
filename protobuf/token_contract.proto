@@ -406,6 +406,7 @@ message ValidateTokenInfoExistsInput{
 
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
+    aelf.Address default_proposer = 2;
 }
 
 message UpdateRentalInput {
