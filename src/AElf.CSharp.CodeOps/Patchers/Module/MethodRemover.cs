@@ -21,7 +21,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         public void PatchType(TypeDefinition typ)
         {
-            var methodsToRemove = typ.Methods.Where(m => _methodsToRemove.Contains(m.Name));
+            var methodsToRemove = typ.Methods.Where(m => 
+                _methodsToRemove.Contains(m.Name)).ToList();
             
             foreach (var method in methodsToRemove)
             {
