@@ -22,7 +22,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
             if (requiredAcs.RequireAll)
             {
                 // Contract should have all listed ACS as a base
-                if (!acsBaseList.All(a => requiredAcs.AcsList.Contains(a)))
+                if (!requiredAcs.AcsList.All(acs => acsBaseList.Contains(acs)))
                     return new List<ValidationResult>
                     {
                         new AcsValidationResult($"Contract should have at least {string.Join(" or ", requiredAcs.AcsList)} as base.")
@@ -31,7 +31,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
             else
             {
                 // Contract should have at least one of the listed ACS in the list as a base
-                if (!acsBaseList.Any(a => requiredAcs.AcsList.Contains(a)))
+                if (!requiredAcs.AcsList.Any(acs => acsBaseList.Contains(acs)))
                     return new List<ValidationResult>
                     {
                         new AcsValidationResult($"Contract should have all {string.Join(", ", requiredAcs.AcsList)} as base.")
