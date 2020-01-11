@@ -1,4 +1,6 @@
 jobs:
+variables:
+  CI_TEST: true
 
 # All tasks on Windows....
 - job: build_all_windows
