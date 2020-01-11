@@ -42,12 +42,29 @@ namespace AElf.Contracts.MultiToken
             State.DefaultProposer.Value = defaultProposer == null
                 ? State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
                 : defaultProposer;
+            State.ParliamentOrganizationForCoefficient.Value =
+                State.ParliamentContract.CalculateOrganizationAddress.Call(GetParliamentOrganizationForCoefficientInput()
+                    .OrganizationCreationInput);
+
+            State.ReferendumOrganizationForCoefficient.Value =
+                State.ReferendumContract.CalculateOrganizationAddress.Call(GetOrganizationForCoefficientInput()
+                    .OrganizationCreationInput);
+
+            State.ParliamentOrganizationForExtraToken.Value =
+                State.ParliamentContract.CalculateOrganizationAddress.Call(GetParliamentOrganizationForExtraTokenInput()
+                    .OrganizationCreationInput);
+            State.NormalOrganizationForToken.Value =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetNormalOrganizationForTokenInput()
+                    .OrganizationCreationInput);
             CreateParliamentOrganizationForCoefficient();
             CreateOrganizationForUpdateCoefficient();
-
+            CreateAssociationOrganizationForUpdateCoefficient();
+            
             CreateParliamentOrganizationForExtraToken();
             CreateOrganizationForUpdateAvailableToken();
+            CreateAssociationOrganizationForUpdateExtraToken();
         }
+        
         private void CreateParliamentOrganizationForCoefficient()
         {
             State.ParliamentContract.CreateOrganizationBySystemContract.Send(
@@ -99,8 +116,7 @@ namespace AElf.Contracts.MultiToken
                         MinimalApprovalThreshold = 2,
                         MinimalVoteThreshold = 2
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetParliamentOrganizationForCoefficient)
+                }
             };
         }
 
@@ -123,8 +139,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         Proposers = {whiteList}
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetReferendumOrganizationForCoefficient)
+                }
             };
         }
 
@@ -173,8 +188,7 @@ namespace AElf.Contracts.MultiToken
                         MinimalApprovalThreshold = 2,
                         MinimalVoteThreshold = 2
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetParliamentOrganizationForExtraToken)
+                }
             };
         }
 
@@ -202,8 +216,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         Proposers = {whiteList}
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetNormalOrganizationForExtraToken)
+                }
             };
         }
 
@@ -244,56 +257,17 @@ namespace AElf.Contracts.MultiToken
         #endregion
         
         #region recall back for setting organization and proposal id
-
-        public override Empty SetParliamentOrganizationForCoefficient(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.ParliamentOrganizationForCoefficient.Value == null)
-                State.ParliamentOrganizationForCoefficient.Value = input;
-            if(State.AssociationOrganizationForCoefficient.Value == null && State.ReferendumOrganizationForCoefficient.Value != null)
-                CreateAssociationOrganizationForUpdateCoefficient();
-            return new Empty();
-        }
-        public override Empty SetReferendumOrganizationForCoefficient(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.ReferendumOrganizationForCoefficient.Value == null)
-                State.ReferendumOrganizationForCoefficient.Value = input;
-            if(State.AssociationOrganizationForCoefficient.Value == null && State.ParliamentOrganizationForCoefficient.Value != null)
-                CreateAssociationOrganizationForUpdateCoefficient();
-            return new Empty();
-        }
+        
         public override Empty SetAssociateOrganizationForCoefficient(Address input)
         {
             Assert(input != null, "invalid address");
-            if(State.AssociationOrganizationForCoefficient.Value == null)
-                State.AssociationOrganizationForCoefficient.Value = input;
-            return new Empty();
-        }
-        
-        public override Empty SetParliamentOrganizationForExtraToken(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.ParliamentOrganizationForExtraToken.Value == null)
-                State.ParliamentOrganizationForExtraToken.Value = input;
-            if(State.AssociationOrganizationForToken.Value == null && State.NormalOrganizationForToken.Value != null)
-                CreateAssociationOrganizationForUpdateExtraToken();
-            return new Empty();
-        }
-        public override Empty SetNormalOrganizationForExtraToken(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.NormalOrganizationForToken.Value == null)
-                State.NormalOrganizationForToken.Value = input;
-            if(State.AssociationOrganizationForToken.Value == null &&  State.ParliamentOrganizationForExtraToken.Value != null)
-                CreateAssociationOrganizationForUpdateExtraToken();
+            State.AssociationOrganizationForCoefficient.Value = input;
             return new Empty();
         }
         public override Empty SetAssociateOrganizationForExtraToken(Address input)
         {
             Assert(input != null, "invalid address");
-            if(State.AssociationOrganizationForToken.Value == null)
-                State.AssociationOrganizationForToken.Value = input;
+            State.AssociationOrganizationForToken.Value = input;
             return new Empty();
         }
         #endregion
