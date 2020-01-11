@@ -140,7 +140,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
-            Assert(input.Amount > 0, "Invalid amount of donating. Amount need to greater than 0.");
+            Assert(input.Amount > 0, "Invalid amount of donating. Amount needs to be greater than 0.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Treasury
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
             var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol = connector?.RelatedSymbol != null;
+            var canExchangeWithNativeSymbol = connector.RelatedSymbol != string.Empty;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {

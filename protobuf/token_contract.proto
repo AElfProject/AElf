@@ -383,6 +383,7 @@ message ValidateTokenInfoExistsInput{
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     sint32 issue_chain_id = 7;
+    bool is_profitable = 8;
 }
 
 message InitializeInput {

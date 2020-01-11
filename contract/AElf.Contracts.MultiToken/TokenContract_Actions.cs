@@ -136,6 +136,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IsProfitable = validateTokenInfoExistsInput.IsProfitable,
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
             return new Empty();
@@ -439,7 +440,7 @@ namespace AElf.Contracts.MultiToken
             State.Balances[input.ContractAddress][input.Symbol] =
                 State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
             var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
-            
+
             if (State.TreasuryContract.Value != null)
             {
                 // Main Chain.
@@ -551,7 +552,8 @@ namespace AElf.Contracts.MultiToken
             bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
                                     tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId;
+                                    tokenInfo.IssueChainId == input.IssueChainId &&
+                                    tokenInfo.IsProfitable == input.IsProfitable;
             Assert(validationResult, "Token validation failed.");
             return new Empty();
         }
