@@ -18,7 +18,7 @@ namespace AElf.WebApp.Application.Chain
         internal static async Task<MethodDescriptor> GetContractMethodDescriptorAsync(
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, Address contractAddress,
-            string methodName, bool throwException = true)
+            string methodName, IChainContext chainContext = null, bool throwException = true)
         {
             IEnumerable<FileDescriptor> fileDescriptors;
             _blockchainService = blockchainService;
@@ -26,13 +26,13 @@ namespace AElf.WebApp.Application.Chain
 
             try
             {
-                fileDescriptors = await GetFileDescriptorsAsync(contractAddress);
+                fileDescriptors = await GetFileDescriptorsAsync(contractAddress, chainContext);
             }
             catch
             {
-                if(throwException)
+                if (throwException)
                     throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
-                    Error.InvalidContractAddress.ToString());
+                        Error.InvalidContractAddress.ToString());
                 return null;
             }
 
@@ -46,15 +46,18 @@ namespace AElf.WebApp.Application.Chain
             return null;
         }
 
-        private static async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address)
+        private static async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address,
+            IChainContext chainContext)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            var chainContext = new ChainContext()
+            if (chainContext == null)
             {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-
+                var chain = await _blockchainService.GetChainAsync();
+                chainContext = new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                };
+            }
             return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
     }
