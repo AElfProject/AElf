@@ -60,6 +60,7 @@ namespace AElf.Kernel.Miner.Application
                         continue;
                     }
 
+                    result.BlockHash = block.GetHash();
                     var resultBloom = new Bloom(result.Bloom.ToByteArray());
 
                     foreach (var handler in _eventHandlers)

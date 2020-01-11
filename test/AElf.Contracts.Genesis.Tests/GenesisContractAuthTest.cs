@@ -195,7 +195,8 @@ namespace AElf.Contracts.Genesis
             newHash.ShouldBe(codeHash);
         }
 
-        [Fact(Skip = "Skip due to need task delay.")]
+        // [Fact(Skip = "Skip due to need task delay.")]
+        [Fact]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
             var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll"));
