@@ -815,5 +815,82 @@ namespace AElf.Contracts.MultiToken
             tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(1200L));
         }
         
+        [Fact]
+        public async Task Modify_Available_Token_Test()
+        {
+            // var managedTokenContractStub =
+            //     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
+            var parliamentRet = (await ParliamentContractStub.Initialize.SendAsync(new Parliament.InitializeInput
+            {
+                ProposerAuthorityRequired = true,
+                PrivilegedProposer = ManagerAddress
+            })).TransactionResult;
+            parliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                TokenName = "NtELF",
+                Decimals = 2,
+                IsBurnable = true,
+                TotalSupply = 10000_0000,
+                Issuer = ManagerAddress,
+                Symbol = "EE"
+            })).TransactionResult;
+            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var initResult = (await TokenContractStub.Initialize.SendAsync(new InitializeInput())).TransactionResult;
+            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var allAvailableTokenInfoBefore = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
+            allAvailableTokenInfoBefore.AllAvailableTokens.Count.ShouldBe(0);
+
+            const string addTokenSymbol = "MO";
+            const int addTokenWeight = 2;
+            const int baseTokenWeight = 1;
+            var addAvailableTokenProposalSubmitRet = (await TokenContractStub.SubmitAddAvailableTokenInfoProposal.SendAsync(new AvailableTokenInfo
+            {
+                TokenSymbol = addTokenSymbol,
+                AddedTokenWeight = addTokenWeight,
+                BaseTokenWeight = baseTokenWeight
+            })).TransactionResult;
+            addAvailableTokenProposalSubmitRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            
+            
+            // var addAvailableTokenRet = (await TokenContractStub.AddAvailableTokenInfo.SendAsync(new AvailableTokenInfo
+            // {
+            //     TokenSymbol = addTokenSymbol,
+            //     AddedTokenWeight = addTokenWeight,
+            //     BaseTokenWeight = baseTokenWeight
+            // })).TransactionResult;
+            // addAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            //
+            // var allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty()); 
+            // allAvailableTokenInfo.AllAvailableTokens.SingleOrDefault(x => x.TokenSymbol == addTokenSymbol).ShouldNotBeNull();
+            //
+            // var updateAvailableTokenRet = (await TokenContractStub.UpdateAvailableTokenInfo.SendAsync(new AvailableTokenInfo
+            // {
+            //     TokenSymbol = addTokenSymbol,
+            //     AddedTokenWeight = 5,
+            //     BaseTokenWeight = 3
+            // })).TransactionResult;
+            // updateAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            //
+            // allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty());
+            // var updatedTokenInfo =
+            //     allAvailableTokenInfo.AllAvailableTokens.Single(x => x.TokenSymbol == addTokenSymbol);
+            // updatedTokenInfo.BaseTokenWeight.ShouldBe(3);
+            // updatedTokenInfo.AddedTokenWeight.ShouldBe(5);
+            //
+            // var removeAvailableTokenRet = (await TokenContractStub.RemoveAvailableTokenInfo.SendAsync( new StringValue
+            //     {
+            //         Value = addTokenSymbol
+            //     }
+            // )).TransactionResult;
+            // removeAvailableTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            //
+            // allAvailableTokenInfo = await TokenContractStub.GetAvailableTokenInfos.CallAsync(new Empty());
+            // allAvailableTokenInfo.AllAvailableTokens.Count.ShouldBe(0);
+        }
     }
 }

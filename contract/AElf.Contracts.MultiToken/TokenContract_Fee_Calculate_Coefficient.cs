@@ -10,6 +10,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertIsAuthorized();
             InitialParameters();
+            InitializeOrganization();
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
