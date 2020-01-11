@@ -42,10 +42,10 @@ namespace AElf.Contracts.MultiToken
             State.DefaultProposer.Value = defaultProposer == null
                 ? State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
                 : defaultProposer;
+            
             State.ParliamentOrganizationForCoefficient.Value =
                 State.ParliamentContract.CalculateOrganizationAddress.Call(GetParliamentOrganizationForCoefficientInput()
                     .OrganizationCreationInput);
-
             State.ReferendumOrganizationForCoefficient.Value =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(GetOrganizationForCoefficientInput()
                     .OrganizationCreationInput);
@@ -56,11 +56,13 @@ namespace AElf.Contracts.MultiToken
             State.NormalOrganizationForToken.Value =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetNormalOrganizationForTokenInput()
                     .OrganizationCreationInput);
+            
             CreateParliamentOrganizationForCoefficient();
             CreateOrganizationForUpdateCoefficient();
             CreateAssociationOrganizationForUpdateCoefficient();
             
-            CreateParliamentOrganizationForExtraToken();
+            if(State.ParliamentOrganizationForExtraToken.Value != State.ParliamentOrganizationForCoefficient.Value)
+                CreateParliamentOrganizationForExtraToken();
             CreateOrganizationForUpdateAvailableToken();
             CreateAssociationOrganizationForUpdateExtraToken();
         }
