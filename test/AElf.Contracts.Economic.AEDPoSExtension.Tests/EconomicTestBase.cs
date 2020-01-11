@@ -69,8 +69,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ElectionSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
-                EconomicSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name
+                EconomicSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitialEconomicSystem);

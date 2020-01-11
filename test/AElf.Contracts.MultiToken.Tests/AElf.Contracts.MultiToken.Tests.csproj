@@ -75,7 +75,9 @@
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractStub>
-
+        <ContractStub Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf\Proto\referendum_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractStub>

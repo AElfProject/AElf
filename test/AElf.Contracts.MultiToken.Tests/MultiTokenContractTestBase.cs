@@ -10,6 +10,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
@@ -24,6 +25,7 @@ using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
@@ -57,9 +59,14 @@ namespace AElf.Contracts.MultiToken
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub;
         public byte[] TokenConverterContractCode => Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
+
+        public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
         protected Address TokenConverterContractAddress { get; set; }
 
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
+        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
+        
+        protected Address ReferendumContractAddress { get; set; }
 
         internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
 

@@ -1,12 +1,14 @@
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -22,7 +24,32 @@ namespace AElf.Contracts.MultiToken
     {
         private const long TotalSupply = 1000_000_000_00000000;
         private readonly int _chainId;
+
+        private TokenInfo NativeTokenInfo => new TokenInfo
+        {
+            Symbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                .ContextVariables[ContextVariableDictionary.NativeSymbolName],
+            TokenName = "Native token",
+            TotalSupply = TotalSupply,
+            Decimals = 8,
+            IsBurnable = true,
+            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Supply = 0,
+            IssueChainId = _chainId
+        };
         
+        private TokenInfo PrimaryTokenInfo => new TokenInfo
+        {
+            Symbol = "PRIMARY",
+            TokenName = "Primary token",
+            TotalSupply = TotalSupply,
+            Decimals = 8,
+            IsBurnable = true,
+            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Supply = 0,
+            IssueChainId = _chainId
+        };
+
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -131,6 +158,16 @@ namespace AElf.Contracts.MultiToken
                         DefaultKeyPair);
             }
 
+            //ReferendumContract
+            {
+                var code = ReferendumContractCode;
+                ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                ReferendumContractStub =
+                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
+                        DefaultKeyPair);
+            }
+
             //BasicFunctionContract
             {
                 BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
@@ -151,7 +188,43 @@ namespace AElf.Contracts.MultiToken
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
         }
 
-        private async Task MultiTokenContract_Create_Test()
+        private async Task CreateNativeTokenAsync()
+        {
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = NativeTokenInfo.Symbol,
+                TokenName = NativeTokenInfo.TokenName,
+                TotalSupply = NativeTokenInfo.TotalSupply,
+                Decimals = NativeTokenInfo.Decimals,
+                Issuer = NativeTokenInfo.Issuer,
+                IsBurnable = NativeTokenInfo.IsBurnable,
+                LockWhiteList =
+                {
+                    BasicFunctionContractAddress,
+                    OtherBasicFunctionContractAddress,
+                    TokenConverterContractAddress,
+                    TreasuryContractAddress
+                }
+            });
+        }
+        
+        private async Task CreatePrimaryTokenAsync()
+        {
+            await TokenContractStub.RegisterNativeAndResourceTokenInfo.SendAsync(new RegisterNativeAndResourceTokenInfoInput
+            {
+                NativeTokenInfo = new RegisterNativeTokenInfoInput{
+                    Symbol = NativeTokenInfo.Symbol,
+                    TokenName = NativeTokenInfo.TokenName,
+                    TotalSupply = NativeTokenInfo.TotalSupply,
+                    Decimals = NativeTokenInfo.Decimals,
+                    Issuer = NativeTokenInfo.Issuer,
+                    IsBurnable = NativeTokenInfo.IsBurnable
+                },
+                ChainPrimaryToken = PrimaryTokenInfo
+            });
+        }
+
+        private async Task CreateNormalTokenAsync()
         {
             // Check token information before creating.
             {
@@ -177,7 +250,6 @@ namespace AElf.Contracts.MultiToken
                     TokenConverterContractAddress,
                     TreasuryContractAddress
                 }
-
             });
 
             // Check token information after creating.
@@ -188,24 +260,6 @@ namespace AElf.Contracts.MultiToken
                 });
                 tokenInfo.ShouldBe(AliceCoinTokenInfo);
             }
-
-            await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = "ELF",
-                TokenName = "ELF",
-                TotalSupply = AliceCoinTokenInfo.TotalSupply,
-                Decimals = AliceCoinTokenInfo.Decimals,
-                Issuer = AliceCoinTokenInfo.Issuer,
-                IsBurnable = AliceCoinTokenInfo.IsBurnable,
-                LockWhiteList =
-                {
-                    BasicFunctionContractAddress,
-                    OtherBasicFunctionContractAddress,
-                    TokenConverterContractAddress,
-                    TreasuryContractAddress
-                }
-
-            });
         }
 
         private async Task TokenConverter_Converter()
@@ -221,7 +275,6 @@ namespace AElf.Contracts.MultiToken
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.2",
                 FeeReceiverAddress = User1Address
-
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -249,7 +302,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Create different tokens.")]
         public async Task MultiTokenContract_Create_NotSame_Test()
         {
-            await MultiTokenContract_Create_Test();
+            await CreateAndIssueMultiTokensAsync();
 
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -276,11 +329,11 @@ namespace AElf.Contracts.MultiToken
         {
             var transactionResult = (await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
             {
-                Symbol = AliceCoinTokenInfo.Symbol,
+                Symbol = NativeTokenInfo.Symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 Issuer = DefaultAddress,
-                TokenName = "elf test token",
+                TokenName = NativeTokenInfo.TokenName,
                 TotalSupply = AliceCoinTotalAmount,
                 LockWhiteList =
                 {
@@ -291,9 +344,10 @@ namespace AElf.Contracts.MultiToken
             transactionResult.Error.ShouldContain("Addresses in lock white list should be system contract addresses");
         }
 
-        private async Task MultiTokenContract_Issue_Test()
+        private async Task CreateAndIssueMultiTokensAsync()
         {
-            await MultiTokenContract_Create_Test();
+            await CreateNativeTokenAsync();
+            await CreateNormalTokenAsync();
             //issue AliceToken amount of 1000_00L to DefaultAddress 
             {
                 var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
@@ -373,7 +427,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Issue out of total amount")]
         public async Task MultiTokenContract_Issue_OutOfAmount_Test()
         {
-            await MultiTokenContract_Create_Test();
+            await CreateAndIssueMultiTokensAsync();
             //issue AliceToken amount of 1000L to User1Address 
             var result = (await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
             {
@@ -384,6 +438,113 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task AddNativeTokenWhiteList_Test()
+        {
+            await CreateNativeTokenAsync();
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = NativeTokenInfo.Symbol,
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = NativeTokenInfo.Symbol,
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                var isInWhiteListBeforeInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
+                    new IsInWhiteListInput
+                    {
+                        Address = ReferendumContractAddress,
+                        Symbol = NativeTokenInfo.Symbol
+                    });
+                isInWhiteListBeforeInitialization.Value.ShouldBeFalse();
+
+                await ReferendumContractStub.Initialize.SendAsync(new Empty());
+                var isInWhiteListAfterInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
+                    new IsInWhiteListInput
+                    {
+                        Address = ReferendumContractAddress,
+                        Symbol = NativeTokenInfo.Symbol
+                    });
+                isInWhiteListAfterInitialization.Value.ShouldBeTrue();
+            }
+        }
+        
+        [Fact]
+        public async Task AddChainPrimaryTokenWhiteList_Test()
+        {
+            await CreatePrimaryTokenAsync();
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = PrimaryTokenInfo.Symbol,
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = PrimaryTokenInfo.Symbol,
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                var isInWhiteListBeforeInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
+                    new IsInWhiteListInput
+                    {
+                        Address = ReferendumContractAddress,
+                        Symbol = PrimaryTokenInfo.Symbol
+                    });
+                isInWhiteListBeforeInitialization.Value.ShouldBeFalse();
+
+                await ReferendumContractStub.Initialize.SendAsync(new Empty());
+                var isInWhiteListAfterInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
+                    new IsInWhiteListInput
+                    {
+                        Address = ReferendumContractAddress,
+                        Symbol = PrimaryTokenInfo.Symbol
+                    });
+                isInWhiteListAfterInitialization.Value.ShouldBeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task AddNormalTokenWhiteList_Test()
+        {
+            await CreateAndIssueMultiTokensAsync();
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = AliceCoinTokenInfo.Symbol
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid input.");
+            }
+            {
+                await TokenContractStub.AddTokenWhiteList.SendAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = AliceCoinTokenInfo.Symbol,
+                    Address = TokenContractAddress
+                });
+
+                var isInWhiteList = await TokenContractStub.IsInWhiteList.CallAsync(new IsInWhiteListInput
+                {
+                    Address = TokenContractAddress,
+                    Symbol = AliceCoinTokenInfo.Symbol
+                });
+                isInWhiteList.Value.ShouldBeTrue();
+            }
         }
     }
 }
