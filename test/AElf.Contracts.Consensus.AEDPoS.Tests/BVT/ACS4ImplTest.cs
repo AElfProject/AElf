@@ -324,12 +324,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber++;
+            roundInfo.IsMinerListJustChanged = false;
+            roundInfo.TermNumber++;
             var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(roundInfo);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var validateAfterResult =
                 await AEDPoSContractStub.ValidateConsensusAfterExecution.CallAsync(roundInfo.ToBytesValue());
-            validateAfterResult.Success.ShouldBeFalse(); //update with extra data would be keep the same.
+            validateAfterResult.Success.ShouldBeTrue();
         }
 
         [Fact]
