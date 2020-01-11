@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Save time.")]
+        [Fact]
         public async Task TreasuryCollection_ThirdTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();

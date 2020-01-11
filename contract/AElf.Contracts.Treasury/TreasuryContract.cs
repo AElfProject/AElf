@@ -122,16 +122,15 @@ namespace AElf.Contracts.Treasury
                 Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
-            var releasingPeriodNumber = input.TermNumber;
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                Period = releasingPeriodNumber,
+                Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            ReleaseTreasurySubProfitItems(releasingPeriodNumber);
             UpdateTreasurySubItemsShares(input.TermNumber);
+            ReleaseTreasurySubProfitItems(input.TermNumber);
 
             Context.LogDebug(() => "Leaving Release.");
             return new Empty();
@@ -305,10 +304,8 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void UpdateTreasurySubItemsShares(long termNumber)
+        private void UpdateTreasurySubItemsShares(long endPeriod)
         {
-            var endPeriod = termNumber.Add(1);
-
             if (State.ElectionContract.Value == null)
             {
                 State.ElectionContract.Value =

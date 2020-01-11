@@ -82,12 +82,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check amount distributed to each scheme.
             {
-                // Miner Basic Reward: -40% (Burned)
+                // Miner Basic Reward: 40%
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount * 2 / 5);
+                    amount.ShouldBe(distributedAmount * 2 / 5);
                 }
 
                 // Backup Subsidy: 20%
@@ -106,12 +106,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(-distributedAmount / 5);
                 }
 
-                // Votes Weight Reward: -10% (Burned)
+                // Votes Weight Reward: 10%
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount / 10);
+                    amount.ShouldBe(distributedAmount / 10);
                 }
 
                 // Re-Election Reward: -10% (Burned)
