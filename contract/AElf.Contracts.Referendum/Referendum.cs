@@ -1,5 +1,6 @@
 using System.Linq;
 using Acs3;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -52,7 +53,7 @@ namespace AElf.Contracts.Referendum
         {
             return new BoolValue {Value = State.Organisations[input] != null};
         }
-        
+
         public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
         {
             var organization = State.Organisations[input.OrganizationAddress];
@@ -61,11 +62,14 @@ namespace AElf.Contracts.Referendum
                 Value = organization.ProposerWhiteList.Contains(input.Proposer)
             };
         }
-        
+
         #endregion
 
         public override Empty Initialize(Empty input)
         {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
+            AddTokenWhitList();
             return new Empty();
         }
 
@@ -100,7 +104,7 @@ namespace AElf.Contracts.Referendum
 
             return proposalId;
         }
-        
+
         public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
@@ -166,7 +170,7 @@ namespace AElf.Contracts.Referendum
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }
-        
+
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
             var organization = State.Organisations[Context.Sender];

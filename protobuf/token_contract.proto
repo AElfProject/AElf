@@ -79,6 +79,8 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
+    rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -436,6 +438,11 @@ message TokenSymbolWithAddress{
 
 message TokenStateInAddress{
     bool value = 1;
+}
+
+message AddTokeWhiteListInput{
+    string token_symbol = 1;
+    aelf.Address address = 2;
 }
 
 enum FeeTypeEnum {

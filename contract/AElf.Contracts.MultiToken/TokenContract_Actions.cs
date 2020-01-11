@@ -31,6 +31,7 @@ namespace AElf.Contracts.MultiToken
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
+                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid input.");
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
@@ -484,6 +485,26 @@ namespace AElf.Contracts.MultiToken
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
                                     tokenInfo.IssueChainId == input.IssueChainId;
             Assert(validationResult, "Token validation failed.");
+            return new Empty();
+        }
+
+        public override Empty AddTokenWhiteList(AddTokeWhiteListInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.TokenSymbol];
+            Assert(tokenInfo != null && input.Address != null, "Invalid input.");
+            var sender = Context.Sender;
+
+            if (input.TokenSymbol == Context.Variables.NativeSymbol ||
+                input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value)
+            {
+                var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
+                var isSystemContractAddress = systemContractAddresses.Contains(sender);
+                Assert(isSystemContractAddress && sender == input.Address, "No permission.");
+            }
+            else
+                Assert(sender == tokenInfo.Issuer, "No permission.");
+            
+            State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }
     }
