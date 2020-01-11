@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 From = FromAddress,
                 To = ConfigurationContractAddress,
-                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
+                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
                 Params = new Empty().ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
