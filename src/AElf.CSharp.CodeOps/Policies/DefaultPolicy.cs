@@ -77,7 +77,8 @@ namespace AElf.CSharp.CodeOps.Policies
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
                         .Member(nameof(DateTime.Today), Permission.Denied))
                     .Type(typeof(void).Name, Permission.Allowed)
-                    .Type(typeof(object).Name, Permission.Allowed)
+                    .Type(typeof(object).Name, Permission.Allowed, member => member
+                        .Member(nameof(GetHashCode), Permission.Denied))
                     .Type(typeof(Type).Name, Permission.Allowed)
                     .Type(typeof(IDisposable).Name, Permission.Allowed)
                     .Type(typeof(Convert).Name, Permission.Allowed)
