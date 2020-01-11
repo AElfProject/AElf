@@ -52,7 +52,7 @@ message ResourceTokenAmount {
 }
 
 message RequiredAcsInContracts {
-    string acs_list = 1;
+    repeated string acs_list = 1;
     bool require_all = 2;
 }
 

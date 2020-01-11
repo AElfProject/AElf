@@ -34,12 +34,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _isEnabled = false;
         }
         
-        public async Task<bool> PerformCodeCheckAsync(byte[] code)
+        public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight)
         {
             if (!_isEnabled)
                 return false;
 
-            var requiredAcs = await _requiredAcsInContractsProvider.GetRequiredAcsInContractsAsync();
+            var requiredAcs = await _requiredAcsInContractsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
             try
             {
                 // Check contract code

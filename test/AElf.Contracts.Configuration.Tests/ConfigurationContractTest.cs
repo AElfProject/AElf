@@ -173,7 +173,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var contractFeeChargingPolicy = new RequiredAcsInContracts
             {
-                AcsList = "acsx,acsy"
+                AcsList = {"acsx", "acsy"}
             };
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
             var proposalId = await CreateProposalAsync(organizationAddress, contractFeeChargingPolicy, 

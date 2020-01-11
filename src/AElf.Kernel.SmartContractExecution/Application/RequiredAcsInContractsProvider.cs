@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,12 +12,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface IRequiredAcsInContractsProvider
     {
-        Task<RequiredAcsDto> GetRequiredAcsInContractsAsync();
+        Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight);
     }
 
     public class RequiredAcsInContractsProvider : IRequiredAcsInContractsProvider, ISingletonDependency
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         
@@ -27,33 +25,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
         
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
-        public RequiredAcsInContractsProvider(IBlockchainService blockchainService, 
-            ISmartContractAddressService smartContractAddressService, ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+        public RequiredAcsInContractsProvider(ISmartContractAddressService smartContractAddressService, 
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
-            _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-        public async Task<RequiredAcsDto> GetRequiredAcsInContractsAsync()
+        public async Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            
-            //Chain was not created
-            if (chain == null) 
-                return new RequiredAcsDto();
-
             var result = await GetRequiredAcsAsync(new ChainContext
             {
-                BlockHash = chain.LastIrreversibleBlockHash,
-                BlockHeight = chain.LastIrreversibleBlockHeight
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
             });
 
             var returned = RequiredAcsInContracts.Parser.ParseFrom(result);
 
             return new RequiredAcsDto
             {
-                AcsList = returned.AcsList.Split(',').ToList(),
+                AcsList = returned.AcsList.ToList(),
                 RequireAll = returned.RequireAll
             };
         }

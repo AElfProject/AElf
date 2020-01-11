@@ -26,7 +26,7 @@ namespace AElf.Blockchains.MainChain
                 nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
                 new RequiredAcsInContracts
                 {
-                    AcsList = SmartContractConstants.ContractFeeStrategyAcsList
+                    AcsList = {_contractOptions.ContractFeeStrategyAcsList}
                 });
             return crossChainMethodCallList;
         }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AElf.Kernel.SmartContract
 {
     public class ContractOptions
@@ -9,5 +11,7 @@ namespace AElf.Kernel.SmartContract
 
         public int TransactionExecutionTimePeriodLimitInMilliSeconds { get; set; } =
             SmartContractConstants.TransactionExecutionTimePeriodLimitInMilliSeconds;
+        
+        public List<string> ContractFeeStrategyAcsList { get; set; }
     }
 }

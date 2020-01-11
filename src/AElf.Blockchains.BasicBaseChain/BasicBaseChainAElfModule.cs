@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
@@ -93,6 +94,7 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
                     "genesis");
+                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
 
