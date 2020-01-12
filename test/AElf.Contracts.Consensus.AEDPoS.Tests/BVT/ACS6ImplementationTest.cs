@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal async Task<RandomNumberOrder> AEDPoSContract_RequestRandomNumber_Test()
         {
             var randomNumberOrder =
-                (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new Empty())).Output;
+                (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new Hash())).Output;
             randomNumberOrder.TokenHash.ShouldNotBeNull();
             randomNumberOrder.BlockHeight.ShouldBeGreaterThan(
                 AEDPoSContractTestConstants.InitialMinersCount.Mul(AEDPoSContractTestConstants.TinySlots));

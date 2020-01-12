@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "acs1.proto";
+import "acs6.proto";
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.CommitmentScheme";
+
+service CommitmentSchemeContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.CommitmentScheme.CommitmentSchemeContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs6.proto";
+}

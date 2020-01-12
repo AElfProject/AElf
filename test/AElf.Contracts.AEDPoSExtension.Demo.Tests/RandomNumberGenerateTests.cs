@@ -20,7 +20,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
-            var requestTx = ConsensusStub.RequestRandomNumber.GetTransaction(new Empty());
+            var requestTx = ConsensusStub.RequestRandomNumber.GetTransaction(new Hash());
             var refBlockNumber = requestTx.RefBlockNumber;
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
