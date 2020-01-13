@@ -11,7 +11,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class CodeUpdatedLogEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
+        private readonly ISmartContractRegistrationService _smartContractRegistrationService;
 
         private LogEvent _interestedEvent;
 
@@ -32,28 +32,27 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
 
-        public CodeUpdatedLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            ISmartContractExecutiveProvider smartContractRegistrationProvider)
+        public CodeUpdatedLogEventHandler(ISmartContractAddressService smartContractAddressService, 
+            ISmartContractRegistrationService smartContractRegistrationService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _smartContractExecutiveProvider = smartContractRegistrationProvider;
+            _smartContractRegistrationService = smartContractRegistrationService;
 
             Logger = NullLogger<CodeUpdatedLogEventHandler>.Instance;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);
 
-            _smartContractExecutiveProvider.AddSmartContractRegistration(eventData.Address, eventData.NewCodeHash,
+            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.NewCodeHash,
                 new BlockIndex
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
                 });
             Logger.LogDebug($"Updated contract {eventData}");
-            return Task.CompletedTask;
         }
     }
 }

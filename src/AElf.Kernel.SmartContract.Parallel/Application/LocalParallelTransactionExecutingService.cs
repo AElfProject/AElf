@@ -82,7 +82,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
 
-            if (conflictingSets.Count > 0)
+            if (conflictingSets.Count > 0 &&
+                returnSets.Count + conflictingSets.Count == transactionExecutingDto.Transactions.Count())
             {
                 await ProcessConflictingSetsAsync(conflictingSets, blockHeader);
                 returnSets.AddRange(conflictingSets);
