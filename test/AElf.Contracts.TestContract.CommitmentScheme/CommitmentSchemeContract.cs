@@ -12,9 +12,8 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
         {
             // The input will be treated as a commitment of the sender.
             State.Commitments[Context.Sender] = input;
-            var latestOutValue = GetLatestOutValue();
-            var tokenHash = Hash.FromTwoHashes(input, latestOutValue);
-            State.TokenHashes[Context.Sender] = tokenHash;
+            var usingPreviousInValueInformation = GetPreviousInValueInformation();
+            State.PreviousInValueInformations[Context.Sender] = usingPreviousInValueInformation;
             return new RandomNumberOrder
             {
                 TokenHash = input,
@@ -31,7 +30,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
         /// Get Latest Out Value from AEDPoS Contract.
         /// </summary>
         /// <returns></returns>
-        private Hash GetLatestOutValue()
+        private PreviousInValueInformation GetPreviousInValueInformation()
         {
             throw new System.NotImplementedException();
         }

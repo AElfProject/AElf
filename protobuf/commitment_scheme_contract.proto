@@ -12,3 +12,8 @@ service CommitmentSchemeContract {
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs6.proto";
 }
+
+message PreviousInValueInformation {
+    sint64 round_number = 1;
+    sint32 order = 2;
+}
