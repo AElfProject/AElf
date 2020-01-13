@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
@@ -28,7 +30,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 distributedAmount / 5 / 7 , balancesBefore);
         }
 
-        [Fact(Skip = "Save time.")]
+        [Fact]
         public async Task TreasuryCollection_SecondTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
@@ -61,11 +63,18 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
-                var basicRewardInSecondTerm =
-                    distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount / 12;
-                await CheckBalancesAsync(firstSevenCoreDataCenters,
-                    basicRewardInSecondTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
-                    balancesBefore);
+                var previousRound = ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2})
+                    .Result;
+                var totalBlocks = previousRound.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
+                foreach (var keyPair in firstSevenCoreDataCenters)
+                {
+                    var shouldIncrease = distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount *
+                                         previousRound.RealTimeMinersInformation[keyPair.PublicKey.ToHex()]
+                                             .ProducedBlocks / totalBlocks -
+                                         EconomicTestConstants.TransactionFeeOfClaimProfit;
+                    var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
+                    amount.ShouldBe(shouldIncrease + balancesBefore[keyPair]);
+                }
             }
 
             // First 7 core data centers can profit from votes weight reward.

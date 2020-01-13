@@ -106,12 +106,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(-distributedAmount / 5);
                 }
 
-                // Votes Weight Reward: 10%
+                // Votes Weight Reward: -10% (Burned)
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount / 10);
+                    amount.ShouldBe(-distributedAmount / 10);
                 }
 
                 // Re-Election Reward: -10% (Burned)
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(12);
+                    totalShares.ShouldBe(17);
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
