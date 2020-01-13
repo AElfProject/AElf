@@ -14,9 +14,9 @@ namespace AElf.CSharp.CodeOps.Validators
             Message = message;
         }
 
-        public ValidationResult WithInfo(string referencingMethod, string nm, string type, string member)
+        public ValidationResult WithInfo(string origin, string nm, string type, string member)
         {
-            Info = new Info(referencingMethod, nm, type, member);
+            Info = new Info(origin, nm, type, member);
             return this;
         }
 

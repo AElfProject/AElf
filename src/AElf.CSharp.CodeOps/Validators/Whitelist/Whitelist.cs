@@ -10,9 +10,12 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
     {
         private readonly IDictionary<string, Trust> _assemblies = new Dictionary<string, Trust>();
         private readonly IDictionary<string, NamespaceRule> _namespaces = new Dictionary<string, NamespaceRule>();
+        private readonly HashSet<string> _bannedMethodImplementations = new HashSet<string>();
 
         public IReadOnlyDictionary<string, NamespaceRule> NameSpaces =>
             (IReadOnlyDictionary<string, NamespaceRule>) _namespaces;
+        
+        public IReadOnlyCollection<string> BannedMethodImplementations => _bannedMethodImplementations;
 
         public Whitelist Assembly(System.Reflection.Assembly assembly, Trust trustLevel)
         {
@@ -38,6 +41,12 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
             return this;
         }
 
+        public Whitelist DenyMethodImplementation(string methodName)
+        {
+            _bannedMethodImplementations.Add(methodName);
+            return this;
+        }
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
             var results = new List<ValidationResult>();
@@ -59,8 +68,16 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
 
         private IEnumerable<ValidationResult> Validate(TypeDefinition type)
         {
-            var results = new List<ValidationResult>();
+            // Validate method definitions
+            var results = (from method in type.Methods 
+                where _bannedMethodImplementations.Contains(method.Name) 
+                select new WhitelistValidationResult(
+                    $"Implementing or overriding {method.Name} is not allowed.")
+                    .WithInfo(type.Name, type.Namespace, type.Name, method.Name)
+                )
+                .ToList();
 
+            // Validate references
             foreach (var method in type.Methods)
             {
                 if (!method.HasBody)

@@ -24,6 +24,8 @@ namespace AElf.CSharp.CodeOps.Policies
         {
             Whitelist = new Whitelist();
 
+            Whitelist.DenyMethodImplementation("GetHashCode");
+
             WhitelistAssemblies();
             WhitelistSystemTypes();
             WhitelistReflectionTypes();
