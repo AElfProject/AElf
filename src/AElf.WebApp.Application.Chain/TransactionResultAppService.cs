@@ -64,66 +64,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-
-            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-
-            if (transactionResult.Status == TransactionResultStatus.NotExisted)
-            {
-                output.Status = transactionResult.Status.ToString();
-                return output;
-            }
-
-            ChainContext chainContext = null;
-            if (transactionResult.BlockNumber > 0)
-            {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block.GetHash().ToHex();
-                chainContext = new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                };
-            }
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
-                chainContext, false);
-
-            if (methodDescriptor != null)
-            {
-                var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
-                if (!IsValidMessage(parameters))
-                {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-                }
-
-                output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Pending)
-            {
-                return output;
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                output.ReturnValue = transactionResult.ReturnValue.ToHex();
-                var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-            {
-                output.Error = transactionResult.Error;
-            }
-
-            output.TransactionFee = transactionResult.TransactionFee == null
-                ? new TransactionFeeDto()
-                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
-
-            return output;
+            return await GetTransactionResultDtoAsync(transactionIdHash);
         }
 
         /// <summary>
@@ -171,7 +112,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var transactionId in transactionIds)
                 {
-                    var transactionResultDto = await GetTransactionResultDto(transactionId, realBlockHash, block.GetHash());
+                    var transactionResultDto = await GetTransactionResultDtoAsync(transactionId, realBlockHash);
                     output.Add(transactionResultDto);
                 }
             }
@@ -263,26 +204,63 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
-        private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
+        private async Task<TransactionResultDto> GetTransactionResultDtoAsync(Hash transactionId, Hash blockHash = null)
         {
-            var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
+            var transactionResult = await GetTransactionResultAsync(transactionId, blockHash);
             var transactionResultDto =
                 JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-            transactionResultDto.BlockHash = blockHash.ToHex();
-            transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                transactionResultDto.Status = transactionResult.Status.ToString();
+                return transactionResultDto;
+            }
+            
+            ChainContext chainContext = null;
+            if (blockHash == null && transactionResult.BlockNumber > 0)
+            {
+                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                blockHash = block.GetHash();
+            }
 
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-                transactionResultDto.Error = transactionResult.Error;
+            if (blockHash != null)
+            {
+                chainContext = new ChainContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = transactionResult.BlockNumber
+                };
+            }
+            
+            transactionResultDto.BlockHash = blockHash?.ToHex();
 
-            transactionResultDto.Transaction =
-                JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            transactionResultDto.Transaction = await GetTransactionDtoAsync(transactionId, chainContext);
+            
+            if (transactionResult.Status == TransactionResultStatus.Pending)
+            {
+                return transactionResultDto;
+            }
 
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
+                var bloom = transactionResult.Bloom;
+                transactionResultDto.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
+            }
+
+            transactionResultDto.TransactionFee = transactionResult.TransactionFee == null
+                ? new TransactionFeeDto()
+                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
+            return transactionResultDto;
+        }
+
+        private async Task<TransactionDto> GetTransactionDtoAsync(Hash transactionId, IChainContext chainContext)
+        {
+            var transaction = await _transactionManager.GetTransactionAsync(transactionId);
+            var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var methodDescriptor =
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
-                    new ChainContext
-                        {BlockHash = blockHash, BlockHeight = transactionResult.BlockNumber}, false);
+                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, chainContext, false);
 
             if (methodDescriptor != null)
             {
@@ -292,16 +270,10 @@ namespace AElf.WebApp.Application.Chain
                     throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
                 }
 
-                transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
+                transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
             }
 
-            transactionResultDto.Status = transactionResult.Status.ToString();
-
-            transactionResultDto.TransactionFee = transactionResult.TransactionFee == null
-                ? new TransactionFeeDto()
-                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
-
-            return transactionResultDto;
+            return transactionDto;
         }
 
         private async Task<TransactionResult> GetMinedTransactionResultAsync(Hash transactionIdHash)

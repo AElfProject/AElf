@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
@@ -8,23 +10,28 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ISmartContractRegistrationService
     {
         Task AddSmartContractRegistrationAsync(Address address, Hash codeHash, BlockIndex blockIndex);
-        Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes);
-        void SetIrreversedCache(List<BlockIndex> blockIndexes);
+        Task<Dictionary<Address, List<Hash>>> RemoveForkCacheAsync(List<BlockIndex> blockIndexes);
+        Dictionary<Address, List<Hash>> SetIrreversedCache(List<BlockIndex> blockIndexes);
+        SmartContractRegistrationCache GetSmartContractRegistrationCacheFromForkCache(
+            IChainContext chainContext, Address address);
+        bool TryGetSmartContractRegistrationLibCache(Address address, out SmartContractRegistrationCache cache);
+        void SetSmartContractRegistrationLibCache(Address address, SmartContractRegistrationCache cache);
+        Task<SmartContractCodeHistory> GetSmartContractCodeHistoryAsync(Address address);
     }
     
     public class SmartContractRegistrationService : ISmartContractRegistrationService, ITransientDependency
     {
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
-        private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
         private readonly ISmartContractCodeHistoryService _smartContractCodeHistoryService;
+        private readonly IChainBlockLinkService _chainBlockLinkService;
 
-        public SmartContractRegistrationService(ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider, 
-            ISmartContractExecutiveProvider smartContractExecutiveProvider,
-            ISmartContractCodeHistoryService smartContractCodeHistoryService)
+        public SmartContractRegistrationService(ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
+            ISmartContractCodeHistoryService smartContractCodeHistoryService, 
+            IChainBlockLinkService chainBlockLinkService)
         {
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
-            _smartContractExecutiveProvider = smartContractExecutiveProvider;
             _smartContractCodeHistoryService = smartContractCodeHistoryService;
+            _chainBlockLinkService = chainBlockLinkService;
         }
 
         public async Task AddSmartContractRegistrationAsync(Address address, Hash codeHash, BlockIndex blockIndex)
@@ -33,26 +40,52 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractCodeHistoryService.AddSmartContractCodeAsync(address, codeHash, blockIndex);
         }
 
-        public async Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
+        public async Task<Dictionary<Address, List<Hash>>> RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
-            var codeHashDic = _smartContractRegistrationCacheProvider.RemoveForkCache(blockIndexes);
-            var addresses = codeHashDic.Keys;
-            foreach (var address in addresses)
-            {
-                _smartContractExecutiveProvider.ClearExecutives(address, codeHashDic[address]);
-            }
-
             await _smartContractCodeHistoryService.RemoveAsync(blockIndexes);
+            return _smartContractRegistrationCacheProvider.RemoveForkCache(blockIndexes);
         }
 
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
+        public Dictionary<Address, List<Hash>> SetIrreversedCache(List<BlockIndex> blockIndexes)
         {
-            var codeHashDic = _smartContractRegistrationCacheProvider.SetIrreversedCache(blockIndexes);
-            var addresses = codeHashDic.Keys;
-            foreach (var address in addresses)
+            return _smartContractRegistrationCacheProvider.SetIrreversedCache(blockIndexes);
+        }
+
+        public SmartContractRegistrationCache GetSmartContractRegistrationCacheFromForkCache(IChainContext chainContext,
+            Address address)
+        {
+            if (!_smartContractRegistrationCacheProvider.TryGetForkCache(address, out var caches)) return null;
+            var cacheList = caches.ToList();
+            if (cacheList.Count == 0) return null;
+            var minHeight = cacheList.Min(s => s.BlockHeight);
+            var blockHashes = cacheList.Select(s => s.BlockHash).ToList();
+            var blockHash = chainContext.BlockHash;
+            var blockHeight = chainContext.BlockHeight;
+            do
             {
-                _smartContractExecutiveProvider.ClearExecutives(address, codeHashDic[address]);
-            }
+                if (blockHashes.Contains(blockHash)) return cacheList.Last(s => s.BlockHash == blockHash);
+
+                var link = _chainBlockLinkService.GetCachedChainBlockLink(blockHash);
+                blockHash = link?.PreviousBlockHash;
+                blockHeight--;
+            } while (blockHash != null && blockHeight >= minHeight);
+
+            return null;
+        }
+
+        public bool TryGetSmartContractRegistrationLibCache(Address address, out SmartContractRegistrationCache cache)
+        {
+            return _smartContractRegistrationCacheProvider.TryGetLibCache(address, out cache);
+        }
+
+        public void SetSmartContractRegistrationLibCache(Address address, SmartContractRegistrationCache cache)
+        {
+            _smartContractRegistrationCacheProvider.SetLibCache(address, cache);
+        }
+
+        public async Task<SmartContractCodeHistory> GetSmartContractCodeHistoryAsync(Address address)
+        {
+            return await _smartContractCodeHistoryService.GetSmartContractCodeHistoryAsync(address);
         }
     }
 }
