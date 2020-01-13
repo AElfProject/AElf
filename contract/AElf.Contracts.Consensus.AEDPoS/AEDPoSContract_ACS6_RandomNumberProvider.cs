@@ -3,6 +3,7 @@ using System.Linq;
 using Acs6;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -163,15 +164,33 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
         }
 
+        /// <summary>
+        /// Error Code:
+        /// 0 - Exception
+        /// 1 - "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b" - Random Number Information Not Found
+        /// 2 - "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35" - Target Round Number is 0 (which is incorrect)
+        /// 3 - "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce" - Expected block height not reached
+        /// 4 - "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a" - Failed to get valid round information.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null ||
-                randomNumberRequestInformation.TargetRoundNumber == 0 ||
-                randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight ||
+            if (randomNumberRequestInformation == null)
+            {
+                return Hash.FromString("1");
+            }
+
+            if (randomNumberRequestInformation.TargetRoundNumber == 0)
+            {
+                return Hash.FromString("2");
+            }
+
+            if (randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight ||
                 !TryToGetRoundNumber(out var currentRoundNumber))
             {
-                return Hash.Empty;
+                return Hash.FromString("3");
             }
 
             var targetRoundNumber = randomNumberRequestInformation.TargetRoundNumber;
@@ -192,7 +211,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            return Hash.Empty;
+            return Hash.FromString("4");
         }
 
         private void ClearExpiredRandomNumberTokens()
