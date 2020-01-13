@@ -6,6 +6,7 @@ using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -292,7 +293,11 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         private bool IsContributingProfits(TransferFromInput input)
         {
-            if (!State.TokenInfos[input.Symbol].IsProfitable) return false;
+            var tokenInfo = Context.Call<TokenInfo>(Context.Self, nameof(GetTokenInfo), new GetTokenInfoInput
+            {
+                Symbol = input.Symbol
+            }.ToByteString());
+            if (!tokenInfo.IsProfitable) return false;
 
             if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
                 Context.Sender ==
