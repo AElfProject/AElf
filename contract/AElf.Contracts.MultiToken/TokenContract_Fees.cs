@@ -3,7 +3,6 @@ using System.Linq;
 using Acs1;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -33,8 +32,7 @@ namespace AElf.Contracts.MultiToken
             var bill = new TransactionFeeBill();
 
             var fromAddress = Context.Sender;
-            var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-                new StringValue {Value = input.MethodName});
+            var methodFees = GetMethodFees(input.ContractAddress, input.MethodName);
             var successToChargeBaseFee = true;
             if (methodFees != null && methodFees.Fees.Any())
             {
@@ -623,6 +621,19 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
+        }
+
+        private MethodFees GetMethodFees(Address address,string methodName)
+        {
+            try
+            {
+                return Context.Call<MethodFees>(address, nameof(GetMethodFee),
+                    new StringValue {Value = methodName});
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
