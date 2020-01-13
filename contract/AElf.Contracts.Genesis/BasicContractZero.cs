@@ -121,7 +121,7 @@ namespace AElf.Contracts.Genesis
 
             var codeHash = Hash.FromRawBytes(code);
             
-            Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
+            //Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
             
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
@@ -372,7 +372,7 @@ namespace AElf.Contracts.Genesis
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
-            Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
+            //Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
             info.CodeHash = newCodeHash;
             State.ContractInfos[contractAddress] = info;
