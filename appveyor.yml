@@ -20,6 +20,9 @@ install:
   - cmd: unzip -o c:\projects\aelf\scripts\contract_csharp_plugin-v1.0.2-win32.zip -d c:\projects\aelf\scripts\
   - cmd: dir c:\projects\aelf\scripts\
 
+environment: 
+  CI_TEST: true
+  
 build_script:
   - ps: dotnet restore AElf.sln
   - ps: dotnet build AElf.sln

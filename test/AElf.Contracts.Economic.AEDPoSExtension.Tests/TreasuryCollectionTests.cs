@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -30,7 +31,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 distributedAmount / 5 / 7 , balancesBefore);
         }
 
-        [Fact]
+        [IgnoreOnCIFact]
         public async Task TreasuryCollection_SecondTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
@@ -109,7 +110,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Something wrong with testkit aedpos extension.")]
+        [IgnoreOnCIFact]
         public async Task TreasuryCollection_ThirdTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
