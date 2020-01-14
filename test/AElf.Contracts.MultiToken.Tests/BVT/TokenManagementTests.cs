@@ -153,42 +153,6 @@ namespace AElf.Contracts.MultiToken
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
             }
-            
-            //ParliamentContract
-            {
-                var code = ParliamentContractCode;
-                ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
-                        DefaultKeyPair);
-            }
-            
-            //AssociationContract
-            {
-                 var code = AssociationContractCode;
-                 AssociationContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                     AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                 AssociationContractStub =
-                     GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
-                         DefaultKeyPair);
-            }
-
-            //ReferendumContract
-            {
-                var code = ReferendumContractCode;
-                ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ReferendumContractStub =
-                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
-                        DefaultKeyPair);
-            }
-            //ConsensusContract
-            {
-                var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
-                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ConsensusSmartContractAddressNameProvider.Name, DefaultKeyPair));
-            }
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
         }
 

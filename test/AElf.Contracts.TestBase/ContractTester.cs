@@ -80,6 +80,8 @@ namespace AElf.Contracts.TestBase
         public byte[] AssociationContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Association")).Value;
 
+        public byte[] ReferendumContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Referendum")).Value;
 
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
@@ -746,6 +748,7 @@ namespace AElf.Contracts.TestBase
                         }
                     });
                 list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(ReferendumContractCode, ReferendumSmartContractAddressNameProvider.Name);
             };
         }
 

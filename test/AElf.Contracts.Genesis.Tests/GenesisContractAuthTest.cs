@@ -119,7 +119,7 @@ namespace AElf.Contracts.Genesis
 
                 var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
                 var address = await DeployAsync(minerTester, ParliamentAddress, newContractDeploymentInput);
-                address.ShouldNotBeNull();
+                address.ShouldBeNull();
             }
 
             {

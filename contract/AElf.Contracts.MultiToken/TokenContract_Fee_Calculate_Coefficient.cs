@@ -10,7 +10,8 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.IsContractInitialized.Value, "MultiToken has been initialized");
             InitialParameters();
-            InitializeOrganization(input.DefaultProposer);
+            if (input.DefaultProposer != null)
+                State.DefaultProposer.Value = input.DefaultProposer;
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
@@ -23,7 +24,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForCoefficient.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.DeveloperFeeAssociationOrganization.Value.RootOrganization, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
             if (coefficientInfoInState == null)
                 return new Empty();
@@ -44,7 +45,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForCoefficient.Value, "proposal must be passed by organization");
+            Assert(Context.Sender == State.UserFeeAssociationOrganization.Value.RootOrganization, "proposal must be passed by organization");
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
             if (coefficientInfoInState == null)
             {
@@ -150,7 +151,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Read,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue", 1000}}
+                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 1000}}
             };
             var readFeeParameter2 = new CalculateFeeCoefficient
             {
@@ -166,8 +167,8 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 CoefficientDic =
                 {
-                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase", 5}, {"weight", 250},
-                    {"weightBase", 40}
+                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 5}, {"weight", 250},
+                    {"weightBase".ToLower(), 40}
                 }
             };
             totalParameter.Coefficients.Add(readFeeParameter1);
@@ -184,7 +185,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Sto,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantValue", 1000}}
+                CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantValue".ToLower(), 1000}}
             };
             var stoFeeParameter2 = new CalculateFeeCoefficient
             {
@@ -193,8 +194,8 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 CoefficientDic =
                 {
-                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase", 100}, {"weight", 250},
-                    {"weightBase", 500}
+                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
+                    {"weightBase".ToLower(), 500}
                 }
             };
             totalParameter.Coefficients.Add(stoFeeParameter1);
@@ -210,7 +211,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Write,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 10,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue", 10000}}
+                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 10000}}
             };
             var writeFeeParameter2 = new CalculateFeeCoefficient
             {
@@ -226,8 +227,8 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 CoefficientDic =
                 {
-                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase", 2}, {"weight", 250},
-                    {"weightBase", 40}
+                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 2}, {"weight", 250},
+                    {"weightBase".ToLower(), 40}
                 }
             };
             totalParameter.Coefficients.Add(writeFeeParameter1);
@@ -244,7 +245,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Net,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantValue", 10000}}
+                CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantValue".ToLower(), 10000}}
             };
             var netFeeParameter2 = new CalculateFeeCoefficient
             {
@@ -253,8 +254,8 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 CoefficientDic =
                 {
-                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase", 100}, {"weight", 250},
-                    {"weightBase", 500}
+                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
+                    {"weightBase".ToLower(), 500}
                 }
             };
             totalParameter.Coefficients.Add(netFeeParameter1);
@@ -270,7 +271,7 @@ namespace AElf.Contracts.MultiToken
                 FeeType = FeeTypeEnum.Tx,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 800}, {"constantValue", 10000}}
+                CoefficientDic = {{"numerator", 1}, {"denominator", 800}, {"constantValue".ToLower(), 10000}}
             };
             var txFeeParameter2 = new CalculateFeeCoefficient
             {
@@ -279,8 +280,8 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = int.MaxValue,
                 CoefficientDic =
                 {
-                    {"numerator", 1}, {"denominator", 800}, {"power", 2}, {"changeSpanBase", 100}, {"weight", 1},
-                    {"weightBase", 1}
+                    {"numerator", 1}, {"denominator", 800}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 1},
+                    {"weightBase".ToLower(), 1}
                 }
             };
             totalParameter.Coefficients.Add(txFeeParameter1);

@@ -87,5 +87,5 @@
             <Link>Protobuf/Proto/referendum_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <Import Project="..\..\test\AllContracts.props"/>
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>

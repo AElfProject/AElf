@@ -85,24 +85,13 @@ service TokenContract {
     }
     rpc RemoveAvailableTokenInfo(google.protobuf.StringValue) returns (google.protobuf.Empty){
     }
-    rpc SubmitAddAvailableTokenInfoProposal(AvailableTokenInfo) returns (google.protobuf.Empty){
+    rpc InitializeOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
     }
-    rpc SubmitRemoveAvailableTokenInfoProposal(google.protobuf.StringValue) returns (google.protobuf.Empty){
+    rpc SetDeveloperFeeOrganization(aelf.Address) returns (google.protobuf.Empty){
     }
-    rpc SubmitUpdateAvailableTokenInfoProposal(AvailableTokenInfo) returns (google.protobuf.Empty){
+    rpc SetUserFeeRootOrganization(aelf.Address) returns (google.protobuf.Empty){
     }
-    rpc SetExtraAvailableTokenProposal(aelf.Hash) returns (google.protobuf.Empty){
-    }
-    rpc SubmitUpdateCoefficientFromContractProposal(CoefficientFromContract) returns (google.protobuf.Empty){
-    }
-    rpc SubmitUpdateCoefficientFromSenderProposal(CoefficientFromSender) returns (google.protobuf.Empty){
-    }
-    rpc SetCoefficientTokenProposal(aelf.Hash) returns (google.protobuf.Empty){
-    }
-    rpc SetAssociateOrganizationForCoefficient(aelf.Address) returns (google.protobuf.Empty){
-    }
-    rpc SetAssociateOrganizationForExtraToken(aelf.Address) returns (google.protobuf.Empty){
-    }
+   
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -151,6 +140,12 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (AllAvailableTokenInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetUsrFeeOrganization(google.protobuf.Empty) returns (UserFeeProposerOrganization){
+        option (aelf.is_view) = true;
+    }
+    rpc GetDeveloperFeeOrganization(google.protobuf.Empty) returns (DeveloperFeeProposerOrganization){
         option (aelf.is_view) = true;
     }
 }
@@ -570,4 +565,16 @@ message RentalAccountBalanceInsufficient {
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
     AllAvailableTokenInfo all_token_infos = 1;
+}
+
+message UserFeeProposerOrganization{
+    aelf.Address root_organization = 1;
+    aelf.Address parliament_organization = 2;
+    aelf.Address referendum_organization = 3;
+}
+
+message DeveloperFeeProposerOrganization{
+    aelf.Address root_organization = 1;
+    aelf.Address parliament_organization = 2;
+    aelf.Address developer_organization = 3;
 }

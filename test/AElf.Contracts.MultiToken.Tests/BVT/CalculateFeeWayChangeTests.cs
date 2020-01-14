@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Parliament;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
@@ -20,7 +21,7 @@ namespace AElf.Contracts.MultiToken
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        private async Task<CalculateFeeCoefficientsOfType> GetCoefficentByType(FeeTypeEnum type)
+        private async Task<CalculateFeeCoefficientsOfType> GetCoefficientByType(FeeTypeEnum type)
         {
             if (type == FeeTypeEnum.Tx)
             {
@@ -44,7 +45,7 @@ namespace AElf.Contracts.MultiToken
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
             };
-            var ps = await GetCoefficentByType(FeeTypeEnum.Tx);
+            var ps = await GetCoefficientByType(FeeTypeEnum.Tx);
 
             var theOne = ps.Coefficients.SingleOrDefault(x => x.PieceKey == 1000000);
             ps.Coefficients.Remove(theOne);
@@ -80,7 +81,7 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateCpuCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateReadCostStrategy>();
-            var ps = await GetCoefficentByType(FeeTypeEnum.Read);
+            var ps = await GetCoefficientByType(FeeTypeEnum.Read);
             var apiParam = new CalculateFeeCoefficient
             {
                 FeeType = FeeTypeEnum.Read,
@@ -122,7 +123,7 @@ namespace AElf.Contracts.MultiToken
         {
             await InitializeCoefficientAsync();
             var calculateRamCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateWriteCostStrategy>();
-            var ps = await GetCoefficentByType(FeeTypeEnum.Write);
+            var ps = await GetCoefficientByType(FeeTypeEnum.Write);
 
             var apiParam = new CalculateFeeCoefficient
             {
@@ -168,7 +169,7 @@ namespace AElf.Contracts.MultiToken
             await InitializeCoefficientAsync();
             var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
 
-            var ps = await GetCoefficentByType(FeeTypeEnum.Sto);
+            var ps = await GetCoefficientByType(FeeTypeEnum.Sto);
 
             var apiParam = new CalculateFeeCoefficient
             {
@@ -199,7 +200,7 @@ namespace AElf.Contracts.MultiToken
             var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
 
 
-            var ps = await GetCoefficentByType(FeeTypeEnum.Net);
+            var ps = await GetCoefficientByType(FeeTypeEnum.Net);
 
             var apiParam = new CalculateFeeCoefficient
             {
