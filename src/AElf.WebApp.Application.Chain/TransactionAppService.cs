@@ -206,6 +206,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
+            Logger.LogError($"### test exception: {input.RawTransaction}");
             try
             {
                 var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
