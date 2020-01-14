@@ -206,11 +206,19 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
-            var txIds = await PublishTransactionsAsync(new[] { input.RawTransaction });
-            return new SendTransactionOutput
+            try
             {
-                TransactionId = txIds[0]
-            };
+                var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
+                return new SendTransactionOutput
+                {
+                    TransactionId = txIds[0]
+                };
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -219,9 +227,17 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<string[]> SendTransactionsAsync(SendTransactionsInput input)
         {
-            var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
+            try
+            {
+                var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
 
-            return txIds;
+                return txIds;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                throw;
+            }
         }
 
         private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
