@@ -334,7 +334,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(17);
+                    var previousTermInformation =
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                    totalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
