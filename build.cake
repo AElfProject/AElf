@@ -16,7 +16,7 @@ var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 var nugetTool = NuGetTool.FromCakeContext(Context);
 
 Task("clean")
-    .Description("清理项目缓存")
+    .Description("clean up project cache")
     .Does(() =>
 {
     DeleteFiles(distPath + "*.nupkg");
@@ -29,14 +29,14 @@ Task("clean")
 });
 
 Task("restore")
-    .Description("还原项目依赖")
+    .Description("restore project dependencies")
     .Does(() =>
 {
     DotNetCoreRestore(solution);
 });
 
 Task("build")
-    .Description("编译项目")
+    .Description("Compilation project")
     .IsDependentOn("clean")
     .IsDependentOn("restore")
     .Does(() =>
@@ -55,7 +55,7 @@ Task("build")
 
 
 Task("test")
-    .Description("运行测试")
+    .Description("operation test")
     .IsDependentOn("build")
     .Does(() =>
 {
@@ -79,7 +79,7 @@ Task("test")
 });
 
 Task("default")
-    .Description("默认-运行测试(-target test)")
+    .Description("default - run test(-target test)")
     .IsDependentOn("test");
 
 RunTarget(target);
