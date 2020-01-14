@@ -78,7 +78,8 @@ namespace AElf.Contracts.Referendum
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
             var organizationAddress = organizationHashAddressPair.OrganizationAddress;
             var organizationHash = organizationHashAddressPair.OrganizationHash;
-            Assert(State.Organisations[organizationAddress] == null, "Organization already exists.");
+            if (State.Organisations[organizationAddress] != null)
+                return organizationAddress;
             var organization = new Organization
             {
                 ProposalReleaseThreshold = input.ProposalReleaseThreshold,
