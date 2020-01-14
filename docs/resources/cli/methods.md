@@ -98,7 +98,7 @@ You can specified options above in several ways, and the priority is in the orde
 
 This command will create a new account.
 
-```shell
+```bash
 $ aelf-command create -h
 Usage: aelf-command create [options] [save-to-file]
 
@@ -350,7 +350,7 @@ Examples:
 
 1. Use Genesis Contract to deploy a new smart contract
 
-    ```shell script
+    ```bash
     $ aelf-command get-chain-status
     ✔ Succeed
     {
