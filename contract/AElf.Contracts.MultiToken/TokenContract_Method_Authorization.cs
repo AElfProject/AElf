@@ -105,6 +105,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentOrg = State.UserFeeAssociationOrganization.Value.ParliamentOrganization;
             var proposers = new List<Address>
                 {State.UserFeeAssociationOrganization.Value.ReferendumOrganization, parliamentOrg};
+            var actualProposalCount = proposers.Count;
             if (State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
             {
                 proposers.Add(State.DefaultProposer.Value);
@@ -119,8 +120,8 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1,
+                        MinimalApprovalThreshold = actualProposalCount,
+                        MinimalVoteThreshold = actualProposalCount,
                         MaximalRejectionThreshold = 0,
                         MaximalAbstentionThreshold = 0
                     },
@@ -169,6 +170,7 @@ namespace AElf.Contracts.MultiToken
             {
                 State.DeveloperFeeAssociationOrganization.Value.DeveloperOrganization, parliamentOrg
             };
+            var actualProposalCount = proposers.Count;
             if (State.DefaultProposer.Value != null && parliamentOrg != State.DefaultProposer.Value)
             {
                  proposers.Add(State.DefaultProposer.Value);
@@ -183,8 +185,8 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1,
+                        MinimalApprovalThreshold = actualProposalCount,
+                        MinimalVoteThreshold = actualProposalCount,
                         MaximalRejectionThreshold = 0,
                         MaximalAbstentionThreshold = 0
                     },

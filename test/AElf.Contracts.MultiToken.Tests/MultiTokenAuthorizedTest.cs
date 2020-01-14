@@ -36,8 +36,9 @@ namespace AElf.Contracts.MultiToken
                 nameof(TokenContractContainer.TokenContractStub.InitializeOrganization), new Empty());
             initOrgResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+
         [Fact]
-        public async Task Update_Coefficient_For_Sender()
+        public async Task Update_Coefficient_For_Sender_Success()
         {
             const string defaultSymbol = "EE";
             const int pieceKey = 1000000;
@@ -148,7 +149,7 @@ namespace AElf.Contracts.MultiToken
             var associationRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), associationProposalId);
             associationRelease.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfSender), new Empty());
             userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -161,7 +162,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Update_Coefficient_For_Contract()
+        public async Task Update_Coefficient_For_Contract_Success()
         {
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Net;
@@ -238,17 +239,19 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
 
             await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
+            
             var developerRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), developerProposalId);
             developerRelease.Status.ShouldBe(TransactionResultStatus.Mined);
+
             var associationRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), associationProposalId);
             associationRelease.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
                 {
-                    Value = (int)feeType
+                    Value = (int) feeType
                 });
             userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
@@ -257,7 +260,90 @@ namespace AElf.Contracts.MultiToken
             hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
             hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
             hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
-            
+        }
+
+        [Fact]
+        public async Task Update_Coefficient_For_Contract_Failed()
+        {
+            const int pieceKey = 1000000;
+            const FeeTypeEnum feeType = FeeTypeEnum.Net;
+            var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
+            organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var organizationInfo = new DeveloperFeeProposerOrganization();
+            organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
+
+            var updateInput = new CoefficientFromContract
+            {
+                FeeType = feeType,
+                Coefficient = new CoefficientFromSender
+                {
+                    LinerCoefficient = new LinerCoefficient
+                    {
+                        ConstantValue = 1,
+                        Denominator = 2,
+                        Numerator = 3
+                    },
+                    PieceKey = pieceKey,
+                    IsLiner = true
+                }
+            };
+            var associationCreateProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                OrganizationAddress = organizationInfo.RootOrganization,
+                Params = updateInput.ToByteString(),
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromContract),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var associationCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                associationCreateProposalInput);
+            associationCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
+            var associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationCreateProposal.ReturnValue);
+
+            var developerCreateProposalInput = new CreateProposalInput
+            {
+                ToAddress = AssociationAddress,
+                OrganizationAddress = organizationInfo.DeveloperOrganization,
+                Params = associationProposalId.ToByteString(),
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var developerCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                developerCreateProposalInput);
+            developerCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
+            var developerProposalId = new Hash();
+            developerProposalId.MergeFrom(developerCreateProposal.ReturnValue);
+
+            var parliamentCreateProposalInput = new CreateProposalInput
+            {
+                ToAddress = AssociationAddress,
+                OrganizationAddress = organizationInfo.ParliamentOrganization,
+                Params = associationProposalId.ToByteString(),
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                parliamentCreateProposalInput);
+            parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
+            var parliamentProposalId = new Hash();
+            parliamentProposalId.MergeFrom(parliamentCreateProposal.ReturnValue);
+
+            var developerApprove = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.Approve), developerProposalId);
+            developerApprove.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
+
+            await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
+
+            var associationFailedRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.Release), associationProposalId);
+            associationFailedRelease.Status.ShouldBe(TransactionResultStatus.Failed);
         }
     }
 }
