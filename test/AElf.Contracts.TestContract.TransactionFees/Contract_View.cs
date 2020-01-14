@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
 
         public override ResourcesOutput QueryContractResource(Empty input)
         {
-            var symbols = new[] {"CPU", "RAM", "STORAGE", "TRAFFIC"};
+            var symbols = new[] {"READ", "WRITE", "STORAGE", "TRAFFIC"};
             var resources = new ResourcesOutput();
             if (State.TokenContract.Value == null)
                 return resources;

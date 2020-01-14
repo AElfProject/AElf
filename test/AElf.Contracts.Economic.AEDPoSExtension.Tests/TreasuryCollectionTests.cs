@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.TestBase;
 using AElf.Contracts.Treasury;
 using AElf.Types;
 using Volo.Abp.Threading;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 distributedAmount / 5 / 7 , balancesBefore);
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task TreasuryCollection_SecondTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
@@ -101,7 +102,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task TreasuryCollection_ThirdTerm_Test()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
