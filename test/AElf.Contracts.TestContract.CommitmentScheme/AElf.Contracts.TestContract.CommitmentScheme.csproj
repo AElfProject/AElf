@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.CommitmentScheme</PackageId>
         <RootNamespace>AElf.Contracts.TestContract.CommitmentScheme</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <IsContract>false</IsContract>
     </PropertyGroup>
 
     <ItemGroup>

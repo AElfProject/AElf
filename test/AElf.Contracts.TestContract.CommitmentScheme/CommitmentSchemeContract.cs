@@ -18,14 +18,18 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
             return new RandomNumberOrder
             {
                 TokenHash = input,
-                BlockHeight = Context.CurrentHeight.Add(8)
+                BlockHeight = requestSlot.BlockHeight.Add(CommitmentSchemeContractConstants.WaitBlockHeight)
             };
         }
 
         public override Hash GetRandomNumber(Hash input)
         {
+            var requestSlot = State.RequestSlots[Context.Sender];
+            Assert(
+                requestSlot != null && requestSlot.BlockHeight.Add(CommitmentSchemeContractConstants.WaitBlockHeight) <=
+                Context.CurrentHeight, "Incorrect request slot.");
             var userCommitment = State.Commitments[Context.Sender];
-            Assert(Hash.FromMessage(userCommitment) == input, "Incorrect commitment.");
+            Assert(Hash.FromMessage(input) == userCommitment, "Incorrect commitment.");
             var properInValue = GetNextInValueOfSlot(State.RequestSlots[Context.Sender]);
             return Hash.FromTwoHashes(input, properInValue);
         }
@@ -67,7 +71,8 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
             return new RequestSlot
             {
                 Order = lastMinedMiner?.Order ?? 0,
-                RoundNumber = round.RoundNumber
+                RoundNumber = round.RoundNumber,
+                BlockHeight = Context.CurrentHeight
             };
         }
 

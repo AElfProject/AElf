@@ -16,4 +16,5 @@ service CommitmentSchemeContract {
 message RequestSlot {
     sint64 round_number = 1;
     sint32 order = 2;
+    sint64 block_height = 3;
 }

@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.TestContract.CommitmentScheme;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
@@ -32,6 +34,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
         internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
             new List<ParliamentContractContainer.ParliamentContractStub>();
+
+        internal readonly Hash CommitmentSchemeSmartContractAddressName =
+            Hash.FromString("AElf.Contracts.TestContract.CommitmentScheme");
 
         public AEDPoSExtensionDemoTestBase()
         {
