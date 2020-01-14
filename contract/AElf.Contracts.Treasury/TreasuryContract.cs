@@ -137,7 +137,7 @@ namespace AElf.Contracts.Treasury
             });
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
-            UpdateTreasurySubItemsSharesBeforeDistribution(previousTermInformation, victories);
+            UpdateTreasurySubItemsSharesBeforeDistribution(previousTermInformation);
             ReleaseTreasurySubProfitItems(input.TermNumber);
             UpdateTreasurySubItemsSharesAfterDistribution(previousTermInformation, victories);
 
@@ -356,7 +356,6 @@ namespace AElf.Contracts.Treasury
             };
             State.ProfitContract.RemoveBeneficiaries.Send(basicRewardProfitSubBeneficiaries);
 
-            
             var basicRewardProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.BasicRewardHash.Value,
