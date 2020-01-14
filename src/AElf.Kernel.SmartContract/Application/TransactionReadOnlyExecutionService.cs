@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Application
             IEnumerable<FileDescriptor> output;
             try
             {
-                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                executive = await _smartContractExecutiveService.GetHistoryExecutiveAsync(
                     chainContext, address);
                 output = executive.GetFileDescriptors();
             }
