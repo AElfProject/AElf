@@ -157,6 +157,7 @@ namespace AElf.Contracts.CrossChain
             var oldBalance = State.IndexingBalance[chainId];
             var newBalance = oldBalance + input.Amount;
             Assert(newBalance >= sideChainInfo.IndexingPrice, "Indexing fee recharging not enough.");
+            State.IndexingBalance[chainId] = newBalance;
 
             TransferFrom(new TransferFromInput
             {
@@ -182,7 +183,7 @@ namespace AElf.Contracts.CrossChain
                 }
             }
             
-            State.IndexingBalance[chainId] = newBalance;
+            sideChainInfo.ArrearsInfo.Clear();
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             State.SideChainInfo[chainId] = sideChainInfo;
             return new Empty();

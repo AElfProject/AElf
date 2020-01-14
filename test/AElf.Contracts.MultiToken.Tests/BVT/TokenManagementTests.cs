@@ -532,18 +532,12 @@ namespace AElf.Contracts.MultiToken
                 tx.TransactionResult.Error.ShouldContain("Invalid input.");
             }
             {
-                await TokenContractStub.AddTokenWhiteList.SendAsync(new AddTokeWhiteListInput
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
                 {
                     TokenSymbol = AliceCoinTokenInfo.Symbol,
                     Address = TokenContractAddress
                 });
-
-                var isInWhiteList = await TokenContractStub.IsInWhiteList.CallAsync(new IsInWhiteListInput
-                {
-                    Address = TokenContractAddress,
-                    Symbol = AliceCoinTokenInfo.Symbol
-                });
-                isInWhiteList.Value.ShouldBeTrue();
+                tx.TransactionResult.Error.ShouldContain("No permission.");
             }
         }
     }

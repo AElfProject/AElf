@@ -492,17 +492,13 @@ namespace AElf.Contracts.MultiToken
         {
             var tokenInfo = State.TokenInfos[input.TokenSymbol];
             Assert(tokenInfo != null && input.Address != null, "Invalid input.");
-            var sender = Context.Sender;
 
-            if (input.TokenSymbol == Context.Variables.NativeSymbol ||
-                input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value)
-            {
-                var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
-                var isSystemContractAddress = systemContractAddresses.Contains(sender);
-                Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-            }
-            else
-                Assert(sender == tokenInfo.Issuer, "No permission.");
+            Assert(input.TokenSymbol == Context.Variables.NativeSymbol ||
+                   input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value, "No permission.");
+            var sender = Context.Sender;
+            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
+            var isSystemContractAddress = systemContractAddresses.Contains(sender);
+            Assert(isSystemContractAddress && sender == input.Address, "No permission.");
             
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
