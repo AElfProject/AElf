@@ -139,7 +139,7 @@ $ aelf-command load
 
 ### wallet - Show wallet details which include `private key`, `address`, `public key` and `mnemonic`
 
-This command allow you print wallet info.
+This command allows you to print wallet info.
 
 ```bash
 $ aelf-command wallet -a C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR
@@ -150,16 +150,16 @@ AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsES
 
 ### proposal - Create a proposal
 
-There are three kinds of proposal contracts in AElf for now:
+There are three kinds of proposal contracts in AElf:
 * `AElf.ContractNames.Parliament`
 * `AElf.ContractNames.Referendum`
 * `AElf.ContractNames.Association`
 
-you can choose one and create a proposal to an organization on any contract method by the proposal contract.
+depending on your needs you can choose one and create a proposal.
 
-* Get an organization address or create a organization
+* Get an organization address or create one
 
-Get default organization address on contract `AElf.ContractNames.Parliament`
+Get the default organization's address with the parliament contract (`AElf.ContractNames.Parliament`):
 
 ```bash
 $ aelf-command call AElf.ContractNames.Parliament GetDefaultOrganizationAddress
@@ -173,9 +173,9 @@ Result:
 
 `BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc` is the default organization address.
 
-You can get the default organization address and it has all BP nodes inside, every proposal under `AElf.ContractNames.Parliament` can only be released when it has got over 2/3 BP nodes approve
+The default organization is an organization that contains all miners; every proposal under `AElf.ContractNames.Parliament` can only be released when it has got over 2/3 miners approval.
 
-Create an organization under `AElf.ContractNames.Referendum`
+Create an organization with the Referendum contract (`AElf.ContractNames.Referendum`):
 
 ```bash
 $ aelf-command send AElf.ContractNames.Referendum
@@ -184,7 +184,7 @@ $ aelf-command send AElf.ContractNames.Referendum
 
 If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
 
-Enter the params one by one, type `Enter` to skip optional param:
+Enter the params one by one, type `Enter` to skip optional parameters:
 ? Enter the required param <tokenSymbol>: ELF
 ? Enter the required param <proposalReleaseThreshold.minimalApprovalThreshold>: 666
 ? Enter the required param <proposalReleaseThreshold.maximalRejectionThreshold>: 666
@@ -240,7 +240,7 @@ AElf [Info]: Proposal id: "bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a
 ✔ Succeed!
 ```
 
-You can get the proposal id, then get proposal status by it.
+You can get the proposal id, then get the proposal's status.
 
 * Get proposal status
 
@@ -259,7 +259,7 @@ $ aelf-command call AElf.ContractNames.Parliament GetProposal bafe83ca4ec5b2a2f1
 ✔ Succeed!
 ```
 
-`toBeReleased` indicates whether you can release this proposal, in default situation, a proposal need to get over 2/3 BP nodes approve.
+`toBeReleased` indicates whether you can release this proposal, by default, a proposal need to get over 2/3 BP nodes approve.
 
 * Release a proposal
 
