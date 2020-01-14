@@ -10,7 +10,7 @@ namespace AElf.Contracts.MultiToken
     {
         #region orgnanization init
 
-        public override Empty InitializeOrganization(Empty input)
+        public override Empty InitializeAuthorizedOrganization(Empty input)
         {
             if (State.ParliamentContract.Value == null)
             {

@@ -33,7 +33,7 @@ namespace AElf.Contracts.MultiToken
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var initOrgResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.InitializeOrganization), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedOrganization), new Empty());
             initOrgResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 

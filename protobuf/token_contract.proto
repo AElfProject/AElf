@@ -85,7 +85,7 @@ service TokenContract {
     }
     rpc RemoveAvailableTokenInfo(google.protobuf.StringValue) returns (google.protobuf.Empty){
     }
-    rpc InitializeOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
+    rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
     }
     rpc SetDeveloperFeeOrganization(aelf.Address) returns (google.protobuf.Empty){
     }
