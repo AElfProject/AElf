@@ -259,7 +259,7 @@ $ aelf-command call AElf.ContractNames.Parliament GetProposal bafe83ca4ec5b2a2f1
 ✔ Succeed!
 ```
 
-`toBeReleased` indicates whether you can release this proposal, by default, a proposal need to get over 2/3 BP nodes approve.
+`toBeReleased` indicates whether you can release this proposal. By default, a proposal needs over 2/3 BP nodes approval.
 
 * Release a proposal
 
@@ -395,8 +395,8 @@ Examples:
     ...
     ```
 
-   * You must input contract method parameters in the prompting way, note that you can input a relative or absolute path of contract file to pass a file to `aelf-command`, `aelf-command` will read the file content and encode as base64 string.
-   * After call `ProposeNewContract`, you need to wait the organization members to approve your propose and you can release your propose by `releaseApprove` and `releaseCodeCheck` step by step
+   * You must input contract method parameters in the prompting way, note that you can input a relative or absolute path of contract file to pass a file to `aelf-command`, `aelf-command` will read the file content and encode it as a base64 string.
+   * After call `ProposeNewContract`, you need to wait for the organization members to approve your proposal and you can release your proposal by calling `releaseApprove` and `releaseCodeCheck` in this order.
 
 ### event - Deserialize the result return by executing a transaction
 
