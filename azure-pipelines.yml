@@ -1,5 +1,7 @@
-jobs:
+variables:
+  CI_TEST: true
 
+jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)

@@ -33,6 +33,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -95,5 +96,5 @@
         </ContractStub>
     </ItemGroup>
     
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
 </Project>

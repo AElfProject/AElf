@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -27,7 +28,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<long> TreasuryDistribution_FirstTerm_Test()
         {
             const long period = 1;
@@ -125,7 +126,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_SecondTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
@@ -266,7 +267,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return information;
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
