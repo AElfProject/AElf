@@ -5,6 +5,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -20,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// test:Change the number of miners when term changed
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
+        [IgnoreOnCIFact]
         public async Task AEDPoSContract_ChangeMinersCount_Test()
         {
             const int termIntervalMin = 31536000 / 60;

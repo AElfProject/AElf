@@ -32,9 +32,9 @@ namespace AElf.Contracts.Profit
 
         internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
-        
+
         protected List<ECKeyPair> CreatorKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
-        
+
         protected List<ECKeyPair> NormalKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Profit
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
-            
+
             ProfitContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -105,12 +105,14 @@ namespace AElf.Contracts.Profit
             return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateProfitInitializationCallList()
         {
             return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
@@ -132,7 +134,7 @@ namespace AElf.Contracts.Profit
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.2),
+                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.12),
                 To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue token to default user for vote.",
             });
@@ -145,7 +147,7 @@ namespace AElf.Contracts.Profit
                     To = Address.FromPublicKey(creatorKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
-            
+
             NormalKeyPair.ForEach(normalKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
                 new IssueInput
                 {

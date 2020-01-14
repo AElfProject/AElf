@@ -803,7 +803,7 @@ namespace AElf.Contracts.MultiToken
             var result = (await TokenContractStub.ReceiveProfits.SendAsync(new ReceiveProfitsInput
             {
                 ContractAddress = BasicFunctionContractAddress,
-                Symbols = {AliceCoinTokenInfo.Symbol}
+                Symbol = AliceCoinTokenInfo.Symbol
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
 

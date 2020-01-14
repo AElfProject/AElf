@@ -168,6 +168,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var actualTermNumber = 0L;
             while (actualTermNumber != targetTermNumber)
             {
+                BlockMiningService.SkipTime(1);
                 await BlockMiningService.MineBlockAsync();
                 actualTermNumber = (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
             }
