@@ -328,7 +328,7 @@ namespace AElf.Contracts.Treasury
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
 
-            UpdateBasicMinerRewardWeights(new[] {previousPreviousTermInformation, previousTermInformation});
+            UpdateBasicMinerRewardWeights(new List<Round> {previousPreviousTermInformation, previousTermInformation});
         }
 
         private void UpdateTreasurySubItemsSharesAfterDistribution(Round previousTermInformation)
