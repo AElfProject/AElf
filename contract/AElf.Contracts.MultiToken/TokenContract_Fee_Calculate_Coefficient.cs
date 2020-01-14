@@ -130,9 +130,9 @@ namespace AElf.Contracts.MultiToken
         private void InitialParameters()
         {
             State.CalculateCoefficientOfContract[FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Storage] = GetStoFeeInitialCoefficient();
             State.CalculateCoefficientOfContract[FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
+            State.CalculateCoefficientOfContract[FeeTypeEnum.Traffic] = GetNetFeeInitialCoefficient();
             State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
         }
 
@@ -175,14 +175,14 @@ namespace AElf.Contracts.MultiToken
             var totalParameter = new CalculateFeeCoefficientsOfType();
             var stoFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Sto,
+                FeeType = FeeTypeEnum.Storage,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantvalue", 1000}}
             };
             var stoFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Sto,
+                FeeType = FeeTypeEnum.Storage,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =
@@ -235,14 +235,14 @@ namespace AElf.Contracts.MultiToken
             var totalParameter = new CalculateFeeCoefficientsOfType();
             var netFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = FeeTypeEnum.Traffic,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantvalue", 10000}}
             };
             var netFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = FeeTypeEnum.Traffic,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =

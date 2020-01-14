@@ -116,7 +116,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override RandomNumberOrder RequestRandomNumber(Empty input)
+        public override RandomNumberOrder RequestRandomNumber(Hash input)
         {
             var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
