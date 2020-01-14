@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -78,7 +77,7 @@ namespace AElf.Contracts.MultiToken
         private Referendum.CreateOrganizationBySystemContractInput GetReferendumOrganizationForUserFee()
         {
             var parliamentOrg = State.UserFeeAssociationOrganization.Value.ParliamentOrganization;
-            var whiteList = new List<Address> {parliamentOrg, State.AssociationContract.Value};
+            var whiteList = new List<Address> {parliamentOrg};
             if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
                 whiteList.Add(State.DefaultProposer.Value);
             return new Referendum.CreateOrganizationBySystemContractInput
@@ -110,8 +109,6 @@ namespace AElf.Contracts.MultiToken
             {
                 proposers.Add(State.DefaultProposer.Value);
             }
-            var whiteList = proposers.ToList();
-            whiteList.Add(State.AssociationContract.Value);
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -129,7 +126,7 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposerWhiteList = new ProposerWhiteList
                     {
-                        Proposers = {whiteList}
+                        Proposers = {proposers}
                     }
                 },
                 OrganizationAddressFeedbackMethod = nameof(SetUserFeeRootOrganization)
@@ -142,8 +139,6 @@ namespace AElf.Contracts.MultiToken
             var proposers = new List<Address> {parliamentOrganization};
             if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrganization)
                 proposers.Add(State.DefaultProposer.Value);
-            var whiteList = proposers.ToList();
-            whiteList.Add(State.AssociationContract.Value);
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -161,7 +156,7 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposerWhiteList = new ProposerWhiteList
                     {
-                        Proposers = {whiteList}
+                        Proposers = {proposers}
                     }
                 }
             };
@@ -178,8 +173,6 @@ namespace AElf.Contracts.MultiToken
             {
                  proposers.Add(State.DefaultProposer.Value);
             }
-            var whiteList = proposers.ToList();
-            whiteList.Add(State.AssociationContract.Value);
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -197,7 +190,7 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposerWhiteList = new ProposerWhiteList
                     {
-                        Proposers = {whiteList}
+                        Proposers = {proposers}
                     }
                 },
                 OrganizationAddressFeedbackMethod = nameof(SetDeveloperFeeOrganization)
