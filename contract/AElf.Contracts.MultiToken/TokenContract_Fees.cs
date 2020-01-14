@@ -215,6 +215,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
         {
+            AssertIsAuthorized();
             Assert(!string.IsNullOrEmpty(input.TokenSymbol) & input.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
@@ -230,7 +231,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateAvailableTokenInfo(AvailableTokenInfo input)
         {
-            Assert(Context.Sender == State.DeveloperFeeAssociationOrganization.Value.RootOrganization, "proposal must be passed by organization");
+            AssertIsAuthorized();
             Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
                 "weight should be greater than 0");
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
@@ -244,7 +245,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RemoveAvailableTokenInfo(StringValue input)
         {
-            Assert(Context.Sender == State.DeveloperFeeAssociationOrganization.Value.RootOrganization, "proposal must be passed by organization");
+            AssertIsAuthorized();
             var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
             var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
             Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
