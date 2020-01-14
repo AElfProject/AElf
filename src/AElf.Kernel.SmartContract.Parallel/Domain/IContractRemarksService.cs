@@ -48,12 +48,15 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 }
             }
 
-            _contractRemarksProvider.SetCodeRemark(address, codeRemark ?? new CodeRemark
-            {
-                CodeHash = codeHash,
-                NonParallelizable = false
-            });
-            return codeRemark;
+            if (codeRemark == null)
+                codeRemark = new CodeRemark
+                {
+                    CodeHash = codeHash,
+                    NonParallelizable = false
+                };
+            
+            _contractRemarksProvider.SetCodeRemark(address, codeRemark);
+            return codeHash == codeRemark.CodeHash ? codeRemark : null;
         }
 
         public async Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader)

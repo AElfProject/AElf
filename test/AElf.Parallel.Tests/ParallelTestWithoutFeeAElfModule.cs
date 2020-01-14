@@ -22,11 +22,6 @@ namespace AElf.Parallel.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
-            Configure<GrouperOptions>(options =>
-            {
-                options.MaxGroupCount = int.MaxValue;
-                options.MinTransactionCountInGroup = 1;
-            });
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
