@@ -43,10 +43,10 @@ You can specified options above in several ways, and the priority is in the orde
 
       Examples:
 
-      $ aelf-command config get <key>
-      $ aelf-command config set <key> <value>
-      $ aelf-command config delete <key>
-      $ aelf-command config list
+      aelf-command config get <key>
+      aelf-command config set <key> <value>
+      aelf-command config delete <key>
+      aelf-command config list
       ```
 
     * `get`: get the value of given `key` from global `.aelfrc` file
@@ -150,11 +150,16 @@ AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsES
 
 ### proposal - Create a proposal
 
-There are some transactions you can't send directly, such as deploying a smart contract, you need to create a proposal to a specific organization which contains BP nodes, and wait for the approve.
+There are three kinds of proposal contracts in AElf for now:
+* `AElf.ContractNames.Parliament`
+* `AElf.ContractNames.Referendum`
+* `AElf.ContractNames.Association`
 
-Actually, you can create proposals on any contract method.
+you can choose one and create a proposal to an organization on any contract method by the proposal contract.
 
 * Get an organization address or create a organization
+
+Get default organization address on contract `AElf.ContractNames.Parliament`
 
 ```bash
 $ aelf-command call AElf.ContractNames.Parliament GetDefaultOrganizationAddress
@@ -166,20 +171,55 @@ Result:
 ✔ Succeed!
 ```
 
-`BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc` is the organization address.
+`BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc` is the default organization address.
 
-You can get the default organization address and it has all BP nodes inside, every proposal can only be released when it has got over 2/3 BP nodes approve
+You can get the default organization address and it has all BP nodes inside, every proposal under `AElf.ContractNames.Parliament` can only be released when it has got over 2/3 BP nodes approve
 
-Create an organization
+Create an organization under `AElf.ContractNames.Referendum`
 
 ```bash
-aelf-command send AElf.ContractNames.Parliament CreateOrganization '{"reviewers":["ada","asda"], "releaseThreshold": 660000}'
+$ aelf-command send AElf.ContractNames.Referendum
+✔ Fetching contract successfully!
+? Pick up a contract method: CreateOrganization
+
+If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+Enter the params one by one, type `Enter` to skip optional param:
+? Enter the required param <tokenSymbol>: ELF
+? Enter the required param <proposalReleaseThreshold.minimalApprovalThreshold>: 666
+? Enter the required param <proposalReleaseThreshold.maximalRejectionThreshold>: 666
+? Enter the required param <proposalReleaseThreshold.maximalAbstentionThreshold>: 666
+? Enter the required param <proposalReleaseThreshold.minimalVoteThreshold>: 666
+? Enter the required param <proposerWhiteList.proposers>: ["2hxkDg6Pd2d4yU1A16PTZVMMrEDYEPR8oQojMDwWdax5LsBaxX"]
+The params you entered is:
+{
+  "tokenSymbol": "ELF",
+  "proposalReleaseThreshold": {
+    "minimalApprovalThreshold": 666,
+    "maximalRejectionThreshold": 666,
+    "maximalAbstentionThreshold": 666,
+    "minimalVoteThreshold": 666
+  },
+  "proposerWhiteList": {
+    "proposers": [
+      "2hxkDg6Pd2d4yU1A16PTZVMMrEDYEPR8oQojMDwWdax5LsBaxX"
+    ]
+  }
+}
+✔ Succeed!
+AElf [Info]:
+Result:
+{
+  "TransactionId": "273285c7e8825a0af5291dd5d9295f746f2bb079b30f915422564de7a64fc874"
+}
+✔ Succeed!
 ```
 
 * Create a proposal
 
 ```bash
 $ aelf-command proposal
+? Pick up a contract name to create a proposal: AElf.ContractNames.Parliament
 ? Enter an organization address: BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc
 ? Select the expired time for this proposal: 2022/09/23 22:06
 ? Enter a contract address or name: 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8
@@ -268,7 +308,7 @@ AElf [Info]: {
 }
 ```
 
-If you want to call a contract method by creating a proposal and released it, the transaction result could be confusing, you can use another `aelf-command` sub-command to get the readable result;
+If you want to call a contract method by creating a proposal and released it, the released transaction result could be confusing, you can use another `aelf-command` sub-command to get the readable result;
 
 Take the example above which has deployed a smart contract by proposal, the contract address is necessary for sending transactions.
 The contract address has been given but need to be decoded. We supply `aelf-command event` to decode the results.
@@ -304,15 +344,59 @@ For more details, check the descriptions of [`aelf-command event`](#event-deseri
 
 ### deploy - Deploy a smart contract
 
-Deploy a smart contract to the chain
+**This command has been deprecated, use `aelf-command send` or `aelf-command proposal` instead**
 
-```bash
-$ aelf-command deploy
-✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
-✔ Enter the password you typed when creating a wallet … ********
-✔ Enter the category of the contract to be deployed … 0
-? Enter the relative or absolute path of contract code › /Users/home/home
-```
+Examples:
+
+1. Use Genesis Contract to deploy a new smart contract
+
+    ```shell script
+    $ aelf-command get-chain-status
+    ✔ Succeed
+    {
+      "ChainId": "AELF",
+      "Branches": {
+        "41a8a1ebf037197b7e2f10a67d81f741d46a6af41775bcc4e52ab855c58c4375": 8681551,
+        "ed4012c21a2fbf810db52e9869ef6a3fb0629b36d23c9be2e3692a24703b3112": 8681597,
+        "13476b902ef137ed63a4b52b2902bb2b2fa5dbe7c256fa326c024a73dc63bcb3": 8681610
+      },
+      "NotLinkedBlocks": {},
+      "LongestChainHeight": 8681610,
+      "LongestChainHash": "13476b902ef137ed63a4b52b2902bb2b2fa5dbe7c256fa326c024a73dc63bcb3",
+      "GenesisBlockHash": "cd5ce1bfa0cd97a1dc34f735c57bea2fcb9d88fc8f76bece2592fe7d82d5660c",
+      "GenesisContractAddress": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+      "LastIrreversibleBlockHash": "4ab84cdfe0723b191eedcf4d2ca86b0f64e57105e61486c21d98d562b14f2ab0",
+      "LastIrreversibleBlockHeight": 8681483,
+      "BestChainHash": "0dbc2176aded950020577552c92c82e66504ea109d4d6588887502251b7e932b",
+      "BestChainHeight": 8681609
+    }
+
+    # use GenesisContractAddress as a parameter of aelf-command send
+    # use contract method `DeploySmartContract` if the chain you are connecting to requires no limit of authority
+    $ aelf-command send 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8 DeploySmartContract
+    ✔ Fetching contract successfully!
+
+    If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+    Enter the params one by one, type `Enter` to skip optional param:
+    ? Enter the required param <category>: 0
+    ? Enter the required param <code>: /Users/test/contract.dll
+    ...
+
+    # use contract method `ProposeNewContract` if the chain you are connecting to requires create new propose when deploying smart contracts
+    $ aelf-command send 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8 ProposeNewContract
+    ✔ Fetching contract successfully!
+
+    If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+    Enter the params one by one, type `Enter` to skip optional param:
+    ? Enter the required param <category>: 0
+    ? Enter the required param <code>: /Users/test/contract.dll
+    ...
+    ```
+
+   * You must input contract method parameters in the prompting way, note that you can input a relative or absolute path of contract file to pass a file to `aelf-command`, `aelf-command` will read the file content and encode as base64 string.
+   * After call `ProposeNewContract`, you need to wait the organization members to approve your propose and you can release your propose by `releaseApprove` and `releaseCodeCheck` step by step
 
 ### event - Deserialize the result return by executing a transaction
 
@@ -544,9 +628,9 @@ Welcome to aelf interactive console. Ctrl + C to terminate the program. Double t
    ║                                                           ║
    ║   NAME       | DESCRIPTION                                ║
    ║   AElf       | imported from aelf-sdk                     ║
-   ║   aelf       | the instance of an aelf-sdk, connect to    ║
+   ║   aelf       | instance of aelf-sdk, connect to           ║
    ║              | http://13.231.179.27:8000                  ║
-   ║   _account   | the instance of an AElf wallet, address    ║
+   ║   _account   | instance of AElf wallet, wallet address    ║
    ║              | is                                         ║
    ║              | 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR…   ║
    ║              | 5oGin1sys6H                                ║
