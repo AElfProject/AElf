@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using Acs3;
+using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -559,8 +561,9 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
-            // TODO: Permission check
-
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
+            Assert(calculatedAuthorizedAddress == Context.Sender, "be not passed by association organization");
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -573,8 +576,9 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
-            // TODO: Permission check
-
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
+            Assert(calculatedAuthorizedAddress == Context.Sender, "be not passed by association organization");
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -707,6 +711,71 @@ namespace AElf.Contracts.MultiToken
             {
                 return long.MaxValue;
             }
+        }
+
+        private Address CalculateCombinedAssociationAddress(Address sideChainCreator)
+        {
+            var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            var sideChainOrg = CalculateSideChainRentalOrganizationAddress(sideChainCreator);
+            var proposers = new List<Address> {parliamentAddress,sideChainOrg}; 
+            var createOrganizationInput = new Association.CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {proposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {proposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            var address = CalculateSideChainRentalControllerOrganizationAddress(createOrganizationInput);
+            return address;
+        }
+        private Address CalculateSideChainRentalOrganizationAddress(Address sideChainCreator)
+        {
+            var createOrganizationInput = GenerateOrganizationInputForRental(sideChainCreator);
+            var address = CalculateSideChainRentalControllerOrganizationAddress(createOrganizationInput);
+            return address;
+        }
+        
+        private CreateOrganizationInput GenerateOrganizationInputForRental(
+            Address sideChainCreator)
+        {
+            var proposers = new List<Address> {sideChainCreator};
+            var createOrganizationInput = new Association.CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {proposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {proposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            return createOrganizationInput;
+        }
+
+        private Address CalculateSideChainRentalControllerOrganizationAddress(
+            CreateOrganizationInput input)
+        {
+            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
+            return address;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
@@ -39,6 +40,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Update_Coefficient_For_Sender()
         {
             const string defaultSymbol = "EE";
+            const int pieceKey = 1000000;
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
             var createInput = new CreateInput
             {
@@ -85,7 +87,7 @@ namespace AElf.Contracts.MultiToken
                     Denominator = 2,
                     Numerator = 3
                 },
-                PieceKey = 1000000,
+                PieceKey = pieceKey,
                 IsLiner = true
             };
             var associationCreateProposalInput = new CreateProposalInput
@@ -146,11 +148,23 @@ namespace AElf.Contracts.MultiToken
             var associationRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), associationProposalId);
             associationRelease.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfSender), new Empty());
+            userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var userCoefficient = new CalculateFeeCoefficientsOfType();
+            userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
+            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
+            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
+            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
         }
 
         [Fact]
         public async Task Update_Coefficient_For_Contract()
         {
+            const int pieceKey = 1000000;
+            const FeeTypeEnum feeType = FeeTypeEnum.Net;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -159,7 +173,7 @@ namespace AElf.Contracts.MultiToken
 
             var updateInput = new CoefficientFromContract
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = feeType,
                 Coefficient = new CoefficientFromSender
                 {
                     LinerCoefficient = new LinerCoefficient
@@ -168,7 +182,7 @@ namespace AElf.Contracts.MultiToken
                         Denominator = 2,
                         Numerator = 3
                     },
-                    PieceKey = 1000000,
+                    PieceKey = pieceKey,
                     IsLiner = true
                 }
             };
@@ -230,6 +244,20 @@ namespace AElf.Contracts.MultiToken
             var associationRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), associationProposalId);
             associationRelease.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
+                {
+                    Value = (int)feeType
+                });
+            userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var userCoefficient = new CalculateFeeCoefficientsOfType();
+            userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
+            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
+            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
+            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
+            
         }
     }
 }
