@@ -70,13 +70,13 @@ message Scheme {
     map<string, sint64> undistributed_profits = 3;// token symbol -> amount
     sint64 current_period = 4;
     repeated SchemeBeneficiaryShare sub_schemes = 5;
+    bool can_remove_beneficiary_directly = 6;
     sint64 profit_receiving_due_period_count = 7;
     bool is_release_all_balance_every_time_by_default = 8;
     aelf.Hash scheme_id = 9;
     sint32 delay_distribute_period_count = 10;
     map<sint64, sint64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
     aelf.Address manager = 12;
-    bool can_remove_beneficiary_directly = 13;
 }
 
 message SchemeBeneficiaryShare {

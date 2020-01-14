@@ -444,16 +444,16 @@ message TokenStateInAddress{
 }
 
 enum FeeTypeEnum {
-    Read = 0;
-    Storage = 1;
-    Write = 2;
-    Traffic = 3;
-    Tx = 4;
+    READ = 0;
+    STORAGE = 1;
+    WRITE = 2;
+    TRAFFIC = 3;
+    TX = 4;
 }
 
 enum CalculateFunctionTypeEnum {
-    Liner = 0;
-    Power = 1;
+    LINER = 0;
+    POWER = 1;
 }
 
 message ResourceUsage {
