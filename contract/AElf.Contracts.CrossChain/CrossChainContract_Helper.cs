@@ -7,10 +7,10 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
-using AElf.Types;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -287,7 +287,6 @@ namespace AElf.Contracts.CrossChain
             Assert(isCurrentMiner, "No permission.");
         }
 
-
         private void AssertParentChainBlock(int parentChainId, long currentRecordedHeight,
             ParentChainBlockData parentChainBlockData)
         {
@@ -423,11 +422,11 @@ namespace AElf.Contracts.CrossChain
                 crossChainBlockData.ParentChainBlockDataList.Count > 0 ||
                 crossChainBlockData.SideChainBlockDataList.Count > 0,
                 "Empty cross chain data proposed.");
-            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockDataList)
-                   && ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList),
+            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockDataList) &&
+                   ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList),
                 "Invalid cross chain data to be indexed.");
         }
-        
+
         private bool TryGetProposalWithStatus(CrossChainIndexingProposalStatus status,
             out CrossChainIndexingProposal proposal)
         {
@@ -462,7 +461,7 @@ namespace AElf.Contracts.CrossChain
 
             var isExpired = CheckProposalExpired(crossChainIndexingProposal.ProposalId);
             Assert(isExpired, "Unable to clear cross chain indexing proposal which is not expired.");
-//            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
+            //            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
             ResetCrossChainIndexingProposal();
         }
 
@@ -564,7 +563,7 @@ namespace AElf.Contracts.CrossChain
             return organization != null &&
                    (!isParliamentMemberProposingRequired || organization.ParliamentMemberProposingAllowed);
         }
-        
+
         private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData)
         {
             var groupResult = sideChainBlockData.GroupBy(data => data.ChainId, data => data);
@@ -576,9 +575,7 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0
-                    ? currentSideChainHeight + 1
-                    : Constants.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : Constants.GenesisBlockHeight;
                 // indexing fee
                 // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 // var lockedToken = State.IndexingBalance[chainId];
@@ -715,6 +712,9 @@ namespace AElf.Contracts.CrossChain
                     currentSideChainHeight++;
                     indexedSideChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
                 }
+
+                Context.LogDebug(() =>
+                    $"## [ {State.CurrentSideChainHeight[chainId]} - {currentSideChainHeight} ] from side chain {chainId} indexed by {proposer}, index blocks {currentSideChainHeight - State.CurrentSideChainHeight[chainId] + 1} ");
 
                 if (arrearsAmount > 0)
                 {
