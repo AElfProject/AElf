@@ -178,14 +178,14 @@ namespace AElf.Contracts.Election
             {3.Mul(365).Mul(DaySec), 1.002m}
         };
 
-        private const decimal DefaultInterest = 1.0022m; // if locktime > 3 years, use this interest
+        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
         private const int Scale = 10000;
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             long calculated = 1;
             
-            foreach (var instMap in _interestMap) // calculate with different interest according to locktime
+            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
             {
                 if (lockTime > instMap.Key)
                     continue;
@@ -193,12 +193,12 @@ namespace AElf.Contracts.Election
                 break;
             }
 
-            if (calculated == 1) // locktime > 3 years
+            if (calculated == 1) // lockTime > 3 years
                 calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = locktime + voteAmount 
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
         }
 
-        private decimal Pow(decimal x, uint y)
+        private static decimal Pow(decimal x, uint y)
         {
             if (y == 1)
                 return (long) x;

@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -27,6 +29,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
+                IsProfitable = input.IsProfitable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -60,7 +63,8 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.NativeTokenInfo.Issuer,
                 Decimals = input.NativeTokenInfo.Decimals,
                 IsBurnable = true,
-                IssueChainId = input.NativeTokenInfo.IssueChainId
+                IssueChainId = input.NativeTokenInfo.IssueChainId,
+                IsProfitable = input.NativeTokenInfo.IsProfitable
             };
 
             RegisterTokenInfo(nativeTokenInfo);
@@ -133,6 +137,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IsProfitable = validateTokenInfoExistsInput.IsProfitable,
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
             return new Empty();
@@ -262,18 +267,63 @@ namespace AElf.Contracts.MultiToken
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
             {
-                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value ||
+                    IsContributingProfits(input))
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
 
-                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+                Assert(false,
+                    $"[TransferFrom]Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}.\n" +
+                    $"From:{input.From}\tSpender:{Context.Sender}\tTo:{input.To}");
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
+        }
+
+        /// <summary>
+        /// Because Profit Contract Addresses in different chains are different,
+        /// so we use a property (is_profitable) in TokenInfo in order to indicate whether
+        /// Profit Contract Address of current chain should be in the white list or not.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private bool IsContributingProfits(TransferFromInput input)
+        {
+            var tokenInfo = Context.Call<TokenInfo>(Context.Self, nameof(GetTokenInfo), new GetTokenInfoInput
+            {
+                Symbol = input.Symbol
+            }.ToByteString());
+            if (!tokenInfo.IsProfitable) return false;
+
+            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
+                Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
+            )
+            {
+                // Sender is Profit Contract, wants to transfer tokens from general ledger virtual address
+                // to period virtual address or sub schemes.
+                return true;
+            }
+
+            var tokenHolderContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            if (Context.Sender == tokenHolderContractAddress && IsDAppContractAddress(input.From) &&
+                input.To == tokenHolderContractAddress)
+            {
+                // Sender is Token Holder Contract, wants to transfer tokens from DApp Contract to himself.
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsDAppContractAddress(Address address)
+        {
+            return State.ProfitReceivingInfos[address] != null;
         }
 
         public override Empty Approve(ApproveInput input)
@@ -387,35 +437,58 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
-            foreach (var symbol in input.Symbols.Except(Context.Variables.SymbolListToPayTxFee))
+            Assert(
+                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                    .Contains(input.Symbol), "Invalid token symbol.");
+            Assert(input.Amount <= State.Balances[input.ContractAddress][input.Symbol], "Invalid profit amount.");
+            var profits = input.Amount == 0 ? State.Balances[input.ContractAddress][input.Symbol] : input.Amount;
+            State.Balances[input.ContractAddress][input.Symbol] =
+                State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
+            var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
+
+            if (State.TreasuryContract.Value != null)
             {
-                var profits = State.Balances[input.ContractAddress][symbol];
-                State.Balances[input.ContractAddress][symbol] = 0;
-                var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
-                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
-                if (State.TreasuryContract.Value != null)
+                // Main Chain.
+                // Increase balance of Token Contract then distribute donates.
+                State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
+                State.TreasuryContract.Donate.Send(new DonateInput
                 {
-                    // Main Chain.
-                    State.TreasuryContract.Donate.Send(new DonateInput
-                    {
-                        Symbol = symbol,
-                        Amount = donates
-                    });
-                }
-                else
+                    Symbol = input.Symbol,
+                    Amount = donates
+                });
+            }
+            else
+            {
+                // Side Chain.
+                var consensusContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                State.Balances[consensusContractAddress][input.Symbol] =
+                    State.Balances[consensusContractAddress][input.Symbol].Add(donates);
+            }
+
+            var actualProfits = profits.Sub(donates);
+            State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol] =
+                State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol]
+                    .Add(actualProfits);
+
+            if (State.TokenHolderContract.Value == null)
+            {
+                var tokenHolderContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+                if (tokenHolderContractAddress == null)
                 {
-                    // Side Chain.
-                    Transfer(new TransferInput
-                    {
-                        To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
-                        Amount = donates,
-                        Symbol = symbol
-                    });
+                    return new Empty();
                 }
 
-                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
-                    State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
+                State.TokenHolderContract.Value = tokenHolderContractAddress;
             }
+
+            // Distribute token holders profits.
+            State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
+            {
+                SchemeManager = input.ContractAddress,
+                Symbol = input.Symbol
+            });
 
             return new Empty();
         }
@@ -440,7 +513,9 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 }
 
-                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+                Assert(false,
+                    $"[TransferToContract]Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}." +
+                    $"From:{Context.Origin}\tSpender & To:{Context.Sender}");
             }
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
@@ -482,7 +557,8 @@ namespace AElf.Contracts.MultiToken
             bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
                                     tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId;
+                                    tokenInfo.IssueChainId == input.IssueChainId &&
+                                    tokenInfo.IsProfitable == input.IsProfitable;
             Assert(validationResult, "Token validation failed.");
             return new Empty();
         }

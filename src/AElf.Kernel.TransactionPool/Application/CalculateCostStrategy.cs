@@ -62,9 +62,9 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    internal class StoCalculateCostStrategy : CalculateCostStrategyBase,  ICalculateStoCostStrategy, ISingletonDependency
+    internal class StorageCalculateCostStrategy : CalculateCostStrategyBase,  ICalculateStorageCostStrategy, ISingletonDependency
     {
-        public StoCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
+        public StorageCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
             IChainBlockLinkService chainBlockLinkService,
             ICalculateFunctionCacheProvider functionCacheProvider)
@@ -73,7 +73,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
                     chainBlockLinkService, functionCacheProvider);
             
-            CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Sto;
+            CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Storage;
         }
     }
 
@@ -91,9 +91,9 @@ namespace AElf.Kernel.TransactionPool.Application
         }
     }
 
-    internal class NetCalculateCostStrategy : CalculateCostStrategyBase, ICalculateNetCostStrategy, ISingletonDependency
+    internal class TrafficCalculateCostStrategy : CalculateCostStrategyBase, ICalculateTrafficCostStrategy, ISingletonDependency
     {
-        public NetCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
+        public TrafficCalculateCostStrategy(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService,
             IChainBlockLinkService chainBlockLinkService,
             ICalculateFunctionCacheProvider functionCacheProvider)
@@ -102,7 +102,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 new CalculateAlgorithmService(tokenStTokenContractReaderFactory, blockchainService,
                     chainBlockLinkService, functionCacheProvider);
                     
-            CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Net;
+            CalculateAlgorithmService.CalculateAlgorithmContext.CalculateFeeTypeEnum = (int) FeeTypeEnum.Traffic;
         }
     }
 

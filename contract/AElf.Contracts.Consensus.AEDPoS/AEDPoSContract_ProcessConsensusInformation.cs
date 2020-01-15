@@ -168,14 +168,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             UpdateCurrentMinerInformationToElectionContract(previousRound);
 
-            DonateMiningReward(previousRound);
-
-            State.TreasuryContract.Release.Send(new ReleaseInput
+            if (DonateMiningReward(previousRound))
             {
-                TermNumber = termNumber
-            });
+                State.TreasuryContract.Release.Send(new ReleaseInput
+                {
+                    TermNumber = termNumber
+                });
 
-            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
+                Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
+            }
 
             State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {

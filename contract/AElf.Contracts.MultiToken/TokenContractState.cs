@@ -1,6 +1,8 @@
 using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Profit;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -33,12 +35,12 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
-        
+
         /// <summary>
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-        
+
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
@@ -53,5 +55,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
+
+        internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
+
+        internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
     }
 }

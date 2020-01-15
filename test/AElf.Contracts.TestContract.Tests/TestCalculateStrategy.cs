@@ -61,9 +61,9 @@ namespace AElf.Contract.TestContract
         }
     }
 
-    public class TestCalculateStoStrategy : CalculateCostStrategyBase, ICalculateStoCostStrategy
+    public class TestCalculateStorageStrategy : CalculateCostStrategyBase, ICalculateStorageCostStrategy
     {
-        public TestCalculateStoStrategy()
+        public TestCalculateStorageStrategy()
         {
             var functionProvider = new CalculateFunctionCacheProvider();
             var pieceWiseFuncCache = new Dictionary<int, ICalculateWay>
@@ -115,9 +115,9 @@ namespace AElf.Contract.TestContract
         }
     }
 
-    public class TestCalculateNetStrategy : CalculateCostStrategyBase, ICalculateNetCostStrategy
+    public class TestCalculateTrafficStrategy : CalculateCostStrategyBase, ICalculateTrafficCostStrategy
     {
-        public TestCalculateNetStrategy()
+        public TestCalculateTrafficStrategy()
         {
             var functionProvider = new CalculateFunctionCacheProvider();
             var pieceWiseFuncCache = new Dictionary<int, ICalculateWay>

@@ -49,39 +49,39 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         
         internal Connector StoConnector = new Connector
         {
-            Symbol = "STO",
+            Symbol = "STORAGE",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTSTO"
+            RelatedSymbol = "NTSTORAGE"
         };
         internal Connector NativeToStoConnector = new Connector
         {
-            Symbol = "NTSTO",
+            Symbol = "NTSTORAGE",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,
-            RelatedSymbol = "STO"
+            RelatedSymbol = "STORAGE"
         };
         internal Connector NetConnector = new Connector
         {
-            Symbol = "NET",
+            Symbol = "TRAFFIC",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NTNET"
+            RelatedSymbol = "NTTRAFFIC"
         };
         internal Connector NativeToNetConnector = new Connector
         {
-            Symbol = "NTNET",
+            Symbol = "NTTRAFFIC",
             VirtualBalance = 100_000_00000000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true,// For testing
-            RelatedSymbol = "NET"
+            RelatedSymbol = "TRAFFIC"
         };
         internal Connector WriteConnector = new Connector
         {
@@ -246,7 +246,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "STO",
+                    Symbol = "STORAGE",
                     Decimals = 2,
                     IsBurnable = true,
                     TokenName = "sto token",
@@ -259,7 +259,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = "STO",
+                    Symbol = "STORAGE",
                     Amount = issueAmount,
                     To = TokenConverterAddress,
                     Memo = "Set for sto token converter."
@@ -271,7 +271,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "NET",
+                    Symbol = "TRAFFIC",
                     Decimals = 2,
                     IsBurnable = true,
                     TokenName = "net token",
@@ -284,7 +284,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = "NET",
+                    Symbol = "TRAFFIC",
                     Amount = issueAmount,
                     To = TokenConverterAddress,
                     Memo = "Set for net token converter."
