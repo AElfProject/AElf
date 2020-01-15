@@ -68,6 +68,7 @@ message ContractInfo
     int32 category = 3;
     aelf.Hash code_hash = 4;
     bool is_system_contract = 5;
+    int32 version = 6;
 }
 
 message ContractDeploymentInput {
@@ -116,6 +117,7 @@ message ContractDeployed
     aelf.Address author = 1 [(aelf.is_indexed) = true];
     aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
+    int32 version = 4;
 }
 
 message CodeCheckRequired
@@ -131,6 +133,7 @@ message CodeUpdated
     aelf.Address address = 1 [(aelf.is_indexed) = true];
     aelf.Hash old_code_hash = 2;
     aelf.Hash new_code_hash = 3;
+    int32 version = 4;
 }
 
 message AuthorChanged
