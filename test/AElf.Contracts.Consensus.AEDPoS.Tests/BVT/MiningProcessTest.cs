@@ -7,6 +7,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -17,12 +18,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
+        [IgnoreOnCIFact]
         public async Task Candidates_NotEnough_Test()
         {
-            //await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
-
-            //await InitializeVoters();
             await InitializeCandidates(EconomicContractsTestConstants.InitialCoreDataCenterCount);
 
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());

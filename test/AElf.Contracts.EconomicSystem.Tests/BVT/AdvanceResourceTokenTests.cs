@@ -10,7 +10,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public partial class EconomicSystemTest
     {
         private const long Amount = 100;
-        private const string ResourceTokenSymbol = "NET";
+        private const string ResourceTokenSymbol = "TRAFFIC";
 
         private async Task<Address> TokenContract_AdvanceResourceToken_Test()
         {

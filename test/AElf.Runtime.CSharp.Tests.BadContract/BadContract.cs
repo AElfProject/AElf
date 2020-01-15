@@ -94,10 +94,12 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public override Empty TestInfiniteLoop(Empty input)
         {
+            var stop = false;
             var list = new List<int>();
             while (true)
             {
                 list.Add(int.MaxValue); // Just add any value to exhaust memory
+                if(stop) break;
             }
             return new Empty();
         }

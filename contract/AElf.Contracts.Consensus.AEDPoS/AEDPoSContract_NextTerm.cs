@@ -115,12 +115,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void DonateMiningReward(Round previousRound)
+        private bool DonateMiningReward(Round previousRound)
         {
             if (State.TreasuryContract.Value == null)
             {
-                State.TreasuryContract.Value =
+                var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                // Return false if Treasury Contract didn't deployed.
+                if (treasuryContractAddress == null) return false;
+                State.TreasuryContract.Value = treasuryContractAddress;
             }
 
             var amount = previousRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock());
@@ -141,6 +144,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Context.LogDebug(() => $"Released {amount} mining rewards.");
+
+            return true;
         }
 
         private long GetMiningRewardPerBlock()

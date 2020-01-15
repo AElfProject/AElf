@@ -142,8 +142,8 @@ namespace AElf.Contracts.MultiToken
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"READ", input.ReadCost},
-                {"NET", input.NetCost},
-                {"STO", input.StoCost},
+                {"TRAFFIC", input.NetCost},
+                {"STORAGE", input.StoCost},
                 {"WRITE", input.WriteCost}
             };
 
@@ -423,6 +423,8 @@ namespace AElf.Contracts.MultiToken
 
         private void PayRental()
         {
+            var creator = State.SideChainCreator.Value;
+            if (creator == null) return;
             if (State.LastPayRentTime.Value == null)
             {
                 // Initial LastPayRentTime first calling DonateResourceToken.
@@ -439,8 +441,6 @@ namespace AElf.Contracts.MultiToken
 
             // Update LastPayRentTime if it is ready to charge rental.
             State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
-
-            var creator = State.SideChainCreator.Value;
 
             foreach (var symbol in Context.Variables.SymbolListToPayRental)
             {
