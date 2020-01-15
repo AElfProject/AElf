@@ -79,19 +79,10 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-    rpc AddAvailableTokenInfo(AvailableTokenInfo) returns (google.protobuf.Empty){
-    }
-    rpc UpdateAvailableTokenInfo(AvailableTokenInfo) returns (google.protobuf.Empty){
-    }
-    rpc RemoveAvailableTokenInfo(google.protobuf.StringValue) returns (google.protobuf.Empty){
+    rpc SetAvailableTokenInfo(AllAvailableTokenInfo) returns (google.protobuf.Empty){
     }
     rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
     }
-    rpc SetDeveloperFeeOrganization(aelf.Address) returns (google.protobuf.Empty){
-    }
-    rpc SetUserFeeRootOrganization(aelf.Address) returns (google.protobuf.Empty){
-    }
-   
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {

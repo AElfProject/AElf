@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = new NullLogger<ExtraAcceptedTokenService>();
         }
 
-        public async Task<Dictionary<string, Tuple<int, int>>> GetExtraAcceptedTokensInfoAsync(
+        public async Task<List<AvailableTokenInfoInCache>> GetExtraAcceptedTokensInfoAsync(
             IChainContext chainContext)
         {
             var keys = _cacheProvider.GetForkCacheKeys();
@@ -44,7 +43,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHeight = chainContext.BlockHeight
             };
             var minHeight = keys.Select(k => k.BlockHeight).Min();
-            Dictionary<string, Tuple<int, int>> tokenInfoDic = null;
+            List<AvailableTokenInfoInCache> tokenInfoDic = null;
             do
             {
                 if (_cacheProvider.TryGetExtraAcceptedTokensInfoFromForkCache(blockIndex, out var value))
@@ -62,7 +61,7 @@ namespace AElf.Kernel.TransactionPool.Application
         }
 
         public void SetExtraAcceptedTokenInfoToForkCache(BlockIndex index,
-            Dictionary<string, Tuple<int, int>> tokenInfos)
+            List<AvailableTokenInfoInCache> tokenInfos)
         {
             _cacheProvider.SetExtraAcceptedTokenInfoToForkCache(index, tokenInfos);
         }
@@ -77,7 +76,7 @@ namespace AElf.Kernel.TransactionPool.Application
             _cacheProvider.SyncCache(blockIndexes);
         }
 
-        private async Task<Dictionary<string, Tuple<int, int>>> GetExtraAcceptedTokensInfoFromCacheAsync()
+        private async Task<List<AvailableTokenInfoInCache>> GetExtraAcceptedTokensInfoFromCacheAsync()
         {
             var normalCache = _cacheProvider.GetExtraAcceptedTokensInfoFromNormalCache();
             if (normalCache != null)
@@ -89,23 +88,22 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight
             });
             var tokenInfos = await tokenStub.GetAvailableTokenInfos.CallAsync(new Empty());
-            var tokenInfoDic = new Dictionary<string, Tuple<int, int>>();
+            var tokenInfoList = new List<AvailableTokenInfoInCache>();
             if (tokenInfos != null)
             {
                 foreach (var tokenInfo in tokenInfos.AllAvailableTokens)
                 {
-                    tokenInfoDic[tokenInfo.TokenSymbol] =
-                        Tuple.Create(tokenInfo.BaseTokenWeight, tokenInfo.AddedTokenWeight);
+                    tokenInfoList.Add(new AvailableTokenInfoInCache
+                    {
+                        TokenSymbol = tokenInfo.TokenSymbol,
+                        AddedTokenWeight = tokenInfo.AddedTokenWeight,
+                        BaseTokenWeight = tokenInfo.BaseTokenWeight
+                    });
                 }
             }
 
-            _cacheProvider.SetExtraAcceptedTokenInfoToCache(tokenInfoDic);
-            return tokenInfoDic;
-        }
-
-        public int TestGetCount()
-        {
-            return _cacheProvider.GetForkCacheKeys().Length;
+            _cacheProvider.SetExtraAcceptedTokenInfoToCache(tokenInfoList);
+            return tokenInfoList;
         }
     }
 }

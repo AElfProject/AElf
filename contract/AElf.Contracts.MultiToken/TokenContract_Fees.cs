@@ -114,22 +114,21 @@ namespace AElf.Contracts.MultiToken
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
 
-            if (availableBalance < txSizeFeeAmount && input.AllAvailableTokens.Any())
+            if (input.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = input.AllAvailableTokens;
-                var availableTokenBalanceOrderList =
-                    allExtraTokenInfo.OrderByDescending(GetBalanceCalculatedBaseOnPrimaryToken);
-                var availableTokenInfoWithMostBalance = availableTokenBalanceOrderList.First();
-                if (GetBalanceCalculatedBaseOnPrimaryToken(availableTokenInfoWithMostBalance) > availableBalance)
+                var availableToken= allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
+                                    allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
+                if (availableToken != null)
                 {
-                    availableTokenSymbol = availableTokenInfoWithMostBalance.TokenSymbol;
-                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableTokenInfoWithMostBalance.AddedTokenWeight)
-                        .Div(availableTokenInfoWithMostBalance.BaseTokenWeight);
+                    availableTokenSymbol = availableToken.TokenSymbol;
+                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableToken.AddedTokenWeight)
+                        .Div(availableToken.BaseTokenWeight);
                     availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
                 }
             }
-
-            var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
+            
+            var chargeAmount = availableBalance > txSizeFeeAmount
                 ? txSizeFeeAmount
                 : availableBalance;
 
@@ -214,48 +213,35 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-
-        public override Empty AddAvailableTokenInfo(AvailableTokenInfo input)
+        public override Empty SetAvailableTokenInfo(AllAvailableTokenInfo input)
         {
             AssertIsAuthorized();
-            Assert(!string.IsNullOrEmpty(input.TokenSymbol) & input.TokenSymbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
-                "weight should be greater than 0");
-            if (State.ExtraAvailableTokenInfos.Value == null)
-                State.ExtraAvailableTokenInfos.Value = new AllAvailableTokenInfo();
-            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
-            Assert(allExtraTokenInfo.All(x => x.TokenSymbol != input.TokenSymbol), "token symbol exists");
-            allExtraTokenInfo.Add(input);
-            SyncExtraTokenList();
+            Assert(input != null, "invalid input");
+            bool isPrimaryTokenExist = false;
+            var symbolList = new List<string>();
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
+            Assert(primaryTokenSymbol != null, "primary token does not exist");
+            foreach (var tokenInfo in input.AllAvailableTokens)
+            {
+                if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
+                {
+                    isPrimaryTokenExist = true;
+                    Assert(tokenInfo.AddedTokenWeight ==1 && tokenInfo.BaseTokenWeight == 1,
+                        $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
+                }
+
+                AssertAvailableTokenValid(tokenInfo);
+                Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
+                symbolList.Add(tokenInfo.TokenSymbol);
+            }
+            Assert(isPrimaryTokenExist, $"primary token:{State.NativeTokenSymbol.Value} not included");
+            State.ExtraAvailableTokenInfos.Value = input;
+            Context.Fire(new ExtraTokenListModified
+            {
+                AllTokenInfos = input
+            });
             return new Empty();
         }
-
-        public override Empty UpdateAvailableTokenInfo(AvailableTokenInfo input)
-        {
-            AssertIsAuthorized();
-            Assert(input.AddedTokenWeight > 0 && input.BaseTokenWeight > 0,
-                "weight should be greater than 0");
-            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
-            var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.TokenSymbol);
-            Assert(tokenInfo != null, $"dose not find token symbol {input.TokenSymbol}");
-            tokenInfo.AddedTokenWeight = input.AddedTokenWeight;
-            tokenInfo.BaseTokenWeight = input.BaseTokenWeight;
-            SyncExtraTokenList();
-            return new Empty();
-        }
-
-        public override Empty RemoveAvailableTokenInfo(StringValue input)
-        {
-            AssertIsAuthorized();
-            var allExtraTokenInfo = State.ExtraAvailableTokenInfos.Value.AllAvailableTokens;
-            var tokenInfo = allExtraTokenInfo.SingleOrDefault(x => x.TokenSymbol == input.Value);
-            Assert(tokenInfo != null, $"dose not find token symbol {input.Value}");
-            allExtraTokenInfo.Remove(tokenInfo);
-            SyncExtraTokenList();
-            return new Empty();
-        }
-
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -687,21 +673,9 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-
-        private void SyncExtraTokenList()
-        {
-            var changedCacheData = State.ExtraAvailableTokenInfos.Value;
-            State.ExtraAvailableTokenInfos.Value = changedCacheData;
-            Context.Fire(new ExtraTokenListModified
-            {
-                AllTokenInfos = changedCacheData
-            });
-        }
-
         private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
         {
-            var availableTokenSymbol = tokenInfo.TokenSymbol;
-            var availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
+            var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
             try
             {
                 return availableBalance.Mul(tokenInfo.BaseTokenWeight)
@@ -718,7 +692,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             var sideChainOrg = CalculateSideChainRentalOrganizationAddress(sideChainCreator);
             var proposers = new List<Address> {parliamentAddress,sideChainOrg}; 
-            var createOrganizationInput = new Association.CreateOrganizationInput
+            var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
@@ -750,7 +724,7 @@ namespace AElf.Contracts.MultiToken
             Address sideChainCreator)
         {
             var proposers = new List<Address> {sideChainCreator};
-            var createOrganizationInput = new Association.CreateOrganizationInput
+            var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
@@ -776,6 +750,14 @@ namespace AElf.Contracts.MultiToken
         {
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
+        }
+
+        private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
+        {
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
+                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
         }
     }
 }

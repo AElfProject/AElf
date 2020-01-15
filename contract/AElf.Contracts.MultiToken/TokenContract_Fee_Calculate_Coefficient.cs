@@ -8,7 +8,7 @@ namespace AElf.Contracts.MultiToken
     {
         public override Empty Initialize(InitializeInput input)
         {
-            Assert(!State.IsContractInitialized.Value, "MultiToken has been initialized");
+            Assert(!State.Initialized.Value, "MultiToken has been initialized");
             InitialParameters();
             if (input.DefaultProposer != null)
                 State.DefaultProposer.Value = input.DefaultProposer;
@@ -16,7 +16,7 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
-            State.IsContractInitialized.Value = true;
+            State.Initialized.Value = true;
             return new Empty();
         }
 

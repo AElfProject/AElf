@@ -1,46 +1,46 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public interface IExtraAcceptedTokensCacheProvider
     {
-        Dictionary<string, Tuple<int, int>> GetExtraAcceptedTokensInfoFromNormalCache();
-        void SetExtraAcceptedTokenInfoToCache(Dictionary<string, Tuple<int, int>> tokenInfos);
-        void SetExtraAcceptedTokenInfoToForkCache(BlockIndex index, Dictionary<string, Tuple<int, int>> tokenInfos);
-        bool TryGetExtraAcceptedTokensInfoFromForkCache(BlockIndex index, out Dictionary<string, Tuple<int, int>> tokenDic);
+        List<AvailableTokenInfoInCache> GetExtraAcceptedTokensInfoFromNormalCache();
+        void SetExtraAcceptedTokenInfoToCache(List<AvailableTokenInfoInCache> tokenInfos);
+        void SetExtraAcceptedTokenInfoToForkCache(BlockIndex index, List<AvailableTokenInfoInCache> tokenInfos);
+        bool TryGetExtraAcceptedTokensInfoFromForkCache(BlockIndex index, out List<AvailableTokenInfoInCache> tokenInfos);
         void RemoveFromForkCacheByBlockIndex(List<BlockIndex> blockIndexes);
         void SyncCache(List<BlockIndex> blockIndexes);
         BlockIndex[] GetForkCacheKeys();
     }
     public class ExtraAcceptedTokensCacheProvider : IExtraAcceptedTokensCacheProvider
     {
-        private Dictionary<string, Tuple<int, int>> _cache;
+        private List<AvailableTokenInfoInCache> _cache;
 
-        private readonly ConcurrentDictionary<BlockIndex, Dictionary<string, Tuple<int, int>>> _forkCache;
+        private readonly ConcurrentDictionary<BlockIndex, List<AvailableTokenInfoInCache>> _forkCache;
 
         public ExtraAcceptedTokensCacheProvider()
         {
-            _forkCache = new ConcurrentDictionary<BlockIndex, Dictionary<string, Tuple<int, int>>>();
+            _forkCache = new ConcurrentDictionary<BlockIndex, List<AvailableTokenInfoInCache>>();
         }
-        public Dictionary<string, Tuple<int, int>> GetExtraAcceptedTokensInfoFromNormalCache()
+        public List<AvailableTokenInfoInCache> GetExtraAcceptedTokensInfoFromNormalCache()
         {
             return _cache;
         }
 
-        public void SetExtraAcceptedTokenInfoToCache(Dictionary<string, Tuple<int, int>> tokenInfos)
+        public void SetExtraAcceptedTokenInfoToCache(List<AvailableTokenInfoInCache> tokenInfos)
         {
             _cache = tokenInfos;
         }
 
-        public void SetExtraAcceptedTokenInfoToForkCache(BlockIndex blockIndex, Dictionary<string, Tuple<int, int>> tokenInfos)
+        public void SetExtraAcceptedTokenInfoToForkCache(BlockIndex blockIndex, List<AvailableTokenInfoInCache> tokenInfos)
         {
             _forkCache[blockIndex] = tokenInfos;
         }
 
-        public bool TryGetExtraAcceptedTokensInfoFromForkCache(BlockIndex index, out Dictionary<string, Tuple<int, int>> value)
+        public bool TryGetExtraAcceptedTokensInfoFromForkCache(BlockIndex index, out List<AvailableTokenInfoInCache> value)
         {
             return _forkCache.TryGetValue(index, out value);
         }

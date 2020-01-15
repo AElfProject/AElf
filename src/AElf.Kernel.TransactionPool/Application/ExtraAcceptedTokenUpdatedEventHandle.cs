@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
@@ -55,14 +54,18 @@ namespace AElf.Kernel.TransactionPool.Application
             };
             if (eventData.AllTokenInfos == null)
                 return Task.CompletedTask;
-            var newTokenInfoDic = new Dictionary<string, Tuple<int, int>>();
+            var newTokenInfoList = new List<AvailableTokenInfoInCache>();
             foreach (var tokenInfo in eventData.AllTokenInfos.AllAvailableTokens)
             {
-                newTokenInfoDic[tokenInfo.TokenSymbol] =
-                    Tuple.Create(tokenInfo.BaseTokenWeight, tokenInfo.AddedTokenWeight);
+                newTokenInfoList.Add(new AvailableTokenInfoInCache
+                {
+                    TokenSymbol = tokenInfo.TokenSymbol,
+                    AddedTokenWeight = tokenInfo.AddedTokenWeight,
+                    BaseTokenWeight = tokenInfo.BaseTokenWeight
+                });
             }
 
-            _extraAcceptedTokenService.SetExtraAcceptedTokenInfoToForkCache(blockIndex, newTokenInfoDic);
+            _extraAcceptedTokenService.SetExtraAcceptedTokenInfoToForkCache(blockIndex, newTokenInfoList);
             return Task.CompletedTask;
         }
     }

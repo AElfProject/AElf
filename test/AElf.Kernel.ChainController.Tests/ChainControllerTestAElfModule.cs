@@ -72,7 +72,7 @@ namespace AElf.Kernel.ChainController
             {
                 var mockExtraAcceptedTokenService = new Mock<IExtraAcceptedTokenService>();
                 mockExtraAcceptedTokenService.Setup(m => m.GetExtraAcceptedTokensInfoAsync(It.IsAny<IChainContext>()))
-                    .Returns((IChainContext x) => Task.FromResult(new Dictionary<string, Tuple<int, int>>()));
+                    .Returns((IChainContext x) => null);
                 
                 return mockExtraAcceptedTokenService.Object;
             });

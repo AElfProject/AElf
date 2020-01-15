@@ -239,7 +239,7 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
 
             await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
-            
+
             var developerRelease = await MainChainTester.ExecuteContractWithMiningAsync(AssociationAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Release), developerProposalId);
             developerRelease.Status.ShouldBe(TransactionResultStatus.Mined);

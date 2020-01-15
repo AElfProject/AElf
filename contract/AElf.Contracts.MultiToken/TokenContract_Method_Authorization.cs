@@ -37,11 +37,17 @@ namespace AElf.Contracts.MultiToken
             State.UserFeeAssociationOrganization.Value.ReferendumOrganization =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumOrganizationForUserFee()
                     .OrganizationCreationInput);
+            State.UserFeeAssociationOrganization.Value.RootOrganization =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForUserFee()
+                    .OrganizationCreationInput);
 
             State.DeveloperFeeAssociationOrganization.Value = new DeveloperFeeProposerOrganization();
             State.DeveloperFeeAssociationOrganization.Value.ParliamentOrganization = defaultParliamentAddress;
             State.DeveloperFeeAssociationOrganization.Value.DeveloperOrganization =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperOrganization()
+                    .OrganizationCreationInput);
+            State.DeveloperFeeAssociationOrganization.Value.RootOrganization =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForDeveloperFee()
                     .OrganizationCreationInput);
             
             CreateReferendumOrganizationForUserFee();
@@ -129,9 +135,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         Proposers = {proposers}
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetUserFeeRootOrganization)
-
+                }
             };
         }
         private Association.CreateOrganizationBySystemContractInput GetDeveloperOrganization()
@@ -194,29 +198,10 @@ namespace AElf.Contracts.MultiToken
                     {
                         Proposers = {proposers}
                     }
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetDeveloperFeeOrganization)
+                }
             };
         }
 
-        #endregion
-        
-        #region recall back for setting organization and proposal id
-        
-        public override Empty SetUserFeeRootOrganization(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.UserFeeAssociationOrganization.Value.RootOrganization == null)
-                State.UserFeeAssociationOrganization.Value.RootOrganization = input;
-            return new Empty();
-        }
-        public override Empty SetDeveloperFeeOrganization(Address input)
-        {
-            Assert(input != null, "invalid address");
-            if(State.DeveloperFeeAssociationOrganization.Value.RootOrganization == null)
-                State.DeveloperFeeAssociationOrganization.Value.RootOrganization = input;
-            return new Empty();
-        }
         #endregion
     }
 }

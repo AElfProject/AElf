@@ -91,18 +91,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     TransactionSizeFee = txCost,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
-                var extraAvailableTokenDic =
+                var extraAvailableTokenList =
                     await _extraAcceptedTokenService.GetExtraAcceptedTokensInfoAsync(chainContext);
-                foreach (var tokenInfo in extraAvailableTokenDic)
+                if (extraAvailableTokenList != null)
                 {
-                    chargeTransactionFeesInput.AllAvailableTokens.Add(new AvailableTokenInfo
+                    foreach (var tokenInfo in extraAvailableTokenList)
                     {
-                        TokenSymbol = tokenInfo.Key,
-                        BaseTokenWeight = tokenInfo.Value.Item1,
-                        AddedTokenWeight = tokenInfo.Value.Item2
-                    });
+                        chargeTransactionFeesInput.AllAvailableTokens.Add(new AvailableTokenInfo
+                        {
+                            TokenSymbol = tokenInfo.TokenSymbol,
+                            BaseTokenWeight = tokenInfo.BaseTokenWeight,
+                            AddedTokenWeight = tokenInfo.AddedTokenWeight
+                        });
+                    }
                 }
-                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput)).Transaction;
+
+                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput))
+                    .Transaction;
                 return new List<Transaction>
                 {
                     chargeFeeTransaction
