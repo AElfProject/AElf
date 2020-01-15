@@ -105,7 +105,8 @@ namespace AElf.Contracts.CrossChain
                 Symbol = sideChainCreationRequest.SideChainTokenSymbol,
                 TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
                 Decimals = sideChainCreationRequest.SideChainTokenDecimals,
-                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
+                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
             };
             CreateSideChainToken(sideChainTokenInfo, chainId, input.Proposer);
 

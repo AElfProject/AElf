@@ -29,7 +29,8 @@ namespace AElf.Blockchains.SideChain
                             IsBurnable = nativeTokenInfo.IsBurnable,
                             Symbol = nativeTokenInfo.Symbol,
                             TokenName = nativeTokenInfo.TokenName,
-                            TotalSupply = nativeTokenInfo.TotalSupply
+                            TotalSupply = nativeTokenInfo.TotalSupply,
+                            IsProfitable = nativeTokenInfo.IsProfitable
                         },
                     ResourceTokenList = resourceTokenList,
                     ChainPrimaryToken = chainPrimaryTokenInfo

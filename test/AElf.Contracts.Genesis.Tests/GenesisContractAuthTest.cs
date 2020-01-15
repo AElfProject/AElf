@@ -199,7 +199,7 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip = "Skip due to need task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll"));
+            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll.patched"));
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory,
@@ -237,7 +237,7 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip = "Skip due to need task delay.")]
         public async Task UpdateSmartContractWithCodeCheck_Test()
         {
-            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.TokenConverter.dll"));
+            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.TokenConverter.dll.patched"));
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner

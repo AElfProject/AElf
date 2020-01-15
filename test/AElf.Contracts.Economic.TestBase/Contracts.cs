@@ -16,7 +16,8 @@ namespace AElf.Contracts.Economic.TestBase
         TransactionFee,
         TokenConverter,
         Treasury,
-        Vote
+        Vote,
+        TokenHolder
     }
     
     public enum TestContracts

@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1"/>
@@ -22,5 +23,11 @@
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf/Proto/vote_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>
