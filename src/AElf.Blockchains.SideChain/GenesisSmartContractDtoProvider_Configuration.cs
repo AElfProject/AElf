@@ -10,13 +10,13 @@ namespace AElf.Blockchains.SideChain
         public SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateConfigurationInitializationCallList(ChainInitializationData chainInitializationData)
         {
-            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var configurationContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var requiredAcsInContracts = new RequiredAcsInContracts();
             if (!chainInitializationData.ChainCreatorPrivilegePreserved)
                 requiredAcsInContracts.AcsList.AddRange(_contractOptions.ContractFeeStrategyAcsList);
-            crossChainMethodCallList.Add(nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
+            configurationContractMethodCallList.Add(nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
                 requiredAcsInContracts);
-            return crossChainMethodCallList;
+            return configurationContractMethodCallList;
         }
     }
 }

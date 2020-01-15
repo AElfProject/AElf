@@ -3,7 +3,6 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
@@ -21,14 +20,14 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateConfigurationInitializationCallList()
         {
-            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(
+            var configurationContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            configurationContractMethodCallList.Add(
                 nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
                 new RequiredAcsInContracts
                 {
                     AcsList = {_contractOptions.ContractFeeStrategyAcsList}
                 });
-            return crossChainMethodCallList;
+            return configurationContractMethodCallList;
         }
     }
 }
