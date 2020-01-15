@@ -92,11 +92,11 @@ We've created an account/key-pair and modified the configuration to use this acc
 
 ### Launch and test
 
-Now we build and run the node navigate into the **aelf** directory and build the solution with the following commands:
+Now we will build and run the node with the following commands:
 
 ```bash
 dotnet build AElf.Launcher.csproj --configuration Release
-dotnet bin/Release/netcoreapp3.0/AElf.Launcher.dll > aelf-logs.logs &
+dotnet bin/Release/netcoreapp3.1/AElf.Launcher.dll > aelf-logs.logs &
 cd ..
 ```
 
@@ -108,7 +108,7 @@ aelf-command get-blk-height -e http://127.0.0.1:8000
 
 ### Cleanup
 
-To stop the node you can simply find and kill the process with:
+To stop the node you can simply find and kill the process:
 
 On mac/Linux:
 ```bash

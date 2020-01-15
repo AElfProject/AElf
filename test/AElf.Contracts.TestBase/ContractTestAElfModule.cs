@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -57,6 +58,11 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             
             context.Services.RemoveAll<IPreExecutionPlugin>();
+            
+            Configure<ContractOptions>(options =>
+            {
+                options.ContractFeeStrategyAcsList = new List<string>{"acs1"};
+            });
         }
     }
 }
