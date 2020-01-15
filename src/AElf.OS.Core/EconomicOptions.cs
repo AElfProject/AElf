@@ -10,8 +10,8 @@ namespace AElf.OS
         public double DividendPoolRatio { get; set; } = 0.12;
         public long MaximumLockTime { get; set; } = 1080 * 86400;
         public long MinimumLockTime { get; set; } = 90 * 86400;
-        public string SymbolListToPayTxFee { get; set; } = "WRITE,STO,READ,NET";
-        public string SymbolListToPayRental { get; set; } = "CPU,RAM,DISK";
+        public string SymbolListToPayTxFee { get; set; } = "WRITE,READ,STORAGE,TRAFFIC";
+        public string SymbolListToPayRental { get; set; } = "CPU,RAM,DISK,NET";
         public long TransactionSizeFeeUnitPrice { get; set; } = 1000;
         public int Cpu { get; set; } = 0;
         public int Ram { get; set; } = 0;

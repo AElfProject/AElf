@@ -137,6 +137,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
                 resourceTokenAmount.Value.Keys.ShouldContain("DISK");
                 resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("NET");
+                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
             }
 
             // Check remain resource token amount.
@@ -153,6 +155,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
                 resourceTokenAmount.Value.Keys.ShouldContain("DISK");
                 resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
+                resourceTokenAmount.Value.Keys.ShouldContain("NET");
+                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
             }
         }
 

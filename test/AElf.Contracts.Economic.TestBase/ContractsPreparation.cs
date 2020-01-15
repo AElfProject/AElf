@@ -88,6 +88,11 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address ReferendumContractAddress =>
             GetOrDeployContract(Contracts.Referendum, ref _referendumAddress);
+        
+        private Address _tokenHolderAddress;
+
+        protected Address TokenHolderContractAddress =>
+            GetOrDeployContract(Contracts.TokenHolder, ref _tokenHolderAddress);
 
         #endregion
 
@@ -284,6 +289,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = MethodCallThresholdContractAddress;
             _ = ReferendumContractAddress;
             _ = TokenContractAddress;
+            _ = TokenHolderContractAddress;
         }
 
         #endregion

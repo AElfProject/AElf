@@ -726,7 +726,8 @@ namespace AElf.Contracts.TestBase
                     {
                         {"CPU", SmartContractTestConstants.ResourceSupply},
                         {"RAM", SmartContractTestConstants.ResourceSupply},
-                        {"DISK", SmartContractTestConstants.ResourceSupply}
+                        {"DISK", SmartContractTestConstants.ResourceSupply},
+                        {"NET", SmartContractTestConstants.ResourceSupply},
                     }
                 });
             configurationContractCallList.Add(
@@ -749,8 +750,8 @@ namespace AElf.Contracts.TestBase
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ConfigurationContractCode,
-                    ConfigurationSmartContractAddressNameProvider.Name, configurationContractCallList);
+                list.AddGenesisSmartContract(ConfigurationContractCode, ConfigurationSmartContractAddressNameProvider.Name, 
+                    configurationContractCallList);
                 list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
             };
         }
