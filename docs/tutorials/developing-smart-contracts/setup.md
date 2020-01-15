@@ -68,7 +68,7 @@ cd chain/src/AElf.Boilerplate.Launcher/
 dotnet build
 
 # run the node 
-dotnet run --no-build bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
+dotnet run --no-build bin/Debug/netcoreapp3.1/AElf.Boilerplate.Launcher
 ```
 
 {% hint style="warning" %}
