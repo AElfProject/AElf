@@ -45,11 +45,11 @@ As stated earlier, Boilerplate takes care of the C# code generation and thus has
 
 ```bash
 # Mac or Linux
-sh chain/scripts/install_protobuf.sh
+sh chain/scripts/install.sh
 
 # Windows
 # open a PowerShell console as administrator
-chain/scripts/install_dependency.ps1
+chain/scripts/install.ps1
 ```
 
 {% hint style="info" %}
