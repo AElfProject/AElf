@@ -84,6 +84,10 @@ namespace AElf.Contracts.Election
 
         private List<string> GetValidCandidates()
         {
+            if (State.Candidates.Value == null)
+            {
+                return new List<string>();
+            }
             return State.Candidates.Value.Value
                 .Where(c => State.CandidateVotes[c.ToHex()] != null &&
                             State.CandidateVotes[c.ToHex()].ObtainedActiveVotedVotesAmount > 0)

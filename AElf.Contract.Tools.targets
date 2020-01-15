@@ -83,6 +83,12 @@
         <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
               DestinationFolder="../../test/AElf.CSharp.CodeOps.Tests/contracts"
               SkipUnchangedFiles="true" />
+        <PropertyGroup>
+            <LauncherTargetDir>../../src/AElf.Launcher/contracts</LauncherTargetDir>
+        </PropertyGroup>
+        <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
+              DestinationFolder="$(LauncherTargetDir)"
+              SkipUnchangedFiles="true" />
         <Copy Condition="Exists('$(TargetDir)$(TargetName).dll.patched')"
               SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
               DestinationFolder="../../test/AElf.CSharp.CodeOps.Tests/contracts"

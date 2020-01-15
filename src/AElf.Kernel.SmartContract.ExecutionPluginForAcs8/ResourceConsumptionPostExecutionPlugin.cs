@@ -17,22 +17,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ICalculateReadCostStrategy _readCostStrategy;
         private readonly ICalculateWriteCostStrategy _writeCostStrategy;
-        private readonly ICalculateNetCostStrategy _netCostStrategy;
-        private readonly ICalculateStoCostStrategy _stoCostStrategy;
+        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
+        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
         
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
-            ICalculateStoCostStrategy stoCostStrategy,
-            ICalculateNetCostStrategy netCostStrategy)
+            ICalculateStorageCostStrategy storageCostStrategy,
+            ICalculateTrafficCostStrategy trafficCostStrategy)
         {
             _contextService = contextService;
             _readCostStrategy = readCostStrategy;
             _writeCostStrategy = writeCostStrategy;
-            _stoCostStrategy = stoCostStrategy;
-            _netCostStrategy = netCostStrategy;
+            _storageCostStrategy = storageCostStrategy;
+            _trafficCostStrategy = trafficCostStrategy;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -85,9 +85,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            // Transaction size related to NET Token.
-            var netSize = transactionContext.Transaction.Size();
-            // Transaction trace state set writes count related to STO Token.
+            // Transaction size related to TRAFFIC Token.
+            var trafficSize = transactionContext.Transaction.Size();
+            // Transaction trace state set writes count related to STORAGE Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction trace state set reads count related to WRITE Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
@@ -96,9 +96,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-            var netCost = await _netCostStrategy.GetCostAsync(chainContext, netSize);
+            var netCost = await _trafficCostStrategy.GetCostAsync(chainContext, trafficSize);
             var readCost = await _readCostStrategy.GetCostAsync(chainContext, readsCount);
-            var stoCost = await _stoCostStrategy.GetCostAsync(chainContext, netSize);
+            var stoCost = await _storageCostStrategy.GetCostAsync(chainContext, trafficSize);
             var writeCost = await _writeCostStrategy.GetCostAsync(chainContext, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput

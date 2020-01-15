@@ -24,11 +24,11 @@ namespace AElf.Kernel.SmartContract.Application
     {
     }
 
-    public interface ICalculateStoCostStrategy : ICalculateCostStrategy
+    public interface ICalculateStorageCostStrategy : ICalculateCostStrategy
     {
     }
 
-    public interface ICalculateNetCostStrategy : ICalculateCostStrategy
+    public interface ICalculateTrafficCostStrategy : ICalculateCostStrategy
     {
     }
 }
