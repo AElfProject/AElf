@@ -50,7 +50,7 @@
 * [Web api reference](web-api-reference/reference.md)
 * [SDK reference](sdk/js.md)
     * [JS SDK](sdk/javascript/js-sdk.md)
-    * [dApp bridge sdk](sdk/javascript/dapp-bridge-sdk.md)
+    * [dApp sdk](sdk/javascript/dapp-sdk.md)
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Consensus Contract](resources/smart-contract-apis/consensus.md)

@@ -5,7 +5,7 @@ AElf bridge is a javascript framework that's part of AElf's eco-system. You can 
 
 ## Introduction
 
-In order to provide dApps with the ability to interact with the chain and to protect wallet information, aelf-bridge can be used for interacting with the wallet. The wallet application stores AElf wallet information and can communicate directly with the AElf chain.
+Since dApps are not allowed to store any wallet information, the wallet application stores AElf wallet information and can communicate directly with the AElf chain. In order to protect wallet information and provide dApps with the ability to interact with the chain, aelf-bridge can be used for interacting with the wallet.
 
 The wallet App described here includes a mobile (iOS/Android) native app, desktop app and more.
 
