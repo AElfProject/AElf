@@ -9,7 +9,7 @@ using Xunit;
 
 namespace AElf.Contracts.Profit
 {
-    public partial class ProfitTests : ProfitContractTestBase
+    public class ProfitTests : ProfitContractTestBase
     {
         //private const long ClaimTransactionFee = 1_00000000;
 

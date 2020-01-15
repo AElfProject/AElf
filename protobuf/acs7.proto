@@ -153,6 +153,7 @@ message SideChainCreationRequest {
     bool is_side_chain_token_burnable = 9;
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
     map<string, sint32> initial_resource_amount = 11; 
+    bool is_side_chain_token_profitable = 12;
 }
 
 message SideChainTokenInitialIssue{
@@ -167,6 +168,7 @@ message SideChainTokenInfo {
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
+    bool is_profitable = 7;
 }
 
 message RequestChainCreationOutput {

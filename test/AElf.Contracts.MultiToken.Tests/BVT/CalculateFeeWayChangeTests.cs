@@ -167,13 +167,11 @@ namespace AElf.Contracts.MultiToken
         public async Task Sto_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
             await InitializeCoefficientAsync();
-            var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>();
-
-            var ps = await GetCoefficientByType(FeeTypeEnum.Sto);
-
+            var calculateStoCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateStorageCostStrategy>();
+            var ps = await GetCoefficientByType(FeeTypeEnum.Storage);
             var apiParam = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Sto,
+                FeeType = FeeTypeEnum.Storage,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
@@ -197,14 +195,11 @@ namespace AElf.Contracts.MultiToken
         public async Task Net_Token_Fee_Calculate_After_Update_Piecewise_Function_Test()
         {
             await InitializeCoefficientAsync();
-            var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>();
-
-
-            var ps = await GetCoefficientByType(FeeTypeEnum.Net);
-
+            var calculateNetCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTrafficCostStrategy>();
+            var ps = await GetCoefficientByType(FeeTypeEnum.Traffic);
             var apiParam = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = FeeTypeEnum.Traffic,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 400}}
@@ -233,8 +228,8 @@ namespace AElf.Contracts.MultiToken
                     .GetRequiredService<ICalculateTxCostStrategy>(),
                 FeeTypeEnum.Read => Application.ServiceProvider.GetRequiredService<ICalculateReadCostStrategy>(),
                 FeeTypeEnum.Write => Application.ServiceProvider.GetRequiredService<ICalculateWriteCostStrategy>(),
-                FeeTypeEnum.Sto => Application.ServiceProvider.GetRequiredService<ICalculateStoCostStrategy>(),
-                FeeTypeEnum.Net => Application.ServiceProvider.GetRequiredService<ICalculateNetCostStrategy>(),
+                FeeTypeEnum.Storage => Application.ServiceProvider.GetRequiredService<ICalculateStorageCostStrategy>(),
+                FeeTypeEnum.Traffic => Application.ServiceProvider.GetRequiredService<ICalculateTrafficCostStrategy>(),
                 _ => null
             };
 

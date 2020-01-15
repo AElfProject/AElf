@@ -3,6 +3,8 @@ using AElf.Contracts.Association;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
+using AElf.Contracts.Profit;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -32,6 +34,7 @@ namespace AElf.Contracts.MultiToken
         /// Contract Address -> (Owning) Resource Token Symbol -> Amount.
         /// </summary>
         public MappedState<Address, string, long> OwningResourceToken { get; set; }
+
         public BoolState Initialized { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
@@ -39,12 +42,12 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<UserFeeProposerOrganization> UserFeeAssociationOrganization { get; set; }
         public SingletonState<DeveloperFeeProposerOrganization> DeveloperFeeAssociationOrganization { get; set; }
         public SingletonState<Address> DefaultProposer { get; set; }
-        
+
         /// <summary>
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-        
+
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
@@ -58,5 +61,7 @@ namespace AElf.Contracts.MultiToken
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
         internal AssociationContractContainer.AssociationContractReferenceState AssociationContract { get; set; }
         internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
+        internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
+        internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
     }
 }

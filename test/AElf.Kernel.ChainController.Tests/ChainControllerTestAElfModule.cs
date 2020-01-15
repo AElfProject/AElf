@@ -54,7 +54,7 @@ namespace AElf.Kernel.ChainController
             });
             services.AddSingleton(provider =>
             {
-                var mockStoCostStrategy = new Mock<ICalculateStoCostStrategy>();
+                var mockStoCostStrategy = new Mock<ICalculateStorageCostStrategy>();
                 mockStoCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
@@ -62,7 +62,7 @@ namespace AElf.Kernel.ChainController
             });
             services.AddSingleton(provider =>
             {
-                var mockNetCostStrategy = new Mock<ICalculateNetCostStrategy>();
+                var mockNetCostStrategy = new Mock<ICalculateTrafficCostStrategy>();
                 mockNetCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
@@ -72,7 +72,7 @@ namespace AElf.Kernel.ChainController
             {
                 var mockExtraAcceptedTokenService = new Mock<IExtraAcceptedTokenService>();
                 mockExtraAcceptedTokenService.Setup(m => m.GetExtraAcceptedTokensInfoAsync(It.IsAny<IChainContext>()))
-                    .Returns((IChainContext x) => null);
+                    .Returns((IChainContext x) => Task.FromResult(new List<AvailableTokenInfoInCache>()));
                 
                 return mockExtraAcceptedTokenService.Object;
             });

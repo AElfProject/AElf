@@ -136,7 +136,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = "NET",
+                    Symbol = "TRAFFIC",
                     TokenName = "NET name",
                     TotalSupply = 100_0000_0000,
                     Issuer = ManagerAddress,
@@ -145,7 +145,7 @@ namespace AElf.Contracts.TokenConverter
                 createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
                 var setConnectResult = await AuthorizedTokenConvertStub.AddPairConnectors.SendAsync(new PairConnector
                 {
-                    ResourceConnectorSymbol = "NET",
+                    ResourceConnectorSymbol = "TRAFFIC",
                     ResourceWeight = "0.05",
                     NativeWeight = "0.05",
                     NativeVirtualBalance = 1_000_000_00000000,
@@ -153,7 +153,7 @@ namespace AElf.Contracts.TokenConverter
                 setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 var ramNewInfo = await AuthorizedTokenConvertStub.GetConnector.CallAsync(new TokenSymbol()
                 {
-                    Symbol = "NET"
+                    Symbol = "TRAFFIC"
                 });
                 ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
 

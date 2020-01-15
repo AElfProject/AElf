@@ -27,9 +27,9 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionFeeCalculatorCoefficientUpdatedEventHandle>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, ExtraAcceptedTokenUpdatedEventHandle>();
-            services.AddSingleton<ICalculateStoCostStrategy, StoCalculateCostStrategy>();
+            services.AddSingleton<ICalculateStorageCostStrategy, StorageCalculateCostStrategy>();
             services.AddSingleton<ICalculateReadCostStrategy, ReadCalculateCostStrategy>();
-            services.AddSingleton<ICalculateNetCostStrategy, NetCalculateCostStrategy>();
+            services.AddSingleton<ICalculateTrafficCostStrategy, TrafficCalculateCostStrategy>();
             services.AddSingleton<ICalculateWriteCostStrategy, WriteCalculateCostStrategy>();
             services.AddSingleton<ICalculateTxCostStrategy, TxCalculateCostStrategy>();
             var configuration = context.Services.GetConfiguration();

@@ -133,12 +133,12 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.CalculateCoefficientOfContract[FeeTypeEnum.Read] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Sto] = GetStoFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Storage] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Storage] = GetStoFeeInitialCoefficient();
             if (State.CalculateCoefficientOfContract[FeeTypeEnum.Write] == null)
                 State.CalculateCoefficientOfContract[FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Net] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Net] = GetNetFeeInitialCoefficient();
+            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Traffic] == null)
+                State.CalculateCoefficientOfContract[FeeTypeEnum.Traffic] = GetNetFeeInitialCoefficient();
             if (State.CalculateCoefficientOfSender.Value == null)
                 State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
         }
@@ -182,14 +182,14 @@ namespace AElf.Contracts.MultiToken
             var totalParameter = new CalculateFeeCoefficientsOfType();
             var stoFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Sto,
+                FeeType = FeeTypeEnum.Storage,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantValue".ToLower(), 1000}}
             };
             var stoFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Sto,
+                FeeType = FeeTypeEnum.Storage,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =
@@ -242,14 +242,14 @@ namespace AElf.Contracts.MultiToken
             var totalParameter = new CalculateFeeCoefficientsOfType();
             var netFeeParameter1 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = FeeTypeEnum.Traffic,
                 FunctionType = CalculateFunctionTypeEnum.Liner,
                 PieceKey = 1000000,
                 CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantValue".ToLower(), 10000}}
             };
             var netFeeParameter2 = new CalculateFeeCoefficient
             {
-                FeeType = FeeTypeEnum.Net,
+                FeeType = FeeTypeEnum.Traffic,
                 FunctionType = CalculateFunctionTypeEnum.Power,
                 PieceKey = int.MaxValue,
                 CoefficientDic =

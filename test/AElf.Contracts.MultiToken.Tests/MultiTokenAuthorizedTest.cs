@@ -165,7 +165,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Update_Coefficient_For_Contract_Success()
         {
             const int pieceKey = 1000000;
-            const FeeTypeEnum feeType = FeeTypeEnum.Net;
+            const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -266,7 +266,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Update_Coefficient_For_Contract_Failed()
         {
             const int pieceKey = 1000000;
-            const FeeTypeEnum feeType = FeeTypeEnum.Net;
+            const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);

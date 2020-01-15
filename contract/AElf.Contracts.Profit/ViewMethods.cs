@@ -56,8 +56,8 @@ namespace AElf.Contracts.Profit
         {
             var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Scheme not found.");
-
-            var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
             if (profitDetails == null || profitItem == null)
             {
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Profit
                 }
 
                 amount = amount.Add(
-                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, true));
+                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, beneficiary, true));
             }
 
             return new SInt64Value {Value = amount};
