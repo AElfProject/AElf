@@ -547,9 +547,14 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
-            Assert(calculatedAuthorizedAddress == Context.Sender, "be not passed by association organization");
+            Assert(calculatedAuthorizedAddress == Context.Sender, "no permission");
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -562,9 +567,14 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
-            Assert(calculatedAuthorizedAddress == Context.Sender, "be not passed by association organization");
+            Assert(calculatedAuthorizedAddress == Context.Sender, "no permission");
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -690,8 +700,7 @@ namespace AElf.Contracts.MultiToken
         private Address CalculateCombinedAssociationAddress(Address sideChainCreator)
         {
             var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            var sideChainOrg = CalculateSideChainRentalOrganizationAddress(sideChainCreator);
-            var proposers = new List<Address> {parliamentAddress,sideChainOrg}; 
+            var proposers = new List<Address> {parliamentAddress,sideChainCreator}; 
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
@@ -713,38 +722,6 @@ namespace AElf.Contracts.MultiToken
             var address = CalculateSideChainRentalControllerOrganizationAddress(createOrganizationInput);
             return address;
         }
-        private Address CalculateSideChainRentalOrganizationAddress(Address sideChainCreator)
-        {
-            var createOrganizationInput = GenerateOrganizationInputForRental(sideChainCreator);
-            var address = CalculateSideChainRentalControllerOrganizationAddress(createOrganizationInput);
-            return address;
-        }
-        
-        private CreateOrganizationInput GenerateOrganizationInputForRental(
-            Address sideChainCreator)
-        {
-            var proposers = new List<Address> {sideChainCreator};
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {proposers}
-                },
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {proposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                }
-            };
-            return createOrganizationInput;
-        }
-
         private Address CalculateSideChainRentalControllerOrganizationAddress(
             CreateOrganizationInput input)
         {

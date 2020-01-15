@@ -52,6 +52,9 @@
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
 </Project>

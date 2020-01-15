@@ -32,21 +32,21 @@ namespace AElf.Contracts.MultiToken
             var defaultParliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             if (State.DefaultProposer.Value == null)
                 State.DefaultProposer.Value = defaultParliamentAddress;
-            State.UserFeeAssociationOrganization.Value = new UserFeeProposerOrganization();
-            State.UserFeeAssociationOrganization.Value.ParliamentOrganization = defaultParliamentAddress;
-            State.UserFeeAssociationOrganization.Value.ReferendumOrganization =
+            State.AssociationOrganizationForUserFee.Value = new AssociationOrganizationForUserFee();
+            State.AssociationOrganizationForUserFee.Value.ParliamentOrganization = defaultParliamentAddress;
+            State.AssociationOrganizationForUserFee.Value.ReferendumOrganization =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumOrganizationForUserFee()
                     .OrganizationCreationInput);
-            State.UserFeeAssociationOrganization.Value.RootOrganization =
+            State.AssociationOrganizationForUserFee.Value.RootOrganization =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForUserFee()
                     .OrganizationCreationInput);
 
-            State.DeveloperFeeAssociationOrganization.Value = new DeveloperFeeProposerOrganization();
-            State.DeveloperFeeAssociationOrganization.Value.ParliamentOrganization = defaultParliamentAddress;
-            State.DeveloperFeeAssociationOrganization.Value.DeveloperOrganization =
+            State.AssociationOrganizationForDeveloperFee.Value = new AssociationOrganizationForDeveloperFee();
+            State.AssociationOrganizationForDeveloperFee.Value.ParliamentOrganization = defaultParliamentAddress;
+            State.AssociationOrganizationForDeveloperFee.Value.DeveloperOrganization =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperOrganization()
                     .OrganizationCreationInput);
-            State.DeveloperFeeAssociationOrganization.Value.RootOrganization =
+            State.AssociationOrganizationForDeveloperFee.Value.RootOrganization =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForDeveloperFee()
                     .OrganizationCreationInput);
             
@@ -82,7 +82,7 @@ namespace AElf.Contracts.MultiToken
         #region organization create input
         private Referendum.CreateOrganizationBySystemContractInput GetReferendumOrganizationForUserFee()
         {
-            var parliamentOrg = State.UserFeeAssociationOrganization.Value.ParliamentOrganization;
+            var parliamentOrg = State.AssociationOrganizationForUserFee.Value.ParliamentOrganization;
             var whiteList = new List<Address> {parliamentOrg};
             if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
                 whiteList.Add(State.DefaultProposer.Value);
@@ -108,9 +108,9 @@ namespace AElf.Contracts.MultiToken
 
         private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForUserFee()
         {
-            var parliamentOrg = State.UserFeeAssociationOrganization.Value.ParliamentOrganization;
+            var parliamentOrg = State.AssociationOrganizationForUserFee.Value.ParliamentOrganization;
             var proposers = new List<Address>
-                {State.UserFeeAssociationOrganization.Value.ReferendumOrganization, parliamentOrg};
+                {State.AssociationOrganizationForUserFee.Value.ReferendumOrganization, parliamentOrg};
             var actualProposalCount = proposers.Count;
             if (State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
             {
@@ -140,7 +140,7 @@ namespace AElf.Contracts.MultiToken
         }
         private Association.CreateOrganizationBySystemContractInput GetDeveloperOrganization()
         {
-            var parliamentOrganization = State.DeveloperFeeAssociationOrganization.Value.ParliamentOrganization;
+            var parliamentOrganization = State.AssociationOrganizationForDeveloperFee.Value.ParliamentOrganization;
             var proposers = new List<Address> {parliamentOrganization};
             if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrganization)
                 proposers.Add(State.DefaultProposer.Value);
@@ -169,10 +169,10 @@ namespace AElf.Contracts.MultiToken
 
         private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForDeveloperFee()
         {
-            var parliamentOrg = State.DeveloperFeeAssociationOrganization.Value.ParliamentOrganization;
+            var parliamentOrg = State.AssociationOrganizationForDeveloperFee.Value.ParliamentOrganization;
             var proposers = new List<Address>
             {
-                State.DeveloperFeeAssociationOrganization.Value.DeveloperOrganization, parliamentOrg
+                State.AssociationOrganizationForDeveloperFee.Value.DeveloperOrganization, parliamentOrg
             };
             var actualProposalCount = proposers.Count;
             if (State.DefaultProposer.Value != null && parliamentOrg != State.DefaultProposer.Value)

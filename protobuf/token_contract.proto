@@ -133,10 +133,10 @@ service TokenContract {
     rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (AllAvailableTokenInfo){
         option (aelf.is_view) = true;
     }
-    rpc GetUsrFeeOrganization(google.protobuf.Empty) returns (UserFeeProposerOrganization){
+    rpc GetAssociationOrganizationForUserFee(google.protobuf.Empty) returns (AssociationOrganizationForUserFee){
         option (aelf.is_view) = true;
     }
-    rpc GetDeveloperFeeOrganization(google.protobuf.Empty) returns (DeveloperFeeProposerOrganization){
+    rpc GetAssociationOrganizationForDeveloperFee(google.protobuf.Empty) returns (AssociationOrganizationForDeveloperFee){
         option (aelf.is_view) = true;
     }
 }
@@ -563,13 +563,13 @@ message ExtraTokenListModified {
     AllAvailableTokenInfo all_token_infos = 1;
 }
 
-message UserFeeProposerOrganization{
+message AssociationOrganizationForUserFee{
     aelf.Address root_organization = 1;
     aelf.Address parliament_organization = 2;
     aelf.Address referendum_organization = 3;
 }
 
-message DeveloperFeeProposerOrganization{
+message AssociationOrganizationForDeveloperFee{
     aelf.Address root_organization = 1;
     aelf.Address parliament_organization = 2;
     aelf.Address developer_organization = 3;

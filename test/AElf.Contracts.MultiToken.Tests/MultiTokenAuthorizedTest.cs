@@ -75,9 +75,9 @@ namespace AElf.Contracts.MultiToken
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetUsrFeeOrganization), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForUserFee), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new UserFeeProposerOrganization();
+            var organizationInfo = new AssociationOrganizationForUserFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromSender
@@ -167,9 +167,9 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForDeveloperFee), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new DeveloperFeeProposerOrganization();
+            var organizationInfo = new AssociationOrganizationForDeveloperFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromContract
@@ -268,9 +268,9 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeOrganization), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForDeveloperFee), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new DeveloperFeeProposerOrganization();
+            var organizationInfo = new AssociationOrganizationForDeveloperFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromContract
