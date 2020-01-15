@@ -247,7 +247,7 @@ namespace AElf.OS.Network
             
             await _serverService.SendTransaction(tx, reqBlockCtxt);
             
-            received?.Transactions.ShouldNotBeNull();
+            received.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
             received.Transactions.First().From.ShouldBe(tx.From);
         }
