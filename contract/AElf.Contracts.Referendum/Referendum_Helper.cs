@@ -93,7 +93,7 @@ namespace AElf.Contracts.Referendum
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
             var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime & hasOrganizationAddress;
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime && hasOrganizationAddress;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)
