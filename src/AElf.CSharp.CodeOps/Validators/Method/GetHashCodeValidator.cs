@@ -61,11 +61,13 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 
         private bool IsInequalityOperatorCall(MethodDefinition method)
         {
-            var parameterTypes = method.Parameters
-                .Select(p => p.ParameterType).Distinct().ToList();
+            if (!(method.Name == "op_Inequality" 
+                  && method.Parameters.Count == 2 
+                  && method.ReturnType.FullName == typeof(bool).FullName))
+                return false;
 
-            // All parameters should be of declaring type and also same type
-            return parameterTypes.Count == 1 && method.DeclaringType == parameterTypes.FirstOrDefault();
+            // Both input parameters should be of declaring type
+            return method.Parameters.All(p => p.ParameterType == method.DeclaringType);
         }
 
         private bool IsFieldGetterCall(MethodDefinition method)
