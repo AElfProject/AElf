@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using Mono.Cecil;
 
@@ -14,6 +15,8 @@ namespace AElf.CSharp.CodeOps
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
         readonly AbstractPolicy _priviligePolicy = new PrivilegePolicy();
+        
+        readonly AcsValidator _acsValidator = new AcsValidator();
 
         public ContractAuditor(IEnumerable<string> blackList, IEnumerable<string> whiteList)
         {
@@ -22,39 +25,33 @@ namespace AElf.CSharp.CodeOps
             blackList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Denied));
         }
 
-        public void Audit(byte[] code, bool priority)
+        public void Audit(byte[] code, RequiredAcsDto requiredAcs, bool priority)
         {
             var findings = new List<ValidationResult>();
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var policy = priority ? _priviligePolicy : _defaultPolicy;
+            
+            // Check against whitelist
+            findings.AddRange(policy.Whitelist.Validate(modDef));
 
-            // Do not validate further if contract assembly is not verifiable
-            if (findings.Count == 0)
+            // Run module validators
+            findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
+            
+            // Run assembly validators (run after module validators since we invoke BindService method below)
+            findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
+
+            // Run method validators
+            foreach (var typ in modDef.Types)
             {
-                // Check against whitelist
-                findings.AddRange(policy.Whitelist.Validate(modDef));
-
-                // Run module validators
-                findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
-                
-                // Run assembly validators (run after module validators since we invoke BindService method below)
-                findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
-
-                // Run method validators
-                foreach (var typ in modDef.Types)
+                foreach (var method in typ.Methods)
                 {
-                    #if UNIT_TEST
-                    // Skip validation if it is a coverlet injected type, only in unit test mode
-                    if (typ.Namespace.StartsWith("Coverlet."))
-                        continue;
-                    #endif
-                    foreach (var method in typ.Methods)
-                    {
-                        findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
-                    }
+                    findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
                 }
             }
+            
+            // Perform ACS validation
+            findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
 
             if (findings.Count > 0)
             {

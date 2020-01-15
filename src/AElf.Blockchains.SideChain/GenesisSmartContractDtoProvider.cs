@@ -19,6 +19,8 @@ namespace AElf.Blockchains.SideChain
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
 
         private readonly ConsensusOptions _consensusOptions;
+        private readonly ContractOptions _contractOptions;
+
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
         public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
@@ -29,6 +31,7 @@ namespace AElf.Blockchains.SideChain
         {
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
             _consensusOptions = consensusOptions.Value;
+            _contractOptions = contractOptions.Value;
             _codes = ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>(contractOptions.Value
                 .GenesisContractDir);
         }
@@ -76,10 +79,11 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationData));
-            
+
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationSmartContractAddressNameProvider.Name);
+                ConfigurationSmartContractAddressNameProvider.Name,
+                GenerateConfigurationInitializationCallList(chainInitializationData));
             
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Profit")).Value,
@@ -90,6 +94,7 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv => kv.Key.Contains("TokenHolder")).Value,
                 TokenHolderSmartContractAddressNameProvider.Name
             );
+
             return genesisSmartContractDtoList;
         }
     }

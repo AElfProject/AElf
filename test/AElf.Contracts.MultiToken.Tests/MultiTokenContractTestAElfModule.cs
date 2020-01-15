@@ -6,6 +6,7 @@ using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
+
 namespace AElf.Contracts.MultiToken
 {
     [DependsOn(typeof(ContractTestModule))]
@@ -17,7 +18,7 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 
@@ -30,9 +31,20 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.AddSingleton<IInlineTransactionValidationProvider, AElf.Kernel.Consensus.AEDPoS.Application.InlineTransferFromValidationProvider>();
-            context.Services.AddSingleton<IInlineTransactionValidationProvider, AElf.CrossChain.InlineTransferFromValidationProvider>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            context.Services
+                .AddSingleton<IInlineTransactionValidationProvider,
+                    AElf.Kernel.Consensus.AEDPoS.Application.InlineTransferFromValidationProvider>();
+            context.Services
+                .AddSingleton<IInlineTransactionValidationProvider, AElf.CrossChain.InlineTransferFromValidationProvider
+                >();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            
+            Configure<HostSmartContractBridgeContextOptions>(options =>
+            {
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,STO,READ,NET";
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK";
+            });
         }
     }
 }
