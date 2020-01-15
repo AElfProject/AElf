@@ -50,7 +50,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 var eventData = new CodeCheckRequired();
                 eventData.MergeFrom(logEvent);
-                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray());
+                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray(),
+                    transactionResult.BlockHash, transactionResult.BlockNumber);
                 if (!codeCheckResult)
                     return;
 

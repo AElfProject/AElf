@@ -28,15 +28,21 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditorFixture : IDisposable
     {
         private ContractAuditor _auditor;
+        private readonly RequiredAcsDto _requiredAcs;
 
         public ContractAuditorFixture()
         {
             _auditor = new ContractAuditor(null, null);
+            _requiredAcs = new RequiredAcsDto
+            {
+                AcsList = new [] {"acs1", "acs8"}.ToList(), 
+                RequireAll = false
+            };
         }
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, false);
+            _auditor.Audit(code, _requiredAcs, false);
         }
 
         public void Dispose()
