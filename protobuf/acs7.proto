@@ -88,13 +88,6 @@ message CrossChainExtraData {
     aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 
-enum SideChainStatus
-{
-    FATAL = 0;
-    ACTIVE = 1;
-    TERMINATED = 2;
-}
-
 message SideChainIdAndHeightDict {
     map<int32, int64> id_height_dict = 1;
 }
@@ -130,16 +123,6 @@ message ChainInitializationData {
     string side_chain_token_symbol = 7;
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
     map<string, sint32> initial_resource_amount = 9;
-}
-
-message SideChainInfo {
-    SideChainCreationRequest side_chain_creation_request = 1;
-    aelf.Address proposer = 2;
-    SideChainStatus side_chain_status = 3;
-    int32 side_chain_id = 4;
-    aelf.Hash proposal_hash = 5;
-    google.protobuf.Timestamp creation_timestamp = 6;
-    int64 creation_height_on_parent_chain = 7;
 }
 
 message SideChainCreationRequest {
