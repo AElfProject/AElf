@@ -177,6 +177,10 @@ namespace AElf.CSharp.CodeOps
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
+
+            var getHashCodeFindings = findings.Where(f => f is GetHashCodeValidationResult).ToList();
+            LookFor(getHashCodeFindings, "TestGetHashCodeCall", f => f != null).ShouldNotBeNull();
+            LookFor(getHashCodeFindings, "GetHashCode", f => f != null).ShouldNotBeNull();
         }
 
         [Fact]
