@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -9,6 +12,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Association
 {
@@ -22,6 +26,9 @@ namespace AElf.Contracts.Association
         protected Address Reviewer1 => Address.FromPublicKey(Reviewer1KeyPair.PublicKey);
         protected Address Reviewer2 => Address.FromPublicKey(Reviewer2KeyPair.PublicKey);
         protected Address Reviewer3 => Address.FromPublicKey(Reviewer3KeyPair.PublicKey);
+        
+        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            SampleECKeyPairs.KeyPairs.Take(5).ToList();
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
@@ -29,15 +36,18 @@ namespace AElf.Contracts.Association
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address AssociationContractAddress { get; set; }
+        protected Address ParliamentContractAddress { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; set; }
 
         internal AssociationContractContainer.AssociationContractStub AnotherChainAssociationContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         
         private byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] ParliamentContractCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
 
         protected void DeployContracts()
         {
@@ -48,7 +58,7 @@ namespace AElf.Contracts.Association
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     AssociationContractCode,
-                    ParliamentSmartContractAddressNameProvider.Name,
+                    AssociationSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair
                 ));
 
@@ -61,6 +71,16 @@ namespace AElf.Contracts.Association
                     DefaultSenderKeyPair));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeTokenAsync());
+
+            ParliamentContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ParliamentContractCode,
+                    ParliamentSmartContractAddressNameProvider.Name,
+                    DefaultSenderKeyPair
+                ));
+            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitializeParliamentContract());
         }
         
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -78,6 +98,10 @@ namespace AElf.Contracts.Association
             return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, keyPair);
         }
 
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+        }
         private async Task InitializeTokenAsync()
         {
             const string symbol = "ELF";
@@ -98,6 +122,19 @@ namespace AElf.Contracts.Association
                 To = DefaultSender,
                 Memo = "Issue token to default user.",
             });
+        }
+
+        private async Task InitializeParliamentContract()
+        {
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                PrivilegedProposer = DefaultSender,
+                ProposerAuthorityRequired = true
+            });
+            if (!string.IsNullOrEmpty(initializeResult.TransactionResult.Error))
+            {
+                throw new Exception(initializeResult.TransactionResult.Error);
+            }
         }
     }
 }

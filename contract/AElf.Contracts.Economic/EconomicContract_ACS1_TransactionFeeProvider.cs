@@ -17,6 +17,7 @@ namespace AElf.Contracts.Economic
 
         public override AuthorityStuff GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 

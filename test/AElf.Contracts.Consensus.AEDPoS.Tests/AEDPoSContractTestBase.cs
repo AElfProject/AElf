@@ -1,9 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
@@ -14,6 +16,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -80,6 +83,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
         
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(BootMinerKeyPair);
+        
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
         {
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
@@ -115,6 +121,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
         
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+        }
+        
         protected async Task InitializeCandidates(int take = EconomicContractsTestConstants.ValidateDataCenterCount)
         {
             foreach (var candidatesKeyPair in ValidationDataCenterKeyPairs.Take(take))
@@ -139,6 +150,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
                 out var nextRound);
             await AEDPoSContractStub.NextRound.SendAsync(nextRound);
+        }
+
+        protected async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = organizationAddress,
+                ContractMethodName = methodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = ConsensusContractAddress
+            };
+            
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            var proposalId =
+                HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+
+            return proposalId;
+        }
+
+        protected async Task ApproveWithMinersAsync(Hash proposalId)
+        {
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalId);
+                approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            }
         }
     }
 }

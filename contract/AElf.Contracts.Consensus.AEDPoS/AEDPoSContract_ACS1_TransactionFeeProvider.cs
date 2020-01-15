@@ -18,6 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override AuthorityStuff GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 

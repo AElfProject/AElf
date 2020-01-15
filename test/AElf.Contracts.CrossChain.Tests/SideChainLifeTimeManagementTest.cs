@@ -1019,5 +1019,65 @@ namespace AElf.Contracts.CrossChain.Tests
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
             }
         }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+
+            var methodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            const string proposalCreationMethodName =
+                nameof(CrossChainContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateParliamentProposalAsync(proposalCreationMethodName,
+                methodFeeController.OwnerAddress,
+                new AuthorityStuff
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_WithoutAuth_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+            var methodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var result = await CrossChainContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
+                new AuthorityStuff
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
     }
 }

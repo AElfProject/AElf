@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
+using Acs1;
+using Acs3;
 using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -156,6 +158,71 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 resourceTokenAmount.Value.Keys.ShouldContain("NET");
                 resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
             }
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+
+            var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
+            const string proposalCreationMethodName =
+                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName,
+                new AuthorityStuff
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
+            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_WithoutAuth_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController),
+                new AuthorityStuff()
+                {
+                    OwnerAddress = Tester.GetCallOwnerAddress(),
+                    ContractAddress = ParliamentAddress
+                });
+
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+
+            // Invalid organization address
+            var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
+            const string proposalCreationMethodName =
+                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName,
+                new AuthorityStuff
+                {
+                    OwnerAddress = SampleAddress.AddressList[4],
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult2.Error.Contains("Invalid authority input.").ShouldBeTrue();
         }
     }
 }

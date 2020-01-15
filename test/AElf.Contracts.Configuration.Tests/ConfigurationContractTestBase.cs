@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
@@ -117,6 +120,31 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 });
             var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
             return proposalId;
+        }
+
+        protected async Task<Hash> CreateProposalAsync(ContractTester<ConfigurationContractTestAElfModule> tester,
+            Address contractAddress, Address organizationAddress, string methodName, IMessage input)
+        {
+            var configContract = tester.GetContractAddress(Hash.FromString("AElf.ContractNames.Configuration"));
+            var proposal = await tester.ExecuteContractWithMiningAsync(contractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
+                new CreateProposalInput
+                {
+                    ContractMethodName = methodName,
+                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                    Params = input.ToByteString(),
+                    ToAddress = configContract,
+                    OrganizationAddress = organizationAddress
+                });
+            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            return proposalId;
+        }
+
+        protected async Task<AuthorityStuff> GetMethodFeeController(Address configurationContractAddress)
+        {
+            var methodFeeControllerByteString = await Tester.CallContractMethodAsync(configurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.GetMethodFeeController), new Empty());
+            return AuthorityStuff.Parser.ParseFrom(methodFeeControllerByteString);
         }
     }
 }

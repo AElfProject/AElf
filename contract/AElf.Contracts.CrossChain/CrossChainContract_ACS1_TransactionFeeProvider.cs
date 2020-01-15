@@ -17,6 +17,7 @@ namespace AElf.Contracts.CrossChain
 
         public override AuthorityStuff GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 
