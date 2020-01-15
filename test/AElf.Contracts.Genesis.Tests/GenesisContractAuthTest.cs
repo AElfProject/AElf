@@ -5,6 +5,7 @@ using Acs0;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -195,11 +196,10 @@ namespace AElf.Contracts.Genesis
             newHash.ShouldBe(codeHash);
         }
 
-        // [Fact(Skip = "Skip due to need task delay.")]
-        [Fact]
+        [Fact(Skip = "Skip due to need very long task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var contractCode = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll.patched"));
+            var contractCode = ContractPatcher.Patch(ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll")));
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory,
@@ -226,6 +226,11 @@ namespace AElf.Contracts.Genesis
                 });
 
             // Wait for contract code check event handler to finish its job
+            // await Task.Run(async () => 
+            // {
+            //     await Task.Delay(15000);
+            // });
+            
             // Mine a block, should include approval transaction
             var block = await Tester.MineEmptyBlockAsync();
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
