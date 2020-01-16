@@ -73,14 +73,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public void SyncCache(List<BlockIndex> blockIndexes)
         {
-            Logger.LogDebug($"#### syn cache about token list");
             _cacheProvider.SyncCache(blockIndexes);
-            Logger.LogDebug($"#### after syn");
-            var normalCache = _cacheProvider.GetExtraAcceptedTokensInfoFromNormalCache();
-            foreach (var tt in normalCache)
-            {
-                Logger.LogDebug($"#### token symbol {tt.TokenSymbol}  add weight {tt.AddedTokenWeight}");
-            }
         }
 
         private async Task<List<AvailableTokenInfoInCache>> GetExtraAcceptedTokensInfoFromCacheAsync()
