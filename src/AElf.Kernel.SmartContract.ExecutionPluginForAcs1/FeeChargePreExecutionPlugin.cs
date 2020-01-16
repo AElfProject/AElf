@@ -93,6 +93,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 };
                 var extraAvailableTokenList =
                     await _extraAcceptedTokenService.GetExtraAcceptedTokensInfoAsync(chainContext);
+                if (extraAvailableTokenList == null)
+                    Logger.LogDebug("#### token list is null");
                 if (extraAvailableTokenList != null)
                 {
                     foreach (var tokenInfo in extraAvailableTokenList)
@@ -103,6 +105,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                             BaseTokenWeight = tokenInfo.BaseTokenWeight,
                             AddedTokenWeight = tokenInfo.AddedTokenWeight
                         });
+                        Logger.LogDebug($"#### token :{tokenInfo.TokenSymbol}, added weight {tokenInfo.AddedTokenWeight}");
                     }
                 }
 
