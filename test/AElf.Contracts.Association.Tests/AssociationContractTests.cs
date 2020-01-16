@@ -812,24 +812,49 @@ namespace AElf.Contracts.Association
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
 
             var methodFeeController = await AssociationContractStub.GetMethodFeeController.CallAsync(new Empty());
-            const string proposalCreationMethodName =
-                nameof(AssociationContractStub.ChangeMethodFeeController);
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
 
-            var proposalId = await CreateFeeProposalAsync(methodFeeController.ContractAddress,
+            const string proposalCreationMethodName = nameof(AssociationContractStub.ChangeMethodFeeController);
+
+            var proposalId = await CreateFeeProposalAsync(AssociationContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
                 {
                     OwnerAddress = organizationAddress,
-                    ContractAddress = methodFeeController.ContractAddress
+                    ContractAddress = ParliamentContractAddress
                 });
 
-            //TODO
-            //await ApproveWithMinersAsync(proposalId);
-//            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
-//            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
-//            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-//
-//            var newMethodFeeController = await AssociationContractStub.GetMethodFeeController.CallAsync(new Empty());
-//            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await AssociationContractStub.GetMethodFeeController.CallAsync(new Empty());
+            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_WithoutAuth_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new Parliament.CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+            var result = await AssociationContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityStuff
+            {
+                OwnerAddress = organizationAddress,
+                ContractAddress = ParliamentContractAddress
+            });
+
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
         
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
@@ -964,7 +989,7 @@ namespace AElf.Contracts.Association
                 ContractMethodName = methodName,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
                 Params = input.ToByteString(),
-                ToAddress = AssociationContractAddress
+                ToAddress = contractAddress
             };
             
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);

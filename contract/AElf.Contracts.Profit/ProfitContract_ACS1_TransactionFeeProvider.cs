@@ -41,6 +41,7 @@ namespace AElf.Contracts.Profit
 
         public override AuthorityStuff GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 

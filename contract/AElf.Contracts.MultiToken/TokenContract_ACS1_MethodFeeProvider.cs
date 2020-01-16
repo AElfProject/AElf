@@ -45,6 +45,7 @@ namespace AElf.Contracts.MultiToken
 
         public override AuthorityStuff GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 

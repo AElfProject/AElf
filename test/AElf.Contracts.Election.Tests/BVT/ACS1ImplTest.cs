@@ -10,22 +10,10 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.Profit.BVT
+namespace AElf.Contracts.Election
 {
-    public partial class ProfitContractTests
+    public partial class ElectionContractTests
     {
-        [Fact]
-        public async Task ProfitContract_SetMethodFee_WithoutPermission_Test()
-        {
-            //no permission
-            var transactionResult = await ProfitContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
-            {
-                MethodName = "OnlyTest"
-            });
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
-        }
-
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
@@ -41,12 +29,12 @@ namespace AElf.Contracts.Profit.BVT
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
 
-            var methodFeeController = await ProfitContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var methodFeeController = await ElectionContractStub.GetMethodFeeController.CallAsync(new Empty());
             var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
 
-            const string proposalCreationMethodName = nameof(ProfitContractStub.ChangeMethodFeeController);
-            var proposalId = await CreateProposalAsync(ProfitContractAddress,
+            const string proposalCreationMethodName = nameof(ElectionContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(ElectionContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
                 {
                     OwnerAddress = organizationAddress,
@@ -57,7 +45,7 @@ namespace AElf.Contracts.Profit.BVT
             releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var newMethodFeeController = await ProfitContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var newMethodFeeController = await ElectionContractStub.GetMethodFeeController.CallAsync(new Empty());
             newMethodFeeController.OwnerAddress.ShouldBe(organizationAddress);
         }
 
@@ -75,7 +63,7 @@ namespace AElf.Contracts.Profit.BVT
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await ProfitContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityStuff
+            var result = await ElectionContractStub.ChangeMethodFeeController.SendAsync(new AuthorityStuff
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress
@@ -105,7 +93,7 @@ namespace AElf.Contracts.Profit.BVT
 
         private async Task ApproveWithMinersAsync(Hash proposalId)
         {
-            foreach (var bp in CreatorKeyPair)
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
                 var approveResult = await tester.Approve.SendAsync(proposalId);

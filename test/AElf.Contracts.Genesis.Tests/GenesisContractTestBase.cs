@@ -267,5 +267,13 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractDeploymentController), new Empty());
             return AuthorityStuff.Parser.ParseFrom(contractDeploymentControllerByteString);
         }
+
+        internal async Task<AuthorityStuff> GetMethodFeeController<T>(
+            ContractTester<T> tester, Address genesisContractAddress) where T : ContractTestAElfModule
+        {
+            var methodFeeControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetMethodFeeController), new Empty());
+            return AuthorityStuff.Parser.ParseFrom(methodFeeControllerByteString);
+        }
     }
 }
