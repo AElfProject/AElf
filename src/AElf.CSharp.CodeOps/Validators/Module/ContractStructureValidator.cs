@@ -29,6 +29,15 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             typeof(Func<,>).FullName,
             typeof(Func<,,>).FullName,
         };
+        
+        private readonly HashSet<string> _allowedStateTypes = new HashSet<string>
+        {
+            typeof(MappedState<,>).FullName,
+            typeof(MappedState<,,>).FullName,
+            typeof(MappedState<,,,>).FullName,
+            typeof(MappedState<,,,,>).FullName,
+            typeof(MethodReference<,>).FullName,
+        };
 
         public ContractStructureValidator()
         {
@@ -60,6 +69,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             var contractState = contractBase.BaseType is GenericInstanceType genericType
                 ? genericType.GenericArguments.Single()
                 : null;
+            
+            // Do some other checks here to restrict more
                 
             return Enumerable.Empty<ValidationResult>();
         }
@@ -77,7 +88,16 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private IEnumerable<ValidationResult> ValidateContractStateType(TypeDefinition type)
         {
-            // Only allow MappedState or ContractReferenceState fields
+            // Only allow MappedState, ContractReferenceState or MethodReference fields
+            var badFields = type.Fields.Where(IsBadStateField).ToList();
+            
+            if (badFields.Any())
+            {
+                return badFields.Select(f => 
+                    new ContractStructureValidatorResult(
+                            $"{f.FieldType.FullName} type is not allowed as a field in contract state.")
+                        .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
+            }
             
             return Enumerable.Empty<ValidationResult>();
         }
@@ -143,6 +163,17 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 
             // Then it should be a constant (and it has to be a primitive type if constant)
             return field.Constant == null;
+        }
+
+        private bool IsBadStateField(FieldDefinition field)
+        {
+            if (field.FieldType is GenericInstanceType genericInstanceType)
+            {
+                return !_allowedStateTypes.Contains(genericInstanceType.ElementType.FullName);
+            }
+            
+            // If not ContractReferenceState then it is not allowed
+            return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
         }
 
         private GenericInstanceType FindGenericInstanceType(TypeDefinition type)
