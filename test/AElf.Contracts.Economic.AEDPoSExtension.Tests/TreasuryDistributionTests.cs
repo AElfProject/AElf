@@ -83,12 +83,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check amount distributed to each scheme.
             {
-                // Miner Basic Reward: -40% (Burned)
+                // Miner Basic Reward: 40%
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount * 2 / 5);
+                    amount.ShouldBe(distributedAmount * 2 / 5);
                 }
 
                 // Backup Subsidy: 20%
@@ -190,7 +190,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(12);
+                    var previousTermInformation =
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2}).Result;
+                    totalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
@@ -331,7 +334,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(17);
+                    var previousTermInformation =
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                    totalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
