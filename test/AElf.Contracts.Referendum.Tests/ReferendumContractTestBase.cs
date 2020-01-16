@@ -21,11 +21,11 @@ namespace AElf.Contracts.Referendum
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        
+
         protected Address TokenContractAddress { get; set; }
         protected Address ReferendumContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        
+
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
@@ -36,18 +36,8 @@ namespace AElf.Contracts.Referendum
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
-            
-            //deploy Referendum contract
-            ReferendumContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumContract).Assembly.Location)),
-                    Name = Hash.FromString("AElf.ContractNames.Referendum"),
-                    TransactionMethodCallList = GenerateReferendumInitializationCallList()
-                })).Output;
-            ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
-            
+
+            // deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -58,6 +48,17 @@ namespace AElf.Contracts.Referendum
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+
+            //deploy Referendum contract
+            ReferendumContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumContract).Assembly.Location)),
+                    Name = ReferendumSmartContractAddressNameProvider.Name,
+                    TransactionMethodCallList = GenerateReferendumInitializationCallList()
+                })).Output;
+            ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -74,15 +75,17 @@ namespace AElf.Contracts.Referendum
         {
             return GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress, keyPair);
         }
-        
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateReferendumInitializationCallList()
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateReferendumInitializationCallList()
         {
             var referendumContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             referendumContractCallList.Add(nameof(ReferendumContract.Initialize), new Empty());
             return referendumContractCallList;
         }
-        
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
@@ -94,11 +97,7 @@ namespace AElf.Contracts.Referendum
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
-                Issuer = DefaultSender,
-                LockWhiteList =
-                {
-                    ReferendumContractAddress
-                }
+                Issuer = DefaultSender
             });
 
             //issue default user
@@ -109,9 +108,9 @@ namespace AElf.Contracts.Referendum
                 To = DefaultSender,
                 Memo = "Issue token to default user.",
             });
-            
+
             //issue some user
-            for (int i = 1; i <6; i++)
+            for (int i = 1; i < 6; i++)
             {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
@@ -121,9 +120,10 @@ namespace AElf.Contracts.Referendum
                     Memo = "Issue token to users"
                 });
             }
+
             return tokenContractCallList;
         }
-        
+
         protected async Task<long> GetBalanceAsync(string symbol, Address owner)
         {
             var balanceResult = await TokenContractStub.GetBalance.CallAsync(

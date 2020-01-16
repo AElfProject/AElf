@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -7,6 +8,7 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -158,6 +160,37 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 resourceTokenAmount.Value.Keys.ShouldContain("NET");
                 resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
             }
+        }
+
+        [Fact]
+        public async Task SetRequiredAcsInContracts_NoPermission()
+        {
+            var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
+                new RequiredAcsInContracts());
+            
+            var test = new RequiredAcsInContracts();
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("No permission.");
+        }
+
+        [Fact]
+        public async Task SetRequiredAcsInContracts_Test()
+        {
+            var contractFeeChargingPolicy = new RequiredAcsInContracts
+            {
+                AcsList = {"acsx", "acsy"}
+            };
+            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress, contractFeeChargingPolicy, 
+                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts));
+            proposalId.ShouldNotBeNull();
+            await ApproveWithMinersAsync(proposalId);
+            var releaseTxResult = await ReleaseProposalAsync(proposalId);
+            releaseTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var actual = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts), new Empty());
+            RequiredAcsInContracts.Parser.ParseFrom(actual).ShouldBe(contractFeeChargingPolicy);
         }
 
         [Fact]

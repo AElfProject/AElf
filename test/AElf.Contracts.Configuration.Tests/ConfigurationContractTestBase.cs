@@ -57,18 +57,31 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         internal async Task<Hash> SetBlockTransactionLimitProposalAsync(int amount)
         {
             var createProposalInput = SetBlockTransactionLimitRequest(amount);
+            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+            var proposalId =
+                await CreateProposalAsync(organizationAddress, createProposalInput, "SetBlockTransactionLimit");
+            return proposalId;
+        }
+
+        internal async Task<Address> GetParliamentDefaultOrganizationAddressAsync()
+        {
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
                     nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
+            return organizationAddress;
+        }
+
+        internal async Task<Hash> CreateProposalAsync(Address organizationAddress, IMessage input, string methodName)
+        {
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
-                    ContractMethodName = "SetBlockTransactionLimit",
+                    ContractMethodName = methodName,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = createProposalInput.ToByteString(),
+                    Params = input.ToByteString(),
                     ToAddress = ConfigurationContractAddress,
                     OrganizationAddress = organizationAddress
                 });

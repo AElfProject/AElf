@@ -717,6 +717,31 @@ namespace AElf.Contracts.TestBase
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize),
                 new Parliament.InitializeInput());
 
+            var configurationContractCallList =
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            configurationContractCallList.Add(
+                nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens), new ResourceTokenAmount
+                {
+                    Value =
+                    {
+                        {"CPU", SmartContractTestConstants.ResourceSupply},
+                        {"RAM", SmartContractTestConstants.ResourceSupply},
+                        {"DISK", SmartContractTestConstants.ResourceSupply},
+                        {"NET", SmartContractTestConstants.ResourceSupply},
+                    }
+                });
+            configurationContractCallList.Add(
+                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
+                new RequiredAcsInContracts
+                {
+                    AcsList =
+                    {
+                        Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
+                            .Value.ContractFeeStrategyAcsList
+                    }
+                });
+
+
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name,
@@ -725,27 +750,8 @@ namespace AElf.Contracts.TestBase
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ConfigurationContractCode,
-                    ConfigurationSmartContractAddressNameProvider.Name, new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-                    {
-                        Value =
-                        {
-                            new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
-                            {
-                                MethodName = nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens),
-                                Params = new ResourceTokenAmount
-                                {
-                                    Value =
-                                    {
-                                        {"CPU", SmartContractTestConstants.ResourceSupply},
-                                        {"RAM", SmartContractTestConstants.ResourceSupply},
-                                        {"DISK", SmartContractTestConstants.ResourceSupply},
-                                        {"NET", SmartContractTestConstants.ResourceSupply},
-                                    }
-                                }.ToByteString()
-                            }
-                        }
-                    });
+                list.AddGenesisSmartContract(ConfigurationContractCode, ConfigurationSmartContractAddressNameProvider.Name, 
+                    configurationContractCallList);
                 list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
             };
         }

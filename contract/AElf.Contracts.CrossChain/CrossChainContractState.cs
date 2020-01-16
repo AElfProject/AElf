@@ -23,6 +23,9 @@ namespace AElf.Contracts.CrossChain
         
         public MappedState<Address, SideChainCreationRequest> ProposedSideChainCreationRequest { get; set; }
 
+        public MappedState<int, SideChainCreationRequest> AcceptedSideChainCreationRequest { get; set; }
+
+
         public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
         
         #region side chain

@@ -22,6 +22,8 @@ service Configuration {
     }
     rpc InitialTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
     }
+    rpc SetRequiredAcsInContracts (RequiredAcsInContracts) returns (google.protobuf.Empty) {
+    }
     rpc UpdateTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
     }
     // Views
@@ -40,10 +42,18 @@ service Configuration {
     rpc GetTotalResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
+    rpc GetRequiredAcsInContracts (google.protobuf.Empty) returns (RequiredAcsInContracts) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ResourceTokenAmount {
     map<string, sint32> value = 1;
+}
+
+message RequiredAcsInContracts {
+    repeated string acs_list = 1;
+    bool require_all = 2;
 }
 
 message RentResourceTokensInput {
