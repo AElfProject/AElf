@@ -54,6 +54,7 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[fromAddress][tokenToAmount.Key] =
                     State.Balances[fromAddress][tokenToAmount.Key].Sub(tokenToAmount.Value);
                 transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
+                Context.LogDebug(() => $"#### symbol: {tokenToAmount.Key} , amount :{tokenToAmount.Value}");
             }
 
             transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
@@ -151,7 +152,7 @@ namespace AElf.Contracts.MultiToken
             {
                 bill.TokenToAmount.Add(availableTokenSymbol, chargeAmount);
             }
-
+            Context.LogDebug(() => "#### is charge fee sufficient {availableBalance >= txSizeFeeAmount} ");
             return availableBalance >= txSizeFeeAmount;
         }
 
