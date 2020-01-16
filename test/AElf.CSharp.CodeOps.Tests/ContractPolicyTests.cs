@@ -178,7 +178,7 @@ namespace AElf.CSharp.CodeOps
                 "System.DateTime"
             };
 
-            _auditor = new ContractAuditor(whiteList, blackList);
+            _auditor = new ContractAuditor(blackList, whiteList);
 
             Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, true));
         }
