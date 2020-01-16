@@ -54,24 +54,7 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditorTests : CSharpCodeOpsTestBase, IClassFixture<ContractAuditorFixture>
     {
         private readonly ContractAuditorFixture _auditorFixture;
-        private readonly string _contractDllDir = "../../../contracts/";
-
-        private readonly Type[] _contracts =
-        {
-            typeof(AssociationContract),
-            typeof(ConfigurationContract),
-            typeof(AEDPoSContract),
-            typeof(CrossChainContract),
-            typeof(EconomicContract),
-            typeof(ElectionContract),
-            typeof(BasicContractZero),
-            typeof(TokenContract),
-            typeof(ParliamentContract),
-            typeof(ProfitContract),
-            typeof(ReferendumContract),
-            typeof(TokenConverterContract),
-            typeof(TreasuryContract)
-        };
+        private const string ContractDllDir = "../../../contracts/";
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)
         {
@@ -80,22 +63,30 @@ namespace AElf.CSharp.CodeOps
         }
 
         #region Positive Cases
-
-        [Fact]
-        public void CheckSystemContracts_AllShouldPass()
+        
+        [Theory]
+        [InlineData(typeof(AssociationContract))]
+        [InlineData(typeof(ConfigurationContract))]
+        [InlineData(typeof(AEDPoSContract))]
+        [InlineData(typeof(CrossChainContract))]
+        [InlineData(typeof(EconomicContract))]
+        [InlineData(typeof(ElectionContract))]
+        [InlineData(typeof(BasicContractZero))]
+        [InlineData(typeof(TokenContract))]
+        [InlineData(typeof(ParliamentContract))]
+        [InlineData(typeof(ProfitContract))]
+        [InlineData(typeof(ReferendumContract))]
+        [InlineData(typeof(TokenConverterContract))]
+        [InlineData(typeof(TreasuryContract))]
+        public void CheckSystemContracts_AllShouldPass(Type contractType)
         {
-            // Load the DLL's from contracts folder to prevent codecov injection
-            foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module + ".patched"))
-            {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
-            }
+            Should.NotThrow(()=>_auditorFixture.Audit(ReadPatchedContractCode(contractType)));
         }
 
         [Fact]
         public void ContractPatcher_Test()
         {
-            const string contract = "AElf.Contracts.MultiToken.dll";
-            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var code = ReadContractCode(typeof(TokenContract));
             var updateCode = ContractPatcher.Patch(code);
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(() => _auditorFixture.Audit(updateCode));
@@ -110,7 +101,7 @@ namespace AElf.CSharp.CodeOps
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module)))
+                ()=>_auditorFixture.Audit(ReadContractCode(typeof(BadContract))))
                 .Findings;
             
             // Should have identified that ACS1 or ACS8 is not there
@@ -191,7 +182,7 @@ namespace AElf.CSharp.CodeOps
             // Here, we use any contract that contains unchecked math OpCode even with "Check for arithmetic overflow"
             // checked in the project. If first section of below test case fails, need to create another contract  
             // that iterates an array with foreach loop.
-            var contractCode = ReadCode(_contractDllDir + typeof(TransactionFeesContract).Module);
+            var contractCode = ReadCode(ContractDllDir + typeof(TransactionFeesContract).Module);
             
             var findings = Should.Throw<InvalidCodeException>(
                     ()=>_auditorFixture.Audit(contractCode))
@@ -219,6 +210,16 @@ namespace AElf.CSharp.CodeOps
         {
             return findings.Select(f => f.Info)
                 .FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
+        }
+
+        byte[] ReadContractCode(Type contractType)
+        {
+            return ReadCode(ContractDllDir + contractType.Module);
+        }
+
+        byte[] ReadPatchedContractCode(Type contractType)
+        {
+            return ReadCode(ContractDllDir + contractType.Module + ".patched");
         }
 
         #endregion
