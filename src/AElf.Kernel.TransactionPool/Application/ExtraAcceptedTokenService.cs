@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class ExtraAcceptedTokenService : IExtraAcceptedTokenService, ISingletonDependency
+    internal class ExtraAcceptedTokenService : IExtraAcceptedTokenService, ITransientDependency
     {
         private readonly IExtraAcceptedTokensCacheProvider _cacheProvider;
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;

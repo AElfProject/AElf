@@ -220,7 +220,7 @@ namespace AElf.Contracts.MultiToken
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
-            Assert(primaryTokenSymbol != null, "primary token does not exist");
+            Assert(string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
             foreach (var tokenInfo in input.AllAvailableTokens)
             {
                 if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
@@ -234,7 +234,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenInfo.TokenSymbol);
             }
-            Assert(isPrimaryTokenExist, $"primary token:{State.NativeTokenSymbol.Value} not included");
+            Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
             State.ExtraAvailableTokenInfos.Value = input;
             Context.Fire(new ExtraTokenListModified
             {
@@ -553,8 +553,8 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
-            Assert(calculatedAuthorizedAddress == Context.Sender, "no permission");
+            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -573,8 +573,8 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var calculatedAuthorizedAddress = CalculateCombinedAssociationAddress(State.SideChainCreator.Value);
-            Assert(calculatedAuthorizedAddress == Context.Sender, "no permission");
+            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -696,8 +696,15 @@ namespace AElf.Contracts.MultiToken
                 return long.MaxValue;
             }
         }
+        private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
+        {
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
+                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+        }
 
-        private Address CalculateCombinedAssociationAddress(Address sideChainCreator)
+        private Address GetControllerForRental(Address sideChainCreator)
         {
             var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             var proposers = new List<Address> {parliamentAddress,sideChainCreator}; 
@@ -719,22 +726,14 @@ namespace AElf.Contracts.MultiToken
                     MaximalAbstentionThreshold = 0
                 }
             };
-            var address = CalculateSideChainRentalControllerOrganizationAddress(createOrganizationInput);
+            var address = CalculateSideChainRentalController(createOrganizationInput);
             return address;
         }
-        private Address CalculateSideChainRentalControllerOrganizationAddress(
+        private Address CalculateSideChainRentalController(
             CreateOrganizationInput input)
         {
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
-        }
-
-        private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
-        {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
-                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
         }
     }
 }

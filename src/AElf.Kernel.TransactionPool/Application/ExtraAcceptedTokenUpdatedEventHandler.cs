@@ -12,12 +12,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class ExtraAcceptedTokenUpdatedEventHandle : IBlockAcceptedLogEventHandler
+    public class ExtraAcceptedTokenUpdatedEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
         private LogEvent _interestedEvent;
-        private ILogger<ExtraAcceptedTokenUpdatedEventHandle> Logger { get; set; }
+        private ILogger<ExtraAcceptedTokenUpdatedEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -35,12 +35,12 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public ExtraAcceptedTokenUpdatedEventHandle(ISmartContractAddressService smartContractAddressService,
+        public ExtraAcceptedTokenUpdatedEventHandler(ISmartContractAddressService smartContractAddressService,
             IExtraAcceptedTokenService extraAcceptedTokenService)
         {
             _smartContractAddressService = smartContractAddressService;
             _extraAcceptedTokenService = extraAcceptedTokenService;
-            Logger = NullLogger<ExtraAcceptedTokenUpdatedEventHandle>.Instance;
+            Logger = NullLogger<ExtraAcceptedTokenUpdatedEventHandler>.Instance;
         }
 
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)

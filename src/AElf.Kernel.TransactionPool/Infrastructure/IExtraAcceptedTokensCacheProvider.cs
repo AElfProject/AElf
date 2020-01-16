@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.SmartContract.Application;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
@@ -15,7 +16,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         void SyncCache(List<BlockIndex> blockIndexes);
         BlockIndex[] GetForkCacheKeys();
     }
-    public class ExtraAcceptedTokensCacheProvider : IExtraAcceptedTokensCacheProvider
+    public class ExtraAcceptedTokensCacheProvider : IExtraAcceptedTokensCacheProvider, ISingletonDependency
     {
         private List<AvailableTokenInfoInCache> _cache;
 

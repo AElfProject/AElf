@@ -39,8 +39,8 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
-        public SingletonState<AssociationOrganizationForUserFee> AssociationOrganizationForUserFee { get; set; }
-        public SingletonState<AssociationOrganizationForDeveloperFee> AssociationOrganizationForDeveloperFee { get; set; }
+        public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
+        public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
         public SingletonState<Address> DefaultProposer { get; set; }
 
         /// <summary>

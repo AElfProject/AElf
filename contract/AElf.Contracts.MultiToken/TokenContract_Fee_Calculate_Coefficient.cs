@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForDeveloperFee.Value.RootOrganization, "no permission");
+            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.RootController, "no permission");
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
             if (coefficientInfoInState == null)
                 return new Empty();
@@ -45,7 +45,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.AssociationOrganizationForUserFee.Value.RootOrganization, "no permission");
+            Assert(Context.Sender == State.ControllerForUserFee.Value.RootController, "no permission");
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
             if (coefficientInfoInState == null)
             {

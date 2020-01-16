@@ -143,13 +143,13 @@ namespace AElf.Contracts.MultiToken
         {
             return State.ExtraAvailableTokenInfos.Value;
         }
-        public override AssociationOrganizationForUserFee GetAssociationOrganizationForUserFee(Empty input)
+        public override ControllerForUserFee GetUserFeeController(Empty input)
         {
-            return State.AssociationOrganizationForUserFee.Value;
+            return State.ControllerForUserFee.Value;
         }
-        public override AssociationOrganizationForDeveloperFee GetAssociationOrganizationForDeveloperFee(Empty input)
+        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
         {
-            return State.AssociationOrganizationForDeveloperFee.Value;
+            return State.ControllerForDeveloperFee.Value;
         }
     }
 }

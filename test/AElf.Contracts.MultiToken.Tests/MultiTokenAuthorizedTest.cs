@@ -75,9 +75,9 @@ namespace AElf.Contracts.MultiToken
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForUserFee), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetUserFeeController), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new AssociationOrganizationForUserFee();
+            var organizationInfo = new ControllerForUserFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromSender
@@ -94,7 +94,7 @@ namespace AElf.Contracts.MultiToken
             var associationCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = TokenContractAddress,
-                OrganizationAddress = organizationInfo.RootOrganization,
+                OrganizationAddress = organizationInfo.RootController,
                 Params = updateInput.ToByteString(),
                 ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromSender),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -109,7 +109,7 @@ namespace AElf.Contracts.MultiToken
             var referendumCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.ReferendumOrganization,
+                OrganizationAddress = organizationInfo.ReferendumController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -124,7 +124,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.ParliamentOrganization,
+                OrganizationAddress = organizationInfo.ParliamentController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -167,9 +167,9 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForDeveloperFee), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeController), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new AssociationOrganizationForDeveloperFee();
+            var organizationInfo = new ControllerForDeveloperFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromContract
@@ -190,7 +190,7 @@ namespace AElf.Contracts.MultiToken
             var associationCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = TokenContractAddress,
-                OrganizationAddress = organizationInfo.RootOrganization,
+                OrganizationAddress = organizationInfo.RootController,
                 Params = updateInput.ToByteString(),
                 ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromContract),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -205,7 +205,7 @@ namespace AElf.Contracts.MultiToken
             var developerCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.DeveloperOrganization,
+                OrganizationAddress = organizationInfo.DeveloperController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -220,7 +220,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.ParliamentOrganization,
+                OrganizationAddress = organizationInfo.ParliamentController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -268,9 +268,9 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
             var organizationInfoRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetAssociationOrganizationForDeveloperFee), new Empty());
+                nameof(TokenContractContainer.TokenContractStub.GetDeveloperFeeController), new Empty());
             organizationInfoRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationInfo = new AssociationOrganizationForDeveloperFee();
+            var organizationInfo = new ControllerForDeveloperFee();
             organizationInfo.MergeFrom(organizationInfoRet.ReturnValue);
 
             var updateInput = new CoefficientFromContract
@@ -291,7 +291,7 @@ namespace AElf.Contracts.MultiToken
             var associationCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = TokenContractAddress,
-                OrganizationAddress = organizationInfo.RootOrganization,
+                OrganizationAddress = organizationInfo.RootController,
                 Params = updateInput.ToByteString(),
                 ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromContract),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -306,7 +306,7 @@ namespace AElf.Contracts.MultiToken
             var developerCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.DeveloperOrganization,
+                OrganizationAddress = organizationInfo.DeveloperController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -321,7 +321,7 @@ namespace AElf.Contracts.MultiToken
             var parliamentCreateProposalInput = new CreateProposalInput
             {
                 ToAddress = AssociationAddress,
-                OrganizationAddress = organizationInfo.ParliamentOrganization,
+                OrganizationAddress = organizationInfo.ParliamentController,
                 Params = associationProposalId.ToByteString(),
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
