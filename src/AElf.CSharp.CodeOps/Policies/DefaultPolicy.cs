@@ -157,6 +157,7 @@ namespace AElf.CSharp.CodeOps.Policies
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
                 new ObserverProxyValidator(), 
+                new ContractStructureValidator(), 
                 //new RecursiveCallValidator(), 
             });
         }
