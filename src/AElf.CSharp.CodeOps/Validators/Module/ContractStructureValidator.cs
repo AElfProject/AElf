@@ -104,8 +104,10 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
             if (badFields.Any())
             {
-                return badFields.Select(f => new ContractStructureValidatorResult(
-                        $"{f.FieldType.FullName} type is not allowed to be used as static field in regular types in contract."));
+                return badFields.Select(f => 
+                    new ContractStructureValidatorResult(
+                        $"{f.FieldType.FullName} type is not allowed to be used as static field in regular types in contract.")
+                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
             }
 
             return Enumerable.Empty<ValidationResult>();
