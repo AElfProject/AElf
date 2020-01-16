@@ -117,8 +117,8 @@ namespace AElf.Contracts.MultiToken
             if (input.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = input.AllAvailableTokens;
-                var availableToken= allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
-                                    allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
+                var availableToken= allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
+                                    allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
                 if (availableToken != null)
                 {
                     availableTokenSymbol = availableToken.TokenSymbol;
@@ -127,6 +127,8 @@ namespace AElf.Contracts.MultiToken
                     availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
                 }
             }
+            
+            Context.LogDebug(() => $"####token symbol {availableTokenSymbol} , fee {txSizeFeeAmount} , balance {availableBalance}");
             
             var chargeAmount = availableBalance > txSizeFeeAmount
                 ? txSizeFeeAmount
@@ -215,7 +217,7 @@ namespace AElf.Contracts.MultiToken
         }
         public override Empty SetAvailableTokenInfo(AllAvailableTokenInfo input)
         {
-            AssertIsAuthorized();
+            //AssertIsAuthorized();
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
