@@ -73,6 +73,7 @@ message SmartContractRegistration {
     bytes code = 2;
     Hash code_hash = 3;
     bool is_system_contract = 4;
+    int32 version = 5;
 }
 
 message TransactionExecutingStateSet {
