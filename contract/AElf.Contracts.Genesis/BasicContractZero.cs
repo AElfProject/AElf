@@ -134,7 +134,8 @@ namespace AElf.Contracts.Genesis
                 Author = author,
                 Category = category,
                 CodeHash = codeHash,
-                IsSystemContract = isSystemContract
+                IsSystemContract = isSystemContract,
+                Version = 1
             };
             State.ContractInfos[contractAddress] = info;
 
@@ -143,7 +144,8 @@ namespace AElf.Contracts.Genesis
                 Category = category,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = codeHash,
-                IsSystemContract = info.IsSystemContract
+                IsSystemContract = info.IsSystemContract,
+                Version = info.Version
             };
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -154,7 +156,8 @@ namespace AElf.Contracts.Genesis
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
-                Author = author
+                Author = author,
+                Version = info.Version
             });
 
             var deployedContractAddressList = State.DeployedContractAddressList.Value;
@@ -375,6 +378,7 @@ namespace AElf.Contracts.Genesis
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
             info.CodeHash = newCodeHash;
+            info.Version++;
             State.ContractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
@@ -382,7 +386,8 @@ namespace AElf.Contracts.Genesis
                 Category = info.Category,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = newCodeHash,
-                IsSystemContract = info.IsSystemContract
+                IsSystemContract = info.IsSystemContract,
+                Version = info.Version
             };
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -393,7 +398,8 @@ namespace AElf.Contracts.Genesis
             {
                 Address = contractAddress,
                 OldCodeHash = oldCodeHash,
-                NewCodeHash = newCodeHash
+                NewCodeHash = newCodeHash,
+                Version = info.Version
             });
 
             Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
