@@ -150,7 +150,7 @@ to stop the node you can run:
 
 ## Running a full node with the binary release
 
-Most of AElf is developed with dotnet core, so to run the binaries you will need to download and install the .NET Core SDK before you start: [Download .NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0). For now AElf depends on version 3.0 of the SDK, on the provided link find the download for your platform, and install it.
+Most of AElf is developed with dotnet core, so to run the binaries you will need to download and install the .NET Core SDK before you start: [Download .NET Core 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1). For now AElf depends on version 3.1 of the SDK, on the provided link find the download for your platform, and install it.
 
 Get the latest release with the following commands:
 ```bash
@@ -167,7 +167,7 @@ Enter the configuration folder and run the node:
 
 ## Running a full node with the source
 
-The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF V0.8.2), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.0.100 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
+The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF V0.8.2), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.1 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
 
 ## Check the node
 

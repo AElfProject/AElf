@@ -109,7 +109,6 @@ namespace AElf.Contracts.Referendum
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var blockTime = BlockTimeProvider.GetBlockTime();
 
-
             {
                 //"Invalid proposal."
                 var createProposalInput = new CreateProposalInput
@@ -266,6 +265,9 @@ namespace AElf.Contracts.Referendum
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var balance2 = await GetBalanceAsync("ELF", DefaultSender);
             balance2.ShouldBe(balance1 - amount);
+
+            var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ApprovalCount.ShouldBe(amount);
         }
 
         [Fact]

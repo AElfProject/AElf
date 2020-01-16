@@ -5,11 +5,13 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
@@ -225,6 +227,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 }
             });
 
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
             await CreateToken("CPU", ResourceSupply, issueToken);
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);
