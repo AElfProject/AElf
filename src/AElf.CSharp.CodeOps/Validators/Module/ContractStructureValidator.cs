@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
@@ -11,23 +12,31 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ContractStructureValidator : IValidator<ModuleDefinition>
     {
-        private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
+        // Readonly static fields
+        private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
         {
             typeof(Marshaller<>).FullName,
             typeof(Method<,>).FullName,
             typeof(MessageParser<>).FullName,
-            typeof(FileDescriptor).FullName,
             typeof(FieldCodec<>).FullName,
             typeof(MapField<,>.Codec).FullName,
+        };
+        
+        private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
+        {
+            // Required for Linq in contracts (TODO: Discuss the risk of allowing Func as static public field)
+            typeof(Func<>).FullName,
+            typeof(Func<,>).FullName,
+            typeof(Func<,,>).FullName,
         };
 
         public ContractStructureValidator()
         {
             // Convert full names to Mono.Cecil compatible full names
-            foreach (var typeName in _allowedStaticFieldTypes.Where(typeName => typeName.Contains("+")).ToList())
+            foreach (var typeName in _allowedStaticFieldInitOnlyTypes.Where(typeName => typeName.Contains("+")).ToList())
             {
-                _allowedStaticFieldTypes.Remove(typeName);
-                _allowedStaticFieldTypes.Add(typeName.Replace("+", "/"));
+                _allowedStaticFieldInitOnlyTypes.Remove(typeName);
+                _allowedStaticFieldInitOnlyTypes.Add(typeName.Replace("+", "/"));
             }
         }
 
@@ -74,34 +83,24 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         }
 
         private IEnumerable<ValidationResult> ValidateContractType(TypeDefinition type)
-        {
-            // Do not allow any non-constant field in contract implementation
-            if (type.Fields.Any(f => f.Constant == null))
-                return new List<ValidationResult>
-                {
-                    new ContractStructureValidatorResult("Non-constant fields are not allowed in contract implementation.")
-                };
-            
-            return Enumerable.Empty<ValidationResult>();
+        { 
+            // Allow only constant or readonly primitive type fields in contract implementation
+            return type.Fields
+                .Where(f => 
+                    !(f.Constant != null || (f.IsInitOnly && Constants.PrimitiveTypes.Contains(f.FieldType.FullName))))
+                .Select(f => 
+                    new ContractStructureValidatorResult("Non-constant or non-readonly fields are not allowed in contract implementation.")
+                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
         }
 
         private IEnumerable<ValidationResult> ValidateRegularType(TypeDefinition type)
         {
-            var errors = new List<ValidationResult>();
+            // Skip if ExecutionObserver (validated in a separate validator)
+            if (type.Name == typeof(ExecutionObserverProxy).Name)
+                return Enumerable.Empty<ValidationResult>();
 
             var staticFields = type.Fields.Where(f => f.IsStatic);
-
-            var badFields = staticFields.Where(f =>
-            {
-                if (f.FieldType is GenericInstanceType genericInstance)
-                {
-                    // Should be one of the allowed types
-                    return !_allowedStaticFieldTypes.Contains(genericInstance.ElementType.FullName);
-                }
-
-                // Then it should be a constant (and it has to be a primitive type if constant)
-                return f.Constant == null; 
-            }).ToList();
+            var badFields = staticFields.Where(IsBadField).ToList();
 
             if (badFields.Any())
             {
@@ -110,6 +109,38 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             }
 
             return Enumerable.Empty<ValidationResult>();
+        }
+
+        private bool IsBadField(FieldDefinition field)
+        {
+            var fieldTypeFullName = field.FieldType is GenericInstanceType genericInstance
+                ? genericInstance.ElementType.FullName // TypeXyz<T> then element type full name will be TypeXyz`1
+                : field.FieldType.FullName;
+
+            // Only allowed types or primitive types if InitOnly field
+            if (field.IsInitOnly 
+                && (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) 
+                    || Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
+            {
+                return false;
+            }
+            
+            // Required for Linq in contracts
+            if (_allowedStaticFieldTypes.Contains(fieldTypeFullName))
+            {
+                return false;
+            }
+
+            // Only allow FileDescriptor field as non InitOnly field
+            if (fieldTypeFullName == typeof(FileDescriptor).FullName)
+                return false;
+            
+            // Allow field type that is type of its declaring type (required for protobuf generated code)
+            if (fieldTypeFullName == field.DeclaringType.FullName)
+                return false;
+                
+            // Then it should be a constant (and it has to be a primitive type if constant)
+            return field.Constant == null;
         }
 
         private GenericInstanceType FindGenericInstanceType(TypeDefinition type)
