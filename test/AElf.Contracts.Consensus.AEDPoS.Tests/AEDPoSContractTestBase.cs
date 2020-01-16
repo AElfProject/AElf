@@ -165,8 +165,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
             
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            var proposalId =
-                HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            var proposalId = createResult.Output;
 
             return proposalId;
         }

@@ -96,6 +96,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
 
             var methodFeeController = await EconomicContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
             const string proposalCreationMethodName =
                 nameof(EconomicContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
@@ -286,8 +289,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             };
             
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            var proposalId =
-                HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            var proposalId = createResult.Output;
 
             return proposalId;
         }

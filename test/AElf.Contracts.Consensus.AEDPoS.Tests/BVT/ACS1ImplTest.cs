@@ -27,6 +27,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
 
             var methodFeeController = await AEDPoSContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
             const string proposalCreationMethodName =
                 nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
