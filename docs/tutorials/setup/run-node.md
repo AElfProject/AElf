@@ -96,7 +96,7 @@ Now we build and run the node navigate into the **aelf** directory and build the
 
 ```bash
 dotnet build AElf.Launcher.csproj --configuration Release
-dotnet bin/Release/netcoreapp3.0/AElf.Launcher.dll > aelf-logs.logs &
+dotnet bin/Release/netcoreapp3.1/AElf.Launcher.dll > aelf-logs.logs &
 cd ..
 ```
 

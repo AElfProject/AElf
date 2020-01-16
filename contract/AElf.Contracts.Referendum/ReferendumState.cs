@@ -8,6 +8,7 @@ namespace AElf.Contracts.Referendum
 {
     public class ReferendumState : ContractState
     {
+        public BoolState Initialized { get; set; }
         public MappedState<Address, Hash, Receipt> LockedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -7,6 +8,6 @@ namespace AElf.Kernel.SmartContract.Application
         void Enable();
         void Disable();
 
-        Task<bool> PerformCodeCheckAsync(byte[] code);
+        Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight);
     }
 }
