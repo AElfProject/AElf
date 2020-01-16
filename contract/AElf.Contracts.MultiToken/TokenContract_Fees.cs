@@ -220,7 +220,7 @@ namespace AElf.Contracts.MultiToken
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
-            Assert(string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
+            Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
             foreach (var tokenInfo in input.AllAvailableTokens)
             {
                 if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
