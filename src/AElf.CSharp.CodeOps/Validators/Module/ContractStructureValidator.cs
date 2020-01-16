@@ -12,33 +12,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ContractStructureValidator : IValidator<ModuleDefinition>
     {
-        // Readonly static fields
-        private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
-        {
-            typeof(Marshaller<>).FullName,
-            typeof(Method<,>).FullName,
-            typeof(MessageParser<>).FullName,
-            typeof(FieldCodec<>).FullName,
-            typeof(MapField<,>.Codec).FullName,
-        };
-        
-        private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
-        {
-            // Required for Linq in contracts (TODO: Discuss the risk of allowing Func as static public field)
-            typeof(Func<>).FullName,
-            typeof(Func<,>).FullName,
-            typeof(Func<,,>).FullName,
-        };
-        
-        private readonly HashSet<string> _allowedStateTypes = new HashSet<string>
-        {
-            typeof(MappedState<,>).FullName,
-            typeof(MappedState<,,>).FullName,
-            typeof(MappedState<,,,>).FullName,
-            typeof(MappedState<,,,,>).FullName,
-            typeof(MethodReference<,>).FullName,
-        };
-
         public ContractStructureValidator()
         {
             // Convert full names to Mono.Cecil compatible full names
@@ -171,7 +144,10 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             {
                 return !_allowedStateTypes.Contains(genericInstanceType.ElementType.FullName);
             }
-            
+
+            if (_allowedStateTypes.Contains(field.FieldType.FullName))
+                return false;
+
             // If not ContractReferenceState then it is not allowed
             return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
         }
@@ -220,6 +196,44 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 type = type.BaseType.Resolve();
             }
         }
+        
+        private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
+        {
+            typeof(Marshaller<>).FullName,
+            typeof(Method<,>).FullName,
+            typeof(MessageParser<>).FullName,
+            typeof(FieldCodec<>).FullName,
+            typeof(MapField<,>.Codec).FullName,
+        };
+        
+        private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
+        {
+            // Required for Linq in contracts (TODO: Discuss the risk of allowing Func as static public field)
+            typeof(Func<>).FullName,
+            typeof(Func<,>).FullName,
+            typeof(Func<,,>).FullName,
+        };
+        
+        private readonly HashSet<string> _allowedStateTypes = new HashSet<string>
+        {
+            typeof(BoolState).FullName,
+            typeof(Int32State).FullName,
+            typeof(UInt32State).FullName,
+            typeof(Int64State).FullName,
+            typeof(UInt64State).FullName,
+            typeof(StringState).FullName,
+            typeof(BytesState).FullName,
+            
+            // Complex state types
+            typeof(ReadonlyState<>).FullName,
+            typeof(SingletonState<>).FullName,
+            typeof(MappedState<,>).FullName,
+            typeof(MappedState<,,>).FullName,
+            typeof(MappedState<,,,>).FullName,
+            typeof(MappedState<,,,,>).FullName,
+            typeof(MethodReference<,>).FullName,
+            typeof(ProtobufState<>).FullName,
+        };
     }
     
     public class ContractStructureValidatorResult : ValidationResult
