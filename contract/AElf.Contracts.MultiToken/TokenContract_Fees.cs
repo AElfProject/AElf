@@ -125,6 +125,12 @@ namespace AElf.Contracts.MultiToken
                     txSizeFeeAmount = txSizeFeeAmount.Mul(availableToken.AddedTokenWeight)
                         .Div(availableToken.BaseTokenWeight);
                     availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
+                    Context.LogDebug(() => $" #### find symbol {availableTokenSymbol}, fee {txSizeFeeAmount}   available balance :{availableBalance}");
+                }
+
+                foreach (var tt in input.AllAvailableTokens)
+                {
+                    Context.LogDebug(() => $" ####symbol {tt.TokenSymbol},  weight :{tt.AddedTokenWeight}");
                 }
             }
             
@@ -685,18 +691,12 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-        private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
         {
             var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
-            try
-            {
-                return availableBalance.Mul(tokenInfo.BaseTokenWeight)
-                    .Div(tokenInfo.AddedTokenWeight);
-            }
-            catch
-            {
-                return long.MaxValue;
-            }
+            Context.LogDebug(() => $"#### token symbol: {tokenInfo.TokenSymbol} , token balance: {availableBalance}");
+            return availableBalance.Mul(tokenInfo.BaseTokenWeight)
+                .Div(tokenInfo.AddedTokenWeight);
         }
         private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
         {

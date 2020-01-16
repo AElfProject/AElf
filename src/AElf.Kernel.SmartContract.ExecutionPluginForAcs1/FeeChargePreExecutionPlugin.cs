@@ -97,6 +97,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     Logger.LogDebug("#### token list is null");
                 if (extraAvailableTokenList != null)
                 {
+                    if(!extraAvailableTokenList.Any())
+                        Logger.LogDebug("#### token list count is 0");
                     foreach (var tokenInfo in extraAvailableTokenList)
                     {
                         chargeTransactionFeesInput.AllAvailableTokens.Add(new AvailableTokenInfo
