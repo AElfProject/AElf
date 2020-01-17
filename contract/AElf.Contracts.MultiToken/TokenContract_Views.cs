@@ -151,10 +151,5 @@ namespace AElf.Contracts.MultiToken
         {
             return State.ControllerForDeveloperFee.Value;
         }
-        
-        public override ProposalIds GetProposalIds(Empty input)
-        {
-            return State.ProposalIds.Value;
-        }
     }
 }
