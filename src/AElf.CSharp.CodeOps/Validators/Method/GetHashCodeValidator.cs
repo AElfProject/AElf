@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -51,6 +52,7 @@ namespace AElf.CSharp.CodeOps.Validators.Method
                         
                         if (!(IsGetHashCodeCall(methodDefinition)
                               || IsFieldGetterCall(methodDefinition)
+                              || IsGetLengthCall(methodDefinition)
                               || IsExecutionObserverCall(methodDefinition)
                               || IsInequalityOperatorCall(methodDefinition)))
                         {
@@ -63,7 +65,7 @@ namespace AElf.CSharp.CodeOps.Validators.Method
                     case FieldReference accessedField:
                         if (instruction.OpCode != OpCodes.Ldfld) // Only allow ldfld, do not allow the rest with fields
                             error = new GetHashCodeValidationResult(
-                                $"{accessedField.Name} field can only be accessed to read within GetHashCode method.");
+                                $"It is not allowed to set {accessedField.Name} field within GetHashCode method.");
                         break;
                 }
 
@@ -90,17 +92,14 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 
         private bool IsFieldGetterCall(MethodDefinition method)
         {
-            if (!(method.Name.StartsWith("get_") && !method.HasParameters))
-                return false;
+            return method.Name.StartsWith("get_") && !method.HasParameters && method.HasBody;
+        }
 
-            if ((method.DeclaringType.FullName == "System.String" || method.DeclaringType.FullName == "Google.Protobuf.ByteString") 
-                && method.Name == "get_Length")
-                return true;
-            
-            // For other type of objects, check whether the field really exists in the declaring type
-            var fieldNames = method.DeclaringType.Fields.Select(f => f.Name.ToLowerInvariant());
-
-            return fieldNames.Contains(method.Name.Substring(4).ToLowerInvariant() + "_");
+        private bool IsGetLengthCall(MethodDefinition method)
+        {
+            // Allowed for 2 types only
+            return (method.DeclaringType.FullName == "System.String" || method.DeclaringType.FullName == "Google.Protobuf.ByteString") 
+                   && method.Name == "get_Length" && method.ReturnType.FullName == typeof(int).FullName;
         }
 
         private bool IsExecutionObserverCall(MethodDefinition method)
