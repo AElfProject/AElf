@@ -10,6 +10,7 @@
         * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
         * [First contract - test](tutorials/developing-smart-contracts/first-contract-test.md)
         * [First contract - deploy](tutorials/developing-smart-contracts/first-contract-deploy.md)
+        * [Execution context](tutorials/developing-smart-contracts/tx-execution-context.md)
         <!-- * [Issue tokens](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
