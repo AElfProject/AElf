@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
@@ -41,18 +42,35 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             
             foreach (var instruction in method.Body.Instructions)
             {
-                if (!(instruction.Operand is MethodReference accessedMethod)) continue;
-
-                var methodDefinition = accessedMethod.Resolve();
+                GetHashCodeValidationResult error = null;
                 
-                if (!(IsGetHashCodeCall(methodDefinition)
-                       || IsFieldGetterCall(methodDefinition)
-                       || IsExecutionObserverCall(methodDefinition)
-                       || IsInequalityOperatorCall(methodDefinition)))
+                switch (instruction.Operand)
                 {
-                    errors.Add(new GetHashCodeValidationResult(
-                        $"It is not allowed to access {accessedMethod.Name} method within GetHashCode method.")
-                        .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, method.Name));
+                    case MethodReference accessedMethod:
+                        var methodDefinition = accessedMethod.Resolve();
+                        
+                        if (!(IsGetHashCodeCall(methodDefinition)
+                              || IsFieldGetterCall(methodDefinition)
+                              || IsExecutionObserverCall(methodDefinition)
+                              || IsInequalityOperatorCall(methodDefinition)))
+                        {
+                            error = new GetHashCodeValidationResult(
+                                    $"It is not allowed to access {accessedMethod.Name} method within GetHashCode method.");
+                        }
+                        
+                        break;
+                    
+                    case FieldReference accessedField:
+                        if (instruction.OpCode != OpCodes.Ldfld) // Only allow ldfld, do not allow the rest with fields
+                            error = new GetHashCodeValidationResult(
+                                $"{accessedField.Name} field can only be accessed to read within GetHashCode method.");
+                        break;
+                }
+
+                if (error != null)
+                {
+                    errors.Add(error.WithInfo(method.Name, 
+                        method.DeclaringType.Namespace, method.DeclaringType.Name, method.Name));
                 }
             }
 
