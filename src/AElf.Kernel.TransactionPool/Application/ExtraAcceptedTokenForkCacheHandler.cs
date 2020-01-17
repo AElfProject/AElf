@@ -5,11 +5,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class ExtraAcceptedTokenForkCacheHandle : IForkCacheHandler, ITransientDependency
+    public class ExtraAcceptedTokenForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
         private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
 
-        public ExtraAcceptedTokenForkCacheHandle(IExtraAcceptedTokenService extraAcceptedTokenService)
+        public ExtraAcceptedTokenForkCacheHandler(IExtraAcceptedTokenService extraAcceptedTokenService)
         {
             _extraAcceptedTokenService = extraAcceptedTokenService;
         }

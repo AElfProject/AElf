@@ -82,7 +82,9 @@ service TokenContract {
     }
     rpc SetAvailableTokenInfo(AllAvailableTokenInfo) returns (google.protobuf.Empty){
     }
-    rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
+    rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty) {
+    }
+    rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
     rpc SetProposalIdForDevelopers(aelf.Hash) returns  (google.protobuf.Empty){
     }
@@ -480,6 +482,11 @@ message TokenSymbolWithAddress{
 
 message TokenStateInAddress{
     bool value = 1;
+}
+
+message AddTokeWhiteListInput{
+    string token_symbol = 1;
+    aelf.Address address = 2;
 }
 
 enum FeeTypeEnum {

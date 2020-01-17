@@ -6,11 +6,13 @@ using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
@@ -272,6 +274,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await AssociationStub.Approve.SendAsync(associationProposalId);
             await AssociationStub.Release.SendAsync(associationProposalId);
 
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
             await CreateToken("CPU", ResourceSupply, issueToken);
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);

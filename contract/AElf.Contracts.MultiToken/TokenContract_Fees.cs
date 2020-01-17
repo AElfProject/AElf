@@ -117,8 +117,8 @@ namespace AElf.Contracts.MultiToken
             if (input.AllAvailableTokens.Any())
             {
                 var allExtraTokenInfo = input.AllAvailableTokens;
-                var availableToken= allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
-                                    allExtraTokenInfo.First( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
+                var availableToken= allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
+                                    allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
                 if (availableToken != null)
                 {
                     availableTokenSymbol = availableToken.TokenSymbol;
@@ -127,7 +127,7 @@ namespace AElf.Contracts.MultiToken
                     availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
                 }
             }
-            
+
             var chargeAmount = availableBalance > txSizeFeeAmount
                 ? txSizeFeeAmount
                 : availableBalance;
@@ -143,7 +143,6 @@ namespace AElf.Contracts.MultiToken
             {
                 bill.TokenToAmount.Add(availableTokenSymbol, chargeAmount);
             }
-
             return availableBalance >= txSizeFeeAmount;
         }
 
@@ -215,12 +214,12 @@ namespace AElf.Contracts.MultiToken
         }
         public override Empty SetAvailableTokenInfo(AllAvailableTokenInfo input)
         {
-            AssertIsAuthorized();
+            //AssertIsAuthorized();
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
-            Assert(string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
+            Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
             foreach (var tokenInfo in input.AllAvailableTokens)
             {
                 if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
@@ -683,18 +682,11 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-        private long GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
         {
             var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
-            try
-            {
-                return availableBalance.Mul(tokenInfo.BaseTokenWeight)
-                    .Div(tokenInfo.AddedTokenWeight);
-            }
-            catch
-            {
-                return long.MaxValue;
-            }
+            return availableBalance.Mul(tokenInfo.BaseTokenWeight)
+                .Div(tokenInfo.AddedTokenWeight);
         }
         private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
         {
