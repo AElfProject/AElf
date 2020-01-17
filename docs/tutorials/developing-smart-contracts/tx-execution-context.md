@@ -21,10 +21,10 @@ When users create and send a transaction to a node, it will eventually be packag
 Each transaction can generate new transactions called inline transactions (more on this in the next article). When this happens the generated inline transactions are executed right after the transaction that generated them. For example, lets consider the following scenario: a block with 2 transactions, lets say **tx1** and **tx2**, where **tx1** performs 2 inline calls. In this situation, the order of execution will be the following:
 
 ```
-1. execute **tx1** 
+1. execute tx1 
 2.    - Execute first inline 
 3.    - Execute second Inline 
-4. execute **tx2** 
+4. execute tx2 
 ```
 
 This is important to know because as we will see next, some of the execution context's values change based on this logic.
