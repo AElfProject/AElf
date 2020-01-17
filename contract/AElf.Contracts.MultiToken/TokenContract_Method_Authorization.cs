@@ -32,12 +32,12 @@ namespace AElf.Contracts.MultiToken
             if(ControllersInitialized())
                 return new Empty();
             CalculateUserFeeController();
-            CreateReferendumOrganizationForUserFee();
-            CreateAssociationOrganizationForUserFee();
+            CreateReferendumControllerForUserFee();
+            CreateAssociationControllerForUserFee();
             
             CalculateDeveloperFeeController();
-            CreateDeveloperOrganization();
-            CreateAssociationOrganizationForDeveloperFee();
+            CreateDeveloperController();
+            CreateAssociationControllerForDeveloperFee();
             return new Empty();
         }
         
@@ -60,10 +60,10 @@ namespace AElf.Contracts.MultiToken
             State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
             State.ControllerForDeveloperFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
             State.ControllerForDeveloperFee.Value.DeveloperController =
-                State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperOrganization()
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperController()
                     .OrganizationCreationInput);
             State.ControllerForDeveloperFee.Value.RootController =
-                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForDeveloperFee()
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerForDeveloperFee()
                     .OrganizationCreationInput);
         }
 
@@ -72,36 +72,36 @@ namespace AElf.Contracts.MultiToken
             State.ControllerForUserFee.Value = new ControllerForUserFee();
             State.ControllerForUserFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
             State.ControllerForUserFee.Value.ReferendumController =
-                State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumOrganizationForUserFee()
+                State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumControllerForUserFee()
                     .OrganizationCreationInput);
             State.ControllerForUserFee.Value.RootController =
-                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationOrganizationForUserFee()
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerForUserFee()
                     .OrganizationCreationInput);
         }
-        private void CreateReferendumOrganizationForUserFee()
+        private void CreateReferendumControllerForUserFee()
         {
-            State.ReferendumContract.CreateOrganizationBySystemContract.Send(GetReferendumOrganizationForUserFee());
+            State.ReferendumContract.CreateOrganizationBySystemContract.Send(GetReferendumControllerForUserFee());
         }
 
-        private void CreateAssociationOrganizationForUserFee()
+        private void CreateAssociationControllerForUserFee()
         {
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationOrganizationForUserFee());
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationControllerForUserFee());
         }
         
-        private void CreateDeveloperOrganization()
+        private void CreateDeveloperController()
         {
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetDeveloperOrganization());
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetDeveloperController());
         }
 
-        private void CreateAssociationOrganizationForDeveloperFee()
+        private void CreateAssociationControllerForDeveloperFee()
         {
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationOrganizationForDeveloperFee());
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetAssociationControllerForDeveloperFee());
         }
 
         #endregion
 
         #region organization create input
-        private Referendum.CreateOrganizationBySystemContractInput GetReferendumOrganizationForUserFee()
+        private Referendum.CreateOrganizationBySystemContractInput GetReferendumControllerForUserFee()
         {
             var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
             var whiteList = new List<Address> {parliamentOrg};
@@ -125,7 +125,7 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForUserFee()
+        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerForUserFee()
         {
             var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
             var proposers = new List<Address>
@@ -152,7 +152,7 @@ namespace AElf.Contracts.MultiToken
                 }
             };
         }
-        private Association.CreateOrganizationBySystemContractInput GetDeveloperOrganization()
+        private Association.CreateOrganizationBySystemContractInput GetDeveloperController()
         {
             var parliamentOrganization = State.ControllerForDeveloperFee.Value.ParliamentController;
             var proposers = new List<Address> {parliamentOrganization};
@@ -179,7 +179,7 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetAssociationOrganizationForDeveloperFee()
+        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerForDeveloperFee()
         {
             var parliamentOrg = State.ControllerForDeveloperFee.Value.ParliamentController;
             var proposers = new List<Address>
