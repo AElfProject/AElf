@@ -6,6 +6,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
@@ -25,8 +26,9 @@ namespace AElf.OS.Worker
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
         public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
-            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService)
-            : base(timer)
+            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService,
+            IServiceScopeFactory serviceScopeFactory)
+            : base(timer, serviceScopeFactory)
         {
             _peerPool = peerPool;
             _reconnectionService = reconnectionService;
@@ -36,7 +38,7 @@ namespace AElf.OS.Worker
             timer.Period = _networkOptions.PeerReconnectionPeriod;
         }
         
-        protected override void DoWork()
+        protected override void DoWork(PeriodicBackgroundWorkerContext workerContext)
         {
             AsyncHelper.RunSync(DoReconnectionJobAsync);
         }
