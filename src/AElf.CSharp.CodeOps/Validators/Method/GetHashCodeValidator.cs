@@ -99,7 +99,7 @@ namespace AElf.CSharp.CodeOps.Validators.Method
         {
             // Allowed for 2 types only
             return (method.DeclaringType.FullName == "System.String" || method.DeclaringType.FullName == "Google.Protobuf.ByteString") 
-                   && method.Name == "get_Length" && method.ReturnType.FullName == typeof(int).FullName;
+                   && method.Name == "get_Length" && !method.HasParameters && method.ReturnType.FullName == typeof(int).FullName;
         }
 
         private bool IsExecutionObserverCall(MethodDefinition method)
