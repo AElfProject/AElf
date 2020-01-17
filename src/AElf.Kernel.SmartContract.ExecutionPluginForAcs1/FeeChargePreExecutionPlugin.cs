@@ -97,7 +97,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 {
                     foreach (var tokenInfo in extraAvailableTokenList)
                     {
-                        chargeTransactionFeesInput.AllAvailableTokens.Add(new AvailableTokenInfo
+                        chargeTransactionFeesInput.AllAvailableTokens.Add(new SymbolToPayTXSizeFee
                         {
                             TokenSymbol = tokenInfo.TokenSymbol,
                             BaseTokenWeight = tokenInfo.BaseTokenWeight,

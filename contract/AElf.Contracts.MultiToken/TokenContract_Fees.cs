@@ -212,7 +212,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        public override Empty SetAvailableTokenInfo(AllAvailableTokenInfo input)
+        public override Empty SetAvailableTokenInfo(SymbolListToPayTXSizeFee input)
         {
             //AssertIsAuthorized();
             Assert(input != null, "invalid input");
@@ -682,13 +682,13 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(AvailableTokenInfo tokenInfo)
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo)
         {
             var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
             return availableBalance.Mul(tokenInfo.BaseTokenWeight)
                 .Div(tokenInfo.AddedTokenWeight);
         }
-        private void AssertAvailableTokenValid(AvailableTokenInfo tokenInfo)
+        private void AssertAvailableTokenValid(SymbolToPayTXSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");

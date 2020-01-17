@@ -139,7 +139,7 @@ namespace AElf.Contracts.MultiToken
             return usage;
         }
 
-        public override AllAvailableTokenInfo GetAvailableTokenInfos(Empty input)
+        public override SymbolListToPayTXSizeFee GetAvailableTokenInfos(Empty input)
         {
             return State.ExtraAvailableTokenInfos.Value;
         }

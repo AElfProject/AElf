@@ -80,7 +80,7 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-    rpc SetAvailableTokenInfo(AllAvailableTokenInfo) returns (google.protobuf.Empty){
+    rpc SetAvailableTokenInfo(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
     rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty) {
     }
@@ -133,7 +133,7 @@ service TokenContract {
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
-    rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (AllAvailableTokenInfo){
+    rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
         option (aelf.is_view) = true;
     }
     rpc GetUserFeeController(google.protobuf.Empty) returns (ControllerForUserFee){
@@ -247,7 +247,7 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
-    repeated AvailableTokenInfo all_available_tokens = 5;
+    repeated SymbolToPayTXSizeFee all_available_tokens = 5;
 }
 
 message TransactionFeeBill {
@@ -494,14 +494,14 @@ message CalculateFeeCoefficient {
     map<string, sint32> coefficient_dic = 4;
 }
 
-message AvailableTokenInfo{
+message SymbolToPayTXSizeFee{
     string token_symbol = 1;
     sint32 base_token_weight = 2;
     sint32 added_token_weight = 3;
 }
 
-message AllAvailableTokenInfo{
-    repeated AvailableTokenInfo all_available_tokens = 1;
+message SymbolListToPayTXSizeFee{
+    repeated SymbolToPayTXSizeFee all_available_tokens = 1;
 }
 
 // Events
@@ -568,7 +568,7 @@ message RentalAccountBalanceInsufficient {
 
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
-    AllAvailableTokenInfo all_token_infos = 1;
+    SymbolListToPayTXSizeFee all_token_infos = 1;
 }
 
 message ControllerForUserFee{
