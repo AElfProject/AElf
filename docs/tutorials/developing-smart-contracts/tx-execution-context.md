@@ -19,10 +19,13 @@ message Transaction {
 When users create and send a transaction to a node, it will eventually be packaged in a block. When this block is executed, the transactions are executed one by one. 
 
 Each transaction can generate new transactions called inline transactions (more on this in the next article). When this happens the inline transactions generated are executed right after the transaction that generated them. For example, when executing a block with 2 transactions: TX1 and TX2 and the method executed by TX1 performs 2 inline calls. In this situation, the order of execution will be:
+
+```
 1. execute TX1 
 2.    - Execute first inline 
 3.    - Execute second Inline 
 4. execute TX2 
+```
 
 This is important to know because as we will see next some of the execution contexts values change based on this logic.
 
@@ -39,3 +42,77 @@ Context.Origin
 Context.Sender
 Context.Self
 ```
+
+## Useful properties
+
+There are other properties that can be accessed through the context:
+- transaction ID: this is the id of the transaction that is currently being executed. Note that inline transactions have their own ID.
+- chain ID: the ID of the current chain, this can be useful in contract that need to implement cross chain scenarios.
+- current height: the height of the block that contains the transaction currently executing.
+- current block time: the time included in the current blocks header.
+- previous block hash: the hash of the block that precedes the current.
+
+## Useful methods
+
+### Logging and events: 
+
+Fire log event - these are logs that can be found in the transaction result, after execution. 
+
+```csharp
+public override Empty Vote(VoteMinerInput input)
+{
+    // for example the election system contract will fire a 'voted' event 
+    // when a user calls vote.
+    Context.Fire(new Voted
+    {
+        VoteId = input.VoteId,
+        VotingItemId = votingRecord.VotingItemId,
+        Voter = votingRecord.Voter,
+        ...
+    });
+}
+```
+
+Application logging - when writing a contract it is useful to be able to log some elements in the applications log file to simplify development. Note that these logs are only visible when the node executing the transaction is build in **debug** mode.
+
+```csharp
+private Hash AssertValidNewVotingItem(VotingRegisterInput input)
+{
+    // this is a method in the voting contract that will log to the applications log file
+    // when a 'voting item' is created. 
+    Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+    // ...
+}
+```
+
+### Get contract address
+
+It's sometimes useful to get the address of a system contract, this can be done as follows:
+
+```csharp
+    public override Empty AddBeneficiary(AddBeneficiaryInput input)
+    {
+        // In the profit contract, when adding a 'beneficiary', the method will get the address of the token holder 
+        // contract from its name, to perform an assert.
+
+        Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+        "Only manager can add beneficiary.");
+    }
+```
+
+### Recovering the public key
+
+- Recovering the public key: this can be used for recovering the public key of the transaction Sender.
+
+```csharp
+public override Empty Vote(VoteMinerInput input)
+{
+    // for example the election system contract will use the public key of the sender
+    // to keep track of votes.
+    var recoveredPublicKey = Context.RecoverPublicKey();
+}
+```
+
+## Next
+
+The execution context also exposes functionality for sending inline transactions, the next article will give you more details on how to generate inline calls.
