@@ -33,8 +33,8 @@ namespace AElf.Contracts.MultiToken
             initOrgResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-  
-        public async Task Update_Coefficient_For_Sender_Success()
+        [Fact]
+        public async Task Update_Coefficient_For_Sender_Should_Success()
         {
             await CreateAndIssueVoteToken();
             const int pieceKey = 1000000;
@@ -52,25 +52,10 @@ namespace AElf.Contracts.MultiToken
             var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput);
             await ApproveToRootForUserFeeByTwoLayer(proposalId);
             await ReleaseToRootForUserFeeByTwoLayer(proposalId);
-            
-            var middleApproveProposalId = await ApproveToRootForUserFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForUser(middleApproveProposalId);
-            
-            await ReleaseRootForUserFee(proposalId);
-            
-            var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfSender), new Empty());
-            userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficientsOfType();
-            userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
-            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
-            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
-            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
         }
 
         [Fact]
-        public async Task Update_Coefficient_For_Contract_Success()
+        public async Task Update_Coefficient_For_Contract_Should_Success()
         {
             const int pieceKey = 1000000;
             const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
@@ -311,67 +296,6 @@ namespace AElf.Contracts.MultiToken
             await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
         }
         
-        private async Task<Hash> ApproveToRootForUserFeeByMiddleLayer(Hash input)
-        {
-            var organizations = await GetControllerForUserFee();
-            var approveMidProposalInput = new MiddleProposal
-            {
-                ToAddress = AssociationAddress,
-                Params = input.ToByteString(),
-                OrganizationAddress = organizations.ReferendumController,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-            };
-            var approveLeafProposalInput = new CreateProposalInput
-            {
-                ToAddress = TokenContractAddress,
-                Params = approveMidProposalInput.ToByteString(),
-                OrganizationAddress = organizations.ParliamentController,
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.TransferToMiddleControllerForUserFee),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-            };
-            var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
-                approveLeafProposalInput);
-            parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
-            var parliamentProposalId = new Hash();
-            parliamentProposalId.MergeFrom(parliamentCreateProposal.ReturnValue);
-            await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
-            await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
-            
-            var ids = await GetProposalIds();
-            ids.ProposalIdFromReferendum.Count.ShouldBe(1);
-            var proposalId = ids.ProposalIdFromReferendum.First();
-            await RemoveProposalId(proposalId);
-            return proposalId;
-        }
-        
-        private async Task ApproveThenReleaseMiddleProposalForUser(Hash input)
-        {
-            var organizations = await GetControllerForUserFee();
-            var approveLeafProposalInput = new CreateProposalInput
-            {
-                ToAddress = ReferendumAddress,
-                Params = input.ToByteString(),
-                OrganizationAddress = organizations.ParliamentController,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-            };
-            var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
-                approveLeafProposalInput);
-            parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
-            var parliamentProposalId = new Hash();
-            parliamentProposalId.MergeFrom(parliamentCreateProposal.ReturnValue);
-            await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
-            await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
-            
-            var releaseRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.ReleaseProposalForReferendum),
-                input);
-            releaseRet.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-        
         private async Task ReleaseRootForDeveloperFee(Hash input)
         {
             var releaseRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
@@ -443,7 +367,7 @@ namespace AElf.Contracts.MultiToken
             var issueResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
                 {
-                    Amount = 500000,
+                    Amount = 50000000,
                     To = callOwner,
                     Symbol = defaultSymbol
                 });
@@ -454,7 +378,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     Spender = ReferendumAddress,
                     Symbol = defaultSymbol,
-                    Amount = 100000
+                    Amount = 50000000
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

@@ -149,7 +149,7 @@ namespace AElf.Contracts.MultiToken
         
         public override Empty ReleaseProposalForReferendum(Hash id)
         {
-            State.AssociationContract.Release.Send(id);
+            State.ReferendumContract.Release.Send(id);
             return new Empty();
         }
         
