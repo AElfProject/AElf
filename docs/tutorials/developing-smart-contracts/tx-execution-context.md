@@ -1,33 +1,33 @@
 # Transaction execution context
 
-This article will present some of the functionality available to smart contract developers to help them implement common scenarios and more.
+This article will present some of the functionality available to smart contract developers that can help them implement common scenarios.
 
 When executing, transactions trigger the logic contained inside smart contracts. The smart contract execution is mostly sandboxed (it’s an isolated environment) but some elements are accessible to the smart contract author through the **execution context**. 
 
-Before we get started with the examples, It’s important to know a little about the execution model of transactions, this will help understand some concepts explained in this article. As a reminder this is what a transaction in AElf looks like (simplified):
+Before we get started with the examples, It’s important to know a little about the execution model of transactions, this will help you understand some concepts explained in this article. As a reminder this is what a transaction in AElf looks like (simplified):
 
 ```protobuf
 message Transaction {
-    Address from; // the address of the signer
-    Address to;     // the address of the target contract 
+    Address from;       // the address of the signer
+    Address to;         // the address of the target contract 
     string method_name; // the method to execute
-    bytes params;    // the parameters to pass to the method 
-    bytes signature; // the signature of this transaction (by the Sender)
+    bytes params;       // the parameters to pass to the method 
+    bytes signature;    // the signature of this transaction (by the Sender)
 }
 ```
 
-When users create and send a transaction to a node, it will eventually be packaged in a block. When this block is executed, the transactions are executed one by one. 
+When users create and send a transaction to a node, it will eventually be packaged in a block. When this block is executed, the transactions it contains are executed one by one. 
 
-Each transaction can generate new transactions called inline transactions (more on this in the next article). When this happens the inline transactions generated are executed right after the transaction that generated them. For example, when executing a block with 2 transactions: TX1 and TX2 and the method executed by TX1 performs 2 inline calls. In this situation, the order of execution will be:
+Each transaction can generate new transactions called inline transactions (more on this in the next article). When this happens the generated inline transactions are executed right after the transaction that generated them. For example, lets consider the following scenario: a block with 2 transactions, lets say **tx1** and **tx2**, where **tx1** performs 2 inline calls. In this situation, the order of execution will be the following:
 
 ```
-1. execute TX1 
+1. execute **tx1** 
 2.    - Execute first inline 
 3.    - Execute second Inline 
-4. execute TX2 
+4. execute **tx2** 
 ```
 
-This is important to know because as we will see next some of the execution contexts values change based on this logic.
+This is important to know because as we will see next, some of the execution context's values change based on this logic.
 
 ## Origin, Sender and Self
 
@@ -102,7 +102,7 @@ It's sometimes useful to get the address of a system contract, this can be done 
 
 ### Recovering the public key
 
-- Recovering the public key: this can be used for recovering the public key of the transaction Sender.
+Recovering the public key: this can be used for recovering the public key of the transaction Sender.
 
 ```csharp
 public override Empty Vote(VoteMinerInput input)
