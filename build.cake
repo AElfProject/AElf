@@ -1,7 +1,3 @@
-#reference "NuGet.Packaging"
-
-#load nuget.tool.cake
-
 var target = Argument("target", "default");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
@@ -12,8 +8,6 @@ var distPath     = rootPath + "aelf-node/";
 var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
-
-var nugetTool = NuGetTool.FromCakeContext(Context);
 
 Task("clean")
     .Description("clean up project cache")
@@ -32,7 +26,11 @@ Task("restore")
     .Description("restore project dependencies")
     .Does(() =>
 {
-    DotNetCoreRestore(solution);
+    var restoreSettings = new DotNetCoreRestoreSettings{
+        ArgumentCustomization = args => {
+            return args.Append("-v quiet");}
+};
+    DotNetCoreRestore(solution,restoreSettings);
 });
 
 Task("build")
