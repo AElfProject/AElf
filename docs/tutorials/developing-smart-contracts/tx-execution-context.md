@@ -19,10 +19,10 @@ message Transaction {
 When users create and send a transaction to a node, it will eventually be packaged in a block. When this block is executed, the transactions are executed one by one. 
 
 Each transaction can generate new transactions called inline transactions (more on this in the next article). When this happens the inline transactions generated are executed right after the transaction that generated them. For example, when executing a block with 2 transactions: TX1 and TX2 and the method executed by TX1 performs 2 inline calls. In this situation, the order of execution will be:
-1. execute TX1
+1. execute TX1 
 2.    - Execute first inline 
-3.    - Execute second Inline
-4. execute TX2
+3.    - Execute second Inline 
+4. execute TX2 
 
 This is important to know because as we will see next some of the execution contexts values change based on this logic.
 
