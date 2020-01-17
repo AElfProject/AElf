@@ -1,14 +1,13 @@
 # Internal contract interactions
 
-Generally, there are two reasons for us to write code to interact with other contracts (sometimes even the contract you're writing).
-
-1. To query a state from other contracts.
-2. To send a new transaction which will be executed after the original transaction.
+There's essentialy two reasons for interacting with other contracts:
+1. to query their state. 
+2. to create an inline transaction, that is, a new transaction which will be executed after the original transaction.
 
 Both of the two operations can be done in two ways:
 
-1. Using **CSharpSmartContract.Context**.
-2. Adding a **Contract Reference State** to the contract, then using **CSharpSmartContract.State** to call methods.
+1. using the **transaction execution context**.
+2. adding a **Contract Reference State** to the contract, then using **CSharpSmartContract.State** to call methods.
 
 ## Using the Context
 
@@ -42,6 +41,7 @@ Add these lines to your csproj file:
         </ContractMessage>
     </ItemGroup>
 ```
+
 The **ContractMessage** tag means you just want to reference the messages defined in the specified .proto file.
 
 - The `Call` method take the three following parameters: 
