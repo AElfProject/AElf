@@ -79,7 +79,7 @@ Task("test")
 });
 
 Task("default")
-    .Description("default - run test(-target test)")
+    .Description("default run test(-target test)")
     .IsDependentOn("test");
 
 RunTarget(target);
