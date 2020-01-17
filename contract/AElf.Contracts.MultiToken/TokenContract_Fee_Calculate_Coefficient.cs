@@ -10,8 +10,6 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.Initialized.Value, "MultiToken has been initialized");
             InitialParameters();
-            if (input.DefaultProposer != null)
-                State.DefaultProposer.Value = input.DefaultProposer;
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;

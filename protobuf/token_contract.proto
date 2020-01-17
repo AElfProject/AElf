@@ -6,6 +6,7 @@ import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import public "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
@@ -83,7 +84,28 @@ service TokenContract {
     }
     rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty){
     }
-
+    rpc SetProposalIdForDevelopers(aelf.Hash) returns  (google.protobuf.Empty){
+    }
+    rpc SetProposalIdForDevelopersAssociation(aelf.Hash) returns  (google.protobuf.Empty){
+    }
+    rpc SetProposalIdForReferendum(aelf.Hash) returns  (google.protobuf.Empty){
+    }
+    rpc SetProposalIdForUserAssociation(aelf.Hash) returns  (google.protobuf.Empty){
+    }
+    rpc RemoveProposalId(aelf.Hash) returns  (google.protobuf.Empty){
+    }
+    rpc TransferCreateProposalForDeveloperFee(CoefficientFromContract) returns (google.protobuf.Empty){
+    }
+    rpc TransferCreateProposalForUserFee(CoefficientFromSender) returns (google.protobuf.Empty){
+    }
+    rpc TransferToMiddleControllerForDeveloperFee(MiddleProposal) returns (google.protobuf.Empty){
+    }
+    rpc TransferToMiddleControllerForUserFee(MiddleProposal) returns (google.protobuf.Empty){
+    }
+    rpc ReleaseProposalForAssociation(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    rpc ReleaseProposalForReferendum(aelf.Hash) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -137,6 +159,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
+        option (aelf.is_view) = true;
+    }
+    rpc GetProposalIds(google.protobuf.Empty) returns (ProposalIds){
         option (aelf.is_view) = true;
     }
 }
@@ -402,7 +427,6 @@ message ValidateTokenInfoExistsInput{
 
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
-    aelf.Address default_proposer = 2;
 }
 
 message UpdateRentalInput {
@@ -573,4 +597,19 @@ message ControllerForDeveloperFee{
     aelf.Address root_controller = 1;
     aelf.Address parliament_controller = 2;
     aelf.Address developer_controller = 3;
+}
+
+message ProposalIds{
+    repeated aelf.Hash proposal_id_from_user_association = 1;
+    repeated aelf.Hash proposal_id_from_developer_association = 2;
+    repeated aelf.Hash proposal_id_from_referendum = 3;
+    repeated aelf.Hash proposal_id_from_developers = 4;
+}
+
+message MiddleProposal {
+    string contract_method_name = 1;
+    aelf.Address to_address = 2;
+    bytes params = 3;
+    google.protobuf.Timestamp expired_time = 4;
+    aelf.Address organization_address = 5;
 }

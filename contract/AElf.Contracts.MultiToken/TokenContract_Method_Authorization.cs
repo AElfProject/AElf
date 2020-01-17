@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -29,24 +31,200 @@ namespace AElf.Contracts.MultiToken
                 State.ReferendumContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName);
             }
-            var defaultParliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            if (State.DefaultProposer.Value == null)
-                State.DefaultProposer.Value = defaultParliamentAddress;
-            
-            CalculateUserFeeController(defaultParliamentAddress);
+            if(ControllersInitialized())
+                return new Empty();
+            CalculateUserFeeController();
             CreateReferendumOrganizationForUserFee();
             CreateAssociationOrganizationForUserFee();
             
-            CalculateDeveloperFeeController(defaultParliamentAddress);
+            CalculateDeveloperFeeController();
             CreateDeveloperOrganization();
             CreateAssociationOrganizationForDeveloperFee();
             return new Empty();
         }
 
-        private void CalculateDeveloperFeeController(Address defaultParliamentAddress)
+        public override Empty SetProposalIdForDevelopersAssociation(Hash input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.AssociationContract.Value, "token contract permission");
+            if (State.ProposalIds.Value == null)
+                State.ProposalIds.Value = new ProposalIds();
+            State.ProposalIds.Value.ProposalIdFromDeveloperAssociation.Add(input);
+            return new Empty();
+        }
+        
+        public override Empty SetProposalIdForUserAssociation(Hash input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.AssociationContract.Value, "token contract permission");
+            if (State.ProposalIds.Value == null)
+                State.ProposalIds.Value = new ProposalIds();
+            State.ProposalIds.Value.ProposalIdFromUserAssociation.Add(input);
+            return new Empty();
+        }
+        
+        public override Empty SetProposalIdForDevelopers(Hash input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.AssociationContract.Value, "token contract permission");
+            if (State.ProposalIds.Value == null)
+                State.ProposalIds.Value = new ProposalIds();
+            State.ProposalIds.Value.ProposalIdFromDevelopers.Add(input);
+            return new Empty();
+        }
+
+        public override Empty SetProposalIdForReferendum(Hash input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.ReferendumContract.Value, "token contract permission");
+            if (State.ProposalIds.Value == null)
+                State.ProposalIds.Value = new ProposalIds();
+            State.ProposalIds.Value.ProposalIdFromReferendum.Add(input);
+            return new Empty();
+        }
+        
+        public override Empty RemoveProposalId(Hash input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            if (State.ProposalIds.Value == null)
+                State.ProposalIds.Value = new ProposalIds();
+            if (State.ProposalIds.Value.ProposalIdFromDevelopers.Contains(input))
+                State.ProposalIds.Value.ProposalIdFromDevelopers.Remove(input);
+            if (State.ProposalIds.Value.ProposalIdFromDeveloperAssociation.Contains(input))
+                State.ProposalIds.Value.ProposalIdFromDeveloperAssociation.Remove(input);
+            if (State.ProposalIds.Value.ProposalIdFromReferendum.Contains(input))
+                State.ProposalIds.Value.ProposalIdFromReferendum.Remove(input);
+            if (State.ProposalIds.Value.ProposalIdFromUserAssociation.Contains(input))
+                State.ProposalIds.Value.ProposalIdFromUserAssociation.Remove(input);
+            return new Empty();
+        }
+
+        public override Empty TransferCreateProposalForUserFee(CoefficientFromSender input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            AssertFromUserFeeLeafController();
+            var proposalInput = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = Context.Sender,
+                ProposalInput = new CreateProposalInput
+                {
+                    ToAddress = Context.Self,
+                    OrganizationAddress = State.ControllerForUserFee.Value.RootController,
+                    ContractMethodName = nameof(UpdateCoefficientFromSender),
+                    Params = input.ToByteString(),
+                    ExpiredTime = GetDefaultDueDate().AddDays(1)
+                },
+                ProposalIdFeedbackMethod = nameof(SetProposalIdForUserAssociation)
+            };
+            State.AssociationContract.CreateProposalBySystemContract.Send(proposalInput);
+            return new Empty(); 
+        }
+        
+        public override Empty TransferCreateProposalForDeveloperFee(CoefficientFromContract input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            AssertFromDeveloperFeeLeafController();
+            var proposalInput = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = Context.Sender,
+                ProposalInput = new CreateProposalInput
+                {
+                    ToAddress = Context.Self,
+                    OrganizationAddress = State.ControllerForDeveloperFee.Value.RootController,
+                    ContractMethodName = nameof(UpdateCoefficientFromContract),
+                    Params = input.ToByteString(),
+                    ExpiredTime = GetDefaultDueDate().AddDays(1)
+                },
+                ProposalIdFeedbackMethod = nameof(SetProposalIdForDevelopersAssociation)
+            };
+            State.AssociationContract.CreateProposalBySystemContract.Send(proposalInput);
+            return new Empty(); 
+        }
+
+        public override Empty ReleaseProposalForAssociation(Hash id)
+        {
+            State.AssociationContract.Release.Send(id);
+            return new Empty();
+        }
+        
+        public override Empty ReleaseProposalForReferendum(Hash id)
+        {
+            State.AssociationContract.Release.Send(id);
+            return new Empty();
+        }
+        
+        public override Empty TransferToMiddleControllerForDeveloperFee(MiddleProposal input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.ParliamentController, "no permission");
+            
+            var proposalInput = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = Context.Sender,
+                ProposalInput = new CreateProposalInput
+                {
+                    ToAddress = input.ToAddress,
+                    OrganizationAddress = input.OrganizationAddress,
+                    ContractMethodName = input.ContractMethodName,
+                    Params = input.Params,
+                    ExpiredTime = input.ExpiredTime
+                },
+                ProposalIdFeedbackMethod = nameof(SetProposalIdForDevelopers)
+            };
+            State.AssociationContract.CreateProposalBySystemContract.Send(proposalInput);
+            return new Empty();
+        }
+        
+        public override Empty TransferToMiddleControllerForUserFee(MiddleProposal input)
+        {
+            Assert(ControllersInitialized(), "controller does not exist");
+            Assert(Context.Sender == State.ControllerForUserFee.Value.ParliamentController, "no permission");
+            
+            var proposalInput = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = Context.Sender,
+                ProposalInput = new CreateProposalInput
+                {
+                    ToAddress = input.ToAddress,
+                    OrganizationAddress = input.OrganizationAddress,
+                    ContractMethodName = input.ContractMethodName,
+                    Params = input.Params,
+                    ExpiredTime = input.ExpiredTime
+                },
+                ProposalIdFeedbackMethod = nameof(SetProposalIdForReferendum)
+            };
+            State.ReferendumContract.CreateProposalBySystemContract.Send(proposalInput);
+            return new Empty(); ;
+        }
+        
+        private bool ControllersInitialized()
+        {
+            if(State.ControllerForDeveloperFee.Value == null)
+                State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
+            if(State.ControllerForUserFee.Value == null)
+                State.ControllerForUserFee.Value = new ControllerForUserFee();
+            return !(State.ControllerForDeveloperFee.Value.DeveloperController == null ||
+                    State.ControllerForDeveloperFee.Value.ParliamentController == null ||
+                    State.ControllerForDeveloperFee.Value.RootController == null ||
+                    State.ControllerForUserFee.Value.ParliamentController == null ||
+                    State.ControllerForUserFee.Value.ReferendumController == null ||
+                    State.ControllerForUserFee.Value.RootController == null);
+        }
+
+        private void AssertFromDeveloperFeeLeafController()
+        {
+            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.DeveloperController || 
+                   Context.Sender == State.ControllerForDeveloperFee.Value.ParliamentController, "no permission");
+        }
+        private void AssertFromUserFeeLeafController()
+        {
+            Assert(Context.Sender == State.ControllerForUserFee.Value.ReferendumController || 
+                   Context.Sender == State.ControllerForUserFee.Value.ParliamentController, "no permission");
+        }
+        private void CalculateDeveloperFeeController()
         {
             State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
-            State.ControllerForDeveloperFee.Value.ParliamentController = defaultParliamentAddress;
+            State.ControllerForDeveloperFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
             State.ControllerForDeveloperFee.Value.DeveloperController =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperOrganization()
                     .OrganizationCreationInput);
@@ -55,10 +233,10 @@ namespace AElf.Contracts.MultiToken
                     .OrganizationCreationInput);
         }
 
-        private void CalculateUserFeeController(Address defaultParliamentAddress)
+        private void CalculateUserFeeController()
         {
             State.ControllerForUserFee.Value = new ControllerForUserFee();
-            State.ControllerForUserFee.Value.ParliamentController = defaultParliamentAddress;
+            State.ControllerForUserFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
             State.ControllerForUserFee.Value.ReferendumController =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumOrganizationForUserFee()
                     .OrganizationCreationInput);
@@ -93,8 +271,6 @@ namespace AElf.Contracts.MultiToken
         {
             var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
             var whiteList = new List<Address> {parliamentOrg};
-            if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
-                whiteList.Add(State.DefaultProposer.Value);
             return new Referendum.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Referendum.CreateOrganizationInput
@@ -120,11 +296,6 @@ namespace AElf.Contracts.MultiToken
             var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
             var proposers = new List<Address>
                 {State.ControllerForUserFee.Value.ReferendumController, parliamentOrg};
-            var actualProposalCount = proposers.Count;
-            if (State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrg)
-            {
-                proposers.Add(State.DefaultProposer.Value);
-            }
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -135,8 +306,8 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
-                        MinimalApprovalThreshold = actualProposalCount,
-                        MinimalVoteThreshold = actualProposalCount,
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
                         MaximalRejectionThreshold = 0,
                         MaximalAbstentionThreshold = 0
                     },
@@ -151,8 +322,6 @@ namespace AElf.Contracts.MultiToken
         {
             var parliamentOrganization = State.ControllerForDeveloperFee.Value.ParliamentController;
             var proposers = new List<Address> {parliamentOrganization};
-            if(State.DefaultProposer.Value != null && State.DefaultProposer.Value != parliamentOrganization)
-                proposers.Add(State.DefaultProposer.Value);
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -163,8 +332,8 @@ namespace AElf.Contracts.MultiToken
                     },
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1,
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
                         MaximalRejectionThreshold = 0,
                         MaximalAbstentionThreshold = 0
                     },
@@ -184,10 +353,6 @@ namespace AElf.Contracts.MultiToken
                 State.ControllerForDeveloperFee.Value.DeveloperController, parliamentOrg
             };
             var actualProposalCount = proposers.Count;
-            if (State.DefaultProposer.Value != null && parliamentOrg != State.DefaultProposer.Value)
-            {
-                 proposers.Add(State.DefaultProposer.Value);
-            }
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -210,7 +375,11 @@ namespace AElf.Contracts.MultiToken
                 }
             };
         }
-
         #endregion
+
+        private Timestamp GetDefaultDueDate()
+        {
+            return DateTime.UtcNow.ToTimestamp();
+        }
     }
 }
