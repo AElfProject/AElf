@@ -405,27 +405,20 @@ namespace AElf.Contracts.MultiToken
 
         private async Task CreateAndIssueVoteToken()
         {
-            const string defaultSymbol = "EE";
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
-            var createInput = new CreateInput
-            {
-                Symbol = defaultSymbol,
-                TokenName = defaultSymbol,
-                Decimals = 2,
-                IsBurnable = true,
-                TotalSupply = 10000_0000,
-                Issuer = callOwner,
-                LockWhiteList = {ReferendumAddress}
-            };
-            var createRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Create), createInput);
-            createRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var primaryTokenRet =  await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetPrimaryTokenSymbol), new Empty());
+            var symbol = new StringValue();
+            symbol.MergeFrom(primaryTokenRet.ReturnValue);
+            
+            await MainChainTester.ExecuteContractWithMiningAsync(ReferendumAddress,
+                nameof(ReferendumContractContainer.ReferendumContractStub.Initialize), new Empty());
             var issueResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
                 {
-                    Amount = 50000000,
+                    Amount = 100000,
                     To = callOwner,
-                    Symbol = defaultSymbol
+                    Symbol = symbol.Value
                 });
             issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -433,8 +426,8 @@ namespace AElf.Contracts.MultiToken
                 nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
                 {
                     Spender = ReferendumAddress,
-                    Symbol = defaultSymbol,
-                    Amount = 50000000
+                    Symbol = symbol.Value,
+                    Amount = 100000
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

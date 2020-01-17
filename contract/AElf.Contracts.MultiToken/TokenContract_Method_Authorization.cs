@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Acs3;
 using AElf.Sdk.CSharp;
@@ -55,17 +54,7 @@ namespace AElf.Contracts.MultiToken
                     State.ControllerForUserFee.Value.ReferendumController == null ||
                     State.ControllerForUserFee.Value.RootController == null);
         }
-
-        private void AssertFromDeveloperFeeLeafController()
-        {
-            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.DeveloperController || 
-                   Context.Sender == State.ControllerForDeveloperFee.Value.ParliamentController, "no permission");
-        }
-        private void AssertFromUserFeeLeafController()
-        {
-            Assert(Context.Sender == State.ControllerForUserFee.Value.ReferendumController || 
-                   Context.Sender == State.ControllerForUserFee.Value.ParliamentController, "no permission");
-        }
+        
         private void CalculateDeveloperFeeController()
         {
             State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
@@ -120,7 +109,7 @@ namespace AElf.Contracts.MultiToken
             {
                 OrganizationCreationInput = new Referendum.CreateOrganizationInput
                 {
-                    TokenSymbol = "EE",
+                    TokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value,
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
                         MinimalApprovalThreshold = 1,
@@ -221,10 +210,5 @@ namespace AElf.Contracts.MultiToken
             };
         }
         #endregion
-
-        private Timestamp GetDefaultDueDate()
-        {
-            return DateTime.UtcNow.ToTimestamp();
-        }
     }
 }
