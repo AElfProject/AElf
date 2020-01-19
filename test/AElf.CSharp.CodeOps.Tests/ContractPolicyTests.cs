@@ -69,7 +69,6 @@ namespace AElf.CSharp.CodeOps
             : base(policies)
         {
             Whitelist = new Whitelist();
-            policies.ForEach(o => this.Whitelist.NameSpaces.Concat(o.Whitelist.NameSpaces));
         }
     }
 
