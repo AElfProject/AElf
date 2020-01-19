@@ -13,9 +13,9 @@ message CreateTokenHolderProfitSchemeInput {
 ```
 
 **CreateTokenHolderProfitSchemeInput**:
-- symbol: the token that will be used for locking and distributing profits.
-- minimum lock time: minimum lock time before withdrawing.
-- automatic distribution threshold: used when registering for profits (RegisterForProfits).
+- **symbol**: the token that will be used for locking and distributing profits.
+- **minimum** lock time: minimum lock time before withdrawing.
+- **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
 
 ## **AddBeneficiary**
 
@@ -29,8 +29,8 @@ message AddTokenHolderBeneficiaryInput {
 ```
 
 **AddTokenHolderBeneficiaryInput**:
-- beneficiary: the new beneficiary.
-- shares: the shares to attribute to this beneficiary. 
+- **beneficiary**: the new beneficiary.
+- **shares**: the shares to attribute to this beneficiary. 
 
 ## **RemoveBeneficiary**
 
@@ -46,8 +46,8 @@ message RemoveTokenHolderBeneficiaryInput {
 Note: this method can be used to remove a beneficiary or update its shares.
 
 **RemoveTokenHolderBeneficiaryInput**:
-- beneficiary: the beneficiary to remove or update.
-- amount: 0 to remove the beneficiary. A positive integer, smaller than the current shares. 
+- **beneficiary**: the beneficiary to remove or update.
+- **amount**: 0 to remove the beneficiary. A positive integer, smaller than the current shares. 
 
 ## **ContributeProfits**
 
@@ -62,9 +62,9 @@ message ContributeProfitsInput {
 ```
 
 **ContributeProfitsInput**:
-- scheme_manager: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- amount: the amount of tokens to contribute. 
-- symbol: the token to contribute. 
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
+- **amount**: the amount of tokens to contribute. 
+- **symbol**: the token to contribute. 
 
 ## **DistributeProfits**
 
@@ -78,8 +78,8 @@ message DistributeProfitsInput {
 ```
 
 **DistributeProfitsInput**:
-- scheme_manager: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- symbol: the token to contribute. 
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
+- **symbol**: the token to contribute. 
 
 ## **RegisterForProfits**
 
@@ -93,8 +93,8 @@ message RegisterForProfitsInput {
 ```
 
 **RegisterForProfitsInput**:
-- scheme_manager: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- amount: the amount of tokens to lock (and will correspond to the amount of shares). 
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
+- **amount**: the amount of tokens to lock (and will correspond to the amount of shares). 
 
 ## **Withdraw**
 
@@ -117,9 +117,9 @@ message ClaimProfitsInput {
 ```
 
 **ClaimProfitsInput**:
-- scheme_manager: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- beneficiary: the beneficiary, defaults to the Sender. 
-- symbol: the symbol to claim.
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
+- **beneficiary**: the beneficiary, defaults to the Sender. 
+- **symbol**: the symbol to claim.
 
 ## View methods
 
@@ -138,10 +138,10 @@ message TokenHolderProfitScheme {
 ```
 
 Returns a description of the scheme, wrapped in a **TokenHolderProfitScheme** object:
-- symbol: the scheme's token.
-- scheme_id: the id of the scheme.
-- period: the current period of the scheme.
-- minimum lock minutes: minimum lock time.
-- automatic distribution threshold: distribution info.
+- **symbol**: the scheme's token.
+- **scheme id**: the id of the scheme.
+- **period**: the current period of the scheme.
+- **minimum lock minutes**: minimum lock time.
+- **automatic distribution threshold**: distribution info.
 
 
