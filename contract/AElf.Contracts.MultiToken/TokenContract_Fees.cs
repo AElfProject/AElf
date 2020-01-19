@@ -101,30 +101,30 @@ namespace AElf.Contracts.MultiToken
         {
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
-            var availableTokenSymbol = input.PrimaryTokenSymbol;
+            var symbolToPayTxFee = input.PrimaryTokenSymbol;
             if (bill.TokenToAmount.Any())
             {
                 symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
                 amountChargedForBaseFee = bill.TokenToAmount.First().Value;
             }
 
-            var availableBalance = symbolChargedForBaseFee == availableTokenSymbol
+            var availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
                 // Available balance need to deduct amountChargedForBaseFee
-                ? State.Balances[Context.Sender][availableTokenSymbol].Sub(amountChargedForBaseFee)
-                : State.Balances[Context.Sender][availableTokenSymbol];
+                ? State.Balances[Context.Sender][symbolToPayTxFee].Sub(amountChargedForBaseFee)
+                : State.Balances[Context.Sender][symbolToPayTxFee];
             var txSizeFeeAmount = input.TransactionSizeFee;
 
             if (input.SymbolsToPayTxSizeFee.Any())
             {
-                var allExtraTokenInfo = input.SymbolsToPayTxSizeFee;
-                var availableToken= allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
-                                    allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
-                if (availableToken != null)
+                var allSymbolToTxFee = input.SymbolsToPayTxSizeFee;
+                var availableSymbol= allSymbolToTxFee.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
+                                    allSymbolToTxFee.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
+                if (availableSymbol != null)
                 {
-                    availableTokenSymbol = availableToken.TokenSymbol;
-                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableToken.AddedTokenWeight)
-                        .Div(availableToken.BaseTokenWeight);
-                    availableBalance = State.Balances[Context.Sender][availableTokenSymbol];
+                    symbolToPayTxFee = availableSymbol.TokenSymbol;
+                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableSymbol.AddedTokenWeight)
+                        .Div(availableSymbol.BaseTokenWeight);
+                    availableBalance = State.Balances[Context.Sender][symbolToPayTxFee];
                 }
             }
 
@@ -132,16 +132,16 @@ namespace AElf.Contracts.MultiToken
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (availableTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
+            if (symbolToPayTxFee == null) return availableBalance >= txSizeFeeAmount;
 
-            if (symbolChargedForBaseFee == availableTokenSymbol)
+            if (symbolChargedForBaseFee == symbolToPayTxFee)
             {
-                bill.TokenToAmount[availableTokenSymbol] =
-                    bill.TokenToAmount[availableTokenSymbol].Add(chargeAmount);
+                bill.TokenToAmount[symbolToPayTxFee] =
+                    bill.TokenToAmount[symbolToPayTxFee].Add(chargeAmount);
             }
             else
             {
-                bill.TokenToAmount.Add(availableTokenSymbol, chargeAmount);
+                bill.TokenToAmount.Add(symbolToPayTxFee, chargeAmount);
             }
             return availableBalance >= txSizeFeeAmount;
         }
