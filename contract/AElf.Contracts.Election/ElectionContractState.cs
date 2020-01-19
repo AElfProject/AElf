@@ -55,5 +55,7 @@ namespace AElf.Contracts.Election
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+        
+        public SingletonState<InterestInfoList> InterestInfoList { get; set; }
     }
 }

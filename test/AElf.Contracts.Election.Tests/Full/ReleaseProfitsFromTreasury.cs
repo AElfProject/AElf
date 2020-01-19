@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
+using Acs3;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -636,6 +638,25 @@ namespace AElf.Contracts.Election
                     }
                 }
             }
+        }
+        
+        
+        [Fact]
+        public async Task ElectionContract_Vote_Interest_Update_Success_Test()
+        {
+            var transactionResult = await ElectionContractStub.GetVoteInterestInfo.CallAsync(
+                new Empty());
+            transactionResult.ShouldNotBeNull();
+            transactionResult.InterestInfos.Count.ShouldBe(3);
+            transactionResult.InterestInfos[0].Day = 50;
+            transactionResult.InterestInfos[0].Capital = 100;
+            transactionResult.InterestInfos[0].Interest = 50;
+            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress, nameof(ElectionContractStub.SetVoteInterest),transactionResult);
+            transactionResult = await ElectionContractStub.GetVoteInterestInfo.CallAsync(
+                new Empty());
+            transactionResult.InterestInfos[0].Day.ShouldBe(50);
+            transactionResult.InterestInfos[0].Capital.ShouldBe(100);
+            transactionResult.InterestInfos[0].Interest.ShouldBe(50);
         }
 
         private async Task GenerateMiningReward(long supposedNextTermNumber)

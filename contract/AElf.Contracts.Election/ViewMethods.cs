@@ -300,6 +300,11 @@ namespace AElf.Contracts.Election
                 IsChangeTarget = votingRecord.IsChangeTarget
             };
         }
+        
+        public override InterestInfoList GetVoteInterestInfo(Empty input)
+        {
+            return State.InterestInfoList.Value;
+        }
 
         private int GetValidationDataCenterCount()
         {

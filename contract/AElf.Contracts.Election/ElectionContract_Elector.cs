@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -18,6 +17,11 @@ namespace AElf.Contracts.Election
     public partial class ElectionContract
     {
         #region Vote
+
+        private const int DaysOneYear = 365;
+        private const int DaySec = 86400;
+        private const int Scale = 10000;
+        
 
         /// <summary>
         /// Call the Vote function of VoteContract to do a voting.
@@ -65,6 +69,29 @@ namespace AElf.Contracts.Election
                 TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
             }
 
+            return new Empty();
+        }
+        
+        public override Empty SetVoteInterest(InterestInfoList input)
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            Assert(input != null, "invalid input");
+            long preDay = 0;
+            foreach (var interest in input.InterestInfos)
+            {
+                Assert(interest.Day > preDay, "invalid day");
+                Assert(interest.Interest > 0, "invalid interest");
+                Assert(interest.Capital > 0, "invalid capital");
+                preDay = interest.Day;
+            }
+
+            State.InterestInfoList.Value = input;
             return new Empty();
         }
 
@@ -168,34 +195,25 @@ namespace AElf.Contracts.Election
 
             return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
-
-        private const int DaySec = 86400;
-
-        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
-        {
-            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
-            {2.Mul(365).Mul(DaySec), 1.0015m},
-            {3.Mul(365).Mul(DaySec), 1.002m}
-        };
-
-        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
-        private const int Scale = 10000;
-
+        
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 1;
-            
-            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
+            var days = (uint) lockTime.Div(DaySec);
+            long calculatedWeight = 1;
+            foreach (var instMap in State.InterestInfoList.Value.InterestInfos)
             {
-                if (lockTime > instMap.Key)
+                if (days > instMap.Day)
                     continue;
-                calculated = calculated.Mul((long) (Pow(instMap.Value, (uint) lockTime.Div(DaySec)) * Scale));
+                var capitalWithInterest = (decimal)instMap.Capital.Add(instMap.Interest) / instMap.Capital;
+                calculatedWeight = calculatedWeight.Mul((long) (Pow(capitalWithInterest, days) * Scale));
                 break;
             }
 
-            if (calculated == 1) // lockTime > 3 years
-                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+            if (calculatedWeight != 1) return votesAmount.Mul(calculatedWeight).Add(votesAmount.Div(2));
+            var maxInterest = State.InterestInfoList.Value.InterestInfos.Last();
+            var maxCapitalWithInterest = (decimal)maxInterest.Capital.Add(maxInterest.Interest)/maxInterest.Capital;
+            calculatedWeight = calculatedWeight.Mul((long) (Pow(maxCapitalWithInterest, days) * Scale));
+            return votesAmount.Mul(calculatedWeight).Add(votesAmount.Div(2));
         }
 
         private static decimal Pow(decimal x, uint y)
@@ -460,6 +478,29 @@ namespace AElf.Contracts.Election
                     Shares = votesWeight
                 },
                 EndPeriod = GetEndPeriod(lockSeconds)
+            });
+        }
+        
+        private void InitInterest()
+        {
+            State.InterestInfoList.Value = new InterestInfoList();
+            State.InterestInfoList.Value.InterestInfos.Add(new InterestInfo
+            {
+                Day = DaysOneYear,
+                Capital = 1000,
+                Interest = 1
+            });
+            State.InterestInfoList.Value.InterestInfos.Add(new InterestInfo
+            {
+                Day = DaysOneYear.Mul(2),
+                Capital = 10000,
+                Interest = 15
+            });
+            State.InterestInfoList.Value.InterestInfos.Add(new InterestInfo
+            {
+                Day = DaysOneYear.Mul(3),
+                Capital = 1000,
+                Interest = 2
             });
         }
     }
