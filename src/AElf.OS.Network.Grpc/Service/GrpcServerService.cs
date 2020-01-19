@@ -345,9 +345,6 @@ namespace AElf.OS.Network.Grpc
                 var blocks =
                     await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
 
-                if (blocks == null)
-                    return blockList;
-
                 blockList.Blocks.AddRange(blocks);
 
                 if (NetworkOptions.CompressBlocksOnRequest)
