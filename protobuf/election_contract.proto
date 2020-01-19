@@ -39,8 +39,6 @@ service ElectionContract {
     }
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
     }
-    rpc SetVoteInterest (InterestInfoList) returns (google.protobuf.Empty) {
-    }
     
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
@@ -101,9 +99,6 @@ service ElectionContract {
         option (aelf.is_view) = true;
     }
     rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetVoteInterestInfo (google.protobuf.Empty) returns (InterestInfoList) {
         option (aelf.is_view) = true;
     }
 }
@@ -254,14 +249,4 @@ message SetTreasurySchemeIdsInput {
 message DataCenterRankingList {
     map<string, sint64> data_centers = 1;
     sint64 minimum_votes = 2;
-}
-
-message InterestInfo{
-    sint32 day = 1;
-    sint32 capital = 2;
-    sint32 interest = 3;
-}
-
-message InterestInfoList{
-    repeated InterestInfo interest_infos = 1;
 }
