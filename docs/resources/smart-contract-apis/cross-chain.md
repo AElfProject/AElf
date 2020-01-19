@@ -276,6 +276,10 @@ Gets the current status of the specified side chain.
 **Returns:**
 
 Current status of side chain.
+- fatal: currently no meaning.
+- active: the side-chain is being indexed.
+- insufficient balance: not enough balance for indexing.
+- terminated: the side chain cannot be indexed anymore.
 
 ### function GetSideChainHeight
 
