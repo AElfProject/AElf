@@ -79,10 +79,10 @@
             <Link>Protobuf\Proto\referendum_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
-            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>

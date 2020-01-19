@@ -706,7 +706,7 @@ namespace AElf.Contracts.Parliament
 
             const string proposalCreationMethodName = nameof(parliamentContractStub.ChangeMethodFeeController);
             var proposalId = await CreateFeeProposalAsync(ParliamentContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -736,7 +736,7 @@ namespace AElf.Contracts.Parliament
 
             var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
             var result = await parliamentContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress

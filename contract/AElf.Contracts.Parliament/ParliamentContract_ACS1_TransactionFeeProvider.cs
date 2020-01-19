@@ -14,7 +14,7 @@ namespace AElf.Contracts.Parliament
             return State.TransactionFees[input.Value];
         }
 
-        public override AuthorityStuff GetMethodFeeController(Empty input)
+        public override AuthorityInfo GetMethodFeeController(Empty input)
         {
             RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Parliament
             return new Empty();
         }
 
-        public override Empty ChangeMethodFeeController(AuthorityStuff input)
+        public override Empty ChangeMethodFeeController(AuthorityInfo input)
         {
             RequiredMethodFeeControllerSet();
             AssertSenderAddressWith(State.MethodFeeController.Value.OwnerAddress);
@@ -45,17 +45,17 @@ namespace AElf.Contracts.Parliament
 
         #region private methods
 
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
-                nameof(ValidateOrganizationExist), authorityStuff.OwnerAddress).Value;
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
+                nameof(ValidateOrganizationExist), authorityInfo.OwnerAddress).Value;
         }
 
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
 
-            var defaultAuthority = new AuthorityStuff
+            var defaultAuthority = new AuthorityInfo
             {
                 OwnerAddress = State.DefaultOrganizationAddress.Value,
                 ContractAddress = Context.Self

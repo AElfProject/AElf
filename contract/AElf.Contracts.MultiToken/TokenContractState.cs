@@ -61,6 +61,6 @@ namespace AElf.Contracts.MultiToken
 
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
 
-        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

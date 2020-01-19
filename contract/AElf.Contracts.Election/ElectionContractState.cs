@@ -56,6 +56,6 @@ namespace AElf.Contracts.Election
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
-        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

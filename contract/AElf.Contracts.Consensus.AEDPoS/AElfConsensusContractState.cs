@@ -54,6 +54,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
-        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

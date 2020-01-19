@@ -102,7 +102,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             const string proposalCreationMethodName =
                 nameof(EconomicContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = methodFeeController.ContractAddress

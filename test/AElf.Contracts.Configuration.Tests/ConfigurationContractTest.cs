@@ -214,7 +214,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = methodFeeController.ContractAddress
@@ -232,7 +232,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                 nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController),
-                new AuthorityStuff()
+                new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
                     ContractAddress = ParliamentAddress
@@ -247,7 +247,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = SampleAddress.AddressList[4],
                     ContractAddress = methodFeeController.ContractAddress

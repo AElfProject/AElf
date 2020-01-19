@@ -34,6 +34,8 @@ namespace AElf.Contracts.TokenHolder
         protected List<Address> UserAddresses =>
             UserKeyPairs.Select(k => Address.FromPublicKey(k.PublicKey)).ToList();
 
+        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            SampleECKeyPairs.KeyPairs.Take(TokenHolderContractTestConstants.InitialCoreDataCenterCount).ToList();
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ParliamentContractAddress { get; set; }
@@ -53,6 +55,7 @@ namespace AElf.Contracts.TokenHolder
 
         internal DAppContainer.DAppStub DAppContractStub { get; set; }
 
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
@@ -138,8 +141,10 @@ namespace AElf.Contracts.TokenHolder
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
-                        Name = ConsensusSmartContractAddressNameProvider.Name
+                        Name = ConsensusSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
                     })).Output;
+            AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -175,6 +180,11 @@ namespace AElf.Contracts.TokenHolder
             GenerateProfitInitializationCallList()
         {
             return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+        }
+
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
@@ -225,6 +235,25 @@ namespace AElf.Contracts.TokenHolder
                 PrivilegedProposer = Starter,
                 ProposerAuthorityRequired = true
             });
+
+            return parliamentContractCallList;
+        }
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateConsensusInitializationCallList()
+        {
+            var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            parliamentContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
+                {
+                    TimeEachTerm = 604800L,
+                    MinerIncreaseInterval = 31536000
+                });
+
+            parliamentContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList
+            {
+                Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+            }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
 
             return parliamentContractCallList;
         }

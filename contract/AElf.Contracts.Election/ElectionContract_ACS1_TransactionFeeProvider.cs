@@ -1,5 +1,5 @@
 using Acs1;
-using AElf.Contracts.Parliament;
+using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -15,7 +15,7 @@ namespace AElf.Contracts.Election
             return State.TransactionFees[input.Value];
         }
 
-        public override AuthorityStuff GetMethodFeeController(Empty input)
+        public override AuthorityInfo GetMethodFeeController(Empty input)
         {
             RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty ChangeMethodFeeController(AuthorityStuff input)
+        public override Empty ChangeMethodFeeController(AuthorityInfo input)
         {
             RequiredMethodFeeControllerSet();
             AssertSenderAddressWith(State.MethodFeeController.Value.OwnerAddress);
@@ -54,7 +54,7 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            var defaultAuthority = new AuthorityStuff
+            var defaultAuthority = new AuthorityInfo
             {
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
                 ContractAddress = State.ParliamentContract.Value
@@ -68,11 +68,11 @@ namespace AElf.Contracts.Election
             Assert(Context.Sender == address, "Unauthorized behavior.");
         }
 
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
-                nameof(ParliamentContractContainer.ParliamentContractReferenceState.ValidateOrganizationExist),
-                authorityStuff.OwnerAddress).Value;
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
+                authorityInfo.OwnerAddress).Value;
         }
 
         #endregion

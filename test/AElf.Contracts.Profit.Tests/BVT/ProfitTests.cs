@@ -47,7 +47,7 @@ namespace AElf.Contracts.Profit.BVT
 
             const string proposalCreationMethodName = nameof(ProfitContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(ProfitContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -75,7 +75,7 @@ namespace AElf.Contracts.Profit.BVT
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await ProfitContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityStuff
+            var result = await ProfitContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress

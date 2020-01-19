@@ -153,11 +153,11 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             return proposalId;
         }
 
-        protected async Task<AuthorityStuff> GetMethodFeeController(Address configurationContractAddress)
+        protected async Task<AuthorityInfo> GetMethodFeeController(Address configurationContractAddress)
         {
             var methodFeeControllerByteString = await Tester.CallContractMethodAsync(configurationContractAddress,
                 nameof(ConfigurationContainer.ConfigurationStub.GetMethodFeeController), new Empty());
-            return AuthorityStuff.Parser.ParseFrom(methodFeeControllerByteString);
+            return AuthorityInfo.Parser.ParseFrom(methodFeeControllerByteString);
         }
     }
 }

@@ -16,6 +16,6 @@ namespace AElf.Contracts.Referendum
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
-        public SingletonState<AuthorityStuff> MethodFeeController { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

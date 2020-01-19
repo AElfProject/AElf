@@ -15,7 +15,7 @@ service MethodFeeProviderContract {
     rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty) {
     }
 
-    rpc ChangeMethodFeeController (AuthorityStuff) returns (google.protobuf.Empty) {
+    rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
     // Views
@@ -23,7 +23,7 @@ service MethodFeeProviderContract {
         option (aelf.is_view) = true;
     }
 
-    rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityStuff) {
+    rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -47,7 +47,7 @@ message MethodFeeSet {
     sint64 new_fee = 4;
 }
 
-message AuthorityStuff {
+message AuthorityInfo {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;
 }

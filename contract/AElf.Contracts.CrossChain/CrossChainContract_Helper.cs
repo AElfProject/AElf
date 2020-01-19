@@ -254,12 +254,12 @@ namespace AElf.Contracts.CrossChain
             return GetCousinChainMerkleTreeRoot(parentChainHeight);
         }
 
-        private AuthorityStuff GetCrossChainIndexingController()
+        private AuthorityInfo GetCrossChainIndexingController()
         {
             return State.CrossChainIndexingController.Value;
         }
 
-        private AuthorityStuff GetSideChainLifetimeController()
+        private AuthorityInfo GetSideChainLifetimeController()
         {
             return State.SideChainLifetimeController.Value;
         }
@@ -550,11 +550,11 @@ namespace AElf.Contracts.CrossChain
             State.AssociationContract.CreateOrganization.Send(createOrganizationInput);
         }
 
-        private bool ValidateAuthorityStuffExists(AuthorityStuff authorityStuff)
+        private bool ValidateAuthorityInfoExists(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
-                authorityStuff.OwnerAddress).Value;
+                authorityInfo.OwnerAddress).Value;
         }
 
         private bool ValidateParliamentOrganization(Address organizationAddress,

@@ -773,7 +773,7 @@ namespace AElf.Contracts.Referendum
 
             const string proposalCreationMethodName = nameof(ReferendumContractStub.ChangeMethodFeeController);
             var proposalId = await CreateFeeProposalAsync(ReferendumContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -801,7 +801,7 @@ namespace AElf.Contracts.Referendum
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await ReferendumContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityStuff
+            var result = await ReferendumContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress

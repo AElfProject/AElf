@@ -39,13 +39,13 @@ namespace AElf.Contracts.CrossChain
             State.Initialized.Value = true;
             var parliamentContractAddress = State.ParliamentContract.Value;
             Assert(parliamentContractAddress == Context.Sender, "No permission.");
-            var initialAuthorityStuff = new AuthorityStuff
+            var initialAuthorityInfo = new AuthorityInfo
             {
                 OwnerAddress = input,
                 ContractAddress = parliamentContractAddress
             };
-            State.CrossChainIndexingController.Value = initialAuthorityStuff;
-            State.SideChainLifetimeController.Value = initialAuthorityStuff;
+            State.CrossChainIndexingController.Value = initialAuthorityInfo;
+            State.SideChainLifetimeController.Value = initialAuthorityInfo;
             return new Empty();
         }
 
@@ -317,7 +317,7 @@ namespace AElf.Contracts.CrossChain
 
         #endregion Cross chain actions
 
-        public override Empty ChangeCrossChainIndexingController(AuthorityStuff input)
+        public override Empty ChangeCrossChainIndexingController(AuthorityInfo input)
         {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
@@ -328,10 +328,10 @@ namespace AElf.Contracts.CrossChain
             return new Empty();
         }
 
-        public override Empty ChangeSideChainLifetimeController(AuthorityStuff input)
+        public override Empty ChangeSideChainLifetimeController(AuthorityInfo input)
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
-            Assert(ValidateAuthorityStuffExists(input), "Invalid authority input.");
+            Assert(ValidateAuthorityInfoExists(input), "Invalid authority input.");
             State.SideChainLifetimeController.Value = input;
             return new Empty();
         }

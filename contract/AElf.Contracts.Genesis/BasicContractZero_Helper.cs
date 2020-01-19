@@ -48,11 +48,11 @@ namespace AElf.Contracts.Genesis
             return Hash.FromMessage(input);
         }
 
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
-                authorityStuff.OwnerAddress).Value;
+                authorityInfo.OwnerAddress).Value;
         }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)

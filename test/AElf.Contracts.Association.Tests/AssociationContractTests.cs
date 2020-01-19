@@ -818,7 +818,7 @@ namespace AElf.Contracts.Association
             const string proposalCreationMethodName = nameof(AssociationContractStub.ChangeMethodFeeController);
 
             var proposalId = await CreateFeeProposalAsync(AssociationContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -847,7 +847,7 @@ namespace AElf.Contracts.Association
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await AssociationContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityStuff
+            var result = await AssociationContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress

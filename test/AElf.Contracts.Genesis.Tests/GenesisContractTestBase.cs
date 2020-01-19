@@ -260,20 +260,20 @@ namespace AElf.Contracts.Genesis
                 : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
         }
 
-        internal async Task<AuthorityStuff> GetContractDeploymentController<T>(
+        internal async Task<AuthorityInfo> GetContractDeploymentController<T>(
             ContractTester<T> tester, Address genesisContractAddress) where T : ContractTestAElfModule
         {
             var contractDeploymentControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractDeploymentController), new Empty());
-            return AuthorityStuff.Parser.ParseFrom(contractDeploymentControllerByteString);
+            return AuthorityInfo.Parser.ParseFrom(contractDeploymentControllerByteString);
         }
 
-        internal async Task<AuthorityStuff> GetMethodFeeController<T>(
+        internal async Task<AuthorityInfo> GetMethodFeeController<T>(
             ContractTester<T> tester, Address genesisContractAddress) where T : ContractTestAElfModule
         {
             var methodFeeControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetMethodFeeController), new Empty());
-            return AuthorityStuff.Parser.ParseFrom(methodFeeControllerByteString);
+            return AuthorityInfo.Parser.ParseFrom(methodFeeControllerByteString);
         }
     }
 }

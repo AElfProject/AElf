@@ -653,7 +653,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -682,7 +682,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                 }.ToByteString(),
@@ -726,7 +726,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -759,7 +759,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var res =
                 (await CrossChainContractStub.ChangeCrossChainIndexingController.SendWithExceptionAsync(
-                    new AuthorityStuff
+                    new AuthorityInfo
                     {
                         ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                     })).TransactionResult;
@@ -800,7 +800,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -832,7 +832,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = new AuthorityStuff
+                    Params = new AuthorityInfo
                     {
                         ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                     }.ToByteString(),
@@ -853,7 +853,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = new AuthorityStuff
+                    Params = new AuthorityInfo
                     {
                         ContractAddress = AssociationContractAddress, OwnerAddress = oldOrganizationAddress
                     }.ToByteString(),
@@ -884,7 +884,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
                 var res =
                     (await CrossChainContractStub.ChangeSideChainLifetimeController.SendWithExceptionAsync(
-                        new AuthorityStuff
+                        new AuthorityInfo
                         {
                             ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                         })).TransactionResult;
@@ -1065,7 +1065,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var sideChainLifetimeControllerChangeProposalId = await CreateParliamentProposalAsync(
                 nameof(CrossChainContractStub.ChangeSideChainLifetimeController), oldSideChainLifetimeController,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newSideChainLifetimeControllerAddress
                 });
@@ -1109,7 +1109,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 // side chain fee adjustment proposal
                 var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
                     nameof(CrossChainContractStub.AdjustIndexingFeePrice),
-                    indexingFeeController.AuthorityStuff.OwnerAddress, CrossChainContractAddress,
+                    indexingFeeController.AuthorityInfo.OwnerAddress, CrossChainContractAddress,
                     new AdjustIndexingFeeInput
                     {
                         IndexingFee = newIndexingFeePrice,
@@ -1160,7 +1160,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 nameof(CrossChainContractStub.ChangeMethodFeeController);
             var proposalId = await CreateParliamentProposalAsync(proposalCreationMethodName,
                 methodFeeController.OwnerAddress,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = methodFeeController.ContractAddress
@@ -1190,7 +1190,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
             var methodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
             var result = await CrossChainContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = methodFeeController.ContractAddress

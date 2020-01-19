@@ -37,7 +37,7 @@ namespace AElf.Contracts.MultiToken
 
             const string proposalCreationMethodName = nameof(TokenConverterContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(TokenConverterContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -66,7 +66,7 @@ namespace AElf.Contracts.MultiToken
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
             var result = await TokenConverterContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress

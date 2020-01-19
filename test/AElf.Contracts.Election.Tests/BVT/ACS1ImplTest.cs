@@ -35,7 +35,7 @@ namespace AElf.Contracts.Election
 
             const string proposalCreationMethodName = nameof(ElectionContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(ElectionContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentContractAddress
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Election
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await ElectionContractStub.ChangeMethodFeeController.SendAsync(new AuthorityStuff
+            var result = await ElectionContractStub.ChangeMethodFeeController.SendAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress

@@ -27,7 +27,7 @@ namespace AElf.Contracts.Genesis
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
-                new AuthorityStuff()
+                new AuthorityInfo()
                 {
                     OwnerAddress = SampleAddress.AddressList[0],
                     ContractAddress = BasicContractZeroAddress
@@ -382,7 +382,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     ContractAddress = contractDeploymentController.ContractAddress,
                     OwnerAddress = address
@@ -413,7 +413,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentAddress
@@ -511,7 +511,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = AssociationContractAddress
@@ -702,7 +702,7 @@ namespace AElf.Contracts.Genesis
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
-                new AuthorityStuff()
+                new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
                     ContractAddress = BasicContractZeroAddress
@@ -847,7 +847,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = ParliamentAddress
@@ -865,7 +865,7 @@ namespace AElf.Contracts.Genesis
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController),
-                new AuthorityStuff()
+                new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
                     ContractAddress = ParliamentAddress
@@ -880,7 +880,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = SampleAddress.AddressList[4],
                     ContractAddress = ParliamentAddress
@@ -920,7 +920,7 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = AssociationContractAddress

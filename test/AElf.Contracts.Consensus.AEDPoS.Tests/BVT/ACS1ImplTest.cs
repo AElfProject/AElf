@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             const string proposalCreationMethodName =
                 nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
-                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityStuff
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
                     ContractAddress = methodFeeController.ContractAddress
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
             var methodFeeController = await AEDPoSContractStub.GetMethodFeeController.CallAsync(new Empty());
-            var result = await AEDPoSContractStub.ChangeMethodFeeController.SendAsync(new AuthorityStuff
+            var result = await AEDPoSContractStub.ChangeMethodFeeController.SendAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = methodFeeController.ContractAddress
