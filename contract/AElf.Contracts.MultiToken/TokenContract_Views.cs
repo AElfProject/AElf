@@ -138,5 +138,18 @@ namespace AElf.Contracts.MultiToken
 
             return usage;
         }
+
+        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
+        {
+            return State.SymbolListToPayTXSizeFee.Value;
+        }
+        public override ControllerForUserFee GetUserFeeController(Empty input)
+        {
+            return State.ControllerForUserFee.Value;
+        }
+        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        {
+            return State.ControllerForDeveloperFee.Value;
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
@@ -215,8 +216,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
             });
-
-            await TokenStub.UpdateRental.SendAsync(new UpdateRentalInput
+            var updateRentalInput = new UpdateRentalInput
             {
                 Rental =
                 {
@@ -225,7 +225,54 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"DISK", Rental},
                     {"NET", Rental},
                 }
+            };
+            var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            var parliamentOrgAddress = defaultOrganizationAddress;
+            var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
+            var createOrganizationInput2 = new CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {twoProposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {twoProposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = twoProposers.Count,
+                    MinimalVoteThreshold = twoProposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            
+            var associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
+            var associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var toAssociationProposal = new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRental),
+                Params = updateRentalInput.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = associationAddress
+            };
+            var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            var associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
+            
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                Params = associationProposalId.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = parliamentOrgAddress
             });
+            await AssociationStub.Approve.SendAsync(associationProposalId);
+            await AssociationStub.Release.SendAsync(associationProposalId);
 
             await CreateToken(
                 GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
@@ -234,6 +281,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);
             await CreateToken("NET", ResourceSupply, issueToken);
+
         }
 
         private async Task CreateToken(string symbol, long supply, bool issueToken)
