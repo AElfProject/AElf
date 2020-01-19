@@ -10,6 +10,7 @@
         * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
         * [First contract - test](tutorials/developing-smart-contracts/first-contract-test.md)
         * [First contract - deploy](tutorials/developing-smart-contracts/first-contract-deploy.md)
+        * [Execution context](tutorials/developing-smart-contracts/tx-execution-context.md)
         <!-- * [Issue tokens](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
@@ -50,6 +51,7 @@
 * [Web api reference](web-api-reference/reference.md)
 * [SDK reference](sdk/js.md)
     * [JS SDK](sdk/javascript/js-sdk.md)
+    * [dApp SDK](sdk/javascript/dapp-sdk.md)
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Consensus Contract](resources/smart-contract-apis/consensus.md)
@@ -62,7 +64,6 @@
       * [Treasury Contract](resources/smart-contract-apis/treasury.md)
       * [Vote Contract](resources/smart-contract-apis/vote.md)
     * [Wallet and Block Explorer](resources/wallet-and-explorer/index.md)
-      * [wallet-bridge-sdk](resources/wallet-and-explorer/wallet-bridge-sdk.md)
       * [explorer-api](resources/wallet-and-explorer/explorer-api.md)
     * [Command line interface](resources/cli/cli.md)
       * [Introduction](resources/cli/introduction.md)

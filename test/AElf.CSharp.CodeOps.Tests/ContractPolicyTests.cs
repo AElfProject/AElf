@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Genesis;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
@@ -78,11 +80,17 @@ namespace AElf.CSharp.CodeOps
         private readonly string _contractDllDir = "../../../contracts/";
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
+        private readonly RequiredAcsDto _requiredAcs;
 
         public ContractPolicyTests()
         {
             _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
             _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
+            _requiredAcs = new RequiredAcsDto
+            {
+                AcsList = new[] {"acs1", "acs8"}.ToList(), 
+                RequireAll = false
+            };
         }
 
         [Fact]
@@ -179,7 +187,36 @@ namespace AElf.CSharp.CodeOps
 
             _auditor = new ContractAuditor(blackList, whiteList);
 
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, true));
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs, true));
+        }
+        
+        [Fact]
+        public void ContractAuditor_AcsRequired_Test()
+        {
+            var whiteList = new List<string>
+            {
+                "System.Collection",
+                "System.Linq"
+            };
+            var blackList = new List<string>
+            {
+                "System.Random",
+                "System.DateTime"
+            };
+
+            _auditor = new ContractAuditor(whiteList, blackList);
+
+            var requireAcs = new RequiredAcsDto();
+            requireAcs.AcsList = new List<string> {"acs1"};
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs, true));
+            
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+
+            requireAcs.AcsList.Add("acs8");
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+
+            requireAcs.RequireAll = true;
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
         }
 
         private static List<ValidationResult> ValidateContractCode(byte[] code, IValidator<MethodDefinition> validator)
