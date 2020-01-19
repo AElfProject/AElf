@@ -131,7 +131,6 @@ namespace AElf.Contracts.MultiToken
                     availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
                         ? State.Balances[Context.Sender][symbolToPayTxFee].Sub(amountChargedForBaseFee)
                         : State.Balances[Context.Sender][symbolToPayTxFee];
-                    txSizeFeeAmount = txSizeFeeAmount > availableBalance ? availableBalance : txSizeFeeAmount;
                 }
             }
 
