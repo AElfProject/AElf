@@ -86,9 +86,12 @@ namespace AElf.Contracts.Genesis
             var deployAddress = ContractDeployed.Parser.ParseFrom(deploymentResult.Logs[1].NonIndexed).Address;
             deployAddress.ShouldNotBeNull();
 
-            var author = Address.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
-            author.ShouldBe(BasicContractZeroAddress);
+            var contractVersion = ContractDeployed.Parser.ParseFrom(deploymentResult.Logs[1].NonIndexed).Version;
+            contractVersion.ShouldBe(1);
+            var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), deployAddress));
+            contractInfo.Version.ShouldBe(1);
+            contractInfo.Author.ShouldBe(BasicContractZeroAddress);
         }
 
         [Fact]
@@ -103,6 +106,9 @@ namespace AElf.Contracts.Genesis
             {
                 var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
                 address.ShouldNotBeNull();
+                var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), address));
+                contractInfo.Version.ShouldBe(1);
             }
 
             {
@@ -121,6 +127,9 @@ namespace AElf.Contracts.Genesis
                 var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
                 var address = await DeployAsync(minerTester, ParliamentAddress, newContractDeploymentInput);
                 address.ShouldNotBeNull();
+                var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), address));
+                contractInfo.Version.ShouldBe(1);
             }
 
             {
@@ -148,6 +157,9 @@ namespace AElf.Contracts.Genesis
             };
 
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+            var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+            contractInfo.Version.ShouldBe(1);
             var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
             var contractUpdateInput = new ContractUpdateInput
             {
@@ -194,6 +206,12 @@ namespace AElf.Contracts.Genesis
             var newHash = CodeUpdated.Parser
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
+            var version = CodeUpdated.Parser
+                .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).NonIndexed).Version;
+            version.ShouldBe(contractInfo.Version + 1);
+            var updateContractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+            updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
         }
 
         [Fact(Skip = "Skip due to need very long task delay.")]
@@ -342,6 +360,16 @@ namespace AElf.Contracts.Genesis
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
             result.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var address = CodeUpdated.Parser.ParseFrom(result.Logs[1].Indexed[0]).Address;
+            address.ShouldBe(BasicContractZeroAddress);
+            var codeHash = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).NewCodeHash;
+            codeHash.ShouldBe(Hash.FromRawBytes(code));
+            var contractVersion = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).Version;
+            contractVersion.ShouldBe(2);
+            var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), BasicContractZeroAddress));
+            contractInfo.Version.ShouldBe(2);
         }
 
         [Fact]
