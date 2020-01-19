@@ -4,7 +4,7 @@
 
 ### Detailed Description
 
-Defines C# API  functions for cross chain contract.
+Defines C# API functions for cross chain contract.
 
 ## Functions Documentation
 
@@ -27,18 +27,6 @@ Initialize cross-chain-contract.
 
 - **parent_chain_id** - id of parent chain
 - **creation_height_on_parent_chain** - height of side chain creation on parent chain
-
-### function ChangeOwnerAddress
-
-```protobuf
-rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {}
-```
-
-Change the owner address of cross-chain-contract. Only origin owner is permitted to invoke this method to change to new address.
-
-**Parameters:**
-
-- ***Address*** - new contract owner address
 
 ### function CreateSideChain
 
@@ -76,6 +64,53 @@ Create a new side chain. Only contract owner is permitted to invoke this method.
 **Returns:**
 
 Id of a new side chain
+
+### function SetInitialControllerAddress
+
+```protobuf
+rpc SetInitialControllerAddress(aelf.Address) returns (google.protobuf.Empty) { }
+```
+
+Sets the initial controller address.
+
+**Parameters:**
+- **address** : the owner's address.
+
+### function ChangeCrossChainIndexingController
+
+```protobuf
+rpc ChangeCrossChainIndexingController(AuthorityStuff) returns (google.protobuf.Empty) { }
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Changes the indexing controller.
+
+**Parameters:**
+- **AuthorityStuff** : 
+  - contract_address - the address of the contract that generated the owner address.
+  - owner_address - the address of the owner that was generated.
+
+### function ChangeSideChainLifetimeController
+
+```protobuf
+rpc ChangeSideChainLifetimeController(AuthorityStuff) returns (google.protobuf.Empty) { }
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Changes the side chain's lifetime controller.
+
+**Parameters:**
+- **AuthorityStuff** : 
+  - contract_address - the address of the contract that generated the owner address.
+  - owner_address - the address of the owner that was generated.
 
 ### function Recharge
 
@@ -214,21 +249,33 @@ Address of side chain creator.
 ### function GetChainStatus
 
 ```protobuf
-rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value)
+rpc GetChainStatus (aelf.SInt32Value) returns (GetChainStatusOutput)
 {
     option (aelf.is_view) = true;
 }
+
+message GetChainStatusOutput{
+    SideChainStatus status = 1;
+}
+
+enum SideChainStatus
+{
+    FATAL = 0;
+    ACTIVE = 1;
+    INSUFFICIENT_BALANCE = 2;
+    TERMINATED = 3;
+}
 ```
 
-Get current status of the specified side chain
+Gets the current status of the specified side chain.
 
 **Parameters:**
 
-- **SInt32Value** - id of side chain
+- **SInt32Value** - id of side chain.
 
 **Returns:**
 
-Current status of side chain
+Current status of side chain.
 
 ### function GetSideChainHeight
 
