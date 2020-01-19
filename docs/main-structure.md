@@ -63,6 +63,7 @@
       * [Cross chain Contract](resources/smart-contract-apis/cross-chain.md)
       * [Treasury Contract](resources/smart-contract-apis/treasury.md)
       * [Vote Contract](resources/smart-contract-apis/vote.md)
+      * [Token Holder Contract](resources/smart-contract-apis/token-holder.md)
     * [Wallet and Block Explorer](resources/wallet-and-explorer/index.md)
       * [explorer-api](resources/wallet-and-explorer/explorer-api.md)
     * [Command line interface](resources/cli/cli.md)
