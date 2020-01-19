@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ICalculateTxCostStrategy _calStrategy;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
-        private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
+        private readonly ISymbolListToPayTxFeeService _symbolListToPayTxFeeService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
@@ -29,13 +29,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             ICalculateTxCostStrategy calStrategy,
-            IExtraAcceptedTokenService extraAcceptedTokenService)
+            ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _calStrategy = calStrategy;
             _transactionFeeExemptionService = transactionFeeExemptionService;
-            _extraAcceptedTokenService = extraAcceptedTokenService;
+            _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -91,13 +91,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     TransactionSizeFee = txCost,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
-                var extraAvailableTokenList =
-                    await _extraAcceptedTokenService.GetExtraAcceptedTokensInfoAsync(chainContext);
-                if (extraAvailableTokenList != null)
+                var symbolListToPayTxSizeFee =
+                    await _symbolListToPayTxFeeService.GetExtraAcceptedTokensInfoAsync(chainContext);
+                if (symbolListToPayTxSizeFee != null)
                 {
-                    foreach (var tokenInfo in extraAvailableTokenList)
+                    foreach (var tokenInfo in symbolListToPayTxSizeFee)
                     {
-                        chargeTransactionFeesInput.AllAvailableTokens.Add(new SymbolToPayTXSizeFee
+                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
                         {
                             TokenSymbol = tokenInfo.TokenSymbol,
                             BaseTokenWeight = tokenInfo.BaseTokenWeight,

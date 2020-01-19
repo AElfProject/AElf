@@ -114,9 +114,9 @@ namespace AElf.Contracts.MultiToken
                 : State.Balances[Context.Sender][availableTokenSymbol];
             var txSizeFeeAmount = input.TransactionSizeFee;
 
-            if (input.AllAvailableTokens.Any())
+            if (input.SymbolsToPayTxSizeFee.Any())
             {
-                var allExtraTokenInfo = input.AllAvailableTokens;
+                var allExtraTokenInfo = input.SymbolsToPayTxSizeFee;
                 var availableToken= allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
                                     allExtraTokenInfo.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
                 if (availableToken != null)
@@ -212,15 +212,15 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        public override Empty SetAvailableTokenInfo(SymbolListToPayTXSizeFee input)
+        public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
         {
-            //AssertIsAuthorized();
+            AssertIsAuthorized();
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
             Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
-            foreach (var tokenInfo in input.AllAvailableTokens)
+            foreach (var tokenInfo in input.SymbolsToPayTxSizeFee)
             {
                 if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
                 {
@@ -229,15 +229,15 @@ namespace AElf.Contracts.MultiToken
                         $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
                 }
 
-                AssertAvailableTokenValid(tokenInfo);
+                AssertSymbolToPayTxFeeIsValid(tokenInfo);
                 Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenInfo.TokenSymbol);
             }
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
-            State.ExtraAvailableTokenInfos.Value = input;
+            State.SymbolListToPayTXSizeFee.Value = input;
             Context.Fire(new ExtraTokenListModified
             {
-                AllTokenInfos = input
+                SymbolListToPayTxSizeFee = input
             });
             return new Empty();
         }
@@ -688,7 +688,7 @@ namespace AElf.Contracts.MultiToken
             return availableBalance.Mul(tokenInfo.BaseTokenWeight)
                 .Div(tokenInfo.AddedTokenWeight);
         }
-        private void AssertAvailableTokenValid(SymbolToPayTXSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");

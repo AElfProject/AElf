@@ -11,15 +11,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class ExtraAcceptedTokenService : IExtraAcceptedTokenService, ITransientDependency
+    internal class SymbolListToPayTxFeeService : ISymbolListToPayTxFeeService, ITransientDependency
     {
-        private readonly IExtraAcceptedTokensCacheProvider _cacheProvider;
+        private readonly ISymbolListToPayTxFeeCacheProvider _cacheProvider;
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
-        public ILogger<ExtraAcceptedTokenService> Logger { get; set; }
+        public ILogger<SymbolListToPayTxFeeService> Logger { get; set; }
 
-        public ExtraAcceptedTokenService(IExtraAcceptedTokensCacheProvider cacheProvider,
+        public SymbolListToPayTxFeeService(ISymbolListToPayTxFeeCacheProvider cacheProvider,
             IChainBlockLinkService chainBlockLinkService,
             ITokenContractReaderFactory tokenStTokenContractReaderFactory,
             IBlockchainService blockchainService)
@@ -28,7 +28,7 @@ namespace AElf.Kernel.TransactionPool.Application
             _chainBlockLinkService = chainBlockLinkService;
             _tokenStTokenContractReaderFactory = tokenStTokenContractReaderFactory;
             _blockchainService = blockchainService;
-            Logger = new NullLogger<ExtraAcceptedTokenService>();
+            Logger = new NullLogger<SymbolListToPayTxFeeService>();
         }
 
         public async Task<List<AvailableTokenInfoInCache>> GetExtraAcceptedTokensInfoAsync(
@@ -87,11 +87,11 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = chain.LastIrreversibleBlockHash,
                 BlockHeight = chain.LastIrreversibleBlockHeight
             });
-            var tokenInfos = await tokenStub.GetAvailableTokenInfos.CallAsync(new Empty());
+            var tokenInfos = await tokenStub.GetSymbolsToPayTXSizeFee.CallAsync(new Empty());
             var tokenInfoList = new List<AvailableTokenInfoInCache>();
             if (tokenInfos != null)
             {
-                foreach (var tokenInfo in tokenInfos.AllAvailableTokens)
+                foreach (var tokenInfo in tokenInfos.SymbolsToPayTxSizeFee)
                 {
                     tokenInfoList.Add(new AvailableTokenInfoInCache
                     {

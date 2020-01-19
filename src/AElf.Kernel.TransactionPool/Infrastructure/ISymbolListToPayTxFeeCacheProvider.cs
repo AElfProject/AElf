@@ -6,7 +6,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public interface IExtraAcceptedTokensCacheProvider
+    public interface ISymbolListToPayTxFeeCacheProvider
     {
         List<AvailableTokenInfoInCache> GetExtraAcceptedTokensInfoFromNormalCache();
         void SetExtraAcceptedTokenInfoToCache(List<AvailableTokenInfoInCache> tokenInfos);
@@ -16,13 +16,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         void SyncCache(List<BlockIndex> blockIndexes);
         BlockIndex[] GetForkCacheKeys();
     }
-    public class ExtraAcceptedTokensCacheProvider : IExtraAcceptedTokensCacheProvider, ISingletonDependency
+    public class SymbolListToPayTxFeeCacheProvider : ISymbolListToPayTxFeeCacheProvider, ISingletonDependency
     {
         private List<AvailableTokenInfoInCache> _cache;
 
         private readonly ConcurrentDictionary<BlockIndex, List<AvailableTokenInfoInCache>> _forkCache;
 
-        public ExtraAcceptedTokensCacheProvider()
+        public SymbolListToPayTxFeeCacheProvider()
         {
             _forkCache = new ConcurrentDictionary<BlockIndex, List<AvailableTokenInfoInCache>>();
         }

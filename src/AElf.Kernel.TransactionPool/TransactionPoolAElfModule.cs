@@ -26,7 +26,7 @@ namespace AElf.Kernel.TransactionPool
 
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionFeeCalculatorCoefficientUpdatedEventHandle>();
-            services.AddSingleton<IBlockAcceptedLogEventHandler, ExtraAcceptedTokenUpdatedEventHandler>();
+            services.AddSingleton<IBlockAcceptedLogEventHandler, SymbolListToPayTxFeeUpdatedEventHandler>();
             services.AddSingleton<ICalculateStorageCostStrategy, StorageCalculateCostStrategy>();
             services.AddSingleton<ICalculateReadCostStrategy, ReadCalculateCostStrategy>();
             services.AddSingleton<ICalculateTrafficCostStrategy, TrafficCalculateCostStrategy>();

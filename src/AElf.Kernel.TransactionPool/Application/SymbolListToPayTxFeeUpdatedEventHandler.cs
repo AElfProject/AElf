@@ -12,12 +12,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class ExtraAcceptedTokenUpdatedEventHandler : IBlockAcceptedLogEventHandler
+    public class SymbolListToPayTxFeeUpdatedEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IExtraAcceptedTokenService _extraAcceptedTokenService;
+        private readonly ISymbolListToPayTxFeeService _symbolListToPayTxFeeService;
         private LogEvent _interestedEvent;
-        private ILogger<ExtraAcceptedTokenUpdatedEventHandler> Logger { get; set; }
+        private ILogger<SymbolListToPayTxFeeUpdatedEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -35,12 +35,12 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public ExtraAcceptedTokenUpdatedEventHandler(ISmartContractAddressService smartContractAddressService,
-            IExtraAcceptedTokenService extraAcceptedTokenService)
+        public SymbolListToPayTxFeeUpdatedEventHandler(ISmartContractAddressService smartContractAddressService,
+            ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _extraAcceptedTokenService = extraAcceptedTokenService;
-            Logger = NullLogger<ExtraAcceptedTokenUpdatedEventHandler>.Instance;
+            _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
+            Logger = NullLogger<SymbolListToPayTxFeeUpdatedEventHandler>.Instance;
         }
 
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
@@ -52,10 +52,10 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            if (eventData.AllTokenInfos == null)
+            if (eventData.SymbolListToPayTxSizeFee == null)
                 return Task.CompletedTask;
             var newTokenInfoList = new List<AvailableTokenInfoInCache>();
-            foreach (var tokenInfo in eventData.AllTokenInfos.AllAvailableTokens)
+            foreach (var tokenInfo in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
             {
                 newTokenInfoList.Add(new AvailableTokenInfoInCache
                 {
@@ -65,7 +65,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 });
             }
 
-            _extraAcceptedTokenService.SetExtraAcceptedTokenInfoToForkCache(blockIndex, newTokenInfoList);
+            _symbolListToPayTxFeeService.SetExtraAcceptedTokenInfoToForkCache(blockIndex, newTokenInfoList);
             return Task.CompletedTask;
         }
     }

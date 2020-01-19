@@ -70,7 +70,7 @@ namespace AElf.Kernel.ChainController
             });
             services.AddSingleton(provider =>
             {
-                var mockExtraAcceptedTokenService = new Mock<IExtraAcceptedTokenService>();
+                var mockExtraAcceptedTokenService = new Mock<ISymbolListToPayTxFeeService>();
                 mockExtraAcceptedTokenService.Setup(m => m.GetExtraAcceptedTokensInfoAsync(It.IsAny<IChainContext>()))
                     .Returns((IChainContext x) => Task.FromResult(new List<AvailableTokenInfoInCache>()));
                 

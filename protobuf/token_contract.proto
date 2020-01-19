@@ -80,9 +80,9 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-    rpc SetAvailableTokenInfo(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
+    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
-    rpc InitializeAuthorizedOrganization(google.protobuf.Empty) returns  (google.protobuf.Empty) {
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns  (google.protobuf.Empty) {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
@@ -133,7 +133,7 @@ service TokenContract {
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
-    rpc GetAvailableTokenInfos(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
+    rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
         option (aelf.is_view) = true;
     }
     rpc GetUserFeeController(google.protobuf.Empty) returns (ControllerForUserFee){
@@ -247,7 +247,7 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
-    repeated SymbolToPayTXSizeFee all_available_tokens = 5;
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
 message TransactionFeeBill {
@@ -501,7 +501,7 @@ message SymbolToPayTXSizeFee{
 }
 
 message SymbolListToPayTXSizeFee{
-    repeated SymbolToPayTXSizeFee all_available_tokens = 1;
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
 }
 
 // Events
@@ -568,7 +568,7 @@ message RentalAccountBalanceInsufficient {
 
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
-    SymbolListToPayTXSizeFee all_token_infos = 1;
+    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
 message ControllerForUserFee{
@@ -582,3 +582,4 @@ message ControllerForDeveloperFee{
     aelf.Address parliament_controller = 2;
     aelf.Address developer_controller = 3;
 }
+

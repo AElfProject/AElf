@@ -139,9 +139,9 @@ namespace AElf.Contracts.MultiToken
             return usage;
         }
 
-        public override SymbolListToPayTXSizeFee GetAvailableTokenInfos(Empty input)
+        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
         {
-            return State.ExtraAvailableTokenInfos.Value;
+            return State.SymbolListToPayTXSizeFee.Value;
         }
         public override ControllerForUserFee GetUserFeeController(Empty input)
         {
