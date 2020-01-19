@@ -117,14 +117,20 @@ namespace AElf.Contracts.MultiToken
             if (input.SymbolsToPayTxSizeFee.Any())
             {
                 var allSymbolToTxFee = input.SymbolsToPayTxSizeFee;
-                var availableSymbol= allSymbolToTxFee.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) >= txSizeFeeAmount) ??
-                                    allSymbolToTxFee.FirstOrDefault( x => GetBalanceCalculatedBaseOnPrimaryToken(x) > 0);
-                if (availableSymbol != null)
+                var availableSymbol = allSymbolToTxFee.FirstOrDefault(x =>
+                                          GetBalanceCalculatedBaseOnPrimaryToken(x, symbolChargedForBaseFee,
+                                              amountChargedForBaseFee) >= txSizeFeeAmount) ??
+                                      allSymbolToTxFee.FirstOrDefault(x =>
+                                          GetBalanceCalculatedBaseOnPrimaryToken(x, symbolChargedForBaseFee,
+                                              amountChargedForBaseFee) > 0);
+                if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
                 {
                     symbolToPayTxFee = availableSymbol.TokenSymbol;
                     txSizeFeeAmount = txSizeFeeAmount.Mul(availableSymbol.AddedTokenWeight)
                         .Div(availableSymbol.BaseTokenWeight);
-                    availableBalance = State.Balances[Context.Sender][symbolToPayTxFee];
+                    availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
+                        ? State.Balances[Context.Sender][symbolToPayTxFee].Sub(amountChargedForBaseFee)
+                        : State.Balances[Context.Sender][symbolToPayTxFee];
                 }
             }
 
@@ -143,6 +149,7 @@ namespace AElf.Contracts.MultiToken
             {
                 bill.TokenToAmount.Add(symbolToPayTxFee, chargeAmount);
             }
+
             return availableBalance >= txSizeFeeAmount;
         }
 
@@ -212,6 +219,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
+
         public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
         {
             AssertIsAuthorized();
@@ -225,7 +233,7 @@ namespace AElf.Contracts.MultiToken
                 if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
                 {
                     isPrimaryTokenExist = true;
-                    Assert(tokenInfo.AddedTokenWeight ==1 && tokenInfo.BaseTokenWeight == 1,
+                    Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
                 }
 
@@ -233,6 +241,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenInfo.TokenSymbol);
             }
+
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
             State.SymbolListToPayTXSizeFee.Value = input;
             Context.Fire(new ExtraTokenListModified
@@ -241,6 +250,7 @@ namespace AElf.Contracts.MultiToken
             });
             return new Empty();
         }
+
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -551,6 +561,7 @@ namespace AElf.Contracts.MultiToken
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
+
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
             Assert(controllerForRental == Context.Sender, "no permission");
@@ -571,6 +582,7 @@ namespace AElf.Contracts.MultiToken
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
+
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
             Assert(controllerForRental == Context.Sender, "no permission");
@@ -682,12 +694,17 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
         }
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo)
+
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,
+            long cost)
         {
             var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
+            if (tokenInfo.TokenSymbol == baseSymbol)
+                availableBalance -= cost;
             return availableBalance.Mul(tokenInfo.BaseTokenWeight)
                 .Div(tokenInfo.AddedTokenWeight);
         }
+
         private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
@@ -699,7 +716,7 @@ namespace AElf.Contracts.MultiToken
         private Address GetControllerForRental(Address sideChainCreator)
         {
             var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            var proposers = new List<Address> {parliamentAddress,sideChainCreator}; 
+            var proposers = new List<Address> {parliamentAddress, sideChainCreator};
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
@@ -721,6 +738,7 @@ namespace AElf.Contracts.MultiToken
             var address = CalculateSideChainRentalController(createOrganizationInput);
             return address;
         }
+
         private Address CalculateSideChainRentalController(
             CreateOrganizationInput input)
         {
