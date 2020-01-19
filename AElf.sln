@@ -323,6 +323,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenHolder.Tests", "test\AElf.Contracts.TokenHolder.Tests\AElf.Contracts.TokenHolder.Tests.csproj", "{A3425AC9-6CD0-4D39-B82B-5716456F1C70}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.CommitmentScheme", "test\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj", "{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -913,6 +915,10 @@ Global
 		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B40C8ADA-0B89-4023-8A16-4462C968A00E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B40C8ADA-0B89-4023-8A16-4462C968A00E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B40C8ADA-0B89-4023-8A16-4462C968A00E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1084,5 +1090,6 @@ Global
 		{6CB1C14C-6C41-468C-9E01-69A1B3FB53E3} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{B40C8ADA-0B89-4023-8A16-4462C968A00E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{A3425AC9-6CD0-4D39-B82B-5716456F1C70} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
