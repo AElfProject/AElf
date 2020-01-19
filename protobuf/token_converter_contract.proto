@@ -52,6 +52,9 @@ service TokenConverterContract {
     rpc GetNeededDeposit(ToBeConnectedTokenInfo) returns (DepositInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
 }
 
 message Connector {
