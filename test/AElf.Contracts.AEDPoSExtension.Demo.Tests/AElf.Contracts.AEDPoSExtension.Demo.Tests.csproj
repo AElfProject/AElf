@@ -20,7 +20,7 @@
     <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -51,6 +51,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\commitment_scheme_contract.proto">
+            <Link>Protobuf\Proto\commitment_scheme_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 
