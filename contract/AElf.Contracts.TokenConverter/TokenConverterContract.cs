@@ -62,7 +62,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty UpdateConnector(Connector input)
         {
-            AssertPerformedByManager();
+            AssertControllerForManageConnector();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can not find target connector.");
@@ -84,7 +84,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty AddPairConnectors(PairConnector pairConnector)
         {
-            AssertPerformedByManager();
+            AssertControllerForManageConnector();
             Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
             var nativeConnectorSymbol = NtTokenPrefix.Append(pairConnector.ResourceConnectorSymbol);
@@ -283,6 +283,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
+            AssertControllerForManageConnector();
             Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.TokenSymbol];
             Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
@@ -318,6 +319,13 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+        public override Empty SetControllerForManageConnector(Address input)
+        {
+            AssertControllerForManageConnector();
+            Assert(input != null, "invalid input");
+            State.ControllerForManageConnector.Value = input;
+            return new Empty();
+        }
         #endregion Actions
 
         #region Helpers
@@ -411,6 +419,12 @@ namespace AElf.Contracts.TokenConverter
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 
+        private void AssertControllerForManageConnector()
+        {
+            if (State.ControllerForManageConnector.Value == null)
+                AssertPerformedByManager();
+            Assert(Context.Sender == State.ControllerForManageConnector.Value, "no permission");
+        }
         #endregion
     }
 }

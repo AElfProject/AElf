@@ -15,6 +15,7 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<FeeTypeEnum, CalculateFeeCoefficientsOfType> CalculateCoefficientOfContract { get; set; }
         public SingletonState<CalculateFeeCoefficientsOfType> CalculateCoefficientOfSender { get; set; }
+        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTxSizeFee { get; set; }
 
         /// <summary>
         /// Symbol -> Amount

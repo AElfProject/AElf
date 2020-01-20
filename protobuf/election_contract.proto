@@ -41,6 +41,8 @@ service ElectionContract {
     }
     rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
     }
+    rpc SetControllerForManageVoteWeightInterest (aelf.Address) returns (google.protobuf.Empty) {
+    }
     
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {

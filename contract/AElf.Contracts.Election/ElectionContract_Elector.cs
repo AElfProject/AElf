@@ -342,13 +342,7 @@ namespace AElf.Contracts.Election
 
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            AssertControllerForManageVoteWeightInterestSetting();
             Assert(input != null, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -363,6 +357,14 @@ namespace AElf.Contracts.Election
             input.VoteWeightInterestInfos.Clear();
             input.VoteWeightInterestInfos.AddRange(orderList);
             State.VoteWeightInterestList.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetControllerForManageVoteWeightInterest(Address input)
+        {
+            AssertControllerForManageVoteWeightInterestSetting();
+            Assert(input != null, "invalid input");
+            State.ControllerForManageVoteWeightInterest.Value = input;
             return new Empty();
         }
 
@@ -512,6 +514,22 @@ namespace AElf.Contracts.Election
                 },
                 EndPeriod = GetEndPeriod(lockSeconds)
             });
+        }
+
+        private void AssertControllerForManageVoteWeightInterestSetting()
+        {
+            if (State.ControllerForManageVoteWeightInterest.Value == null)
+            {
+                if (State.ParliamentContract.Value == null)
+                {
+                    State.ParliamentContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                }
+                State.ControllerForManageVoteWeightInterest.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            }
+                
+            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
         }
     }
 }

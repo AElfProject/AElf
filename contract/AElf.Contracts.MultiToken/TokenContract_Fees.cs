@@ -222,8 +222,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
         {
-            var controller = GetControllerForSymbolToPayForTxFee();
-            Assert(Context.Sender == controller, "no permission");
+            AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
@@ -244,7 +243,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
-            State.SymbolListToPayTXSizeFee.Value = input;
+            State.SymbolListToPayTxSizeFee.Value = input;
             Context.Fire(new ExtraTokenListModified
             {
                 SymbolListToPayTxSizeFee = input
@@ -253,12 +252,11 @@ namespace AElf.Contracts.MultiToken
         }
         
                 
-        public override Empty ChangeControllerForSymbolsToPayTXSizeFee(Address input)
+        public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)
         {
-            var controller = GetControllerForSymbolToPayForTxFee();
-            Assert(Context.Sender == controller, "no permission");
+            AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
-            State.SymbolToPayTxFeeController.Value = input;
+            State.ControllerForSymbolToPayTxFee.Value = input;
             return new Empty();
         }
 
@@ -567,15 +565,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
-            Assert(controllerForRental == Context.Sender, "no permission");
+            AssertControllerForSideChainRental();
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -588,15 +578,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
-            Assert(controllerForRental == Context.Sender, "no permission");
+            AssertControllerForSideChainRental();
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -604,6 +586,13 @@ namespace AElf.Contracts.MultiToken
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
 
+            return new Empty();
+        }
+        
+        public override Empty SetControllerForSideChainParliament(Address input)
+        {
+            AssertControllerForSideChainRental();
+            Assert(input != null, "invalid input");
             return new Empty();
         }
 
@@ -724,9 +713,21 @@ namespace AElf.Contracts.MultiToken
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
         }
 
+        private void AssertControllerForSideChainRental()
+        {
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
+
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
+        }
         private Address GetControllerForRental(Address sideChainCreator)
         {
-            var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};
             var createOrganizationInput = new CreateOrganizationInput
             {

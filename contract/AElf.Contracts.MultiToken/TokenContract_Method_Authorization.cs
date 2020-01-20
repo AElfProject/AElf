@@ -213,18 +213,33 @@ namespace AElf.Contracts.MultiToken
         
         #region controller management
 
-        private Address GetControllerForSymbolToPayForTxFee()
+        private void AssertControllerForSymbolToPayTxSizeFee()
         {
+            if (State.ControllerForSymbolToPayTxFee.Value == null)
+            {
+                if (State.ParliamentContract.Value == null)
+                {
+                    State.ParliamentContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                }
+                State.ControllerForSymbolToPayTxFee.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            }
+            Assert(State.ControllerForSymbolToPayTxFee.Value == Context.Sender, "no permission");
+        }
+
+        private Address GetControllerForSideRentalParliament()
+        {
+            if (State.ControllerForSideRental.Value != null) return State.ControllerForSideRental.Value;
             if (State.ParliamentContract.Value == null)
             {
                 State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
+            State.ControllerForSideRental.Value =
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
 
-            if (State.SymbolToPayTxFeeController.Value == null)
-                State.SymbolToPayTxFeeController.Value =
-                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            return State.SymbolToPayTxFeeController.Value;
+            return State.ControllerForSideRental.Value;
         }
         #endregion
     }

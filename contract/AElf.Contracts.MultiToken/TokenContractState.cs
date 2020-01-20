@@ -41,7 +41,8 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<Address> Owner { get; set; }
         public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
         public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
-        public SingletonState<Address> SymbolToPayTxFeeController { get; set; }
+        public SingletonState<Address> ControllerForSymbolToPayTxFee { get; set; }
+        public SingletonState<Address> ControllerForSideRental { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -51,7 +52,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
-        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTXSizeFee { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
