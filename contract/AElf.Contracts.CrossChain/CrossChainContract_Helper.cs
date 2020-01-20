@@ -680,7 +680,7 @@ namespace AElf.Contracts.CrossChain
                 var chainId = group.Key;
 
                 var sideChainInfo = State.SideChainInfo[chainId];
-                if (sideChainInfo == null || sideChainInfo.SideChainStatus == SideChainStatus.Terminated)
+                if (sideChainInfo == null)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 long arrearsAmount = 0;

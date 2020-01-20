@@ -57,14 +57,6 @@ namespace AElf
             Should.Throw<InvalidOperationException>(() => _taskQueue.Enqueue(ProcessTask));
         }
 
-        [Fact]
-        public void Stop_Queue_Test()
-        {
-            _taskQueue.Start();
-            _taskQueue.Dispose();
-            Should.Throw<InvalidOperationException>(() => _taskQueue.Enqueue(ProcessTask));
-        }
-
         private async Task ProcessTask()
         {
             await Task.Run(() => _counter++);

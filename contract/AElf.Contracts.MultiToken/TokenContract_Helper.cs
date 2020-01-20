@@ -27,7 +27,7 @@ namespace AElf.Contracts.MultiToken
         
         private void AssertValidSymbolAndAmount(string symbol, long amount)
         {
-            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(amount > 0, "Invalid amount.");
         }
@@ -84,7 +84,7 @@ namespace AElf.Contracts.MultiToken
         {
             var existing = State.TokenInfos[tokenInfo.Symbol];
             Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
-            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) & tokenInfo.Symbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), $"Invalid token name. {tokenInfo.Symbol}");
             Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");

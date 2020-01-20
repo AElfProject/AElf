@@ -22,15 +22,13 @@ namespace AElf.Runtime.CSharp
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
                 return new SmartContractRunnerForCategoryZero(
-                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(),
-                    option.Value.BlackList, option.Value.WhiteList);
+                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>());
             });
             context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryThirty>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
                 return new SmartContractRunnerForCategoryThirty(
-                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(), option.Value.BlackList,
-                    option.Value.WhiteList);
+                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>());
             });
         }
 

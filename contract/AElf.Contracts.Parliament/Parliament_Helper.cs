@@ -141,7 +141,7 @@ namespace AElf.Contracts.Parliament
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
             var validExpiredTime = CheckProposalNotExpired(proposal);
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime & hasOrganizationAddress;
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime && hasOrganizationAddress;
         }
 
         private bool CheckProposalNotExpired(ProposalInfo proposal)
