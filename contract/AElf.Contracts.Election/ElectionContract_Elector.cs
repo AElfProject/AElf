@@ -334,7 +334,7 @@ namespace AElf.Contracts.Election
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
             AssertControllerForManageVoteWeightInterestSetting();
-            Assert(input != null, "invalid input");
+            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
                 Assert(info.Capital > 0, "invalid input");

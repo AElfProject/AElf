@@ -283,7 +283,6 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
-            AssertControllerForManageConnector();
             Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.TokenSymbol];
             Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
