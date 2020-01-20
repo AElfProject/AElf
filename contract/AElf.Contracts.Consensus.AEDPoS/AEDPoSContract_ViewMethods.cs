@@ -286,7 +286,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return victories.Pubkeys.Any();
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
+        private void GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
             TryToGetPreviousRoundInformation(out var previousRound);
             if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
@@ -297,7 +297,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
                 nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
                 Context.LogDebug(() => "Round of new miners generated.");
-                return true;
+                return;
             }
 
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
@@ -345,8 +345,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            return currentRound.GenerateNextRoundInformation(currentBlockTime,
-                blockchainStartTimestamp, out nextRound, isMinerListChanged);
+            currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound,
+                isMinerListChanged);
         }
 
         private bool IsMainChainMinerListChanged(Round currentRound)

@@ -43,7 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation = minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
                 minerInformation = minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation = minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation = minerInformation.AppendLine($"Tiny:\t {minerInRound.ActualMiningTimes?.Count ?? 0}");
+                minerInformation = minerInformation.AppendLine($"Tiny:\t {minerInRound.ActualMiningTimes.Count}");
                 minerInformation = minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
                 minerInformation = minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
 
