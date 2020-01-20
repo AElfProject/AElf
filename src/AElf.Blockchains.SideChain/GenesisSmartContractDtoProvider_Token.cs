@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
@@ -28,29 +29,31 @@ namespace AElf.Blockchains.SideChain
                             IsBurnable = nativeTokenInfo.IsBurnable,
                             Symbol = nativeTokenInfo.Symbol,
                             TokenName = nativeTokenInfo.TokenName,
-                            TotalSupply = nativeTokenInfo.TotalSupply
+                            TotalSupply = nativeTokenInfo.TotalSupply,
+                            IsProfitable = nativeTokenInfo.IsProfitable
                         },
                     ResourceTokenList = resourceTokenList,
                     ChainPrimaryToken = chainPrimaryTokenInfo
                 });
 
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+            foreach (var issueStuff in chainInitializationData.SideChainTokenInitialIssueList)
             {
-                Symbol = chainPrimaryTokenInfo.Symbol,
-                Amount = chainPrimaryTokenInfo.TotalSupply /
-                         SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
-                Memo = "Initial issue",
-                To = chainPrimaryTokenInfo.Issuer
-            });
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                {
+                    Symbol = chainPrimaryTokenInfo.Symbol,
+                    Amount = issueStuff.Amount,
+                    Memo = "Initial issue",
+                    To = issueStuff.Address
+                });
+            }
 
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
                 new InitializeInput
                 {
                     ResourceAmount =
                     {
-                        {nameof(_economicOptions.Cpu).ToUpper(), _economicOptions.Cpu},
-                        {nameof(_economicOptions.Ram).ToUpper(), _economicOptions.Ram},
-                        {nameof(_economicOptions.Disk).ToUpper(), _economicOptions.Disk},
+                        chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
+                            kv => kv.Value)
                     }
                 });
 

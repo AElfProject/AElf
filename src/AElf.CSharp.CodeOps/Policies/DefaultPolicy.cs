@@ -149,6 +149,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
+                new GetHashCodeValidator(),
             });
         }
 
@@ -156,17 +157,13 @@ namespace AElf.CSharp.CodeOps.Policies
         {
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
-                new ObserverProxyValidator(), 
-                //new RecursiveCallValidator(), 
+                new ObserverProxyValidator()
             });
         }
 
         private void UseAssemblyValidators()
         {
-            AssemblyValidators.AddRange(new IValidator<Assembly>[]
-            {
-                new AcsValidator(),
-            });
+            // None
         }
     }
 }

@@ -53,10 +53,10 @@ namespace AElf.Contracts.TokenConverter
             Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
 
             var toConnector = State.Connectors[input.TokenSymbol];
-            Assert(toConnector != null, "Can't find to connector.");
+            Assert(toConnector != null, "[GetNeededDeposit]Can't find to connector.");
             Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
-            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(fromConnector != null, "[GetNeededDeposit]Can't find from connector.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(
                 new GetTokenInfoInput
                 {
@@ -85,7 +85,17 @@ namespace AElf.Contracts.TokenConverter
                 NeedAmount = needDeposit,
                 AmountOutOfTokenConvert = amountOutOfTokenConvert
             };
-            
+        }
+        
+        public override Int64Value GetDepositConnectorBalance(StringValue symbolInput)
+        {
+            var connector = State.Connectors[symbolInput.Value];
+            Assert(connector != null && !connector.IsDepositAccount, "token symbol is invalid");
+            var ntSymbol = connector.RelatedSymbol;
+            return new Int64Value
+            {
+                Value = State.Connectors[ntSymbol].VirtualBalance + State.DepositBalance[ntSymbol]
+            };
         }
     }
 }

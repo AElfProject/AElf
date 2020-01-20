@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using Acs3;
+using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -100,31 +101,53 @@ namespace AElf.Contracts.MultiToken
         {
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
+            var symbolToPayTxFee = input.PrimaryTokenSymbol;
             if (bill.TokenToAmount.Any())
             {
                 symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
                 amountChargedForBaseFee = bill.TokenToAmount.First().Value;
             }
 
-            var availableBalance = symbolChargedForBaseFee == input.PrimaryTokenSymbol
+            var availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
                 // Available balance need to deduct amountChargedForBaseFee
-                ? State.Balances[Context.Sender][input.PrimaryTokenSymbol].Sub(amountChargedForBaseFee)
-                : State.Balances[Context.Sender][input.PrimaryTokenSymbol];
+                ? State.Balances[Context.Sender][symbolToPayTxFee].Sub(amountChargedForBaseFee)
+                : State.Balances[Context.Sender][symbolToPayTxFee];
             var txSizeFeeAmount = input.TransactionSizeFee;
-            var chargeAmount = availableBalance > txSizeFeeAmount // Is available balance enough to pay tx size fee?
+
+            if (input.SymbolsToPayTxSizeFee.Any())
+            {
+                var allSymbolToTxFee = input.SymbolsToPayTxSizeFee;
+                var availableSymbol = allSymbolToTxFee.FirstOrDefault(x =>
+                                          GetBalanceCalculatedBaseOnPrimaryToken(x, symbolChargedForBaseFee,
+                                              amountChargedForBaseFee) >= txSizeFeeAmount) ??
+                                      allSymbolToTxFee.FirstOrDefault(x =>
+                                          GetBalanceCalculatedBaseOnPrimaryToken(x, symbolChargedForBaseFee,
+                                              amountChargedForBaseFee) > 0);
+                if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
+                {
+                    symbolToPayTxFee = availableSymbol.TokenSymbol;
+                    txSizeFeeAmount = txSizeFeeAmount.Mul(availableSymbol.AddedTokenWeight)
+                        .Div(availableSymbol.BaseTokenWeight);
+                    availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
+                        ? State.Balances[Context.Sender][symbolToPayTxFee].Sub(amountChargedForBaseFee)
+                        : State.Balances[Context.Sender][symbolToPayTxFee];
+                }
+            }
+
+            var chargeAmount = availableBalance > txSizeFeeAmount
                 ? txSizeFeeAmount
                 : availableBalance;
 
-            if (input.PrimaryTokenSymbol == null) return availableBalance >= txSizeFeeAmount;
+            if (symbolToPayTxFee == null) return availableBalance >= txSizeFeeAmount;
 
-            if (symbolChargedForBaseFee == input.PrimaryTokenSymbol)
+            if (symbolChargedForBaseFee == symbolToPayTxFee)
             {
-                bill.TokenToAmount[input.PrimaryTokenSymbol] =
-                    bill.TokenToAmount[input.PrimaryTokenSymbol].Add(chargeAmount);
+                bill.TokenToAmount[symbolToPayTxFee] =
+                    bill.TokenToAmount[symbolToPayTxFee].Add(chargeAmount);
             }
             else
             {
-                bill.TokenToAmount.Add(input.PrimaryTokenSymbol, chargeAmount);
+                bill.TokenToAmount.Add(symbolToPayTxFee, chargeAmount);
             }
 
             return availableBalance >= txSizeFeeAmount;
@@ -142,8 +165,8 @@ namespace AElf.Contracts.MultiToken
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"READ", input.ReadCost},
-                {"NET", input.NetCost},
-                {"STO", input.StoCost},
+                {"TRAFFIC", input.NetCost},
+                {"STORAGE", input.StoCost},
                 {"WRITE", input.WriteCost}
             };
 
@@ -194,6 +217,37 @@ namespace AElf.Contracts.MultiToken
                     $"Contract balance of {symbol} token is not enough. Owning {owningBalance}.");
             }
 
+            return new Empty();
+        }
+
+        public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
+        {
+            AssertIsAuthorized();
+            Assert(input != null, "invalid input");
+            bool isPrimaryTokenExist = false;
+            var symbolList = new List<string>();
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
+            Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
+            foreach (var tokenInfo in input.SymbolsToPayTxSizeFee)
+            {
+                if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
+                {
+                    isPrimaryTokenExist = true;
+                    Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
+                        $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
+                }
+
+                AssertSymbolToPayTxFeeIsValid(tokenInfo);
+                Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
+                symbolList.Add(tokenInfo.TokenSymbol);
+            }
+
+            Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
+            State.SymbolListToPayTXSizeFee.Value = input;
+            Context.Fire(new ExtraTokenListModified
+            {
+                SymbolListToPayTxSizeFee = input
+            });
             return new Empty();
         }
 
@@ -423,6 +477,8 @@ namespace AElf.Contracts.MultiToken
 
         private void PayRental()
         {
+            var creator = State.SideChainCreator.Value;
+            if (creator == null) return;
             if (State.LastPayRentTime.Value == null)
             {
                 // Initial LastPayRentTime first calling DonateResourceToken.
@@ -439,8 +495,6 @@ namespace AElf.Contracts.MultiToken
 
             // Update LastPayRentTime if it is ready to charge rental.
             State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
-
-            var creator = State.SideChainCreator.Value;
 
             foreach (var symbol in Context.Variables.SymbolListToPayRental)
             {
@@ -502,41 +556,57 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
-            // TODO: Permission check
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
 
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.Rental[pair.Key] = pair.Value;
             }
+
             return new Empty();
         }
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
-            // TODO: Permission check
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
 
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
+
             return new Empty();
         }
 
         public override Empty SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             Assert(Context.Sender == Context.GetZeroSmartContractAddress() ||
-                   Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()),
+                   Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
                 "No permission.");
             State.SideChainCreator.Value = input;
             return new Empty();
@@ -610,19 +680,70 @@ namespace AElf.Contracts.MultiToken
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
             var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx，read，sto，write，net, and rental.");
+        }
+
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,
+            long cost)
+        {
+            var availableBalance = State.Balances[Context.Sender][tokenInfo.TokenSymbol];
+            if (tokenInfo.TokenSymbol == baseSymbol)
+                availableBalance -= cost;
+            return availableBalance.Mul(tokenInfo.BaseTokenWeight)
+                .Div(tokenInfo.AddedTokenWeight);
+        }
+
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
+        {
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
+                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+        }
+
+        private Address GetControllerForRental(Address sideChainCreator)
+        {
+            var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            var proposers = new List<Address> {parliamentAddress, sideChainCreator};
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {proposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {proposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            var address = CalculateSideChainRentalController(createOrganizationInput);
+            return address;
+        }
+
+        private Address CalculateSideChainRentalController(
+            CreateOrganizationInput input)
+        {
+            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
+            return address;
         }
     }
 }

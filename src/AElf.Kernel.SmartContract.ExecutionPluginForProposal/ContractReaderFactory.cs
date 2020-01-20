@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
     internal interface IParliamentContractReaderFactory
     {
-        ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight,
+        ParliamentContractContainer.ParliamentContractStub Create(Hash blockHash, long blockHeight,
             Address sender = null);
     }
 
@@ -28,17 +28,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             _smartContractAddressService = smartContractAddressService;
         }
 
-        private ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Address sender,
+        private ParliamentContractContainer.ParliamentContractStub Create(Address sender,
             IChainContext chainContext)
         {
-            return new ParliamentAuthContractContainer.ParliamentAuthContractStub()
+            return new ParliamentContractContainer.ParliamentContractStub()
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService, _smartContractAddressService,
                     chainContext, sender)
             };
         }
 
-        public ParliamentAuthContractContainer.ParliamentAuthContractStub Create(Hash blockHash, long blockHeight,
+        public ParliamentContractContainer.ParliamentContractStub Create(Hash blockHash, long blockHeight,
             Address sender = null)
         {
             return Create(sender, new ChainContext
@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
     internal class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private Address ParliamentContractMethodAddress =>
-            _smartContractAddressService.GetAddressByContractName(ParliamentAuthSmartContractAddressNameProvider.Name);
+            _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
 
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;

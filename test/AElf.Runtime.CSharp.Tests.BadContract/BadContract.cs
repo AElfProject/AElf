@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
@@ -94,10 +96,12 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public override Empty TestInfiniteLoop(Empty input)
         {
+            var stop = false;
             var list = new List<int>();
             while (true)
             {
                 list.Add(int.MaxValue); // Just add any value to exhaust memory
+                if(stop) break;
             }
             return new Empty();
         }
@@ -133,6 +137,14 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 return DateTime.Now;
             }
         }
+
+        public override Int32Value TestGetHashCodeCall(Empty input)
+        {
+            return new Int32Value()
+            {
+                Value = new IMessageInheritedClass().GetHashCode()
+            };
+        }
     }
     
     public class SeparateClass
@@ -156,5 +168,33 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             text += "TEST";
             UseInfiniteRecursiveCallInSeparateClass(text);
         }
+    }
+
+    public class IMessageInheritedClass : IMessage
+    {
+        public int Test { get; set; }
+
+        public override int GetHashCode()
+        {
+            Test = base.GetHashCode();
+            return 0;
+        }
+
+        public void MergeFrom(CodedInputStream input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteTo(CodedOutputStream output)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CalculateSize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public MessageDescriptor Descriptor { get; }
     }
 }

@@ -62,9 +62,16 @@ namespace AElf.Contracts.Configuration
 
         public override Empty InitialTotalResourceTokens(ResourceTokenAmount input)
         {
-            CheckSenderIsParliamentAuthOrZeroContract();
+            CheckSenderIsParliamentOrZeroContract();
             State.TotalResourceTokenAmount.Value = input;
             State.RemainResourceTokenAmount.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetRequiredAcsInContracts(RequiredAcsInContracts input)
+        {
+            CheckSenderIsParliamentOrZeroContract();
+            State.RequiredAcsInContracts.Value = input;
             return new Empty();
         }
 
@@ -93,6 +100,11 @@ namespace AElf.Contracts.Configuration
         public override ResourceTokenAmount GetTotalResourceTokens(Empty input)
         {
             return State.TotalResourceTokenAmount.Value ?? new ResourceTokenAmount();
+        }
+        
+        public override RequiredAcsInContracts GetRequiredAcsInContracts(Empty input)
+        {
+            return State.RequiredAcsInContracts.Value ?? new RequiredAcsInContracts();
         }
     }
 }

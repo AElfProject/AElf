@@ -13,18 +13,31 @@ option (aelf.identity) = "acs3";
 service AuthorizationContract {
     rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
     }
-    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
+    rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc Reject(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc Abstain(aelf.Hash) returns (google.protobuf.Empty){
     }
     rpc Release(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    rpc ChangeOrganizationThreshold(ProposalReleaseThreshold)returns(google.protobuf.Empty) {
+    }
+    rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
+    }
+    rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns (aelf.Hash){
+    }
+    rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty){
     }
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
-}
-
-message ApproveInput {
-    aelf.Hash proposal_id = 1;
-    sint64 quantity= 2;
+    rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateProposerInWhiteList(ValidateProposerInWhiteListInput) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProposalInput {
@@ -44,4 +57,49 @@ message ProposalOutput {
     aelf.Address organization_address = 6;
     aelf.Address proposer = 7;
     bool to_be_released = 8;
+    int64 approval_count = 9;
+    int64 rejection_count = 10;
+    int64 abstention_count = 11;
+}
+
+message ProposalReleaseThreshold {
+    int64 minimal_approval_threshold = 1;
+    int64 maximal_rejection_threshold = 2;
+    int64 maximal_abstention_threshold = 3;
+    int64 minimal_vote_threshold = 4;
+}
+
+message ProposerWhiteList{
+    repeated aelf.Address proposers = 1;
+}
+
+message OrganizationHashAddressPair{
+    aelf.Hash organization_hash = 1;
+    aelf.Address organization_address = 2;
+}
+
+message CreateProposalBySystemContractInput {
+    acs3.CreateProposalInput proposal_input =1;
+    aelf.Address origin_proposer = 2;
+    string proposal_id_feedback_method = 3;
+}
+
+message ValidateProposerInWhiteListInput{
+    aelf.Address proposer = 1;
+    aelf.Address organization_address = 2;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
 }

@@ -1,7 +1,7 @@
 using System;
-using System.Linq;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
+using Acs3;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -11,7 +11,7 @@ namespace AElf.Contracts.Genesis
 {
     public partial class BasicContractZero
     {
-        private void RequireSenderAuthority()
+        private void RequireSenderAuthority(Address address = null)
         {
             if (!State.Initialized.Value)
             {
@@ -24,30 +24,22 @@ namespace AElf.Contracts.Genesis
             if (!isGenesisOwnerAuthorityRequired)
                 return;
 
-            AssertSenderAddressWith(State.GenesisOwner.Value);
+            if (address != null)
+                AssertSenderAddressWith(address);
         }
 
-        private void RequireParliamentAuthAddressSet()
+        private void RequireParliamentContractAddressSet()
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
         }
 
         private void AssertSenderAddressWith(Address address)
         {
-            Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
-        }
-
-        private void InitializeGenesisOwner(Address genesisOwner)
-        {
-            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
-            Assert(genesisOwner != null, "Genesis Owner should not be null.");
-            State.GenesisOwner.Value = genesisOwner;
+            Assert(Context.Sender == address, "Unauthorized behavior.");
         }
 
         private Hash CalculateHashFromInput(IMessage input)
@@ -55,35 +47,11 @@ namespace AElf.Contracts.Genesis
             return Hash.FromMessage(input);
         }
 
-        private void AssertDeploymentProposerAuthority(Address proposer)
+        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
         {
-            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            if (!isGenesisOwnerAuthorityRequired)
-                return;
-            if (!State.ContractProposerAuthorityRequired.Value)
-                return;
-            var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
-            var validationResult = proposerWhiteListContext.ProposerAuthorityRequired
-                ? proposerWhiteListContext.Proposers.Any(p => p == proposer)
-                : CheckAddressIsParliamentMember(proposer);
-            Assert(validationResult, "Proposer authority validation failed.");
-        }
-
-        private bool CheckAddressIsParliamentMember(Address address)
-        {
-            RequireParliamentAuthAddressSet();
-            return State.ParliamentAuthContract.ValidateAddressIsParliamentMember.Call(address).Value;
-        }
-
-        private bool CheckOrganizationExist(Address address)
-        {
-            return State.ParliamentAuthContract.ValidateOrganizationExist.Call(address).Value;
-        }
-
-        private GetProposerWhiteListContextOutput GetParliamentProposerWhiteListContext()
-        {
-            RequireParliamentAuthAddressSet();
-            return State.ParliamentAuthContract.GetProposerWhiteListContext.Call(new Empty());
+            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
+                authorityStuff.OwnerAddress).Value;
         }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
@@ -94,58 +62,64 @@ namespace AElf.Contracts.Genesis
                 Assert(
                     contractProposingInput != null, "Contract proposing data not found.");
 
-            if (contractProposingInput == null) 
+            if (contractProposingInput == null)
                 return false;
-            
+
             Assert(contractProposingInput.Status == ContractProposingInputStatus.CodeChecked,
                 "Invalid contract proposing status.");
             State.ContractProposingInputMap.Remove(inputHash);
             return true;
         }
 
-        private void RequireAuthorityByContractInfo(ContractInfo contractInfo)
+        private void CreateParliamentOrganizationForInitialControllerAddress(bool proposerAuthorityRequired)
         {
-            bool validationResult;
-            var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
-            if (proposerWhiteListContext.ProposerAuthorityRequired)
-            {
-                validationResult = proposerWhiteListContext.Proposers.Any(p => p == Context.Sender);
-            }
-            else if (State.ContractProposerAuthorityRequired.Value)
-            {
-                validationResult = CheckAddressIsParliamentMember(Context.Sender);
-            }
-            else if (contractInfo.IsSystemContract)
-            {
-                validationResult = proposerWhiteListContext.Proposers.Any(p => p == Context.Sender) ||
-                                   CheckAddressIsParliamentMember(Context.Sender);
-            }
-            else
-            {
-                validationResult = Context.Sender == contractInfo.Author;
-            }
+            RequireParliamentContractAddressSet();
+            var parliamentProposerWhitelist = State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
 
-            Assert(validationResult, "No permission.");
+            var isWhiteListEmpty = parliamentProposerWhitelist.Proposers.Count == 0;
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = MinimalApprovalThreshold,
+                        MinimalVoteThreshold = MinimalVoteThresholdThreshold,
+                        MaximalRejectionThreshold = MaximalRejectionThreshold,
+                        MaximalAbstentionThreshold = MaximalAbstentionThreshold
+                    },
+                    ProposerAuthorityRequired = proposerAuthorityRequired,
+                    ParliamentMemberProposingAllowed = isWhiteListEmpty
+                },
+                OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+            });
         }
 
-        private Address DecideNormalContractAuthor(Address address)
+        private void AssertAuthorityByContractInfo(ContractInfo contractInfo, Address address)
+        {
+            Assert(contractInfo.Author == Context.Self || address == contractInfo.Author, "No permission.");
+        }
+
+        private bool ValidateProposerAuthority(Address contractAddress, Address organizationAddress, Address proposer)
+        {
+            return Context.Call<BoolValue>(contractAddress,
+                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateProposerInWhiteList),
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = proposer
+                }).Value;
+        }
+
+        private Address DecideNormalContractAuthor(Address proposer, Address sender)
         {
             if (!State.ContractDeploymentAuthorityRequired.Value)
-                return address;
-            var proposerWhiteListContext = GetParliamentProposerWhiteListContext();
-            if (proposerWhiteListContext.ProposerAuthorityRequired)
-            {
-                // only proposer in whitelist can be contract author
-                Assert(proposerWhiteListContext.Proposers.Any(p => p == address), "Unauthorized proposer.");
-                return address;
-            }
+                return sender;
 
-            if (!State.ContractProposerAuthorityRequired.Value)
-                return address;
-
-            // check parliament member
-            Assert(CheckAddressIsParliamentMember(address), "Unauthorized proposer.");
-            return Context.Self;
+            var contractDeploymentController = State.ContractDeploymentController.Value;
+            var isProposerInWhiteList = ValidateProposerAuthority(contractDeploymentController.ContractAddress,
+                contractDeploymentController.OwnerAddress, proposer);
+            return isProposerInWhiteList ? proposer : Context.Self;
         }
 
         private ByteString ExtractCodeFromContractCodeCheckInput(ContractCodeCheckInput input)

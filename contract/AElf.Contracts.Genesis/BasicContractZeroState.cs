@@ -1,5 +1,6 @@
 ﻿using Acs0;
 using Acs1;
+using Acs3;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -19,11 +20,11 @@ namespace AElf.Contracts.Genesis
         /// <summary>
         /// Genesis owner controls contract deployment if <see cref="ContractDeploymentAuthorityRequired"/> is true.
         /// </summary>
-        public SingletonState<Address> GenesisOwner { get; set; }
+        public SingletonState<AuthorityStuff> ContractDeploymentController { get; set; }
         
-        public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; } 
+        public SingletonState<AuthorityStuff> CodeCheckController { get; set; }
         
-        public SingletonState<bool> ContractProposerAuthorityRequired { get; set; } 
+        public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; }
         
         public SingletonState<bool> Initialized { get; set; }
 

@@ -75,9 +75,9 @@ namespace AElf.Contracts.TokenConverter
                 targetConnector.Weight = input.Weight.ToString(CultureInfo.InvariantCulture);
             }
 
-            if (input.VirtualBalance > 0)
+            if (targetConnector.IsDepositAccount && input.VirtualBalance > 0)
                 targetConnector.VirtualBalance = input.VirtualBalance;
-            targetConnector.IsVirtualBalanceEnabled = input.IsVirtualBalanceEnabled;
+            State.Connectors[input.Symbol] = targetConnector;
             return new Empty();
         }
 
@@ -123,11 +123,11 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var toConnector = State.Connectors[input.Symbol];
-            Assert(toConnector != null, "Can't find to connector.");
+            Assert(toConnector != null, "[Buy]Can't find to connector.");
             Assert(toConnector.IsPurchaseEnabled, "can't purchase");
             Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
-            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(fromConnector != null, "[Buy]Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -176,11 +176,11 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
-            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(fromConnector != null, "[Sell]Can't find from connector.");
             Assert(fromConnector.IsPurchaseEnabled, "can't purchase");
             Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
-            Assert(toConnector != null, "Can't find to connector.");
+            Assert(toConnector != null, "[Sell]Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -285,10 +285,10 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.TokenSymbol];
-            Assert(fromConnector != null, "Can't find from connector.");
+            Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
             Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
-            Assert(toConnector != null, "Can't find to connector.");
+            Assert(toConnector != null, "[EnableConnector]Can't find to connector.");
             var needDeposit = GetNeededDeposit(input);
             if (needDeposit.NeedAmount > 0)
             {

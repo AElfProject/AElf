@@ -18,9 +18,6 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\reference\acs3.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
         </ContractReference>
@@ -36,8 +33,20 @@
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        <ContractReference Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\reference\association_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf\Proto\reference\referendum_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_holder_contract.proto">
+            <Link>Protobuf\Proto\reference\token_holder_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 
@@ -61,5 +70,4 @@
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractCode>
     </ItemGroup>
-
 </Project>

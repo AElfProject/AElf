@@ -76,15 +76,17 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         /// Should initial each contract after if necessary.
         /// </summary>
         /// <param name="nameToCode"></param>
+        /// <param name="deployConsensusContract"></param>
         /// <returns></returns>
-        public async Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode)
+        public async Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode,
+            bool deployConsensusContract = true)
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =
                 _contractTesterFactory.Create<BasicContractZeroContainer.BasicContractZeroStub>(
                     _smartContractAddressService.GetZeroSmartContractAddress(),
                     MissionedECKeyPairs.InitialKeyPairs.First());
-            if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name))
+            if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name) && deployConsensusContract)
             {
                 nameToCode.Add(ConsensusSmartContractAddressNameProvider.Name,
                     ContractsDeployer.GetContractCodes<ContractTestAEDPoSExtensionModule>().First().Value);
@@ -110,7 +112,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     _consensusContractAddress = address;
                 }
 
-                if (name == ParliamentAuthSmartContractAddressNameProvider.Name)
+                if (name == ParliamentSmartContractAddressNameProvider.Name)
                 {
                     _parliamentContractAddress = address;
                 }

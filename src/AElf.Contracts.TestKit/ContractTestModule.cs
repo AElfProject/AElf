@@ -69,11 +69,12 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,STO,READ,NET";
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK";
+                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,READ,STORAGE,TRAFFIC";
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK,NET";
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+            Configure<ChainOptions>(options => options.ChainId = ChainId);
 
             #region Infra
 
@@ -127,7 +128,7 @@ namespace AElf.Contracts.TestKit
 
             var dto = new OsBlockchainNodeContextStartDto
             {
-                ChainId = ChainId,
+                ChainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
             };

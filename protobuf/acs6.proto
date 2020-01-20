@@ -10,7 +10,7 @@ option (aelf.identity) = "acs6";
 service RandomNumberProviderContract {
 
     // Action
-    rpc RequestRandomNumber (google.protobuf.Empty) returns (RandomNumberOrder) {
+    rpc RequestRandomNumber (aelf.Hash) returns (RandomNumberOrder) {
     }
 
     // View

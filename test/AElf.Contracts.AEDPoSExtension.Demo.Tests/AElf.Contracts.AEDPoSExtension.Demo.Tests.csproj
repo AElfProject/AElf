@@ -20,7 +20,7 @@
     <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -29,12 +29,11 @@
 
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf/Proto/acs3.proto</Link>
-        </ContractStub>
-
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractBase>
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractMessage>
@@ -47,11 +46,17 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
-            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\commitment_scheme_contract.proto">
+            <Link>Protobuf\Proto\commitment_scheme_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

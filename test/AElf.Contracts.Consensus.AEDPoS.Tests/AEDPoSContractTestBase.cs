@@ -32,10 +32,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             _ = ElectionContractAddress;
             _ = TreasuryContractAddress;
             _ = TransactionFeeChargingContractAddress;
-            _ = ParliamentAuthContractAddress;
+            _ = ParliamentContractAddress;
             _ = TokenConverterContractAddress;
             _ = ConsensusContractAddress;
-            _ = ReferendumAuthContractAddress;
+            _ = ReferendumContractAddress;
+            _ = TokenHolderContractAddress;
         }
         protected void InitializeContracts()
         {

@@ -86,6 +86,15 @@ namespace AElf.Contracts.Election
 
             SavePreviousTermInformation(input);
 
+            if (State.ProfitContract.Value == null)
+            {
+                var profitContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                // Return if profit contract didn't deployed. (Often in test cases.)
+                if (profitContractAddress == null) return new Empty();
+                State.ProfitContract.Value = profitContractAddress;
+            }
+
             // Update snapshot of corresponding voting record by the way.
             State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
             {
@@ -103,11 +112,7 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
+
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
@@ -133,6 +138,8 @@ namespace AElf.Contracts.Election
                 MinedBlocks = input.MinedBlocks,
                 EndRoundNumber = input.RoundNumber
             };
+
+            if (State.Candidates.Value == null) return;
 
             foreach (var pubkey in State.Candidates.Value.Value)
             {

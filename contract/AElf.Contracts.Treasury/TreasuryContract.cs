@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
@@ -10,6 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Treasury
 {
+    // ReSharper disable InconsistentNaming
     /// <summary>
     /// The Treasury is the largest profit item in AElf main chain.
     /// Actually the Treasury is our Dividends Pool.
@@ -69,7 +72,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(Empty input)
         {
-            Assert(State.TreasuryHash.Value == null, "Already ininitialized.");
+            Assert(State.TreasuryHash.Value == null, "Already initialized.");
             var managingSchemeIds = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
                 Manager = Context.Self
@@ -112,46 +115,50 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Release(ReleaseInput input)
         {
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
-
+            MaybeLoadAEDPoSContractAddress();
             Assert(
                 Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
-
-            var releasingPeriodNumber = input.TermNumber;
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                Period = releasingPeriodNumber,
+                Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-
-            ReleaseTreasurySubProfitItems(releasingPeriodNumber);
-            UpdateTreasurySubItemsShares(input.TermNumber);
-
-            Context.LogDebug(() => "Leaving Release.");
+            MaybeLoadElectionContractAddress();
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            {
+                Value = input.TermNumber
+            });
+            UpdateTreasurySubItemsSharesBeforeDistribution(previousTermInformation);
+            ReleaseTreasurySubProfitItems(input.TermNumber);
+            UpdateTreasurySubItemsSharesAfterDistribution(previousTermInformation);
             return new Empty();
         }
 
         public override Empty Donate(DonateInput input)
         {
-            Assert(input.Amount > 0, "Invalid amount of donating. Amount need to greater than 0.");
+            Assert(input.Amount > 0, "Invalid amount of donating. Amount needs to be greater than 0.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
+
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
+            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var canExchangeWithNativeSymbol = connector.RelatedSymbol != string.Empty;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = isNativeSymbol
+                To = isNativeSymbol || !canExchangeWithNativeSymbol
                     ? State.TreasuryVirtualAddress.Value
                     : Context.Self,
                 Symbol = input.Symbol,
@@ -170,7 +177,7 @@ namespace AElf.Contracts.Treasury
                 Memo = "Donate to treasury."
             });
 
-            if (input.Symbol != Context.Variables.NativeSymbol)
+            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);
             }
@@ -203,12 +210,6 @@ namespace AElf.Contracts.Treasury
 
         private void ConvertToNativeToken(string symbol, long amount)
         {
-            if (State.TokenConverterContract.Value == null)
-            {
-                State.TokenConverterContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            }
-
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,
@@ -305,28 +306,41 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void UpdateTreasurySubItemsShares(long termNumber)
+        private void MaybeLoadAEDPoSContractAddress()
         {
-            var endPeriod = termNumber.Add(1);
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+        }
 
+        private void MaybeLoadElectionContractAddress()
+        {
             if (State.ElectionContract.Value == null)
             {
                 State.ElectionContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             }
+        }
 
+        private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation)
+        {
+            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            {
+                Value = previousTermInformation.TermNumber.Sub(1)
+            });
+
+            UpdateBasicMinerRewardWeights(new List<Round> {previousPreviousTermInformation, previousTermInformation});
+        }
+
+        private void UpdateTreasurySubItemsSharesAfterDistribution(Round previousTermInformation)
+        {
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
 
-            var previousMiners = State.AEDPoSContract.GetPreviousMinerList.Call(new Empty()).Pubkeys.ToList();
-            var previousMinerAddress = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
-
-            UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddress);
-
-            UpdateReElectionRewardWeights(endPeriod, previousMiners.Select(m => m.ToHex()).ToList(),
-                previousMinerAddress, victories);
-
-            UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
+            UpdateReElectionRewardWeights(previousTermInformation, victories);
+            UpdateVotesWeightRewardWeights(previousTermInformation, victories);
         }
 
         /// <summary>
@@ -334,44 +348,45 @@ namespace AElf.Contracts.Treasury
         /// Add new shares for miners of next term.
         /// 1 share for each miner.
         /// </summary>
-        /// <param name="endPeriod"></param>
-        /// <param name="victories"></param>
-        /// <param name="previousMinerAddresses"></param>
-        private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories,
-            IEnumerable<Address> previousMinerAddresses)
+        /// <param name="previousTermInformation"></param>
+        private void UpdateBasicMinerRewardWeights(IReadOnlyCollection<Round> previousTermInformation)
         {
-            var basicRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
+            if (previousTermInformation.First().RealTimeMinersInformation != null)
             {
-                SchemeId = State.BasicRewardHash.Value,
-                Beneficiaries = {previousMinerAddresses}
-            };
-            State.ProfitContract.RemoveBeneficiaries.Send(basicRewardProfitSubBeneficiaries);
+                State.ProfitContract.RemoveBeneficiaries.Send(new RemoveBeneficiariesInput
+                {
+                    SchemeId = State.BasicRewardHash.Value,
+                    Beneficiaries = {previousTermInformation.First().RealTimeMinersInformation.Keys.Select(k =>
+                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k)))}
+                });
+            }
 
-            var basicRewardProfitAddBeneficiaries = new AddBeneficiariesInput
+            // Manage weights of `MinerBasicReward`
+            State.ProfitContract.AddBeneficiaries.Send(new AddBeneficiariesInput
             {
                 SchemeId = State.BasicRewardHash.Value,
-                EndPeriod = endPeriod,
+                EndPeriod = previousTermInformation.Last().TermNumber,
                 BeneficiaryShares =
                 {
-                    victories.Select(k => Address.FromPublicKey(k.ToByteString().ToByteArray()))
-                        .Select(a => new BeneficiaryShare {Beneficiary = a, Shares = 1})
+                    previousTermInformation.Last().RealTimeMinersInformation.Values.Select(i => new BeneficiaryShare
+                    {
+                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Pubkey)),
+                        Shares = i.ProducedBlocks
+                    })
                 }
-            };
-            // Manage weights of `MinerBasicReward`
-            State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddBeneficiaries);
+            });
         }
 
         /// <summary>
         /// Remove current total shares of Re-Election Reward,
         /// Add shares to re-elected miners based on their continual appointment count.
         /// </summary>
-        /// <param name="endPeriod"></param>
-        /// <param name="previousMiners"></param>
-        /// <param name="previousMinerAddresses"></param>
+        /// <param name="previousTermInformation"></param>
         /// <param name="victories"></param>
-        private void UpdateReElectionRewardWeights(long endPeriod, ICollection<string> previousMiners,
-            IEnumerable<Address> previousMinerAddresses, ICollection<string> victories)
+        private void UpdateReElectionRewardWeights(Round previousTermInformation, ICollection<string> victories)
         {
+            var previousMinerAddresses = previousTermInformation.RealTimeMinersInformation.Keys
+                .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
             var reElectionRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
@@ -380,9 +395,9 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.RemoveBeneficiaries.Send(reElectionRewardProfitSubBeneficiaries);
 
             var minerReElectionInformation = State.MinerReElectionInformation.Value ??
-                                             InitialMinerReElectionInformation(previousMiners);
+                                             InitialMinerReElectionInformation(previousTermInformation.RealTimeMinersInformation.Keys);
 
-            AddBeneficiariesForReElectionScheme(endPeriod, victories, minerReElectionInformation);
+            AddBeneficiariesForReElectionScheme(previousTermInformation.TermNumber.Add(1), victories, minerReElectionInformation);
 
             var recordedMiners = minerReElectionInformation.Clone().ContinualAppointmentTimes.Keys;
             foreach (var miner in recordedMiners)
@@ -447,12 +462,12 @@ namespace AElf.Contracts.Treasury
         /// Remove current total shares of Votes Weight Reward,
         /// Add shares to current miners based on votes they obtained.
         /// </summary>
-        /// <param name="endPeriod"></param>
+        /// <param name="previousTermInformation"></param>
         /// <param name="victories"></param>
-        /// <param name="previousMinerAddresses"></param>
-        private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
-            IEnumerable<Address> previousMinerAddresses)
+        private void UpdateVotesWeightRewardWeights(Round previousTermInformation, IEnumerable<string> victories)
         {
+            var previousMinerAddresses = previousTermInformation.RealTimeMinersInformation.Keys
+                .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
             var votesWeightRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
@@ -463,7 +478,7 @@ namespace AElf.Contracts.Treasury
             var votesWeightRewardProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
-                EndPeriod = endPeriod
+                EndPeriod = previousTermInformation.TermNumber.Add(1)
             };
 
             var dataCenterRankingList = State.ElectionContract.GetDataCenterRankingList.Call(new Empty());
@@ -518,7 +533,12 @@ namespace AElf.Contracts.Treasury
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(shares).Div(totalShares));
+                // In case of arithmetic overflow
+                var decimalAmount = (decimal) totalAmount[Context.Variables.NativeSymbol];
+                var decimalShares = (decimal) shares;
+                var decimalTotalShares = (decimal) totalShares;
+                var amount = decimalAmount * decimalShares / decimalTotalShares;
+                output.Value.Add((long) amount);
             }
 
             return output;
@@ -541,9 +561,54 @@ namespace AElf.Contracts.Treasury
             return State.TreasuryHash.Value ?? Hash.Empty;
         }
 
+        private const int DaySec = 86400;
+
+        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
+        {
+            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
+            {2.Mul(365).Mul(DaySec), 1.0015m},
+            {3.Mul(365).Mul(DaySec), 1.002m}
+        };
+
+        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
+        private const int Scale = 10000;
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
+            long calculated = 1;
+
+            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
+            {
+                if (lockTime > instMap.Key)
+                    continue;
+                calculated = calculated.Mul((long) (Pow(instMap.Value, (uint) lockTime.Div(DaySec)) * Scale));
+                break;
+            }
+
+            if (calculated == 1) // lockTime > 3 years
+                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
+            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+        }
+
+        private static decimal Pow(decimal x, uint y)
+        {
+            if (y == 1)
+                return (long) x;
+            decimal a = 1m;
+            if (y == 0)
+                return a;
+            var e = new BitArray(BitConverter.GetBytes(y));
+            var t = e.Count;
+            for (var i = t - 1; i >= 0; --i)
+            {
+                a *= a;
+                if (e[i])
+                {
+                    a *= x;
+                }
+            }
+
+            return a;
         }
     }
 }

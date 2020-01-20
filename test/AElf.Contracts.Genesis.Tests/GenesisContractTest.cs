@@ -101,17 +101,6 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Change_GenesisOwner_Test()
-        {
-            //without permission
-            {
-                var changeResult = await DefaultTester.ChangeGenesisOwner.SendWithExceptionAsync(AnotherUser);
-                changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                changeResult.TransactionResult.Error.ShouldContain("Unauthorized to initialize");
-            }
-        }
-        
-        [Fact]
         public async Task Update_SmartContract_WrongAuthor_Test()
         {
             var contractAddress = await Deploy_SmartContracts_Test();

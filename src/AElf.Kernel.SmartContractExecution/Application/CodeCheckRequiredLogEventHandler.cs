@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
+using Acs3;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 
@@ -50,7 +50,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 var eventData = new CodeCheckRequired();
                 eventData.MergeFrom(logEvent);
-                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray());
+                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray(),
+                    transactionResult.BlockHash, transactionResult.BlockNumber);
                 if (!codeCheckResult)
                     return;
 

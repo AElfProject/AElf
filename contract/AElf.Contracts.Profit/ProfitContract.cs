@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -45,16 +46,17 @@ namespace AElf.Contracts.Profit
                 input.ProfitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount;
             }
 
+            var manager = input.Manager ?? Context.Sender;
             var schemeId = Context.TransactionId;
             // Why? Because one transaction may create many profit items via inline transactions.
-            var createdSchemeIds = State.ManagingSchemeIds[Context.Sender]?.SchemeIds;
+            var createdSchemeIds = State.ManagingSchemeIds[manager]?.SchemeIds;
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
                 // So we choose this way to avoid profit id conflicts in aforementioned situation.
                 schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
             }
 
-            var scheme = GetNewScheme(input, schemeId);
+            var scheme = GetNewScheme(input, schemeId, manager);
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -70,7 +72,7 @@ namespace AElf.Contracts.Profit
                 schemeIds.SchemeIds.Add(schemeId);
             }
 
-            State.ManagingSchemeIds[Context.Sender] = schemeIds;
+            State.ManagingSchemeIds[scheme.Manager] = schemeIds;
 
             Context.LogDebug(() => $"Created scheme {State.SchemeInfos[schemeId]}");
 
@@ -161,7 +163,7 @@ namespace AElf.Contracts.Profit
 
             if (input.EndPeriod == 0)
             {
-                // Which means this profit Beneficiary will never expired.
+                // Which means this profit Beneficiary will never expired unless removed.
                 input.EndPeriod = long.MaxValue;
             }
 
@@ -171,12 +173,15 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can add beneficiary.");
+            Assert(
+                Context.Sender == scheme.Manager || Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can add beneficiary.");
 
             Context.LogDebug(() =>
                 $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
 
-            Assert(input.EndPeriod >= scheme.CurrentPeriod, "Invalid end period.");
+            Assert(input.EndPeriod >= scheme.CurrentPeriod, $"Invalid end period. End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
 
             scheme.TotalShares = scheme.TotalShares.Add(input.BeneficiaryShare.Shares);
 
@@ -238,10 +243,14 @@ namespace AElf.Contracts.Profit
 
             if (scheme == null || currentDetail == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can remove beneficiary.");
+            Assert(Context.Sender == scheme.Manager || Context.Sender ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can remove beneficiary.");
 
-            var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
+                ? currentDetail.Details.ToList()
+                : currentDetail.Details
+                    .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
             if (!expiryDetails.Any()) return new Empty();
 
@@ -254,8 +263,6 @@ namespace AElf.Contracts.Profit
                     currentDetail.Details.Remove(expiryDetail);
                 }
             }
-
-            State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
 
             // Clear old profit details.
             if (currentDetail.Details.Count != 0)
@@ -318,7 +325,9 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
+            Assert(Context.Sender == scheme.Manager || Context.Sender ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
+                "Only manager can distribute profits.");
 
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
@@ -506,7 +515,7 @@ namespace AElf.Contracts.Profit
                 // General ledger of this sub profit item.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
-                var amount = subScheme.Shares.Mul(input.Amount).Div(totalShares);
+                var amount = SafeCalculateProfits(subScheme.Shares, input.Amount, totalShares);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -654,12 +663,14 @@ namespace AElf.Contracts.Profit
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
             Assert(profitDetails != null, "Profit details not found.");
             if (profitDetails == null || scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Context.LogDebug(
-                () => $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()}.");
+                () =>
+                    $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()} for {beneficiary}.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -667,7 +678,7 @@ namespace AElf.Contracts.Profit
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
-                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
+                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2)}");
 
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
@@ -682,16 +693,16 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress);
+                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress, beneficiary);
             }
 
-            State.ProfitDetailsMap[input.SchemeId][Context.Sender] = new ProfitDetails {Details = {availableDetails}};
+            State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
 
             return new Empty();
         }
 
         private long ProfitAllPeriods(Scheme scheme, string symbol, ProfitDetail profitDetail,
-            Address profitVirtualAddress, bool isView = false)
+            Address profitVirtualAddress, Address beneficiary, bool isView = false)
         {
             var totalAmount = 0L;
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
@@ -712,20 +723,20 @@ namespace AElf.Contracts.Profit
                 }
 
                 Context.LogDebug(() => $"Released profit information: {distributedProfitsInformation}");
-                var amount = profitDetail.Shares.Mul(distributedProfitsInformation.ProfitsAmount[symbol])
-                    .Div(distributedProfitsInformation.TotalShares);
+                var amount = SafeCalculateProfits(profitDetail.Shares,
+                    distributedProfitsInformation.ProfitsAmount[symbol], distributedProfitsInformation.TotalShares);
 
                 if (!isView)
                 {
                     Context.LogDebug(() =>
-                        $"{Context.Sender} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
+                        $"{beneficiary} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,
-                            To = Context.Sender,
+                            To = beneficiary,
                             Symbol = symbol,
                             Amount = amount
                         });
@@ -741,29 +752,38 @@ namespace AElf.Contracts.Profit
 
             return totalAmount;
         }
-        
+
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
         {
             if (state.Value != null)
                 return;
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
-        
-        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId)
+
+        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId, Address manager)
         {
             var scheme = new Scheme
             {
                 SchemeId = schemeId,
                 // The address of general ledger for current profit item.
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Manager = input.Manager == null ? Context.Sender : input.Manager,
+                Manager = manager,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
-                DelayDistributePeriodCount = input.DelayDistributePeriodCount
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount,
+                CanRemoveBeneficiaryDirectly = input.CanRemoveBeneficiaryDirectly
             };
 
             return scheme;
+        }
+
+        private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
+        {
+            var decimalTotalAmount = (decimal) totalAmount;
+            var decimalShares = (decimal) shares;
+            var decimalTotalShares = (decimal) totalShares;
+            return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
         }
     }
 }

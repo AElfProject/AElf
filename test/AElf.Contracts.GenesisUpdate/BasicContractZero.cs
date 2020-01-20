@@ -201,7 +201,7 @@ namespace AElf.Contracts.GenesisUpdate
             return new Empty();
         }
 
-        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        public override Empty ChangeGenesisOwnerAddress(Address newOwnerAddress)
         {
             if (State.GenesisOwner.Value == null)
                 InitializeGenesisOwner(newOwnerAddress);
@@ -239,7 +239,7 @@ namespace AElf.Contracts.GenesisUpdate
         private void InitializeGenesisOwner(Address genesisOwner)
         {
             Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;

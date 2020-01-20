@@ -2,7 +2,7 @@ using System.IO;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -11,7 +11,7 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
+using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
 namespace AElf.Contracts.Vote
 {
@@ -21,12 +21,12 @@ namespace AElf.Contracts.Vote
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
-        protected Address ParliamentAuthContractAddress { get; set; }
+        protected Address ParliamentContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
 
         protected const string TestTokenSymbol = "ELF";
 
@@ -59,16 +59,16 @@ namespace AElf.Contracts.Vote
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
             
             //deploy parliament auth contract
-            ParliamentAuthContractAddress = AsyncHelper.RunSync(()=>
+            ParliamentContractAddress = AsyncHelper.RunSync(()=>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
-                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentContract).Assembly.Location)),
+                        Name = ParliamentSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateParliamentInitializationCallList()
                     })).Output;
-            ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
+            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -86,9 +86,9 @@ namespace AElf.Contracts.Vote
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
         }
         
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(ECKeyPair keyPair)
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress, keyPair);
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
@@ -142,9 +142,8 @@ namespace AElf.Contracts.Vote
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentInitializationCallList()
         {
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new InitializeInput
+            parliamentContractCallList.Add(nameof(ParliamentContract.Initialize), new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 PrivilegedProposer = DefaultSender,
                 ProposerAuthorityRequired = true
             });

@@ -16,9 +16,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateTxCostStrategy, TestCalculateTxStrategy>();
             context.Services.AddSingleton<ICalculateReadCostStrategy, TestCalculateReadStrategy>();
-            context.Services.AddSingleton<ICalculateStoCostStrategy, TestCalculateStoStrategy>();
+            context.Services.AddSingleton<ICalculateStorageCostStrategy, TestCalculateStorageStrategy>();
             context.Services.AddSingleton<ICalculateWriteCostStrategy, TestCalculateWriteStrategy>();
-            context.Services.AddSingleton<ICalculateNetCostStrategy, TestCalculateNetStrategy>();
+            context.Services.AddSingleton<ICalculateTrafficCostStrategy, TestCalculateTrafficStrategy>();
         }
     }
 }

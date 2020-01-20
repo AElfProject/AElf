@@ -187,10 +187,13 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
 
-            Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
-                    .Contains(publicKeyByteString),
-                "Current miners cannot quit election.");
+            if (State.AEDPoSContract.Value != null)
+            {
+                Assert(
+                    !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                        .Contains(publicKeyByteString),
+                    "Current miners cannot quit election.");
+            }
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.DataCentersRankingList.Value.DataCenters.Remove(recoveredPublicKey.ToHex());

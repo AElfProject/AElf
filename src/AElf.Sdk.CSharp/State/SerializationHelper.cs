@@ -88,6 +88,11 @@ namespace AElf.Sdk.CSharp.State
                 return Encoding.UTF8.GetBytes((string) value);
             }
 
+            if (type.IsEnum)
+            {
+                return Serialize((int) value);
+            }
+
             if (typeof(IMessage).IsAssignableFrom(type))
             {
                 var v = (IMessage) value;
@@ -117,6 +122,11 @@ namespace AElf.Sdk.CSharp.State
             if (type == typeof(string))
             {
                 return (T) (object) Encoding.UTF8.GetString(bytes);
+            }
+
+            if (type.IsEnum)
+            {
+                return (T) (object) Deserialize<int>(bytes);
             }
 
             if (typeof(IMessage).IsAssignableFrom(type))
