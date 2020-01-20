@@ -43,8 +43,6 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task DownloadBlocks_MoreThanLimit()
         {
-            var chain = await _blockchainService.GetChainAsync();
-
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
                 PreviousBlockHash = Hash.FromString("MoreThanLimit"),
@@ -55,15 +53,13 @@ namespace AElf.OS.BlockSync.Application
 
             downloadResult.DownloadBlockCount.ShouldBe(0);
             
-            chain = await _blockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
         }
         
         [Fact]
         public async Task DownloadBlocks_NoBlockReturn()
         {
-            var chain = await _blockchainService.GetChainAsync();
-
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
                 PreviousBlockHash = Hash.FromString("NoBlockReturn"),
@@ -74,7 +70,7 @@ namespace AElf.OS.BlockSync.Application
 
             downloadResult.DownloadBlockCount.ShouldBe(0);
             
-            chain = await _blockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
         }
     }

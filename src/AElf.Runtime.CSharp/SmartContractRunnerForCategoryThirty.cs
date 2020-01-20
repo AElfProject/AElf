@@ -14,9 +14,8 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunnerForCategoryThirty : SmartContractRunnerForCategoryZero
     {
-        public SmartContractRunnerForCategoryThirty(string sdkDir, IServiceContainer<IExecutivePlugin> executivePlugins,
-            IEnumerable<string> blackList = null, IEnumerable<string> whiteList = null) : base(sdkDir, executivePlugins,
-            blackList, whiteList)
+        public SmartContractRunnerForCategoryThirty(string sdkDir, IServiceContainer<IExecutivePlugin> executivePlugins)
+            : base(sdkDir, executivePlugins)
         {
             Category = KernelConstants.CodeCoverageRunnerCategory;
         }

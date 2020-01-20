@@ -444,7 +444,7 @@ namespace AElf.Contracts.Election
         private void AssertValidCandidateInformation(CandidateInformation candidateInformation)
         {
             Assert(candidateInformation != null, "Candidate not found.");
-            if (candidateInformation == null) return; // Just to avoid IDE warning.
+            // ReSharper disable once PossibleNullReferenceException
             Assert(candidateInformation.IsCurrentCandidate, "Candidate quited election.");
         }
 

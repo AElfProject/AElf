@@ -135,14 +135,13 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            if (scheme == null) return new Empty();
 
+            // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
             Assert(subScheme != null, "Sub scheme not found.");
-            if (subScheme == null) return new Empty();
 
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             // Remove profit details
@@ -171,8 +170,8 @@ namespace AElf.Contracts.Profit
             var scheme = State.SchemeInfos[schemeId];
 
             Assert(scheme != null, "Scheme not found.");
-            if (scheme == null) return new Empty();
 
+            // ReSharper disable once PossibleNullReferenceException
             Assert(
                 Context.Sender == scheme.Manager || Context.Sender ==
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
@@ -319,12 +318,11 @@ namespace AElf.Contracts.Profit
             Assert(input.Amount >= 0, "Amount must be greater than or equal to 0");
 
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
+            // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager || Context.Sender ==
                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
                 "Only manager can distribute profits.");
@@ -565,11 +563,9 @@ namespace AElf.Contracts.Profit
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
             Assert(input.Amount > 0, "Amount need to greater than 0.");
-            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -583,6 +579,8 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Memo = $"Add {input.Amount} dividends."
                 });
+                // ReSharper disable once PossibleNullReferenceException
+                // ReSharper disable once AssignNullToNotNullAttribute
                 if (!scheme.UndistributedProfits.ContainsKey(input.Symbol))
                 {
                     scheme.UndistributedProfits.Add(input.Symbol, input.Amount);
@@ -634,8 +632,8 @@ namespace AElf.Contracts.Profit
         {
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
+            // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only scheme manager can reset manager.");
             Assert(input.NewManager.Value.Any(), "Invalid new sponsor.");
 
@@ -660,13 +658,12 @@ namespace AElf.Contracts.Profit
         public override Empty ClaimProfits(ClaimProfitsInput input)
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
+
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
             Assert(profitDetails != null, "Profit details not found.");
-            if (profitDetails == null || scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Context.LogDebug(
                 () =>
@@ -674,7 +671,9 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
+            // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d => d.EndPeriod >= d.LastProfitPeriod).ToList();
+            // ReSharper disable once PossibleNullReferenceException
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
