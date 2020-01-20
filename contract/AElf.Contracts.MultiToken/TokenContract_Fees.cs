@@ -250,15 +250,6 @@ namespace AElf.Contracts.MultiToken
             });
             return new Empty();
         }
-        
-                
-        public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)
-        {
-            AssertControllerForSymbolToPayTxSizeFee();
-            Assert(input != null, "invalid input");
-            State.ControllerForSymbolToPayTxFee.Value = input;
-            return new Empty();
-        }
 
         /// <summary>
         /// Example 1:
@@ -588,13 +579,6 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        
-        public override Empty SetControllerForSideChainParliament(Address input)
-        {
-            AssertControllerForSideChainRental();
-            Assert(input != null, "invalid input");
-            return new Empty();
-        }
 
         public override Empty SetSideChainCreator(Address input)
         {
@@ -722,10 +706,10 @@ namespace AElf.Contracts.MultiToken
             }
 
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
+            var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value);
             Assert(controllerForRental == Context.Sender, "no permission");
         }
-        private Address GetControllerForRental(Address sideChainCreator)
+        private Address GetRootControllerForRental(Address sideChainCreator)
         {
             var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};

@@ -41,6 +41,26 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
         
+        public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)
+        {
+            AssertControllerForSymbolToPayTxSizeFee();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForSymbolToPayTxFee.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty SetControllerForSideChainParliament(Address input)
+        {
+            AssertControllerForSideChainRental();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForSideRentalParliament.Value = input;
+            return new Empty();
+        }
+        
         private bool ControllersInitialized()
         {
             if(State.ControllerForDeveloperFee.Value == null)
@@ -230,16 +250,16 @@ namespace AElf.Contracts.MultiToken
 
         private Address GetControllerForSideRentalParliament()
         {
-            if (State.ControllerForSideRental.Value != null) return State.ControllerForSideRental.Value;
+            if (State.ControllerForSideRentalParliament.Value != null) return State.ControllerForSideRentalParliament.Value;
             if (State.ParliamentContract.Value == null)
             {
                 State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
-            State.ControllerForSideRental.Value =
+            State.ControllerForSideRentalParliament.Value =
                 State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
 
-            return State.ControllerForSideRental.Value;
+            return State.ControllerForSideRentalParliament.Value;
         }
         #endregion
     }
