@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
@@ -15,6 +16,8 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
+using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
+using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 {
@@ -177,6 +180,126 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
         }
 
+        [Fact]
+        public async Task Authorization_Transfer_Success()
+        {
+            await InitialTokenContract();
+            var defaultOrganizationAddress =
+                await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var newParliament = new Parliament.CreateOrganizationInput
+            {
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var parliamentStub = ParliamentStubs.First();
+            var createNewParliamentRet = await parliamentStub.CreateOrganization.SendAsync(newParliament);
+            var newParliamentAddress = new Address();
+            newParliamentAddress.MergeFrom(createNewParliamentRet.TransactionResult.ReturnValue);
+            
+            var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            var parliamentOrgAddress = defaultOrganizationAddress;
+            var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
+            var createOrganizationInput2 = new CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {twoProposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {twoProposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = twoProposers.Count,
+                    MinimalVoteThreshold = twoProposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            
+            var associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
+            var associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var toAssociationProposal = new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSideChainParliament),
+                Params = newParliamentAddress.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = associationAddress
+            };
+            var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            var associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
+            
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                Params = associationProposalId.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = parliamentOrgAddress
+            });
+            await AssociationStub.Approve.SendAsync(associationProposalId);
+            await AssociationStub.Release.SendAsync(associationProposalId);
+            
+            twoProposers = new List<Address> {newParliamentAddress,sideCreator}; 
+            createOrganizationInput2 = new CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {twoProposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {twoProposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = twoProposers.Count,
+                    MinimalVoteThreshold = twoProposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
+            associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var updateParam = new UpdateRentedResourcesInput();
+            var symbolDic = new Dictionary<string, int> {["CPU"] = 101};
+            updateParam.ResourceAmount.Add(symbolDic);
+                toAssociationProposal = new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRentedResources),
+                Params = updateParam.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = associationAddress
+            };
+            associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
+
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                Params = associationProposalId.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = newParliamentAddress
+            });
+            await AssociationStub.Approve.SendAsync(associationProposalId);
+            await AssociationStub.Release.SendAsync(associationProposalId);
+
+        }
         private async Task InitialTokenContract(bool issueToken = true)
         {
             if (!ParliamentStubs.Any())
