@@ -2,8 +2,18 @@
 
 ## **CreateOrganization**
 
+```Protobuf
+rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
+
+message CreateOrganizationInput {
+    string token_symbol = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+```
+
 - **CreateOrganizationInput**:
-  - **token symbol**: not used in this contract.
+  - **token symbol**: the token used during proposal operations.
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the new value for the minimum approval threshold.
     - **maximal rejection threshold**: the new value for the maximal rejection threshold.
@@ -12,8 +22,39 @@
   - **ProposerWhiteList**:
     - **proposers**: the new value for the list.
 
-
 Creates an organization and returns its address.
+
+## **ReclaimVoteToken**
+
+```Protobuf
+rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) { }
+```
+
+Used to unlock the tokens that where used for voting.
+
+**Hash**: proposal ID.
+
+# View methods
+
+## **GetOrganization**
+
+```Protobuf
+rpc GetOrganization (aelf.Address) returns (Organization) { }
+
+message Organization {
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    string token_symbol = 2;
+    aelf.Address organization_address = 3;
+    aelf.Hash organization_hash = 4;
+    acs3.ProposerWhiteList proposer_white_list = 5;
+}
+```
+
+- **Organization**:
+  - **release threshold**: the release threshold for proposals.
+  - **token**: token used for proposal operations.
+  - **organization address**: organization address.
+  - **organization hash**: organization ID.
 
 ## **ACS3 specific methods**
 
