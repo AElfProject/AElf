@@ -572,6 +572,16 @@ namespace AElf.Contracts.CrossChain.Tests
                 Symbol = "ELF"
             });
             Assert.True(balanceAfterDisposal.Balance == 0);
+            
+            // try to adjust indexing fee after disposal
+            var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
+                new AdjustIndexingFeeInput
+                {
+                    SideChainId = chainId,
+                    IndexingFee = lockedTokenAmount - 1
+                });
+            indexingFeeAdjustingTx.TransactionResult.Error.ShouldContain(
+                "Side chain not found or incorrect side chain status.");
         }
 
         [Fact]
