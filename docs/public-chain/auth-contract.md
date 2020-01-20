@@ -27,9 +27,9 @@ message CreateProposalInput {
 }
 ```
 
-The mechanics of proposal **creations** and **proposal** approval are similar in the three contracts but with small differences that will be explained later in this section. Essentially a proposal is created within an **Organization** (defined by the implementations - strictly speaking you can implement ACS3 without the concept of an **Organization**). When created a log with the ID of the Proposal will be placed in the transaction result. Usually the ID of the proposal is the hash of creation **transaction ID** and the **CreateProposalInput**.
+The mechanics of proposal **creations** and proposal **approval** are similar in the three contracts but with small differences that will be explained later in this section. Essentially a proposal is created within an **Organization** and will be either approved or rejected based on the organizations thresholds. When creating a proposal, a log with its ID will be placed in the transaction result.
 
-When approving a **proposal** the user (address) sends **approval(s)** to the contract. The contracts usually aggregate these approvals until reaching a certain threshold. When the required amount of approvals is reached, the proposal can then be released. The release usually triggers an inline transaction to another contract and transaction log.
+When approving a **proposal** the users (address') send **approval(s)** to the contract. The contracts usually aggregate these approvals until reaching a certain threshold. When the required amount of approvals is reached, the proposal can then be released. The release usually triggers an inline transaction to another contract and transaction log.
 
 ### Association, Referendum and Parliament
 
