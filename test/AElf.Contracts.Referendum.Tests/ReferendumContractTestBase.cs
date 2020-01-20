@@ -188,19 +188,19 @@ namespace AElf.Contracts.Referendum
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateConsensusInitializationCallList()
         {
-            var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
+            var consensusContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
             {
                 TimeEachTerm = 604800L,
                 MinerIncreaseInterval = 31536000
             });
             
-            parliamentContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList
+            consensusContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList
             {
                 Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
             }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
 
-            return parliamentContractCallList;
+            return consensusContractCallList;
         }
 
         protected async Task<long> GetBalanceAsync(string symbol, Address owner)
