@@ -429,5 +429,24 @@ namespace AElf.Contracts.Election
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
         }
+
+        [Fact]
+        public async Task Election_Vote_Weight_Interest_Setting()
+        {
+            var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos.Count.ShouldBe(3);
+            defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
+            defaultSetting.VoteWeightInterestInfos[0].Day = 50;
+
+            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting);
+            
+            defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
+            defaultSetting.VoteWeightInterestInfos[0].Day.ShouldBe(50);
+
+        }
     }
 }

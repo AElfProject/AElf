@@ -357,7 +357,7 @@ namespace AElf.Contracts.Election
                 Assert(info.Interest > 0, "invalid input");
             }
 
-            Assert(input.VoteWeightInterestInfos.Distinct().Count() == input.VoteWeightInterestInfos.Count,
+            Assert(input.VoteWeightInterestInfos.GroupBy(x => x.Day).Count() == input.VoteWeightInterestInfos.Count,
                 "repeat day input");
             var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
             input.VoteWeightInterestInfos.Clear();
