@@ -25,7 +25,7 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
-    bool is_transfer_disabled = 8;
+    bool is_profitable = 8;
     int32 issue_chain_id = 9;
 }
 
