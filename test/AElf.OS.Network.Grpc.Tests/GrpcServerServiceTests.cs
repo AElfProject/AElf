@@ -247,7 +247,7 @@ namespace AElf.OS.Network
             
             await _serverService.SendTransaction(tx, reqBlockCtxt);
             
-            received?.Transactions.ShouldNotBeNull();
+            received.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
             received.Transactions.First().From.ShouldBe(tx.From);
         }
@@ -296,37 +296,7 @@ namespace AElf.OS.Network
             
             received.ShouldBeNull();
         }
-        
-        [Fact]
-        public async Task SendTx_ToHigh_ShouldPublishEvent_Test()
-        {
-            TransactionsReceivedEvent received = null;
-            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-            {
-                received = t;
-                return Task.CompletedTask;
-            });
 
-            var tx = new Transaction
-            {
-                From = SampleAddress.AddressList[0], 
-                To = SampleAddress.AddressList[1],
-                RefBlockNumber = 1,
-                MethodName = "Hello"
-            };
-
-            var pubKey = "SomePubKey";
-            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
-            var reqBlockCtxt = BuildServerCallContext(metadata);
-            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
-            
-            await _serverService.SendTransaction(tx, reqBlockCtxt);
-            
-            received?.Transactions.ShouldNotBeNull();
-            received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(tx.From);
-        }
-        
         #endregion Announce and transaction
         
         #region RequestBlock

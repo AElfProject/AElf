@@ -134,7 +134,7 @@ namespace AElf.OS.Network
         [Fact]
         public void DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
-            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithDataExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);

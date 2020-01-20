@@ -174,12 +174,13 @@ namespace AElf
 
         private static byte[] _GetCheckSum(byte[] data)
         {
-            SHA256 sha256 = new SHA256Managed();
-            var hash1 = sha256.ComputeHash(data);
-            var hash2 = sha256.ComputeHash(hash1);
-
             var result = new byte[CheckSumSize];
-            Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
+            using (SHA256 sha256 = new SHA256Managed())
+            {
+                var hash1 = sha256.ComputeHash(data);
+                var hash2 = sha256.ComputeHash(hash1);
+                Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
+            }
 
             return result;
         }

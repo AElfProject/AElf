@@ -80,7 +80,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = DefaultSymbol,
                 Owner = DefaultAddress
             });
-            generator.GenerateTransactionFunc = null;
+
             result.Output.Balance.ShouldBe(_totalSupply - transferAmountInSystemTxn);
         }
     }

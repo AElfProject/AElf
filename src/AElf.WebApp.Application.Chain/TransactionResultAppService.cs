@@ -316,7 +316,6 @@ namespace AElf.WebApp.Application.Chain
                     break;
                 }
                 case TransactionResultStatus.Failed:
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
                 case TransactionResultStatus.NotExisted:
                     throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
