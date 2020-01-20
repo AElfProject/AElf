@@ -220,6 +220,7 @@ namespace AElf.Contracts.CrossChain
             var info = State.SideChainInfo[input.SideChainId];
             Assert(info != null && info.SideChainStatus != SideChainStatus.Terminated,
                 "Side chain not found or incorrect side chain status.");
+            Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
             var sideChainCreator = info.Proposer;
             var expectedOrganizationAddress =
                 CalculateSideChainIndexingFeeControllerOrganizationAddress(sideChainCreator);

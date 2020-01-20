@@ -93,6 +93,7 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(
                 sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
