@@ -21,19 +21,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ICalculateTxCostStrategy _calStrategy;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
+        private readonly ISymbolListToPayTxFeeService _symbolListToPayTxFeeService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            ICalculateTxCostStrategy calStrategy)
+            ICalculateTxCostStrategy calStrategy,
+            ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _calStrategy = calStrategy;
             _transactionFeeExemptionService = transactionFeeExemptionService;
-            
+            _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -82,14 +84,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
                 var txCost = await _calStrategy.GetCostAsync(chainContext, txSize);
-                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
-                    new ChargeTransactionFeesInput
+                var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+                {
+                    MethodName = transactionContext.Transaction.MethodName,
+                    ContractAddress = transactionContext.Transaction.To,
+                    TransactionSizeFee = txCost,
+                    PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
+                };
+                var symbolListToPayTxSizeFee =
+                    await _symbolListToPayTxFeeService.GetExtraAcceptedTokensInfoAsync(chainContext);
+                if (symbolListToPayTxSizeFee != null)
+                {
+                    foreach (var tokenInfo in symbolListToPayTxSizeFee)
                     {
-                        MethodName = transactionContext.Transaction.MethodName,
-                        ContractAddress = transactionContext.Transaction.To,
-                        TransactionSizeFee = txCost,
-                        PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
-                    })).Transaction;
+                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
+                        {
+                            TokenSymbol = tokenInfo.TokenSymbol,
+                            BaseTokenWeight = tokenInfo.BaseTokenWeight,
+                            AddedTokenWeight = tokenInfo.AddedTokenWeight
+                        });
+                    }
+                }
+
+                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput))
+                    .Transaction;
                 return new List<Transaction>
                 {
                     chargeFeeTransaction

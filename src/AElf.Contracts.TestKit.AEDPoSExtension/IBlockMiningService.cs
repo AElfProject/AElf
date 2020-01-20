@@ -7,7 +7,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
     public interface IBlockMiningService
     {
-        Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode);
+        Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode, bool deployConsensusContract = true);
         Task MineBlockAsync(List<Transaction> transactions = null, bool withException = false);
         Task MineBlockToNextRoundAsync();
         Task MineBlockAsync(long targetHeight);
