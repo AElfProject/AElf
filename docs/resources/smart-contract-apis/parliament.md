@@ -109,7 +109,7 @@ Get non voted proposals.
 - **ProposalIdList**:
   - **proposal ids**: list of proposals.
 
-## **ACS3 specific methods**
+# **ACS3 specific methods**
 
 ## **CreateProposal**
 

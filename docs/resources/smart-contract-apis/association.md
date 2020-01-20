@@ -73,7 +73,7 @@ Returns the organization with the specified address.
   - **hash**: the organizations ID.
 
 
-## **ACS3 specific methods**
+# **ACS3 specific methods**
 
 ## **CreateProposal**
 

@@ -56,7 +56,7 @@ message Organization {
   - **organization address**: organization address.
   - **organization hash**: organization ID.
 
-## **ACS3 specific methods**
+# **ACS3 specific methods**
 
 ## **CreateProposal**
 
