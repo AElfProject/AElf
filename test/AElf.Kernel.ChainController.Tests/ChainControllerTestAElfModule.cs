@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
@@ -66,6 +67,14 @@ namespace AElf.Kernel.ChainController
                     .Returns((IChainContext x, int y) => Task.FromResult(100000L));
                 
                 return mockNetCostStrategy.Object;
+            });
+            services.AddSingleton(provider =>
+            {
+                var mockExtraAcceptedTokenService = new Mock<ISymbolListToPayTxFeeService>();
+                mockExtraAcceptedTokenService.Setup(m => m.GetExtraAcceptedTokensInfoAsync(It.IsAny<IChainContext>()))
+                    .Returns((IChainContext x) => Task.FromResult(new List<AvailableTokenInfoInCache>()));
+                
+                return mockExtraAcceptedTokenService.Object;
             });
 
         }

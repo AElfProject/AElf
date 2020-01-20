@@ -1,7 +1,9 @@
 using Acs0;
 using Acs1;
+using AElf.Contracts.Association;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
@@ -34,8 +36,12 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<Address, string, long> OwningResourceToken { get; set; }
 
+        public BoolState Initialized { get; set; }
+
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
+        public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
+        public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -45,20 +51,17 @@ namespace AElf.Contracts.MultiToken
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
+        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTXSizeFee { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract
-        {
-            get;
-            set;
-        }
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
-
+        internal AssociationContractContainer.AssociationContractReferenceState AssociationContract { get; set; }
+        internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
         internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
-
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

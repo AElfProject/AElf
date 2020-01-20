@@ -122,21 +122,6 @@ namespace AElf.Contracts.Genesis
                 var newContractDeploymentInput = new ContractDeploymentInput
                 {
                     Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Referendum")).Value)
-                };
-
-                var minerTester = Tester.CreateNewContractTester(AnotherMinerKeyPair);
-                var address = await DeployAsync(minerTester, ParliamentAddress, newContractDeploymentInput);
-                address.ShouldNotBeNull();
-                var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), address));
-                contractInfo.Version.ShouldBe(1);
-            }
-
-            {
-                var newContractDeploymentInput = new ContractDeploymentInput
-                {
-                    Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Configuration")).Value)
                 };
 

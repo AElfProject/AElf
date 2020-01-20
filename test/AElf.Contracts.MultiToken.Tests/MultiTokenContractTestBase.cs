@@ -29,7 +29,6 @@ using Microsoft.Extensions.Options;
 using Mono.Cecil.Cil;
 using Shouldly;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
@@ -152,14 +151,15 @@ namespace AElf.Contracts.MultiToken
         }
     }
 
-    public class
-        MultiTokenContractCrossChainTestBase : TestBase.ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
+    public class MultiTokenContractCrossChainTestBase : TestBase.ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
     {
         protected Address BasicContractZeroAddress;
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
         protected Address ParliamentAddress;
         protected Address ConsensusAddress;
+        protected Address ReferendumAddress;
+        protected Address AssociationAddress;
 
         protected Address SideBasicContractZeroAddress;
         protected Address SideCrossChainContractAddress;
@@ -202,7 +202,8 @@ namespace AElf.Contracts.MultiToken
             TokenContractAddress = MainChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ParliamentAddress = MainChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
-
+            ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
+            AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
                 .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
         }
