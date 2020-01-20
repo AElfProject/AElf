@@ -148,7 +148,8 @@ namespace AElf.CSharp.CodeOps.Policies
                 new FloatOpsValidator(),
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
-                new UncheckedMathValidator()
+                new UncheckedMathValidator(),
+                new GetHashCodeValidator(),
             });
         }
 

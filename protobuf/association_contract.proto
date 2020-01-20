@@ -16,6 +16,8 @@ service AssociationContract {
     }
     rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Empty){
     }
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
     //view
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
@@ -54,4 +56,8 @@ message ProposalInfo {
 
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
+}
+message CreateOrganizationBySystemContractInput {
+    CreateOrganizationInput organization_creation_input = 1;
+    string organization_address_feedback_method = 2;
 }
