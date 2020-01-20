@@ -18,8 +18,6 @@ namespace AElf.Contracts.Election
     public partial class ElectionContract
     {
         private const int DaySec = 86400;
-        private const int Scale = 10000;
-
         #region Vote
 
         /// <summary>
@@ -183,18 +181,11 @@ namespace AElf.Contracts.Election
                 if (lockDays > instMap.Day)
                     continue;
                 var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                calculated = (long) (Pow(initBase, (uint) lockDays) * Scale);
-                break;
+                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
             }
-
-            if (calculated == 0)
-            {
-                var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
-                var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-                calculated = (long) (Pow(maxInterestBase, (uint) lockDays) * Scale);
-            }
-
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+            var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
+            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
+            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
         }
 
         private static decimal Pow(decimal x, uint y)
