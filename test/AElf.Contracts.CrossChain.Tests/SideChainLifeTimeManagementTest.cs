@@ -540,7 +540,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task Disposal_SideChain()
+        public async Task DisposeSideChain()
         {
             long lockedTokenAmount = 10;
             await InitializeCrossChainContractAsync();
@@ -575,7 +575,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task Disposal_SideChain_NotFound()
+        public async Task DisposeSideChain_NotFound()
         {
             await InitializeCrossChainContractAsync();
             var chainId = ChainHelper.GetChainId(1);
@@ -592,9 +592,9 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task Disposal_SideChain_WrongStatus()
+        public async Task DisposeSideChain_Insufficient_Balance()
         {
-            long lockedTokenAmount = 10;
+            long lockedTokenAmount = 1;
             await ApproveBalanceAsync(lockedTokenAmount);
             var chainId = await InitAndCreateSideChainAsync();
             var proposalId1 = await DisposeSideChainProposalAsync(new SInt32Value
@@ -941,7 +941,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
         
         [Fact]
-        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance()
+        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
         {
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
@@ -1013,6 +1013,15 @@ namespace AElf.Contracts.CrossChain.Tests
                 var sideChainStatus =
                     await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = sideChainId});
                 sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                
+                var disposalProposalId = await DisposeSideChainProposalAsync(new SInt32Value
+                {
+                    Value = sideChainId
+                });
+                await ApproveWithMinersAsync(disposalProposalId);
+                var transactionResult = await ReleaseProposalAsync(disposalProposalId);
+                var status = transactionResult.Status;
+                status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
