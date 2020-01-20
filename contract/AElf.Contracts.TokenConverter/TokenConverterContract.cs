@@ -422,7 +422,11 @@ namespace AElf.Contracts.TokenConverter
         private void AssertControllerForManageConnector()
         {
             if (State.ControllerForManageConnector.Value == null)
+            {
                 AssertPerformedByManager();
+                return;
+            }
+                
             Assert(Context.Sender == State.ControllerForManageConnector.Value, "no permission");
         }
         #endregion

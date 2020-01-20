@@ -585,6 +585,37 @@ namespace AElf.Contracts.TokenConverter
             (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
             (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
         }
+
+        [Fact]
+        public async Task Authorization_Transfer_For_Set_Connector()
+        {
+            string token = "NETT";
+            await DeployContractsAsync();
+            await InitializeTokenConverterContract();
+            var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = token,
+                TokenName = "NETT name",
+                TotalSupply = 100_0000_0000,
+                Issuer = ManagerAddress,
+                IsBurnable = true,
+                LockWhiteList = { TokenConverterContractAddress}
+            })).TransactionResult;
+            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var authorizationTransfer =
+                (await AuthorizedTokenConvertStub.SetControllerForManageConnector.SendAsync(DefaultSender)).TransactionResult;
+            authorizationTransfer.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var setConnectResult = await DefaultStub.AddPairConnectors.SendAsync(new PairConnector
+            {
+                ResourceConnectorSymbol = "TRAFFIC",
+                ResourceWeight = "0.05",
+                NativeWeight = "0.05",
+                NativeVirtualBalance = 1_000_000_00000000,
+            });
+            setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
         
         #endregion
 
