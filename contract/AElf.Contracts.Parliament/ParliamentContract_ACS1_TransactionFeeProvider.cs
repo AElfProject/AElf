@@ -77,7 +77,7 @@ namespace AElf.Contracts.Parliament
 
         private void AssertValidToken(string symbol, long amount)
         {
-            AssertValidSymbolAndAmount(symbol, amount);
+            Assert(amount >= 0, "Invalid amount.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -87,18 +87,6 @@ namespace AElf.Contracts.Parliament
             var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
-        }
-
-        private void AssertValidSymbolAndAmount(string symbol, long amount)
-        {
-            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(amount > 0, "Invalid amount.");
-        }
-
-        private static bool IsValidSymbolChar(char character)
-        {
-            return character >= 'A' && character <= 'Z';
         }
 
         #endregion
