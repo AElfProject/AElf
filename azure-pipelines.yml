@@ -1,5 +1,7 @@
-jobs:
+variables:
+  CI_TEST: true
 
+jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
@@ -14,8 +16,9 @@ jobs:
   - task: BatchScript@1
     inputs:
       filename: 'scripts/download_binary.bat'
-      #  - script: dotnet tool install --global cake.tool --version 0.35.0
-  - script: PowerShell.exe -file build.ps1
+  - powershell: dotnet tool install --global cake.tool --version 0.35.0
+  - powershell: dotnet tool restore
+  - powershell: dotnet cake ./build.cake
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)

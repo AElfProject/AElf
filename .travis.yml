@@ -12,6 +12,7 @@ cache:
     - $HOME/.nuget/packages
 env:
   global:
+    - REAL_BRANCH=$(git ls-remote origin | sed -n "\|$TRAVIS_COMMIT\s\+refs/heads/|{s///p}")
     - CI_TEST=true
 before_install:
   - bash scripts/install_protobuf.sh

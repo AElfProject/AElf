@@ -20,5 +20,10 @@ install:
   - cmd: unzip -o c:\projects\aelf\scripts\contract_csharp_plugin-v1.0.2-win32.zip -d c:\projects\aelf\scripts\
   - cmd: dir c:\projects\aelf\scripts\
 
+environment: 
+  CI_TEST: true
+
 build_script:
-  - ps: .\build.ps1
+  - ps: dotnet tool install --global cake.tool --version 0.35.0
+  - ps: dotnet tool restore
+  - ps: dotnet cake ./build.cake
