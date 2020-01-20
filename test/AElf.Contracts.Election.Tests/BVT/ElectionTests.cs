@@ -446,7 +446,22 @@ namespace AElf.Contracts.Election
                 new Empty());
             defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
             defaultSetting.VoteWeightInterestInfos[0].Day.ShouldBe(50);
+        }
 
+        [Fact]
+        public async Task Authorization_Transfer_For_Set_Vote_Weight_Interest()
+        {
+            var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
+            var newController = BootMinerAddress;
+            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetControllerForManageVoteWeightInterest), newController);
+            await ElectionContractStub.SetVoteWeightInterest.SendAsync(
+                defaultSetting);
+            defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
         }
     }
 }

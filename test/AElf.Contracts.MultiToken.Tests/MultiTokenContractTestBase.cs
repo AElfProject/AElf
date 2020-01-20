@@ -133,12 +133,15 @@ namespace AElf.Contracts.MultiToken
 
         protected int MainChainId;
 
+        protected Address MainChainController;
+
         public MultiTokenContractCrossChainTestBase()
         {
             MainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
             MainChainTester =
                 new ContractTester<MultiTokenContractCrossChainTestAElfModule>(MainChainId,
                     SampleECKeyPairs.KeyPairs[0]);
+            MainChainController = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             AsyncHelper.RunSync(() =>
                 MainChainTester.InitialChainAsyncWithAuthAsync(MainChainTester.GetDefaultContractTypes(
                     MainChainTester.GetCallOwnerAddress(), out TotalSupply,
