@@ -174,7 +174,7 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 1;
+            long calculated = 0;
             var lockDays = lockTime.Div(DaySec);
 
             foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos
@@ -183,15 +183,15 @@ namespace AElf.Contracts.Election
                 if (lockDays > instMap.Day)
                     continue;
                 var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                calculated = calculated.Mul((long) (Pow(initBase, (uint) lockDays) * Scale));
+                calculated = (long) (Pow(initBase, (uint) lockDays) * Scale);
                 break;
             }
 
-            if (calculated == 1)
+            if (calculated == 0)
             {
                 var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
                 var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-                calculated = calculated.Mul((long) (Pow(maxInterestBase, (uint) lockDays) * Scale));
+                calculated = (long) (Pow(maxInterestBase, (uint) lockDays) * Scale);
             }
 
             return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
