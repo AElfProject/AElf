@@ -22,8 +22,9 @@ install:
 
 environment: 
   CI_TEST: true
-  
+
 build_script:
-  - ps: dotnet restore AElf.sln
-  - ps: dotnet build AElf.sln
-  - ps: dotnet test AElf.sln
+  - ps: dotnet tool install --global Cake.Tool
+  - ps: dotnet tool restore
+  - ps: dotnet cake ./build.cake --target=build
+  - ps: dotnet cake ./build.cake --target=test

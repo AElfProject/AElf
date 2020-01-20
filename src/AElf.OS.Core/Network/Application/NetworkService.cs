@@ -287,23 +287,24 @@ namespace AElf.OS.Network.Application
             _networkServer.CheckNtpDrift();
         }
 
-        public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
+        public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count,
             string peerPubkey)
         {
             IPeer peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            
+
             if (peer == null)
                 throw new InvalidOperationException($"Could not find peer {peerPubkey}.");
 
             var response = await Request(peer, p => p.GetBlocksAsync(previousBlock, count));
 
-            if (response != null && response.Success && response.Payload != null 
-                && (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
+            if (response.Success && response.Payload != null &&
+                (response.Payload.Count == 0 || response.Payload.Count != count))
+                Logger.LogWarning(
+                    $"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
 
             return response;
         }
-        
+
         public async Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peerPubkey)
         {
             IPeer peer = _peerPool.FindPeerByPublicKey(peerPubkey);
