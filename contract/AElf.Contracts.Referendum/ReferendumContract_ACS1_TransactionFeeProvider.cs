@@ -1,4 +1,5 @@
 using Acs1;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -24,6 +25,10 @@ namespace AElf.Contracts.Referendum
 
         public override Empty SetMethodFee(MethodFees input)
         {
+            foreach (var methodFee in input.Fees)
+            {
+                AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
+            }
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
@@ -72,6 +77,20 @@ namespace AElf.Contracts.Referendum
         {
             return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(ValidateOrganizationExist), authorityInfo.OwnerAddress).Value;
+        }
+
+        private void AssertValidToken(string symbol, long amount)
+        {
+            Assert(amount >= 0, "Invalid amount.");
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
         }
 
         #endregion
