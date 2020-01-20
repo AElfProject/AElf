@@ -5,34 +5,50 @@ using AElf.CSharp.Core;
 
 namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
-    public class AcsValidator : IValidator<System.Reflection.Assembly>
+    public class RequiredAcsDto
     {
-        private static readonly string[] RequiredAcs = 
-        {
-            "acs1",
-            "acs8"
-        };
+        public bool RequireAll;
+        public List<string> AcsList;
+    }
 
-        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly)
+    public class AcsValidator
+    {
+        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcsDto requiredAcs)
         {
+            if (requiredAcs.AcsList.Count == 0)
+                return Enumerable.Empty<ValidationResult>(); // No ACS required
+
             var acsBaseList = GetServiceDescriptorIdentities(GetServerServiceDefinition(assembly));
-            
-            // Contracts should have either acs1 or acs8 as a base
-            // so that one of the plugins will be active at execution
-            if (!acsBaseList.Any(a => RequiredAcs.Contains(a)))
-                return new List<ValidationResult>
-                {
-                    new AcsValidationResult("Contract should have at least ACS1 or ACS8 as base.")
-                };
+
+            if (requiredAcs.RequireAll)
+            {
+                // Contract should have all listed ACS as a base
+                if (requiredAcs.AcsList.Any(acs => !acsBaseList.Contains(acs)))
+                    return new List<ValidationResult>
+                    {
+                        new AcsValidationResult(
+                            $"Contract should have all {string.Join(", ", requiredAcs.AcsList)} as base.")
+                    };
+            }
+            else
+            {
+                // Contract should have at least one of the listed ACS in the list as a base
+                if (requiredAcs.AcsList.All(acs => !acsBaseList.Contains(acs)))
+                    return new List<ValidationResult>
+                    {
+                        new AcsValidationResult(
+                            $"Contract should have at least {string.Join(" or ", requiredAcs.AcsList)} as base.")
+                    };
+            }
 
             return Enumerable.Empty<ValidationResult>();
         }
 
-        private static ServerServiceDefinition  GetServerServiceDefinition(System.Reflection.Assembly assembly)
+        private static ServerServiceDefinition GetServerServiceDefinition(System.Reflection.Assembly assembly)
         {
             var methodInfo = assembly.FindContractContainer()
-                .GetMethod("BindService", new[] { assembly.FindContractBaseType() });
-            
+                .GetMethod("BindService", new[] {assembly.FindContractBaseType()});
+
             var serviceDefinition = methodInfo.Invoke(null, new[]
             {
                 Activator.CreateInstance(assembly.FindContractType())
@@ -49,7 +65,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
                 .Select(service => service.File.GetIndentity());
         }
     }
-    
+
     public class AcsValidationResult : ValidationResult
     {
         public AcsValidationResult(string message) : base(message)

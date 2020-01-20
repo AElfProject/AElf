@@ -41,14 +41,14 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForTreasury(),
                 GetGenesisSmartContractDtosForToken(),
                 GetGenesisSmartContractDtosForParliament(),
-                GetGenesisSmartContractDtosForReferendum(),
                 GetGenesisSmartContractDtosForAssociation(),
                 GetGenesisSmartContractDtosForCrossChain(),
                 GetGenesisSmartContractDtosForConfiguration(),
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
-                // Economic Contract should always be the last one to deploy and initialize.
-                GetGenesisSmartContractDtosForEconomic()
+                GetGenesisSmartContractDtosForTokenHolder(),
+                GetGenesisSmartContractDtosForEconomic(),
+                GetGenesisSmartContractDtosForReferendum()
             }.SelectMany(x => x);
         }
     }

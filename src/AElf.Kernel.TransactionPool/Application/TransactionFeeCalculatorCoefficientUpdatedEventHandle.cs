@@ -19,8 +19,8 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly ICalculateTxCostStrategy _txCostStrategy;
         private readonly ICalculateReadCostStrategy _readCostStrategy;
         private readonly ICalculateWriteCostStrategy _writeCostStrategy;
-        private readonly ICalculateNetCostStrategy _netCostStrategy;
-        private readonly ICalculateStoCostStrategy _stoCostStrategy;
+        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
+        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
 
         private LogEvent _interestedEvent;
 
@@ -47,15 +47,15 @@ namespace AElf.Kernel.TransactionPool.Application
             ICalculateTxCostStrategy txCostStrategy,
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
-            ICalculateStoCostStrategy stoCostStrategy,
-            ICalculateNetCostStrategy netCostStrategy)
+            ICalculateStorageCostStrategy storageCostStrategy,
+            ICalculateTrafficCostStrategy trafficCostStrategy)
         {
             _smartContractAddressService = smartContractAddressService;
             _txCostStrategy = txCostStrategy;
             _readCostStrategy = readCostStrategy;
             _writeCostStrategy = writeCostStrategy;
-            _stoCostStrategy = stoCostStrategy;
-            _netCostStrategy = netCostStrategy;
+            _storageCostStrategy = storageCostStrategy;
+            _trafficCostStrategy = trafficCostStrategy;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
 
@@ -75,8 +75,8 @@ namespace AElf.Kernel.TransactionPool.Application
                 FeeTypeEnum.Tx => (ICalculateCostStrategy) _txCostStrategy,
                 FeeTypeEnum.Read => _readCostStrategy,
                 FeeTypeEnum.Write => _writeCostStrategy,
-                FeeTypeEnum.Sto => _stoCostStrategy,
-                FeeTypeEnum.Net => _netCostStrategy,
+                FeeTypeEnum.Storage => _storageCostStrategy,
+                FeeTypeEnum.Traffic => _trafficCostStrategy,
                 _ => throw new ArgumentOutOfRangeException()
             };
             var calculateWayList = new List<ICalculateWay>();

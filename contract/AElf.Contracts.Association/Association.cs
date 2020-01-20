@@ -94,7 +94,18 @@ namespace AElf.Contracts.Association
 
             return organizationAddress;
         }
+        public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
+        {
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Unauthorized to create organization.");
+            var organizationAddress = CreateOrganization(input.OrganizationCreationInput);
+            if (!string.IsNullOrEmpty(input.OrganizationAddressFeedbackMethod))
+            {
+                Context.SendInline(Context.Sender, input.OrganizationAddressFeedbackMethod, organizationAddress);
+            }
 
+            return organizationAddress;
+        }
 
         public override Hash CreateProposal(CreateProposalInput input)
         {

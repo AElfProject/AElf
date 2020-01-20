@@ -2,14 +2,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
@@ -20,12 +23,15 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         private const int CpuAmount = 4;
         private const int RamAmount = 8;
         private const int DiskAmount = 512;
+        private const int NetAmount = 1000;
 
         private const long Rental = 100;
 
         private const long ResourceSupply = 1_0000_0000_00000000;
 
         private static Address Creator => Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+
+        private static List<string> Symbols => new List<string> {"CPU", "RAM", "DISK", "NET"};
 
         [Fact]
         public async Task ChargeRentalTest()
@@ -40,8 +46,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ramBalance.ShouldBe(ResourceSupply);
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(ResourceSupply);
+                var netBalance = await GetCreatorBalanceOf("NET");
+                netBalance.ShouldBe(ResourceSupply);
             }
 
+            await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
@@ -54,6 +63,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ramBalance.ShouldBe(ResourceSupply - RamAmount * Rental);
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental);
+                var netBalance = await GetCreatorBalanceOf("NET");
+                netBalance.ShouldBe(ResourceSupply - NetAmount * Rental);
             }
         }
 
@@ -70,8 +81,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ramBalance.ShouldBe(0);
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(0);
+                var netBalance = await GetCreatorBalanceOf("NET");
+                netBalance.ShouldBe(0);
             }
 
+            await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
@@ -80,6 +94,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental);
             owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental);
             owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental);
+            owningRental.ResourceAmount["NET"].ShouldBe(NetAmount * Rental);
         }
 
         [Fact]
@@ -88,7 +103,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await OwnResourceTest();
 
             // Charge
-            foreach (var symbol in new List<string> {"CPU", "RAM", "DISK"})
+            foreach (var symbol in Symbols)
             {
                 await TokenStub.Issue.SendAsync(new IssueInput
                 {
@@ -101,11 +116,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
 
             var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(0);
             owningRental.ResourceAmount["RAM"].ShouldBe(0);
             owningRental.ResourceAmount["DISK"].ShouldBe(0);
+            owningRental.ResourceAmount["NET"].ShouldBe(0);
 
             // Check balance before mining
             {
@@ -115,6 +132,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ramBalance.ShouldBe(ResourceSupply - RamAmount * Rental * 2);
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental * 2);
+                var netBalance = await GetCreatorBalanceOf("NET");
+                netBalance.ShouldBe(ResourceSupply - NetAmount * Rental * 2);
             }
         }
 
@@ -124,7 +143,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await OwnResourceTest();
 
             // Charge
-            foreach (var symbol in new List<string> {"CPU", "RAM", "DISK"})
+            foreach (var symbol in Symbols)
             {
                 await TokenStub.Issue.SendAsync(new IssueInput
                 {
@@ -137,11 +156,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
             await BlockMiningService.MineBlockToNextRoundAsync();
+            await BlockMiningService.MineBlockToNextRoundAsync();
 
             var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental * 2 - 1);
             owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental * 2 - 1);
             owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental * 2 - 1);
+            owningRental.ResourceAmount["NET"].ShouldBe(NetAmount * Rental * 2 - 1);
 
             // Check balance before mining
             {
@@ -150,6 +171,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var ramBalance = await GetCreatorBalanceOf("RAM");
                 ramBalance.ShouldBe(0);
                 var diskBalance = await GetCreatorBalanceOf("DISK");
+                diskBalance.ShouldBe(0);
+                var netBalance = await GetCreatorBalanceOf("NET");
                 diskBalance.ShouldBe(0);
             }
         }
@@ -177,7 +200,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {
                         {"CPU", CpuAmount},
                         {"RAM", RamAmount},
-                        {"DISK", DiskAmount}
+                        {"DISK", DiskAmount},
+                        {"NET", NetAmount}
                     }
                 }.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
@@ -192,20 +216,72 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
             });
-
-            await TokenStub.UpdateRental.SendAsync(new UpdateRentalInput
+            var updateRentalInput = new UpdateRentalInput
             {
                 Rental =
                 {
                     {"CPU", Rental},
                     {"RAM", Rental},
                     {"DISK", Rental},
+                    {"NET", Rental},
                 }
+            };
+            var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            var parliamentOrgAddress = defaultOrganizationAddress;
+            var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
+            var createOrganizationInput2 = new CreateOrganizationInput
+            {
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {twoProposers}
+                },
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {twoProposers}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = twoProposers.Count,
+                    MinimalVoteThreshold = twoProposers.Count,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                }
+            };
+            
+            var associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
+            var associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var toAssociationProposal = new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRental),
+                Params = updateRentalInput.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = associationAddress
+            };
+            var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            var associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
+            
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                Params = associationProposalId.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = parliamentOrgAddress
             });
+            await AssociationStub.Approve.SendAsync(associationProposalId);
+            await AssociationStub.Release.SendAsync(associationProposalId);
 
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
             await CreateToken("CPU", ResourceSupply, issueToken);
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);
+            await CreateToken("NET", ResourceSupply, issueToken);
+
         }
 
         private async Task CreateToken(string symbol, long supply, bool issueToken)

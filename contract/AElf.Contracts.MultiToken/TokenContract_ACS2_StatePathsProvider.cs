@@ -1,5 +1,4 @@
 ﻿using Acs2;
-using AElf.Sdk.CSharp;
 using System.Linq;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

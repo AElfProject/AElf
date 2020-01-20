@@ -52,8 +52,8 @@ enum ResourceType {
     UNDEFINED_RESOURCE_TYPE = 0;
     WRITE = 1;
     READ = 2;
-    NET = 3;
-    STO = 4;
+    TRAFFIC = 3;
+    STORAGE = 4;
 }
 
 message Converter {

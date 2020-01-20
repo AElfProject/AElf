@@ -1,5 +1,6 @@
 using System.Linq;
 using Acs3;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -35,7 +36,7 @@ namespace AElf.Contracts.Referendum
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
                 ToBeReleased = readyToRelease,
-                ApprovalCount = proposal.AbstentionCount,
+                ApprovalCount = proposal.ApprovalCount,
                 RejectionCount = proposal.RejectionCount,
                 AbstentionCount = proposal.AbstentionCount
             };
@@ -52,7 +53,7 @@ namespace AElf.Contracts.Referendum
         {
             return new BoolValue {Value = State.Organisations[input] != null};
         }
-        
+
         public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
         {
             var organization = State.Organisations[input.OrganizationAddress];
@@ -61,11 +62,14 @@ namespace AElf.Contracts.Referendum
                 Value = organization.ProposerWhiteList.Contains(input.Proposer)
             };
         }
-        
+
         #endregion
 
         public override Empty Initialize(Empty input)
         {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
+            AddTokenWhitList();
             return new Empty();
         }
 
@@ -74,7 +78,8 @@ namespace AElf.Contracts.Referendum
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
             var organizationAddress = organizationHashAddressPair.OrganizationAddress;
             var organizationHash = organizationHashAddressPair.OrganizationHash;
-            Assert(State.Organisations[organizationAddress] == null, "Organization already exists.");
+            if (State.Organisations[organizationAddress] != null)
+                return organizationAddress;
             var organization = new Organization
             {
                 ProposalReleaseThreshold = input.ProposalReleaseThreshold,
@@ -92,6 +97,19 @@ namespace AElf.Contracts.Referendum
             });
             return organizationAddress;
         }
+        
+        public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
+        {
+            Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
+                "Unauthorized to create organization.");
+            var organizationAddress = CreateOrganization(input.OrganizationCreationInput);
+            if (!string.IsNullOrEmpty(input.OrganizationAddressFeedbackMethod))
+            {
+                Context.SendInline(Context.Sender, input.OrganizationAddressFeedbackMethod, organizationAddress);
+            }
+
+            return organizationAddress;
+        }
 
         public override Hash CreateProposal(CreateProposalInput input)
         {
@@ -100,7 +118,7 @@ namespace AElf.Contracts.Referendum
 
             return proposalId;
         }
-        
+
         public override Hash CreateProposalBySystemContract(CreateProposalBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
@@ -166,7 +184,7 @@ namespace AElf.Contracts.Referendum
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }
-        
+
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
             var organization = State.Organisations[Context.Sender];

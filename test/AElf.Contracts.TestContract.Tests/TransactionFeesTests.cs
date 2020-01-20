@@ -52,8 +52,8 @@ namespace AElf.Contract.TestContract
             var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             
             acs8After["READ"].ShouldBeLessThan(acs8Before["READ"]);
-            acs8After["NET"].ShouldBeLessThan(acs8Before["NET"]);
-            acs8After["STO"].ShouldBeLessThan(acs8Before["STO"]);
+            acs8After["TRAFFIC"].ShouldBeLessThan(acs8Before["TRAFFIC"]);
+            acs8After["STORAGE"].ShouldBeLessThan(acs8Before["STORAGE"]);
         }
         
         [Fact]
@@ -78,12 +78,12 @@ namespace AElf.Contract.TestContract
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             
             acs8After["READ"].ShouldBe(acs8Before["READ"]);
-            acs8After["NET"].ShouldBe(acs8Before["NET"]);
-            acs8After["STO"].ShouldBe(acs8Before["STO"]);
+            acs8After["TRAFFIC"].ShouldBe(acs8Before["TRAFFIC"]);
+            acs8After["STORAGE"].ShouldBe(acs8Before["STORAGE"]);
             
             feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
-            feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
-            feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
+            feesAfter["TRAFFIC"].ShouldBeLessThan(feesBefore["TRAFFIC"]);
+            feesAfter["STORAGE"].ShouldBeLessThan(feesBefore["STORAGE"]);
         }
 
         [Fact]
@@ -104,8 +104,8 @@ namespace AElf.Contract.TestContract
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
-            feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
-            feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
+            feesAfter["TRAFFIC"].ShouldBeLessThan(feesBefore["TRAFFIC"]);
+            feesAfter["STORAGE"].ShouldBeLessThan(feesBefore["STORAGE"]);
         }
 
         [Fact]
@@ -130,8 +130,8 @@ namespace AElf.Contract.TestContract
             
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
-            feesAfter["NET"].ShouldBeLessThan(feesBefore["NET"]);
-            feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
+            feesAfter["TRAFFIC"].ShouldBeLessThan(feesBefore["TRAFFIC"]);
+            feesAfter["STORAGE"].ShouldBeLessThan(feesBefore["STORAGE"]);
         }
 
         private async Task PrepareResourcesToContract()

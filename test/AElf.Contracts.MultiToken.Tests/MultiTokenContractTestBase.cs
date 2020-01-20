@@ -10,6 +10,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
@@ -20,11 +21,13 @@ using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
@@ -55,9 +58,14 @@ namespace AElf.Contracts.MultiToken
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub;
         public byte[] TokenConverterContractCode => Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
+
+        public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
         protected Address TokenConverterContractAddress { get; set; }
 
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
+        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
+        
+        protected Address ReferendumContractAddress { get; set; }
 
         internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
 
@@ -91,14 +99,15 @@ namespace AElf.Contracts.MultiToken
         }
     }
 
-    public class
-        MultiTokenContractCrossChainTestBase : TestBase.ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
+    public class MultiTokenContractCrossChainTestBase : TestBase.ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
     {
         protected Address BasicContractZeroAddress;
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
         protected Address ParliamentAddress;
         protected Address ConsensusAddress;
+        protected Address ReferendumAddress;
+        protected Address AssociationAddress;
 
         protected Address SideBasicContractZeroAddress;
         protected Address SideCrossChainContractAddress;
@@ -120,6 +129,8 @@ namespace AElf.Contracts.MultiToken
         protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChainTester;
         protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChain2Tester;
 
+        protected readonly List<string> ResourceTokenSymbolList;
+
         protected int MainChainId;
 
         public MultiTokenContractCrossChainTestBase()
@@ -139,6 +150,10 @@ namespace AElf.Contracts.MultiToken
             TokenContractAddress = MainChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ParliamentAddress = MainChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
+            ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
+            AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
+            ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
+                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
         }
 
         protected void StartSideChain(int chainId, long height, string symbol)
@@ -261,7 +276,8 @@ namespace AElf.Contracts.MultiToken
                 SideChainTokenTotalSupply = 1_000_000_000,
                 SideChainTokenSymbol = symbol,
                 SideChainTokenName = "TEST",
-                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList}
+                SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
+                InitialResourceAmount = {ResourceTokenSymbolList.ToDictionary(resource => resource, resource => 1)}
             };
             return res;
         }

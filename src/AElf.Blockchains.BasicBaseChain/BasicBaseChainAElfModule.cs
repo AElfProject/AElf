@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
@@ -83,9 +84,9 @@ namespace AElf.Blockchains.BasicBaseChain
                     .GetConfiguration().GetValue("Economic:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
                     .GetConfiguration()
-                    .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STO,NET");
+                    .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
                 options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = context.Services
-                    .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK");
+                    .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
             Configure<ContractOptions>(configuration.GetSection("Contract"));
@@ -93,6 +94,7 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
                     "genesis");
+                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
 

@@ -3,12 +3,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Association;
+using AElf.Contracts.TestContract.CommitmentScheme;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -28,10 +32,18 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             GetTester<TokenContractContainer.TokenContractStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
+        
+        internal AssociationContractContainer.AssociationContractStub AssociationStub =>
+            GetTester<AssociationContractContainer.AssociationContractStub>(
+                ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                SampleECKeyPairs.KeyPairs[0]);
 
 
         internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
             new List<ParliamentContractContainer.ParliamentContractStub>();
+
+        internal readonly Hash CommitmentSchemeSmartContractAddressName =
+            Hash.FromString("AElf.Contracts.TestContract.CommitmentScheme");
 
         public AEDPoSExtensionDemoTestBase()
         {
@@ -39,7 +51,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 // You can deploy more system contracts by adding system contract name to current list.
                 TokenSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name
+                ParliamentSmartContractAddressNameProvider.Name,
+                ElectionSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name
             }));
         }
 

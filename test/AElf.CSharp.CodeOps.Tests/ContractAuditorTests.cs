@@ -28,15 +28,21 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditorFixture : IDisposable
     {
         private ContractAuditor _auditor;
+        private readonly RequiredAcsDto _requiredAcs;
 
         public ContractAuditorFixture()
         {
             _auditor = new ContractAuditor(null, null);
+            _requiredAcs = new RequiredAcsDto
+            {
+                AcsList = new [] {"acs1", "acs8"}.ToList(), 
+                RequireAll = false
+            };
         }
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, false);
+            _auditor.Audit(code, _requiredAcs, false);
         }
 
         public void Dispose()
@@ -177,6 +183,10 @@ namespace AElf.CSharp.CodeOps
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
+
+            var getHashCodeFindings = findings.Where(f => f is GetHashCodeValidationResult).ToList();
+            LookFor(getHashCodeFindings, "TestGetHashCodeCall", f => f != null).ShouldNotBeNull();
+            LookFor(getHashCodeFindings, "GetHashCode", f => f != null).ShouldNotBeNull();
         }
 
         [Fact]
