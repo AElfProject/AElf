@@ -298,7 +298,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             await AssociationStub.Approve.SendAsync(associationProposalId);
             await AssociationStub.Release.SendAsync(associationProposalId);
-
+            var resourceUsage = await TokenStub.GetResourceUsage.CallAsync(new Empty());
+            resourceUsage.Value["CPU"].ShouldBe(101);
         }
         private async Task InitialTokenContract(bool issueToken = true)
         {
