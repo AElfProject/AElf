@@ -53,7 +53,6 @@ Task("build")
 
 Task("test")
     .Description("operation test")
-    .IsDependentOn("build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -77,6 +76,6 @@ Task("test")
 
 Task("default")
     .Description("default run test(-target test)")
-    .IsDependentOn("test");
+    .IsDependentOn("build");
 
 RunTarget(target);

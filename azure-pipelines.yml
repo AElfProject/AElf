@@ -19,6 +19,7 @@ jobs:
   - powershell: dotnet tool install --global cake.tool --version 0.35.0
   - powershell: dotnet tool restore
   - powershell: dotnet cake ./build.cake
+  - powershell: dotnet cake ./build.cake --target=test
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
@@ -37,6 +38,7 @@ jobs:
   - script: dotnet tool restore
   - script: dotnet tool install --global coverlet.console
   - script: dotnet cake ./build.cake 
+  - script: dotnet cake ./build.cake --target=test
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
@@ -55,3 +57,4 @@ jobs:
   - script: dotnet tool restore
   - script: dotnet tool install --global coverlet.console
   - script: dotnet cake ./build.cake
+  - script: dotnet cake ./build.cake --target=test
