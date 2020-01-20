@@ -56,9 +56,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     return consensusCommand;
                 }
-            }
 
-            return ConsensusCommandProvider.InvalidConsensusCommand;
+                default:
+                    return ConsensusCommandProvider.InvalidConsensusCommand;
+            }
         }
 
         /// <summary>

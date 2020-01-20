@@ -19,17 +19,17 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Int32_OverFlow_UpperLimit_Test()
         {
-            var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
+            await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
                 {
                     Int32Value = Int32.MaxValue
-                })).TransactionResult;
+                });
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt32State.CallAsync(
                 new Empty())).Int32Value;
             resultValue.ShouldBe(Int32.MaxValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
+            var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
                 new Int32Input
                 {
                     Int32Value = 100
@@ -42,21 +42,21 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int32Value;
             resultValue1.ShouldBe(Int32.MaxValue);
         }
-        
+
         [Fact]
         public async Task Int32_OverFlow_LowerLimit_Test()
         {
-            var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
+            await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
                 {
                     Int32Value = int.MinValue
-                })).TransactionResult;
+                });
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt32State.CallAsync(
                 new Empty())).Int32Value;
             resultValue.ShouldBe(int.MinValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
+            var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendWithExceptionAsync(
                 new Int32Input
                 {
                     Int32Value = -100
@@ -73,17 +73,17 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Int64_OverFlow_UpperLimit_Test()
         {
-            var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
+            await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input()
                 {
                     Int64Value = Int64.MaxValue
-                })).TransactionResult;
+                });
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(
                 new Empty())).Int64Value;
             resultValue.ShouldBe(Int64.MaxValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
+            var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
                 new Int64Input
                 {
                     Int64Value = 100
@@ -100,17 +100,17 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Int64_OverFlow_LowerLimit_Test()
         {
-            var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
+            await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input()
                 {
                     Int64Value = long.MinValue
-                })).TransactionResult;
+                });
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(
                 new Empty())).Int64Value;
             resultValue.ShouldBe(long.MinValue);
 
-            transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
+            var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendWithExceptionAsync(
                 new Int64Input
                 {
                     Int64Value = -100
