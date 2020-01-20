@@ -1,5 +1,114 @@
 # Parliament Contract
 
+## **CreateOrganization**
+
+```Protobuf
+rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
+
+message CreateOrganizationInput {
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    bool proposer_authority_required = 2;
+    bool parliament_member_proposing_allowed = 3;
+}
+```
+
+**CreateOrganizationInput**:
+  - **ProposalReleaseThreshold**:
+    - **minimal approval threshold**: the value for the minimum approval threshold.
+    - **maximal rejection threshold**: the value for the maximal rejection threshold.
+    - **maximal abstention threshold**: the value for the maximal abstention threshold.
+    - **minimal vote threshold**: the value for the minimal vote threshold.
+- **proposer authority required**: setting this to true can allow anyone to create proposals.
+- **parliament member proposing allowed**: always true.
+
+# View methods
+
+## **GetOrganization**
+
+```Protobuf
+rpc GetOrganization (aelf.Address) returns (Organization) { }
+
+message Organization {
+    bool proposer_authority_required = 1;
+    aelf.Address organization_address = 2;
+    aelf.Hash organization_hash = 3;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
+    bool parliament_member_proposing_allowed = 5;
+}
+```
+
+Returns the organization that has the provided address.
+
+**Organization**:
+- **proposer authority required**: indicates if proposals need authority to be created.
+- **organization_address**: organization address.
+- **organization hash**: organization ID.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **parliament member proposing allowed**
+
+## **GetDefaultOrganizationAddress**
+
+```Protobuf
+rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) { }
+```
+
+Returns the address of the default organization.
+
+## **ValidateAddressIsParliamentMember**
+
+```Protobuf
+rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue) { }
+```
+
+Validates if the provided address is a parliament member.
+
+## **GetProposerWhiteListContext**
+
+```Protobuf
+rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput) { }
+
+message GetProposerWhiteListContextOutput{
+    repeated aelf.Address proposers = 1;
+}
+```
+
+Returns a list of whitelisted proposers.
+
+- **GetProposerWhiteListContextOutput**:
+  - **proposers**: the whitelisted proposers.
+
+## **GetNotVotedPendingProposals**
+
+```Protobuf
+rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList) { }
+message ProposalIdList{
+    repeated aelf.Hash proposal_ids = 1;
+}
+```
+
+Get non voted pending proposals.
+
+- **ProposalIdList**:
+  - **proposal ids**: list of proposals.
+
+## **GetNotVotedProposals**
+
+```Protobuf
+rpc GetNotVotedProposals(ProposalIdList) returns (ProposalIdList) { }
+message ProposalIdList{
+    repeated aelf.Hash proposal_ids = 1;
+}
+```
+
+Get non voted proposals.
+
+- **ProposalIdList**:
+  - **proposal ids**: list of proposals.
+
 ## **ACS3 specific methods**
 
 ## **CreateProposal**
@@ -74,7 +183,7 @@ This method changes the thresholds associated with proposals. All fields will be
 **ProposalReleaseThreshold**:
 - **minimal approval threshold**: the new value for the minimum approval threshold.
 - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-- **maximal abstention threshold**: he new value for the maximal abstention threshold.
+- **maximal abstention threshold**: the new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
 ## **ChangeOrganizationProposerWhiteList**

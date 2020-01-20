@@ -6,13 +6,16 @@
 rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
 
 message CreateOrganizationInput {
-    string token_symbol = 1;
+    OrganizationMemberList organization_member_list = 1;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
     acs3.ProposerWhiteList proposer_white_list = 3;
 }
+message OrganizationMemberList {
+    repeated aelf.Address organization_members = 1;
+}
 ```
 - **CreateOrganizationInput**:
-  - **token symbol**: not used in this contract.
+  - **organizer member list**: initial members.
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the new value for the minimum approval threshold.
     - **maximal rejection threshold**: the new value for the maximal rejection threshold.
@@ -62,7 +65,7 @@ Returns the organization with the specified address.
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the new value for the minimum approval threshold.
     - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: he new value for the maximal abstention threshold.
+    - **maximal abstention threshold**: the new value for the maximal abstention threshold.
     - **minimal vote threshold**: the new value for the minimal vote threshold.
   - **ProposerWhiteList**:
     - **proposers**: the new value for the list.
@@ -188,7 +191,7 @@ Used by system contracts to create proposals.
 ## **ClearProposal**
 
 ```Protobuf
-    rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty) { }
+rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty) { }
 ```
 
 Removes the specified proposal.
@@ -196,7 +199,7 @@ Removes the specified proposal.
 ## **ValidateOrganizationExist**
 
 ```Protobuf
-    rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue) { }
+rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue) { }
 ```
 
 Checks the existence of an organization.

@@ -7,7 +7,7 @@
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the new value for the minimum approval threshold.
     - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: he new value for the maximal abstention threshold.
+    - **maximal abstention threshold**: the new value for the maximal abstention threshold.
     - **minimal vote threshold**: the new value for the minimal vote threshold.
   - **ProposerWhiteList**:
     - **proposers**: the new value for the list.
