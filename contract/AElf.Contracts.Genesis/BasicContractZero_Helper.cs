@@ -112,7 +112,7 @@ namespace AElf.Contracts.Genesis
                 }).Value;
         }
 
-        private Address DecideNormalContractAuthor(Address proposer, Address sender)
+        private Address DecideNonSystemContractAuthor(Address proposer, Address sender)
         {
             if (!State.ContractDeploymentAuthorityRequired.Value)
                 return sender;

@@ -355,7 +355,7 @@ namespace AElf.Contracts.Genesis
 
             var address =
                 PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                    DecideNormalContractAuthor(contractProposingInput?.Proposer, Context.Sender));
+                    DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
             return address;
         }
 

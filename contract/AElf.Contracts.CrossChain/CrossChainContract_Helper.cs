@@ -77,13 +77,14 @@ namespace AElf.Contracts.CrossChain
             // unlock token
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
-            if (balance != 0)
-                Transfer(new TransferInput
-                {
-                    To = sideChainInfo.Proposer,
-                    Amount = balance,
-                    Symbol = Context.Variables.NativeSymbol
-                });
+            if (balance <= 0) 
+                return;
+            Transfer(new TransferInput
+            {
+                To = sideChainInfo.Proposer,
+                Amount = balance,
+                Symbol = Context.Variables.NativeSymbol
+            });
             State.IndexingBalance[chainId] = 0;
         }
 
