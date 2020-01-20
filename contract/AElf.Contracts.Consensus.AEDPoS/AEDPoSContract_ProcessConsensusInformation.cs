@@ -116,7 +116,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
+            AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
@@ -159,7 +159,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.FirstRoundNumberOfEachTerm[nextRound.TermNumber] = nextRound.RoundNumber;
 
             // Update rounds information of next two rounds.
-            Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
+            AddRoundInformation(nextRound);
 
             if (!TryToGetPreviousRoundInformation(out var previousRound))
             {
