@@ -52,16 +52,34 @@ namespace AElf.Contracts.MultiToken
                 nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee), newSymbolList);
             symbolSetRet.Status.ShouldBe(TransactionResultStatus.Failed);
             
+            
+            var newParliament = new Parliament.CreateOrganizationInput
+            {
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var parliamentCreateRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization), newParliament);
+            var newParliamentAddress = new Address();
+            newParliamentAddress.MergeFrom(parliamentCreateRet.ReturnValue);
+            
             var parliamentOrgRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress), new Empty());
             parliamentOrgRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var defaultParliamentAddress = new Address();
             defaultParliamentAddress.MergeFrom(parliamentOrgRet.ReturnValue);
-
+            
             var createProposalInput = new CreateProposalInput
             {
                 ToAddress = TokenContractAddress,
-                Params = MainChainController.ToByteString(),
+                Params = newParliamentAddress.ToByteString(),
                 OrganizationAddress = defaultParliamentAddress,
                 ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSymbolsToPayTXSizeFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -75,9 +93,30 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
             await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
 
+            var updateInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newSymbolList.ToByteString(),
+                OrganizationAddress = newParliamentAddress,
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var updateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal), updateInput);
+            var updateProposalId = new Hash();
+            updateProposalId.MergeFrom(updateProposal.ReturnValue);
+            
+            await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), updateProposalId);
+            await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), updateProposalId);
+            
             symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee), newSymbolList);
+                nameof(TokenContractContainer.TokenContractStub.GetSymbolsToPayTXSizeFee), newSymbolList);
             symbolSetRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var updatedSymbolList = new SymbolListToPayTXSizeFee();
+            updatedSymbolList.MergeFrom(symbolSetRet.ReturnValue);
+            updatedSymbolList.SymbolsToPayTxSizeFee.Count.ShouldBe(1);
         }
 
         [Fact]
