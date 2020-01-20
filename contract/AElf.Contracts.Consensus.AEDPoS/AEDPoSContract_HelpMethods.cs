@@ -96,13 +96,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.CurrentRoundNumber.Value = roundNumber;
             return true;
         }
-
+        
         /// <summary>
         /// Will force to generate a `Change` to tx executing result.
         /// </summary>
         /// <param name="round"></param>
-        /// <returns></returns>
-        private bool TryToAddRoundInformation(Round round)
+        private void AddRoundInformation(Round round)
         {
             State.Rounds.Set(round.RoundNumber, round);
 
@@ -127,8 +126,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.Rounds.Remove(roundNumberToRemove);
             }
-
-            return true;
         }
 
         private bool TryToUpdateRoundInformation(Round round)

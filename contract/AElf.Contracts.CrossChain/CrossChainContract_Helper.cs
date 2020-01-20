@@ -93,6 +93,7 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(
                 sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
@@ -680,7 +681,7 @@ namespace AElf.Contracts.CrossChain
                 var chainId = group.Key;
 
                 var sideChainInfo = State.SideChainInfo[chainId];
-                if (sideChainInfo == null || sideChainInfo.SideChainStatus == SideChainStatus.Terminated)
+                if (sideChainInfo == null)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 long arrearsAmount = 0;

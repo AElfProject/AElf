@@ -2,7 +2,7 @@
 
 The Election contract is essentially used for voting for Block Producers.
 
-## **AnnounceElection**:
+## **AnnounceElection**
 
 To be a block producer, a user should first register to be a candidate and lock some token as a deposit. If the data center is not full, the user will be added in automatically and get one weight (10 weight limited) for sharing bonus in the future.
 

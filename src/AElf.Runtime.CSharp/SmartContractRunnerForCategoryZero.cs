@@ -28,9 +28,7 @@ namespace AElf.Runtime.CSharp
 
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins = null,
-            IEnumerable<string> blackList = null,
-            IEnumerable<string> whiteList = null)
+            IServiceContainer<IExecutivePlugin> executivePlugins = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);

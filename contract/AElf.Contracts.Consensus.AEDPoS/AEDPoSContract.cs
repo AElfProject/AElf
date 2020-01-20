@@ -76,10 +76,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MiningInterval.Value = input.GetMiningInterval();
             SetMinerList(input.GetMinerList(), 1);
 
-            if (!TryToAddRoundInformation(input))
-            {
-                Assert(false, "Failed to add round information.");
-            }
+            AddRoundInformation(input);
 
             Context.LogDebug(() =>
                 $"Initial Miners: {input.RealTimeMinersInformation.Keys.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
