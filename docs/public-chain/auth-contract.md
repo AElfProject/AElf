@@ -75,7 +75,7 @@ message ProposalInfo {
 }
 ```
 
-In **Association** (implemented by AssociationAuthContract) **Organizations** have **reviewers** that each have an associated **Weight**. Only reviewers of the **Organization** can review its proposal and each reviewer can only review a proposal once. Once the proposal reached the Organizations' threshold only the Proposer can release it.
+In **Association** (implemented by AssociationAuthContract) **Organizations** have **members**. Only members of the **Organization** can review its proposal and each reviewer can only review a proposal once. Once the proposal reached the Organizations' threshold only the Proposer can release it.
 
 #### Referendum
 
@@ -96,7 +96,7 @@ message Organization {
 }
 ```
 
-The **referendum** contract is essentially for **voting** by **locking** tokens (which token is defined by the **Organization**). Thus when approving, the token contract is called to lock a certain amount of tokens. The amount of tokens locked will be the amount specified in the **ApproveInput** quantity field. Tokens can after be reclaimed when the transaction is released or expired. This contract will also only allow one vote per proposal.
+The **referendum** contract is essentially for **voting** by **locking** tokens (which token is defined by the **Organization**). Thus when approving, the token contract is called to lock a certain amount of tokens. The amount of tokens locked is determined by existing allowance to the Referendum contract. Tokens can after be reclaimed when the transaction is released or expired.
 
 #### Parliament
 
@@ -124,6 +124,6 @@ message ProposalInfo {
 }
 ```
 
-The **Parliament** has the same behavior as the Association, but instead of having Reviewers approval is done by current producers or whitelisted addresses.
+The **Parliament** has the same behavior as the Association.
 
 
