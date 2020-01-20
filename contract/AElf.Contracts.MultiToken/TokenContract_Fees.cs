@@ -699,12 +699,6 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertControllerForSideChainRental()
         {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value);
             Assert(controllerForRental == Context.Sender, "no permission");
@@ -738,6 +732,11 @@ namespace AElf.Contracts.MultiToken
         private Address CalculateSideChainRentalController(
             CreateOrganizationInput input)
         {
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }
