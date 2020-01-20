@@ -59,13 +59,14 @@ namespace AElf.Contracts.Profit
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
-            if (profitDetails == null || profitItem == null)
+            if (profitDetails == null)
             {
                 return new SInt64Value {Value = 0};
             }
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
+            // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
                 d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
             ).ToList();

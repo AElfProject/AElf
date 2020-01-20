@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Application
                     TransactionTrace trace;
                     if (cancellationToken.IsCancellationRequested)
                         break;
-                    
+
                     var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
                         Depth = 0,
@@ -76,7 +76,7 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
-                        
+
                         trace = await transactionExecutionTask.WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
@@ -86,7 +86,7 @@ namespace AElf.Kernel.SmartContract.Application
                             break;
                         continue;
                     }
-                    
+
                     if (trace == null)
                         break;
 
@@ -102,16 +102,18 @@ namespace AElf.Kernel.SmartContract.Application
                         {
                             break;
                         }
-                        
+
                         var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
                         foreach (var preTrace in trace.PreTraces)
                         {
-                            if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                            if (preTrace.IsSuccessful())
+                                transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
                         }
-                    
+
                         foreach (var postTrace in trace.PostTraces)
                         {
-                            if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+                            if (postTrace.IsSuccessful())
+                                transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
                         }
 
                         groupStateCache.Update(transactionExecutingStateSets);
@@ -129,12 +131,9 @@ namespace AElf.Kernel.SmartContract.Application
 
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
-                    if (result != null)
-                    {
-                        result.TransactionFee = trace.TransactionFee;
-                        result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
-                        transactionResults.Add(result);
-                    }
+                    result.TransactionFee = trace.TransactionFee;
+                    result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
+                    transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);

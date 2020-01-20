@@ -79,9 +79,13 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
+    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns  (google.protobuf.Empty) {
+    }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
-
+    
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -128,6 +132,16 @@ service TokenContract {
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
+    rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
+        option (aelf.is_view) = true;
+    }
+    rpc GetUserFeeController(google.protobuf.Empty) returns (ControllerForUserFee){
+        option (aelf.is_view) = true;
+    }
+    rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
+        option (aelf.is_view) = true;
+    }
+
 }
 
 message TokenInfo {
@@ -232,6 +246,7 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
 message TransactionFeeBill {
@@ -467,6 +482,27 @@ message ResourceUsage {
     map<string, sint32> value = 1;
 }
 
+message CalculateFeeCoefficientsOfType{
+    repeated CalculateFeeCoefficient coefficients= 1;
+}
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, sint32> coefficient_dic = 4;
+}
+
+message SymbolToPayTXSizeFee{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}
+
+message SymbolListToPayTXSizeFee{
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
+}
+
 // Events
 
 message Transferred {
@@ -512,17 +548,6 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message CalculateFeeCoefficientsOfType{
-    repeated CalculateFeeCoefficient coefficients= 1;
-}
-
-message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
-}
-
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
     CalculateFeeCoefficientsOfType all_coefficient = 1;
@@ -539,3 +564,21 @@ message RentalAccountBalanceInsufficient {
     string symbol = 1;
     sint64 amount = 2;
 }
+
+message ExtraTokenListModified {
+    option (aelf.is_event) = true;
+    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
+}
+
+message ControllerForUserFee{
+    aelf.Address root_controller = 1;
+    aelf.Address parliament_controller = 2;
+    aelf.Address referendum_controller = 3;
+}
+
+message ControllerForDeveloperFee{
+    aelf.Address root_controller = 1;
+    aelf.Address parliament_controller = 2;
+    aelf.Address developer_controller = 3;
+}
+

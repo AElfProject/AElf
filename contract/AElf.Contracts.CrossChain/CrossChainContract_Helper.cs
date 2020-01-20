@@ -483,7 +483,7 @@ namespace AElf.Contracts.CrossChain
         private void CreateInitialOrganizationForInitialControllerAddress()
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new Parliament.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Parliament.CreateOrganizationInput
                 {
@@ -678,7 +678,7 @@ namespace AElf.Contracts.CrossChain
                 var chainId = group.Key;
 
                 var sideChainInfo = State.SideChainInfo[chainId];
-                if (sideChainInfo == null || sideChainInfo.SideChainStatus == SideChainStatus.Terminated)
+                if (sideChainInfo == null)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 long arrearsAmount = 0;

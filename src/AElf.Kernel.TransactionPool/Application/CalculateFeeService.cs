@@ -160,8 +160,9 @@ namespace AElf.Kernel.TransactionPool.Application
                     continue;
                 }
 
+                var funDicToLowerKey = func.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
                 calWayDic[func.PieceKey] = newCalculateWay;
-                calWayDic[func.PieceKey].InitParameter(func.CoefficientDic);
+                calWayDic[func.PieceKey].InitParameter(funDicToLowerKey);
             }
             _cacheCacheProvider.SetPieceWiseFunctionToNormalCache(calWayDic);
             return calWayDic;

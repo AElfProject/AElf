@@ -175,7 +175,7 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.HexStringToByteArray(input.Transaction));
             transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
-            var txIds = await PublishTransactionsAsync(new[] { transaction.ToByteArray().ToHex() });
+            var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
 
             var output = new SendRawTransactionOutput
             {
@@ -187,6 +187,11 @@ namespace AElf.WebApp.Application.Chain
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            if (contractMethodDescriptor == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                    Error.NoMatchMethodInContractAddress.ToString());
+            }
 
             var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
             if (!IsValidMessage(parameters))

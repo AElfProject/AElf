@@ -42,12 +42,9 @@ namespace AElf.CSharp.CodeOps
             findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
 
             // Run method validators
-            foreach (var typ in modDef.Types)
+            foreach (var type in modDef.Types)
             {
-                foreach (var method in typ.Methods)
-                {
-                    findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
-                }
+                findings.AddRange(ValidateMethodsInType(policy, type));
             }
             
             // Perform ACS validation
@@ -59,6 +56,23 @@ namespace AElf.CSharp.CodeOps
                     $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
                     string.Join("\n", findings), findings);
             }
+        }
+
+        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
+        {
+            var findings = new List<ValidationResult>();
+            
+            foreach (var method in type.Methods)
+            {
+                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
+            }
+            
+            foreach (var nestedType in type.NestedTypes)
+            {
+                findings.AddRange(ValidateMethodsInType(policy, nestedType));
+            }
+
+            return findings;
         }
     }
 }
