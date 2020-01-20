@@ -210,5 +210,22 @@ namespace AElf.Contracts.MultiToken
             };
         }
         #endregion
+        
+        #region controller management
+
+        private Address GetControllerForSymbolToPayForTxFee()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            if (State.SymbolToPayTxFeeController.Value == null)
+                State.SymbolToPayTxFeeController.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            return State.SymbolToPayTxFeeController.Value;
+        }
+        #endregion
     }
 }

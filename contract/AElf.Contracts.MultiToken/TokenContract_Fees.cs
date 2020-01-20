@@ -222,7 +222,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
         {
-            AssertIsAuthorized();
+            var controller = GetControllerForSymbolToPayForTxFee();
+            Assert(Context.Sender == controller, "no permission");
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
@@ -248,6 +249,16 @@ namespace AElf.Contracts.MultiToken
             {
                 SymbolListToPayTxSizeFee = input
             });
+            return new Empty();
+        }
+        
+                
+        public override Empty ChangeControllerForSymbolsToPayTXSizeFee(Address input)
+        {
+            var controller = GetControllerForSymbolToPayForTxFee();
+            Assert(Context.Sender == controller, "no permission");
+            Assert(input != null, "invalid input");
+            State.SymbolToPayTxFeeController.Value = input;
             return new Empty();
         }
 
