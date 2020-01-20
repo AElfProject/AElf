@@ -24,6 +24,7 @@ environment:
   CI_TEST: true
 
 build_script:
-  - ps: dotnet tool install --global cake.tool --version 0.35.0
+  - ps: dotnet tool install --global Cake.Tool
   - ps: dotnet tool restore
-  - ps: dotnet cake ./build.cake
+  - ps: dotnet cake ./build.cake --target=build
+  - ps: dotnet cake ./build.cake --target=test
