@@ -53,12 +53,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            RequiredMethodFeeControllerSet();
-            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
             foreach (var symbolToAmount in input.Fees)
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
+            RequiredMethodFeeControllerSet();
+            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
 
             State.MethodFees[input.MethodName] = input;
             return new Empty();

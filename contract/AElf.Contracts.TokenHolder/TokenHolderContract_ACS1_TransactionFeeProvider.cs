@@ -1,5 +1,7 @@
+using System.Linq;
 using Acs1;
 using Acs3;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -25,13 +27,13 @@ namespace AElf.Contracts.TokenHolder
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentContract.Value == null)
+            foreach (var methodFee in input.Fees)
             {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+            RequiredMethodFeeControllerSet();
 
-            Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()));
+            Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();
@@ -78,6 +80,32 @@ namespace AElf.Contracts.TokenHolder
             return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
                 authorityInfo.OwnerAddress).Value;
+        }
+
+        private void AssertValidToken(string symbol, long amount)
+        {
+            AssertValidSymbolAndAmount(symbol, amount);
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
+        }
+
+        private void AssertValidSymbolAndAmount(string symbol, long amount)
+        {
+            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(amount > 0, "Invalid amount.");
+        }
+
+        private static bool IsValidSymbolChar(char character)
+        {
+            return character >= 'A' && character <= 'Z';
         }
 
         #endregion

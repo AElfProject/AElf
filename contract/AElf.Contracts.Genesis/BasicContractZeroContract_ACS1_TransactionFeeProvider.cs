@@ -1,4 +1,7 @@
+using System.Linq;
 using Acs1;
+using AElf.Contracts.MultiToken;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis
@@ -22,6 +25,10 @@ namespace AElf.Contracts.Genesis
 
         public override Empty SetMethodFee(MethodFees input)
         {
+            foreach (var methodFee in input.Fees)
+            {
+                AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
+            }
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
@@ -55,6 +62,32 @@ namespace AElf.Contracts.Genesis
             };
 
             State.MethodFeeController.Value = defaultAuthority;
+        }
+
+        private void AssertValidToken(string symbol, long amount)
+        {
+            AssertValidSymbolAndAmount(symbol, amount);
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
+        }
+
+        private void AssertValidSymbolAndAmount(string symbol, long amount)
+        {
+            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(amount > 0, "Invalid amount.");
+        }
+
+        private static bool IsValidSymbolChar(char character)
+        {
+            return character >= 'A' && character <= 'Z';
         }
 
         #endregion
