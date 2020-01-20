@@ -17,6 +17,7 @@ namespace AElf.Contracts.Treasury
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 

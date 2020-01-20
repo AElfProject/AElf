@@ -41,6 +41,7 @@ namespace AElf.Contracts.Vote
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
         {
+            RequiredMethodFeeControllerSet();
             return State.MethodFeeController.Value;
         }
 
