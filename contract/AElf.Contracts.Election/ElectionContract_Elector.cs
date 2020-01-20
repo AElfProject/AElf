@@ -341,6 +341,23 @@ namespace AElf.Contracts.Election
 
         #endregion
 
+        public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
+        {
+            Assert(input != null, "invalid input");
+            foreach (var info in input.VoteWeightInterestInfos)
+            {
+                Assert(info.Capital > 0, "invalid input");
+                Assert(info.Day > 0, "invalid input");
+                Assert(info.Interest > 0, "invalid input");
+            }
+            Assert(input.VoteWeightInterestInfos.Distinct().Count() == input.VoteWeightInterestInfos.Count, "repeat day input");
+            var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
+            input.VoteWeightInterestInfos.Clear();
+            input.VoteWeightInterestInfos.AddRange(orderList);
+            State.VoteWeightInterestList.Value = input;
+            return new Empty();
+        }
+
         private long GetElfAmount(long votingAmount)
         {
             var elfAmount = votingAmount;
