@@ -79,7 +79,11 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
+    rpc SetControllerForSideChainParliament (aelf.Address) returns (google.protobuf.Empty) {
+    }
     rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc SetControllerForSymbolsToPayTXSizeFee(aelf.Address) returns (google.protobuf.Empty){
     }
     rpc InitializeAuthorizedController(google.protobuf.Empty) returns  (google.protobuf.Empty) {
     }

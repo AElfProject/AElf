@@ -222,7 +222,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
         {
-            AssertIsAuthorized();
+            AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
@@ -243,7 +243,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
-            State.SymbolListToPayTXSizeFee.Value = input;
+            State.SymbolListToPayTxSizeFee.Value = input;
             Context.Fire(new ExtraTokenListModified
             {
                 SymbolListToPayTxSizeFee = input
@@ -556,15 +556,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRental(UpdateRentalInput input)
         {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
-            Assert(controllerForRental == Context.Sender, "no permission");
+            AssertControllerForSideChainRental();
             foreach (var pair in input.Rental)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -577,15 +569,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateRentedResources(UpdateRentedResourcesInput input)
         {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetControllerForRental(State.SideChainCreator.Value);
-            Assert(controllerForRental == Context.Sender, "no permission");
+            AssertControllerForSideChainRental();
             foreach (var pair in input.ResourceAmount)
             {
                 Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
@@ -713,9 +697,15 @@ namespace AElf.Contracts.MultiToken
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
         }
 
-        private Address GetControllerForRental(Address sideChainCreator)
+        private void AssertControllerForSideChainRental()
         {
-            var parliamentAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value);
+            Assert(controllerForRental == Context.Sender, "no permission");
+        }
+        private Address GetRootControllerForRental(Address sideChainCreator)
+        {
+            var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};
             var createOrganizationInput = new CreateOrganizationInput
             {
@@ -742,6 +732,11 @@ namespace AElf.Contracts.MultiToken
         private Address CalculateSideChainRentalController(
             CreateOrganizationInput input)
         {
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }
