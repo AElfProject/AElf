@@ -170,10 +170,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Symbol = symbol
                 }).Balance;
                 var amount = balance.Div(minerList.Count);
+                Context.LogDebug(() => $"Consensus Contract {symbol} balance: {balance}. Every miner can get {amount}");
                 if (amount <= 0) break;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
+                    Context.LogDebug(() => $"Will send {amount} {symbol}s to {pubkey}");
                     State.TokenContract.Transfer.Send(new TransferInput
                     {
                         To = address,
