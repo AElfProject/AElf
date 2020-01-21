@@ -1,3 +1,4 @@
+using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Sdk.CSharp;
@@ -216,12 +217,12 @@ namespace AElf.Contracts.CrossChain
             };
         }
 
-        public override AuthorityStuff GetCrossChainIndexingController(Empty input)
+        public override AuthorityInfo GetCrossChainIndexingController(Empty input)
         {
             return GetCrossChainIndexingController();
         }
 
-        public override AuthorityStuff GetSideChainLifetimeController(Empty input)
+        public override AuthorityInfo GetSideChainLifetimeController(Empty input)
         {
             return GetSideChainLifetimeController();
         }
@@ -236,7 +237,7 @@ namespace AElf.Contracts.CrossChain
                 CalculateSideChainIndexingFeeControllerOrganizationAddress(organizationCreationInput);
             return new GetSideChainIndexingFeeControllerOutput
             {
-                AuthorityStuff = new AuthorityStuff
+                AuthorityInfo = new AuthorityInfo
                 {
                     OwnerAddress = sideChainIndexingFeeControllerAddress,
                     ContractAddress = State.AssociationContract.Value

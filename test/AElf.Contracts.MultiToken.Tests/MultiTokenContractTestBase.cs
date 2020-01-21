@@ -7,6 +7,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.Parliament;
@@ -60,11 +61,30 @@ namespace AElf.Contracts.MultiToken
         public byte[] TokenConverterContractCode => Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
 
         public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
+        public byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
         protected Address TokenConverterContractAddress { get; set; }
+        protected Address ConsensusContractAddress { get; set; }
 
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
         internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
-        
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+
+        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+            ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                keyPair);
+        }
+
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
+        }
+
+        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            SampleECKeyPairs.KeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         protected Address ReferendumContractAddress { get; set; }
 
         internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
@@ -72,6 +92,7 @@ namespace AElf.Contracts.MultiToken
         protected Address BasicFunctionContractAddress { get; set; }
 
         protected Address OtherBasicFunctionContractAddress { get; set; }
+        protected Address ParliamentContractAddress { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
 
@@ -95,6 +116,37 @@ namespace AElf.Contracts.MultiToken
             if (!string.IsNullOrEmpty(result.Error))
             {
                 throw new Exception(result.Error);
+            }
+        }
+
+        protected async Task InitializeParliamentContract()
+        {
+            var initializeResult = await ParliamentContractStub.Initialize.SendAsync(new Parliament.InitializeInput()
+            {
+                PrivilegedProposer = DefaultAddress,
+                ProposerAuthorityRequired = true
+            });
+            CheckResult(initializeResult.TransactionResult);
+        }
+
+        protected async Task InitializeAElfConsensus()
+        {
+            {
+                var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        TimeEachTerm = 604800L,
+                        MinerIncreaseInterval = 31536000
+                    });
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result = await AEDPoSContractStub.FirstRound.SendAsync(
+                    new MinerList
+                    {
+                        Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                    }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
+                CheckResult(result.TransactionResult);
             }
         }
     }
@@ -132,7 +184,7 @@ namespace AElf.Contracts.MultiToken
         protected readonly List<string> ResourceTokenSymbolList;
 
         protected int MainChainId;
-
+        
         public MultiTokenContractCrossChainTestBase()
         {
             MainChainId = ChainHelper.ConvertBase58ToChainId("AELF");

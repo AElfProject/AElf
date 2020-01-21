@@ -74,10 +74,10 @@ namespace AElf.Kernel
             var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
             BestBranchBlockList.Add(genesisBlock);
 
-            BestBranchBlockList.AddRange(await AddBestBranch(chain));
+            BestBranchBlockList.AddRange(await AddBestBranch());
 
             LongestBranchBlockList =
-                await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash(), 11);
+                await AddForkBranch(BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash(), 11);
 
             foreach (var block in LongestBranchBlockList)
             {
@@ -87,10 +87,9 @@ namespace AElf.Kernel
             }
 
             ForkBranchBlockList =
-                await AddForkBranch(chain, BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
+                await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList =
-                await AddForkBranch(chain, 9, Hash.FromString("UnlinkBlock"));
+            UnlinkedBranchBlockList = await AddForkBranch(9, Hash.FromString("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
@@ -246,13 +245,13 @@ namespace AElf.Kernel
             return chain;
         }
 
-        private async Task<List<Block>> AddBestBranch(Chain chain)
+        private async Task<List<Block>> AddBestBranch()
         {
             var bestBranchBlockList = new List<Block>();
 
             for (var i = 0; i < 10; i++)
             {
-                chain = await _blockchainService.GetChainAsync();
+                var chain = await _blockchainService.GetChainAsync();
                 var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash);
                 bestBranchBlockList.Add(newBlock);
 
@@ -267,8 +266,7 @@ namespace AElf.Kernel
             return bestBranchBlockList;
         }
 
-        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash,
-            int count = 5)
+        private async Task<List<Block>> AddForkBranch(long previousHeight, Hash previousHash, int count = 5)
         {
             var forkBranchBlockList = new List<Block>();
 

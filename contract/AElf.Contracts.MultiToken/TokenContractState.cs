@@ -1,4 +1,5 @@
 using Acs0;
+using Acs1;
 using AElf.Contracts.Association;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
@@ -41,6 +42,8 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<Address> Owner { get; set; }
         public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
         public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
+        public SingletonState<Address> ControllerForSymbolToPayTxFee { get; set; }
+        public SingletonState<Address> ControllerForSideRentalParliament { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -50,7 +53,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
-        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTXSizeFee { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
@@ -62,5 +64,7 @@ namespace AElf.Contracts.MultiToken
         internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
         internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
+
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

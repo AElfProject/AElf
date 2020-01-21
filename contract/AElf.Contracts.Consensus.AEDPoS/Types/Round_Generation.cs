@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
+        public void GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
             out Round nextRound, bool isMinerListChanged = false)
         {
             nextRound = new Round {IsMinerListJustChanged = isMinerListChanged};
@@ -71,8 +71,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             nextRound.ConfirmedIrreversibleBlockHeight = ConfirmedIrreversibleBlockHeight;
             nextRound.ConfirmedIrreversibleBlockRoundNumber = ConfirmedIrreversibleBlockRoundNumber;
-
-            return true;
         }
 
         private void BreakContinuousMining(ref Round nextRound)
