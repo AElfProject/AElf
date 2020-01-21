@@ -7,8 +7,6 @@ build:
   verbosity: minimal
 configuration:
   - Debug
-platform:
-  - Any CPU
 install:
   - choco install vcredist2017
   - ps: dotnet --info
