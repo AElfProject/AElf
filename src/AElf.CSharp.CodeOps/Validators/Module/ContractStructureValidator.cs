@@ -28,7 +28,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             
             errors.AddRange(ValidateStructure(module));
             errors.AddRange(module.Types.SelectMany(ValidateType));
-            errors.AddRange(module.Types.SelectMany(t => t.NestedTypes).SelectMany(ValidateType));
 
             return errors;
         }
@@ -50,13 +49,17 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private IEnumerable<ValidationResult> ValidateType(TypeDefinition type)
         {
+            var errors = new List<ValidationResult>();
+            
             if (IsStateImplementation(type))
             {
                 return ValidateContractStateType(type);
             }
             
-            return IsContractImplementation(type) ? 
-                ValidateContractType(type) : ValidateRegularType(type);
+            errors.AddRange(IsContractImplementation(type) ? ValidateContractType(type) : ValidateRegularType(type));
+            errors.AddRange(type.NestedTypes.SelectMany(ValidateType));
+
+            return errors;
         }
 
         private IEnumerable<ValidationResult> ValidateContractStateType(TypeDefinition type)
