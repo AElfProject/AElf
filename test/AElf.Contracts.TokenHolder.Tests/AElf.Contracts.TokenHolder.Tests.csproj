@@ -51,5 +51,20 @@
         <ContractStub Include="..\..\protobuf\dapp_contract.proto">
             <Link>Protobuf/Proto/dapp_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractBase>
     </ItemGroup>
 </Project>
