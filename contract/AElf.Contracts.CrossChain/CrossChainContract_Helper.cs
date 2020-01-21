@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
@@ -76,13 +77,14 @@ namespace AElf.Contracts.CrossChain
             // unlock token
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
-            if (balance != 0)
-                Transfer(new TransferInput
-                {
-                    To = sideChainInfo.Proposer,
-                    Amount = balance,
-                    Symbol = Context.Variables.NativeSymbol
-                });
+            if (balance <= 0) 
+                return;
+            Transfer(new TransferInput
+            {
+                To = sideChainInfo.Proposer,
+                Amount = balance,
+                Symbol = Context.Variables.NativeSymbol
+            });
             State.IndexingBalance[chainId] = 0;
         }
 
@@ -91,6 +93,7 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(
                 sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
@@ -253,12 +256,12 @@ namespace AElf.Contracts.CrossChain
             return GetCousinChainMerkleTreeRoot(parentChainHeight);
         }
 
-        private AuthorityStuff GetCrossChainIndexingController()
+        private AuthorityInfo GetCrossChainIndexingController()
         {
             return State.CrossChainIndexingController.Value;
         }
 
-        private AuthorityStuff GetSideChainLifetimeController()
+        private AuthorityInfo GetSideChainLifetimeController()
         {
             return State.SideChainLifetimeController.Value;
         }
@@ -549,11 +552,11 @@ namespace AElf.Contracts.CrossChain
             State.AssociationContract.CreateOrganization.Send(createOrganizationInput);
         }
 
-        private bool ValidateAuthorityStuffExists(AuthorityStuff authorityStuff)
+        private bool ValidateAuthorityInfoExists(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
-                authorityStuff.OwnerAddress).Value;
+                authorityInfo.OwnerAddress).Value;
         }
 
         private bool ValidateParliamentOrganization(Address organizationAddress,

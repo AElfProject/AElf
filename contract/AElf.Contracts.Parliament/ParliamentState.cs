@@ -1,6 +1,7 @@
 using Acs1;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -15,9 +16,11 @@ namespace AElf.Contracts.Parliament
         public SingletonState<Address> DefaultOrganizationAddress { get; set; }
 
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
+        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<ProposerWhiteList> ProposerWhiteList { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

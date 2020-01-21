@@ -34,6 +34,92 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
+        public async Task Controller_Transfer_For_Symbol_To_Pay_Tx_Fee()
+        {
+            var primaryTokenRet =  await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetPrimaryTokenSymbol), new Empty());
+            var primarySymbol = new StringValue();
+            primarySymbol.MergeFrom(primaryTokenRet.ReturnValue);
+            var newSymbolList = new SymbolListToPayTXSizeFee();
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
+            {
+                TokenSymbol = primarySymbol.Value,
+                AddedTokenWeight = 1,
+                BaseTokenWeight = 1
+            });
+            
+            var symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee), newSymbolList);
+            symbolSetRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            
+            var newParliament = new Parliament.CreateOrganizationInput
+            {
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var parliamentCreateRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization), newParliament);
+            var newParliamentAddress = new Address();
+            newParliamentAddress.MergeFrom(parliamentCreateRet.ReturnValue);
+            
+            var parliamentOrgRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress), new Empty());
+            parliamentOrgRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var defaultParliamentAddress = new Address();
+            defaultParliamentAddress.MergeFrom(parliamentOrgRet.ReturnValue);
+            
+            var createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newParliamentAddress.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSymbolsToPayTXSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                createProposalInput);
+            parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
+            var parliamentProposalId = new Hash();
+            parliamentProposalId.MergeFrom(parliamentCreateProposal.ReturnValue);
+            await ApproveWithMinersAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
+            await ReleaseProposalAsync(parliamentProposalId, ParliamentAddress, MainChainTester);
+
+            var updateInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newSymbolList.ToByteString(),
+                OrganizationAddress = newParliamentAddress,
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var updateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal), updateInput);
+            var updateProposalId = new Hash();
+            updateProposalId.MergeFrom(updateProposal.ReturnValue);
+            
+            await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), updateProposalId);
+            await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.Release), updateProposalId);
+            
+            symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetSymbolsToPayTXSizeFee), newSymbolList);
+            symbolSetRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var updatedSymbolList = new SymbolListToPayTXSizeFee();
+            updatedSymbolList.MergeFrom(symbolSetRet.ReturnValue);
+            updatedSymbolList.SymbolsToPayTxSizeFee.Count.ShouldBe(1);
+        }
+
+        [Fact]
         public async Task Update_Coefficient_For_Sender_Should_Success()
         {
             await CreateAndIssueVoteToken();
