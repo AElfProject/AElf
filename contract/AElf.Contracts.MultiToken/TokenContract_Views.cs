@@ -141,7 +141,7 @@ namespace AElf.Contracts.MultiToken
 
         public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
         {
-            return State.SymbolListToPayTXSizeFee.Value;
+            return State.SymbolListToPayTxSizeFee.Value;
         }
         public override ControllerForUserFee GetUserFeeController(Empty input)
         {

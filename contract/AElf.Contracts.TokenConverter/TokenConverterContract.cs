@@ -62,7 +62,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty UpdateConnector(Connector input)
         {
-            AssertPerformedByManager();
+            AssertControllerForManageConnector();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can not find target connector.");
@@ -84,7 +84,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty AddPairConnectors(PairConnector pairConnector)
         {
-            AssertPerformedByManager();
+            AssertControllerForManageConnector();
             Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
             var nativeConnectorSymbol = NtTokenPrefix.Append(pairConnector.ResourceConnectorSymbol);
@@ -318,6 +318,15 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+        public override Empty SetControllerForManageConnector(Address input)
+        {
+            AssertControllerForManageConnector();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForManageConnector.Value = input;
+            return new Empty();
+        }
         #endregion Actions
 
         #region Helpers
@@ -411,6 +420,16 @@ namespace AElf.Contracts.TokenConverter
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 
+        private void AssertControllerForManageConnector()
+        {
+            if (State.ControllerForManageConnector.Value == null)
+            {
+                AssertPerformedByManager();
+                return;
+            }
+                
+            Assert(Context.Sender == State.ControllerForManageConnector.Value, "no permission");
+        }
         #endregion
     }
 }
