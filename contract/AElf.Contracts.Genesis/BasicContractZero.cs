@@ -3,8 +3,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Acs0;
+using Acs1;
 using Acs3;
-using AElf.Contracts.Parliament;
 using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.Genesis
@@ -75,12 +75,12 @@ namespace AElf.Contracts.Genesis
             return State.DeployedContractAddressList.Value;
         }
 
-        public override AuthorityStuff GetContractDeploymentController(Empty input)
+        public override AuthorityInfo GetContractDeploymentController(Empty input)
         {
             return State.ContractDeploymentController.Value;
         }
 
-        public override AuthorityStuff GetCodeCheckController(Empty input)
+        public override AuthorityInfo GetCodeCheckController(Empty input)
         {
             return State.CodeCheckController.Value;
         }
@@ -355,7 +355,7 @@ namespace AElf.Contracts.Genesis
 
             var address =
                 PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                    DecideNormalContractAuthor(contractProposingInput?.Proposer, Context.Sender));
+                    DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
             return address;
         }
 
@@ -423,7 +423,7 @@ namespace AElf.Contracts.Genesis
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
-            var defaultAuthority = new AuthorityStuff
+            var defaultAuthority = new AuthorityInfo
             {
                 OwnerAddress = input,
                 ContractAddress = parliamentContractAddress
@@ -433,7 +433,7 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty ChangeContractDeploymentController(AuthorityStuff input)
+        public override Empty ChangeContractDeploymentController(AuthorityInfo input)
         {
             AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
             var organizationExist = CheckOrganizationExist(input);
@@ -442,7 +442,7 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty ChangeCodeCheckController(AuthorityStuff input)
+        public override Empty ChangeCodeCheckController(AuthorityInfo input)
         {
             AssertSenderAddressWith(State.CodeCheckController.Value.OwnerAddress);
             RequireParliamentContractAddressSet();
