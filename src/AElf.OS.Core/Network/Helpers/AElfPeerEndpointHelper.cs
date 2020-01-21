@@ -41,7 +41,7 @@ namespace AElf.OS.Network.Helpers
                     port = parsedPort;
                 }
             }
-            else if (values.Length > 2) 
+            else
             {
                 //ipv6
                 //could be [a:b:c]:d
@@ -58,10 +58,6 @@ namespace AElf.OS.Network.Helpers
                     host = endpointString;
                     port = defaultPort;
                 }
-            }
-            else
-            {
-                return false;
             }
 
             if (port == -1)

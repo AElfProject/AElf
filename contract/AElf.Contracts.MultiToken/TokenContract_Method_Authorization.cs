@@ -41,6 +41,26 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
         
+        public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)
+        {
+            AssertControllerForSymbolToPayTxSizeFee();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForSymbolToPayTxFee.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty SetControllerForSideChainParliament(Address input)
+        {
+            AssertControllerForSideChainRental();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForSideRentalParliament.Value = input;
+            return new Empty();
+        }
+        
         private bool ControllersInitialized()
         {
             if(State.ControllerForDeveloperFee.Value == null)
@@ -208,6 +228,38 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             };
+        }
+        #endregion
+        
+        #region controller management
+
+        private void AssertControllerForSymbolToPayTxSizeFee()
+        {
+            if (State.ControllerForSymbolToPayTxFee.Value == null)
+            {
+                if (State.ParliamentContract.Value == null)
+                {
+                    State.ParliamentContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                }
+                State.ControllerForSymbolToPayTxFee.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            }
+            Assert(State.ControllerForSymbolToPayTxFee.Value == Context.Sender, "no permission");
+        }
+
+        private Address GetControllerForSideRentalParliament()
+        {
+            if (State.ControllerForSideRentalParliament.Value != null) return State.ControllerForSideRentalParliament.Value;
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+            State.ControllerForSideRentalParliament.Value =
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+
+            return State.ControllerForSideRentalParliament.Value;
         }
         #endregion
     }

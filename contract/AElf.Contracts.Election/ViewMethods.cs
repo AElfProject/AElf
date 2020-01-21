@@ -280,7 +280,12 @@ namespace AElf.Contracts.Election
         {
             return State.DataCentersRankingList.Value;
         }
-
+        
+        public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
+        {
+            return State.VoteWeightInterestList.Value;
+        }
+        
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];
