@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -143,13 +144,27 @@ namespace AElf.Contracts.MultiToken
         {
             return State.SymbolListToPayTxSizeFee.Value;
         }
+        
         public override ControllerForUserFee GetUserFeeController(Empty input)
         {
             return State.ControllerForUserFee.Value;
         }
+        
         public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
         {
             return State.ControllerForDeveloperFee.Value;
+        }
+        
+        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        {
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var controllerAddress = GetRootControllerForRental(State.SideChainCreator.Value, out var organization);
+            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            {
+                Controller = controllerAddress,
+                OrganizationCreationInputBytes = organization.ToByteString()
+            };
+            return controllerInfo;
         }
     }
 }

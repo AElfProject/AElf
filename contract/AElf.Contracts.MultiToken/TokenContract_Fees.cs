@@ -700,10 +700,11 @@ namespace AElf.Contracts.MultiToken
         private void AssertControllerForSideChainRental()
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value);
+            var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value, out _);
             Assert(controllerForRental == Context.Sender, "no permission");
         }
-        private Address GetRootControllerForRental(Address sideChainCreator)
+        
+        private Address GetRootControllerForRental(Address sideChainCreator, out CreateOrganizationInput organization)
         {
             var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};
@@ -728,7 +729,7 @@ namespace AElf.Contracts.MultiToken
             var address = CalculateSideChainRentalController(createOrganizationInput);
             return address;
         }
-
+        
         private Address CalculateSideChainRentalController(
             CreateOrganizationInput input)
         {
