@@ -171,7 +171,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }).Balance;
                 var amount = balance.Div(minerList.Count);
                 Context.LogDebug(() => $"Consensus Contract {symbol} balance: {balance}. Every miner can get {amount}");
-                if (amount <= 0) break;
+                if (amount <= 0) continue;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
