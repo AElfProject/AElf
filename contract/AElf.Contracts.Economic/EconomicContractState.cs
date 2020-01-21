@@ -19,5 +19,6 @@ namespace AElf.Contracts.Economic
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
         internal MappedState<string, MethodFees> TransactionFees { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

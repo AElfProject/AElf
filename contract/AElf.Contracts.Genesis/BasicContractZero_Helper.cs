@@ -1,5 +1,6 @@
 using System;
 using Acs0;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
@@ -47,11 +48,11 @@ namespace AElf.Contracts.Genesis
             return Hash.FromMessage(input);
         }
 
-        private bool CheckOrganizationExist(AuthorityStuff authorityStuff)
+        private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
         {
-            return Context.Call<BoolValue>(authorityStuff.ContractAddress,
+            return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
-                authorityStuff.OwnerAddress).Value;
+                authorityInfo.OwnerAddress).Value;
         }
 
         private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
@@ -111,7 +112,7 @@ namespace AElf.Contracts.Genesis
                 }).Value;
         }
 
-        private Address DecideNormalContractAuthor(Address proposer, Address sender)
+        private Address DecideNonSystemContractAuthor(Address proposer, Address sender)
         {
             if (!State.ContractDeploymentAuthorityRequired.Value)
                 return sender;

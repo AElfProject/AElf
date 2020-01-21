@@ -22,5 +22,6 @@ namespace AElf.Contracts.Configuration
         public SingletonState<ResourceTokenAmount> RemainResourceTokenAmount { get; set; }
 
         public SingletonState<RequiredAcsInContracts> RequiredAcsInContracts { get; set; }
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }
