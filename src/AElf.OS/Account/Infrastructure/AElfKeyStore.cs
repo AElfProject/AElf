@@ -24,6 +24,10 @@ namespace AElf.OS.Account.Infrastructure
 
         private const string KeyFileExtension = ".json";
         private const string KeyFolderName = "keys";
+        private const string CipherType = "aes-128-ctr";
+        private const int ParamN = 8192;
+        private const int ParamR = 8;
+        private const int ParamP = 1;
 
         private readonly List<Account> _unlockedAccounts;
         private readonly KeyStoreScryptService _keyStoreScryptService;
@@ -162,17 +166,19 @@ namespace AElf.OS.Account.Infrastructure
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var fullPath = GetKeyFileFullPath(address.GetFormatted());
-            var scryptParams = new ScryptParams {Dklen = 32, N = 8192, R = 8, P = 1};
+            var scryptParams = new ScryptParams {Dklen = 32, N = ParamN, R = ParamR, P = ParamP};
 
             await Task.Run(() =>
             {
                 using (var writer = File.CreateText(fullPath))
                 {
-                    var scryptResult = _keyStoreScryptService.EncryptAndGenerateKeyStore(password,
+                    var keyStore = _keyStoreScryptService.EncryptAndGenerateKeyStore(password,
                         keyPair.PrivateKey,
                         address.GetFormatted(),
                         scryptParams);
-                    writer.Write(scryptResult);
+                    keyStore.Crypto.Cipher = CipherType;
+                    var keyStoreToJson = _keyStoreScryptService.SerializeKeyStoreToJson(keyStore);
+                    writer.Write(keyStoreToJson);
                     writer.Flush();
                 }
             });
