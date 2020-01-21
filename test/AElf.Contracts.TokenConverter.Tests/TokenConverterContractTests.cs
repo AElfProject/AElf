@@ -585,7 +585,7 @@ namespace AElf.Contracts.TokenConverter
             (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
             (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
         }
-        
+
         #endregion
 
         #region Private Task

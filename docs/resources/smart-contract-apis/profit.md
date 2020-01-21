@@ -199,12 +199,14 @@ rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {}
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
     string symbol = 2;
+    aelf.Address beneficiary = 3;
 }
 ```
 
 **ContributeProfitsInput**:
 - **scheme id**: scheme id.
 - **symbol**: token symbol.
+- **beneficiary**: optional, claiming profits for another address, transaction fees apply to the caller.
 
 ## **Distribute profits**
 

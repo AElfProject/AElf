@@ -62,6 +62,7 @@ message ContractInfo {
     int32 category = 3;
     aelf.Hash code_hash = 4;
     bool is_system_contract = 5;
+    int32 version = 6;
 }
 ```
 

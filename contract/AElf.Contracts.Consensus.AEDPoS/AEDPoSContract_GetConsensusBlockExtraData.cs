@@ -169,10 +169,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private AElfConsensusHeaderInformation GetConsensusExtraDataForNextRound(Round currentRound,
             string pubkey, AElfConsensusTriggerInformation triggerInformation)
         {
-            if (!GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound))
-            {
-                Assert(false, "Failed to generate next round information.");
-            }
+            GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound);
 
             if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {

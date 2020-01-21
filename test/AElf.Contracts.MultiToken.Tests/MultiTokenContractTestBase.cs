@@ -132,7 +132,7 @@ namespace AElf.Contracts.MultiToken
         protected readonly List<string> ResourceTokenSymbolList;
 
         protected int MainChainId;
-
+        
         public MultiTokenContractCrossChainTestBase()
         {
             MainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
