@@ -29,6 +29,12 @@ namespace AElf.Contracts.MultiToken
                 State.ReferendumContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName);
             }
+            
+            if (State.SideChainCreator.Value != null)
+            {
+                TryToCreateControllerForSideChainRental();
+            }
+            
             if(ControllersInitialized())
                 return new Empty();
             CalculateUserFeeController();
@@ -229,6 +235,34 @@ namespace AElf.Contracts.MultiToken
                 }
             };
         }
+        
+        private Association.CreateOrganizationBySystemContractInput GetControllerCreateInputForSideChainRental()
+        {
+            var sideChainCreator = State.SideChainCreator.Value;
+            var parliamentAddress = GetControllerForSideRentalParliament();
+            var proposers = new List<Address> {parliamentAddress, sideChainCreator};
+            return new Association.CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new Association.CreateOrganizationInput
+                {
+                    OrganizationMemberList = new Association.OrganizationMemberList
+                    {
+                        OrganizationMembers = {proposers}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = proposers.Count,
+                        MinimalVoteThreshold = proposers.Count,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {proposers}
+                    }
+                }
+            };
+        }
         #endregion
         
         #region controller management
@@ -262,5 +296,10 @@ namespace AElf.Contracts.MultiToken
             return State.ControllerForSideRentalParliament.Value;
         }
         #endregion
+
+        private void TryToCreateControllerForSideChainRental()
+        {
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetControllerCreateInputForSideChainRental());
+        }
     }
 }

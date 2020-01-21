@@ -704,11 +704,11 @@ namespace AElf.Contracts.MultiToken
             Assert(controllerForRental == Context.Sender, "no permission");
         }
         
-        private Address GetRootControllerForRental(Address sideChainCreator, out CreateOrganizationInput organization)
+        private Address GetRootControllerForRental(Address sideChainCreator, out CreateOrganizationInput createOrganizationInput)
         {
             var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};
-            var createOrganizationInput = new CreateOrganizationInput
+            createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
