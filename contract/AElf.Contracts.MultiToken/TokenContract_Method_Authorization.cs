@@ -35,8 +35,7 @@ namespace AElf.Contracts.MultiToken
                 TryToCreateControllerForSideChainRental();
             }
             
-            if(ControllersInitialized())
-                return new Empty();
+            Assert(!ControllersInitialized(), "controller has been initialized");
             CalculateUserFeeController();
             CreateReferendumControllerForUserFee();
             CreateAssociationControllerForUserFee();
@@ -131,11 +130,12 @@ namespace AElf.Contracts.MultiToken
         {
             var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
             var whiteList = new List<Address> {parliamentOrg};
+            var tokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
             return new Referendum.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Referendum.CreateOrganizationInput
                 {
-                    TokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value,
+                    TokenSymbol = tokenSymbol,
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
                         MinimalApprovalThreshold = 1,
