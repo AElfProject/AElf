@@ -24,7 +24,6 @@ namespace AElf.OS.Account.Infrastructure
 
         private const string KeyFileExtension = ".json";
         private const string KeyFolderName = "keys";
-        private const string CipherType = "aes-128-ctr";
         private const int ParamN = 8192;
         private const int ParamR = 8;
         private const int ParamP = 1;
@@ -176,7 +175,6 @@ namespace AElf.OS.Account.Infrastructure
                         keyPair.PrivateKey,
                         address.GetFormatted(),
                         scryptParams);
-                    keyStore.Crypto.Cipher = CipherType;
                     var keyStoreToJson = _keyStoreScryptService.SerializeKeyStoreToJson(keyStore);
                     writer.Write(keyStoreToJson);
                     writer.Flush();
