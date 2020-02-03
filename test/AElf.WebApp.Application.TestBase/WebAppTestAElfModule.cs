@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.TransactionPool.Application;
@@ -77,6 +78,13 @@ namespace AElf.WebApp.Application
                         SenderPubkey = ByteString.CopyFromUtf8("pubkey")
                     }.ToByteArray()));
 
+                return mockService.Object;
+            });
+
+            context.Services.AddSingleton(provider =>
+            {
+                var mockService = new Mock<IBlockTransactionLimitProvider>();
+                mockService.Setup(m => m.GetLimitAsync(It.IsAny<IChainContext>())).Returns(Task.FromResult(0));
                 return mockService.Object;
             });
 
