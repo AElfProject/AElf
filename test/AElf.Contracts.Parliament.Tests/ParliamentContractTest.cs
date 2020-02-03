@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -682,6 +683,69 @@ namespace AElf.Contracts.Parliament
             clear.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        [Fact]
+        public async Task ChangeMethodFeeController_Test()
+        {
+            await InitializeParliamentContracts();
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var createOrganizationResult =
+                await parliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+
+            var methodFeeController = await parliamentContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName = nameof(parliamentContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateFeeProposalAsync(ParliamentContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+            await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[2], proposalId);
+
+            var releaseResult = await parliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await parliamentContractStub.GetMethodFeeController.CallAsync(new Empty());
+            newMethodFeeController.OwnerAddress.ShouldBe(organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_WithoutAuth_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var result = await parliamentContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
         {
             var transferInput = new TransferInput()
@@ -764,6 +828,25 @@ namespace AElf.Contracts.Parliament
             var transactionResult =
                 await parliamentContractStub.Abstain.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = organizationAddress,
+                ContractMethodName = methodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contractAddress
+            };
+
+            var createResult = await parliamentContractStub.CreateProposal.SendAsync(proposal);
+            var proposalId = createResult.Output;
+
+            return proposalId;
         }
     }
 }
