@@ -32,7 +32,7 @@ namespace AElf.Contracts.MultiToken
             
             if (State.SideChainCreator.Value != null)
             {
-                TryToCreateControllerForSideChainRental();
+                State.AssociationContract.CreateOrganizationBySystemContract.Send(GetControllerCreateInputForSideChainRental());
             }
             
             Assert(!ControllersInitialized(), "controller has been initialized");
@@ -296,10 +296,5 @@ namespace AElf.Contracts.MultiToken
             return State.ControllerForSideRentalParliament.Value;
         }
         #endregion
-
-        private void TryToCreateControllerForSideChainRental()
-        {
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetControllerCreateInputForSideChainRental());
-        }
     }
 }
