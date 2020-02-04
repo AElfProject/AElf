@@ -61,8 +61,7 @@ namespace AElf.CrossChain.Indexing.Application
                 if (sideChainHeightInLib > 0)
                 {
                     targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
-                    toBeIndexedCount = Math.Min(CrossChainConstants.DefaultBlockCacheEntityCount,
-                        sideChainIndexingInformation.ToBeIndexedCount);
+                    toBeIndexedCount = CrossChainConstants.DefaultBlockCacheEntityCount;
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");

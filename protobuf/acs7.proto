@@ -99,7 +99,6 @@ message SideChainIndexingInformationList {
 message SideChainIndexingInformation {
     int32 chain_id = 1;
     int64 indexed_height = 2;
-    int64 to_be_indexed_count = 3;
 }
 
 message CrossChainBlockData {
