@@ -8,7 +8,9 @@ using AElf.Kernel.Consensus.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Types;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -20,6 +22,8 @@ namespace AElf.OS.Network.Application
     /// </summary>
     public class NetworkService : INetworkService, ISingletonDependency
     {
+        private Timestamp _lastSentBlock;  
+            
         private readonly IPeerPool _peerPool;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAElfNetworkServer _networkServer;
@@ -39,6 +43,8 @@ namespace AElf.OS.Network.Application
             _blackListedPeerProvider = blackListedPeerProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
+
+            _lastSentBlock = TimestampHelper.GetUtcNow();
         }
 
         public async Task<bool> AddPeerAsync(string address)
@@ -112,6 +118,8 @@ namespace AElf.OS.Network.Application
 
         public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
+            _lastSentBlock = TimestampHelper.GetUtcNow();
+
             if (IsOldBlock(blockWithTransactions.Header))
                 return;
             
@@ -204,6 +212,13 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
+            var now = TimestampHelper.GetUtcNow();
+            if (_lastSentBlock.AddSeconds(2) > now)
+            {
+                Logger.LogDebug($"Dropping tx {_lastSentBlock} and {now}");
+                return Task.CompletedTask;
+            }
+
             var txHash = transaction.GetHash();
             foreach (var peer in _peerPool.GetPeers())
             {
