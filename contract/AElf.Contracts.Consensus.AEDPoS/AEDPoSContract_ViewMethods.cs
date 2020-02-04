@@ -180,7 +180,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() =>
                 $"Extra block producer of previous round: {currentRound.ExtraBlockProducerOfPreviousRound}");
 
-            // Check saving extra block producer of previous round.
+            // Check confirmed extra block producer of previous round.
             if (Context.CurrentBlockTime <= currentRound.GetRoundStartTime() &&
                 currentRound.ExtraBlockProducerOfPreviousRound == pubkey)
             {
@@ -208,6 +208,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 supposedExtraBlockProducer == pubkey)
             {
                 Context.LogDebug(() => "[CURRENTMINER]EXTRA");
+                return true;
+            }
+
+            // Check saving extra block time slot.
+            var arrangedMiningTime =
+                currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
+            if (arrangedMiningTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            {
+                Context.LogDebug(() => "[CURRENTMINER]SAVING");
                 return true;
             }
 
