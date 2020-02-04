@@ -158,7 +158,8 @@ namespace AElf.Contracts.MultiToken
         public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerAddress = GetRootControllerForRental(State.SideChainCreator.Value, out var organization);
+            var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
+            var controllerAddress = CalculateSideChainRentalController(organization);
             var controllerInfo = new ControllerInfoForUpdateSideChainRental
             {
                 Controller = controllerAddress,
