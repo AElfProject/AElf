@@ -26,6 +26,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return;
             }
 
+            if (!IsCurrentMiner(Address.FromPublicKey(Context.RecoverPublicKey())).Value)
+            {
+                Context.LogDebug(() => "[CURRENTMINER]IS NOT CURRENT MINER.");
+            }
+            
             State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
 
             // The only difference.

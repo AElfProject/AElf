@@ -91,10 +91,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
             if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            Context.LogDebug(() => $"Based on round: \n{round.GetSimpleRound()}");
-            Context.LogDebug(() => $"Based on block time: {Context.CurrentBlockTime}");
             var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
-            Context.LogDebug(() => $"Current miner pubkey: {currentMinerPubkey}");
             return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
         }
 
@@ -151,22 +148,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override BoolValue IsCurrentMiner(Address input)
         {
-            var result = new BoolValue {Value = IsCurrentMiner(ConvertAddressToPubkey(input))};
-            if (result.Value) return result;
-
-            var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
-            if (currentMinerPubkey.Value.Any())
+            var pubkey = ConvertAddressToPubkey(input);
+            Context.LogDebug(() => $"[CURRENTMINER]PUBKEY: {pubkey}");
+            return new BoolValue
             {
-                var isCurrentMiner = new BoolValue
-                {
-                    Value = input == Address.FromPublicKey(
-                                ByteArrayHelper.HexStringToByteArray(currentMinerPubkey.Value))
-                };
-                Context.LogDebug(() => $"Current miner: {currentMinerPubkey}. {isCurrentMiner}");
-                return isCurrentMiner;
-            }
-
-            return new BoolValue {Value = false};
+                Value = IsCurrentMiner(pubkey) || GetCurrentMinerPubkey(new Empty()).Value ==
+                        Context.RecoverPublicKey().ToString()
+            };
         }
 
         /// <summary>
@@ -196,27 +184,39 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return currentRound.ExtraBlockProducerOfPreviousRound == pubkey;
             }
 
-            if (currentRound.IsMinerListJustChanged)
-            {
-                Context.LogDebug(() => "Term changed and ExtraBlockProducerOfPreviousRound is incorrect.");
-            }
-
             var miningInterval = currentRound.GetMiningInterval();
-            var currentRoundExtraBlockMiningTime = currentRound.GetExtraBlockMiningTime();
-            var miningInRound = currentRound.RealTimeMinersInformation[pubkey];
-            if (currentRoundStartTime <= Context.CurrentBlockTime &&
-                Context.CurrentBlockTime < currentRoundExtraBlockMiningTime)
+            var minerInRound = currentRound.RealTimeMinersInformation[pubkey];
+            var timeSlotStartTime = minerInRound.ExpectedMiningTime;
+
+            // Check normal time slot.
+            if (timeSlotStartTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <=
+                timeSlotStartTime.AddMilliseconds(miningInterval))
             {
-                var supposedMiningTime = miningInRound.ExpectedMiningTime;
-                return supposedMiningTime <= Context.CurrentBlockTime &&
-                       Context.CurrentBlockTime <= supposedMiningTime.AddMilliseconds(miningInterval);
+                Context.LogDebug(() => "[CURRENTMINER]NORMAL");
+                return true;
             }
 
-            if (currentRoundExtraBlockMiningTime <= Context.CurrentBlockTime &&
-                Context.CurrentBlockTime < currentRoundExtraBlockMiningTime.AddMilliseconds(miningInterval))
+            var supposedExtraBlockProducer =
+                currentRound.RealTimeMinersInformation.Single(m => m.Value.IsExtraBlockProducer).Key;
+
+            // Check extra block time slot.
+            if (Context.CurrentBlockTime >= currentRound.GetExtraBlockMiningTime() &&
+                supposedExtraBlockProducer == pubkey)
             {
-                return currentRound.RealTimeMinersInformation.Single(m => m.Value.IsExtraBlockProducer).Key == pubkey;
+                Context.LogDebug(() => "[CURRENTMINER]EXTRA");
+                return true;
             }
+
+            // Check saving extra block time slot.
+            var arrangedMiningTime = currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
+            if (arrangedMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            {
+                Context.LogDebug(() => "[CURRENTMINER]SAVING");
+                return true;
+            }
+
+            Context.LogDebug(() => "[CURRENTMINER]WRONG");
 
             return false;
         }
