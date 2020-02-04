@@ -152,8 +152,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"[CURRENTMINER]PUBKEY: {pubkey}");
             return new BoolValue
             {
-                Value = IsCurrentMiner(pubkey) || GetCurrentMinerPubkey(new Empty()).Value ==
-                        Context.RecoverPublicKey().ToString()
+                Value = IsCurrentMiner(pubkey)
             };
         }
 
@@ -178,10 +177,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
 
-            var currentRoundStartTime = currentRound.GetRoundStartTime();
-            if (Context.CurrentBlockTime < currentRoundStartTime)
+            Context.LogDebug(() =>
+                $"Extra block producer of previous round: {currentRound.ExtraBlockProducerOfPreviousRound}");
+
+            // Check saving extra block producer of previous round.
+            if (Context.CurrentBlockTime <= currentRound.GetRoundStartTime() &&
+                currentRound.ExtraBlockProducerOfPreviousRound == pubkey)
             {
-                return currentRound.ExtraBlockProducerOfPreviousRound == pubkey;
+                Context.LogDebug(() => "[CURRENTMINER]PREVIOUS");
+                return true;
             }
 
             var miningInterval = currentRound.GetMiningInterval();
@@ -205,20 +209,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Context.LogDebug(() => "[CURRENTMINER]EXTRA");
                 return true;
-            }
-
-            // Check saving extra block time slot.
-            if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                Context.LogDebug(() => "[CURRENTMINER]ABOUT SAVING");
-
-                var arrangedMiningTime = previousRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
-                if (arrangedMiningTime <= Context.CurrentBlockTime &&
-                    Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
-                {
-                    Context.LogDebug(() => "[CURRENTMINER]SAVING");
-                    return true;
-                }
             }
 
             Context.LogDebug(() => "[CURRENTMINER]WRONG");
