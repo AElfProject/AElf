@@ -208,12 +208,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Check saving extra block time slot.
-            var arrangedMiningTime = currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
-            if (arrangedMiningTime <= Context.CurrentBlockTime &&
-                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                Context.LogDebug(() => "[CURRENTMINER]SAVING");
-                return true;
+                Context.LogDebug(() => "[CURRENTMINER]ABOUT SAVING");
+
+                var arrangedMiningTime = previousRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
+                if (arrangedMiningTime <= Context.CurrentBlockTime &&
+                    Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+                {
+                    Context.LogDebug(() => "[CURRENTMINER]SAVING");
+                    return true;
+                }
             }
 
             Context.LogDebug(() => "[CURRENTMINER]WRONG");
