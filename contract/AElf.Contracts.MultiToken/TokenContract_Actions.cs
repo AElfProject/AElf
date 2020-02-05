@@ -575,9 +575,33 @@ namespace AElf.Contracts.MultiToken
             var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
             var isSystemContractAddress = systemContractAddresses.Contains(sender);
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-            
+
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
+        }
+
+        /// <summary>
+        /// This should be the only read access usage of State.Balances
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="fromMap"></param>
+        /// <param name="toMap"></param>
+        /// <returns></returns>
+        private void ModifyBalances(string symbol, Dictionary<Address, long> fromMap, Dictionary<Address, long> toMap)
+        {
+            // Decrease from addresses balances.
+            foreach (var decrease in fromMap)
+            {
+                State.Balances[decrease.Key][symbol] = State.Balances[decrease.Key][symbol].Sub(decrease.Value);
+            }
+
+            // Increase to addresses balances.
+            foreach (var increase in toMap)
+            {
+                State.Balances[increase.Key][symbol] = State.Balances[increase.Key][symbol].Add(increase.Value);
+            }
+
+            Assert(fromMap.Values.Sum() == toMap.Values.Sum(), "Incorrect balances modification.");
         }
     }
 }
