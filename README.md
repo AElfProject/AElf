@@ -9,7 +9,7 @@
 
 BRANCH | TRAVIS CI | APPVEYOR | CODE COVERAGE
 -------|-----------|----------|--------------
-MASTER |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=master)](https://travis-ci.org/AElfProject/AElf) | [![Build status](https://ci.appveyor.com/api/projects/status/wnehtmk2up4l5w5j/branch/master?svg=true)](https://ci.appveyor.com/project/AElfProject/aelf/branch/master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
+MASTER |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=master)](https://travis-ci.org/AElfProject/AElf) | [![Build status](https://ci.appveyor.com/api/projects/status/wnehtmk2up4l5w5j?svg=true)](https://ci.appveyor.com/project/AElfProject/aelf/branch/master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
 DEV    |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf) | [![Build status](https://ci.appveyor.com/api/projects/status/wnehtmk2up4l5w5j/branch/dev?svg=true)](https://ci.appveyor.com/project/AElfProject/aelf/branch/dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
 
 Welcome to AElf's official GitHub repo ! 
