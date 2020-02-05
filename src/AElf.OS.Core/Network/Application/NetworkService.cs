@@ -162,7 +162,7 @@ namespace AElf.OS.Network.Application
             return broadcastList.IsNullOrEmpty() ? null : broadcastList[0];
         }
 
-        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             var blockHash = blockHeader.GetHash();
 
@@ -172,8 +172,7 @@ namespace AElf.OS.Network.Application
             var blockAnnouncement = new BlockAnnouncement
             {
                 BlockHash = blockHash,
-                BlockHeight = blockHeader.Height,
-                HasFork = hasFork
+                BlockHeight = blockHeader.Height
             };
 
             foreach (var peer in _peerPool.GetPeers())
