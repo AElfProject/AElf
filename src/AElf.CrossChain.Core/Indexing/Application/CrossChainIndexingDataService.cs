@@ -249,7 +249,6 @@ namespace AElf.CrossChain.Indexing.Application
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
             long blockHeight)
         {
-            Logger.LogTrace("Try get cross chain data for mining.");
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
 
