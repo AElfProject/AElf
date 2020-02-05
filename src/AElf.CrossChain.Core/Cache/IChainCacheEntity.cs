@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace AElf.CrossChain.Cache
 {
@@ -61,10 +62,9 @@ namespace AElf.CrossChain.Cache
 
         public void ClearOutOfDateCacheByHeight(long height)
         {
-            while (true)
+            foreach (var h in _cache.Keys.Where(k => k <= height))
             {
-                if (!_cache.TryRemove(height--, out _))
-                    return;
+                _cache.TryRemove(h, out _);
             }
         }
 
