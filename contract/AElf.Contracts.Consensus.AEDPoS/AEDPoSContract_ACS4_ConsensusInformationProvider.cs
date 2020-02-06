@@ -25,6 +25,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
+            if (State.LatestPubkeyToTinyBlocksCount.Value.Pubkey == _processingBlockMinerPubkey &&
+                State.LatestPubkeyToTinyBlocksCount.Value.BlocksCount < 0)
+                return GetConsensusCommand(AElfConsensusBehaviour.NextRound, currentRound, _processingBlockMinerPubkey,
+                    Context.CurrentBlockTime);
+
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
             var behaviour = IsMainChain
