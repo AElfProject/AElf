@@ -150,9 +150,9 @@ service TokenContract {
 
 message TokenInfo {
     string symbol = 1;
-    string tokenName = 2;
+    string token_name = 2;
     sint64 supply = 3;
-    sint64 totalSupply = 4;
+    sint64 total_supply = 4;
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
@@ -163,8 +163,8 @@ message TokenInfo {
 
 message CreateInput {
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
@@ -175,8 +175,8 @@ message CreateInput {
 
 message RegisterNativeTokenInfoInput {
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
@@ -357,15 +357,15 @@ message TakeResourceTokenBackInput {
 
 message GetLockedAmountInput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
 }
 
 message GetLockedAmountOutput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
-    sint64 amount = 5;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
+    sint64 amount = 4;
 }
 
 message GetVirtualAddressForLockingInput {
@@ -398,8 +398,8 @@ message RegisterCrossChainTokenContractAddressInput{
 
 message ValidateTokenInfoExistsInput{
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
