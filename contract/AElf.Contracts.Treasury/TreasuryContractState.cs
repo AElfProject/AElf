@@ -23,5 +23,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<MinerReElectionInformation> MinerReElectionInformation { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }

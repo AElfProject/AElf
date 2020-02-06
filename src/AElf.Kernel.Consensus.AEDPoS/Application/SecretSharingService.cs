@@ -42,8 +42,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             try
             {
+                var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
+
                 var secretSharingInformation = new SecretSharingInformation();
                 secretSharingInformation.MergeFrom(logEvent);
+
+                if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey))
+                {
+                    return;
+                }
 
                 var newInValue = await GenerateInValueAsync(secretSharingInformation);
                 _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
@@ -53,7 +60,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     return;
                 }
 
-                var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
                 await CollectPiecesWithSecretSharingAsync(secretSharingInformation, newInValue, selfPubkey);
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
             }

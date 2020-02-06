@@ -1,4 +1,5 @@
 using System.Linq;
+using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -38,13 +39,13 @@ namespace AElf.Contracts.CrossChain
             State.Initialized.Value = true;
             var parliamentContractAddress = State.ParliamentContract.Value;
             Assert(parliamentContractAddress == Context.Sender, "No permission.");
-            var initialAuthorityStuff = new AuthorityStuff
+            var initialAuthorityInfo = new AuthorityInfo
             {
                 OwnerAddress = input,
                 ContractAddress = parliamentContractAddress
             };
-            State.CrossChainIndexingController.Value = initialAuthorityStuff;
-            State.SideChainLifetimeController.Value = initialAuthorityStuff;
+            State.CrossChainIndexingController.Value = initialAuthorityInfo;
+            State.SideChainLifetimeController.Value = initialAuthorityInfo;
             return new Empty();
         }
 
@@ -217,7 +218,9 @@ namespace AElf.Contracts.CrossChain
         public override Empty AdjustIndexingFeePrice(AdjustIndexingFeeInput input)
         {
             var info = State.SideChainInfo[input.SideChainId];
-            Assert(info != null, "Side chain not found.");
+            Assert(info != null && info.SideChainStatus != SideChainStatus.Terminated,
+                "Side chain not found or incorrect side chain status.");
+            Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
             var sideChainCreator = info.Proposer;
             var expectedOrganizationAddress =
                 CalculateSideChainIndexingFeeControllerOrganizationAddress(sideChainCreator);
@@ -316,7 +319,7 @@ namespace AElf.Contracts.CrossChain
 
         #endregion Cross chain actions
 
-        public override Empty ChangeCrossChainIndexingController(AuthorityStuff input)
+        public override Empty ChangeCrossChainIndexingController(AuthorityInfo input)
         {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
@@ -327,10 +330,10 @@ namespace AElf.Contracts.CrossChain
             return new Empty();
         }
 
-        public override Empty ChangeSideChainLifetimeController(AuthorityStuff input)
+        public override Empty ChangeSideChainLifetimeController(AuthorityInfo input)
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
-            Assert(ValidateAuthorityStuffExists(input), "Invalid authority input.");
+            Assert(ValidateAuthorityInfoExists(input), "Invalid authority input.");
             State.SideChainLifetimeController.Value = input;
             return new Empty();
         }

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -186,6 +187,30 @@ namespace AElf.Contracts.MultiToken
                         DefaultKeyPair);
             }
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
+            
+            //ParliamentContract
+            {
+                var code = ParliamentCode;
+                ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                ParliamentContractStub =
+                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                        DefaultKeyPair);
+                AsyncHelper.RunSync(InitializeParliamentContract);
+            }
+            
+            //AEDPOSContract
+            {
+                ConsensusContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(
+                        KernelConstants.CodeCoverageRunnerCategory,
+                        ConsensusContractCode,
+                        Hash.FromString("AElf.ContractNames.Consensus"),
+                        DefaultKeyPair
+                    ));
+                AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
+                AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
+            }
         }
 
         private async Task CreateNativeTokenAsync()

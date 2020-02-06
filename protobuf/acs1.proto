@@ -5,6 +5,7 @@ package acs1;
 import public "aelf/options.proto";
 import public "google/protobuf/empty.proto";
 import public "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
 
 option (aelf.identity) = "acs1";
 
@@ -13,9 +14,16 @@ service MethodFeeProviderContract {
     // Actions
     rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty) {
     }
+
+    rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
     
     // Views
     rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -37,4 +45,9 @@ message MethodFeeSet {
     string symbol = 2;
     sint64 old_fee = 3;
     sint64 new_fee = 4;
+}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
 }

@@ -1,4 +1,5 @@
 using Acs0;
+using Acs1;
 using AElf.Contracts.Association;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
@@ -63,5 +64,7 @@ namespace AElf.Contracts.MultiToken
         internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
         internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
+
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }
 }
