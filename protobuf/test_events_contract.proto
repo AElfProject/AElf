@@ -58,10 +58,10 @@ message InitializeInput {
 }
 
 message OrderInput {
-    string symbol_paid = 2;
-    string symbol_obtain = 3;
-    sint64 balance_paid = 4;
-    sint64 balance_obtain = 5;
+    string symbol_paid = 1;
+    string symbol_obtain = 2;
+    sint64 balance_paid = 3;
+    sint64 balance_obtain = 4;
 }
 
 message DealtOrders {
@@ -111,10 +111,10 @@ message OrderInfo {
 message OrderIssued {
     option (aelf.is_event) = true;
     aelf.Address issuer = 1 [(aelf.is_indexed) = true];
-    string symbol_paid = 3;
-    string symbol_obtain = 4;
-    sint64 balance_paid = 5;
-    sint64 balance_obtain = 6;
+    string symbol_paid = 2;
+    string symbol_obtain = 3;
+    sint64 balance_paid = 4;
+    sint64 balance_obtain = 5;
 }
 
 message OrderDealt {

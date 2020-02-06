@@ -258,8 +258,8 @@ message TransactionFeeBill {
 }
 
 message ChargeResourceTokenInput {
-    sint64 net_cost = 1;
-    sint64 sto_cost = 2;
+    sint64 traffic_cost = 1;
+    sint64 storage_cost = 2;
     sint64 read_cost = 3;
     sint64 write_cost = 4;
     aelf.Address caller = 5;
@@ -370,7 +370,7 @@ message GetLockedAmountOutput {
 
 message GetVirtualAddressForLockingInput {
     aelf.Address address = 1;
-    aelf.Hash lock_id = 3;
+    aelf.Hash lock_id = 2;
 }
 
 message TokenInfoList {

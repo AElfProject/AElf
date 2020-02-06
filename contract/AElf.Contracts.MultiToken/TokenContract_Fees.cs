@@ -165,8 +165,8 @@ namespace AElf.Contracts.MultiToken
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"READ", input.ReadCost},
-                {"TRAFFIC", input.NetCost},
-                {"STORAGE", input.StoCost},
+                {"TRAFFIC", input.TrafficCost},
+                {"STORAGE", input.StorageCost},
                 {"WRITE", input.WriteCost}
             };
 
