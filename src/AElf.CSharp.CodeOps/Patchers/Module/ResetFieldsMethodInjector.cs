@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module
 {
@@ -29,13 +30,16 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             }
             
             // Get static non-initonly, non-constant fields
+            // TODO: Deal with FileDescriptor types in a proper way
             var fields = type.Fields
-                .Where(f => f.IsStatic && !(f.IsInitOnly || f.HasConstant)).ToList();
+                .Where(f => f.FieldType.Name != "FileDescriptor" && f.IsStatic && !(f.IsInitOnly || f.HasConstant)).ToList();
 
-            if (callToNestedResetNeeded || fields.Any())
+            callToNestedResetNeeded |= fields.Any();
+
+            if (callToNestedResetNeeded)
             {
                 // Inject reset fields method in type
-                var resetFieldsMethod = ConstructResetFieldsMethod(module, fields);
+                var resetFieldsMethod = ConstructResetFieldsMethod(module, fields, false);
 
                 type.Methods.Add(resetFieldsMethod);
             }
@@ -84,15 +88,20 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             
             var otherTypes = module.Types.Where(t => !t.IsContractImplementation()).ToList();
 
-            var resetFieldsMethod = ConstructResetFieldsMethod(module, Enumerable.Empty<FieldDefinition>());
+            // Add contract's nested types as well
+            otherTypes.AddRange(contractImplementation.NestedTypes);
+            
+            // TODO: Handle nullable fields' default value
+            var resetFieldsMethod = ConstructResetFieldsMethod(module, 
+                contractImplementation.Fields.Where(f => !(f.IsInitOnly || f.HasConstant)), true);
+
+            //var resetFieldsMethod = ConstructResetFieldsMethod(module, Enumerable.Empty<FieldDefinition>(), true);
 
             var il = resetFieldsMethod.Body.GetILProcessor();
 
             var ret = il.Body.Instructions.Last();
 
-            // TODO: reset contract implementation fields
-
-            // Add call to other types' reset fields method
+            // Call other types' reset fields method from contract implementation reset method
             foreach (var type in otherTypes)
             {
                 var resetMethodRef = type.Methods.FirstOrDefault(m => m.Name == nameof(ResetFields));
@@ -104,11 +113,15 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             contractImplementation.Methods.Add(resetFieldsMethod);
         }
 
-        private MethodDefinition ConstructResetFieldsMethod(ModuleDefinition module, IEnumerable<FieldDefinition> fields)
+        private MethodDefinition ConstructResetFieldsMethod(ModuleDefinition module, IEnumerable<FieldDefinition> fields, bool instanceMethod)
         {
+            var attributes = instanceMethod
+                ? MethodAttributes.Public | MethodAttributes.HideBySig
+                : MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static;
+            
             var cleanUpMethod = new MethodDefinition(
                 nameof(ResetFields), 
-                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static, 
+                attributes, 
                 module.ImportReference(typeof(void))
             );
             
@@ -117,8 +130,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             foreach (var field in fields)
             {
+                if (instanceMethod && !field.IsStatic)
+                    il.Emit(OpCodes.Ldarg_0); // this
                 LoadDefaultValue(il, field);
-                il.Emit(OpCodes.Stsfld, field);
+                il.Emit(field.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, field);
             }
 
             il.Emit(OpCodes.Ret);
