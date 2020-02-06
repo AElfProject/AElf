@@ -262,7 +262,7 @@ namespace AElf.OS.Network.Application
 
         public async Task SendHealthChecksAsync()
         {
-            foreach (var peer in _peerPool.GetPeers())
+            foreach (var peer in _peerPool.GetPeers(true))
             {
                 Logger.LogDebug($"Health checking: {peer}");
                 
