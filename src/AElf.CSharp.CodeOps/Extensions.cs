@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -40,6 +42,82 @@ namespace AElf.CSharp.CodeOps
             }
 
             return instruction.OpCode + operandStr;
+        }
+
+        public static IEnumerable<FieldDefinition> GetStaticFields(this TypeDefinition type)
+        {
+            // Get static fields from type
+            var fields = type.Fields.Where(f => 
+                f.IsPublic && 
+                f.IsStatic && 
+                !(f.IsInitOnly || f.HasConstant)
+                ).ToList();
+
+            // Get static fields from nested types 
+            fields.AddRange(type.NestedTypes.SelectMany(GetStaticFields));
+
+            return fields;
+        }
+
+        public static IEnumerable<FieldDefinition> GetContractFields(this ModuleDefinition module)
+        {
+            // Get contract implementations
+            var contractImplementation = module.Types.Where(IsContractImplementation).Single();
+
+            // Get fields in contract implementation
+            return contractImplementation.GetFields();
+        }
+
+        private static IEnumerable<FieldDefinition> GetFields(this TypeDefinition type)
+        {
+            var fields = type.Fields.Where(f => !f.HasConstant).ToList();
+
+            if (type.BaseType is TypeDefinition baseType)
+            {
+                fields.AddRange(baseType.GetFields());
+            }
+
+            return fields;
+        }
+
+        private static GenericInstanceType FindGenericInstanceType(TypeDefinition type)
+        {
+            while (true)
+            {
+                switch (type.BaseType)
+                {
+                    case null:
+                        return null;
+                    case GenericInstanceType genericInstanceType:
+                        return genericInstanceType;
+                    default:
+                        type = type.BaseType.Resolve();
+                        continue;
+                }
+            }
+        }
+
+        public static bool IsContractImplementation(this TypeDefinition type)
+        {
+            var baseGenericInstanceType = FindGenericInstanceType(type);
+
+            if (baseGenericInstanceType == null)
+                return false;
+
+            var elementType = baseGenericInstanceType.ElementType.Resolve();
+
+            var baseType = GetBaseType(elementType);
+            
+            return baseType.Interfaces.Any(i => i.InterfaceType.FullName == typeof(ISmartContract).FullName);
+        }
+
+        private static TypeDefinition GetBaseType(this TypeDefinition type)
+        {
+            while (true)
+            {
+                if (type.BaseType == null || type.BaseType.FullName == typeof(object).FullName) return type;
+                type = type.BaseType.Resolve();
+            }
         }
 
         public static bool HasSameParameters(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
