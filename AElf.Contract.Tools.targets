@@ -63,16 +63,42 @@
                  Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
     </Target>
     <!-- Patch the contract dll after building the contract -->
-    <Target Name="PatchContractCode" AfterTargets="AfterBuild">
-        <Exec Condition="'$(IsContract)' != '' AND '$(IsContract)'"
+    <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
+        <Exec Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'"
               WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(TargetDir)$(TargetName).dll" />
+              Command="dotnet $(PatcherProjectName).dll -overwrite $(TargetDir)$(TargetName).dll"
+              ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
+        </Exec>
+        <Exec Condition="'$(PatchOverwrite)' == '' OR !'$(PatchOverwrite)'"
+              WorkingDirectory = "$(PatcherDir)"
+              Command="dotnet $(PatcherProjectName).dll $(TargetDir)$(TargetName).dll"
+              ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
+        </Exec>
+        <Message Text="$(PatchContractCodeOutput)"/>
     </Target>
     <!-- Move dlls before codecov injection in travis -->
-    <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
-              SourceFiles="$(TargetDir)$(TargetName).dll" 
-              DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
+    <Target Name="CopyNonCodeCovContractDll" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="PatchContractCode">
+        <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
+              DestinationFolder="../../test/AElf.CSharp.CodeOps.Tests/contracts"
+              SkipUnchangedFiles="true" />
+        <PropertyGroup>
+            <LauncherTargetDir>../../src/AElf.Launcher/contracts</LauncherTargetDir>
+        </PropertyGroup>
+        <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
+              DestinationFolder="$(LauncherTargetDir)"
+              SkipUnchangedFiles="true" />
+        <Copy Condition="Exists('$(TargetDir)$(TargetName).dll.patched')"
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
+              DestinationFolder="../../test/AElf.CSharp.CodeOps.Tests/contracts"
+              SkipUnchangedFiles="true" />
+    </Target>
+    <!-- Copy patched contract dll after publish to include in publish directory -->
+    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')" 
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched" 
+              DestinationFiles="$(PublishDir)/$(TargetName).dll"
               SkipUnchangedFiles="true" />
     </Target>
 </Project>

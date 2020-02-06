@@ -41,10 +41,10 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private void AnnounceElection(byte[] recoveredPublicKey)
+        private void AnnounceElection(byte[] recoveredPubkey)
         {
-            var pubkey = recoveredPublicKey.ToHex();
-            var pubkeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+            var pubkey = recoveredPubkey.ToHex();
+            var pubkeyByteString = ByteString.CopyFrom(recoveredPubkey);
 
             Assert(!State.InitialMiners.Value.Value.Contains(pubkeyByteString),
                 "Initial miner cannot announce election.");
@@ -187,10 +187,13 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
 
-            Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
-                    .Contains(publicKeyByteString),
-                "Current miners cannot quit election.");
+            if (State.AEDPoSContract.Value != null)
+            {
+                Assert(
+                    !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                        .Contains(publicKeyByteString),
+                    "Current miners cannot quit election.");
+            }
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.DataCentersRankingList.Value.DataCenters.Remove(recoveredPublicKey.ToHex());

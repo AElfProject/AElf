@@ -7,6 +7,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Vote;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -36,7 +37,9 @@ namespace AElf.WebApp.Application.Chain.Tests
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
 
-        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] ConfigurationContractCode => Codes.Single(kv => kv.Key.Contains("Configuration")).Value;
+        private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
+        
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
@@ -44,7 +47,8 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
-        private readonly ITaskQueueManager _taskQueueManager;
+        private readonly ISmartContractCodeHistoryProvider _smartContractCodeHistoryProvider;
+        private readonly ISmartContractCodeHistoryManager _smartContractCodeHistoryManager;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -55,30 +59,30 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
-            _taskQueueManager = GetRequiredService<ITaskQueueManager>();
+            _smartContractCodeHistoryProvider = GetRequiredService<ISmartContractCodeHistoryProvider>();
+            _smartContractCodeHistoryManager = GetRequiredService<ISmartContractCodeHistoryManager>();
         }
 
         [Fact]
         public async Task Deploy_Contract_Success_Test()
         {
-            var keyPair = CryptoHelper.GenerateKeyPair();
+            var accountAddress = await _accountService.GetAccountAsync();
             var chain = await _blockchainService.GetChainAsync();
             var transaction = new Transaction
             {
-                From = Address.FromPublicKey(keyPair.PublicKey),
+                From = accountAddress,
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(BasicContractZero.DeploySmartContract),
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(TokenContractCode)
+                    Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
             };
             transaction.Signature =
-                ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
-                    transaction.GetHash().ToByteArray()));
+                ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
 
             var parameters = new Dictionary<string, string>
             {
@@ -90,6 +94,137 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters);
 
             sendTransactionResponse.TransactionId.ShouldBe(transaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(transaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        [Fact]
+        public async Task Update_Contract_Success_Test()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var deployTransaction = new Transaction
+            {
+                From = accountAddress,
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(BasicContractZero.DeploySmartContract),
+                Params = ByteString.CopyFrom(new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(VoteContractCode)
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            deployTransaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(deployTransaction.GetHash().ToByteArray()));
+
+            var parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", deployTransaction.ToByteArray().ToHex()}
+            };
+
+            var sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(deployTransaction.GetHash().ToHex());
+            var deployBlock = await _osTestHelper.MinedOneBlock();
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(deployTransaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
+            var smartContractCode = new SmartContractCode
+            {
+                BlockHash = deployBlock.GetHash(),
+                BlockHeight = deployBlock.Height,
+                CodeHash = Hash.FromRawBytes(VoteContractCode)
+            };
+            var smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
+            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(1);
+            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            var smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
+            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(1);
+            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            var transaction = new Transaction
+            {
+                From = accountAddress,
+                To = address,
+                MethodName = nameof(VoteContractContainer.VoteContractStub.GetVotingResult),
+                Params = ByteString.CopyFrom(new GetVotingResultInput
+                {
+                    SnapshotNumber = 1,
+                    VotingItemId = Hash.Empty
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            transaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
+
+            parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", transaction.ToByteArray().ToHex()}
+            };
+
+            sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(transaction.GetHash().ToHex());
+            await _osTestHelper.MinedOneBlock();
+            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
+            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
+            
+            var updateTransaction = new Transaction
+            {
+                From = accountAddress,
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(BasicContractZero.UpdateSmartContract),
+                Params = ByteString.CopyFrom(new ContractUpdateInput
+                {
+                    Address = address,
+                    Code = ByteString.CopyFrom(ConfigurationContractCode)
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            updateTransaction.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(updateTransaction.GetHash().ToByteArray()));
+            
+            parameters = new Dictionary<string, string>
+            {
+                {"rawTransaction", updateTransaction.ToByteArray().ToHex()}
+            };
+
+            sendTransactionResponse =
+                await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
+                    parameters);
+
+            sendTransactionResponse.TransactionId.ShouldBe(updateTransaction.GetHash().ToHex());
+            var updateBlock = await _osTestHelper.MinedOneBlock();
+            transactionResult = await _osTestHelper.GetTransactionResultsAsync(updateTransaction.GetHash());
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
+            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
+            var updateSmartContractCode = new SmartContractCode
+            {
+                BlockHash = updateBlock.GetHash(),
+                BlockHeight = updateBlock.Height,
+                CodeHash = Hash.FromRawBytes(ConfigurationContractCode)
+            };
+            smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
+            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(2);
+            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            smartContractCodeHistoryInCache.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
+            smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
+            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(2);
+            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
+            smartContractCodeHistoryInDb.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
         }
 
         [Fact]
@@ -1213,16 +1348,6 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var count = response.Count;
             count.ShouldBeGreaterThan(0);
-        }
-
-        [Fact]
-        public async Task GetCurrentRoundInformation_Test()
-        {
-            var response = await GetResponseAsObjectAsync<RoundDto>("/api/blockChain/currentRoundInformation");
-            response.RoundNumber.ShouldBe(12);
-            response.TermNumber.ShouldBe(1);
-            response.RoundId.ShouldBeGreaterThan(0);
-            response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
         }
 
         [Fact]

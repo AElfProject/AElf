@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
-using AElf.Contracts.Economic.TestBase;
 using AElf.Sdk.CSharp;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_BootMiner_Test()
         {
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_BootMiner_Test();
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_SecondMiner_Test()
         {
             var usingKeyPair = InitialCoreDataCenterKeyPairs[1];
@@ -236,7 +236,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return consensusCommand;
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        [Fact]
         public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_ExtraBlockMiner_Test()
         {
             var usingKeyPair = BootMinerKeyPair;
@@ -307,7 +307,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RoundNumber.ShouldBe(2);
         }
 
-        [Fact(Skip = "Already tested in testkit aedpo extension")]
+        [IgnoreOnCIFact]
         public async Task AEDPoSContract_ConsensusTransactionValidation_Test()
         {
             var usingKeyPair = BootMinerKeyPair;
@@ -320,16 +320,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var validateBeforeResult =
                 await AEDPoSContractStub.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
-            //validateBeforeResult.Success.ShouldBeTrue();
+            validateBeforeResult.Success.ShouldBeTrue();
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber++;
+            roundInfo.IsMinerListJustChanged = false;
+            roundInfo.TermNumber++;
             var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(roundInfo);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var validateAfterResult =
                 await AEDPoSContractStub.ValidateConsensusAfterExecution.CallAsync(roundInfo.ToBytesValue());
-            validateAfterResult.Success.ShouldBeFalse(); //update with extra data would be keep the same.
+            validateAfterResult.Success.ShouldBeTrue();
         }
 
         [Fact]

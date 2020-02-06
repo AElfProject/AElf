@@ -50,10 +50,10 @@ service ResourceContract {
 
 enum ResourceType {
     UNDEFINED_RESOURCE_TYPE = 0;
-    RAM = 1;
-    CPU = 2;
-    NET = 3;
-    STO = 4;
+    WRITE = 1;
+    READ = 2;
+    TRAFFIC = 3;
+    STORAGE = 4;
 }
 
 message Converter {

@@ -1,19 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
+using AElf.Contracts.Parliament;
 
 namespace AElf.Contracts.Election
 {
@@ -427,15 +426,58 @@ namespace AElf.Contracts.Election
                     RecentlyMissedTimeSlots = 100
                 })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
+        }
 
-            //get candidate information
-            var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringValue
+        [Fact]
+        public async Task Election_Vote_Weight_Interest_Setting()
+        {
+            var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos.Count.ShouldBe(3);
+            defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
+            defaultSetting.VoteWeightInterestInfos[0].Day = 50;
+
+            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting);
+            
+            defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
+            defaultSetting.VoteWeightInterestInfos[0].Day.ShouldBe(50);
+        }
+
+        [Fact]
+        public async Task Authorization_Transfer_For_Set_Vote_Weight_Interest()
+        {
+            var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
+            var newParliament = new CreateOrganizationInput
             {
-                Value = pubkey
-            });
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var buildNewParliamentRet =
+                (await ParliamentContractStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
+            buildNewParliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var newParliamentAddress =  new Address();
+            newParliamentAddress.MergeFrom(buildNewParliamentRet.ReturnValue);
+            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetControllerForManageVoteWeightInterest), newParliamentAddress);
 
-            candidateInformation.ShouldBe(new CandidateInformation {Pubkey = pubkey});
+            await ExecuteProposalTransactionWithNewParliament(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);
+            defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
         }
     }
 }

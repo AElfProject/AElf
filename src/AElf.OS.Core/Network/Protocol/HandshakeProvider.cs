@@ -93,10 +93,11 @@ namespace AElf.OS.Network.Protocol
                 return HandshakeValidationResult.InvalidVersion;
             }
 
-            if (TimestampHelper.GetUtcNow() > handshake.HandshakeData.Time +
+            var now = TimestampHelper.GetUtcNow();
+            if (now > handshake.HandshakeData.Time +
                 TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
             {
-                Logger.LogWarning("Handshake is expired.");
+                Logger.LogWarning($"Handshake is expired: {handshake.HandshakeData.Time}, reference now: {now}.");
                 return HandshakeValidationResult.HandshakeTimeout;
             }
 

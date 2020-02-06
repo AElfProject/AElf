@@ -17,6 +17,7 @@ namespace AElf.Contracts.Election
     /// </summary>
     public partial class ElectionContract
     {
+        private const int DaySec = 86400;
         #region Vote
 
         /// <summary>
@@ -168,52 +169,46 @@ namespace AElf.Contracts.Election
 
             return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
-        private const int DaySec = 86400;
 
-        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
-        {
-            {1 * 365 * DaySec, 1.001m},           // compound interest
-            {2 * 365 * DaySec, 1.0015m},
-            {3 * 365 * DaySec, 1.002m}
-        };
-
-        private const decimal DefaultInterest = 1.0022m;   // if locktime > 3 years, use this interest
-        private const int Scale = 10000;   
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 1;
-            foreach (var instMap in _interestMap)  // calculate with different interest according to locktime
+            long calculated = 0;
+            var lockDays = lockTime.Div(DaySec);
+
+            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos
+            )
             {
-                if(lockTime > instMap.Key)
+                if (lockDays > instMap.Day)
                     continue;
-                calculated = calculated.Mul((long)(Pow(instMap.Value, (uint)lockTime.Div(DaySec)) * Scale));
-                break;
+                var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
+                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
             }
-            if (calculated == 1)   // locktime > 3 years
-                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint)lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2));  // weight = locktime + voteAmount 
+            var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
+            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
+            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
         }
-        
-        private decimal Pow(decimal x, uint y)
+
+        private static decimal Pow(decimal x, uint y)
         {
             if (y == 1)
-                return (long)x;
+                return (long) x;
             decimal a = 1m;
             if (y == 0)
                 return a;
-            BitArray e = new BitArray(BitConverter.GetBytes(y));
-            int t = e.Count;
-            for (int i = t - 1; i >= 0; --i)
+            var e = new BitArray(BitConverter.GetBytes(y));
+            var t = e.Count;
+            for (var i = t - 1; i >= 0; --i)
             {
                 a *= a;
-                if (e[i] == true)
+                if (e[i])
                 {
                     a *= x;
                 }
             }
+
             return a;
         }
-        
+
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
@@ -227,6 +222,7 @@ namespace AElf.Contracts.Election
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+            Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockDays = State.LockTimeMap[input.VoteId];
             Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
@@ -253,14 +249,18 @@ namespace AElf.Contracts.Election
             oldCandidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
             oldCandidateVotes.ObtainedActiveVotedVotesAmount =
                 oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            oldCandidateVotes.AllObtainedVotedVotesAmount =
+                oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
-            if( newCandidateVotes != null )
+            if (newCandidateVotes != null)
             {
                 newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
                 newCandidateVotes.ObtainedActiveVotedVotesAmount =
                     newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
+                newCandidateVotes.AllObtainedVotedVotesAmount =
+                    newCandidateVotes.AllObtainedVotedVotesAmount.Add(votingRecord.Amount);
                 State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
             }
             else
@@ -273,6 +273,7 @@ namespace AElf.Contracts.Election
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
             }
+
             return new Empty();
         }
 
@@ -308,7 +309,8 @@ namespace AElf.Contracts.Election
             var candidateVotes = State.CandidateVotes[votingRecord.Option];
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
-            candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            candidateVotes.ObtainedActiveVotedVotesAmount =
+                candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
             CallTokenContractUnlock(input, votingRecord.Amount);
@@ -328,6 +330,62 @@ namespace AElf.Contracts.Election
         }
 
         #endregion
+
+        public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
+        {
+            AssertControllerForManageVoteWeightInterestSetting();
+            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            foreach (var info in input.VoteWeightInterestInfos)
+            {
+                Assert(info.Capital > 0, "invalid input");
+                Assert(info.Day > 0, "invalid input");
+                Assert(info.Interest > 0, "invalid input");
+            }
+
+            Assert(input.VoteWeightInterestInfos.GroupBy(x => x.Day).Count() == input.VoteWeightInterestInfos.Count,
+                "repeat day input");
+            var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
+            input.VoteWeightInterestInfos.Clear();
+            input.VoteWeightInterestInfos.AddRange(orderList);
+            State.VoteWeightInterestList.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetControllerForManageVoteWeightInterest(Address input)
+        {
+            AssertControllerForManageVoteWeightInterestSetting();
+            Assert(input != null, "invalid input");
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            State.ControllerForManageVoteWeightInterest.Value = input;
+            return new Empty();
+        }
+
+        private void InitializeVoteWeightInterest()
+        {
+            if (State.VoteWeightInterestList.Value != null)
+                return;
+            var voteWeightSetting = new VoteWeightInterestList();
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 365,
+                Interest = 1,
+                Capital = 1000
+            });
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 730,
+                Interest = 15,
+                Capital = 10000
+            });
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 1095,
+                Interest = 2,
+                Capital = 1000
+            });
+            State.VoteWeightInterestList.Value = voteWeightSetting;
+        }
 
         private long GetElfAmount(long votingAmount)
         {
@@ -373,6 +431,7 @@ namespace AElf.Contracts.Election
                 VoteId = input
             });
         }
+
         private void CallProfitContractRemoveBeneficiary()
         {
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
@@ -385,10 +444,10 @@ namespace AElf.Contracts.Election
         private void AssertValidCandidateInformation(CandidateInformation candidateInformation)
         {
             Assert(candidateInformation != null, "Candidate not found.");
-            if (candidateInformation == null) return; // Just to avoid IDE warning.
+            // ReSharper disable once PossibleNullReferenceException
             Assert(candidateInformation.IsCurrentCandidate, "Candidate quited election.");
         }
-        
+
         private void AssertValidLockSeconds(long lockSeconds)
         {
             Assert(lockSeconds >= State.MinimumLockTime.Value,
@@ -409,6 +468,10 @@ namespace AElf.Contracts.Election
             });
         }
 
+        /// <summary>
+        /// Issue VOTE tokens to this voter.
+        /// </summary>
+        /// <param name="amount"></param>
         private void CallTokenContractIssue(long amount)
         {
             State.TokenContract.Issue.Send(new IssueInput
@@ -444,6 +507,22 @@ namespace AElf.Contracts.Election
                 },
                 EndPeriod = GetEndPeriod(lockSeconds)
             });
+        }
+
+        private void AssertControllerForManageVoteWeightInterestSetting()
+        {
+            if (State.ControllerForManageVoteWeightInterest.Value == null)
+            {
+                if (State.ParliamentContract.Value == null)
+                {
+                    State.ParliamentContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                }
+                State.ControllerForManageVoteWeightInterest.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            }
+                
+            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
         }
     }
 }

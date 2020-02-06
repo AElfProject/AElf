@@ -84,6 +84,10 @@ namespace AElf.Contracts.Election
 
         private List<string> GetValidCandidates()
         {
+            if (State.Candidates.Value == null)
+            {
+                return new List<string>();
+            }
             return State.Candidates.Value.Value
                 .Where(c => State.CandidateVotes[c.ToHex()] != null &&
                             State.CandidateVotes[c.ToHex()].ObtainedActiveVotedVotesAmount > 0)
@@ -276,7 +280,12 @@ namespace AElf.Contracts.Election
         {
             return State.DataCentersRankingList.Value;
         }
-
+        
+        public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
+        {
+            return State.VoteWeightInterestList.Value;
+        }
+        
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];

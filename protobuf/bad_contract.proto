@@ -3,6 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Runtime.CSharp.Tests.BadContract";
 
@@ -26,6 +27,16 @@ service BadContract {
     rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteRecursiveCall (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteRecursiveCallInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestGetHashCodeCall (google.protobuf.Empty) returns (google.protobuf.Int32Value) { }
 }
 
 message DoubleInput {

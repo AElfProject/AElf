@@ -1,24 +1,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.Vote;
+using AElf.Contracts.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConfiguration(
-            Address zeroContractAddress)
+        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConfiguration()
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(_codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationSmartContractAddressNameProvider.Name);
+                ConfigurationSmartContractAddressNameProvider.Name, GenerateConfigurationInitializationCallList());
             return l;
+        }
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateConfigurationInitializationCallList()
+        {
+            var configurationContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            configurationContractMethodCallList.Add(
+                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
+                new RequiredAcsInContracts
+                {
+                    AcsList = {_contractOptions.ContractFeeStrategyAcsList}
+                });
+            return configurationContractMethodCallList;
         }
     }
 }

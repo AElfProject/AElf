@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Acs0;
+using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
@@ -29,13 +30,18 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private readonly ITestDataProvider _testDataProvider;
         private readonly IContractTesterFactory _contractTesterFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionResultService _transactionResultService;
 
         private Round _currentRound;
 
         private Address _consensusContractAddress;
+        private Address _parliamentContractAddress;
 
         private readonly List<AEDPoSContractImplContainer.AEDPoSContractImplStub> _contractStubs =
             new List<AEDPoSContractImplContainer.AEDPoSContractImplStub>();
+
+        private readonly List<AuthorizationContractContainer.AuthorizationContractStub> _acs3Stubs =
+            new List<AuthorizationContractContainer.AuthorizationContractStub>();
 
         private bool _isSystemContractsDeployed;
 
@@ -47,6 +53,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _contractTesterFactory = serviceProvider.GetRequiredService<IContractTesterFactory>();
             _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
             _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
+            _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -69,15 +76,17 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         /// Should initial each contract after if necessary.
         /// </summary>
         /// <param name="nameToCode"></param>
+        /// <param name="deployConsensusContract"></param>
         /// <returns></returns>
-        public async Task<Dictionary<Hash, Address>>DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode)
+        public async Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode,
+            bool deployConsensusContract = true)
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =
                 _contractTesterFactory.Create<BasicContractZeroContainer.BasicContractZeroStub>(
                     _smartContractAddressService.GetZeroSmartContractAddress(),
                     MissionedECKeyPairs.InitialKeyPairs.First());
-            if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name))
+            if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name) && deployConsensusContract)
             {
                 nameToCode.Add(ConsensusSmartContractAddressNameProvider.Name,
                     ContractsDeployer.GetContractCodes<ContractTestAEDPoSExtensionModule>().First().Value);
@@ -101,6 +110,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 if (name == ConsensusSmartContractAddressNameProvider.Name)
                 {
                     _consensusContractAddress = address;
+                }
+
+                if (name == ParliamentSmartContractAddressNameProvider.Name)
+                {
+                    _parliamentContractAddress = address;
                 }
             }
 
@@ -199,35 +213,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 }
             }
 
-            var command = await contractStub.GetConsensusCommand.CallAsync(pubkey);
-            var hint = AElfConsensusHint.Parser.ParseFrom(command.Hint);
-            var triggerInformation = new AElfConsensusTriggerInformation
-            {
-                Behaviour = hint.Behaviour,
-                // It doesn't matter for testing.
-                InValue = Hash.FromString($"InValueOf{pubkey}"),
-                PreviousInValue = Hash.FromString($"InValueOf{pubkey}"),
-                Pubkey = pubkey.Value
-            };
-
-            var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue
-            {
-                Value = triggerInformation.ToByteString()
-            });
-            var consensusHeaderInformation = new AElfConsensusHeaderInformation();
-            consensusHeaderInformation.MergeFrom(consensusExtraData.Value);
-            Debug.WriteLine($"Current header information: {consensusHeaderInformation}");
-
-            // Validate consensus extra data.
-            {
-                var validationResult =
-                    await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
-                if (!validationResult.Success)
-                {
-                    throw new Exception($"Consensus extra data validation failed: {validationResult.Message}");
-                }
-            }
-
+            var triggerInformation = await GetConsensusTriggerInfoAsync(contractStub, pubkey);
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
             {
                 Value = triggerInformation.ToByteString()
@@ -423,6 +409,41 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             Debug.WriteLine($"Chosen miner: {keyPair.PublicKey.ToHex()}");
             return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
+        }
+
+        private async Task<AElfConsensusTriggerInformation> GetConsensusTriggerInfoAsync(
+            AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub, BytesValue pubkey)
+        {
+            var command = await contractStub.GetConsensusCommand.CallAsync(pubkey);
+            var hint = AElfConsensusHint.Parser.ParseFrom(command.Hint);
+            var triggerInformation = new AElfConsensusTriggerInformation
+            {
+                Behaviour = hint.Behaviour,
+                // It doesn't matter for testing.
+                InValue = Hash.FromString($"InValueOf{pubkey}"),
+                PreviousInValue = Hash.FromString($"InValueOf{pubkey}"),
+                Pubkey = pubkey.Value
+            };
+
+            var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue
+            {
+                Value = triggerInformation.ToByteString()
+            });
+            var consensusHeaderInformation = new AElfConsensusHeaderInformation();
+            consensusHeaderInformation.MergeFrom(consensusExtraData.Value);
+            Debug.WriteLine($"Current header information: {consensusHeaderInformation}");
+
+            // Validate consensus extra data.
+            {
+                var validationResult =
+                    await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
+                if (!validationResult.Success)
+                {
+                    throw new Exception($"Consensus extra data validation failed: {validationResult.Message}");
+                }
+            }
+
+            return triggerInformation;
         }
     }
 

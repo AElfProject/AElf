@@ -212,8 +212,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 {
                     chain.Branches[blockHash] = chainBlockLink.Height;
                     chain.Branches.Remove(previousHash);
-
-                    //TODO: change the longest chain switch length 
+                    
                     if (isLinkedToLongestChain && chainBlockLink.Height > chain.LongestChainHeight
                         || chainBlockLink.Height >= chain.LongestChainHeight + 8)
                     {
@@ -380,7 +379,6 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight)
         {
             var toCleanBranchKeys = new List<string>();
-            var toCleanNotLinkedKeys = new List<string>();
 
             var bestChainKey = chain.BestChainHash.ToStorageKey();
 
@@ -442,6 +440,18 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
             }
 
+            var toCleanNotLinkedKeys = await GetNotLinkedKeysAsync(chain, irreversibleBlockHeight);
+            
+            return new DiscardedBranch
+            {
+                BranchKeys = toCleanBranchKeys,
+                NotLinkedKeys = toCleanNotLinkedKeys
+            };
+        }
+
+        private async Task<List<string>> GetNotLinkedKeysAsync(Chain chain, long irreversibleBlockHeight)
+        {
+            var toCleanNotLinkedKeys = new List<string>();
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
                 var blockLink = await GetChainBlockLinkWithCacheAsync(notLinkedBlock.Value);
@@ -456,12 +466,8 @@ namespace AElf.Kernel.Blockchain.Domain
                     toCleanNotLinkedKeys.Add(notLinkedBlock.Key);
                 }
             }
-            
-            return new DiscardedBranch
-            {
-                BranchKeys = toCleanBranchKeys,
-                NotLinkedKeys = toCleanNotLinkedKeys
-            };
+
+            return toCleanNotLinkedKeys;
         }
 
         public async Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)

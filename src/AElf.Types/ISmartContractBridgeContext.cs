@@ -18,10 +18,12 @@ namespace AElf
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];
-        public List<string> ResourceTokenSymbolNameList => this[nameof(ResourceTokenSymbolNameList)].Split(',').ToList();
+        public List<string> SymbolListToPayTxFee => this[nameof(SymbolListToPayTxFee)].Split(',').ToList();
+        public List<string> SymbolListToPayRental => this[nameof(SymbolListToPayRental)].Split(',').ToList();
 
         public const string NativeSymbolName = nameof(NativeSymbol);
-        public const string ResourceTokenSymbolList = nameof(ResourceTokenSymbolNameList);
+        public const string PayTxFeeSymbolList = nameof(SymbolListToPayTxFee);
+        public const string PayRentalSymbolList = nameof(SymbolListToPayRental);
     }
 
     public interface ISmartContractBridgeContext
@@ -62,8 +64,11 @@ namespace AElf
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
 
+        void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+            ByteString args);
+        
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
-
+        Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress);
         Address GetZeroSmartContractAddress();
 
         Address GetZeroSmartContractAddress(int chainId);

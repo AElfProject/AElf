@@ -26,7 +26,6 @@ namespace AElf.Parallel.Tests
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.AddSingleton<IPreExecutionPlugin, DeleteDataFromStateDbPreExecutionPlugin>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ILocalParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
         }

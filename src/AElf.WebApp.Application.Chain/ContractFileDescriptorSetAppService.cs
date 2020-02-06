@@ -1,9 +1,11 @@
+using System;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -19,6 +21,8 @@ namespace AElf.WebApp.Application.Chain
     {
         private static IBlockchainService _blockchainService;
         private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        
+        public ILogger<ContractFileDescriptorSetAppService> Logger { get; set; }
 
         public ContractFileDescriptorSetAppService(IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
@@ -39,8 +43,9 @@ namespace AElf.WebApp.Application.Chain
                 var result = await GetFileDescriptorSetAsync(AddressHelper.Base58StringToAddress(address));
                 return result;
             }
-            catch
+            catch (Exception e)
             {
+                Logger.LogError(e, "Error during GetContractFileDescriptorSetAsync.");
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
         }

@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Deployer;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.OS;
 using AElf.OS.Node.Application;
-using AElf.Types;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Blockchains.MainChain
@@ -17,7 +15,7 @@ namespace AElf.Blockchains.MainChain
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
-        
+
         private readonly ConsensusOptions _consensusOptions;
         private readonly EconomicOptions _economicOptions;
         private readonly ContractOptions _contractOptions;
@@ -32,25 +30,25 @@ namespace AElf.Blockchains.MainChain
                 .GenesisContractDir);
         }
 
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
             // The order matters !!!
             return new[]
             {
-                GetGenesisSmartContractDtosForVote(zeroContractAddress),
-                GetGenesisSmartContractDtosForProfit(zeroContractAddress),
-                GetGenesisSmartContractDtosForElection(zeroContractAddress),
+                GetGenesisSmartContractDtosForVote(),
+                GetGenesisSmartContractDtosForProfit(),
+                GetGenesisSmartContractDtosForElection(),
                 GetGenesisSmartContractDtosForTreasury(),
-                GetGenesisSmartContractDtosForToken(zeroContractAddress),
-                GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
+                GetGenesisSmartContractDtosForToken(),
                 GetGenesisSmartContractDtosForParliament(),
-                GetGenesisSmartContractDtosForConfiguration(zeroContractAddress),
+                GetGenesisSmartContractDtosForAssociation(),
+                GetGenesisSmartContractDtosForCrossChain(),
+                GetGenesisSmartContractDtosForConfiguration(),
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
-                GetGenesisSmartContractDtosForReferendum(),
-                GetGenesisSmartContractDtosForAssociation(),
-                // Economic Contract should always be the last one to deploy and initialize.
-                GetGenesisSmartContractDtosForEconomic()
+                GetGenesisSmartContractDtosForTokenHolder(),
+                GetGenesisSmartContractDtosForEconomic(),
+                GetGenesisSmartContractDtosForReferendum()
             }.SelectMany(x => x);
         }
     }

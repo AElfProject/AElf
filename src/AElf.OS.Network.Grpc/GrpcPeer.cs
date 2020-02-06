@@ -472,15 +472,13 @@ namespace AElf.OS.Network.Grpc
             }
             catch (AggregateException ex)
             {
-                throw HandleRpcException(ex.InnerException as RpcException, requestParams.ErrorMessage);
-            }
-            finally
-            {
-                if (timeRequest)
+                if (!(ex.InnerException is RpcException rpcException))
                 {
-                    requestTimer.Stop();
-                    RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
+                    throw new NetworkException($"Unknown exception. {this}: {requestParams.ErrorMessage}",
+                        NetworkExceptionType.Unrecoverable);
                 }
+
+                throw HandleRpcException(rpcException, requestParams.ErrorMessage);
             }
         }
 

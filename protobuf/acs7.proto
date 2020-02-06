@@ -11,13 +11,25 @@ option (aelf.identity) = "acs7";
 
 service ACS7 {
     
-    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
+    rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
+    rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
+    }
+    rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
+    }
+    rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){
+    }
+    rpc CreateSideChain (CreateSideChainInput) returns (aelf.SInt32Value) {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
+    }
+    rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -76,13 +88,6 @@ message CrossChainExtraData {
     aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 
-enum SideChainStatus
-{
-    FATAL = 0;
-    ACTIVE = 1;
-    TERMINATED = 2;
-}
-
 message SideChainIdAndHeightDict {
     map<int32, int64> id_height_dict = 1;
 }
@@ -98,8 +103,8 @@ message SideChainIndexingInformation {
 }
 
 message CrossChainBlockData {
-    repeated SideChainBlockData side_chain_block_data = 1;
-    repeated ParentChainBlockData parent_chain_block_data = 2;
+    repeated SideChainBlockData side_chain_block_data_list = 1;
+    repeated ParentChainBlockData parent_chain_block_data_list = 2;
     int64 previous_block_height = 3;
 }
 
@@ -116,40 +121,27 @@ message ChainInitializationData {
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
     string side_chain_token_symbol = 7;
-}
-
-enum ResourceType
-{
-    UNDEFINED_RESOURCE_TYPE = 0;
-    RAM = 1;
-    CPU = 2;
-    NET = 3;
-}
-
-message ResourceTypeBalancePair {
-    ResourceType type = 1;
-    uint64 amount = 2;
-}
-
-message SideChainInfo {
-    SideChainCreationRequest side_chain_creation_request = 1;
-    aelf.Address proposer = 2;
-    SideChainStatus side_chain_status = 3;
-    int32 side_chain_id = 4;
-    aelf.Hash proposal_hash = 5;
-    google.protobuf.Timestamp creation_timestamp = 6;
-    int64 creation_height_on_parent_chain = 7;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
+    map<string, sint32> initial_resource_amount = 9;
 }
 
 message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
-    bool is_privilege_preserved = 4;
-    string side_chain_token_symbol = 5;
-    string side_chain_token_name = 6;
-    sint64 side_chain_token_total_supply = 7;
-    sint32 side_chain_token_decimals = 8;
-    bool is_side_chain_token_burnable = 9;
+    bool is_privilege_preserved = 3;
+    string side_chain_token_symbol = 4;
+    string side_chain_token_name = 5;
+    sint64 side_chain_token_total_supply = 6;
+    sint32 side_chain_token_decimals = 7;
+    bool is_side_chain_token_burnable = 8;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
+    map<string, sint32> initial_resource_amount = 10; 
+    bool is_side_chain_token_profitable = 11;
+}
+
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
 }
 
 message SideChainTokenInfo {
@@ -159,6 +151,7 @@ message SideChainTokenInfo {
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
+    bool is_profitable = 7;
 }
 
 message RequestChainCreationOutput {
@@ -166,11 +159,30 @@ message RequestChainCreationOutput {
     aelf.Hash proposal_id = 2;
 }
 
-message IndexedParentChainBlockData{
+message IndexedParentChainBlockData {
     int64 local_chain_height = 1;
-    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
+    repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
 }
 
 message IndexedSideChainBlockData{
-    repeated acs7.SideChainBlockData side_chain_block_data = 1;
+    repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
+}
+
+message RecordCrossChainDataInput{
+    CrossChainBlockData proposed_cross_chain_data = 1;
+    aelf.Address proposer = 2;
+}
+
+message CreateSideChainInput{
+    SideChainCreationRequest side_chain_creation_request = 1;
+    aelf.Address proposer = 2;
+}
+
+message ReleaseSideChainCreationInput {
+    aelf.Hash proposal_id = 1;
+}
+
+message AdjustIndexingFeeInput{
+    int32 side_chain_id = 1;
+    int64 indexing_fee = 2;
 }

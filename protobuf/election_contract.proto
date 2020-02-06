@@ -39,6 +39,10 @@ service ElectionContract {
     }
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
     }
+    rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
+    }
+    rpc SetControllerForManageVoteWeightInterest (aelf.Address) returns (google.protobuf.Empty) {
+    }
     
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
@@ -99,6 +103,9 @@ service ElectionContract {
         option (aelf.is_view) = true;
     }
     rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
         option (aelf.is_view) = true;
     }
 }
@@ -198,13 +205,13 @@ message ElectionVotingRecord {
     sint64 amount = 3;
     sint64 term_number = 4;
     aelf.Hash vote_id = 5;
-    sint64 lock_time = 7;
-    google.protobuf.Timestamp unlock_timestamp = 10;
-    google.protobuf.Timestamp withdraw_timestamp = 11;
-    google.protobuf.Timestamp vote_timestamp = 12;
-    bool is_withdrawn = 13;
-    sint64 weight = 14;
-    bool is_change_target = 15;
+    sint64 lock_time = 6;
+    google.protobuf.Timestamp unlock_timestamp = 7;
+    google.protobuf.Timestamp withdraw_timestamp = 8;
+    google.protobuf.Timestamp vote_timestamp = 9;
+    bool is_withdrawn = 10;
+    sint64 weight = 11;
+    bool is_change_target = 12;
 }
 
 message PageInformation {
@@ -249,4 +256,14 @@ message SetTreasurySchemeIdsInput {
 message DataCenterRankingList {
     map<string, sint64> data_centers = 1;
     sint64 minimum_votes = 2;
+}
+
+message VoteWeightInterest{
+    sint32 day = 1;
+    sint32 interest = 2;
+    sint32 capital = 3;
+}
+
+message VoteWeightInterestList {
+    repeated VoteWeightInterest vote_weight_interest_infos = 1;
 }

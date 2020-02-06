@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -24,7 +25,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Value =
                 {
-                    Context.Variables.ResourceTokenSymbolNameList.Select(symbol =>
+                    Context.Variables.SymbolListToPayTxFee.Select(symbol =>
                         State.TokenInfos[symbol] ?? new TokenInfo())
                 }
             };
@@ -95,46 +96,76 @@ namespace AElf.Contracts.MultiToken
 
         public override StringValue GetPrimaryTokenSymbol(Empty input)
         {
+            if (string.IsNullOrWhiteSpace(_primaryTokenSymbol))
+            {
+                _primaryTokenSymbol = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ??
+                                      string.Empty;
+            }
+
             return new StringValue
             {
-                Value = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ?? string.Empty
+                Value = _primaryTokenSymbol
             };
         }
 
-        public override SInt64Value GetTransactionSizeFeeUnitPrice(Empty input)
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
         {
-            return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
+            return State.CalculateCoefficientOfContract[(FeeTypeEnum) input.Value];
         }
 
-        #region ForTests
-
-        /*
-        [View]
-        
-        public string GetTokenInfo2(string symbol)
+        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
         {
-            return GetTokenInfo(new GetTokenInfoInput() {Symbol = symbol}).ToString();
+            return State.CalculateCoefficientOfSender.Value;
         }
 
-        [View]
-        public string GetBalance2(string symbol, Address owner)
+        public override OwningRental GetOwningRental(Empty input)
         {
-            return GetBalance(
-                new GetBalanceInput() {Symbol = symbol, Owner = owner})?.ToString();
-        }
-
-        [View]
-        public string GetAllowance2(string symbol, Address owner, Address spender)
-        {
-            return GetAllowance(new GetAllowanceInput()
+            var owingRental = new OwningRental();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
             {
-                Owner = owner,
-                Symbol = symbol,
-                Spender = spender
-            })?.ToString();
-        }
-        */
+                owingRental.ResourceAmount[symbol] = State.OwningRental[symbol];
+            }
 
-        #endregion
+            return owingRental;
+        }
+
+        public override ResourceUsage GetResourceUsage(Empty input)
+        {
+            var usage = new ResourceUsage();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                usage.Value.Add(symbol, State.ResourceAmount[symbol]);
+            }
+
+            return usage;
+        }
+
+        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
+        {
+            return State.SymbolListToPayTxSizeFee.Value;
+        }
+        
+        public override ControllerForUserFee GetUserFeeController(Empty input)
+        {
+            return State.ControllerForUserFee.Value;
+        }
+        
+        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        {
+            return State.ControllerForDeveloperFee.Value;
+        }
+        
+        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        {
+            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
+            var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
+            var controllerAddress = CalculateSideChainRentalController(organization);
+            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            {
+                Controller = controllerAddress,
+                OrganizationCreationInputBytes = organization.ToByteString()
+            };
+            return controllerInfo;
+        }
     }
 }

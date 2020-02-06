@@ -15,13 +15,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// if this node executed blocks from other nodes.
         /// </summary>
         /// <returns></returns>
-        public Timestamp ArrangeAbnormalMiningTime(string pubkey, Timestamp currentBlockTime)
+        public Timestamp ArrangeAbnormalMiningTime(string pubkey, Timestamp currentBlockTime, bool mustExceededCurrentRound = false)
         {
             var miningInterval = GetMiningInterval();
 
             var minerInRound = RealTimeMinersInformation[pubkey];
 
-            if (GetExtraBlockProducerInformation().Pubkey == pubkey)
+            if (GetExtraBlockProducerInformation().Pubkey == pubkey && !mustExceededCurrentRound)
             {
                 var distance = (GetExtraBlockMiningTime().AddMilliseconds(miningInterval) - currentBlockTime).Milliseconds();
                 if (distance > 0)
@@ -32,15 +32,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var distanceToRoundStartTime = (currentBlockTime - GetRoundStartTime()).Milliseconds();
             var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
-            var arrangedMiningTime = CalculateFutureRoundStartTime(missedRoundsCount, miningInterval);
-            return arrangedMiningTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
+            var futureRoundStartTime = CalculateFutureRoundStartTime(missedRoundsCount, miningInterval);
+            return futureRoundStartTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
         }
 
         public bool IsInCorrectFutureMiningSlot(string pubkey, Timestamp currentBlockTime)
         {
             var miningInterval = GetMiningInterval();
 
-            var arrangedMiningTime = ArrangeAbnormalMiningTime(pubkey, currentBlockTime);
+            var arrangedMiningTime =
+                ArrangeAbnormalMiningTime(pubkey, currentBlockTime.AddMilliseconds(-miningInterval));
 
             return arrangedMiningTime <= currentBlockTime &&
                    currentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval);
@@ -61,9 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private Timestamp CalculateFutureRoundStartTime(long missedRoundsCount = 0, int miningInterval = 0)
         {
             if (miningInterval == 0)
-            {
                 miningInterval = GetMiningInterval();
-            }
 
             var totalMilliseconds = TotalMilliseconds(miningInterval);
             return GetRoundStartTime().AddMilliseconds(missedRoundsCount.Add(1).Mul(totalMilliseconds));

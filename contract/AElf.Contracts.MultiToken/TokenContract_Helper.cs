@@ -1,11 +1,12 @@
 using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using System.Text;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -26,14 +27,14 @@ namespace AElf.Contracts.MultiToken
         
         private void AssertValidSymbolAndAmount(string symbol, long amount)
         {
-            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(amount > 0, "Invalid amount.");
         }
 
         private void AssertValidMemo(string memo)
         {
-            Assert(memo.Length <= 128, "memo's length is more than 128.");
+            Assert(Encoding.UTF8.GetByteCount(memo) <= TokenContractConstants.MemoMaxLength, "Invalid memo size.");
         }
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
@@ -49,7 +50,7 @@ namespace AElf.Contracts.MultiToken
             {
                 From = from,
                 To = to,
-                FromSymbol = symbol,
+                Symbol = symbol,
                 Amount = amount,
                 Memo = memo,
             });
@@ -83,7 +84,7 @@ namespace AElf.Contracts.MultiToken
         {
             var existing = State.TokenInfos[tokenInfo.Symbol];
             Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
-            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) & tokenInfo.Symbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), $"Invalid token name. {tokenInfo.Symbol}");
             Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
@@ -117,10 +118,10 @@ namespace AElf.Contracts.MultiToken
             var owner = State.Owner.Value;
             if (owner != null)
                 return owner;
-            var parliamentAuthContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            owner = Context.Call<Address>(parliamentAuthContractAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetDefaultOrganizationAddress),
+            var parliamentContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            owner = Context.Call<Address>(parliamentContractAddress,
+                nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
                 new Empty());
             State.Owner.Value = owner;
             return owner;

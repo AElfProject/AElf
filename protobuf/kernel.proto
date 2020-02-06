@@ -63,6 +63,9 @@ message TransactionTrace {
     TransactionExecutingStateSet state_set = 13;
     string readable_return_value = 14;
     TransactionFee transaction_fee = 15;
+    ConsumedResourceTokens consumed_resource_tokens = 16;
+    int32 execution_call_count = 17;
+    int32 execution_branch_count = 18;
 }
 
 message ExecutionReturnSet {
@@ -177,7 +180,14 @@ message TransactionBlockIndex {
     repeated BlockIndex previous_execution_block_index_list = 3;
 }
 
-message ChainContractInfo{
-    int32 chain_id = 1;
-    map<string,int64> contract_infos= 2;
+message SmartContractCodeHistory
+{
+    repeated SmartContractCode codes = 1;
+}
+
+message SmartContractCode
+{
+    aelf.Hash code_hash = 1;
+    aelf.Hash block_hash = 2;
+    int64 block_height = 3;
 }

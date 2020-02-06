@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.C";
+
+service CContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.C.CContractState";
+    option (aelf.base) = "acs1.proto";
+
+    //Actions
+    rpc InitializeC(aelf.Address) returns (google.protobuf.Empty) {
+    }
+
+    rpc ExecuteCC(google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    rpc ExecuteCA(google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    rpc ExecuteCB(google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    rpc ExecuteLoopABC(google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc CallCC(aelf.Address) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc CallCA(aelf.Address) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc CallCB(aelf.Address) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc CallLoopABC(aelf.Address) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+}

@@ -71,18 +71,5 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             balance.Balance.ShouldBe(1000_000_00000000L);
         }
-
-        [Fact]
-        public async Task SetResourceTokenUnitPrice_Test()
-        {
-            var result = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
-                new SetResourceTokenUnitPriceInput()
-                {
-                    NetUnitPrice = 10L,
-                    CpuUnitPrice = 10L,
-                    StoUnitPrice = 10L
-                });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
     }
 }

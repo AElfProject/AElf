@@ -3,7 +3,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -32,7 +32,7 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
             services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
             services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
-            services.AddStoreKeyPrefixProvide<ChainContractInfo>("cc");
+            services.AddStoreKeyPrefixProvide<SmartContractCodeHistory>("sc");
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");

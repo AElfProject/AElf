@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -77,10 +76,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MiningInterval.Value = input.GetMiningInterval();
             SetMinerList(input.GetMinerList(), 1);
 
-            if (!TryToAddRoundInformation(input))
-            {
-                Assert(false, "Failed to add round information.");
-            }
+            AddRoundInformation(input);
 
             Context.LogDebug(() =>
                 $"Initial Miners: {input.RealTimeMinersInformation.Keys.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
@@ -166,7 +162,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -174,10 +170,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Symbol = symbol
                 }).Balance;
                 var amount = balance.Div(minerList.Count);
-                if (amount <= 0) break;
+                Context.LogDebug(() => $"Consensus Contract {symbol} balance: {balance}. Every miner can get {amount}");
+                if (amount <= 0) continue;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
+                    Context.LogDebug(() => $"Will send {amount} {symbol}s to {pubkey}");
                     State.TokenContract.Transfer.Send(new TransferInput
                     {
                         To = address,
@@ -194,13 +192,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty SetMaximumMinersCount(SInt32Value input)
         {
-            if (State.ParliamentAuthContract.Value == null)
+            if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            var genesisOwnerAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();

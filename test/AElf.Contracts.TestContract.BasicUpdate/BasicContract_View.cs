@@ -9,6 +9,14 @@ namespace AElf.Contracts.TestContract.BasicUpdate
     /// </summary>
     public partial class BasicUpdateContract
     {
+        public override StringValue GetContractName(Empty input)
+        {
+            return new StringValue
+            {
+                Value = nameof(BasicUpdateContract)
+            };
+        }
+
         public override MoneyOutput QueryWinMoney(Empty input)
         {
             return new MoneyOutput

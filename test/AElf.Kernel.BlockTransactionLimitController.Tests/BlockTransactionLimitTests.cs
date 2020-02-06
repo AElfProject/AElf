@@ -7,7 +7,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Parliament;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -23,7 +23,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
     {
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub _configurationStub;
-        private ParliamentAuthContractContainer.ParliamentAuthContractStub _parliamentAuthStub;
+        private ParliamentContractContainer.ParliamentContractStub _parliamentContractStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private readonly IBlockchainService _blockchainService;
 
@@ -56,15 +56,14 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow())
             );
             
-            var parliamentAuthContractCode = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("ParliamentAuth")).Value;
-            var parliamentAuthContractAddress = await DeploySystemSmartContract(category, parliamentAuthContractCode,
-                ParliamentAuthSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-            _parliamentAuthStub = GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(parliamentAuthContractAddress,
+            var parliamentContractCode = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Parliament")).Value;
+            var parliamentContractAddress = await DeploySystemSmartContract(category, parliamentContractCode,
+                ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+            _parliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
                 DefaultSenderKeyPair);
             
-            await _parliamentAuthStub.Initialize.SendAsync(new InitializeInput
+            await _parliamentContractStub.Initialize.SendAsync(new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1,
                 ProposerAuthorityRequired = true,
                 PrivilegedProposer = Address.FromPublicKey(DefaultSenderKeyPair.PublicKey)
             });
@@ -76,24 +75,21 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
-            var proposalId = (await _parliamentAuthStub.CreateProposal.SendAsync(new CreateProposalInput
+            var proposalId = (await _parliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = "SetBlockTransactionLimit",
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = new Int32Value {Value = 55}.ToByteString(),
                 ToAddress = ConfigurationContractAddress,
-                OrganizationAddress = await _parliamentAuthStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
+                OrganizationAddress = await _parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
             })).Output;
-            await _parliamentAuthStub.Approve.SendAsync(new ApproveInput
-            {
-                ProposalId = proposalId
-            });
+            await _parliamentContractStub.Approve.SendAsync(proposalId);
            
             {
                 var limit = await _configurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(0, limit.Value);
             }
-            await _parliamentAuthStub.Release.SendAsync(proposalId);
+            await _parliamentContractStub.Release.SendAsync(proposalId);
             {
                 var limit = await _configurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(55, limit.Value);

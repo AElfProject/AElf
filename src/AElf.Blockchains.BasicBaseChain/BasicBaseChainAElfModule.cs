@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
@@ -81,8 +82,11 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
-                    .GetConfiguration().GetValue("Economic:ResourceTokenSymbolList", "RAM,STO,CPU,NET");
+                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
+                    .GetConfiguration()
+                    .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = context.Services
+                    .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
             Configure<ContractOptions>(configuration.GetSection("Contract"));
@@ -90,6 +94,7 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
                     "genesis");
+                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
 
@@ -102,11 +107,9 @@ namespace AElf.Blockchains.BasicBaseChain
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
-                .GetZeroSmartContractAddress();
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
-            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
+            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
 

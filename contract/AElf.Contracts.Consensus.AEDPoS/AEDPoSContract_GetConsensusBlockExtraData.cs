@@ -24,8 +24,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var publicKeyBytes = triggerInformation.Pubkey;
             var pubkey = publicKeyBytes.ToHex();
 
-            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, pubkey);
-
             var information = new AElfConsensusHeaderInformation();
             switch (triggerInformation.Behaviour)
             {
@@ -105,12 +103,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 outValue, signature);
 
             Context.LogDebug(
-                () =>
-                    $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
+                () => $"Previous in value after ApplyNormalConsensusData: " +
+                      $"{updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
 
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
+            UpdateLatestSecretPieces(updatedRound, pubkey, triggerInformation);
+
+            // To publish Out Value.
+            return new AElfConsensusHeaderInformation
+            {
+                SenderPubkey = pubkey.ToByteString(),
+                Round = updatedRound,
+                Behaviour = triggerInformation.Behaviour
+            };
+        }
+
+        private void UpdateLatestSecretPieces(Round updatedRound, string pubkey, AElfConsensusTriggerInformation triggerInformation)
+        {
             foreach (var encryptedPiece in triggerInformation.EncryptedPieces)
             {
                 updatedRound.RealTimeMinersInformation[pubkey].EncryptedPieces
@@ -135,14 +146,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
                 }
             }
-
-            // To publish Out Value.
-            return new AElfConsensusHeaderInformation
-            {
-                SenderPubkey = pubkey.ToByteString(),
-                Round = updatedRound,
-                Behaviour = triggerInformation.Behaviour
-            };
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataForTinyBlock(Round currentRound,
@@ -166,10 +169,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private AElfConsensusHeaderInformation GetConsensusExtraDataForNextRound(Round currentRound,
             string pubkey, AElfConsensusTriggerInformation triggerInformation)
         {
-            if (!GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound))
-            {
-                Assert(false, "Failed to generate next round information.");
-            }
+            GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound);
 
             if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {

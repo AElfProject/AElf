@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -46,6 +45,8 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = new DataCenterRankingList();
 
+            InitializeVoteWeightInterest();
+
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -77,7 +78,24 @@ namespace AElf.Contracts.Election
 
         public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
         {
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+            
+            Assert(State.AEDPoSContract.Value == Context.Sender, "No permission.");
+
             SavePreviousTermInformation(input);
+
+            if (State.ProfitContract.Value == null)
+            {
+                var profitContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                // Return if profit contract didn't deployed. (Often in test cases.)
+                if (profitContractAddress == null) return new Empty();
+                State.ProfitContract.Value = profitContractAddress;
+            }
 
             // Update snapshot of corresponding voting record by the way.
             State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
@@ -88,12 +106,6 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
-
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
@@ -102,11 +114,7 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
+
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
@@ -133,6 +141,8 @@ namespace AElf.Contracts.Election
                 EndRoundNumber = input.RoundNumber
             };
 
+            if (State.Candidates.Value == null) return;
+
             foreach (var pubkey in State.Candidates.Value.Value)
             {
                 var votes = State.CandidateVotes[pubkey.ToHex()];
@@ -148,25 +158,17 @@ namespace AElf.Contracts.Election
             State.Snapshots[input.TermNumber] = snapshot;
         }
 
-        private void UpdateCandidateInformation(string publicKey, long lastTermNumber,
+        private void UpdateCandidateInformation(string pubkey, long lastTermNumber,
             List<string> previousMiners)
         {
-            var candidateInformation = State.CandidateInformationMap[publicKey];
+            var candidateInformation = State.CandidateInformationMap[pubkey];
+            if (candidateInformation == null) return;
             candidateInformation.Terms.Add(lastTermNumber);
-
             var victories = GetVictories(previousMiners);
-
-            if (victories.Contains(publicKey.ToByteString()))
-            {
-                candidateInformation.ContinualAppointmentCount =
-                    candidateInformation.ContinualAppointmentCount.Add(1);
-            }
-            else
-            {
-                candidateInformation.ContinualAppointmentCount = 0;
-            }
-
-            State.CandidateInformationMap[publicKey] = candidateInformation;
+            candidateInformation.ContinualAppointmentCount = victories.Contains(pubkey.ToByteString())
+                ? candidateInformation.ContinualAppointmentCount.Add(1)
+                : 0;
+            State.CandidateInformationMap[pubkey] = candidateInformation;
         }
 
         #endregion
@@ -178,6 +180,10 @@ namespace AElf.Contracts.Election
         /// <returns></returns>
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only consensus contract can update candidate information.");
+
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
             if (candidateInformation == null)
             {
@@ -210,6 +216,10 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
         {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only consensus contract can update candidate information.");
+
             foreach (var updateCandidateInformationInput in input.Value)
             {
                 UpdateCandidateInformation(updateCandidateInformationInput);

@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+using System.Linq;
+using Acs1;
+using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -13,35 +15,89 @@ namespace AElf.Contracts.CrossChain
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-
-            //State.AuthorizationContract.Value = authorizationContractAddress;
-            State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
-            if (Context.CurrentHeight != Constants.GenesisBlockHeight) 
+            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal
+            {
+                Status = CrossChainIndexingProposalStatus.NonProposed
+            };
+
+            CreateInitialOrganizationForInitialControllerAddress();
+            if (Context.CurrentHeight != Constants.GenesisBlockHeight)
                 return new Empty();
-            
+
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
+
+            return new Empty();
+        }
+
+        public override Empty SetInitialControllerAddress(Address input)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
+            var parliamentContractAddress = State.ParliamentContract.Value;
+            Assert(parliamentContractAddress == Context.Sender, "No permission.");
+            var initialAuthorityInfo = new AuthorityInfo
+            {
+                OwnerAddress = input,
+                ContractAddress = parliamentContractAddress
+            };
+            State.CrossChainIndexingController.Value = initialAuthorityInfo;
+            State.SideChainLifetimeController.Value = initialAuthorityInfo;
             return new Empty();
         }
 
         #region Side chain lifetime actions
 
+        public override Empty RequestSideChainCreation(SideChainCreationRequest input)
+        {
+            Assert(State.ProposedSideChainCreationRequest[Context.Sender] == null,
+                "Request side chain creation failed.");
+            AssertValidSideChainCreationRequest(input, Context.Sender);
+            ProposeNewSideChain(input, Context.Sender);
+            State.ProposedSideChainCreationRequest[Context.Sender] = input;
+            return new Empty();
+        }
+
+        public override Empty ReleaseSideChainCreation(ReleaseSideChainCreationInput input)
+        {
+            var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
+            Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
+            if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
+                Context.SendInline(State.SideChainLifetimeController.Value.ContractAddress,
+                    nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
+                    input.ProposalId);
+            return new Empty();
+        }
+
         /// <summary>
         /// Create side chain. It is a proposal result from system address.
         /// </summary>
-        /// <param name="sideChainCreationRequest"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt32Value CreateSideChain(SideChainCreationRequest sideChainCreationRequest)
+        public override SInt32Value CreateSideChain(CreateSideChainInput input)
         {
-            // side chain creation should be triggered by organization address from parliament.
-            CheckOwnerAuthority();
+            // side chain creation should be triggered by organization address.
+            AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
-            Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
-                "Invalid chain creation request.");
+            var proposedSideChainCreationRequest = State.ProposedSideChainCreationRequest[input.Proposer];
+            State.ProposedSideChainCreationRequest.Remove(input.Proposer);
+            var sideChainCreationRequest = input.SideChainCreationRequest;
+            Assert(
+                proposedSideChainCreationRequest != null &&
+                proposedSideChainCreationRequest.Equals(sideChainCreationRequest),
+                "Side chain creation failed without proposed data.");
+            AssertValidSideChainCreationRequest(sideChainCreationRequest, input.Proposer);
+
+            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
+            var serialNumber = State.SideChainSerialNumber.Value;
+            var chainId = GetChainId(serialNumber);
+            State.AcceptedSideChainCreationRequest[chainId] = sideChainCreationRequest;
+
+            // lock token
+            ChargeSideChainIndexingFee(input.Proposer, sideChainCreationRequest.LockedTokenAmount, chainId);
 
             var sideChainTokenInfo = new SideChainTokenInfo
             {
@@ -49,22 +105,18 @@ namespace AElf.Contracts.CrossChain
                 Symbol = sideChainCreationRequest.SideChainTokenSymbol,
                 TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
                 Decimals = sideChainCreationRequest.SideChainTokenDecimals,
-                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
+                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
             };
-            
-            AssertSideChainTokenInfo(sideChainTokenInfo);
-            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
-            var serialNumber = State.SideChainSerialNumber.Value;
-            int chainId = GetChainId(serialNumber);
+            CreateSideChainToken(sideChainTokenInfo, chainId, input.Proposer);
 
-            // lock token and resource
-            CreateSideChainToken(sideChainCreationRequest, sideChainTokenInfo, chainId);
             var sideChainInfo = new SideChainInfo
             {
-                Proposer = Context.Origin,
+                Proposer = input.Proposer,
                 SideChainId = chainId,
                 SideChainStatus = SideChainStatus.Active,
-                SideChainCreationRequest = sideChainCreationRequest,
+                IndexingPrice = sideChainCreationRequest.IndexingPrice,
+                IsPrivilegePreserved = sideChainCreationRequest.IsPrivilegePreserved,
                 CreationTimestamp = Context.CurrentBlockTime,
                 CreationHeightOnParentChain = Context.CurrentHeight
             };
@@ -78,10 +130,17 @@ namespace AElf.Contracts.CrossChain
                                        initialConsensusInfo.MinerList.Pubkeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
 
-            Context.Fire(new CreationRequested()
+            var initialResourceAmount = input.SideChainCreationRequest?.InitialResourceAmount;
+            if (initialResourceAmount != null)
+            {
+                InitialResourceUsage(chainId, initialResourceAmount);
+            }
+
+            CreateOrganizationForIndexingFeePriceAdjustment(input.Proposer);
+            Context.Fire(new SideChainCreatedEvent
             {
                 ChainId = chainId,
-                Creator = Context.Origin
+                Creator = input.Proposer
             });
             return new SInt32Value() {Value = chainId};
         }
@@ -94,20 +153,41 @@ namespace AElf.Contracts.CrossChain
         public override Empty Recharge(RechargeInput input)
         {
             var chainId = input.ChainId;
-            var amount = input.Amount;
             var sideChainInfo = State.SideChainInfo[chainId];
-            Assert(sideChainInfo != null && sideChainInfo.SideChainStatus == SideChainStatus.Active,
+            Assert(sideChainInfo != null && sideChainInfo.SideChainStatus != SideChainStatus.Terminated,
                 "Side chain not found or not able to be recharged.");
-            State.IndexingBalance[chainId] = State.IndexingBalance[chainId] + amount;
+            var oldBalance = State.IndexingBalance[chainId];
+            var newBalance = oldBalance + input.Amount;
+            Assert(newBalance >= sideChainInfo.IndexingPrice, "Indexing fee recharging not enough.");
+            State.IndexingBalance[chainId] = newBalance;
 
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = Context.Variables.NativeSymbol,
-                Amount = amount,
-                Memo = "Recharge."
+                Amount = input.Amount,
+                Memo = "Indexing fee recharging."
             });
+            
+            if (oldBalance < 0)
+            {
+                // arrears
+                foreach (var arrears in sideChainInfo.ArrearsInfo)
+                {
+                    Transfer(new TransferInput
+                    {
+                        To = Address.Parser.ParseFrom(ByteString.FromBase64(arrears.Key)),
+                        Symbol = Context.Variables.NativeSymbol,
+                        Amount = arrears.Value,
+                        Memo = "Indexing fee recharging."
+                    });
+                }
+            }
+            
+            sideChainInfo.ArrearsInfo.Clear();
+            sideChainInfo.SideChainStatus = SideChainStatus.Active;
+            State.SideChainInfo[chainId] = sideChainInfo;
             return new Empty();
         }
 
@@ -118,13 +198,12 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override SInt64Value DisposeSideChain(SInt32Value input)
         {
-            CheckOwnerAuthority();
+            AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
             var chainId = input.Value;
             var info = State.SideChainInfo[chainId];
             Assert(info != null, "Side chain not found.");
-            Assert(Context.Origin.Equals(info.Proposer), "No permission.");
-            Assert(info.SideChainStatus == SideChainStatus.Active, "Incorrect chain status.");
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Incorrect chain status.");
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
@@ -136,144 +215,126 @@ namespace AElf.Contracts.CrossChain
             return new SInt64Value {Value = chainId};
         }
 
+        public override Empty AdjustIndexingFeePrice(AdjustIndexingFeeInput input)
+        {
+            var info = State.SideChainInfo[input.SideChainId];
+            Assert(info != null && info.SideChainStatus != SideChainStatus.Terminated,
+                "Side chain not found or incorrect side chain status.");
+            Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
+            var sideChainCreator = info.Proposer;
+            var expectedOrganizationAddress =
+                CalculateSideChainIndexingFeeControllerOrganizationAddress(sideChainCreator);
+            Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
+            info.IndexingPrice = input.IndexingFee;
+            var balance = State.IndexingBalance[input.SideChainId];
+            if (balance < info.IndexingPrice)
+                info.SideChainStatus = SideChainStatus.InsufficientBalance;
+            State.SideChainInfo[input.SideChainId] = info;
+            return new Empty();
+        }
+
         #endregion Side chain lifetime actions
 
-        #region Cross chain actions
+        #region Cross chain indexing actions
 
-        public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
+        /// <summary>
+        /// Propose cross chain block data to be indexed and create a proposal.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
+        {
+            AssertValidCrossChainIndexingProposer(Context.Sender);
+            ClearExpiredCrossChainIndexingProposalIfExists();
+            AssertValidCrossChainDataBeforeIndexing(input);
+            ProposeCrossChainBlockData(input, Context.Sender);
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Feed back from proposal creation as callback to register proposal Id.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
+        {
+            AssertAddressIsParliamentContract(Context.Sender);
+            var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
+            AssertIsCrossChainBlockDataAlreadyProposed(crossChainIndexingProposal);
+            crossChainIndexingProposal.ProposalId = input;
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Release cross chain block data proposed before and trigger the proposal to release.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty ReleaseCrossChainIndexing(Hash input)
+        {
+            AssertValidCrossChainIndexingProposer(Context.Sender);
+            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
+                out var pendingCrossChainIndexingProposal);
+            Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
+                "Cross chain indexing pending proposal not found.");
+            HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId, pendingCrossChainIndexingProposal);
+            return new Empty();
+        }
+
+        public override Empty RecordCrossChainData(RecordCrossChainDataInput input)
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
-            
-            AssertCurrentMiner();
+            AssertCrossChainIndexingControllerAuthority(Context.Sender);
+            AssertIsCrossChainBlockDataToBeReleased(input);
 
-            var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
-            Assert(indexedCrossChainData == null); // This should not fail without evil miners.
-            
-            var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
+            var indexedParentChainBlockData =
+                IndexParentChainBlockData(input.ProposedCrossChainData.ParentChainBlockDataList);
 
-            if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
+            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
             {
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.Fire(new ParentChainBlockDataIndexed());
+                Context.LogDebug(() =>
+                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
             }
 
-            var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
-            State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+            var indexedSideChainBlockData = IndexSideChainBlockData(
+                input.ProposedCrossChainData.SideChainBlockDataList,
+                input.Proposer);
 
-            if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
-                Context.Fire(new SideChainBlockDataIndexed());
+            if (indexedSideChainBlockData.SideChainBlockDataList.Count > 0)
+            {
+                State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+                Context.LogDebug(() =>
+                    $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
+                Context.Fire(new SideChainBlockDataIndexedEvent());
+            }
+
+            ResetCrossChainIndexingProposal();
 
             Context.LogDebug(() => "Finished RecordCrossChainData.");
 
             return new Empty();
         }
 
-        /// <summary>
-        /// Index parent chain block data.
-        /// </summary>
-        /// <param name="parentChainBlockData"></param>
-        private IndexedParentChainBlockData IndexParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
-        {
-            var parentChainId = State.ParentChainId.Value;
-            var currentHeight = State.CurrentParentChainHeight.Value;
-            var indexedParentChainBlockData = new IndexedParentChainBlockData
-            {
-                LocalChainHeight = Context.CurrentHeight
-            };
-            for (var i = 0; i < parentChainBlockData.Count; i++)
-            {
-                var blockInfo = parentChainBlockData[i];
-                AssertParentChainBlock(parentChainId, currentHeight, blockInfo);
-                long parentChainHeight = blockInfo.Height;
-                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] =
-                    blockInfo.TransactionStatusMerkleTreeRoot;
-                foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
-                {
-                    BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
-                    AddIndexedTxRootMerklePathInParentChain(indexedBlockInfo.Key, indexedBlockInfo.Value);
-                }
-
-                // send consensus data shared from main chain  
-                if (i == parentChainBlockData.Count - 1 &&
-                    blockInfo.ExtraData.TryGetValue(ConsensusExtraDataName, out var bytes))
-                {
-                    Context.LogDebug(() => "Updating consensus information..");
-                    UpdateCurrentMiners(bytes);
-                }
-
-                if (blockInfo.CrossChainExtraData != null)
-                    State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
-                        blockInfo.CrossChainExtraData.TransactionStatusMerkleTreeRoot;
-                
-                indexedParentChainBlockData.ParentChainBlockData.Add(blockInfo);
-                currentHeight += 1;
-            }
-
-            State.CurrentParentChainHeight.Value = currentHeight;
-            return indexedParentChainBlockData;
-        }
-
-        /// <summary>
-        /// Index side chain block data.
-        /// </summary>
-        /// <param name="sideChainBlockData">Side chain block data to be indexed.</param>
-        /// <returns>Valid side chain block data which are indexed.</returns>
-        private IndexedSideChainBlockData IndexSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
-        {
-            var indexedSideChainBlockData = new IndexedSideChainBlockData();
-            foreach (var blockInfo in sideChainBlockData)
-            {
-                var chainId = blockInfo.ChainId;
-                var info = State.SideChainInfo[chainId];
-                if (info == null || info.SideChainStatus != SideChainStatus.Active)
-                    continue;
-                var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-
-                var target = currentSideChainHeight != 0
-                    ? currentSideChainHeight + 1
-                    : Constants.GenesisBlockHeight;
-                long sideChainHeight = blockInfo.Height;
-                if (target != sideChainHeight)
-                    continue;
-
-                // indexing fee
-                var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
-                var lockedToken = State.IndexingBalance[chainId];
-
-                lockedToken -= indexingPrice;
-                State.IndexingBalance[chainId] = lockedToken;
-
-                if (lockedToken < indexingPrice)
-                {
-                    info.SideChainStatus = SideChainStatus.Terminated;
-                }
-
-                State.SideChainInfo[chainId] = info;
-
-                if (indexingPrice > 0)
-                {
-                    Transfer(new TransferInput
-                    {
-                        To = Context.Sender,
-                        Symbol = Context.Variables.NativeSymbol,
-                        Amount = indexingPrice,
-                        Memo = "Index fee."
-                    });
-                }
-
-                State.CurrentSideChainHeight[chainId] = sideChainHeight;
-                indexedSideChainBlockData.SideChainBlockData.Add(blockInfo);
-            }
-
-            return indexedSideChainBlockData;
-        }
-
         #endregion Cross chain actions
 
-        public override Empty ChangOwnerAddress(Address input)
+        public override Empty ChangeCrossChainIndexingController(AuthorityInfo input)
         {
-            CheckOwnerAuthority();
-            State.Owner.Value = input;
+            AssertCrossChainIndexingControllerAuthority(Context.Sender);
+            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            Assert(
+                input.ContractAddress == State.ParliamentContract.Value &&
+                ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
+            State.CrossChainIndexingController.Value = input;
+            return new Empty();
+        }
+
+        public override Empty ChangeSideChainLifetimeController(AuthorityInfo input)
+        {
+            AssertSideChainLifetimeControllerAuthority(Context.Sender);
+            Assert(ValidateAuthorityInfoExists(input), "Invalid authority input.");
+            State.SideChainLifetimeController.Value = input;
             return new Empty();
         }
     }

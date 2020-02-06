@@ -4,8 +4,8 @@ namespace AElf.CrossChain
     {
         public const int WaitingIntervalInMillisecond = 10;
         public const int ChainCacheEntityCapacity = 1024;
-        public const int MinimalBlockCacheEntityCount = 128;
+        public const int DefaultBlockCacheEntityCount = 256;
         public const int LibHeightOffsetForCrossChainIndex = 0;
-        public const string CrossChainIndexingMethodName = "RecordCrossChainData";
+        public const string CrossChainExtraDataNamePrefix = "CrossChain";
     }
 }

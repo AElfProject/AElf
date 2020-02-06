@@ -1,9 +1,11 @@
+using Acs1;
+using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
 namespace AElf.Contracts.TestContract.Performance
 {
-    public partial class PerformanceContractState : ContractState
+    public class PerformanceContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         
@@ -14,5 +16,9 @@ namespace AElf.Contracts.TestContract.Performance
         public MappedState<Address, string> Content { get; set; }
         
         public MappedState<Address, long, long> MapContent { get; set; }
+        
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
+        
+        internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
     }
 }

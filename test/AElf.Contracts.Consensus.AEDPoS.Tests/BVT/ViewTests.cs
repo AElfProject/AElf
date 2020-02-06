@@ -1,15 +1,15 @@
 using System.Threading.Tasks;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Xunit;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
+        [IgnoreOnCIFact]
         public async Task Query_RoundInformation_Test()
         {
             //first round

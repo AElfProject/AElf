@@ -19,10 +19,20 @@ namespace AElf.Launcher
 
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
-            if (!File.Exists(assemblyPath)) return null;
-            Assembly assembly = Assembly.LoadFrom(assemblyPath);
+            var folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath))
+            {
+                if (assemblyPath.Contains("Contract"))
+                {
+                    assemblyPath = assemblyPath.Substring(0,
+                        assemblyPath.IndexOf("bin", StringComparison.Ordinal) - 1);
+                    assemblyPath = Path.Combine(assemblyPath, "contracts", new AssemblyName(args.Name).Name + ".dll");
+                }
+                else
+                    return null;
+            }
+            var assembly = Assembly.LoadFrom(assemblyPath);
             return assembly;
         }
 

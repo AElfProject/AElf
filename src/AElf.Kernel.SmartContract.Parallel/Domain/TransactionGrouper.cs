@@ -81,7 +81,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 Logger.LogTrace("Completed transaction grouping.");
             }
 
-            Logger.LogDebug($"From {transactions.Count} transactions, grouped into " +
+            Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 

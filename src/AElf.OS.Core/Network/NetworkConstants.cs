@@ -4,6 +4,7 @@ namespace AElf.OS.Network
 {
     public static class NetworkConstants
     {
+        public const int DefaultSslCertifFetchTimeout = 3000;
         public const int DefaultPeerDialTimeout = 3000;
         public const int DefaultPeerRecoveryTimeout = 3000;
         public const bool DefaultCompressBlocks = true;
@@ -26,7 +27,7 @@ namespace AElf.OS.Network
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
 
-        public const long HandshakeTimeout = 1000;
+        public const long HandshakeTimeout = 1500;
 
         public const long PeerConnectionTimeout = 10000;
 

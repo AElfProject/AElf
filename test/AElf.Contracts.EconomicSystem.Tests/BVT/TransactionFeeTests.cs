@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
@@ -37,7 +38,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             //set transaction fee
             {
-                await Vote_SetMethodFee(nameof(VoteContractStub.AddOption), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
+                await Vote_SetMethodFee(nameof(VoteContractStub.AddOption),
+                    EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
                 var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
@@ -49,7 +51,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
-        
+
         [Fact]
         public async Task Vote_Execute_AddOption_Test()
         {
@@ -78,6 +80,42 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0);
         }
 
+        [Fact]
+        public async Task ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+
+            var methodFeeController = await EconomicContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName =
+                nameof(EconomicContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+            await ApproveWithAllMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await EconomicContractStub.GetMethodFeeController.CallAsync(new Empty());
+            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+        }
+
         private async Task Profit_SetMethodFee_Test()
         {
             //default fee
@@ -93,7 +131,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             //set transaction fee
             {
-                await Profit_SetMethodFee(nameof(ProfitContractStub.CreateScheme), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
+                await Profit_SetMethodFee(nameof(ProfitContractStub.CreateScheme),
+                    EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
                 var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
@@ -110,7 +149,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task Profit_Execute_CreateScheme_Test()
         {
             await Profit_SetMethodFee_Test();
-            
+
             var tester = SampleECKeyPairs.KeyPairs[11];
             var testerAddress = Address.FromPublicKey(tester.PublicKey);
             var creator = GetProfitContractTester(tester);
@@ -119,7 +158,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            
+
             var transactionResult = await creator.CreateScheme.SendAsync(new CreateSchemeInput
             {
                 ProfitReceivingDuePeriodCount = 10
@@ -133,12 +172,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0); 
+            beforeBalance.ShouldBe(afterBalance + 0 + transactionSize * 0);
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,
@@ -158,29 +197,25 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }.ToByteString(),
                 ToAddress = VoteContractAddress
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
-           createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = createResult.Output;
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
-            {
-                ProposalId = proposalHash,
-            });
-            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            var proposalId = createResult.Output;
+            await ApproveWithAllMinersAsync(proposalId);
+
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task Profit_SetMethodFee(string method, string symbol, long feeAmount)
         {
-            var gensisOwner = await ParliamentAuthContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var gensisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = gensisOwner,
                 ContractMethodName = nameof(ProfitContractStub.SetMethodFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new MethodFees 
+                Params = new MethodFees
                 {
                     MethodName = method,
                     Fees =
@@ -194,31 +229,30 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }.ToByteString(),
                 ToAddress = ProfitContractAddress
             };
-            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = createResult.Output;
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
-            {
-                ProposalId = proposalHash,
-            });
-            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalId = createResult.Output;
+            await ApproveWithAllMinersAsync(proposalId);
+
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
             
-            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        
-        private async Task<VotingItem> RegisterVotingItemAsync(int lastingDays, int optionsCount, bool isLockToken, Address sender,
+
+        private async Task<VotingItem> RegisterVotingItemAsync(int lastingDays, int optionsCount, bool isLockToken,
+            Address sender,
             int totalSnapshotNumber = int.MaxValue)
         {
             var startTime = TimestampHelper.GetUtcNow();
-            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].GetFormatted()).ToList();
+            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].GetFormatted())
+                .ToList();
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = totalSnapshotNumber,
                 EndTimestamp = startTime.AddDays(lastingDays),
                 StartTimestamp = startTime,
-                Options = { options },
+                Options = {options},
                 AcceptedCurrency = EconomicSystemTestConstants.NativeTokenSymbol,
                 IsLockToken = isLockToken
             };
@@ -230,6 +264,34 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 VotingItemId = votingItemId
             });
+        }
+
+        private async Task ApproveWithAllMinersAsync(Hash proposalId)
+        {
+            foreach (var keyPair in InitialCoreDataCenterKeyPairs)
+            {
+                var parliamentContractStub = GetParliamentContractTester(keyPair);
+                var approveResult = await parliamentContractStub.Approve.SendAsync(proposalId);
+                approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+
+        protected async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = organizationAddress,
+                ContractMethodName = methodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = EconomicContractAddress
+            };
+            
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            var proposalId = createResult.Output;
+
+            return proposalId;
         }
     }
 }

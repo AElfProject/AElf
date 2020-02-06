@@ -3,8 +3,15 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.BasicUpdate</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.BasicUpdate</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,8 +22,9 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-    </ItemGroup>
-    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
         <ContractCode Include="..\..\protobuf\test_basic_update_contract.proto">
             <Link>Protobuf\Proto\test_basic_update_contract.proto</Link>
         </ContractCode>

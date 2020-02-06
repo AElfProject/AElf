@@ -8,11 +8,25 @@ namespace AElf.Contracts.Deployer
     {
         static void Main(string[] args)
         {
-            var sourceDllPath = args[0];
-            var code = File.ReadAllBytes(sourceDllPath);
+            var sourcePath = "";
+            var saveAsPath = "";
             
-            // Overwrite
-            File.WriteAllBytes(sourceDllPath, ContractPatcher.Patch(code));
+            // We may later use a proper parser to get arguments if we need to support more
+            if (args[0] != "-overwrite")
+            {
+                sourcePath = args[0];
+                saveAsPath = sourcePath + ".patched";
+                Console.WriteLine($"[SAVING AS] {saveAsPath}");
+            }
+            else
+            {
+                sourcePath = args[1];
+                saveAsPath = sourcePath;
+                Console.WriteLine($"[OVERWRITING] {saveAsPath}");
+            }
+            
+            var code = File.ReadAllBytes(sourcePath);
+            File.WriteAllBytes(saveAsPath, ContractPatcher.Patch(code));
         }
     }
 }

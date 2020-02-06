@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Math;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
 {
@@ -94,12 +94,56 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return new Empty();
         }
 
+        public override Empty TestInfiniteLoop(Empty input)
+        {
+            var stop = false;
+            var list = new List<int>();
+            while (true)
+            {
+                list.Add(int.MaxValue); // Just add any value to exhaust memory
+                if(stop) break;
+            }
+            return new Empty();
+        }
+
+        public override Empty TestInfiniteLoopInSeparateClass(Empty input)
+        {
+            SeparateClass.UseInfiniteLoopInSeparateClass();
+            return new Empty();
+        }
+
+        public override Empty TestInfiniteRecursiveCall(Empty input)
+        {
+            InfiniteRecursiveCall();
+            return new Empty();
+        }
+        
+        private void InfiniteRecursiveCall(string text = "")
+        {
+            text += "TEST";
+            InfiniteRecursiveCall(text);
+        }
+
+        public override Empty TestInfiniteRecursiveCallInSeparateClass(Empty input)
+        {
+            SeparateClass.UseInfiniteRecursiveCallInSeparateClass();
+            return new Empty();
+        }
+
         private class NestedClass
         {
             public static DateTime UseDeniedMemberInNestedClass()
             {
                 return DateTime.Now;
             }
+        }
+
+        public override Int32Value TestGetHashCodeCall(Empty input)
+        {
+            return new Int32Value()
+            {
+                Value = new IMessageInheritedClass().GetHashCode()
+            };
         }
     }
     
@@ -109,5 +153,48 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         {
             return DateTime.Now;
         }
+
+        public static void UseInfiniteLoopInSeparateClass()
+        {
+            var list = new List<int>();
+            while (true)
+            {
+                list.Add(int.MaxValue);
+            }
+        }
+
+        public static void UseInfiniteRecursiveCallInSeparateClass(string text = "")
+        {
+            text += "TEST";
+            UseInfiniteRecursiveCallInSeparateClass(text);
+        }
+    }
+
+    public class IMessageInheritedClass : IMessage
+    {
+        public int Test { get; set; }
+
+        public override int GetHashCode()
+        {
+            Test = base.GetHashCode();
+            return 0;
+        }
+
+        public void MergeFrom(CodedInputStream input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteTo(CodedOutputStream output)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CalculateSize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public MessageDescriptor Descriptor { get; }
     }
 }

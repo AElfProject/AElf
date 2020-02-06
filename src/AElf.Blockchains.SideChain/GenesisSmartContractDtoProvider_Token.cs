@@ -1,13 +1,16 @@
+using System.Linq;
 using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
+using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Blockchains.SideChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(ChainInitializationData chainInitializationData)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(
+            ChainInitializationData chainInitializationData)
         {
             var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[1]);
             var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
@@ -26,20 +29,37 @@ namespace AElf.Blockchains.SideChain
                             IsBurnable = nativeTokenInfo.IsBurnable,
                             Symbol = nativeTokenInfo.Symbol,
                             TokenName = nativeTokenInfo.TokenName,
-                            TotalSupply = nativeTokenInfo.TotalSupply
+                            TotalSupply = nativeTokenInfo.TotalSupply,
+                            IsProfitable = nativeTokenInfo.IsProfitable
                         },
                     ResourceTokenList = resourceTokenList,
                     ChainPrimaryToken = chainPrimaryTokenInfo
                 });
-            
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+
+            foreach (var issueStuff in chainInitializationData.SideChainTokenInitialIssueList)
             {
-                Symbol = chainPrimaryTokenInfo.Symbol,
-                Amount = chainPrimaryTokenInfo.TotalSupply / SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
-                Memo = "Initial issue",
-                To = chainPrimaryTokenInfo.Issuer
-            });
-                
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                {
+                    Symbol = chainPrimaryTokenInfo.Symbol,
+                    Amount = issueStuff.Amount,
+                    Memo = "Initial issue",
+                    To = issueStuff.Address
+                });
+            }
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
+                new InitializeInput
+                {
+                    ResourceAmount =
+                    {
+                        chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
+                            kv => kv.Value)
+                    }
+                });
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
+                chainInitializationData.Creator);
+
             return tokenInitializationCallList;
         }
     }

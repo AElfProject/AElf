@@ -56,16 +56,17 @@ namespace AElf.Contracts.Profit
         {
             var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Scheme not found.");
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
-            var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
-
-            if (profitDetails == null || profitItem == null)
+            if (profitDetails == null)
             {
                 return new SInt64Value {Value = 0};
             }
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
+            // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
                 d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
             ).ToList();
@@ -83,7 +84,7 @@ namespace AElf.Contracts.Profit
                 }
 
                 amount = amount.Add(
-                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, true));
+                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, beneficiary, true));
             }
 
             return new SInt64Value {Value = amount};

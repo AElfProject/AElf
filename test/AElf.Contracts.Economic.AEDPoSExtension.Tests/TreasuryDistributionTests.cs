@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -27,7 +28,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<long> TreasuryDistribution_FirstTerm_Test()
         {
             const long period = 1;
@@ -82,12 +83,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check amount distributed to each scheme.
             {
-                // Miner Basic Reward: -40% (Burned)
+                // Miner Basic Reward: 40%
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount * 2 / 5);
+                    amount.ShouldBe(distributedAmount * 2 / 5);
                 }
 
                 // Backup Subsidy: 20%
@@ -125,7 +126,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_SecondTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
@@ -189,7 +190,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(12);
+                    var previousTermInformation =
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2}).Result;
+                    totalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
@@ -266,7 +270,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return information;
         }
 
-        [Fact(Skip = "Save time.")]
+        [IgnoreOnCIFact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
@@ -330,7 +334,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(17);
+                    var previousTermInformation =
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                    totalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {

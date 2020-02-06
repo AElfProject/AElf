@@ -15,19 +15,42 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ICalculateFeeService _calService;
+        private readonly ICalculateReadCostStrategy _readCostStrategy;
+        private readonly ICalculateWriteCostStrategy _writeCostStrategy;
+        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
+        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
+        
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            ICalculateFeeService calService)
+            ICalculateReadCostStrategy readCostStrategy,
+            ICalculateWriteCostStrategy writeCostStrategy,
+            ICalculateStorageCostStrategy storageCostStrategy,
+            ICalculateTrafficCostStrategy trafficCostStrategy)
         {
             _contextService = contextService;
-            _calService = calService;
+            _readCostStrategy = readCostStrategy;
+            _writeCostStrategy = writeCostStrategy;
+            _storageCostStrategy = storageCostStrategy;
+            _trafficCostStrategy = trafficCostStrategy;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
+        }
+
+        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+            Address contractAddress)
+        {
+            return new TokenContractContainer.TokenContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
+                {
+                    Sender = sender,
+                    ContractAddress = contractAddress
+                }
+            };
         }
 
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
@@ -48,14 +71,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = tokenContractAddress
-                }
-            };
+            var tokenStub = GetTokenContractStub(transactionContext.Transaction.To, tokenContractAddress);
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
@@ -69,23 +85,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            // Transaction size related to NET Token.
-            var netSize = transactionContext.Transaction.Size();
-            // Transaction trace state set writes count related to STO Token.
+            // Transaction size related to TRAFFIC Token.
+            var trafficSize = transactionContext.Transaction.Size();
+            // Transaction trace state set writes count related to STORAGE Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
-            // Transaction trace state set reads count related to CPU Token.
+            // Transaction trace state set reads count related to WRITE Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
-            var netCost = _calService.CalculateFee(FeeType.Net, netSize);
-            var cpuCost = _calService.CalculateFee(FeeType.Cpu, readsCount);
-            var stoCost = _calService.CalculateFee(FeeType.Sto, netSize);
-            var ramCost = _calService.CalculateFee(FeeType.Ram, writesCount);
+            var chainContext = new ChainContext
+            {
+                BlockHash = transactionContext.PreviousBlockHash,
+                BlockHeight = transactionContext.BlockHeight - 1
+            };
+            var trafficCost = await _trafficCostStrategy.GetCostAsync(chainContext, trafficSize);
+            var readCost = await _readCostStrategy.GetCostAsync(chainContext, readsCount);
+            var storageCost = await _storageCostStrategy.GetCostAsync(chainContext, trafficSize);
+            var writeCost = await _writeCostStrategy.GetCostAsync(chainContext, writesCount);
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {
-                    NetCost = netCost,
-                    StoCost = stoCost,
-                    CpuCost = cpuCost,
-                    RamCost = ramCost,
+                    TrafficCost = trafficCost,
+                    StorageCost = storageCost,
+                    ReadCost = readCost,
+                    WriteCost = writeCost,
                     Caller = transactionContext.Transaction.From
                 })).Transaction;
 

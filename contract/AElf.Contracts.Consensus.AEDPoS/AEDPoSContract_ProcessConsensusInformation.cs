@@ -47,14 +47,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var miningInformationUpdated = new MiningInformationUpdated
             {
-                // _processingBlockMinerPubkey is set during above process.
+                // _processingBlockMinerPubkey is set during PreCheck.
                 Pubkey = _processingBlockMinerPubkey,
                 Behaviour = callerMethodName,
                 MiningTime = Context.CurrentBlockTime,
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash
             };
-            Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => $"Synced mining information: {miningInformationUpdated}");
 
             // Make sure the method GetMaximumBlocksCount executed no matter what consensus behaviour is.
@@ -69,6 +68,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Clear cache.
             _processingBlockMinerPubkey = null;
+            
+            if (!IsCurrentMiner(Address.FromPublicKey(Context.RecoverPublicKey())).Value)
+            {
+                Context.LogDebug(() => "[CURRENTMINER]IS NOT CURRENT MINER.");
+            }
         }
 
         private void ProcessNextRound(Round nextRound)
@@ -100,7 +104,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            if (currentRound.TryToDetectEvilMiners(out var evilMiners))
+            if (State.IsMainChain.Value && // Only detect evil miners in Main Chain.
+            currentRound.TryToDetectEvilMiners(out var evilMiners))
             {
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
@@ -116,7 +121,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
+            AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
@@ -159,7 +164,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.FirstRoundNumberOfEachTerm[nextRound.TermNumber] = nextRound.RoundNumber;
 
             // Update rounds information of next two rounds.
-            Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
+            AddRoundInformation(nextRound);
 
             if (!TryToGetPreviousRoundInformation(out var previousRound))
             {
@@ -168,14 +173,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             UpdateCurrentMinerInformationToElectionContract(previousRound);
 
-            DonateMiningReward(previousRound);
-
-            State.TreasuryContract.Release.Send(new ReleaseInput
+            if (DonateMiningReward(previousRound))
             {
-                TermNumber = termNumber
-            });
+                State.TreasuryContract.Release.Send(new ReleaseInput
+                {
+                    TermNumber = termNumber
+                });
 
-            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
+                Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
+            }
 
             State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {
@@ -311,22 +317,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="minersCountInTheory"></param>
         private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
-            LatestProviderToTinyBlocksCount currentValue;
-            if (State.LatestProviderToTinyBlocksCount.Value == null)
+            LatestPubkeyToTinyBlocksCount currentValue;
+            if (State.LatestPubkeyToTinyBlocksCount.Value == null)
             {
-                currentValue = new LatestProviderToTinyBlocksCount
+                currentValue = new LatestPubkeyToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
                     BlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(1)
                 };
-                State.LatestProviderToTinyBlocksCount.Value = currentValue;
+                State.LatestPubkeyToTinyBlocksCount.Value = currentValue;
             }
             else
             {
-                currentValue = State.LatestProviderToTinyBlocksCount.Value;
+                currentValue = State.LatestPubkeyToTinyBlocksCount.Value;
                 if (currentValue.Pubkey == _processingBlockMinerPubkey)
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = currentValue.BlocksCount.Sub(1)
@@ -334,7 +340,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
+                    State.LatestPubkeyToTinyBlocksCount.Value = new LatestPubkeyToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
                         BlocksCount = minersCountInTheory.Sub(1)

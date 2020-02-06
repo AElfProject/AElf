@@ -28,9 +28,7 @@ namespace AElf.Runtime.CSharp
 
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins = null,
-            IEnumerable<string> blackList = null,
-            IEnumerable<string> whiteList = null)
+            IServiceContainer<IExecutivePlugin> executivePlugins = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
@@ -64,7 +62,11 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
+            var executive = new Executive(assembly, _executivePlugins)
+            {
+                ContractHash = reg.CodeHash,
+                IsSystemContract = reg.IsSystemContract
+            };
 
             return await Task.FromResult(executive);
         }

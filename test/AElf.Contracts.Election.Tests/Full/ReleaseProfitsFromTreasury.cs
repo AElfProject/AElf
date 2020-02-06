@@ -104,12 +104,15 @@ namespace AElf.Contracts.Election
 
                 // Basic reward.
                 {
+                    var previousTermInformation =
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 1}).Result;
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
                     releasedInformation.IsReleased.ShouldBeTrue();
-                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.TotalShares.ShouldBe(
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(-rewardAmount * 2 / 5);
+                        .ShouldBe(rewardAmount * 2 / 5);
                 }
 
                 // Amount of basic reward.
@@ -204,17 +207,20 @@ namespace AElf.Contracts.Election
 
                 // Basic reward.
                 {
+                    var previousTermInformation =
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2}).Result;
+                    var totalProducedBlocks =
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
+                    releasedInformation.TotalShares.ShouldBe(totalProducedBlocks);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount * 2 / 5);
-                }
-
-                // Amount of basic reward.
-                {
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount * 2 / 5 / EconomicContractsTestConstants.SupposedMinersCount;
+                    updatedBasicReward += rewardAmount * 2 / 5 *
+                                          previousTermInformation
+                                              .RealTimeMinersInformation[ValidationDataCenterKeyPairs[0].PublicKey.ToHex()]
+                                              .ProducedBlocks / totalProducedBlocks;
                     amount.ShouldBe(updatedBasicReward);
                 }
 
@@ -309,17 +315,20 @@ namespace AElf.Contracts.Election
 
                 // Basic reward.
                 {
+                    var previousTermInformation =
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                    var totalProducedBlocks =
+                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
+                    releasedInformation.TotalShares.ShouldBe(totalProducedBlocks);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount * 2 / 5);
-                }
-
-                // Amount of basic reward.
-                {
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount * 2 / 5 / EconomicContractsTestConstants.SupposedMinersCount;
+                    updatedBasicReward += rewardAmount * 2 / 5 *
+                                          previousTermInformation
+                                              .RealTimeMinersInformation[ValidationDataCenterKeyPairs[0].PublicKey.ToHex()]
+                                              .ProducedBlocks / totalProducedBlocks;
                     amount.ShouldBe(updatedBasicReward);
                 }
 

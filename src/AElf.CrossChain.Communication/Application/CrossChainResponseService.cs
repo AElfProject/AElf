@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -90,7 +91,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             var indexedSideChainBlockData =
                 await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.GetHash(), block.Height);
-            return indexedSideChainBlockData.SideChainBlockData.ToList();
+            return indexedSideChainBlockData.SideChainBlockDataList.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 

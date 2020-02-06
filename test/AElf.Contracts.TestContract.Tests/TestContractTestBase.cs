@@ -148,8 +148,8 @@ namespace AElf.Contract.TestContract
             Acs8ContractStub { get; set; }
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
-        internal static readonly List<string> ResourceTokenSymbols = new List<string> {"RAM", "CPU", "NET", "STO"};
-        internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTRAM", "NTCPU", "NTNET", "NTSTO"};
+        internal static readonly List<string> ResourceTokenSymbols = new List<string> {"WRITE", "READ", "TRAFFIC", "STORAGE"};
+        internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTWRITE", "NTREAD", "NTTRAFFIC", "NTSTORAGE"};
 
         protected async Task DeployTestContracts()
         {
@@ -302,15 +302,6 @@ namespace AElf.Contract.TestContract
                     });
                     CheckResult(resourceIssueResult.TransactionResult);
                 }
-
-                var setPriceResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
-                    new SetResourceTokenUnitPriceInput
-                    {
-                        CpuUnitPrice = 100_000L,
-                        NetUnitPrice = 100_000L,
-                        StoUnitPrice = 100_000L
-                    });
-                CheckResult(setPriceResult.TransactionResult);
             }
 
             //initialize token converter

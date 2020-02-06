@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -88,27 +89,11 @@ namespace AElf.OS.Network.Grpc.Connection
         public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             Logger.LogDebug($"Attempting to reach {endpoint}.");
-
-            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
-            {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
-                return false;
-            }
-
-            if (_peerPool.IsPeerBlackListed(endpoint.Host))
-            {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
-                return false;
-            }
-
-            var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
-
+            var dialedPeer = await GetDialedPeerWithEndpointAsync(endpoint);
             if (dialedPeer == null)
             {
-                Logger.LogWarning($"Error dialing {endpoint}.");
                 return false;
             }
-
             var inboundPeer = _peerPool.FindPeerByPublicKey(dialedPeer.Info.Pubkey) as GrpcPeer;
             
             /* A connection already exists, this can happen when both peers dial each other at the same time. To make
@@ -193,6 +178,31 @@ namespace AElf.OS.Network.Grpc.Connection
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
 
+        private async Task<GrpcPeer> GetDialedPeerWithEndpointAsync(DnsEndPoint endpoint)
+        {
+            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
+            {
+                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
+                return null;
+            }
+
+            if (_peerPool.IsPeerBlackListed(endpoint.Host))
+            {
+                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
+                return null;
+            }
+
+            var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
+
+            if (dialedPeer == null)
+            {
+                Logger.LogWarning($"Error dialing {endpoint}.");
+                return null;
+            }
+
+            return dialedPeer;
+        }
+
         public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
         {
             // validate the handshake (signature, chain id...)
@@ -202,6 +212,8 @@ namespace AElf.OS.Network.Grpc.Connection
                 var handshakeError = GetHandshakeError(handshakeValidationResult);
                 return new HandshakeReply {Error = handshakeError};
             }
+            
+            Logger.LogDebug($"peer {endpoint} sent a valid handshake {handshake}");
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             
@@ -210,6 +222,7 @@ namespace AElf.OS.Network.Grpc.Connection
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
+                Logger.LogDebug($"{endpoint} - removing old peer {currentPeer}");
                 _peerPool.RemovePeer(pubkey);
                 await currentPeer.DisconnectAsync(false);
             }
@@ -239,6 +252,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
                 grpcPeer.UpdateLastSentHandshake(replyHandshake);
 
+                Logger.LogDebug($"Sending back handshake to {peerEndpoint}.");
                 return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
             finally

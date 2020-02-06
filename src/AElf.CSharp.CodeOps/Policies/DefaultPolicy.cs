@@ -3,9 +3,12 @@ using System.Globalization;
 using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
 using Mono.Cecil;
@@ -28,6 +31,8 @@ namespace AElf.CSharp.CodeOps.Policies
             WhitelistOthers();
 
             UseMethodValidators();
+            UseModuleValidators();
+            UseAssemblyValidators();
         }
 
         private void WhitelistAssemblies()
@@ -88,8 +93,7 @@ namespace AElf.CSharp.CodeOps.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied)
-                        .Member(nameof(string.Concat), Permission.Denied))
+                        .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
@@ -129,6 +133,11 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
+
+                .Namespace("System.Text", Permission.Denied, type => type
+                    .Type(nameof(Encoding), Permission.Denied, member => member
+                        .Member(nameof(Encoding.UTF8), Permission.Allowed)
+                        .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
                 ;
         }
 
@@ -140,7 +149,21 @@ namespace AElf.CSharp.CodeOps.Policies
                 new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
+                new GetHashCodeValidator(),
             });
+        }
+
+        private void UseModuleValidators()
+        {
+            ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
+            {
+                new ObserverProxyValidator()
+            });
+        }
+
+        private void UseAssemblyValidators()
+        {
+            // None
         }
     }
 }

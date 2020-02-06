@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
@@ -35,13 +36,25 @@ namespace AElf.OS.Network
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
+            //invalid address
+            var result = await _networkService.RemovePeerAsync(peerPubKey);
+            result.ShouldBeFalse();
+            
             await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
             _blackListProvider.IsIpBlackListed(host).ShouldBeFalse();
             
             await _networkService.RemovePeerByPubkeyAsync(peerPubKey, true);
             _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
         }
-        
+
+        [Fact]
+        public async Task AddInvalidPeer_Test()
+        {
+            var endpoint = "ipv6:192.168.197.54";
+            var result = await _networkService.AddPeerAsync(endpoint);
+            result.ShouldBeFalse();
+
+        }
         [Fact]
         public async Task AddPeerAsync_CannotAddBlacklistedPeer()
         {
@@ -105,14 +118,6 @@ namespace AElf.OS.Network
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "p1");
             Assert.NotNull(block);
         }
-        
-        [Fact]
-        public async Task GetBlockByHash_NetworkException_ReturnsNonSuccessfulResponse()
-        {
-            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
-            response.Success.ShouldBeFalse();
-            response.Payload.ShouldBeNull();
-        }
 
         #endregion GetBlockByHash
 
@@ -122,6 +127,17 @@ namespace AElf.OS.Network
         public void GetPeers_ShouldIncludeFailing()
         {
             Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
+        }
+
+        [Fact]
+        public void GetPeersByPubKey()
+        {
+            var peer = _networkService.GetPeerByPubkey("p1");
+            peer.ShouldNotBeNull();
+
+            var fakePubkey = Cryptography.CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
+            peer = _networkService.GetPeerByPubkey(fakePubkey);
+            peer.ShouldBeNull();
         }
 
         #endregion GetPeers

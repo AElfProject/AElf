@@ -1,8 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
-using AElf.Kernel;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Modularity;

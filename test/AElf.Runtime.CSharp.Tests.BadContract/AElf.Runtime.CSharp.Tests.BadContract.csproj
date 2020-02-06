@@ -5,6 +5,7 @@
         <RootNamespace>AElf.Runtime.CSharp.Tests.BadContract</RootNamespace>
         <IsPackable>false</IsPackable>
         <IsContract>true</IsContract>
+        <PatchOverwrite>true</PatchOverwrite>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>

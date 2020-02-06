@@ -85,6 +85,9 @@ service AEDPoSContract {
     rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetPreviousTermInformation (aelf.SInt64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {
@@ -99,15 +102,15 @@ message UpdateValueInput {
     aelf.Hash out_value = 1; // Calculated from current in value.
     aelf.Hash signature = 2; // Calculated from current in value and signatures of previous round.
     sint64 round_id = 3; // To ensure the values to update will be apply to correct round by comparing round id.
-    aelf.Hash previous_in_value = 5; // Publish previous in value for validation previous signature and previous out value.
-    google.protobuf.Timestamp actual_mining_time = 6;
-    sint32 supposed_order_of_next_round = 7;
-    map<string, int32> tune_order_information = 8;
-    map<string, bytes> encrypted_pieces = 9; // For others to recover his in value of current round.
-    map<string, bytes> decrypted_pieces = 10;
-    sint64 produced_blocks = 11;
-    map<string, aelf.Hash> miners_previous_in_values = 12;
-    sint64 implied_irreversible_block_height = 13;
+    aelf.Hash previous_in_value = 4; // Publish previous in value for validation previous signature and previous out value.
+    google.protobuf.Timestamp actual_mining_time = 5;
+    sint32 supposed_order_of_next_round = 6;
+    map<string, int32> tune_order_information = 7;
+    map<string, bytes> encrypted_pieces = 8; // For others to recover his in value of current round.
+    map<string, bytes> decrypted_pieces = 9;
+    sint64 produced_blocks = 10;
+    map<string, aelf.Hash> miners_previous_in_values = 11;
+    sint64 implied_irreversible_block_height = 12;
 }
 
 // The miners public key list for each term.
@@ -135,12 +138,12 @@ message Round {
     map<string, MinerInRound> real_time_miners_information = 2;
     sint64 main_chain_miners_round_number = 3;
     sint64 blockchain_age = 4;
-    string extra_block_producer_of_previous_round = 7;
-    sint64 term_number = 8;
-    sint64 confirmed_irreversible_block_height = 9;
-    sint64 confirmed_irreversible_block_round_number = 10;
-    bool is_miner_list_just_changed = 11;
-    sint64 round_id_for_validation = 12;
+    string extra_block_producer_of_previous_round = 5;
+    sint64 term_number = 6;
+    sint64 confirmed_irreversible_block_height = 7;
+    sint64 confirmed_irreversible_block_round_number = 8;
+    bool is_miner_list_just_changed = 9;
+    sint64 round_id_for_validation = 10;
 }
 
 // The information of a miner in a specific round.
@@ -154,14 +157,14 @@ message MinerInRound {
     sint64 produced_blocks = 7;
     sint64 missed_time_slots = 8;
     string pubkey = 9;
-    aelf.Hash previous_in_value = 12;
-    sint32 supposed_order_of_next_round = 13;
-    sint32 final_order_of_next_round = 14;
-    repeated google.protobuf.Timestamp actual_mining_times = 15;// Miners must fill actual mining time when they do the mining.
-    map<string, bytes> encrypted_pieces = 16;
-    map<string, bytes> decrypted_pieces = 17;
-    sint32 produced_tiny_blocks = 18;
-    sint64 implied_irreversible_block_height = 19;
+    aelf.Hash previous_in_value = 10;
+    sint32 supposed_order_of_next_round = 11;
+    sint32 final_order_of_next_round = 12;
+    repeated google.protobuf.Timestamp actual_mining_times = 13;// Miners must fill actual mining time when they do the mining.
+    map<string, bytes> encrypted_pieces = 14;
+    map<string, bytes> decrypted_pieces = 15;
+    sint32 produced_tiny_blocks = 16;
+    sint64 implied_irreversible_block_height = 17;
 }
 
 message AElfConsensusHeaderInformation {
@@ -233,7 +236,7 @@ message HashList {
     repeated aelf.Hash values = 1;
 }
 
-message LatestProviderToTinyBlocksCount {
+message LatestPubkeyToTinyBlocksCount {
     string pubkey = 1;
     sint64 blocks_count = 2;
 }

@@ -3,12 +3,14 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
+import "acs1.proto";
 import "acs2.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
 
 service BasicFunctionWithParallelContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicFunctionWithParallel.BasicFunctionWithParallelContractState";
+    option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs2.proto";
     //Actions
     rpc InitialBasicFunctionWithParallelContract(InitialBasicFunctionWithParallelContractInput) returns (google.protobuf.Empty){
@@ -119,17 +121,26 @@ service BasicFunctionWithParallelContract {
     }
 
     //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
     }
     rpc QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput) returns (TwoUserMoneyOut) {
+        option (aelf.is_view) = true;
     }
     rpc GetValue(GetValueInput) returns (GetValueOutput){
+        option (aelf.is_view) = true;
     }
 }
 
@@ -148,8 +159,8 @@ message InitialBasicFunctionWithParallelContractInput {
 }
 
 message BetLimitInput {
-    int64 min_value = 2;
-    int64 max_value = 3;
+    int64 min_value = 1;
+    int64 max_value = 2;
 }
 
 message BetInput {

@@ -4,7 +4,7 @@
 
 ### Detailed Description
 
-Defines C# API  functions for cross chain contract.
+Defines C# API functions for cross chain contract.
 
 ## Functions Documentation
 
@@ -27,18 +27,6 @@ Initialize cross-chain-contract.
 
 - **parent_chain_id** - id of parent chain
 - **creation_height_on_parent_chain** - height of side chain creation on parent chain
-
-### function ChangeOwnerAddress
-
-```protobuf
-rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {}
-```
-
-Change the owner address of cross-chain-contract. Only origin owner is permitted to invoke this method to change to new address.
-
-**Parameters:**
-
-- ***Address*** - new contract owner address
 
 ### function CreateSideChain
 
@@ -76,6 +64,53 @@ Create a new side chain. Only contract owner is permitted to invoke this method.
 **Returns:**
 
 Id of a new side chain
+
+### function SetInitialControllerAddress
+
+```protobuf
+rpc SetInitialControllerAddress(aelf.Address) returns (google.protobuf.Empty) { }
+```
+
+Sets the initial controller address.
+
+**Parameters:**
+- **address** : the owner's address.
+
+### function ChangeCrossChainIndexingController
+
+```protobuf
+rpc ChangeCrossChainIndexingController(AuthorityStuff) returns (google.protobuf.Empty) { }
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Changes the indexing controller.
+
+**Parameters:**
+- **AuthorityStuff** : 
+  - contract_address - the address of the contract that generated the owner address.
+  - owner_address - the address of the owner that was generated.
+
+### function ChangeSideChainLifetimeController
+
+```protobuf
+rpc ChangeSideChainLifetimeController(AuthorityStuff) returns (google.protobuf.Empty) { }
+
+message AuthorityStuff {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Changes the side chain's lifetime controller.
+
+**Parameters:**
+- **AuthorityStuff** : 
+  - contract_address - the address of the contract that generated the owner address.
+  - owner_address - the address of the owner that was generated.
 
 ### function Recharge
 
@@ -166,7 +201,7 @@ the id of disposed chain
 ```protobuf
 rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) 
 {
-		option (aelf.is_view) = true;    
+    option (aelf.is_view) = true;    
 }
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
@@ -197,7 +232,7 @@ True if verification succeeded, otherwise false.
 ```protobuf
 rpc GetSideChainCreator (aelf.SInt32Value) returns (aelf.Address)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -214,28 +249,44 @@ Address of side chain creator.
 ### function GetChainStatus
 
 ```protobuf
-rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value)
+rpc GetChainStatus (aelf.SInt32Value) returns (GetChainStatusOutput)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
+}
+
+message GetChainStatusOutput{
+    SideChainStatus status = 1;
+}
+
+enum SideChainStatus
+{
+    FATAL = 0;
+    ACTIVE = 1;
+    INSUFFICIENT_BALANCE = 2;
+    TERMINATED = 3;
 }
 ```
 
-Get current status of the specified side chain
+Gets the current status of the specified side chain.
 
 **Parameters:**
 
-- **SInt32Value** - id of side chain
+- **SInt32Value** - id of side chain.
 
 **Returns:**
 
-Current status of side chain
+Current status of side chain.
+- fatal: currently no meaning.
+- active: the side-chain is being indexed.
+- insufficient balance: not enough balance for indexing.
+- terminated: the side chain cannot be indexed anymore.
 
 ### function GetSideChainHeight
 
 ```protobuf
 rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }   
 ```
 
@@ -254,7 +305,7 @@ Current height of the side chain.
 ```protobuf
 rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -273,7 +324,7 @@ Height of parent chain.
 ```protobuf
 rpc GetParentChainId (google.protobuf.Empty) returns (aelf.SInt32Value)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -292,7 +343,7 @@ Parent chain id.
 ```protobuf
 rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 ```
 
@@ -311,7 +362,7 @@ Balance of the side chain
 ```protobuf
 rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIdAndHeightDict 
 {
@@ -334,7 +385,7 @@ Get id and recorded height of side chains.
 ```protobuf
 rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIndexingInformationList
 {
@@ -364,7 +415,7 @@ Get indexing information of side chains.
 ```protobuf
 rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message SideChainIdAndHeightDict 
 {
@@ -389,7 +440,7 @@ Get id and recorded height of all chains.
 ```protobuf
 rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData)
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
@@ -431,7 +482,7 @@ Get indexed cross chain data by height.
 
 ```protobuf
 rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message IndexedSideChainBlockData
 {
@@ -463,7 +514,7 @@ Get block data of indexed side chain by height
 ```protobuf
 rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message CrossChainMerkleProofContext
 {
@@ -499,7 +550,7 @@ Get merkle path bound up with side chain
 ```protobuf
 rpc GetChainInitializationData (aelf.SInt32Value) returns (ChainInitializationData) 
 {
-		option (aelf.is_view) = true;
+    option (aelf.is_view) = true;
 }
 message ChainInitializationData 
 {

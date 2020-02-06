@@ -3,8 +3,11 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.Performance</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.Performance</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,8 +15,17 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
         <ContractCode Include="..\..\protobuf\test_performance_contract.proto">
             <Link>Protobuf\Proto\test_performance_contract.proto</Link>
         </ContractCode>
+        <ContractReference Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractReference>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
     </ItemGroup>
 </Project>
