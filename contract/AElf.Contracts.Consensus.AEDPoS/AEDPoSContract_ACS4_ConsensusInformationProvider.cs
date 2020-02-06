@@ -25,7 +25,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (State.LatestPubkeyToTinyBlocksCount.Value.Pubkey == _processingBlockMinerPubkey &&
+            if (State.LatestPubkeyToTinyBlocksCount.Value != null &&
+                State.LatestPubkeyToTinyBlocksCount.Value.Pubkey == _processingBlockMinerPubkey &&
                 State.LatestPubkeyToTinyBlocksCount.Value.BlocksCount < 0)
                 return GetConsensusCommand(AElfConsensusBehaviour.NextRound, currentRound, _processingBlockMinerPubkey,
                     Context.CurrentBlockTime);
