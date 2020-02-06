@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
@@ -350,6 +349,10 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"NET", Rental},
                 }
             };
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
+            await TokenStub.InitializeAuthorizedController.SendAsync(new Empty());
             var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             var parliamentOrgAddress = defaultOrganizationAddress;
             var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
@@ -371,10 +374,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     MaximalAbstentionThreshold = 0
                 }
             };
-            
-            var associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
-            var associationAddress = new Address();
-            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var associationAddress = await AssociationStub.CalculateOrganizationAddress.CallAsync(createOrganizationInput2);
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
@@ -397,10 +397,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             await AssociationStub.Approve.SendAsync(associationProposalId);
             await AssociationStub.Release.SendAsync(associationProposalId);
-
-            await CreateToken(
-                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
-                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
+            
             await CreateToken("CPU", ResourceSupply, issueToken);
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);

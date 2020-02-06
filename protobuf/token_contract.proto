@@ -145,6 +145,9 @@ service TokenContract {
     rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
         option (aelf.is_view) = true;
     }
+    rpc GetControllerInfoForUpdateSideChainRental(google.protobuf.Empty) returns (ControllerInfoForUpdateSideChainRental){
+        option (aelf.is_view) = true;
+    }
 
 }
 
@@ -584,5 +587,10 @@ message ControllerForDeveloperFee{
     aelf.Address root_controller = 1;
     aelf.Address parliament_controller = 2;
     aelf.Address developer_controller = 3;
+}
+
+message ControllerInfoForUpdateSideChainRental{
+    aelf.Address controller = 1;
+    bytes organization_creation_input_bytes = 2;
 }
 
