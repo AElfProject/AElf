@@ -32,7 +32,7 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize)
+                nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize), nameof(ResetFields), 
             }.ToDictionary(x => x, x => GetMethodInfo(instanceType, x));
 
             // Add proxy method
@@ -57,6 +57,12 @@ namespace AElf.Runtime.CSharp
             _methodInfos[nameof(Cleanup)].Invoke(_instance, new object[0]);
             _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
                 ?.Invoke(null, new object[] { null });
+            ResetFields();
+        }
+
+        void ResetFields()
+        {
+            _methodInfos[nameof(ResetFields)].Invoke(_instance, new object[0]);
         }
 
         internal void SetExecutionObserver(IExecutionObserver observer)
