@@ -184,5 +184,5 @@ message ReleaseSideChainCreationInput {
 
 message AdjustIndexingFeeInput{
     int32 side_chain_id = 1;
-    int32 indexing_fee = 2;
+    int64 indexing_fee = 2;
 }

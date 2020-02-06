@@ -3,13 +3,13 @@
 For dApp developers we have a javascript sdk to help interact with the node's web API. Of course, you need to run an AELF node to use the sdk.
 If you need more information you can check out the repo : [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js)
 
-## Basic usage
-
-### Examples
+## Examples
 
 You can also see full examples in `./examples`;
 
-1. Create a new instance of AElf, connect to an AELF chain node.
+### 1.Create instance
+
+Create a new instance of AElf, connect to an AELF chain node.
 
     ```javascript
     import AElf from 'aelf-sdk';
@@ -18,7 +18,9 @@ You can also see full examples in `./examples`;
     const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
     ```
 
-2. Create or load a wallet with `AElf.wallet`
+### 2.Create or load a wallet
+
+Create or load a wallet with `AElf.wallet`
 
     ```javascript
     // create a new wallet
@@ -29,7 +31,9 @@ You can also see full examples in `./examples`;
     const mnemonicWallet = AElf.wallet.getWalletByMnemonic('set kite ...');
     ```
 
-3. Get a system contract address, take `AElf.ContractNames.Token` as an example
+### 3.Get a system contract address
+
+Get a system contract address, take `AElf.ContractNames.Token` as an example
 
     ```javascript
     const tokenContractName = 'AElf.ContractNames.Token';
@@ -46,7 +50,9 @@ You can also see full examples in `./examples`;
     })()
     ```
 
-4. Get a contract instance by contract address
+### 4.Get a contract instance
+
+Get a contract instance by contract address
 
     ```javascript
     const wallet = AElf.wallet.createNewWallet();
@@ -68,7 +74,9 @@ You can also see full examples in `./examples`;
 
     ```
 
-5. How to use contract instance
+### 5.Use contract instance
+
+How to use contract instance
 
     A contract instance consists of several contract methods and methods can be called in two ways: read-only and send transaction.
 
@@ -105,7 +113,9 @@ You can also see full examples in `./examples`;
     })()
     ```
 
-6. Change the node endpoint by using `aelf.setProvider`
+### 6.Change the node endpoint
+
+Change the node endpoint by using `aelf.setProvider`
 
     ```javascript
     import AElf from 'aelf-sdk';
@@ -114,7 +124,7 @@ You can also see full examples in `./examples`;
     aelf.setProvider(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
     ```
 
-### Web API
+## Web API
 
 *You can see how the Web Api of the node works in `{chainAddress}/swagger/index.html`*
 _tip: for an example, my local address: 'http://127.0.0.1:1235/swagger/index.html'_
@@ -128,7 +138,7 @@ import AElf from 'aelf-sdk';
 const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
 ```
 
-#### getChainStatus
+### 1.getChainStatus
 
 Get the current status of the block chain.
 
@@ -166,7 +176,7 @@ aelf.chain.getChainStatus()
 })
 ```
 
-#### getContractFileDescriptorSet
+### 2.getContractFileDescriptorSet
 
 Get the protobuf definitions related to a contract
 
@@ -189,7 +199,7 @@ aelf.chain.getContractFileDescriptorSet(contractAddress)
   })
 ```
 
-#### getBlockHeight
+### 3.getBlockHeight
 
 Get current best height of the chain.
 
@@ -213,7 +223,7 @@ aelf.chain.getBlockHeight()
   })
 ```
 
-#### getBlock
+### 4.getBlock
 
 Get block information by block hash.
 
@@ -256,7 +266,7 @@ aelf.chain.getBlock(blockHash, false)
   })
 ```
 
-#### getBlockByHeight
+### 5.getBlockByHeight
 
 _Web API path_
 
@@ -299,7 +309,7 @@ aelf.chain.getBlockByHeight(12, false)
   })
 ```
 
-#### getTxResult
+### 6.getTxResult
 
 Get the result of a transaction
 
@@ -343,7 +353,7 @@ aelf.chain.getTxResult(transactionId)
   })
 ```
 
-#### getTxResults
+### 7.getTxResults
 
 Get multiple transaction results in a block
 
@@ -369,7 +379,7 @@ aelf.chain.getTxResults(blockHash, 0, 2)
   })
 ```
 
-#### getTransactionPoolStatus
+### 8.getTransactionPoolStatus
 
 Get the transaction pool status.
 
@@ -381,7 +391,7 @@ _Parameters_
 
 Empty
 
-#### sendTransaction
+### 9.sendTransaction
 
 Broadcast a transaction
 
@@ -398,7 +408,7 @@ _Parameters_
 
 usually developers don't need to use this function directly, just get a contract method and send transaction by call contract method:
 
-#### sendTransactions
+### 10.sendTransactions
 
 Broadcast multiple transactions
 
@@ -409,7 +419,7 @@ _Parameters_
 `Object` - The object with the following structure :
 - `RawTransaction - String`
 
-#### callReadOnly
+### 11.callReadOnly
 
 Call a read-only method on a contract.
 
@@ -420,25 +430,25 @@ _Parameters_
 `Object` - The object with the following structure :
 - `RawTransaction - String`
 
-#### getPeers
+### 12.getPeers
 
 Get peer info about the connected network nodes
 
-#### addPeer
+### 13.addPeer
 
 Attempts to add a node to the connected network nodes
 
-#### removePeer
+### 14.removePeer
 
 Attempts to remove a node from the connected network nodes
 
-### AElf.wallet
+## AElf.wallet
 
 `AElf.wallet` is a static property of `AElf`.
 
 _Use the api to see detailed results_
 
-#### createNewWallet
+### 1.createNewWallet
 
 _Returns_
 
@@ -457,7 +467,7 @@ import AElf from 'aelf-sdk';
 const wallet = AElf.wallet.createNewWallet();
 ```
 
-#### getWalletByMnemonic
+### 2.getWalletByMnemonic
 
 _Parameters_
 
@@ -472,7 +482,7 @@ _Example_
 const wallet = AElf.wallet.getWalletByMnemonic(mnemonic);
 ```
 
-#### getWalletByPrivateKey
+### 3.getWalletByPrivateKey
 
 _Parameters_
 
@@ -487,7 +497,7 @@ _Example_
 const wallet = AElf.wallet.getWalletByPrivateKey(privateKey);
 ```
 
-#### signTransaction
+### 4.signTransaction
 
 Use wallet `keypair` to sign a transaction
 
@@ -504,7 +514,7 @@ _Example_
 const result = aelf.wallet.signTransaction(rawTxn, keyPair);
 ```
 
-#### AESEncrypt
+### 5.AESEncrypt
 
 Encrypt a string by aes algorithm
 
@@ -517,7 +527,7 @@ _Returns_
 
 `String`
 
-#### AESDecrypt
+### 6.AESDecrypt
 
 Decrypt by aes algorithm
 
@@ -530,30 +540,29 @@ _Returns_
 
 `String`
 
-
-### AElf.pbjs
+## AElf.pbjs
 
 The reference to protobuf.js, read the [documentation](https://github.com/protobufjs/protobuf.js) to see how to use.
 
-### AElf.pbUtils
+## AElf.pbUtils
 
 Some basic format methods of aelf.
 
 For more information, please see the code in `src/utils/proto.js`. It is simple and easy to understand.
 
-### AElf.version
+## AElf.version
 
 ```javascript
 import AElf from 'aelf-sdk';
 AElf.version // eg. 3.2.23
 ```
 
-### Requirements
+## Requirements
 
 - [Node.js](https://nodejs.org)
 - [NPM](http://npmjs.com/)
 
-### Support
+## Support
 
 ![browsers](https://img.shields.io/badge/browsers-latest%202%20versions-brightgreen.svg)
 ![node](https://img.shields.io/badge/node->=10-green.svg)

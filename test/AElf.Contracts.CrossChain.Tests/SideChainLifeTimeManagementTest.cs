@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
@@ -539,7 +540,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task Disposal_SideChain()
+        public async Task DisposeSideChain()
         {
             long lockedTokenAmount = 10;
             await InitializeCrossChainContractAsync();
@@ -571,10 +572,20 @@ namespace AElf.Contracts.CrossChain.Tests
                 Symbol = "ELF"
             });
             Assert.True(balanceAfterDisposal.Balance == 0);
+            
+            // try to adjust indexing fee after disposal
+            var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
+                new AdjustIndexingFeeInput
+                {
+                    SideChainId = chainId,
+                    IndexingFee = lockedTokenAmount - 1
+                });
+            indexingFeeAdjustingTx.TransactionResult.Error.ShouldContain(
+                "Side chain not found or incorrect side chain status.");
         }
 
         [Fact]
-        public async Task Disposal_SideChain_NotFound()
+        public async Task DisposeSideChain_NotFound()
         {
             await InitializeCrossChainContractAsync();
             var chainId = ChainHelper.GetChainId(1);
@@ -591,9 +602,9 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task Disposal_SideChain_WrongStatus()
+        public async Task DisposeSideChain_Insufficient_Balance()
         {
-            long lockedTokenAmount = 10;
+            long lockedTokenAmount = 1;
             await ApproveBalanceAsync(lockedTokenAmount);
             var chainId = await InitAndCreateSideChainAsync();
             var proposalId1 = await DisposeSideChainProposalAsync(new SInt32Value
@@ -652,7 +663,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -681,7 +692,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                 }.ToByteString(),
@@ -725,7 +736,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -758,7 +769,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var res =
                 (await CrossChainContractStub.ChangeCrossChainIndexingController.SendWithExceptionAsync(
-                    new AuthorityStuff
+                    new AuthorityInfo
                     {
                         ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                     })).TransactionResult;
@@ -799,7 +810,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityStuff
+                Params = new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
                 }.ToByteString(),
@@ -831,7 +842,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = new AuthorityStuff
+                    Params = new AuthorityInfo
                     {
                         ContractAddress = ParliamentContractAddress, OwnerAddress = DefaultSender
                     }.ToByteString(),
@@ -852,7 +863,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     ContractMethodName = nameof(CrossChainContractStub.ChangeSideChainLifetimeController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = new AuthorityStuff
+                    Params = new AuthorityInfo
                     {
                         ContractAddress = AssociationContractAddress, OwnerAddress = oldOrganizationAddress
                     }.ToByteString(),
@@ -883,7 +894,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
                 var res =
                     (await CrossChainContractStub.ChangeSideChainLifetimeController.SendWithExceptionAsync(
-                        new AuthorityStuff
+                        new AuthorityInfo
                         {
                             ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
                         })).TransactionResult;
@@ -915,32 +926,57 @@ namespace AElf.Contracts.CrossChain.Tests
                 .ParseFrom(releaseTx.TransactionResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
                     .NonIndexed);
             var sideChainId = sideChainCreatedEvent.ChainId;
-            var newIndexingFeePrice = 2;
-            var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
-                nameof(CrossChainContractStub.AdjustIndexingFeePrice),
-                organizationAddress, CrossChainContractAddress, new AdjustIndexingFeeInput
-                {
-                    IndexingFee = newIndexingFeePrice,
-                    SideChainId = sideChainId
-                });
+            {
+                var newIndexingFeePrice = -1;
+                var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
+                    nameof(CrossChainContractStub.AdjustIndexingFeePrice),
+                    organizationAddress, CrossChainContractAddress, new AdjustIndexingFeeInput
+                    {
+                        IndexingFee = newIndexingFeePrice,
+                        SideChainId = sideChainId
+                    });
 
-            var parliamentOrganizationAddress =
-                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
-            var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
-                parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
-            await ApproveWithMinersAsync(approveProposalId);
-            await ParliamentContractStub.Release.SendAsync(approveProposalId);
-            await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);
-            await AssociationContractStub.Release.SendAsync(indexingFeeAdjustProposalId);
+                var parliamentOrganizationAddress =
+                    (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
+                var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
+                    parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
+                await ApproveWithMinersAsync(approveProposalId);
+                await ParliamentContractStub.Release.SendAsync(approveProposalId);
+                await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);
+                var txResult =
+                    (await AssociationContractStub.Release.SendWithExceptionAsync(indexingFeeAdjustProposalId))
+                    .TransactionResult;
+                txResult.Error.ShouldContain("Invalid side chain fee price.");
+            }
+            
+            {
+                var newIndexingFeePrice = 2;
+                var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
+                    nameof(CrossChainContractStub.AdjustIndexingFeePrice),
+                    organizationAddress, CrossChainContractAddress, new AdjustIndexingFeeInput
+                    {
+                        IndexingFee = newIndexingFeePrice,
+                        SideChainId = sideChainId
+                    });
 
-            var indexingFeePriceCheck =
-                await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new SInt32Value()
-                    {Value = sideChainId});
-            indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
+                var parliamentOrganizationAddress =
+                    (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
+                var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
+                    parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
+                await ApproveWithMinersAsync(approveProposalId);
+                await ParliamentContractStub.Release.SendAsync(approveProposalId);
+                await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);
+                await AssociationContractStub.Release.SendAsync(indexingFeeAdjustProposalId);
+
+                var indexingFeePriceCheck =
+                    await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new SInt32Value()
+                        {Value = sideChainId});
+                indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
+            }
         }
         
         [Fact]
-        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance()
+        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
         {
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
@@ -1012,6 +1048,15 @@ namespace AElf.Contracts.CrossChain.Tests
                 var sideChainStatus =
                     await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = sideChainId});
                 sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                
+                var disposalProposalId = await DisposeSideChainProposalAsync(new SInt32Value
+                {
+                    Value = sideChainId
+                });
+                await ApproveWithMinersAsync(disposalProposalId);
+                var transactionResult = await ReleaseProposalAsync(disposalProposalId);
+                var status = transactionResult.Status;
+                status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
@@ -1064,7 +1109,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var sideChainLifetimeControllerChangeProposalId = await CreateParliamentProposalAsync(
                 nameof(CrossChainContractStub.ChangeSideChainLifetimeController), oldSideChainLifetimeController,
-                new AuthorityStuff
+                new AuthorityInfo
                 {
                     ContractAddress = AssociationContractAddress, OwnerAddress = newSideChainLifetimeControllerAddress
                 });
@@ -1108,7 +1153,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 // side chain fee adjustment proposal
                 var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
                     nameof(CrossChainContractStub.AdjustIndexingFeePrice),
-                    indexingFeeController.AuthorityStuff.OwnerAddress, CrossChainContractAddress,
+                    indexingFeeController.AuthorityInfo.OwnerAddress, CrossChainContractAddress,
                     new AdjustIndexingFeeInput
                     {
                         IndexingFee = newIndexingFeePrice,
@@ -1137,6 +1182,66 @@ namespace AElf.Contracts.CrossChain.Tests
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
             }
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+
+            var methodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            const string proposalCreationMethodName =
+                nameof(CrossChainContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateParliamentProposalAsync(proposalCreationMethodName,
+                methodFeeController.OwnerAddress,
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var newMethodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            Assert.True(newMethodFeeController.OwnerAddress == organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_WithoutAuth_Test()
+        {
+            var createOrganizationResult =
+                await ParliamentContractStub.CreateOrganization.SendAsync(
+                    new CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = 1000,
+                            MinimalVoteThreshold = 1000
+                        }
+                    });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
+            var methodFeeController = await CrossChainContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var result = await CrossChainContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
     }
 }

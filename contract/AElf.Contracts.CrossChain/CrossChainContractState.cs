@@ -11,9 +11,9 @@ namespace AElf.Contracts.CrossChain
         public BoolState Initialized { get; set; }
         public Int64State SideChainSerialNumber { get; set; }
         
-        public SingletonState<AuthorityStuff> CrossChainIndexingController { get; set; }
+        public SingletonState<AuthorityInfo> CrossChainIndexingController { get; set; }
 
-        public SingletonState<AuthorityStuff> SideChainLifetimeController { get; set; }
+        public SingletonState<AuthorityInfo> SideChainLifetimeController { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         
@@ -25,6 +25,9 @@ namespace AElf.Contracts.CrossChain
 
         public MappedState<int, SideChainCreationRequest> AcceptedSideChainCreationRequest { get; set; }
 
+
+        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+        
         #region side chain
 
         public MappedState<int, SideChainInfo> SideChainInfo { get; set; }

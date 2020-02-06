@@ -162,7 +162,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -170,10 +170,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Symbol = symbol
                 }).Balance;
                 var amount = balance.Div(minerList.Count);
-                if (amount <= 0) break;
+                Context.LogDebug(() => $"Consensus Contract {symbol} balance: {balance}. Every miner can get {amount}");
+                if (amount <= 0) continue;
                 foreach (var pubkey in minerList)
                 {
                     var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
+                    Context.LogDebug(() => $"Will send {amount} {symbol}s to {pubkey}");
                     State.TokenContract.Transfer.Send(new TransferInput
                     {
                         To = address,
