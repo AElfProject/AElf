@@ -53,7 +53,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name
+                AssociationSmartContractAddressNameProvider.Name,
+                ReferendumSmartContractAddressNameProvider.Name
             }));
         }
 

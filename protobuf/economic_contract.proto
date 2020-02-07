@@ -29,10 +29,9 @@ message InitialEconomicSystemInput {
 }
 
 message IssueNativeTokenInput {
-    //string symbol = 1;
-    sint64 amount = 2;
-    string memo = 3;
-    aelf.Address to = 4;
+    sint64 amount = 1;
+    string memo = 2;
+    aelf.Address to = 3;
 }
 
 message IssueResourceTokenInput {
