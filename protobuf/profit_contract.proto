@@ -98,7 +98,7 @@ message RemoveBeneficiaryInput {
 message AddBeneficiariesInput {
     aelf.Hash scheme_id = 1;
     repeated BeneficiaryShare beneficiary_shares = 2;
-    sint64 end_period = 4;
+    sint64 end_period = 3;
 }
 
 message RemoveBeneficiariesInput {
