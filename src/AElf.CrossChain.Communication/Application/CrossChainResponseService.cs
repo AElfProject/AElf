@@ -76,14 +76,15 @@ namespace AElf.CrossChain.Communication.Application
         {
             parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
-            var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader, "CrossChain");
+            var crossChainExtraByteString =
+                GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataNamePrefix);
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
                 ? null
                 : CrossChainExtraData.Parser.ParseFrom(crossChainExtraByteString);
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {"Consensus"}));
+                new[] {CrossChainConstants.ConsensusExtraDataNamePrefix}));
             return parentChainBlockData;
         }
         
