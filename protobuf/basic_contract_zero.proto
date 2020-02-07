@@ -39,6 +39,6 @@ message ContractProposingInput{
 enum ContractProposingInputStatus {
     PROPOSED = 0;
     APPROVED = 1;
-    PRE_CODE_CHECKED = 2;
+    CODE_CHECK_PROPOSED = 2;
     CODE_CHECKED = 3;
 }

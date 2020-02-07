@@ -98,6 +98,8 @@ message ContractUpdateInput {
 message ContractCodeCheckInput{
     bytes contract_input = 1;
     bool is_contract_deployment = 2;
+    string code_check_invoking_method = 3;
+    aelf.Hash proposed_contract_input_hash = 4;
 }
 
 message InitializeInput{

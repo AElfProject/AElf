@@ -100,7 +100,7 @@ namespace AElf.Contracts.Genesis
             var transactionMethodCallList = input.TransactionMethodCallList;
 
             // Context.Sender should be identical to Genesis contract address before initialization in production
-            var address = PrivateDeploySystemSmartContract(name, category, code, true, Context.Sender);
+            var address = DeploySmartContract(name, category, code, true, Context.Sender);
 
             if (transactionMethodCallList != null)
             {
@@ -111,73 +111,6 @@ namespace AElf.Contracts.Genesis
             }
 
             return address;
-        }
-
-        private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-            Address author)
-        {
-            if (name != null)
-                Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
-
-            var codeHash = Hash.FromRawBytes(code);
-            
-            Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
-            
-            var serialNumber = State.ContractSerialNumber.Value;
-            // Increment
-            State.ContractSerialNumber.Value = serialNumber + 1;
-            var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
-
-            var info = new ContractInfo
-            {
-                SerialNumber = serialNumber,
-                Author = author,
-                Category = category,
-                CodeHash = codeHash,
-                IsSystemContract = isSystemContract,
-                Version = 1
-            };
-            State.ContractInfos[contractAddress] = info;
-
-            var reg = new SmartContractRegistration
-            {
-                Category = category,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = codeHash,
-                IsSystemContract = info.IsSystemContract,
-                Version = info.Version
-            };
-
-            State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-            Context.DeployContract(contractAddress, reg, name);
-
-            Context.Fire(new ContractDeployed
-            {
-                CodeHash = codeHash,
-                Address = contractAddress,
-                Author = author,
-                Version = info.Version
-            });
-
-            var deployedContractAddressList = State.DeployedContractAddressList.Value;
-            if (deployedContractAddressList == null)
-            {
-                State.DeployedContractAddressList.Value = new AddressList {Value = {contractAddress}};
-            }
-            else
-            {
-                deployedContractAddressList.Value.Add(contractAddress);
-                State.DeployedContractAddressList.Value = deployedContractAddressList;
-            }
-
-            Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
-
-            if (name != null)
-                State.NameAddressMapping[name] = contractAddress;
-
-            return contractAddress;
         }
 
         public override Hash ProposeNewContract(ContractDeploymentInput input)
@@ -191,8 +124,6 @@ namespace AElf.Contracts.Genesis
                 Status = ContractProposingInputStatus.Proposed
             };
 
-            RequireParliamentContractAddressSet();
-
             // Create proposal for deployment
             var proposalCreationInput = new CreateProposalBySystemContractInput
             {
@@ -204,7 +135,9 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        IsContractDeployment = true
+                        CodeCheckInvokingMethod =
+                            nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
+                        ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -235,11 +168,10 @@ namespace AElf.Contracts.Genesis
 
             var contractAddress = input.Address;
             var info = State.ContractInfos[contractAddress];
-            Assert(info != null, "Contract does not exist.");
+            Assert(info != null, "Contract not found.");
             AssertAuthorityByContractInfo(info, Context.Sender);
 
-            // Create proposal for deployment
-            RequireParliamentContractAddressSet();
+            // Create proposal for contract update
             var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
@@ -250,7 +182,9 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        IsContractDeployment = false
+                        CodeCheckInvokingMethod =
+                            nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                        ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -261,7 +195,6 @@ namespace AElf.Contracts.Genesis
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
 
-            // Fire event to trigger BPs checking contract code
             Context.Fire(new ContractProposed
             {
                 ProposedContractInputHash = proposedContractInputHash
@@ -274,11 +207,11 @@ namespace AElf.Contracts.Genesis
         {
             RequireSenderAuthority(State.ContractDeploymentController.Value.OwnerAddress);
             // AssertDeploymentProposerAuthority(Context.Origin);
-            var proposedContractInputHash = Hash.FromRawBytes(input.ContractInput.ToByteArray());
+            var proposedContractInputHash = input.ProposedContractInputHash;
             var proposedInfo = State.ContractProposingInputMap[proposedContractInputHash];
             Assert(proposedInfo != null && proposedInfo.Status == ContractProposingInputStatus.Approved,
                 "Invalid contract proposing status.");
-            proposedInfo.Status = ContractProposingInputStatus.PreCodeChecked;
+            proposedInfo.Status = ContractProposingInputStatus.CodeCheckProposed;
             State.ContractProposingInputMap[proposedContractInputHash] = proposedInfo;
 
             RequireParliamentContractAddressSet();
@@ -289,16 +222,14 @@ namespace AElf.Contracts.Genesis
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = Context.Self,
-                    ContractMethodName = input.IsContractDeployment
-                        ? nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract)
-                        : nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                    ContractMethodName = input.CodeCheckInvokingMethod,
                     Params = input.ContractInput,
                     OrganizationAddress = codeCheckController.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
                 },
                 OriginProposer = proposedInfo.Proposer
             };
-            // Create proposal for deployment
+
             Context.SendInline(codeCheckController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
@@ -334,7 +265,7 @@ namespace AElf.Contracts.Genesis
 
             Assert(
                 contractProposingInput != null &&
-                contractProposingInput.Status == ContractProposingInputStatus.PreCodeChecked &&
+                contractProposingInput.Status == ContractProposingInputStatus.CodeCheckProposed &&
                 contractProposingInput.Proposer == Context.Sender, "Invalid contract proposing status.");
             contractProposingInput.Status = ContractProposingInputStatus.CodeChecked;
             State.ContractProposingInputMap[input.ProposedContractInputHash] = contractProposingInput;
@@ -354,7 +285,7 @@ namespace AElf.Contracts.Genesis
             TryClearContractProposingInput(inputHash, out var contractProposingInput);
 
             var address =
-                PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false,
+                DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
                     DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
             return address;
         }
