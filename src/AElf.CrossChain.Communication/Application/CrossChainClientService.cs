@@ -45,7 +45,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
-            var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
+            _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
             return Task.CompletedTask;
         }
 

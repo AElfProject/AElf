@@ -164,7 +164,7 @@ namespace AElf.CrossChain.Cache
             var chainId = 123;
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
-            var res = blockInfoCache.TryTake(initTarget, out var blockInfo, false);
+            var res = blockInfoCache.TryTake(initTarget, out _, false);
             Assert.False(res);
         }
 
@@ -177,13 +177,13 @@ namespace AElf.CrossChain.Cache
             int i = 0;
             while (i++ < CrossChainConstants.DefaultBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new SideChainBlockData
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
             }
 
-            var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
+            var res = blockInfoCache.TryTake(initTarget, out _, true);
             Assert.False(res);
         }
 
@@ -196,7 +196,7 @@ namespace AElf.CrossChain.Cache
             int i = 0;
             while (i++ <= CrossChainConstants.DefaultBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new SideChainBlockData
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i,
                     ChainId = chainId,
@@ -235,7 +235,7 @@ namespace AElf.CrossChain.Cache
             int i = 0;
             while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new SideChainBlockData
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     ChainId = chainId,
                     Height = i,
@@ -257,7 +257,7 @@ namespace AElf.CrossChain.Cache
             int i = 0;
             while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new SideChainBlockData
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i,
                     ChainId = chainId,
@@ -281,7 +281,7 @@ namespace AElf.CrossChain.Cache
             int i = 0;
             while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new SideChainBlockData
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i,
                     ChainId = chainId,
@@ -289,7 +289,7 @@ namespace AElf.CrossChain.Cache
                 });
             }
 
-            blockInfoCache.TryTake(2, out var b1, true);
+            blockInfoCache.TryTake(2, out _, true);
             var res = blockInfoCache.TryTake(1, out var b2, true);
             Assert.True(res);
             Assert.True(b2.Height == 1);
@@ -317,6 +317,47 @@ namespace AElf.CrossChain.Cache
             blockInfoCache.TryTake(2, out _, false);
 
             Assert.Equal(3, blockInfoCache.TargetChainHeight());
+        }
+
+        [Fact]
+        public void ClearByHeight()
+        {
+            var chainId = 123;
+            var initTarget = 2;
+            var blockInfoCache = new ChainCacheEntity(chainId, initTarget);
+            int i = 0;
+            while (i++ < initTarget + CrossChainConstants.DefaultBlockCacheEntityCount)
+            {
+                blockInfoCache.TryAdd(new SideChainBlockData
+                {
+                    Height = i,
+                    ChainId = chainId,
+                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
+                });
+            }
+            
+            {
+                blockInfoCache.ClearOutOfDateCacheByHeight(initTarget - 1);
+                var res = blockInfoCache.TryTake(initTarget, out _, false);
+                Assert.True(res);
+            }
+            
+            {
+                blockInfoCache.ClearOutOfDateCacheByHeight(initTarget);
+                var res = blockInfoCache.TryTake(initTarget, out _, false);
+                Assert.False(res);
+            }
+
+            {
+                var targetHeight = blockInfoCache.TargetChainHeight();
+                blockInfoCache.ClearOutOfDateCacheByHeight(targetHeight);
+                Assert.True(targetHeight == blockInfoCache.TargetChainHeight());
+                for (int j = 0; j < targetHeight; j++)
+                {
+                    var res = blockInfoCache.TryTake(j, out _, false);
+                    Assert.False(res);
+                }
+            }
         }
     }
 }
