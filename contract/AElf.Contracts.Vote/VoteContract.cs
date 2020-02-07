@@ -177,6 +177,10 @@ namespace AElf.Contracts.Vote
             {
                 Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
             }
+            else
+            {
+                Assert(votingItem.Sponsor == Context.Sender, "No permission to withdraw votes of others.");
+            }
 
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;

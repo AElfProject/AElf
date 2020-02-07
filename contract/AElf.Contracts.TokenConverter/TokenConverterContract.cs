@@ -209,10 +209,10 @@ namespace AElf.Contracts.TokenConverter
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     To = Context.Sender,
-                    Amount = amountToReceiveLessFee
+                    Amount = amountToReceive
                 });
             State.DepositBalance[toConnector.Symbol] =
-                State.DepositBalance[toConnector.Symbol].Sub(amountToReceiveLessFee);
+                State.DepositBalance[toConnector.Symbol].Sub(amountToReceive);
             // Transfer sold token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()

@@ -165,8 +165,8 @@ namespace AElf.Contracts.MultiToken
             var symbolToAmount = new Dictionary<string, long>
             {
                 {"READ", input.ReadCost},
-                {"TRAFFIC", input.NetCost},
-                {"STORAGE", input.StoCost},
+                {"TRAFFIC", input.TrafficCost},
+                {"STORAGE", input.StorageCost},
                 {"WRITE", input.WriteCost}
             };
 
@@ -700,33 +700,9 @@ namespace AElf.Contracts.MultiToken
         private void AssertControllerForSideChainRental()
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var controllerForRental = GetRootControllerForRental(State.SideChainCreator.Value);
+            var createOrganizationInput = GetControllerCreateInputForSideChainRental();
+            var controllerForRental = CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
             Assert(controllerForRental == Context.Sender, "no permission");
-        }
-        private Address GetRootControllerForRental(Address sideChainCreator)
-        {
-            var parliamentAddress = GetControllerForSideRentalParliament();
-            var proposers = new List<Address> {parliamentAddress, sideChainCreator};
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {proposers}
-                },
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {proposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                }
-            };
-            var address = CalculateSideChainRentalController(createOrganizationInput);
-            return address;
         }
 
         private Address CalculateSideChainRentalController(
