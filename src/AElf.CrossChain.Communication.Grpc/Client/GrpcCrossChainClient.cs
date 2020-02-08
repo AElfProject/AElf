@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
@@ -137,16 +138,16 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             using (var serverStream = RequestIndexing(crossChainRequest))
             {
-                while (await serverStream.ResponseStream.MoveNext())
-                {
-                    var response = serverStream.ResponseStream.Current;
+                 while (await serverStream.ResponseStream.MoveNext(CancellationToken.None))
+                 {
+                     var response = serverStream.ResponseStream.Current;
 
-                    // requestCrossChain failed or useless response
-                    if (!crossChainBlockDataEntityHandler(response))
-                    {
-                        break;
-                    }
-                }
+                     // requestCrossChain failed or useless response
+                     if (!crossChainBlockDataEntityHandler(response))
+                     {
+                         break;
+                     }
+                 }
             }
         }
         
