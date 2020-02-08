@@ -4,6 +4,7 @@ package zero;
 
 import "acs0.proto";
 import "acs1.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
@@ -33,7 +34,8 @@ message AddressList {
 
 message ContractProposingInput{
     aelf.Address proposer = 1;
-    ContractProposingInputStatus status = 2;   
+    ContractProposingInputStatus status = 2;
+    google.protobuf.Timestamp expired_time = 3;
 }
 
 enum ContractProposingInputStatus {

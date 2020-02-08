@@ -117,12 +117,7 @@ namespace AElf.Contracts.Genesis
         {
             // AssertDeploymentProposerAuthority(Context.Sender);
             var proposedContractInputHash = CalculateHashFromInput(input);
-            Assert(State.ContractProposingInputMap[proposedContractInputHash] == null, "Already proposed.");
-            State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
-            {
-                Proposer = Context.Sender,
-                Status = ContractProposingInputStatus.Proposed
-            };
+            RegisterContractProposingData(proposedContractInputHash);
 
             // Create proposal for deployment
             var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -159,12 +154,7 @@ namespace AElf.Contracts.Genesis
         public override Hash ProposeUpdateContract(ContractUpdateInput input)
         {
             var proposedContractInputHash = CalculateHashFromInput(input);
-            Assert(State.ContractProposingInputMap[proposedContractInputHash] == null, "Already proposed.");
-            State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
-            {
-                Proposer = Context.Sender,
-                Status = ContractProposingInputStatus.Proposed
-            };
+            RegisterContractProposingData(proposedContractInputHash);
 
             var contractAddress = input.Address;
             var info = State.ContractInfos[contractAddress];
@@ -214,8 +204,6 @@ namespace AElf.Contracts.Genesis
             proposedInfo.Status = ContractProposingInputStatus.CodeCheckProposed;
             State.ContractProposingInputMap[proposedContractInputHash] = proposedInfo;
 
-            RequireParliamentContractAddressSet();
-
             var codeCheckController = State.CodeCheckController.Value;
             var proposalCreationInput = new CreateProposalBySystemContractInput
             {
@@ -230,6 +218,8 @@ namespace AElf.Contracts.Genesis
                 OriginProposer = proposedInfo.Proposer
             };
 
+            proposedInfo.ExpiredTime = proposalCreationInput.ProposalInput.ExpiredTime;
+            State.ContractProposingInputMap[proposedContractInputHash] = proposedInfo;
             Context.SendInline(codeCheckController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
@@ -282,7 +272,7 @@ namespace AElf.Contracts.Genesis
             // AssertDeploymentProposerAuthority(Context.Origin);
 
             var inputHash = CalculateHashFromInput(input);
-            TryClearContractProposingInput(inputHash, out var contractProposingInput);
+            TryClearContractProposingData(inputHash, out var contractProposingInput);
 
             var address =
                 DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
@@ -299,7 +289,7 @@ namespace AElf.Contracts.Genesis
             RequireSenderAuthority(State.CodeCheckController.Value?.OwnerAddress);
             var inputHash = CalculateHashFromInput(input);
 
-            if (!TryClearContractProposingInput(inputHash, out _))
+            if (!TryClearContractProposingData(inputHash, out _))
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
@@ -340,7 +330,7 @@ namespace AElf.Contracts.Genesis
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Contract zero already initialized.");
-            Assert(Context.Sender == Context.Self, "Unable to initialize.");
+            Assert(Context.Sender == Context.Self, "No permission.");
             State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
             State.Initialized.Value = true;
             return new Empty();

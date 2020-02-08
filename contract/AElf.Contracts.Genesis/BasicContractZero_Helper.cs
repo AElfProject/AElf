@@ -122,7 +122,7 @@ namespace AElf.Contracts.Genesis
                 authorityInfo.OwnerAddress).Value;
         }
 
-        private bool TryClearContractProposingInput(Hash inputHash, out ContractProposingInput contractProposingInput)
+        private bool TryClearContractProposingData(Hash inputHash, out ContractProposingInput contractProposingInput)
         {
             contractProposingInput = State.ContractProposingInputMap[inputHash];
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
@@ -139,6 +139,18 @@ namespace AElf.Contracts.Genesis
             return true;
         }
 
+        private void RegisterContractProposingData(Hash proposedContractInputHash)
+        {
+            var registered = State.ContractProposingInputMap[proposedContractInputHash];
+            Assert(registered == null || Context.CurrentBlockTime > registered.ExpiredTime, "Already proposed.");
+            State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
+            {
+                Proposer = Context.Sender,
+                Status = ContractProposingInputStatus.Proposed,
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+            };
+        }
+        
         private void CreateParliamentOrganizationForInitialControllerAddress(bool proposerAuthorityRequired)
         {
             RequireParliamentContractAddressSet();
