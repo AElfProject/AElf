@@ -28,9 +28,16 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 var sideChainBlock = await _crossChainResponseService.ResponseSideChainBlockDataAsync(requestedHeight);
                 if (sideChainBlock == null)
+                {
+                    Logger.LogDebug(
+                        $"Finish response to chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)}");
                     break;
+                }
+                
                 try
                 {
+                    Logger.LogDebug(
+                        $"Response to chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)} with block height {requestedHeight}.");
                     await responseStream.WriteAsync(sideChainBlock);
                     requestedHeight++;
                 }

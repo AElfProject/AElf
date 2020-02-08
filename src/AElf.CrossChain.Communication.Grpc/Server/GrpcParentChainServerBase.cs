@@ -31,7 +31,11 @@ namespace AElf.CrossChain.Communication.Grpc
                 var parentChainBlockData =
                     await _crossChainResponseService.ResponseParentChainBlockDataAsync(requestedHeight, remoteChainId);
                 if (parentChainBlockData == null)
+                {
+                    Logger.LogDebug(
+                        $"Finish response to chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)}");
                     break;
+                }
 
                 if (context.Status.StatusCode != Status.DefaultSuccess.StatusCode)
                 {
@@ -42,6 +46,8 @@ namespace AElf.CrossChain.Communication.Grpc
 
                 try
                 {
+                    Logger.LogDebug(
+                        $"Response to chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.ChainId)} with block height {requestedHeight}.");
                     await responseStream.WriteAsync(parentChainBlockData);
                     requestedHeight++;
                 }
