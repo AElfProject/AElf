@@ -7,7 +7,6 @@ using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Utils;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -590,9 +589,6 @@ namespace AElf.Contracts.CrossChain
                         return false;
                     target++;
                 }
-
-                // if (indexingPrice.Mul(group.Count()) > lockedToken)
-                //     return false;
             }
 
             return true;
@@ -716,10 +712,7 @@ namespace AElf.Contracts.CrossChain
                     currentSideChainHeight++;
                     indexedSideChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
                 }
-
-                Context.LogDebug(() =>
-                    $"## [ {State.CurrentSideChainHeight[chainId]} - {currentSideChainHeight} ] from side chain {chainId} indexed by {proposer}, index blocks {currentSideChainHeight - State.CurrentSideChainHeight[chainId] + 1} ");
-
+                
                 if (arrearsAmount > 0)
                 {
                     if (sideChainInfo.ArrearsInfo.TryGetValue(formattedProposerAddress, out var amount))

@@ -278,7 +278,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Process transaction failed.");
-                throw;
             }
         }
 
