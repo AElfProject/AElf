@@ -9,7 +9,7 @@ namespace AElf.OS
         public bool IsBurnable { get; set; } = true;
         public double DividendPoolRatio { get; set; } = 0.12;
         public long MaximumLockTime { get; set; } = 1080 * 86400;
-        public long MinimumLockTime { get; set; } = 90 * 86400;
+        public long MinimumLockTime { get; set; } = 1 * 3600;
         public string SymbolListToPayTxFee { get; set; } = "WRITE,READ,STORAGE,TRAFFIC";
         public string SymbolListToPayRental { get; set; } = "CPU,RAM,DISK,NET";
         public long TransactionSizeFeeUnitPrice { get; set; } = 1000;
