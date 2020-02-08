@@ -114,8 +114,7 @@ namespace AElf.CrossChain
                     sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
                     {
                         ChainId = kv.Key,
-                        IndexedHeight = kv.Value,
-                        ToBeIndexedCount = long.MaxValue
+                        IndexedHeight = kv.Value
                     });
                 }
                 

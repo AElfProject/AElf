@@ -68,7 +68,7 @@ service PerformanceContract {
 //Input
 message InitialPerformanceInput {
     string contract_name = 1;
-    aelf.Address manager = 4;
+    aelf.Address manager = 2;
 }
 
 message WriteInput {
