@@ -319,13 +319,13 @@ namespace AElf.Contracts.TokenConverter
             balanceOfFeeReceiverAfterSell.ShouldBe(fee.Div(2) + balanceOfFeeReceiver);
 
             var balanceOfElfTokenAfterSell = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
-            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken - amountToReceive + fee);
+            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken - amountToReceive);
 
             var balanceOfRamToken = await GetBalanceAsync(WriteSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L);
 
             var balanceOfTesterTokenAfterSell = await GetBalanceAsync(NativeSymbol, DefaultSender);
-            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee) - fee);
+            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + amountToReceive - fee);
         }
 
         [Fact]

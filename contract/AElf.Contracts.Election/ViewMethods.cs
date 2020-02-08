@@ -199,6 +199,9 @@ namespace AElf.Contracts.Election
 
         public override SInt64Value GetCurrentMiningReward(Empty input)
         {
+            if (State.AEDPoSContract.Value == null)
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             return new SInt64Value
             {
                 Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation

@@ -158,19 +158,17 @@ namespace AElf.Contracts.Election
             State.Snapshots[input.TermNumber] = snapshot;
         }
 
-        private void UpdateCandidateInformation(string publicKey, long lastTermNumber,
+        private void UpdateCandidateInformation(string pubkey, long lastTermNumber,
             List<string> previousMiners)
         {
-            var candidateInformation = State.CandidateInformationMap[publicKey];
+            var candidateInformation = State.CandidateInformationMap[pubkey];
+            if (candidateInformation == null) return;
             candidateInformation.Terms.Add(lastTermNumber);
-
             var victories = GetVictories(previousMiners);
-
-            candidateInformation.ContinualAppointmentCount = victories.Contains(publicKey.ToByteString())
+            candidateInformation.ContinualAppointmentCount = victories.Contains(pubkey.ToByteString())
                 ? candidateInformation.ContinualAppointmentCount.Add(1)
                 : 0;
-
-            State.CandidateInformationMap[publicKey] = candidateInformation;
+            State.CandidateInformationMap[pubkey] = candidateInformation;
         }
 
         #endregion

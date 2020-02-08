@@ -28,10 +28,10 @@ service ConsensusContract {
 }
 
 message ConsensusCommand {
-    int32 limit_milliseconds_of_mining_block = 2;// Time limit of mining next block.
-    bytes hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
-    google.protobuf.Timestamp arranged_mining_time = 4;
-    google.protobuf.Timestamp mining_due_time = 5;
+    int32 limit_milliseconds_of_mining_block = 1;// Time limit of mining next block.
+    bytes hint = 2;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
+    google.protobuf.Timestamp arranged_mining_time = 3;
+    google.protobuf.Timestamp mining_due_time = 4;
 }
 
 message ValidationResult {
