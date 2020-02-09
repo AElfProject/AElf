@@ -145,14 +145,17 @@ service TokenContract {
     rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
         option (aelf.is_view) = true;
     }
+    rpc GetControllerInfoForUpdateSideChainRental(google.protobuf.Empty) returns (ControllerInfoForUpdateSideChainRental){
+        option (aelf.is_view) = true;
+    }
 
 }
 
 message TokenInfo {
     string symbol = 1;
-    string tokenName = 2;
+    string token_name = 2;
     sint64 supply = 3;
-    sint64 totalSupply = 4;
+    sint64 total_supply = 4;
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
@@ -163,8 +166,8 @@ message TokenInfo {
 
 message CreateInput {
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
@@ -175,8 +178,8 @@ message CreateInput {
 
 message RegisterNativeTokenInfoInput {
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
@@ -258,8 +261,8 @@ message TransactionFeeBill {
 }
 
 message ChargeResourceTokenInput {
-    sint64 net_cost = 1;
-    sint64 sto_cost = 2;
+    sint64 traffic_cost = 1;
+    sint64 storage_cost = 2;
     sint64 read_cost = 3;
     sint64 write_cost = 4;
     aelf.Address caller = 5;
@@ -357,20 +360,20 @@ message TakeResourceTokenBackInput {
 
 message GetLockedAmountInput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
 }
 
 message GetLockedAmountOutput {
     aelf.Address address = 1;
-    string symbol = 3;
-    aelf.Hash lock_id = 4;
-    sint64 amount = 5;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
+    sint64 amount = 4;
 }
 
 message GetVirtualAddressForLockingInput {
     aelf.Address address = 1;
-    aelf.Hash lock_id = 3;
+    aelf.Hash lock_id = 2;
 }
 
 message TokenInfoList {
@@ -398,8 +401,8 @@ message RegisterCrossChainTokenContractAddressInput{
 
 message ValidateTokenInfoExistsInput{
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
@@ -584,5 +587,10 @@ message ControllerForDeveloperFee{
     aelf.Address root_controller = 1;
     aelf.Address parliament_controller = 2;
     aelf.Address developer_controller = 3;
+}
+
+message ControllerInfoForUpdateSideChainRental{
+    aelf.Address controller = 1;
+    bytes organization_creation_input_bytes = 2;
 }
 
