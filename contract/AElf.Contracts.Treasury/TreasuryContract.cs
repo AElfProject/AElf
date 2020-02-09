@@ -563,7 +563,7 @@ namespace AElf.Contracts.Treasury
 
         private const int DaySec = 86400;
 
-        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
+        private readonly IReadOnlyDictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
         {
             {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
             {2.Mul(365).Mul(DaySec), 1.0015m},
