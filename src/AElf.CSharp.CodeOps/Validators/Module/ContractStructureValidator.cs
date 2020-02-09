@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp.State;
@@ -79,13 +80,18 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         }
 
         private IEnumerable<ValidationResult> ValidateContractType(TypeDefinition type)
-        { 
-            // Allow only constant or readonly primitive type fields in contract implementation
+        {
+            // Allow readonly only if the type is primitive type
+            // Allow constants
+            // Allow any other types if not readonly or constant (since ResetFields can reset later on)
             return type.Fields
                 .Where(f => 
-                    !(f.Constant != null || (f.IsInitOnly && Constants.PrimitiveTypes.Contains(f.FieldType.FullName))))
+                    !((f.Constant != null || f.IsInitOnly) && 
+                      (Constants.PrimitiveTypes.Contains(FieldTypeFullName(f)) || 
+                       _allowedStaticFieldInitOnlyTypes.Contains(FieldTypeFullName(f))))) // Treat contract field as static field
+                .Where(f => f.Constant != null || f.IsInitOnly)
                 .Select(f => 
-                    new ContractStructureValidatorResult("Non-constant or non-readonly fields are not allowed in contract implementation.")
+                    new ContractStructureValidatorResult("Only primitive types are allowed in readonly fields in contract implementation.")
                     .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
         }
 
@@ -111,9 +117,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private bool IsBadField(FieldDefinition field)
         {
-            var fieldTypeFullName = field.FieldType is GenericInstanceType genericInstance
-                ? genericInstance.ElementType.FullName // TypeXyz<T> then element type full name will be TypeXyz`1
-                : field.FieldType.FullName;
+            var fieldTypeFullName = FieldTypeFullName(field);
 
             // Only allowed types or primitive types if InitOnly field
             if (field.IsInitOnly 
@@ -139,6 +143,13 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 
             // Then it should be a constant (and it has to be a primitive type if constant)
             return field.Constant == null;
+        }
+
+        private string FieldTypeFullName(FieldDefinition field)
+        {
+            return field.FieldType is GenericInstanceType genericInstance
+                ? genericInstance.ElementType.FullName // TypeXyz<T> then element type full name will be TypeXyz`1
+                : field.FieldType.FullName;
         }
 
         private bool IsBadStateField(FieldDefinition field)
@@ -207,6 +218,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             typeof(MessageParser<>).FullName,
             typeof(FieldCodec<>).FullName,
             typeof(MapField<,>.Codec).FullName,
+            typeof(ReadOnlyCollection<>).FullName,
+            typeof(IReadOnlyDictionary<,>).FullName
         };
         
         private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>

@@ -32,11 +32,14 @@ namespace AElf.CSharp.CodeOps
         public static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
         {
             typeof(bool).FullName,
+            typeof(decimal).FullName,
             typeof(short).FullName,
             typeof(int).FullName,
+            typeof(long).FullName,
             typeof(ushort).FullName,
             typeof(uint).FullName,
-            typeof(string).FullName
+            typeof(ulong).FullName,
+            typeof(string).FullName,
         };
     }
 }

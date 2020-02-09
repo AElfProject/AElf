@@ -119,14 +119,14 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 ? MethodAttributes.Public | MethodAttributes.HideBySig
                 : MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static;
             
-            var cleanUpMethod = new MethodDefinition(
+            var resetFieldsMethod = new MethodDefinition(
                 nameof(ResetFields), 
                 attributes, 
                 module.ImportReference(typeof(void))
             );
             
-            cleanUpMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
-            var il = cleanUpMethod.Body.GetILProcessor();
+            resetFieldsMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(bool))));
+            var il = resetFieldsMethod.Body.GetILProcessor();
 
             foreach (var field in fields)
             {
@@ -138,7 +138,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             il.Emit(OpCodes.Ret);
 
-            return cleanUpMethod;
+            return resetFieldsMethod;
         }
 
         private static void LoadDefaultValue(ILProcessor il, FieldReference field)
