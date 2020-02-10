@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -109,6 +110,11 @@ namespace AElf.CSharp.CodeOps
             var baseType = GetBaseType(elementType);
             
             return baseType.Interfaces.Any(i => i.InterfaceType.FullName == typeof(ISmartContract).FullName);
+        }
+        
+        public static bool IsStateImplementation(this TypeDefinition type)
+        {
+            return GetBaseType(type).FullName == typeof(StateBase).FullName;
         }
 
         private static TypeDefinition GetBaseType(this TypeDefinition type)

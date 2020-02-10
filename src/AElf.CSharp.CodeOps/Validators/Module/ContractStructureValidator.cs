@@ -35,15 +35,19 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private IEnumerable<ValidationResult> ValidateStructure(ModuleDefinition module)
         {
-            var contractImplementation = module.Types.Where(IsContractImplementation).Single();
+            var contractImplementation = module.Types.Single(t => t.IsContractImplementation());
 
-            var contractBase = module.Types.SelectMany(t => t.NestedTypes.Where(IsContractImplementation)).Single();
+            // There should be only one contract base
+            var contractBase = module.Types
+                .SelectMany(t => t.NestedTypes.Where(nt => nt.IsContractImplementation()))
+                .Single();
             
             var contractState = contractBase.BaseType is GenericInstanceType genericType
                 ? genericType.GenericArguments.Single()
                 : null;
             
-            // Do some other checks here to restrict more
+            //TODO: Check basic stuff, like there should be only 1 contract base and implementation
+            // Contract should have state
                 
             return Enumerable.Empty<ValidationResult>();
         }
@@ -52,12 +56,12 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         {
             var errors = new List<ValidationResult>();
             
-            if (IsStateImplementation(type))
+            if (type.IsStateImplementation())
             {
                 return ValidateContractStateType(type);
             }
             
-            errors.AddRange(IsContractImplementation(type) ? ValidateContractType(type) : ValidateRegularType(type));
+            errors.AddRange(type.IsContractImplementation() ? ValidateContractType(type) : ValidateRegularType(type));
             errors.AddRange(type.NestedTypes.SelectMany(ValidateType));
 
             return errors;
@@ -84,6 +88,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Allow readonly only if the type is primitive type
             // Allow constants
             // Allow any other types if not readonly or constant (since ResetFields can reset later on)
+            // Simplify below where statements later
             return type.Fields
                 .Where(f => 
                     !((f.Constant != null || f.IsInitOnly) && 
@@ -166,51 +171,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
         }
 
-        private GenericInstanceType FindGenericInstanceType(TypeDefinition type)
-        {
-            while (true)
-            {
-                switch (type.BaseType)
-                {
-                    case null:
-                        return null;
-                    case GenericInstanceType genericInstanceType:
-                        return genericInstanceType;
-                    default:
-                        type = type.BaseType.Resolve();
-                        continue;
-                }
-            }
-        }
-
-        private bool IsContractImplementation(TypeDefinition type)
-        {
-            var baseGenericInstanceType = FindGenericInstanceType(type);
-
-            if (baseGenericInstanceType == null)
-                return false;
-
-            var elementType = baseGenericInstanceType.ElementType.Resolve();
-
-            var baseType = GetBaseType(elementType);
-            
-            return baseType.Interfaces.Any(i => i.InterfaceType.FullName == typeof(ISmartContract).FullName);
-        }
-
-        private bool IsStateImplementation(TypeDefinition type)
-        {
-            return GetBaseType(type).FullName == typeof(StateBase).FullName;
-        }
-
-        private TypeDefinition GetBaseType(TypeDefinition type)
-        {
-            while (true)
-            {
-                if (type.BaseType == null || type.BaseType.FullName == typeof(object).FullName) return type;
-                type = type.BaseType.Resolve();
-            }
-        }
-        
+        // TODO: Define which types are allowed with generic instance types
+        // For example, we need to allow only primitive types in read only collections
         private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
         {
             typeof(Marshaller<>).FullName,
@@ -224,7 +186,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         
         private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
         {
-            // Required for Linq in contracts (TODO: Discuss the risk of allowing Func as static public field)
             typeof(Func<>).FullName,
             typeof(Func<,>).FullName,
             typeof(Func<,,>).FullName,
