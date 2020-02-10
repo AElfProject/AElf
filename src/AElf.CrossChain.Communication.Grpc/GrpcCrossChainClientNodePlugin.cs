@@ -45,9 +45,6 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
-            Logger.LogDebug(
-                $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
-
             crossChainClientDto.LocalChainId = _localChainId;
             await _crossChainClientService.CreateClientAsync(crossChainClientDto);
         }

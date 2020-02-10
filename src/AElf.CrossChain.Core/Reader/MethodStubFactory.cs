@@ -21,6 +21,7 @@ namespace AElf.CrossChain
         private readonly IChainContext _chainContext;
 
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
         {
@@ -49,7 +50,8 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, TimestampHelper.GetUtcNow());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
+                        TimestampHelper.GetUtcNow());
 
                 if (trace.IsSuccessful())
                 {
