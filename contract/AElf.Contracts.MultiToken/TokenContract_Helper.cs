@@ -37,7 +37,7 @@ namespace AElf.Contracts.MultiToken
             Assert(Encoding.UTF8.GetByteCount(memo) <= TokenContractConstants.MemoMaxLength, "Invalid memo size.");
         }
 
-        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
+        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo = null)
         {
             Assert(from != to, "Can't do transfer to sender itself.");
             AssertValidMemo(memo);
@@ -49,7 +49,7 @@ namespace AElf.Contracts.MultiToken
                 To = to,
                 Symbol = symbol,
                 Amount = amount,
-                Memo = memo,
+                Memo = memo
             });
         }
 
@@ -58,7 +58,7 @@ namespace AElf.Contracts.MultiToken
             var before = GetBalance(address, symbol);
             if (addAmount < 0 && before < -addAmount)
             {
-                Assert(false, $"Insufficient balance. {symbol}: {before} / {addAmount}");
+                Assert(false, $"Insufficient balance. {symbol}: {before} / {-addAmount}");
             }
             var target = before.Add(addAmount);
             State.Balances[address][symbol] = target;

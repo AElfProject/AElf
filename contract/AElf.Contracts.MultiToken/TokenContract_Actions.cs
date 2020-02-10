@@ -524,8 +524,7 @@ namespace AElf.Contracts.MultiToken
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
                     .Add(input.Amount);
-            ModifyBalance(input.ContractAddress, input.ResourceTokenSymbol, input.Amount);
-            ModifyBalance(Context.Sender, input.ResourceTokenSymbol, -input.Amount);
+            DoTransfer(Context.Sender, input.ContractAddress, input.ResourceTokenSymbol, input.Amount);
             return new Empty();
         }
 
@@ -534,8 +533,7 @@ namespace AElf.Contracts.MultiToken
             var advancedAmount =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
             Assert(advancedAmount >= input.Amount, "Can't take back that more.");
-            ModifyBalance(input.ContractAddress, input.ResourceTokenSymbol, -input.Amount);
-            ModifyBalance(Context.Sender, input.ResourceTokenSymbol, input.Amount);
+            DoTransfer(input.ContractAddress, Context.Sender, input.ResourceTokenSymbol, input.Amount);
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 advancedAmount.Sub(input.Amount);
             return new Empty();
