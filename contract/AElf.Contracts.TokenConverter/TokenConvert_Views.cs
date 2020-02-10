@@ -43,9 +43,23 @@ namespace AElf.Contracts.TokenConverter
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Connector GetConnector(TokenSymbol input)
+        public override GroupConnector GetConnector(TokenSymbol input)
         {
-            return State.Connectors[input.Symbol];
+            var targetConnector = State.Connectors[input.Symbol];
+            Connector relatedConnector = null;
+            if(targetConnector != null)
+                relatedConnector = State.Connectors[targetConnector.RelatedSymbol];
+            if(targetConnector != null && targetConnector.IsDepositAccount)
+                return new GroupConnector
+                {
+                    ResourceConnector = relatedConnector,
+                    DepositConnector = targetConnector
+                };
+            return new GroupConnector
+            {
+                ResourceConnector = targetConnector,
+                DepositConnector = relatedConnector
+            };
         }
 
         public override DepositInfo GetNeededDeposit(ToBeConnectedTokenInfo input)
