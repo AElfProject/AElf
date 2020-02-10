@@ -104,7 +104,7 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
-            State.Balances[input.To][input.Symbol] = State.Balances[input.To][input.Symbol].Add(input.Amount);
+            ModifyBalance(input.To, input.Symbol, input.Amount);
             return new Empty();
         }
 
@@ -223,8 +223,7 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;
-            var balanceOfReceiver = State.Balances[receivingAddress][symbol];
-            State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
+            ModifyBalance(receivingAddress, symbol, amount);
             return new Empty();
         }
 
@@ -362,10 +361,7 @@ namespace AElf.Contracts.MultiToken
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
-            var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount,
-                $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
-            State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
+            ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
@@ -383,7 +379,7 @@ namespace AElf.Contracts.MultiToken
             var meetBalanceSymbolList = new List<string>();
             foreach (var symbolToThreshold in input.SymbolToThreshold)
             {
-                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value)
+                if (GetBalance(input.Sender, symbolToThreshold.Key) < symbolToThreshold.Value)
                     continue;
                 meetBalanceSymbolList.Add(symbolToThreshold.Key);
             }
@@ -441,17 +437,17 @@ namespace AElf.Contracts.MultiToken
             Assert(
                 !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
                     .Contains(input.Symbol), "Invalid token symbol.");
-            Assert(input.Amount <= State.Balances[input.ContractAddress][input.Symbol], "Invalid profit amount.");
-            var profits = input.Amount == 0 ? State.Balances[input.ContractAddress][input.Symbol] : input.Amount;
-            State.Balances[input.ContractAddress][input.Symbol] =
-                State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
+            var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
+            Assert(input.Amount <= contractBalance, "Invalid profit amount.");
+            var profits = input.Amount == 0 ? contractBalance : input.Amount;
+            ModifyBalance(input.ContractAddress, input.Symbol, -profits);
             var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
 
             if (State.TreasuryContract.Value != null)
             {
                 // Main Chain.
                 // Increase balance of Token Contract then distribute donates.
-                State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
+                ModifyBalance(Context.Self, input.Symbol, donates);
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = input.Symbol,
@@ -463,14 +459,11 @@ namespace AElf.Contracts.MultiToken
                 // Side Chain.
                 var consensusContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                State.Balances[consensusContractAddress][input.Symbol] =
-                    State.Balances[consensusContractAddress][input.Symbol].Add(donates);
+                ModifyBalance(consensusContractAddress, input.Symbol, donates);
             }
 
             var actualProfits = profits.Sub(donates);
-            State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol] =
-                State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol]
-                    .Add(actualProfits);
+            ModifyBalance(profitReceivingInformation.ProfitReceiverAddress, input.Symbol, actualProfits);
 
             if (State.TokenHolderContract.Value == null)
             {
@@ -531,10 +524,8 @@ namespace AElf.Contracts.MultiToken
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
                     .Add(input.Amount);
-            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
-                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Add(input.Amount);
-            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
-                State.Balances[Context.Sender][input.ResourceTokenSymbol].Sub(input.Amount);
+            ModifyBalance(input.ContractAddress, input.ResourceTokenSymbol, input.Amount);
+            ModifyBalance(Context.Sender, input.ResourceTokenSymbol, -input.Amount);
             return new Empty();
         }
 
@@ -543,10 +534,8 @@ namespace AElf.Contracts.MultiToken
             var advancedAmount =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
             Assert(advancedAmount >= input.Amount, "Can't take back that more.");
-            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
-                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Sub(input.Amount);
-            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
-                State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
+            ModifyBalance(input.ContractAddress, input.ResourceTokenSymbol, -input.Amount);
+            ModifyBalance(Context.Sender, input.ResourceTokenSymbol, input.Amount);
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 advancedAmount.Sub(input.Amount);
             return new Empty();
