@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,12 +7,10 @@ using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Txn.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -26,8 +23,6 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly ITransactionPackingService _transactionPackingService;
 
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
-
-        public IOptionsSnapshot<CrossChainConfigOptions> CrossChainOptions { get; set; }
 
         public CrossChainIndexingDataService(IReaderFactory readerFactory,
             IBlockCacheEntityConsumer blockCacheEntityConsumer,
@@ -61,8 +56,7 @@ namespace AElf.CrossChain.Indexing.Application
                 if (sideChainHeightInLib > 0)
                 {
                     targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
-                    toBeIndexedCount = Math.Min(CrossChainConstants.DefaultBlockCacheEntityCount,
-                        sideChainIndexingInformation.ToBeIndexedCount);
+                    toBeIndexedCount = CrossChainConstants.DefaultBlockCacheEntityCount;
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
@@ -89,7 +83,7 @@ namespace AElf.CrossChain.Indexing.Application
                     var sideChainBlockData =
                         _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainIndexingInformation.ChainId,
                             targetHeight, targetHeight == Constants.GenesisBlockHeight);
-                    if (sideChainBlockData == null)
+                    if (sideChainBlockData == null || sideChainBlockData.Height != targetHeight)
                     {
                         // no more available side chain block info
                         break;
@@ -142,7 +136,7 @@ namespace AElf.CrossChain.Indexing.Application
             {
                 var parentChainBlockData =
                     _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
-                if (parentChainBlockData == null)
+                if (parentChainBlockData == null || parentChainBlockData.Height != targetHeight)
                 {
                     // no more available parent chain block info
                     break;
@@ -255,7 +249,6 @@ namespace AElf.CrossChain.Indexing.Application
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
             long blockHeight)
         {
-            Logger.LogTrace("Try get cross chain data for mining.");
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
 
