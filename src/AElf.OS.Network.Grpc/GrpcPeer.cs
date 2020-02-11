@@ -266,7 +266,7 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
 
-        public void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback)
+        public void EnqueueTransaction(Transaction transaction, Action<NetworkException, StreamJobStats> sendCallback)
         {
             if (!IsReady)
                 throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
@@ -275,7 +275,7 @@ namespace AElf.OS.Network.Grpc
             _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
         }
 
-        public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
+        public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException, StreamJobStats> sendCallback)
         {
             if (!IsReady)
                 throw new NetworkException($"Dropping announcement, peer is not ready - {this}.",
@@ -284,16 +284,22 @@ namespace AElf.OS.Network.Grpc
             _sendAnnouncementJobs.Post(new StreamJob {BlockAnnouncement = announcement, SendCallback = sendCallback});
         }
 
-        public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback)
+        public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException, StreamJobStats> sendCallback)
         {
             if (!IsReady)
                 throw new NetworkException($"Dropping block, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
-
-            _sendBlockJobs.Post(new StreamJob{BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
+            
+            Stopwatch sw = Stopwatch.StartNew();
+            
+            _sendBlockJobs.Post(new StreamJob { 
+                BlockWithTransactions = blockWithTransactions, 
+                SendCallback = sendCallback,
+                QueueStopwatch = sw
+            });
         }
         
-        public void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException> sendCallback)
+        public void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException, StreamJobStats> sendCallback)
         {
             if (!IsReady)
                 throw new NetworkException($"Dropping lib announcement, peer is not ready - {this}.",
@@ -311,6 +317,8 @@ namespace AElf.OS.Network.Grpc
             if (!IsReady)
                 return;
 
+            StreamJobStats stats = null;
+
             try
             {
                 if (job.Transaction != null)
@@ -323,7 +331,14 @@ namespace AElf.OS.Network.Grpc
                 }
                 else if (job.BlockWithTransactions != null)
                 {
-                    await BroadcastBlockAsync(job.BlockWithTransactions);
+                    job.QueueStopwatch.Stop();
+                    var grpcBufferQueueStopwatch = await BroadcastBlockAsync(job.BlockWithTransactions);
+                    
+                    stats = new StreamJobStats
+                    {
+                        SendBufferEnqueueTime = grpcBufferQueueStopwatch.Elapsed,
+                        QueueTime = job.QueueStopwatch.Elapsed
+                    };
                 }
                 else if (job.LibAnnouncement != null)
                 {
@@ -332,27 +347,31 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException ex)
             {
-                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
+                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "), null);
                 await Task.Delay(StreamRecoveryWaitTime);
                 return;
             }
             catch (Exception ex)
             {
-                job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex));
+                job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex), null);
                 throw;
             }
 
-            job.SendCallback?.Invoke(null);
+            job.SendCallback?.Invoke(null, stats);
         }
 
-        private async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
+        private async Task<Stopwatch> BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
         {
             if (_blockStreamCall == null)
                 _blockStreamCall = _client.BlockBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
 
             try
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
+                sw.Stop();
+
+                return sw;
             }
             catch (RpcException)
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
@@ -37,10 +38,10 @@ namespace AElf.OS.Network.Infrastructure
         bool TryAddKnownTransaction(Hash transactionHash);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
-        void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
-        void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
-        void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
-        void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement,Action<NetworkException> sendCallback);
+        void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException, StreamJobStats> sendCallback);
+        void EnqueueTransaction(Transaction transaction, Action<NetworkException, StreamJobStats> sendCallback);
+        void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException, StreamJobStats> sendCallback);
+        void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException, StreamJobStats> sendCallback);
 
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

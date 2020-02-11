@@ -139,9 +139,19 @@ namespace AElf.OS.Network.Application
                 if (peer.KnowsBlock(blockHash))
                     return; // block already known to this peer
 
-                peer.EnqueueBlock(blockWithTransactions, async ex =>
+                peer.EnqueueBlock(blockWithTransactions, async (ex, stats) =>
                 {
                     peer.TryAddKnownBlock(blockHash);
+
+                    if (stats != null)
+                    {
+                        if (stats.QueueTime.TotalMilliseconds > 1 || stats.SendBufferEnqueueTime.TotalMilliseconds > 1)
+                        {
+                            Logger.LogDebug($"[STAT][BCAST][{peer.RemoteEndpoint}][{blockHash}][{blockWithTransactions.Height}] " +
+                                            $"action block: {stats.QueueTime.TotalMilliseconds} ms, " +
+                                            $"enqueue time: {stats.SendBufferEnqueueTime.TotalMilliseconds} ms.");
+                        }
+                    }
 
                     if (ex != null)
                     {
@@ -183,7 +193,7 @@ namespace AElf.OS.Network.Application
                     if (peer.KnowsBlock(blockHash))
                         return Task.CompletedTask; // block already known to this peer
 
-                    peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
+                    peer.EnqueueAnnouncement(blockAnnouncement, async (ex, stats) =>
                     {
                         peer.TryAddKnownBlock(blockHash);
                         if (ex != null)
@@ -212,7 +222,7 @@ namespace AElf.OS.Network.Application
                     if (peer.KnowsTransaction(txHash)) 
                         return Task.CompletedTask; // transaction already known to this peer
                     
-                    peer.EnqueueTransaction(transaction, async ex =>
+                    peer.EnqueueTransaction(transaction, async (ex, stats) =>
                     {
                         peer.TryAddKnownTransaction(txHash);
                         if (ex != null)
@@ -243,7 +253,7 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    peer.EnqueueLibAnnouncement(announce, async ex =>
+                    peer.EnqueueLibAnnouncement(announce, async (ex, stats) =>
                     {
                         if (ex != null)
                         {

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using AElf.OS.Network.Application;
 using AElf.Types;
 
@@ -10,6 +11,7 @@ namespace AElf.OS.Network.Grpc
         public BlockAnnouncement BlockAnnouncement { get; set; }
         public BlockWithTransactions BlockWithTransactions { get; set; }
         public LibAnnouncement LibAnnouncement { get; set; }
-        public Action<NetworkException> SendCallback { get; set; }
+        public Action<NetworkException, StreamJobStats> SendCallback { get; set; }
+        public Stopwatch QueueStopwatch { get; set; }
     }
 }
