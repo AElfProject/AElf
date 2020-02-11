@@ -204,9 +204,15 @@ namespace AElf.Contracts.Genesis
 
         private ByteString ExtractCodeFromContractCodeCheckInput(ContractCodeCheckInput input)
         {
-            return input.IsContractDeployment
-                ? ContractDeploymentInput.Parser.ParseFrom(input.ContractInput).Code
-                : ContractUpdateInput.Parser.ParseFrom(input.ContractInput).Code;
+            switch (input.CodeCheckInvokingMethod)
+            {
+                case nameof(DeploySmartContract):
+                    return ContractDeploymentInput.Parser.ParseFrom(input.ContractInput).Code;
+                case nameof(UpdateSmartContract):
+                    return ContractUpdateInput.Parser.ParseFrom(input.ContractInput).Code;
+                default:
+                    return ByteString.Empty;
+            }
         }
     }
 

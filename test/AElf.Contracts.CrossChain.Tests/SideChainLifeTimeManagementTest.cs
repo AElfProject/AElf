@@ -514,7 +514,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var status = res.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Side chain not found or not able to be recharged.", res.TransactionResult.Error);
+            Assert.Contains("Side chain not found or incorrect side chain status.", res.TransactionResult.Error);
         }
 
         [Fact]
@@ -536,7 +536,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var status = res.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Side chain not found or not able to be recharged.", res.TransactionResult.Error);
+            Assert.Contains("Side chain not found or incorrect side chain status.", res.TransactionResult.Error);
         }
 
         [Fact]

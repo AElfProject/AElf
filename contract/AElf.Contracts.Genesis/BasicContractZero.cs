@@ -130,8 +130,7 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        CodeCheckInvokingMethod =
-                            nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
+                        CodeCheckInvokingMethod = nameof(DeploySmartContract),
                         ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
@@ -172,8 +171,7 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        CodeCheckInvokingMethod =
-                            nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                        CodeCheckInvokingMethod = nameof(UpdateSmartContract),
                         ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
