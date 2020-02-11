@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Infrastructure;
@@ -48,6 +49,7 @@ namespace AElf.OS.BlockSync.Application
         public void Enqueue(Func<Task> task, string queueName)
         {
             var enqueueTime = TimestampHelper.GetUtcNow();
+
             _taskQueueManager.Enqueue(async () =>
             {
                 try

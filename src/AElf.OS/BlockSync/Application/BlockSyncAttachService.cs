@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -40,11 +41,11 @@ namespace AElf.OS.BlockSync.Application
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
             string senderPubkey, Func<Task> attachFinishedCallback = null)
         {
+            Stopwatch validateAndSave = Stopwatch.StartNew();
             var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!blockValid)
             {
-                Logger.LogWarning(
-                    $"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
+                Logger.LogWarning($"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
                 await LocalEventBus.PublishAsync(new BadPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),
@@ -58,11 +59,18 @@ namespace AElf.OS.BlockSync.Application
             await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
             var block = blockWithTransactions.ToBlock();
             await _blockchainService.AddBlockAsync(block);
+            
+            validateAndSave.Stop();
+            Logger.LogDebug($"[STAT][QUEUE][SAVE][{blockWithTransactions}] " +
+                            $"validate and save time {validateAndSave.Elapsed.TotalMilliseconds} ms.");
 
+            var sw = Stopwatch.StartNew();
             _blockSyncQueueService.Enqueue(async () =>
                 {
                     try
                     {
+                        Logger.LogDebug($"[STAT][QUEUE][UPDCHAIN][{blockWithTransactions}] " +
+                                        $"queue time {sw.Elapsed.TotalMilliseconds} ms.");
                         await _blockAttachService.AttachBlockAsync(block);
                     }
                     finally

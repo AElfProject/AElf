@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -106,6 +107,7 @@ namespace AElf.OS.Network.Grpc
 
                 await requestStream.ForEachAsync(block =>
                 {
+                    Stopwatch handleStopwatch = Stopwatch.StartNew();
                     TimeSpan diff = DateTime.UtcNow - block.Time.ToDateTime();
 
                     Logger.LogDebug($"[STAT][BCAST][RECV][{context.GetPeerInfo()}][{block.GetHash()}][{block.Height}] " +
@@ -115,6 +117,11 @@ namespace AElf.OS.Network.Grpc
                         return Task.CompletedTask;
 
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
+                    
+                    handleStopwatch.Stop();
+                    
+                    Logger.LogDebug($"[STAT][BCAST][HANDLE][{block.GetHash()}][{block.Height}] " +
+                                    $"handle time: {diff.TotalMilliseconds} ms");
 
                     return Task.CompletedTask;
                 });

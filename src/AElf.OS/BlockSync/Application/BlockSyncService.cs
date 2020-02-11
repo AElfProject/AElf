@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Domain;
@@ -94,10 +95,14 @@ namespace AElf.OS.BlockSync.Application
 
         private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
+            Stopwatch attachQueueStopwatch = Stopwatch.StartNew();
             _blockSyncQueueService.Enqueue(async () =>
             {
-                Logger.LogDebug($"Block sync: sync block, block: {blockWithTransactions}.");
+                attachQueueStopwatch.Stop();
+                Logger.LogDebug($"[STAT][QUEUE][ATTACH][{blockWithTransactions}] " +
+                                $"queue time {attachQueueStopwatch.Elapsed.TotalMilliseconds} ms.");
                 await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions, senderPubkey);
+
             }, OSConstants.BlockSyncAttachQueueName);
         }
 
