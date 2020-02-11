@@ -368,6 +368,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Stopwatch sw = Stopwatch.StartNew();
+                blockWithTransactions.Time = Timestamp.FromDateTime(DateTime.UtcNow);
                 await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
                 sw.Stop();
 

@@ -17,6 +17,7 @@ message BlockAnnouncement {
 message BlockWithTransactions {
     aelf.BlockHeader header = 1;
     repeated aelf.Transaction transactions = 2;
+    google.protobuf.Timestamp time = 3;
 }
 
 message LibAnnouncement{

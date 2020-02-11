@@ -106,12 +106,14 @@ namespace AElf.OS.Network.Grpc
 
                 await requestStream.ForEachAsync(block =>
                 {
-                    Logger.LogInformation(
-                        $"Received full block announce, block: {block} from {context.GetPeerInfo()}.");
+                    TimeSpan diff = DateTime.UtcNow - block.Time.ToDateTime();
+
+                    Logger.LogDebug($"[STAT][BCAST][RECV][{context.GetPeerInfo()}][{block.GetHash()}][{block.Height}] " +
+                                    $"in flight: {diff.TotalMilliseconds} ms");
 
                     if (!peer.TryAddKnownBlock(block.GetHash()))
                         return Task.CompletedTask;
-                        
+
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
 
                     return Task.CompletedTask;

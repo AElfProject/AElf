@@ -147,7 +147,7 @@ namespace AElf.OS.Network.Application
                     {
                         if (stats.QueueTime.TotalMilliseconds > 1 || stats.SendBufferEnqueueTime.TotalMilliseconds > 1)
                         {
-                            Logger.LogDebug($"[STAT][BCAST][{peer.RemoteEndpoint}][{blockHash}][{blockWithTransactions.Height}] " +
+                            Logger.LogDebug($"[STAT][BCAST][SEND][{peer.RemoteEndpoint}][{blockHash}][{blockWithTransactions.Height}] " +
                                             $"action block: {stats.QueueTime.TotalMilliseconds} ms, " +
                                             $"enqueue time: {stats.SendBufferEnqueueTime.TotalMilliseconds} ms.");
                         }
