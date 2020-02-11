@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.OS.Helpers;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.Types;
 using Moq;
 using Xunit;
@@ -33,7 +35,7 @@ namespace AElf.OS.Network.Service
             await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTx);
 
             foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.EnqueueBlock(blockWithTx, It.IsAny<Action<NetworkException>>()), Times.Once());
+                peer.Verify(p => p.EnqueueBlock(blockWithTx, It.IsAny<Action<NetworkException, StreamJobStats>>()), Times.Once());
         }
         
         [Fact]
@@ -50,7 +52,7 @@ namespace AElf.OS.Network.Service
             
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.EnqueueAnnouncement(It.Is<BlockAnnouncement>(ba => ba.BlockHash == blockHeader.GetHash()), 
-                    It.IsAny<Action<NetworkException>>()), Times.Once());
+                    It.IsAny<Action<NetworkException, StreamJobStats>>()), Times.Once());
         }
 
         [Fact]
@@ -67,7 +69,7 @@ namespace AElf.OS.Network.Service
 
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
-                    It.IsAny<Action<NetworkException>>()), Times.Once());
+                    It.IsAny<Action<NetworkException, StreamJobStats>>()), Times.Once());
         }
     }
 }

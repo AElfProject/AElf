@@ -54,7 +54,7 @@ namespace AElf.OS.Network
 
             NetworkException exception = null;
             bool called = false;
-            _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+            _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), (ex, s) =>
             {
                 exception = ex;
                 called = true;
@@ -74,7 +74,7 @@ namespace AElf.OS.Network
             NetworkException exception = null;
             var transaction = new Transaction();
             bool called = false;
-            _nonInterceptedPeer.EnqueueTransaction(transaction, ex =>
+            _nonInterceptedPeer.EnqueueTransaction(transaction, (ex, s) =>
             {
                 exception = ex;
                 called = true;
@@ -93,7 +93,7 @@ namespace AElf.OS.Network
 
             NetworkException exception = null;
             var called = false;
-            _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+            _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), (ex, s) =>
             {
                 exception = ex;
                 called = true;
@@ -113,14 +113,14 @@ namespace AElf.OS.Network
             NetworkException exception = null;
             _grpcPeer.IsConnected = false;
             Should.Throw<NetworkException>(() =>
-                _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+                _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), (ex, s) =>
                 {
                     exception = ex;
                     executed.Set();
                 }));
 
             Should.Throw<NetworkException>(()=>
-                _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+                _grpcPeer.EnqueueBlock(new BlockWithTransactions(), (ex, s) =>
                 {
                     exception = ex;
                     executed.Set();

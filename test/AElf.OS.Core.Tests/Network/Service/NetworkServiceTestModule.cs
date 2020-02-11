@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
@@ -212,15 +213,15 @@ namespace AElf.OS
             // set up the mock to execute the broadcast callbacks
 
             peerMock
-                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException, StreamJobStats>>()))
                 .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) => action.Invoke(null));
                 
             peerMock
-                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException, StreamJobStats>>()))
                 .Callback<BlockAnnouncement, Action<NetworkException>>((announce, action) => action.Invoke(null));
                 
             peerMock
-                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException, StreamJobStats>>()))
                 .Callback<Transaction, Action<NetworkException>>((transaction, action) => action.Invoke(null));
         }
     }
