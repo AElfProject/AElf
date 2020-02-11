@@ -123,31 +123,24 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         private bool IsBadField(FieldDefinition field)
         {
             var fieldTypeFullName = FieldTypeFullName(field);
-
-            // Only allowed types or primitive types if InitOnly field
-            if (field.IsInitOnly 
-                && (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) 
-                    || Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
+            
+            // If a field is init only
+            if (field.IsInitOnly && 
+                (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) || 
+                 Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
             {
                 return false;
             }
             
-            // Required for Linq in contracts
-            if (_allowedStaticFieldTypes.Contains(fieldTypeFullName))
-            {
-                return false;
-            }
-
-            // Only allow FileDescriptor field as non InitOnly field
-            if (fieldTypeFullName == typeof(FileDescriptor).FullName)
-                return false;
-            
-            // Allow field type that is type of its declaring type (required for protobuf generated code)
+            // If a type has a field that is same type of itself (Seen in nested classes generated due to Linq)
             if (fieldTypeFullName == field.DeclaringType.FullName)
                 return false;
-                
-            // Then it should be a constant (and it has to be a primitive type if constant)
-            return field.Constant == null;
+
+            // If constant, which means it is also primitive, then not a bad field
+            if (field.HasConstant)
+                return false;
+
+            return field.IsInitOnly;
         }
 
         private string FieldTypeFullName(FieldDefinition field)
@@ -183,14 +176,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             typeof(ReadOnlyCollection<>).FullName,
             typeof(IReadOnlyDictionary<,>).FullName
         };
-        
-        private readonly HashSet<string> _allowedStaticFieldTypes = new HashSet<string>
-        {
-            typeof(Func<>).FullName,
-            typeof(Func<,>).FullName,
-            typeof(Func<,,>).FullName,
-        };
-        
+
         private readonly HashSet<string> _allowedStateTypes = new HashSet<string>
         {
             typeof(BoolState).FullName,
