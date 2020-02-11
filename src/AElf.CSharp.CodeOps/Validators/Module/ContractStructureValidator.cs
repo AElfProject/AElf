@@ -25,31 +25,58 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
-            var errors = new List<ValidationResult>();
-            
-            errors.AddRange(ValidateStructure(module));
-            errors.AddRange(module.Types.SelectMany(ValidateType));
+            var structureError = ValidateStructure(module);
 
-            return errors;
+            if (structureError != null)
+                return new[] { structureError }.ToList();
+
+            return module.Types.SelectMany(ValidateType);
         }
 
-        private IEnumerable<ValidationResult> ValidateStructure(ModuleDefinition module)
+        private ValidationResult ValidateStructure(ModuleDefinition module)
         {
-            var contractImplementation = module.Types.Single(t => t.IsContractImplementation());
-
             // There should be only one contract base
             var contractBase = module.Types
                 .SelectMany(t => t.NestedTypes.Where(nt => nt.IsContractImplementation()))
-                .Single();
-            
+                .SingleOrDefault();
+
+            if (contractBase == null)
+            {
+                return new ContractStructureValidatorResult("Contract base not found.");
+            }
+
+            var contractImplementation = module.Types.SingleOrDefault(t => t.IsContractImplementation());
+            if (contractImplementation == null)
+            {
+                return new ContractStructureValidatorResult("Contract implementation not found.");
+            }
+
+            if (contractImplementation.BaseType != contractBase)
+            {
+                return new ContractStructureValidatorResult(
+                    $"Contract implementation should inherit from {contractBase.Name} " +
+                    $"but inherited from {contractImplementation.BaseType.Name}");
+            }
+
             var contractState = contractBase.BaseType is GenericInstanceType genericType
-                ? genericType.GenericArguments.Single()
+                ? genericType.GenericArguments.SingleOrDefault()
                 : null;
-            
-            //TODO: Check basic stuff, like there should be only 1 contract base and implementation
-            // Contract should have state
-                
-            return Enumerable.Empty<ValidationResult>();
+
+            if (contractState == null)
+            {
+                return new ContractStructureValidatorResult("Contract state not found.");
+            }
+
+            var currentContractStateBase = ((TypeDefinition) contractState).BaseType.FullName;
+            var aelfContractStateBase = typeof(ContractState).FullName;
+            if (currentContractStateBase != aelfContractStateBase)
+            {
+                return new ContractStructureValidatorResult(
+                    $"Contract state should inherit from {aelfContractStateBase} " + 
+                    $"but inherited from {currentContractStateBase}");
+            }
+
+            return null;
         }
 
         private IEnumerable<ValidationResult> ValidateType(TypeDefinition type)
