@@ -151,20 +151,21 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         {
             var fieldTypeFullName = FieldTypeFullName(field);
             
-            // If a field is init only
+            // If constant, which means it is also primitive, then not a bad field
+            if (field.HasConstant)
+                return false;
+            
+            // If a field is init only, then only pass allowed types
             if (field.IsInitOnly && 
                 (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) || 
                  Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
             {
                 return false;
             }
-            
-            // If a type has a field that is same type of itself (Seen in nested classes generated due to Linq)
-            if (fieldTypeFullName == field.DeclaringType.FullName)
-                return false;
 
-            // If constant, which means it is also primitive, then not a bad field
-            if (field.HasConstant)
+            // If a type has a field that is same type of itself (Seen in nested classes generated due to Linq)
+            // Don't allow any instance fields inside the type of the readonly static field
+            if (fieldTypeFullName == field.DeclaringType.FullName && field.DeclaringType.Fields.All(f => f.IsStatic))
                 return false;
 
             return field.IsInitOnly;
