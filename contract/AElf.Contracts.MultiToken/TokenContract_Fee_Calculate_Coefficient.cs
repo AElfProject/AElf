@@ -30,7 +30,7 @@ namespace AElf.Contracts.MultiToken
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
-            if (!IsModifiedDbData(coefficientInput.Coefficient, funcCoefficient)) return new Empty();
+            Assert(IsUpdateCoefficient(coefficientInput.Coefficient, funcCoefficient), "invalid data");
             State.CalculateCoefficientOfContract[coefficientInput.FeeType] = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
@@ -53,8 +53,7 @@ namespace AElf.Contracts.MultiToken
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
-
-            if (!IsModifiedDbData(coefficientInput, funcCoefficient)) return new Empty();
+            Assert(IsUpdateCoefficient(coefficientInput, funcCoefficient), "invalid data");
             State.CalculateCoefficientOfSender.Value = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
@@ -63,7 +62,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private bool IsModifiedDbData(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
+        private bool IsUpdateCoefficient(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
         {
             bool isChanged;
             if (coefficientInput.IsChangePieceKey)
