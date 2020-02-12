@@ -146,10 +146,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return pubkey;
         }
 
+        /// <summary>
+        /// Current implementation can be incorrect if all nodes recovering from
+        /// a strike more than the time of one round, because it's impossible to
+        /// infer a time slot in this situation.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override BoolValue IsCurrentMiner(Address input)
         {
             var pubkey = ConvertAddressToPubkey(input);
-            Context.LogDebug(() => $"[CURRENTMINER]PUBKEY: {pubkey}");
+            Context.LogDebug(() => $"[CURRENT MINER]PUBKEY: {pubkey}");
             return new BoolValue
             {
                 Value = IsCurrentMiner(pubkey)
@@ -184,7 +191,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (Context.CurrentBlockTime <= currentRound.GetRoundStartTime() &&
                 currentRound.ExtraBlockProducerOfPreviousRound == pubkey)
             {
-                Context.LogDebug(() => "[CURRENTMINER]PREVIOUS");
+                Context.LogDebug(() => "[CURRENT MINER]PREVIOUS");
                 return true;
             }
 
@@ -196,7 +203,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (timeSlotStartTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <=
                 timeSlotStartTime.AddMilliseconds(miningInterval))
             {
-                Context.LogDebug(() => "[CURRENTMINER]NORMAL");
+                Context.LogDebug(() => "[CURRENT MINER]NORMAL");
                 return true;
             }
 
@@ -207,7 +214,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (Context.CurrentBlockTime >= currentRound.GetExtraBlockMiningTime() &&
                 supposedExtraBlockProducer == pubkey)
             {
-                Context.LogDebug(() => "[CURRENTMINER]EXTRA");
+                Context.LogDebug(() => "[CURRENT MINER]EXTRA");
                 return true;
             }
 
@@ -216,11 +223,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.ArrangeAbnormalMiningTime(pubkey, currentRound.GetExtraBlockMiningTime(), true);
             if (arrangedMiningTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
             {
-                Context.LogDebug(() => "[CURRENTMINER]SAVING");
+                Context.LogDebug(() => "[CURRENT MINER]SAVING");
                 return true;
             }
 
-            Context.LogDebug(() => "[CURRENTMINER]WRONG");
+            Context.LogDebug(() => "[CURRENT MINER]WRONG");
 
             return false;
         }
