@@ -10,7 +10,7 @@ namespace AElf.Contracts.MultiToken
     {
         #region orgnanization init
 
-        public override Empty InitializeAuthorizedController(Empty input)
+        private void InitializeAuthorizedController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -43,7 +43,6 @@ namespace AElf.Contracts.MultiToken
             CalculateDeveloperFeeController();
             CreateDeveloperController();
             CreateAssociationControllerForDeveloperFee();
-            return new Empty();
         }
         
         public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)

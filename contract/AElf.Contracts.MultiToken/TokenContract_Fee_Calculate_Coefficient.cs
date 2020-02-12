@@ -14,6 +14,8 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
+
+            InitializeAuthorizedController();
             State.Initialized.Value = true;
             return new Empty();
         }

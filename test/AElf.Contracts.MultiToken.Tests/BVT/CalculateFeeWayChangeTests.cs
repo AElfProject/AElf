@@ -17,6 +17,14 @@ namespace AElf.Contracts.MultiToken
     {
         private async Task InitializeCoefficientAsync()
         {
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = "ELF",
+                TokenName = "ELF token",
+                TotalSupply = 1000_000,
+                Decimals = 8,
+                Issuer = DefaultAddress
+            });
             var initResult = (await TokenContractStub.Initialize.SendAsync(new InitializeInput())).TransactionResult;
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

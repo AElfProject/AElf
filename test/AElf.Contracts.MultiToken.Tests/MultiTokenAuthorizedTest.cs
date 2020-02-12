@@ -27,10 +27,6 @@ namespace AElf.Contracts.MultiToken
             var initResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Initialize), new InitializeInput());
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var initOrgResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedController), new Empty());
-            initOrgResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]

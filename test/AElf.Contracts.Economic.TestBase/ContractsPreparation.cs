@@ -70,7 +70,10 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address TransactionFeeChargingContractAddress =>
             GetOrDeployContract(Contracts.TransactionFee, ref _feeChargingAddress);
-
+        
+        private Address _associationAddress;
+        protected Address AssociationContractAddress => GetOrDeployContract(Contracts.Association, ref _associationAddress);
+        
         private Address _methodCallThresholdAddress;
 
         protected Address MethodCallThresholdContractAddress =>
@@ -290,6 +293,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ReferendumContractAddress;
             _ = TokenContractAddress;
             _ = TokenHolderContractAddress;
+            _ = AssociationContractAddress;
         }
 
         #endregion

@@ -63,6 +63,7 @@ namespace AElf.Contracts.MultiToken
         public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
         public byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
+        public byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
         protected Address TokenConverterContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
