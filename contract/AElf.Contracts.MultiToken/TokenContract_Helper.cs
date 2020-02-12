@@ -50,7 +50,7 @@ namespace AElf.Contracts.MultiToken
                 To = to,
                 Symbol = symbol,
                 Amount = amount,
-                Memo = memo
+                Memo = memo ?? string.Empty
             });
         }
 
