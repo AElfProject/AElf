@@ -27,7 +27,3 @@ script:
   - dotnet tool install --global coverlet.console
   - dotnet cake ./build.cake --target=build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then dotnet cake build.cake --target=test ; fi
-after_script:
-  - curl -s https://codecov.io/bash > codecov
-  - chmod +x codecov
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
