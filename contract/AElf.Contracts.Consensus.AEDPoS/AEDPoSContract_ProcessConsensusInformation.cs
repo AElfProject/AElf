@@ -68,11 +68,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Clear cache.
             _processingBlockMinerPubkey = null;
-            
-            if (!IsCurrentMiner(Address.FromPublicKey(Context.RecoverPublicKey())).Value)
-            {
-                Context.LogDebug(() => "[CURRENTMINER]IS NOT CURRENT MINER.");
-            }
         }
 
         private void ProcessNextRound(Round nextRound)
