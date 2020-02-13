@@ -26,4 +26,4 @@ script:
   - dotnet tool restore
   - dotnet tool install --global coverlet.console
   - dotnet cake ./build.cake --target=build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then dotnet cake build.cake --target=test ; fi
+  - dotnet cake ./build.cake --target=test
