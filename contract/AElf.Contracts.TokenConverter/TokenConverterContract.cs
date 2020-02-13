@@ -42,21 +42,14 @@ namespace AElf.Contracts.TokenConverter
             var feeRate = AssertedDecimal(input.FeeRate);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
-
-            var count = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
                 if(connector.IsDepositAccount)
                     AssertValidConnectorWeight(connector);
                 else
                     AssertValidConnectorAndNormalizeWeight(connector);
-                State.ConnectorSymbols[count] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
-                count = count.Add(1);
             }
-
-            State.ConnectorCount.Value = count;
-
             return new Empty();
         }
 
@@ -110,12 +103,8 @@ namespace AElf.Contracts.TokenConverter
                 IsDepositAccount = true
             };
             AssertValidConnectorWeight(nativeTokenToResourceConnector);
-            int count = State.ConnectorCount.Value;
-            State.ConnectorSymbols[ ++ count] = resourceConnector.Symbol;
             State.Connectors[resourceConnector.Symbol] = resourceConnector;
-            State.ConnectorSymbols[ ++ count] = nativeTokenToResourceConnector.Symbol;
             State.Connectors[nativeTokenToResourceConnector.Symbol] = nativeTokenToResourceConnector;
-            State.ConnectorCount.Value = count;
             return new Empty();
         }
 

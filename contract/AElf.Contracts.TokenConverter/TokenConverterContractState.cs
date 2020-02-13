@@ -11,8 +11,8 @@ namespace AElf.Contracts.TokenConverter
     {
         public StringState BaseTokenSymbol { get; set; }
         public StringState FeeRate { get; set; }
-        public Int32State ConnectorCount { get; set; }
-        public MappedState<int, string> ConnectorSymbols { get; set; }
+        //public Int32State ConnectorCount { get; set; }
+        //public MappedState<int, string> ConnectorSymbols { get; set; }
         public MappedState<string, Connector> Connectors { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
