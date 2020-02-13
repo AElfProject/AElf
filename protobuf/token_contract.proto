@@ -85,8 +85,6 @@ service TokenContract {
     }
     rpc SetControllerForSymbolsToPayTXSizeFee(aelf.Address) returns (google.protobuf.Empty){
     }
-    rpc InitializeAuthorizedController(google.protobuf.Empty) returns  (google.protobuf.Empty) {
-    }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
     

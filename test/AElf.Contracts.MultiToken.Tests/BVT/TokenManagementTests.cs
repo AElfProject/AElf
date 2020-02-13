@@ -211,6 +211,13 @@ namespace AElf.Contracts.MultiToken
                 AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
                 AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
             }
+            
+            //AssociationContract
+            {
+                var code = AssociationContractCode;
+                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
+            }
         }
 
         private async Task CreateNativeTokenAsync()

@@ -312,7 +312,20 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-
+            
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
+            
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
+                Params = Creator.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = defaultOrganizationAddress
+            });
+            
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
@@ -330,15 +343,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
             });
-
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
-                Params = Creator.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = defaultOrganizationAddress
-            });
+            
             var updateRentalInput = new UpdateRentalInput
             {
                 Rental =
@@ -349,10 +354,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"NET", Rental},
                 }
             };
-            await CreateToken(
-                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
-                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
-            await TokenStub.InitializeAuthorizedController.SendAsync(new Empty());
             var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             var parliamentOrgAddress = defaultOrganizationAddress;
             var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
