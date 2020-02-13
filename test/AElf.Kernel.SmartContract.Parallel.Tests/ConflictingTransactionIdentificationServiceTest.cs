@@ -6,7 +6,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
+using Volo.Abp.Testing;
 using Volo.Abp.Modularity;
 using Xunit;
 

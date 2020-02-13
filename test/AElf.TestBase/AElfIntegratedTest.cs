@@ -2,6 +2,7 @@ using MartinCostello.Logging.XUnit;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Xunit.Abstractions;
+using Volo.Abp.Testing;
 
 namespace AElf.TestBase
 {

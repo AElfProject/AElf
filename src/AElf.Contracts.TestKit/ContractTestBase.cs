@@ -14,6 +14,7 @@ using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Xunit.Abstractions;
+using Volo.Abp.Testing;
 
 namespace AElf.Contracts.TestKit
 {
