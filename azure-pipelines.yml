@@ -37,7 +37,7 @@ jobs:
   - script: dotnet tool restore
   - script: dotnet tool install --global coverlet.console
   - script: dotnet cake ./build.cake --target=build
-  - script: dotnet cake ./build.cake --target=test
+  - script: dotnet cake ./build.cake --target=test_with_codecov
   - script: curl -s https://codecov.io/bash > codecov
   - script: chmod +x codecov
   - script: ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN

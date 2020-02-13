@@ -51,8 +51,8 @@ Task("build")
 });
 
 
-Task("test")
-    .Description("operation test")
+Task("test_with_codecov")
+    .Description("operation test_with_codecov")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -73,7 +73,21 @@ Task("test")
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
 });
+Task("test")
+    .Description("operation test")
+    .Does(() =>
+{
+    var testSetting = new DotNetCoreTestSettings{
+        NoRestore = true,
+        NoBuild = true
+};
+    var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
+    foreach(var testProject in testProjects)
+    {
+        DotNetCoreTest(testProject.FullPath, testSetting);
+    }
+});
 Task("default")
     .Description("default run test(-target test)")
     .IsDependentOn("build");
