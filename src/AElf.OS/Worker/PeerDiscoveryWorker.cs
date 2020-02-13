@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,7 @@ namespace AElf.OS.Worker
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
         public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
-            INetworkService networkService, IReconnectionService reconnectionService) : base(timer)
+            INetworkService networkService, IReconnectionService reconnectionService, IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
         {
             _peerDiscoveryService = peerDiscoveryService;
             Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
@@ -32,7 +33,7 @@ namespace AElf.OS.Worker
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
         }
 
-        protected override async void DoWork()
+        protected override async void DoWork(PeriodicBackgroundWorkerContext workerContext)
         {
             await ProcessPeerDiscoveryJob();
         }
