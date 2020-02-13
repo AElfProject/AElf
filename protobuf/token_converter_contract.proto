@@ -42,7 +42,7 @@ service TokenConverterContract {
     rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetConnector (TokenSymbol) returns (Connector) {
+    rpc GetConnector (TokenSymbol) returns (GroupConnector) {
         option (aelf.is_view) = true;
     }
     rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
@@ -138,4 +138,8 @@ message ToBeConnectedTokenInfo{
 message DepositInfo{
     sint64 need_amount = 1;
     sint64 amount_out_of_token_convert = 2;
+}
+message GroupConnector{
+    Connector resource_connector = 1;
+    Connector deposit_connector = 2;
 }
