@@ -24,7 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Skip the certain initial miner during first several rounds. (When other nodes haven't produce blocks yet.)
             if (baseRound.RealTimeMinersInformation.Count != 1 &&
-                Context.CurrentHeight < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(2))
+                Context.CurrentHeight < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(3))
             {
                 string producedMiner = null;
                 var result = true;
@@ -32,7 +32,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var producedMiners = State.Rounds[i].RealTimeMinersInformation.Values
                         .Where(m => m.ActualMiningTimes.Any()).ToList();
-                    if (producedMiners.Count != 1) continue;
+                    if (producedMiners.Count != 1)
+                    {
+                        result = false;
+                        break;
+                    }
                     if (producedMiner == null)
                     {
                         producedMiner = producedMiners.Single().Pubkey;
