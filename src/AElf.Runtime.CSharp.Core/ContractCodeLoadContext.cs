@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Runtime.Loader;
+﻿using System.Runtime.Loader;
 using System.Reflection;
 
 namespace AElf.Runtime.CSharp
@@ -28,7 +25,10 @@ namespace AElf.Runtime.CSharp
             if (assemblyName.Name.StartsWith("AElf.Sdk"))
             {
                 // Sdk assembly should NOT be shared
-                return LoadFromStream(_sdkStreamManager.GetStream(assemblyName));
+                using (var stream = _sdkStreamManager.GetStream(assemblyName))
+                {
+                    return LoadFromStream(stream);
+                }
             }
 
             return null;

@@ -1,12 +1,11 @@
-variables:
-  CI_TEST: true
-
 jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
   pool:
     vmImage: windows-2019
+  variables:
+    CI_TEST: true
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
@@ -38,12 +37,17 @@ jobs:
   - script: dotnet tool restore
   - script: dotnet tool install --global coverlet.console
   - script: dotnet cake ./build.cake --target=build
-  - script: dotnet cake ./build.cake --target=test
+  - script: dotnet cake ./build.cake --target=test_with_codecov
+  - script: curl -s https://codecov.io/bash > codecov
+  - script: chmod +x codecov
+  - script: ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
   pool:
     vmImage: macos-10.13
+  variables:
+    CI_TEST: true
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
