@@ -26,18 +26,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (baseRound.RealTimeMinersInformation.Count != 1 &&
                 Context.CurrentHeight < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(2))
             {
-                var initialMinerPubkey = State.Rounds[1].RealTimeMinersInformation.First().Key;
-                if (initialMinerPubkey == extraData.SenderPubkey.ToHex())
+                string producedMiner = null;
+                var result = true;
+                for (var i = baseRound.RoundNumber; i > 0; i--)
                 {
-                    for (var i = baseRound.RoundNumber; i > 0; i--)
+                    var producedMiners = State.Rounds[i].RealTimeMinersInformation.Values
+                        .Where(m => m.ActualMiningTimes.Any()).ToList();
+                    if (producedMiners.Count != 1) continue;
+                    if (producedMiner == null)
                     {
-                        var producedMiners = State.Rounds[i].RealTimeMinersInformation.Values
-                            .Where(m => m.ActualMiningTimes.Any()).ToList();
-                        if (producedMiners.Count == 1 && producedMiners.Single().Pubkey == initialMinerPubkey)
-                        {
-                            return new ValidationResult {Success = true};
-                        }
+                        producedMiner = producedMiners.Single().Pubkey;
                     }
+                    else if (producedMiner != producedMiners.Single().Pubkey)
+                    {
+                        result = false;
+                    }
+                }
+
+                if (result)
+                {
+                    return new ValidationResult {Success = true};
                 }
             }
 
