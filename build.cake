@@ -49,8 +49,8 @@ Task("build")
         DotNetCoreBuild(solution, buildSetting);
     });
 
-Task("test")
-    .Description("operation test")
+Task("test_with_codecov")
+    .Description("operation test_with_codecov")
     .Does(() => {
         var testSetting = new DotNetCoreTestSettings {
             NoRestore = true,
