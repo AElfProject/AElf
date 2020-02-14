@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
@@ -7,8 +6,8 @@ namespace AElf.Runtime.CSharp
 {
     public class SdkStreamManager : ISdkStreamManager
     {
-        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
-            new ConcurrentDictionary<string, MemoryStream>();
+        private readonly ConcurrentDictionary<string, byte[]> _cachedSdkStreams =
+            new ConcurrentDictionary<string, byte[]>();
 
         private readonly string _sdkDir;
 
@@ -31,18 +30,18 @@ namespace AElf.Runtime.CSharp
                 path = assembly.Location;
             }
 
-            if (!_cachedSdkStreams.TryGetValue(path, out var ms))
+            if (!_cachedSdkStreams.TryGetValue(path, out var buffer))
             {
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
-                    ms = new MemoryStream();
-                    fs.CopyTo(ms);
-                    _cachedSdkStreams.TryAdd(path, ms);
+                    var length = (int)fs.Length;
+                    buffer = new byte[length];
+                    fs.Read(buffer, 0, length);
+                    _cachedSdkStreams.TryAdd(path, buffer);
                 }
             }
 
-            ms.Position = 0;
-            return ms;
+            return new MemoryStream(buffer);
         }
     }
 }
