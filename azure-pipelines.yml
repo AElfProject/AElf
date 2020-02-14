@@ -30,6 +30,7 @@ jobs:
       version: '3.1.100'
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
+  - script: bash scripts/install_coverlet_msbuild.sh
   - script: dotnet tool install --global Cake.Tool
     displayName: 'Install "Cake.Tool" .NET Core global tool'
   - script: export PATH="$PATH:$HOME/.dotnet/tools"
