@@ -29,7 +29,7 @@ service ParliamentContract {
     }
     rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
-    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput){
+    rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteList){
         option (aelf.is_view) = true;
     }
     rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
@@ -79,7 +79,7 @@ message ProposalIdList{
     repeated aelf.Hash proposal_ids = 1;
 }
 
-message GetProposerWhiteListContextOutput{
+message GetProposerWhiteList{
     repeated aelf.Address proposers = 1;
 }
 

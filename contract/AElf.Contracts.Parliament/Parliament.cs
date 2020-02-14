@@ -66,9 +66,9 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
         }
         
-        public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
+        public override GetProposerWhiteList GetProposerWhiteListContext(Empty input)
         {
-            var res = new GetProposerWhiteListContextOutput();
+            var res = new GetProposerWhiteList();
             var whitelist = State.ProposerWhiteList.Value;
             res.Proposers.AddRange(whitelist.Proposers);
             return res;
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Parliament
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
+                if (proposal == null || !Validate(proposal) || CheckProposalAlreadyVotedBy(proposal, Context.Sender))
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Parliament
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
+                if (proposal == null || !Validate(proposal) || CheckProposalAlreadyVotedBy(proposal, Context.Sender))
                     continue;
                 var organization = State.Organisations[proposal.OrganizationAddress];
                 if (organization == null || !IsProposalStillPending(proposal, organization, currentParliament))
@@ -243,6 +243,7 @@ namespace AElf.Contracts.Parliament
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
             Assert(State.DefaultOrganizationAddress.Value == Context.Sender, "No permission.");
+            Assert(input.Proposers.Count > 0, "White list can't be empty.");
             State.ProposerWhiteList.Value = input;
             return new Empty();
         }
@@ -251,7 +252,7 @@ namespace AElf.Contracts.Parliament
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime >= proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }

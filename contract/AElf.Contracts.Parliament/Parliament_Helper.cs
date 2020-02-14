@@ -12,7 +12,7 @@ namespace AElf.Contracts.Parliament
     {
         private List<Address> GetCurrentMinerList()
         {
-            MaybeLoadConsensusContractAddress();
+            RequireConsensusContractStateSet();
             var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
             var members = miner.Pubkeys.Select(publicKey =>
                 Address.FromPublicKey(publicKey.ToByteArray())).ToList();
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Parliament
             return isVoteThresholdReached;
         }
 
-        private void MaybeLoadConsensusContractAddress()
+        private void RequireConsensusContractStateSet()
         {
             if (State.ConsensusContract.Value != null)
                 return;
@@ -159,10 +159,10 @@ namespace AElf.Contracts.Parliament
 
         private void AssertProposalNotYetVotedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyVoted(proposal, Context.Sender), "Already approved.");
+            Assert(!CheckProposalAlreadyVotedBy(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyVoted(ProposalInfo proposal, Address address)
+        private bool CheckProposalAlreadyVotedBy(ProposalInfo proposal, Address address)
         {
             return proposal.Approvals.Contains(address) || proposal.Rejections.Contains(address) ||
                    proposal.Abstentions.Contains(address);
@@ -181,7 +181,7 @@ namespace AElf.Contracts.Parliament
 
         private void AssertCurrentMiner()
         {
-            MaybeLoadConsensusContractAddress();
+            RequireConsensusContractStateSet();
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
             Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
             Assert(isCurrentMiner, "No permission.");

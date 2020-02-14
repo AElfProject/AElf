@@ -78,10 +78,17 @@ namespace AElf.Contracts.Association
 
         private bool Validate(ProposalInfo proposal)
         {
-            var validDestinationAddress = proposal.ToAddress != null;
-            var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
-            var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime;
+            if (proposal.ToAddress == null)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(proposal.ContractMethodName))
+            {
+                return false;
+            }
+
+            return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)
@@ -96,6 +103,8 @@ namespace AElf.Contracts.Association
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            Assert(organizationAddress != null && organizationHash != null,
+                "Invalid address or hash of the organization.");
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
