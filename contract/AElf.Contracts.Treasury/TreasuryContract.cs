@@ -169,7 +169,7 @@ namespace AElf.Contracts.Treasury
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
-                To = isNativeSymbol
+                To = isNativeSymbol || !canExchangeWithNativeSymbol
                     ? State.TreasuryVirtualAddress.Value
                     : Context.Self,
                 Symbol = input.Symbol,
