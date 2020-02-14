@@ -26,7 +26,7 @@ service TokenConverterContract {
     }
     rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
     }
-    rpc AddPairConnectors(PairConnector) returns (google.protobuf.Empty){
+    rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }
     rpc EnableConnector(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
     }
@@ -42,7 +42,7 @@ service TokenConverterContract {
     rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetConnector (TokenSymbol) returns (GroupConnector) {
+    rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
         option (aelf.is_view) = true;
     }
     rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
@@ -124,7 +124,7 @@ message TokenSold {
     sint64 base_amount = 3;
     sint64 fee_amount =4;    
 }
-message PairConnector {
+message PairConnectorParam {
     string resource_connector_symbol = 1;
     string resource_weight = 2;
     sint64 native_virtual_balance = 3;
@@ -139,7 +139,7 @@ message DepositInfo{
     sint64 need_amount = 1;
     sint64 amount_out_of_token_convert = 2;
 }
-message GroupConnector{
+message PairConnector{
     Connector resource_connector = 1;
     Connector deposit_connector = 2;
 }

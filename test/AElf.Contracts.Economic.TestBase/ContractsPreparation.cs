@@ -520,7 +520,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected async Task SetConnectors()
         {
             {
-                await SetConnector(new PairConnector
+                await SetConnector(new PairConnectorParam
                 {
                     ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
                     ResourceWeight = "0.05",
@@ -593,13 +593,13 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        private async Task SetConnector(PairConnector connector)
+        private async Task SetConnector(PairConnectorParam connector)
         {
             var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = connectorManagerAddress,
-                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnectors),
+                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnector),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress

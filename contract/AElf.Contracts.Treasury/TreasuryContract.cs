@@ -152,7 +152,7 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
