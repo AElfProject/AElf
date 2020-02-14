@@ -60,7 +60,7 @@ Task("test_with_codecov")
                         .Append("/p:CoverletOutputFormat=json%2copencover")
                         .Append("/p:CoverletOutput=../results/coverage")
                         .Append("/p:MergeWith=../results/coverage.json")
-                        .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database.RedisProtocol*].*%2c[AElf.Test.Helpers]*%2c[*]*Exception*%2c[AElf.Contracts.GenesisUpdate*]*")
+                        .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[*]AElf.Database.RedisProtocol.*%2c[AElf.Test.Helpers]*%2c[*]*Exception*%2c[*]AElf.Contracts.GenesisUpdate.*")
                         .Append("/p:Exclude=[*Tests]*%2c[*TestContract*]*%2c[*TestBase*]*")
                         .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs");
                 }
