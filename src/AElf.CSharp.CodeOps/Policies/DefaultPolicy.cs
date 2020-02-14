@@ -153,6 +153,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
                 new GetHashCodeValidator(),
+                new DescriptorAccessValidator(), 
             });
         }
 
