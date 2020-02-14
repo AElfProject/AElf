@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Org.BouncyCastle.Utilities.Collections;
@@ -13,7 +14,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             foreach (var type in module.Types.Where(t => !t.IsContractImplementation()))
             {
                 InjectTypeWithResetFields(module, type);
-                AddCallToSubClassResetFields(type);
+                AddCallToNestedClassResetFields(type);
             }
 
             InjectContractWithResetFields(module);
@@ -30,49 +31,49 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             }
             
             // Get static non-initonly, non-constant fields
-            // TODO: Deal with FileDescriptor types in a proper way
-            var fields = type.Fields
-                .Where(f => f.FieldType.Name != "FileDescriptor" && f.IsStatic && !(f.IsInitOnly || f.HasConstant)).ToList();
+            var fields = type.Fields.Where(f => 
+                f.FieldType.FullName != typeof(FileDescriptor).FullName && 
+                f.IsStatic && 
+                !(f.IsInitOnly || f.HasConstant)
+                ).ToList();
 
             callToNestedResetNeeded |= fields.Any();
 
             if (callToNestedResetNeeded)
             {
-                // Inject reset fields method in type
-                var resetFieldsMethod = ConstructResetFieldsMethod(module, fields, false);
-
-                type.Methods.Add(resetFieldsMethod);
+                // Inject ResetFields method in type, so that nested calls can be added later
+                type.Methods.Add(ConstructResetFieldsMethod(module, fields, false));
             }
 
             return callToNestedResetNeeded;
         }
 
-        private void AddCallToSubClassResetFields(TypeDefinition type)
+        private void AddCallToNestedClassResetFields(TypeDefinition type)
         {
-            var superClassResetMethod = type.Methods.FirstOrDefault(m => m.Name == nameof(ResetFields));
+            var parentClassResetMethod = type.Methods.FirstOrDefault(m => m.Name == nameof(ResetFields));
 
-            if (superClassResetMethod == null)
+            if (parentClassResetMethod == null)
                 return;
             
-            var il = superClassResetMethod.Body.GetILProcessor();
+            var il = parentClassResetMethod.Body.GetILProcessor();
 
             var ret = il.Body.Instructions.Last();
 
             // Get reference of the methods to nested types' reset fields methods
-            var callRequired = type.NestedTypes
+            var toBeCalledFromParent = type.NestedTypes
                 .Where(t => t.Methods.Any(m => m.Name == nameof(ResetFields)))
                 .Select(t => t.Methods.Single(m => m.Name == nameof(ResetFields)));
             
-            foreach (var subResetMethod in callRequired)
+            foreach (var nestedResetMethod in toBeCalledFromParent)
             {
-                // Add a call to sub class' reset fields method
-                il.InsertBefore(ret, il.Create(OpCodes.Call, subResetMethod));
+                // Add a call to nested class' ResetFields method
+                il.InsertBefore(ret, il.Create(OpCodes.Call, nestedResetMethod));
             }
 
-            // Do the same for nested types
+            // Do the same for nested types (add call to their nested types' ResetMethod)
             foreach (var nestedType in type.NestedTypes)
             {
-                AddCallToSubClassResetFields(nestedType);
+                AddCallToNestedClassResetFields(nestedType);
             }
         }
 
@@ -83,7 +84,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             foreach (var nestedType in contractImplementation.NestedTypes)
             {
                 InjectTypeWithResetFields(module, nestedType);
-                AddCallToSubClassResetFields(nestedType);
+                AddCallToNestedClassResetFields(nestedType);
             }
             
             var otherTypes = module.Types.Where(t => !t.IsContractImplementation()).ToList();
@@ -91,22 +92,19 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             // Add contract's nested types as well
             otherTypes.AddRange(contractImplementation.NestedTypes);
             
-            // TODO: Handle nullable fields' default value
+            // Get all fields, including instance fields from the base type of the inherited contract type
             var resetFieldsMethod = ConstructResetFieldsMethod(module, 
-                contractImplementation.Fields.Where(f => !(f.IsInitOnly || f.HasConstant)), true);
-
-            //var resetFieldsMethod = ConstructResetFieldsMethod(module, Enumerable.Empty<FieldDefinition>(), true);
+                contractImplementation.GetAllFields(f=>!(f.IsInitOnly || f.HasConstant)), true);
 
             var il = resetFieldsMethod.Body.GetILProcessor();
 
             var ret = il.Body.Instructions.Last();
 
             // Call other types' reset fields method from contract implementation reset method
-            foreach (var type in otherTypes)
+            foreach (var resetMethodRef in otherTypes.Select(type => 
+                type.Methods.FirstOrDefault(m => 
+                    m.Name == nameof(ResetFields))).Where(resetMethodRef => resetMethodRef != null))
             {
-                var resetMethodRef = type.Methods.FirstOrDefault(m => m.Name == nameof(ResetFields));
-                if (resetMethodRef == null)
-                    continue;
                 il.InsertBefore(ret, il.Create(OpCodes.Call, resetMethodRef));
             }
             

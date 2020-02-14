@@ -60,22 +60,13 @@ namespace AElf.CSharp.CodeOps
             return fields;
         }
 
-        public static IEnumerable<FieldDefinition> GetContractFields(this ModuleDefinition module)
+        public static IEnumerable<FieldDefinition> GetAllFields(this TypeDefinition type, Func<FieldDefinition, bool> condition)
         {
-            // Get contract implementations
-            var contractImplementation = module.Types.Where(IsContractImplementation).Single();
-
-            // Get fields in contract implementation
-            return contractImplementation.GetFields();
-        }
-
-        private static IEnumerable<FieldDefinition> GetFields(this TypeDefinition type)
-        {
-            var fields = type.Fields.Where(f => !f.HasConstant).ToList();
+            var fields = type.Fields.Where(condition).ToList();
 
             if (type.BaseType is TypeDefinition baseType)
             {
-                fields.AddRange(baseType.GetFields());
+                fields.AddRange(baseType.GetAllFields(condition));
             }
 
             return fields;
