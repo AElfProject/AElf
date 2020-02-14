@@ -213,8 +213,6 @@ namespace AElf.Contracts.Treasury
         {
             AssertControllerForManageVoteWeightInterestSetting();
             Assert(input != null, "invalid input");
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
-            Assert(isNewControllerIsExist.Value, "new controller does not exist");
             State.ControllerForManageVoteWeightInterest.Value = input;
             return new Empty();
         }
