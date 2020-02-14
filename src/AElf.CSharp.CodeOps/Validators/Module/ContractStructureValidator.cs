@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
@@ -42,18 +43,18 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
             if (contractBase == null)
             {
-                return new ContractStructureValidatorResult("Contract base not found.");
+                return new ContractStructureValidationResult("Contract base not found.");
             }
 
             var contractImplementation = module.Types.SingleOrDefault(t => t.IsContractImplementation());
             if (contractImplementation == null)
             {
-                return new ContractStructureValidatorResult("Contract implementation not found.");
+                return new ContractStructureValidationResult("Contract implementation not found.");
             }
 
             if (contractImplementation.BaseType != contractBase)
             {
-                return new ContractStructureValidatorResult(
+                return new ContractStructureValidationResult(
                     $"Contract implementation should inherit from {contractBase.Name} " +
                     $"but inherited from {contractImplementation.BaseType.Name}");
             }
@@ -64,14 +65,14 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
             if (contractState == null)
             {
-                return new ContractStructureValidatorResult("Contract state not found.");
+                return new ContractStructureValidationResult("Contract state not found.");
             }
 
             var currentContractStateBase = ((TypeDefinition) contractState).BaseType.FullName;
             var aelfContractStateBase = typeof(ContractState).FullName;
             if (currentContractStateBase != aelfContractStateBase)
             {
-                return new ContractStructureValidatorResult(
+                return new ContractStructureValidationResult(
                     $"Contract state should inherit from {aelfContractStateBase} " + 
                     $"but inherited from {currentContractStateBase}");
             }
@@ -102,7 +103,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             if (badFields.Any())
             {
                 return badFields.Select(f => 
-                    new ContractStructureValidatorResult(
+                    new ContractStructureValidationResult(
                             $"{f.FieldType.FullName} type is not allowed as a field in contract state.")
                         .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
             }
@@ -116,15 +117,31 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Allow constants
             // Allow any other types if not readonly or constant (since ResetFields can reset later on)
             // Simplify below where statements later
-            return type.Fields
+            var errors = type.Fields
                 .Where(f => 
                     !((f.Constant != null || f.IsInitOnly) && 
                       (Constants.PrimitiveTypes.Contains(FieldTypeFullName(f)) || 
                        _allowedStaticFieldInitOnlyTypes.Contains(FieldTypeFullName(f))))) // Treat contract field as static field
                 .Where(f => f.Constant != null || f.IsInitOnly)
                 .Select(f => 
-                    new ContractStructureValidatorResult("Only primitive types are allowed in readonly fields in contract implementation.")
-                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
+                    new ContractStructureValidationResult("Only primitive types or whitelisted types are allowed as readonly fields in contract implementation.")
+                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name)).ToList();
+
+            // Do not allow setting value of any non-constant, non-readonly field in constructor
+            foreach (var method in type.Methods.Where(m => m.IsConstructor))
+            {
+                foreach (var instruction in method.Body.Instructions
+                    .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
+                {
+                    if (instruction.Operand is FieldDefinition field && !(field.IsInitOnly || field.HasConstant))
+                    {
+                        errors.Add(new ContractStructureValidationResult($"Initialization value is not allowed for field {field.Name}.")
+                            .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+                    }
+                }
+            }
+
+            return errors;
         }
 
         private IEnumerable<ValidationResult> ValidateRegularType(TypeDefinition type)
@@ -136,15 +153,28 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             var staticFields = type.Fields.Where(f => f.IsStatic);
             var badFields = staticFields.Where(IsBadField).ToList();
 
-            if (badFields.Any())
-            {
-                return badFields.Select(f => 
-                    new ContractStructureValidatorResult(
+            var errors = badFields.Select(f => 
+                new ContractStructureValidationResult(
                         $"{f.FieldType.FullName} type is not allowed to be used as static field in regular types in contract.")
-                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
+                    .WithInfo(f.Name, type.Namespace, type.Name, f.Name))
+                .ToList();
+            
+            foreach (var method in type.Methods.Where(m => m.IsConstructor))
+            {
+                foreach (var instruction in method.Body.Instructions
+                    .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
+                {
+                    if (instruction.Operand is FieldDefinition field && 
+                        field.FieldType.FullName != typeof(FileDescriptor).FullName && // Allow FileDescriptor fields
+                        field.IsStatic && !(field.IsInitOnly || field.HasConstant))
+                    {
+                        errors.Add(new ContractStructureValidationResult($"Initialization value is not allowed for field {field.Name}.")
+                            .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+                    }
+                }
             }
 
-            return Enumerable.Empty<ValidationResult>();
+            return errors;
         }
 
         private bool IsBadField(FieldDefinition field)
@@ -227,9 +257,9 @@ namespace AElf.CSharp.CodeOps.Validators.Module
         };
     }
     
-    public class ContractStructureValidatorResult : ValidationResult
+    public class ContractStructureValidationResult : ValidationResult
     {
-        public ContractStructureValidatorResult(string message) : base(message)
+        public ContractStructureValidationResult(string message) : base(message)
         {
         }
     }

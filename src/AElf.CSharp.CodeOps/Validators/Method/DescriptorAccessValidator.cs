@@ -13,21 +13,28 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             if (!method.HasBody || method.IsConstructor)
                 return Enumerable.Empty<ValidationResult>();
             
-
             // If there is any method accessing a FileDescriptor type field to set, then this is a problem.
             // FileDescriptor field should only be set in constructor
             var instructions = method.Body.Instructions
                 .Where(i => i.OpCode == OpCodes.Stsfld &&
                             i.Operand is FieldDefinition field &&
-                            field.FieldType.Name == nameof(FileDescriptor)).ToArray();
+                            field.FieldType.FullName == typeof(FileDescriptor).FullName).ToArray();
 
             if (instructions.Any())
             {
-                return instructions.Select(i => new FloatOpsValidationResult($"")
+                return instructions.Select(i => 
+                    new DescriptorAccessValidationResult($"It is not allowed to set FileDescriptor type field outside of constructor.")
                     .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null)); 
             }
 
             return Enumerable.Empty<ValidationResult>();
+        }
+    }
+    
+    public class DescriptorAccessValidationResult : ValidationResult
+    {
+        public DescriptorAccessValidationResult(string message) : base(message)
+        {
         }
     }
 }
