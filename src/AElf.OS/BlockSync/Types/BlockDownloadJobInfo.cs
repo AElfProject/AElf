@@ -5,7 +5,7 @@ namespace AElf.OS.BlockSync.Types
 {
     public class BlockDownloadJobInfo
     {
-        public Hash JobId { get; set; }
+        public string JobId { get; set; }
         
         public Hash TargetBlockHash { get; set; }
 
