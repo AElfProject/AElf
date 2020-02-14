@@ -76,7 +76,7 @@ namespace AElf.Contracts.Parliament
             var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
-            var proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+            var proposers = GetProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
 
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeTrue();
@@ -112,7 +112,7 @@ namespace AElf.Contracts.Parliament
 
             result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
-            proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+            proposers = GetProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
