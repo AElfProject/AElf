@@ -1,11 +1,8 @@
-using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TokenConverter;
-using AElf.Kernel;
+using AElf.Contracts.Treasury;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -55,6 +52,47 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Value = nameof(MethodCallThresholdContractStub.SendForFun)
             });
             tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(feeAmount);
+        }
+        [Fact]
+        public async Task ModifyVoteInterest_Test()
+        {
+            var interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());
+            interestList.VoteWeightInterestInfos.Count.ShouldBe(3);
+            var newInterest = new VoteWeightInterestList();
+            newInterest.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Capital = 1000,
+                Interest = 16,
+                Day = 400
+            });
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetVoteWeightInterest), newInterest);
+            interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());
+            interestList.VoteWeightInterestInfos.Count.ShouldBe(1);
+            interestList.VoteWeightInterestInfos[0].Capital.ShouldBe(1000);
+            interestList.VoteWeightInterestInfos[0].Interest.ShouldBe(16);
+            interestList.VoteWeightInterestInfos[0].Day.ShouldBe(400);
+        }
+
+        [Fact]
+        public async Task TransferAuthorizationForVoteInterest_Test()
+        {
+            var newInterest = new VoteWeightInterestList();
+            newInterest.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Capital = 1000,
+                Interest = 16,
+                Day = 400
+            });
+            var updateInterestRet = (await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)).TransactionResult;
+            updateInterestRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetControllerForManageVoteWeightInterest), BootMinerAddress);
+            updateInterestRet = (await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)).TransactionResult;
+            updateInterestRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());
+            interestList.VoteWeightInterestInfos.Count.ShouldBe(1);
+            interestList.VoteWeightInterestInfos[0].Capital.ShouldBe(1000);
+            interestList.VoteWeightInterestInfos[0].Interest.ShouldBe(16);
+            interestList.VoteWeightInterestInfos[0].Day.ShouldBe(400);
         }
     }
 }
