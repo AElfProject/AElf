@@ -324,8 +324,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.005",
                 ManagerAddress = ManagerAddress,
-                TokenContractAddress = TokenContractAddress,
-                FeeReceiverAddress = FeeReceiverAddress,
                 Connectors =
                 {
                     ElfConnector, ReadConnector, StoConnector, NetConnector, NativeToReadConnector, NativeToStoConnector,

@@ -92,15 +92,12 @@ namespace AElf.Contracts.TokenConverter
             {
                 BaseTokenSymbol = NativeSymbol,
                 FeeRate = "0.005",
-                ManagerAddress = ManagerAddress,
-                TokenContractAddress = TokenContractAddress,
-                FeeReceiverAddress = FeeReceiverAddress,
+                ManagerAddress = ManagerAddress,          
                 Connectors = {WriteConnector}
             };
 
             //Base token symbol is invalid.
             {
-                input.FeeReceiverAddress = FeeReceiverAddress;
                 input.BaseTokenSymbol = "elf1";
                 var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -572,8 +569,6 @@ namespace AElf.Contracts.TokenConverter
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.005",
                 ManagerAddress = Address.FromPublicKey(ManagerKeyPair.PublicKey),
-                TokenContractAddress = TokenContractAddress,
-                FeeReceiverAddress = FeeReceiverAddress,
                 Connectors = {ELFConnector, WriteConnector, NtWriteConnector}
             };
             return (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;

@@ -303,10 +303,8 @@ namespace AElf.Contracts.MultiToken
             await TokenConverterContractStub.Initialize.SendAsync(new TokenConverter.InitializeInput
             {
                 Connectors = {RamConnector, BaseConnector},
-                TokenContractAddress = TokenContractAddress,
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.2",
-                FeeReceiverAddress = User1Address
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {

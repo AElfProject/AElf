@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;

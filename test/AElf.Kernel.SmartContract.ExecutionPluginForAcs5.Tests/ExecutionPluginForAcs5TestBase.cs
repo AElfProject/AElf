@@ -144,8 +144,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 BaseTokenSymbol = "WRITE",
                 FeeRate = "0.005",
                 ManagerAddress = ManagerAddress,
-                TokenContractAddress = TokenContractAddress,
-                FeeReceiverAddress = FeeReceiverAddress,
                 Connectors = { ELFConnector, WriteConnector }
             };
 

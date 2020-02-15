@@ -23,20 +23,12 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
-            State.TokenContract.Value = input.TokenContractAddress != null
-                ? input.TokenContractAddress
-                : Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-
-            State.FeeReceiverAddress.Value = input.FeeReceiverAddress != null
-                ? input.FeeReceiverAddress
-                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.FeeReceiverAddress.Value = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
-
             State.Controller.Value = input.ManagerAddress;
-
             if (State.Controller.Value == null)
             {
                 if (State.ParliamentContract.Value == null)
@@ -44,7 +36,6 @@ namespace AElf.Contracts.TokenConverter
                     State.ParliamentContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
                 }
-
                 State.Controller.Value = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             }
            
@@ -311,6 +302,11 @@ namespace AElf.Contracts.TokenConverter
         {
             AssertPerformedByController();
             Assert(input != null, "invalid input");
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
             var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
             State.Controller.Value = input;
