@@ -36,7 +36,8 @@ namespace AElf.OS.Network.Grpc
         private const int BlockCacheMaxItems = 1024;
         private const int TransactionCacheMaxItems = 10_000;
 
-        private const int QueuedItemTimeout = 10_000;
+        private const int QueuedTransactionTimeout = 10_000;
+        private const int QueuedBlockTimeout = 10_000;
 
         private enum MetricNames
         {
@@ -122,8 +123,8 @@ namespace AElf.OS.Network.Grpc
             RemoteEndpoint = remoteEndpoint;
             Info = peerConnectionInfo;
             
-            _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedItemTimeout);
-            _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedItemTimeout);
+            _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedTransactionTimeout);
+            _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedBlockTimeout);
 
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
