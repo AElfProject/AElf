@@ -22,7 +22,10 @@ service TreasuryContract {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
-
+    rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
+    }
+    rpc SetControllerForManageVoteWeightInterest (aelf.Address) returns (google.protobuf.Empty) {
+    }
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
@@ -31,6 +34,9 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
         option (aelf.is_view) = true;
     }
 }
@@ -81,4 +87,14 @@ message DonationReceived {
     string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4 [(aelf.is_indexed) = true];
     string memo = 5;
+}
+
+message VoteWeightInterest{
+    sint32 day = 1;
+    sint32 interest = 2;
+    sint32 capital = 3;
+}
+
+message VoteWeightInterestList {
+    repeated VoteWeightInterest vote_weight_interest_infos = 1;
 }
