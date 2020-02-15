@@ -172,11 +172,8 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 0;
             var lockDays = lockTime.Div(DaySec);
-
-            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos
-            )
+            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
                 if (lockDays > instMap.Day)
                     continue;
