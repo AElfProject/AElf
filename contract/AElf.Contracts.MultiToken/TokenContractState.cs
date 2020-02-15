@@ -52,7 +52,7 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
-        public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
+        public MappedState<Hash, bool> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
