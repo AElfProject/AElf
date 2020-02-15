@@ -595,7 +595,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         private async Task SetConnector(PairConnectorParam connector)
         {
-            var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
+            var connectorManagerAddress = await TokenConverterContractStub.GetController.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = connectorManagerAddress,

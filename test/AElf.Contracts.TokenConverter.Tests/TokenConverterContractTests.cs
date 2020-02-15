@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -433,47 +432,6 @@ namespace AElf.Contracts.TokenConverter
 
                 var feeRate1 = await testManager.GetFeeRate.CallAsync(new Empty());
                 feeRate1.ShouldBe(feeRate);
-            }
-        }
-
-        [Fact]
-        public async Task SetManagerAddress_Success_Test()
-        {
-            await DeployContractsAsync();
-            await CreateRamToken();
-            await InitializeTokenConverterContract();
-
-            //perform by non manager
-            {
-                var transactionResult = (await DefaultStub.SetManagerAddress.SendWithExceptionAsync(
-                    new Address()
-                )).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
-            }
-
-            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
-                TokenConverterContractAddress,
-                ManagerKeyPair);
-
-            //invalid address
-            {
-                var transactionResult = (await testManager.SetManagerAddress.SendWithExceptionAsync(
-                    new Address()
-                )).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Input is not a valid address").ShouldBeTrue();
-            }
-
-            //valid address
-            {
-                var address = SampleAddress.AddressList[0];
-
-                var transactionResult = (await testManager.SetManagerAddress.SendAsync(address)).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var managerAddress = await testManager.GetManagerAddress.CallAsync(new Empty());
-                managerAddress.ShouldBe(address);
             }
         }
 

@@ -7,10 +7,10 @@ import "acs1.proto";
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
-    
+
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
     option (aelf.base) = "acs1.proto";
-    
+
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
@@ -22,15 +22,13 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
     }
     rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }
     rpc EnableConnector(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
     }
-    rpc SetControllerForManageConnector(aelf.Address) returns (google.protobuf.Empty){
+    rpc SetController(aelf.Address) returns (google.protobuf.Empty){
     }
     // Views
     rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
@@ -39,7 +37,7 @@ service TokenConverterContract {
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetController (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
