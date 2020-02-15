@@ -64,18 +64,14 @@ namespace AElf.Blockchains.BasicBaseChain
                 .Build();
 
             hostBuilderContext.Configuration = newConfig;
-        }
 
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var configuration = context.Services.GetConfiguration();
             Configure<EconomicOptions>(configuration.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =
                     ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
-                option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
-                option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+                option.ChainType = chainType;
+                option.NetType = netType;
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>

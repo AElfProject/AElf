@@ -31,7 +31,7 @@ namespace AElf.WebApp.Application
                 {
                     builder
                         .AddXUnit(this)
-                        .SetMinimumLevel(LogLevel.Information);
+                        .SetMinimumLevel(LogLevel.None);
                 });
         }
 
