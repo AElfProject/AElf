@@ -39,7 +39,7 @@ namespace AElf.Contracts.MultiToken
         public BoolState Initialized { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
-        public SingletonState<Address> Owner { get; set; }
+        public SingletonState<Address> CrossChainTokenContractRegistrationController { get; set; }
         public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
         public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
         public SingletonState<Address> ControllerForSymbolToPayTxFee { get; set; }

@@ -41,6 +41,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(from != to, "Can't do transfer to sender itself.");
             AssertValidMemo(memo);
+            AssertValidToken(symbol, amount);
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];
@@ -112,19 +113,19 @@ namespace AElf.Contracts.MultiToken
             var verificationResult = GetValidCrossChainContractReferenceState().VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Cross chain verification failed.");
         }
-        
-        private Address GetOwnerAddress()
+
+        private Address GetCrossChainTokenContractRegistrationController()
         {
-            var owner = State.Owner.Value;
-            if (owner != null)
-                return owner;
+            var controller = State.CrossChainTokenContractRegistrationController.Value;
+            if (controller != null)
+                return controller;
             var parliamentContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            owner = Context.Call<Address>(parliamentContractAddress,
+            controller = Context.Call<Address>(parliamentContractAddress,
                 nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
                 new Empty());
-            State.Owner.Value = owner;
-            return owner;
+            State.CrossChainTokenContractRegistrationController.Value = controller;
+            return controller;
         }
 
         private int GetIssueChainId(string symbol)
@@ -141,6 +142,12 @@ namespace AElf.Contracts.MultiToken
                           && input.Decimals >= 0
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
+        }
+
+        private void CheckCrossChainTokenContractRegistrationControllerAuthority()
+        {
+            var controller = GetCrossChainTokenContractRegistrationController();
+            Assert(controller.Equals(Context.Sender), "No permission.");
         }
     }
 }

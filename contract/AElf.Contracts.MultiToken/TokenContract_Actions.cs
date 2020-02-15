@@ -146,8 +146,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
         {
-            var owner = GetOwnerAddress();
-            Assert(Context.Sender == owner, "No permission.");
+            CheckCrossChainTokenContractRegistrationControllerAuthority();
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
