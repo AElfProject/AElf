@@ -112,14 +112,14 @@ namespace AElf.Contracts.Profit
             var subScheme = State.SchemeInfos[subSchemeId];
             Assert(subScheme != null, "Sub scheme not found.");
 
-            var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
+            var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             // Add profit details and total shares of the father scheme.
             AddBeneficiary(new AddBeneficiaryInput
             {
                 SchemeId = input.SchemeId,
                 BeneficiaryShare = new BeneficiaryShare
                 {
-                    Beneficiary = subItemVirtualAddress,
+                    Beneficiary = subSchemeVirtualAddress,
                     Shares = input.SubSchemeShares
                 },
                 EndPeriod = long.MaxValue
@@ -574,7 +574,8 @@ namespace AElf.Contracts.Profit
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
 
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
+            // ReSharper disable once PossibleNullReferenceException
+            var virtualAddress = scheme.VirtualAddress;
 
             if (input.Period == 0)
             {
@@ -602,6 +603,7 @@ namespace AElf.Contracts.Profit
             }
             else
             {
+                Assert(input.Period >= scheme.CurrentPeriod, "Invalid contributing period.");
                 var distributedPeriodProfitsVirtualAddress =
                     GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
 
