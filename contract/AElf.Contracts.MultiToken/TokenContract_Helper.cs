@@ -41,7 +41,6 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(from != to, "Can't do transfer to sender itself.");
             AssertValidMemo(memo);
-            AssertValidToken(symbol, amount);
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];
