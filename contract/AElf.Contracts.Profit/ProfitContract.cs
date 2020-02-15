@@ -11,9 +11,9 @@ namespace AElf.Contracts.Profit
 {
     /// <summary>
     /// Let's imagine a scenario:
-    /// 1. Ean creates a profit item FOO: Ean calls CreateScheme. We call this profit item PI_FOO.
-    /// 2. GL creates another profit item BAR: GL calls CreateScheme. We call this profit item PI_BAR.
-    /// 3. Ean (as the creator of PI_FOO) register PI_BAR as a sub profit item as PI_FOO:
+    /// 1. Ean creates a profit scheme FOO: Ean calls CreateScheme. We call this profit scheme PI_FOO.
+    /// 2. GL creates another profit scheme BAR: GL calls CreateScheme. We call this profit scheme PI_BAR.
+    /// 3. Ean (as the creator of PI_FOO) register PI_BAR as a sub profit scheme as PI_FOO:
     /// Ean call RemoveSubScheme (SchemeId: PI_BAR's profit id, Shares : 1)
     /// 4. Anil has an account which address is ADDR_Anil.
     /// 5. Ean registers address ADDR_Anil as a profit Beneficiary of PI_FOO: Ean calls AddBeneficiary (Beneficiary: ADDR_Anil, Shares : 1)
@@ -45,10 +45,17 @@ namespace AElf.Contracts.Profit
             {
                 input.ProfitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount;
             }
+            else
+            {
+                Assert(
+                    input.ProfitReceivingDuePeriodCount > 0 &&
+                    input.ProfitReceivingDuePeriodCount <= ProfitContractConstants.MaximumProfitReceivingDuePeriodCount,
+                    "Invalid profit receiving due period count.");
+            }
 
             var manager = input.Manager ?? Context.Sender;
             var schemeId = Context.TransactionId;
-            // Why? Because one transaction may create many profit items via inline transactions.
+            // Why? Because one transaction may create many profit schemes via inline transactions.
             var createdSchemeIds = State.ManagingSchemeIds[manager]?.SchemeIds;
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
@@ -118,7 +125,7 @@ namespace AElf.Contracts.Profit
                 EndPeriod = long.MaxValue
             });
 
-            // Add a sub profit item.
+            // Add a sub profit scheme.
             scheme.SubSchemes.Add(new SchemeBeneficiaryShare
             {
                 SchemeId = input.SubSchemeId,
@@ -472,7 +479,7 @@ namespace AElf.Contracts.Profit
             }
             else
             {
-                // This means someone used `DistributeProfits` do donate to the specific account period of current profit item.
+                // This means someone used `DistributeProfits` do donate to the specific account period of current profit scheme.
                 distributedProfitsInformation.TotalShares = totalShares;
                 distributedProfitsInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
                 distributedProfitsInformation.IsReleased = true;
@@ -510,7 +517,7 @@ namespace AElf.Contracts.Profit
             {
                 Context.LogDebug(() => $"Releasing {subScheme.SchemeId}");
 
-                // General ledger of this sub profit item.
+                // General ledger of this sub profit scheme.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
                 var amount = SafeCalculateProfits(subScheme.Shares, input.Amount, totalShares);
@@ -529,7 +536,7 @@ namespace AElf.Contracts.Profit
 
                 UpdateSubSchemeInformation(input, subScheme, amount);
 
-                // Update current_period of detail of sub profit item.
+                // Update current_period of detail of sub profit scheme.
                 var subItemDetail = State.ProfitDetailsMap[input.SchemeId][subItemVirtualAddress];
                 foreach (var detail in subItemDetail.Details)
                 {
@@ -764,7 +771,7 @@ namespace AElf.Contracts.Profit
             var scheme = new Scheme
             {
                 SchemeId = schemeId,
-                // The address of general ledger for current profit item.
+                // The address of general ledger for current profit scheme.
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
                 Manager = manager,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,

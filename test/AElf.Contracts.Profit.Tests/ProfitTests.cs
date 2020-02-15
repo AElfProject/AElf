@@ -19,7 +19,7 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// Of course it's okay for an address to creator many profit items.
+        /// Of course it's okay for an address to creator many profit schemes.
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -55,7 +55,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            // Add profits to virtual address of this profit item.
+            // Add profits to virtual address of this profit scheme.
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = schemeId,
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
-            // Check profit item and corresponding balance.
+            // Check profit scheme and corresponding balance.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 Assert.Equal(amount, profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]);
@@ -76,7 +76,7 @@ namespace AElf.Contracts.Profit
                 balance.ShouldBe(amount);
             }
 
-            // Add profits to release profits virtual address of this profit item.
+            // Add profits to release profits virtual address of this profit scheme.
             const int period = 3;
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
@@ -86,7 +86,7 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
-            // Check profit item and corresponding balance.
+            // Check profit scheme and corresponding balance.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 // Total amount stay.
@@ -118,7 +118,7 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// It's valid for a third party account to add profits to any profit item.
+        /// It's valid for a third party account to add profits to any profit scheme.
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Profit
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = shares}
             });
 
-            // Add profits to virtual address of this profit item.
+            // Add profits to virtual address of this profit scheme.
             await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = schemeId,
@@ -147,14 +147,14 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
-            // Check profit item.
+            // Check profit scheme.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(amountReleasedByCreator);
             }
 
-            // Add profits to release profits virtual address of this profit item.
+            // Add profits to release profits virtual address of this profit scheme.
             await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = schemeId,
@@ -247,7 +247,7 @@ namespace AElf.Contracts.Profit
                 Beneficiary = subProfitItem1.VirtualAddress
             });
 
-            // Check the total_weight of profit item.
+            // Check the total_weight of profit scheme.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 profitItem.TotalShares.ShouldBe(shares1);
@@ -272,7 +272,7 @@ namespace AElf.Contracts.Profit
                 Beneficiary = subProfitItem2.VirtualAddress
             });
 
-            // Check the total_weight of profit item.
+            // Check the total_weight of profit scheme.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 profitItem.TotalShares.ShouldBe(shares1 + shares2);
@@ -791,7 +791,7 @@ namespace AElf.Contracts.Profit
 
             await TransferToProfitItemVirtualAddress(schemeId);
 
-            // Check balance of main profit item.
+            // Check balance of main profit scheme.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -827,7 +827,7 @@ namespace AElf.Contracts.Profit
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            // Check balance of first sub profit item.
+            // Check balance of first sub profit scheme.
             {
                 var subProfitItem = await creator.GetScheme.CallAsync(subSchemeId1);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -839,7 +839,7 @@ namespace AElf.Contracts.Profit
                 balance.ShouldBe(amount.Mul(weight1).Div(weight1 + weight2));
             }
 
-            // Check balance of second sub profit item.
+            // Check balance of second sub profit scheme.
             {
                 var subProfitItem = await creator.GetScheme.CallAsync(subSchemeId2);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

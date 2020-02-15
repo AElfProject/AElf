@@ -153,7 +153,7 @@ namespace AElf.Contracts.Profit
                 }
             });
 
-            // For creating `Treasury` profit item.
+            // For creating `Treasury` profit scheme.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
