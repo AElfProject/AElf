@@ -45,7 +45,7 @@ namespace AElf.OS.Worker
         {
             CheckNtpClockDrift();
                 
-            await _networkService.SendHealthChecksAsync();
+            await _networkService.CheckPeersHealthAsync();
             
             var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
 
