@@ -54,16 +54,16 @@ Task("test_with_codecov")
     .Does(() => {
         var testSetting = new DotNetCoreTestSettings {
             NoRestore = true,
-                NoBuild = true,
-                ArgumentCustomization = args => {
-                    return args.Append("/p:CollectCoverage=true")
-                        .Append("/p:CoverletOutputFormat=json%2copencover")
-                        .Append("/p:CoverletOutput=../results/coverage")
-                        .Append("/p:MergeWith=../results/coverage.json")
-                        .Append("/p:Exclude=[coverlet.*.tests?]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Test.Helpers]*%2c[*]*Exception*")
-                        .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs")
-                        .Append("/p:ExcludeByFile=../../test/**/*.cs");
-                }
+            NoBuild = true,
+            ArgumentCustomization = args => {
+                return args.Append("/p:CollectCoverage=true")
+                    .Append("/p:CoverletOutputFormat=json%2copencover")
+                    .Append("/p:CoverletOutput=../results/coverage")
+                    .Append("/p:MergeWith=../results/coverage.json")
+                    .Append("/p:Exclude=[coverlet.*.tests?]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Test.Helpers]*%2c[*]*Exception*")
+                    .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs")
+                    .Append("/p:ExcludeByFile=../../test/**/*.cs");
+            }
         };
         var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
