@@ -41,12 +41,12 @@ namespace AElf.OS.Network.Service
         {
             var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
 
-            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
             
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
             
-            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
             
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.EnqueueAnnouncement(It.Is<BlockAnnouncement>(ba => ba.BlockHash == blockHeader.GetHash()), 

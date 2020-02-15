@@ -151,15 +151,15 @@ namespace AElf.OS.Network
 
             //old block
             blockHeader.Time = TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromMinutes(20);
-            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
             
             //known block
             blockHeader.Time = TimestampHelper.GetUtcNow();
-            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
 
             //broadcast again
             blockHeader = _kernelTestHelper.GenerateBlock(11, Hash.FromString("new")).Header;
-            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
         }
 
         [Fact]
