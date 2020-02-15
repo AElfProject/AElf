@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
+using AElf.Contracts.TokenHolder;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -144,6 +145,21 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var result = await TokenContractImplStub.GetMethodFee.CallAsync(new StringValue
             {
                 Value = nameof(TokenContractImplStub.Transfer)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+
+        [Fact]
+        public async Task TokenHolder_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, TokenHolderContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw),
+                Fees = { TokenAmount}
+            });
+            var result = await TokenHolderStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }

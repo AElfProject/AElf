@@ -9,6 +9,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
@@ -40,6 +41,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
         
         internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub =>
             GetTokenContractImplTester(BootMinerKeyPair);
+
+        internal TokenHolderContractContainer.TokenHolderContractStub TokenHolderStub =>
+            GetTokenHolderTester(BootMinerKeyPair);
         
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub =>
             GetTokenConverterContractTester(BootMinerKeyPair);
@@ -87,6 +91,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TokenContractImplContainer.TokenContractImplStub GetTokenContractImplTester(ECKeyPair keyPair)
         {
             return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
+        }
+
+        internal TokenHolderContractContainer.TokenHolderContractStub GetTokenHolderTester(ECKeyPair keyPair)
+        {
+            return GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress, keyPair);
         }
         
         internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
