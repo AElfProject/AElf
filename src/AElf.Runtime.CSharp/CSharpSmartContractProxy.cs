@@ -62,7 +62,7 @@ namespace AElf.Runtime.CSharp
 
         void ResetFields()
         {
-            _methodInfos[nameof(ResetFields)].Invoke(_instance, new object[0]);
+            _methodInfos[nameof(ResetFields)]?.Invoke(_instance, new object[0]);
         }
 
         internal void SetExecutionObserver(IExecutionObserver observer)
