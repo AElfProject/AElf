@@ -163,7 +163,7 @@ namespace AElf.CSharp.CodeOps.Policies
             {
                 new ObserverProxyValidator(), 
                 new ContractStructureValidator(), 
-                //new RecursiveCallValidator(), 
+                new ResetFieldsValidator()
             });
         }
 
