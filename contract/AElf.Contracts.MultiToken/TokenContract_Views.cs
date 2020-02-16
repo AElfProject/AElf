@@ -38,7 +38,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
-                Balance = State.Balances[input.Owner][input.Symbol]
+                Balance = GetBalance(input.Owner, input.Symbol)
             };
         }
 
@@ -76,7 +76,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Address = input.Address,
                 LockId = input.LockId,
-                Amount = State.Balances[virtualAddress][input.Symbol]
+                Amount = GetBalance(virtualAddress, input.Symbol)
             };
         }
 
