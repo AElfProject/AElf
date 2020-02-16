@@ -15,7 +15,7 @@ namespace AElf.Contracts.TokenConverter
 
         private static long DynFact(long number)
         {
-            var fact = number;
+            var fact = number == 0 ? 1 : number;
             for (var i = number - 1; i >= 1; i--)
             {
                 fact *= i;
