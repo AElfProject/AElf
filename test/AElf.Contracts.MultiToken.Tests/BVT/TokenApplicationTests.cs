@@ -729,7 +729,7 @@ namespace AElf.Contracts.MultiToken
                 Amount = 3000L
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Burner doesn't own enough balance.").ShouldBeTrue();
+            result.Error.ShouldContain("Insufficient balance.");
         }
 
         [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]

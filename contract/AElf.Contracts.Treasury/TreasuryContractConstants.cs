@@ -11,5 +11,6 @@ namespace AElf.Contracts.Treasury
         public const int ReElectionRewardWeight = 1;
 
         public const int MaximumReElectionRewardShare = 10;
+        public const int DaySec = 86400;
     }
 }

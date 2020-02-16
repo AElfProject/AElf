@@ -12,6 +12,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         public string Endpoint { get; set; }
         public Timestamp NextAttempt { get; set; }
+        public int RetryCount { get; set; }
     }
 
     public interface IPeerReconnectionStateProvider
