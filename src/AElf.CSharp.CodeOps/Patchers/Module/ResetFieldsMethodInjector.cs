@@ -23,11 +23,11 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
         private bool InjectTypeWithResetFields(ModuleDefinition module, TypeDefinition type)
         {
             var callToNestedResetNeeded = false;
-            
+
             // Inject for nested types first
             foreach (var nestedType in type.NestedTypes)
             {
-                callToNestedResetNeeded = InjectTypeWithResetFields(module, nestedType);
+                callToNestedResetNeeded |= InjectTypeWithResetFields(module, nestedType);
             }
             
             // Get static non-initonly, non-constant fields
