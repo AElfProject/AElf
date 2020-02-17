@@ -1,3 +1,4 @@
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
@@ -74,10 +75,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
 
-        /*
-        internal ConfigurationContainer.ConfigurationContractStub ConfigurationContractStub =>
+        internal ConfigurationContainer.ConfigurationStub ConfigurationContractStub =>
             GetConfigurationContractTester(BootMinerKeyPair);
-        */
+        
         internal BasicContractZeroContainer.BasicContractZeroStub GetBasicContractTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
@@ -157,11 +157,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
-        /*
-        internal ConfigurationContainer.ConfigurationContractStub GetConfigurationContractTester(ECKeyPair keyPair)
+        
+        internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ConfigurationContainer.ConfigurationContractStub>(ConfigurationContractAddress, keyPair);
+            return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
         }
-        */
     }
 }
