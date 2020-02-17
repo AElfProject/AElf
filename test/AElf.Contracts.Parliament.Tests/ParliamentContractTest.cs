@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using Acs1;
 using Acs3;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -109,8 +107,7 @@ namespace AElf.Contracts.Parliament
             {
                 Symbol = "ELF",
                 Amount = 100,
-                To = Tester,
-                Memo = "Transfer"
+                To = Tester
             };
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var getProposal = await ParliamentContractStub.GetProposal.SendAsync(proposalId);
@@ -120,7 +117,11 @@ namespace AElf.Contracts.Parliament
             getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+            
+            var transferParam = TransferInput.Parser.ParseFrom(getProposal.Output.Params);
+            transferParam.Symbol.ShouldBe(transferInput.Symbol);
+            transferParam.Amount.ShouldBe(transferInput.Amount);
+            transferParam.To.ShouldBe(transferInput.To);
         }
 
         [Fact]
