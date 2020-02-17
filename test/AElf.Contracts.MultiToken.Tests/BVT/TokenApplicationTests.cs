@@ -305,13 +305,6 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_LockAndUnLock_Test()
         {
             await Create_BasicFunctionContract_Issue();
-            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
-            {
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                To = Address
-            })).TransactionResult;
-            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check balance before locking.
             {
@@ -394,13 +387,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_Lock_AddressNotInWhiteList_Test()
         {
             await Create_BasicFunctionContract_Issue();
-            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
-            {
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                To = Address
-            })).TransactionResult;
-            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -432,13 +419,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_Lock_WithInsufficientBalance_Test()
         {
             await Create_BasicFunctionContract_Issue();
-            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput
-            {
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                To = Address
-            })).TransactionResult;
-            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -472,13 +453,6 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_Unlock_repeatedly_Test()
         {
             await Create_BasicFunctionContract_Issue();
-            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
-            {
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                To = Address
-            })).TransactionResult;
-            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var lockId = Hash.FromString("lockId");
 
