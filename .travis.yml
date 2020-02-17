@@ -19,11 +19,4 @@ before_install:
   - bash scripts/download_binary.sh
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
-script:
-  - dotnet tool install --global Cake.Tool
-  - export PATH="$PATH:$HOME/.dotnet/tools"
-  - export PATH="$HOME/.dotnet:$PATH"
-  - dotnet tool restore
-  - dotnet tool install --global coverlet.console
-  - dotnet cake ./build.cake --target=build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then dotnet cake build.cake --target=test ; fi
+script: bash build.sh

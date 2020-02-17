@@ -1,4 +1,4 @@
-var target = Argument("target", "default");
+var target = Argument("target", "Default");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
@@ -8,7 +8,7 @@ var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 
-Task("clean")
+Task("Clean")
     .Description("clean up project cache")
     .Does(() =>
 {
@@ -21,7 +21,7 @@ Task("clean")
     CleanDirectories(testPath + "**/obj");
 });
 
-Task("restore")
+Task("Restore")
     .Description("restore project dependencies")
     .Does(() =>
 {
@@ -32,10 +32,10 @@ Task("restore")
     DotNetCoreRestore(solution,restoreSettings);
 });
 
-Task("build")
+Task("Build")
     .Description("Compilation project")
-    .IsDependentOn("clean")
-    .IsDependentOn("restore")
+    .IsDependentOn("Clean")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
     var buildSetting = new DotNetCoreBuildSettings{
@@ -51,8 +51,9 @@ Task("build")
 });
 
 
-Task("test_with_codecov")
+Task("Test-with-Codecov")
     .Description("operation test_with_codecov")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -73,7 +74,8 @@ Task("test_with_codecov")
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
 });
-Task("test")
+Task("Run-Unit-Tests")
+    .IsDependentOn("Build")
     .Description("operation test")
     .Does(() =>
 {
@@ -88,8 +90,7 @@ Task("test")
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
 });
-Task("default")
-    .Description("default run test(-target test)")
-    .IsDependentOn("build");
+Task("Default")
+    .IsDependentOn("Run-Unit-Tests");
 
 RunTarget(target);
