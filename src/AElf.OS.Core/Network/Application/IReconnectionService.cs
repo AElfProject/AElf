@@ -42,7 +42,7 @@ namespace AElf.OS.Network.Application
 
         public bool SchedulePeerForReconnection(string endpoint)
         {
-            var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod + 1000);
+            var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod);
                 
             Logger.LogDebug($"Scheduling {endpoint} for reconnection at {nextTry}.");
 
