@@ -115,6 +115,7 @@ namespace AElf.Contracts.MultiToken
             dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
             dbData.CoefficientDic[nameof(coefficient.WeightBase).ToLower()] = coefficient.WeightBase;
             dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase).ToLower()] = coefficient.ChangeSpanBase;
+            dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
             return true;
         }
 

@@ -239,7 +239,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task Update_Coefficient_PowerAlgorithm_Test()
+        public async Task Update_Coefficient_PowerAlgorithm_Test() a
         {
             const int pieceKey = int.MaxValue;
             const FeeTypeEnum feeType = FeeTypeEnum.Read;
@@ -284,6 +284,7 @@ namespace AElf.Contracts.MultiToken
             hasModified.CoefficientDic["ChangeSpanBase".ToLower()].ShouldBe(6);
             hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(100);
             hasModified.CoefficientDic["Weight".ToLower()].ShouldBe(300);
+            hasModified.CoefficientDic["WeightBase".ToLower()].ShouldBe(50);
         }
 
         [Fact]
