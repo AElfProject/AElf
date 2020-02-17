@@ -239,7 +239,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task Update_Coefficient_PowerAlgorithm_Test() a
+        public async Task Update_Coefficient_PowerAlgorithm_Test()
         {
             const int pieceKey = int.MaxValue;
             const FeeTypeEnum feeType = FeeTypeEnum.Read;
