@@ -33,13 +33,9 @@ namespace AElf.OS.BlockSync.Application
             _blockchainService = blockchainService;
         }
 
-        public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
+        public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement,
+            string senderPubKey)
         {
-            if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
-            {
-                return Task.FromResult(false);
-            }
-
             if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning(
@@ -47,10 +43,16 @@ namespace AElf.OS.BlockSync.Application
                 return Task.FromResult(false);
             }
 
+            if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
+            {
+                return Task.FromResult(false);
+            }
+
             return Task.FromResult(true);
         }
 
-        public Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
+        public Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions,
+            string senderPubKey)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
@@ -66,7 +68,7 @@ namespace AElf.OS.BlockSync.Application
 
             return Task.FromResult(true);
         }
-        
+
         public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions))
