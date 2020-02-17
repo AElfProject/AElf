@@ -31,9 +31,6 @@ service TokenConverterContract {
     rpc SetController(aelf.Address) returns (google.protobuf.Empty){
     }
     // Views
-    rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }

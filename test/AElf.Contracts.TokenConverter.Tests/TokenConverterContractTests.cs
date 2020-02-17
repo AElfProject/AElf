@@ -69,10 +69,6 @@ namespace AElf.Contracts.TokenConverter
             var feeReceiverAddress = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
             feeReceiverAddress.ShouldBe(feeReceiverAddress);
 
-            //GetTokenContractAddress
-            var tokenContractAddress = await DefaultStub.GetTokenContractAddress.CallAsync(new Empty());
-            tokenContractAddress.ShouldBe(TokenContractAddress);
-
             //GetBaseTokenSymbol
             var tokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
             tokenSymbol.ShouldNotBeNull();
