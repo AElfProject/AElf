@@ -772,6 +772,45 @@ namespace AElf.Contracts.Referendum
         }
 
         [Fact]
+        public async Task SetMethodFee_Test()
+        {
+            var inputFee = new MethodFees
+            {
+                MethodName = nameof(ReferendumContractStub.CreateProposal),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 5000_0000L
+                    }
+                }
+            };
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var result = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = ReferendumContractAddress,
+                Params = inputFee.ToByteString(),
+                ContractMethodName = nameof(ReferendumContractStub.SetMethodFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = result.Output;
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+
+            var feeResult = await ReferendumContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(ReferendumContractStub.CreateProposal)
+            });
+            feeResult.Fees.First().ShouldBe(new MethodFee
+            {
+                Symbol = "ELF",
+                BasicFee = 5000_0000L
+            });
+        }
+        
+        [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
             var createOrganizationResult =
