@@ -45,10 +45,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         protected void InitializeContracts()
         {
             DeployAllContracts();
-
+            
+            AsyncHelper.RunSync(InitializeParliamentContract);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
             AsyncHelper.RunSync(InitializeElection);
-            AsyncHelper.RunSync(InitializeParliamentContract);
             AsyncHelper.RunSync(InitializeEconomicContract);
             AsyncHelper.RunSync(InitializeToken);
             AsyncHelper.RunSync(InitializeAElfConsensus);

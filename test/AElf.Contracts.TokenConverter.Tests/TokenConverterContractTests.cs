@@ -215,7 +215,7 @@ namespace AElf.Contracts.TokenConverter
             balanceOfElfToken.ShouldBe(amountToPay);
 
             var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(10000000000 + fee.Div(2));
+            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
 
             var balanceOfRamToken = await GetBalanceAsync(WriteSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
