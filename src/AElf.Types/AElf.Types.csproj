@@ -12,5 +12,8 @@
         <CommonMessage Include="..\..\protobuf\aelf\core.proto">
             <Link>Protobuf/Proto/core.proto</Link>
         </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\aelf\options.proto">
+            <Link>Protobuf/Proto/options.proto</Link>
+        </CommonMessage>
     </ItemGroup>
 </Project>
