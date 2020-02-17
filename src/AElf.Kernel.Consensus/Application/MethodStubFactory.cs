@@ -32,6 +32,7 @@ namespace AElf.Kernel.Consensus.Application
             _chainContext = chainContext;
             _contextService = contextService;
 
+            //TODO!! should not call any method in constructor
             FromAddress = AsyncHelper.RunSync(() => _contextService.GetAccountAsync());
         }
 
