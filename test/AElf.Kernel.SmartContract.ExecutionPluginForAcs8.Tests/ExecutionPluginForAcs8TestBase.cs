@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -110,6 +111,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
 
         internal ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         internal ECKeyPair OtherTester => SampleECKeyPairs.KeyPairs[1];
@@ -123,6 +125,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();
+            await InitializeParliament();
             await InitializeTreasuryContractAsync();
             await InitializeTokenConverterAsync();
         }
@@ -173,6 +176,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
+            }
+            
+            // Parliament
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+                var parliamentContractAddress = await DeploySystemSmartContract(category, code,
+                    ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                ParliamentContractStub =
+                    GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
+                        DefaultSenderKeyPair);
             }
         }
 
@@ -348,6 +361,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                         new Empty());
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+        }
+
+        private async Task InitializeParliament()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
         }
     }
 }

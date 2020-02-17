@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
@@ -143,6 +144,7 @@ namespace AElf.Contract.TestContract
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         
         internal Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.ContractStub
             Acs8ContractStub { get; set; }
@@ -187,6 +189,14 @@ namespace AElf.Contract.TestContract
             TokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                     DefaultSenderKeyPair);
+                    
+            var parliamentAddress = await DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                Codes.Single(kv => kv.Key.EndsWith("Parliament")).Value,
+                SmartContractConstants.ParliamentContractSystemName,
+                DefaultSenderKeyPair);
+            ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentAddress,
+                DefaultSenderKeyPair);
 
             var acs8Code = Codes.Single(kv => kv.Key.Contains("Tests.TestContract")).Value;
             Acs8ContractAddress = await DeployContractAsync(
@@ -302,6 +312,11 @@ namespace AElf.Contract.TestContract
                     });
                     CheckResult(resourceIssueResult.TransactionResult);
                 }
+            }
+            
+            //initialize parliament
+            {
+                await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
             }
 
             //initialize token converter
