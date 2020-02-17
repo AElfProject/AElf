@@ -28,15 +28,15 @@ namespace AElf.Contracts.TokenConverter
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
-            State.Controller.Value = input.ManagerAddress;
-            if (State.Controller.Value == null)
+            State.ControllerForManageConnector.Value = input.ManagerAddress;
+            if (State.ControllerForManageConnector.Value == null)
             {
                 if (State.ParliamentContract.Value == null)
                 {
                     State.ParliamentContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
                 }
-                State.Controller.Value = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+                State.ControllerForManageConnector.Value = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             }
            
 
@@ -298,7 +298,7 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        public override Empty SetController(Address input)
+        public override Empty SetControllerForManageConnector(Address input)
         {
             AssertPerformedByController();
             Assert(input != null, "invalid input");
@@ -309,7 +309,7 @@ namespace AElf.Contracts.TokenConverter
             }
             var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
-            State.Controller.Value = input;
+            State.ControllerForManageConnector.Value = input;
             return new Empty();
         }
         #endregion Actions
@@ -376,7 +376,7 @@ namespace AElf.Contracts.TokenConverter
         
         private void AssertPerformedByController()
         {
-            Assert(Context.Sender == State.Controller.Value, "Only manager can perform this action.");
+            Assert(Context.Sender == State.ControllerForManageConnector.Value, "Only manager can perform this action.");
         }
 
         private void AssertValidConnectorAndNormalizeWeight(Connector connector)

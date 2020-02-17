@@ -613,6 +613,11 @@ namespace AElf.Contracts.Treasury
             return State.VoteWeightInterestList.Value;
         }
         
+        public override Address GetControllerForManageVoteWeightInterest(Empty input)
+        {
+            return State.ControllerForManageVoteWeightInterest.Value;
+        }
+        
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
@@ -674,6 +679,14 @@ namespace AElf.Contracts.Treasury
                 Capital = 1000
             });
             State.VoteWeightInterestList.Value = voteWeightSetting;
+            if (State.ControllerForManageVoteWeightInterest.Value != null) return;
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+            State.ControllerForManageVoteWeightInterest.Value =
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
     }
 }

@@ -382,6 +382,14 @@ namespace AElf.Contracts.Election
                 Capital = 1000
             });
             State.VoteWeightInterestList.Value = voteWeightSetting;
+            if (State.ControllerForManageVoteWeightInterest.Value != null) return;
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+            State.ControllerForManageVoteWeightInterest.Value =
+                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
 
         private long GetElfAmount(long votingAmount)

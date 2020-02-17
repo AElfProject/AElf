@@ -18,7 +18,7 @@ namespace AElf.Contracts.TokenConverter
         public SingletonState<Address> FeeReceiverAddress { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         public MappedState<string, long> DepositBalance { get; set; }
-        public SingletonState<Address> Controller { get; set; }
+        public SingletonState<Address> ControllerForManageConnector { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }

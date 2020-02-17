@@ -108,6 +108,9 @@ service ElectionContract {
     rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
         option (aelf.is_view) = true;
     }
+    rpc GetControllerForManageVoteWeightInterest (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {

@@ -20,9 +20,9 @@ namespace AElf.Contracts.TokenConverter
             };
         }
 
-        public override Address GetController(Empty input)
+        public override Address GetControllerForManageConnector(Empty input)
         {
-            return State.Controller.Value;
+            return State.ControllerForManageConnector.Value;
         }
 
         public override TokenSymbol GetBaseTokenSymbol(Empty input)

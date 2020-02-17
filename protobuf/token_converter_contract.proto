@@ -26,15 +26,15 @@ service TokenConverterContract {
     }
     rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }
-    rpc EnableConnector(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
+    rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc SetController(aelf.Address) returns (google.protobuf.Empty){
+    rpc SetControllerForManageConnector (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetController (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {

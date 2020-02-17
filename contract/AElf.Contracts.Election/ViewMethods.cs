@@ -289,6 +289,11 @@ namespace AElf.Contracts.Election
             return State.VoteWeightInterestList.Value;
         }
         
+        public override Address GetControllerForManageVoteWeightInterest(Empty input)
+        {
+            return State.ControllerForManageVoteWeightInterest.Value;
+        }
+        
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];
