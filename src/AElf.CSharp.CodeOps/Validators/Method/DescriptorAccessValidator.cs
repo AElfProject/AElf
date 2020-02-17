@@ -10,21 +10,24 @@ namespace AElf.CSharp.CodeOps.Validators.Method
     {
         public IEnumerable<ValidationResult> Validate(MethodDefinition method)
         {
-            if (!method.HasBody || method.IsConstructor)
+            if (!method.HasBody)
                 return Enumerable.Empty<ValidationResult>();
-            
-            // If there is any method accessing a FileDescriptor type field to set, then this is a problem.
-            // FileDescriptor field should only be set in constructor
+
+            // If there is any non-constructor method accessing a FileDescriptor type field to set,
+            // then this is a problem. FileDescriptor field should only be set in constructor.
+            // If there is any access to set a FileDescriptor type field from a constructor outside of its declaring class, 
+            // then it is a problem too
             var instructions = method.Body.Instructions
                 .Where(i => i.OpCode == OpCodes.Stsfld &&
                             i.Operand is FieldDefinition field &&
-                            field.FieldType.FullName == typeof(FileDescriptor).FullName).ToArray();
-
+                            field.FieldType.FullName == typeof(FileDescriptor).FullName && 
+                            (!method.IsConstructor || field.DeclaringType != method.DeclaringType)).ToArray();
+            
             if (instructions.Any())
             {
-                return instructions.Select(i => 
-                    new DescriptorAccessValidationResult($"It is not allowed to set FileDescriptor type field outside of constructor.")
-                    .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null)); 
+                return instructions.Select(i => new DescriptorAccessValidationResult(
+                        "It is not allowed to set FileDescriptor type static field outside of its declaring type's constructor.")
+                        .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null)); 
             }
 
             return Enumerable.Empty<ValidationResult>();
