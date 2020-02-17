@@ -121,11 +121,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void SupplyCurrentRoundInformation()
         {
             var currentRound = GetCurrentRoundInformation(new Empty());
+            Context.LogDebug(() => $"Before supply:\n{currentRound.ToString(Context.RecoverPublicKey().ToHex())}");
             var notMinedMiners = currentRound.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
             if (!notMinedMiners.Any()) return;
             TryToGetPreviousRoundInformation(out var previousRound);
             foreach (var miner in notMinedMiners)
             {
+                Context.LogDebug(() => $"Miner pubkey {miner.Pubkey}");
+
                 Hash previousInValue = null;
                 Hash signature = null;
                 
@@ -133,6 +136,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (previousRound != null && previousRound.RealTimeMinersInformation.ContainsKey(miner.Pubkey))
                 {
                     previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
+                    Context.LogDebug(() => $"Previous round: {previousRound.ToString(miner.Pubkey)}");
                     signature = previousRound.CalculateSignature(previousInValue);
                 }
 
@@ -151,6 +155,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
             }
+
+            Context.LogDebug(() => $"After supply:\n{currentRound.ToString(Context.RecoverPublicKey().ToHex())}");
         }
 
         #endregion
