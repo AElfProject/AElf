@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.TokenConverter;
 using AElf.Contracts.TokenHolder;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -162,6 +164,65 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Value = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw)
             });
             result.Fees.First().ShouldBe(TokenAmount);
+        }
+
+        [Fact]
+        public async Task Consensus_FeeProvider_Test()
+        {
+            await ExecuteProposalTransaction(Tester, ConsensusContractAddress, MethodName, new MethodFees
+            {
+                MethodName = nameof(AEDPoSContractStub.UpdateValue),
+                Fees = { TokenAmount}
+            });
+            var result = await AedPoSContractImplStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(AEDPoSContractStub.UpdateValue)
+            });
+            result.Fees.First().ShouldBe(TokenAmount);
+        }
+        
+        [Fact]
+        public async Task ChargeTransactionFees_Test()
+        {
+            await Token_FeeProvider_Test();
+            var beforeBalance = 5000_00000000L;
+            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = "CPU",
+                Amount = beforeBalance
+            });
+            const long txFee = 4000_0000L;
+            var transactionFeeInput = new ChargeTransactionFeesInput
+            {
+                ContractAddress = TokenContractAddress,
+                MethodName = nameof(TokenContractStub.Transfer),
+                PrimaryTokenSymbol = "ELF",
+                TransactionSizeFee = txFee,
+                SymbolsToPayTxSizeFee =
+                {
+                    new SymbolToPayTXSizeFee
+                    {
+                        TokenSymbol = "CPU",
+                        BaseTokenWeight = 1,
+                        AddedTokenWeight = 50
+                    },
+                    new SymbolToPayTXSizeFee
+                    {
+                        TokenSymbol = "ELF",
+                        BaseTokenWeight = 1,
+                        AddedTokenWeight = 1
+                    }
+                }
+            };
+            var transactionResult = await TokenContractStub.ChargeTransactionFees.SendAsync(transactionFeeInput);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = BootMinerAddress,
+                Symbol = "CPU"
+            });
+            balance.Balance.ShouldBe(beforeBalance - txFee * 50);
         }
     }
 }

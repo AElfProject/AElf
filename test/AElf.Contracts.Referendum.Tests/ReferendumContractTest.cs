@@ -30,6 +30,9 @@ namespace AElf.Contracts.Referendum
                 var organization =
                     await ReferendumContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
                 organization.ShouldBe(new Organization());
+
+                var result = await ReferendumContractStub.ValidateOrganizationExist.CallAsync(DefaultSender);
+                result.Value.ShouldBeFalse();
             }
 
             var minimalApproveThreshold = 5000;
@@ -431,6 +434,12 @@ namespace AElf.Contracts.Referendum
             reclaimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var balance2 = await GetBalanceAsync("ELF", Address.FromPublicKey(keyPair.PublicKey));
             balance2.ShouldBe(balance1);
+            
+            //delete expired proposal
+            var clearResult = await ReferendumContractStub.ClearProposal.SendAsync(proposalId);
+            clearResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -676,7 +685,7 @@ namespace AElf.Contracts.Referendum
                 var result = await referendumContractStub.Release.SendWithExceptionAsync(changeProposalId);
                 result.TransactionResult.Error.ShouldContain("Invalid organization.");
             }
-            
+
             {
                 var proposalReleaseThresholdInput = new ProposalReleaseThreshold
                 {
@@ -709,9 +718,10 @@ namespace AElf.Contracts.Referendum
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
 
+            var whiteAddress = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[3].PublicKey);
             var proposerWhiteList = new ProposerWhiteList
             {
-                Proposers = {Address.FromPublicKey(SampleECKeyPairs.KeyPairs[3].PublicKey)}
+                Proposers = {whiteAddress}
             };
 
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -728,8 +738,17 @@ namespace AElf.Contracts.Referendum
             var releaseResult = await ReferendumContractStub.Release.SendAsync(changeProposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
+            //verify whiteList
+            var verifyResult = await ReferendumContractStub.ValidateProposerInWhiteList.CallAsync(
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = whiteAddress
+                });
+            verifyResult.Value.ShouldBeTrue();
+            
             var timeStamp = TimestampHelper.GetUtcNow();
-            var createInput = new CreateInput()
+            var createInput = new CreateInput
             {
                 Symbol = "NEW",
                 Decimals = 2,

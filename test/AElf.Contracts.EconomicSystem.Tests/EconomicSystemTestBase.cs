@@ -60,6 +60,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub =>
             GetAEDPoSContractTester(BootMinerKeyPair);
 
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AedPoSContractImplStub =>
+            GetAEDPoSImplContractTester(BootMinerKeyPair);
+
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
@@ -123,6 +126,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
+        }
+
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSImplContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractTester(ECKeyPair keyPair)

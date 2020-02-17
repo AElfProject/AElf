@@ -671,12 +671,12 @@ namespace AElf.Contracts.Genesis
         public async Task UpdateSmartContract_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.UpdateSmartContract), (
-                    new ContractUpdateInput()
+                nameof(ACS0Container.ACS0Stub.UpdateSmartContract),
+                    new ContractUpdateInput
                     {
                         Address = ParliamentAddress,
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
-                    }));
+                    });
 
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();

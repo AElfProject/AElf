@@ -1,8 +1,11 @@
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -156,6 +159,25 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Can't take back that more.");
+        }
+
+        [Fact]
+        public async Task SetControllerForManageConnector_Test()
+        {
+            var createOrganizationResult = await ParliamentContractStub.CreateOrganization.SendAsync(
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+            var organizationAddress = createOrganizationResult.Output;
+
+            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
+                nameof(TokenConverterContractStub.SetControllerForManageConnector),
+                organizationAddress);
         }
     }
 }
