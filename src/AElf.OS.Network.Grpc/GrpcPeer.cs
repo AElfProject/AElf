@@ -27,7 +27,7 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 700;
-        private const int HealthCheckTimeout = 3000;
+        private const int HealthCheckTimeout = 1000;
         private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
