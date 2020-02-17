@@ -115,32 +115,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
+        /// <summary>
+        /// To fill up with InValue and Signature if some miners didn't mined during current round.
+        /// </summary>
         private void SupplyCurrentRoundInformation()
         {
             var currentRound = GetCurrentRoundInformation(new Empty());
             var notMinedMiners = currentRound.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
-            if (notMinedMiners.Any())
+            if (!notMinedMiners.Any()) return;
+            TryToGetPreviousRoundInformation(out var previousRound);
+            foreach (var miner in notMinedMiners)
             {
-                var previousRound = GetPreviousRoundInformation(new Empty());
-                foreach (var miner in notMinedMiners)
+                Hash previousInValue = null;
+                Hash signature = null;
+                
+                // Normal situation: previous round information exists and contains this miner.
+                if (previousRound != null && previousRound.RealTimeMinersInformation.ContainsKey(miner.Pubkey))
                 {
-                    var previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
-                    if (previousInValue == null)
-                    {
-                        var fakeInValue = Hash.FromMessage(miner);
-                        // The fake in value shall only use once during one term.
-                        miner.InValue = fakeInValue;
-                        miner.Signature = previousRound.CalculateSignature(fakeInValue);
-                    }
-                    else
-                    {
-                        // Re-use previous in value.
-                        miner.InValue = previousInValue;
-                        miner.Signature = previousRound.CalculateSignature(previousInValue);
-                    }
-
-                    currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
+                    previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
+                    signature = previousRound.CalculateSignature(previousInValue);
                 }
+
+                if (previousInValue == null)
+                {
+                    // Handle abnormal situation.
+
+                    // The fake in value shall only use once during one term.
+                    previousInValue = Hash.FromMessage(miner);
+                    signature = previousInValue;
+                }
+                
+                // Fill this two fields at last.
+                miner.InValue = previousInValue;
+                miner.Signature = signature;
+
+                currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
             }
         }
 
@@ -235,5 +244,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #endregion
+
+        public override Hash GetRandomHash(SInt64Value input)
+        {
+            Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
+            return State.RandomHashes[input.Value] ?? Hash.Empty;
+        }
     }
 }

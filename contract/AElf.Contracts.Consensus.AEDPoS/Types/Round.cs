@@ -146,15 +146,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash CalculateSignature(Hash inValue)
         {
-            // Check the signatures
-            foreach (var minerInRound in RealTimeMinersInformation)
-            {
-                if (minerInRound.Value.Signature == null)
-                {
-                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
-                }
-            }
-
             return Hash.FromTwoHashes(inValue,
                 RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));

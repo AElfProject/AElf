@@ -96,20 +96,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         previousInValue = triggerInformation.PreviousInValue;
                     }
-                    
                     signature = previousRound.CalculateSignature(triggerInformation.PreviousInValue);
                 }
                 else
                 {
-                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey))
+                    var fakePreviousInValue = Hash.FromString(pubkey);
+                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) && previousRound.RoundNumber != 1)
                     {
-                        previousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;
-                        signature = previousRound.CalculateSignature(previousInValue);
+                        var appointedPreviousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;
+                        if (appointedPreviousInValue != null)
+                        {
+                            fakePreviousInValue = appointedPreviousInValue;
+                        }
+
+                        Context.LogDebug(() => $"TEST:\n{previousRound.ToString(pubkey)}\nInValue: {fakePreviousInValue}");
+                        signature = previousRound.CalculateSignature(fakePreviousInValue);
                     }
                     else
                     {
-                        // This miner appears first time in current round.
-                        var fakePreviousInValue = Hash.FromString(pubkey);
+                        // This miner appears first time in current round, like as a replacement of evil miner.
                         signature = previousRound.CalculateSignature(fakePreviousInValue);
                     }
                 }

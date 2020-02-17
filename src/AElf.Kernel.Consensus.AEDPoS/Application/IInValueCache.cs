@@ -22,10 +22,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public Hash GetInValue(long roundId)
         {
-            // Remove old in values.
-            foreach (var id in _inValues.Keys.Where(id => id < roundId))
+            // Remove old in values. (Keep 10 in values.)
+            const int keepInValuesCount = 10;
+            var toRemove = _inValues.Keys.Where(id => id < roundId).ToList();
+            if (toRemove.Count > keepInValuesCount)
             {
-                _inValues.Remove(id);
+                foreach (var id in toRemove.OrderBy(id => id).Skip(keepInValuesCount))
+                {
+                    _inValues.Remove(id);
+                }
             }
 
             _inValues.TryGetValue(roundId, out var inValue);
