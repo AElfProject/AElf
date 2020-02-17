@@ -116,13 +116,9 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Allow readonly only if the type is primitive type
             // Allow constants
             // Allow any other types if not readonly or constant (since ResetFields can reset later on)
-            // Simplify below where statements later
+            // Simply, do not allow if the field is readonly and not one of the allowed types
             var errors = type.Fields
-                .Where(f => 
-                    !((f.Constant != null || f.IsInitOnly) && 
-                      (Constants.PrimitiveTypes.Contains(FieldTypeFullName(f)) || 
-                       _allowedStaticFieldInitOnlyTypes.Contains(FieldTypeFullName(f))))) // Treat contract field as static field
-                .Where(f => f.Constant != null || f.IsInitOnly)
+                .Where(f => f.IsInitOnly && !_allowedStaticFieldInitOnlyTypes.Contains(FieldTypeFullName(f)))
                 .Select(f => 
                     new ContractStructureValidationResult("Only primitive types or whitelisted types are allowed as readonly fields in contract implementation.")
                     .WithInfo(f.Name, type.Namespace, type.Name, f.Name)).ToList();
