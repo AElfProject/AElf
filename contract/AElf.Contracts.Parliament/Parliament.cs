@@ -66,9 +66,9 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
         }
         
-        public override GetProposerWhiteList GetProposerWhiteListContext(Empty input)
+        public override ProposerWhiteList GetProposerWhiteList(Empty input)
         {
-            var res = new GetProposerWhiteList();
+            var res = new ProposerWhiteList();
             var whitelist = State.ProposerWhiteList.Value;
             res.Proposers.AddRange(whitelist.Proposers);
             return res;

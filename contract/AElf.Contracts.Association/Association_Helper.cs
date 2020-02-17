@@ -62,7 +62,8 @@ namespace AElf.Contracts.Association
         {
             if (organization.ProposerWhiteList.Empty() || organization.OrganizationMemberList.Empty())
                 return false;
-            
+            if (organization.OrganizationAddress == null || organization.OrganizationHash == null)
+                return false;
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             var organizationMemberCount = organization.OrganizationMemberList.Count();
             return proposalReleaseThreshold.MinimalVoteThreshold <= organizationMemberCount &&
@@ -103,8 +104,6 @@ namespace AElf.Contracts.Association
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
-            Assert(organizationAddress != null && organizationHash != null,
-                "Invalid address or hash of the organization.");
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,

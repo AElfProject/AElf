@@ -160,7 +160,7 @@ namespace AElf.Contracts.MultiToken
         private void CheckCrossChainTokenContractRegistrationControllerAuthority()
         {
             var controller = GetCrossChainTokenContractRegistrationController();
-            Assert(controller.Equals(Context.Sender), "No permission.");
+            Assert(controller == Context.Sender, "No permission.");
         }
     }
 }
