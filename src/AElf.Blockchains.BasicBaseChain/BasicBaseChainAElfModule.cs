@@ -55,6 +55,9 @@ namespace AElf.Blockchains.BasicBaseChain
             var configuration = context.Services.GetConfiguration();
             var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
+            
+            //TODO!! why not use configuration instead of using context.Services.GetConfiguration() ?? 
+            //Who is the joker copycat???
             var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
             var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
 
