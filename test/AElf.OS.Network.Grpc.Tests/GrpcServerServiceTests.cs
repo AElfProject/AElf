@@ -142,8 +142,7 @@ namespace AElf.OS.Network
                 announcements.Add(new BlockAnnouncement
                 {
                     BlockHash = Hash.FromString($"block-{i}"),
-                    BlockHeight = 10 + i,
-                    HasFork = false
+                    BlockHeight = 10 + i
                 });
             }
             

@@ -101,10 +101,11 @@ namespace AElf.OS.Worker
                 }
                 else
                 {
-                    peerToConnect.NextAttempt =
-                        TimestampHelper.GetUtcNow().AddMilliseconds(_networkOptions.PeerReconnectionPeriod);
+                    var timeExtension = _networkOptions.PeerReconnectionPeriod * (int)Math.Pow(2, ++peerToConnect.RetryCount);
+                    peerToConnect.NextAttempt = TimestampHelper.GetUtcNow().AddMilliseconds(timeExtension);
                     
-                    Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}.");
+                    Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}, " +
+                                    $"current retries {peerToConnect.RetryCount}. Added {timeExtension} ms");
                 }
             }
 
