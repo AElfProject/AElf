@@ -110,8 +110,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty NextRound(Round input)
         {
+            SupplyCurrentRoundInformation();
             ProcessConsensusInformation(input);
             return new Empty();
+        }
+
+        private void SupplyCurrentRoundInformation()
+        {
+            var currentRound = GetCurrentRoundInformation(new Empty());
+            var notMinedMiners = currentRound.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
+            if (notMinedMiners.Any())
+            {
+                var previousRound = GetPreviousRoundInformation(new Empty());
+                foreach (var miner in notMinedMiners)
+                {
+                    var previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
+                    if (previousInValue == null)
+                    {
+                        var fakeInValue = Hash.FromMessage(miner);
+                        // The fake in value shall only use once during one term.
+                        miner.InValue = fakeInValue;
+                        miner.Signature = previousRound.CalculateSignature(fakeInValue);
+                    }
+                    else
+                    {
+                        // Re-use previous in value.
+                        miner.InValue = previousInValue;
+                        miner.Signature = previousRound.CalculateSignature(previousInValue);
+                    }
+
+                    currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
+                }
+            }
         }
 
         #endregion

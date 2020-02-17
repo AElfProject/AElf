@@ -79,14 +79,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
-                signature = previousRound.CalculateSignature(triggerInformation.InValue);
-                Context.LogDebug(
-                    () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                 if (triggerInformation.PreviousInValue != null &&
                     triggerInformation.PreviousInValue != Hash.Empty)
                 {
+                    Context.LogDebug(
+                        () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                     // Self check.
-                    if (Hash.FromMessage(triggerInformation.PreviousInValue) !=
+                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) &&
+                        Hash.FromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
@@ -95,6 +95,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     else
                     {
                         previousInValue = triggerInformation.PreviousInValue;
+                    }
+                    
+                    signature = previousRound.CalculateSignature(triggerInformation.PreviousInValue);
+                }
+                else
+                {
+                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey))
+                    {
+                        previousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;
+                        signature = previousRound.CalculateSignature(previousInValue);
+                    }
+                    else
+                    {
+                        // This miner appears first time in current round.
+                        var fakePreviousInValue = Hash.FromString(pubkey);
+                        signature = previousRound.CalculateSignature(fakePreviousInValue);
                     }
                 }
             }

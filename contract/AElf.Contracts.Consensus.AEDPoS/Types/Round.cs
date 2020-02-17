@@ -160,11 +160,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
-        public Hash CalculateInValue(Hash randomHash)
-        {
-            return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = RoundId}), randomHash);
-        }
-
         public Timestamp GetExtraBlockMiningTime()
         {
             return RealTimeMinersInformation.OrderBy(m => m.Value.Order).Last().Value
