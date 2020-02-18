@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.OS.BlockSync.Types;
-using AElf.Types;
 
 namespace AElf.OS.BlockSync.Infrastructure
 {
@@ -12,6 +11,6 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo);
 
-        Task RemoveAsync(Hash jobId);
+        Task RemoveAsync(string jobId);
     }
 }
