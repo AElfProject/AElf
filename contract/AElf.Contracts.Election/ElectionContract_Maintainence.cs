@@ -194,6 +194,9 @@ namespace AElf.Contracts.Election
             {
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
+                if (State.ProfitContract.Value == null)
+                    State.ProfitContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,
