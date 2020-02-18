@@ -19,9 +19,12 @@ using AElf.Contracts.Treasury;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
+using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -94,6 +97,12 @@ namespace AElf.CSharp.CodeOps
         }
 
         #endregion
+
+        [Fact]
+        public void PatchTest()
+        {
+            ContractPatcher.Patch(ReadContractCode(typeof(AEDPoSContract)));
+        }
 
         #region Negative Cases
 
@@ -178,6 +187,62 @@ namespace AElf.CSharp.CodeOps
             var getHashCodeFindings = findings.Where(f => f is GetHashCodeValidationResult).ToList();
             LookFor(getHashCodeFindings, "TestGetHashCodeCall", f => f != null).ShouldNotBeNull();
             LookFor(getHashCodeFindings, "GetHashCode", f => f != null).ShouldNotBeNull();
+            
+            // FileDescriptor type field not allowed to be set outside of its declaring type constructor
+            findings
+                .FirstOrDefault(f => f is DescriptorAccessValidationResult && 
+                                     f.Info.Type == "BadCase1" && f.Info.ReferencingMethod == "SetFileDescriptor").ShouldNotBeNull();
+            
+            // Initialization value not allowed for resettable members, in regular type
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult && 
+                                     f.Info.Type == "BadCase2" && f.Info.ReferencingMethod == ".cctor" && f.Info.Member == "Number").ShouldNotBeNull();
+            
+            // Initialization value not allowed for resettable members, in contract
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult && 
+                                     f.Info.Type == "BadContract" && f.Info.ReferencingMethod == ".ctor" && f.Info.Member == "i").ShouldNotBeNull();
+            
+            // A type that is not allowed as a static readonly field
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase3" && f.Info.Member == "field").ShouldNotBeNull();
+            
+            // Not allowed as readonly if a type has a field with its own type and has instance field
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase4" && f.Info.Member == "field").ShouldNotBeNull();
+            
+            // A type that is not allowed to be used as a field in contract state
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult && 
+                                     f.Info.Type == "BadContractState" && f.Info.Member == "i").ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void CheckResetField_ForMissingReset()
+        {
+            var code = ReadContractCode(typeof(BadContract));
+            var module = Mono.Cecil.ModuleDefinition.ReadModule(new MemoryStream(code));
+            var resetFieldsMethod = module.Types
+                .Single(t => t.IsContractImplementation())
+                .Methods.Single(m => m.Name == "ResetFields");
+
+            RemoveInstruction(resetFieldsMethod, i => i.OpCode == OpCodes.Stfld); // Remove field reset
+            RemoveInstruction(resetFieldsMethod, i => i.OpCode == OpCodes.Call && // Remove call to other type's ResetFields
+                                                      i.Operand is MethodDefinition method && 
+                                                      method.Name == "ResetFields");
+
+            var tamperedContract = new MemoryStream();
+            module.Write(tamperedContract);
+            
+            var findings = Should.Throw<InvalidCodeException>(
+                    ()=>_auditorFixture.Audit(tamperedContract.ToArray()))
+                .Findings;
+
+            findings.FirstOrDefault(f => f is ResetFieldsValidationResult && 
+                                         f.Message.Contains("missing reset for certain fields")).ShouldNotBeNull();
+            
+            findings.FirstOrDefault(f => f is ResetFieldsValidationResult && 
+                                         f.Message.Contains("missing certain method calls")).ShouldNotBeNull();
         }
 
         [Fact]
@@ -224,6 +289,13 @@ namespace AElf.CSharp.CodeOps
         byte[] ReadPatchedContractCode(Type contractType)
         {
             return ReadCode(ContractDllDir + contractType.Module + ".patched");
+        }
+
+        void RemoveInstruction(MethodDefinition method, Func<Instruction, bool> where)
+        {
+            var il = method.Body.GetILProcessor();
+            
+            il.Remove(method.Body.Instructions.First(where));
         }
 
         #endregion
