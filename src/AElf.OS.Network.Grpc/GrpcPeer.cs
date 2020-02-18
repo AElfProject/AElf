@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Grpc
         private const int TransactionCacheMaxItems = 10_000;
 
         private const int QueuedTransactionTimeout = 10_000;
-        private const int QueuedBlockTimeout = 10_000;
+        private const int QueuedBlockTimeout = 100;
 
         private enum MetricNames
         {
