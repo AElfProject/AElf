@@ -12,6 +12,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: is this class still in use?
     public class ContractEventDiscoveryService<T> where T : IEvent<T>, new()
     {
         private readonly IBlockchainService _blockchainService;
