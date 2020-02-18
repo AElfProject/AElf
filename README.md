@@ -33,6 +33,7 @@ TOOL/LIBRARY | description
 -------------|-------------
 [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | a Javascript development kit for interacting with an AElf node, useful for dApp developers. 
 [aelf-command](https://github.com/AElfProject/aelf-command) | a CLI tool for interacting with an AElf node and wallet.
+[AElf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | a framework for smart contract and dApp development.
 
 ## Getting Started
 
@@ -57,12 +58,13 @@ Here's a list of some of the most important:
 
 ``` JSON
   "Network": {
-    // list of nodes that the node will try to connect to.
     "BootNodes": ["127.0.0.1:6801", "127.0.0.1:6802"], 
-    // port on which the node will listen for incoming P2P connections.
     "ListeningPort": 6800 
   },
 ```
+
+- BootNodes: list of nodes that the node will try to connect to.
+- ListeningPort: port on which the node will listen for incoming P2P connections.
 
 #### Web API endpoint
 
@@ -70,12 +72,13 @@ Here's a list of some of the most important:
 "Kestrel": {
     "EndPoints": {
         "Http": {
-            // the listening IP and port of the Web API
             "Url": "http://*:1234/"
         }
     }
 },
 ```
+
+- Url: the listening IP and port of the Web API ('*' for listening on all interfaces).
 
 ## Web API
 
