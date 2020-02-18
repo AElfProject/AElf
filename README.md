@@ -84,10 +84,10 @@ Here's a list of some of the most important:
 
 The node comes with an API from which you can query useful information about the node and the blockchain.
 
-An easy way to discover the available methods is through the API's swagger interface 
+An easy way to discover the available methods is through the API's swagger interface, use your browser and past the following (replace with the ```ip:port``` of your node's web api): 
 
 ```http://localhost:1234/swagger/index.html```
-(replace with the ```ip:port``` of your node's web api)
+
 
 A more complete reference can be found here [Web Api Reference](https://docs.aelf.io/v/dev/reference).
 
