@@ -77,7 +77,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = newParliamentAddress.ToByteString(),
                 OrganizationAddress = defaultParliamentAddress,
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSymbolsToPayTXSizeFee),
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSymbolsToPayTXSizeFeeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,

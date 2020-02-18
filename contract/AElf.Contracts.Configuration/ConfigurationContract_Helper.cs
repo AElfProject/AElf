@@ -16,13 +16,13 @@ namespace AElf.Contracts.Configuration
 
         private Address GetControllerForManageConfiguration()
         {
-            if (State.ControllerForManageConfiguration.Value != null)
-                return State.ControllerForManageConfiguration.Value;
+            if (State.ConfigurationController.Value != null)
+                return State.ConfigurationController.Value;
             ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.ControllerForManageConfiguration.Value = organizationAddress;
+            State.ConfigurationController.Value = organizationAddress;
 
-            return State.ControllerForManageConfiguration.Value;
+            return State.ConfigurationController.Value;
         }
 
         private void CheckControllerAuthority()

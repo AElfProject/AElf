@@ -111,7 +111,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OwnerAddress = calculatedNewParliamentAddress,
                 ContractAddress = ParliamentContractAddress
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetControllerForManageVoteWeightInterest), newAuthority);
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.ChangeVoteWeightInterestController), newAuthority);
             var proposalToUpdateInterest = new Acs3.CreateProposalInput
             {
                 OrganizationAddress = calculatedNewParliamentAddress,

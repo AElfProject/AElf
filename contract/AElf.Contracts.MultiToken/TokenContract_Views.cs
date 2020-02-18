@@ -147,15 +147,19 @@ namespace AElf.Contracts.MultiToken
         
         public override ControllerForUserFee GetUserFeeController(Empty input)
         {
-            return State.ControllerForUserFee.Value;
+            if(State.UserFeeController.Value == null)
+                InitializeUserFeeController();
+            return State.UserFeeController.Value;
         }
         
         public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
         {
-            return State.ControllerForDeveloperFee.Value;
+            if(State.DeveloperFeeController.Value == null)
+                InitializeDeveloperFeeController();
+            return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        public override ControllerInfoForUpdateSideChainRental GetSideChainRentalController(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;

@@ -230,7 +230,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSideChainParliament),
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
                 Params = newParliamentAddress.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress

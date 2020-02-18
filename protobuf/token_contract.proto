@@ -79,11 +79,11 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-    rpc SetControllerForSideChainParliament (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainParliamentController (aelf.Address) returns (google.protobuf.Empty) {
     }
     rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
-    rpc SetControllerForSymbolsToPayTXSizeFee(aelf.Address) returns (google.protobuf.Empty){
+    rpc ChangeSymbolsToPayTXSizeFeeController(aelf.Address) returns (google.protobuf.Empty){
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
@@ -143,7 +143,7 @@ service TokenContract {
     rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
         option (aelf.is_view) = true;
     }
-    rpc GetControllerInfoForUpdateSideChainRental(google.protobuf.Empty) returns (ControllerInfoForUpdateSideChainRental){
+    rpc GetSideChainRentalController(google.protobuf.Empty) returns (ControllerInfoForUpdateSideChainRental){
         option (aelf.is_view) = true;
     }
 

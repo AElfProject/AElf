@@ -40,10 +40,10 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<Address> Owner { get; set; }
-        public SingletonState<ControllerForUserFee> ControllerForUserFee { get; set; }
-        public SingletonState<ControllerForDeveloperFee> ControllerForDeveloperFee { get; set; }
-        public SingletonState<Address> ControllerForSymbolToPayTxFee { get; set; }
-        public SingletonState<Address> ControllerForSideRentalParliament { get; set; }
+        public SingletonState<ControllerForUserFee> UserFeeController { get; set; }
+        public SingletonState<ControllerForDeveloperFee> DeveloperFeeController { get; set; }
+        public SingletonState<Address> SymbolToPayTxFeeController { get; set; }
+        public SingletonState<Address> SideRentalParliamentController { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.

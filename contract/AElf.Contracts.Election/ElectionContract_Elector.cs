@@ -331,7 +331,7 @@ namespace AElf.Contracts.Election
 
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -349,12 +349,12 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty SetControllerForManageVoteWeightInterest(AuthorityInfo input)
+        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null, "invalid input");
             Assert(CheckOrganizationExist(input),"Invalid authority input.");
-            State.ControllerForManageVoteWeightInterest.Value = input;
+            State.VoteWeightInterestController.Value = input;
             return new Empty();
         }
 
@@ -382,18 +382,6 @@ namespace AElf.Contracts.Election
                 Capital = 1000
             });
             State.VoteWeightInterestList.Value = voteWeightSetting;
-            if (State.ControllerForManageVoteWeightInterest.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            State.ControllerForManageVoteWeightInterest.Value = new AuthorityInfo
-            {
-                ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
-            };
         }
 
         private long GetElfAmount(long votingAmount)
@@ -518,9 +506,28 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void AssertControllerForManageVoteWeightInterestSetting()
+        private void AssertPerformedByVoteWeightInterestController()
         {
-            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value.OwnerAddress, "no permission");
+            if (State.VoteWeightInterestController.Value == null)
+            {
+                InitializeVoteWeightInterestController();
+            }
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+        }
+
+        private void InitializeVoteWeightInterestController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            State.VoteWeightInterestController.Value = new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
     }
 }

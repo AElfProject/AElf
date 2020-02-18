@@ -22,7 +22,9 @@ namespace AElf.Contracts.TokenConverter
 
         public override Address GetControllerForManageConnector(Empty input)
         {
-            return State.ControllerForManageConnector.Value;
+            if (State.ConnectorController.Value == null)
+                InitializeConnectorController();
+            return State.ConnectorController.Value;
         }
 
         public override TokenSymbol GetBaseTokenSymbol(Empty input)
@@ -42,9 +44,9 @@ namespace AElf.Contracts.TokenConverter
         {
             var targetConnector = State.Connectors[input.Symbol];
             Connector relatedConnector = null;
-            if(targetConnector != null)
+            if (targetConnector != null)
                 relatedConnector = State.Connectors[targetConnector.RelatedSymbol];
-            if(targetConnector != null && targetConnector.IsDepositAccount)
+            if (targetConnector != null && targetConnector.IsDepositAccount)
                 return new PairConnector
                 {
                     ResourceConnector = relatedConnector,
@@ -86,16 +88,17 @@ namespace AElf.Contracts.TokenConverter
                     ? toConnector.VirtualBalance.Add(tokenInfo.TotalSupply)
                     : tokenInfo.TotalSupply;
                 needDeposit =
-                    BancorHelper.GetAmountToPayFromReturn(fb, GetWeight(fromConnector), 
+                    BancorHelper.GetAmountToPayFromReturn(fb, GetWeight(fromConnector),
                         tb, GetWeight(toConnector), amountOutOfTokenConvert);
             }
+
             return new DepositInfo
             {
                 NeedAmount = needDeposit,
                 AmountOutOfTokenConvert = amountOutOfTokenConvert
             };
         }
-        
+
         public override Int64Value GetDepositConnectorBalance(StringValue symbolInput)
         {
             var connector = State.Connectors[symbolInput.Value];

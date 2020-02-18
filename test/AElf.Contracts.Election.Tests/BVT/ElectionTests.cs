@@ -477,7 +477,7 @@ namespace AElf.Contracts.Election
                 ContractAddress = ParliamentContractAddress
             };
             await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
-                nameof(ElectionContractStub.SetControllerForManageVoteWeightInterest), newAuthority);
+                nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
 
             await ExecuteProposalTransactionWithNewParliament(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);

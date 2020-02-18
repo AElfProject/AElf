@@ -290,9 +290,11 @@ namespace AElf.Contracts.Election
             return State.VoteWeightInterestList.Value;
         }
         
-        public override AuthorityInfo GetControllerForManageVoteWeightInterest(Empty input)
+        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
         {
-            return State.ControllerForManageVoteWeightInterest.Value;
+            if (State.VoteWeightInterestController.Value == null)
+                InitializeVoteWeightInterestController();
+            return State.VoteWeightInterestController.Value;
         }
         
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)

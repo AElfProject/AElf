@@ -28,7 +28,7 @@ service TokenConverterContract {
     }
     rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc SetControllerForManageConnector (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeConnectorController (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {

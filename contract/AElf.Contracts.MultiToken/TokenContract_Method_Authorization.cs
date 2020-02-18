@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using Acs3;
 using AElf.Sdk.CSharp;
@@ -12,93 +13,69 @@ namespace AElf.Contracts.MultiToken
 
         private void InitializeAuthorizedController()
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
+            if (State.SideChainCreator.Value == null) return;
             if (State.AssociationContract.Value == null)
             {
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
-
-            if (State.ReferendumContract.Value == null)
-            {
-                State.ReferendumContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName);
-            }
-            
-            if (State.SideChainCreator.Value != null)
-            {
-                State.AssociationContract.CreateOrganizationBySystemContract.Send(GetControllerCreateInputForSideChainRental());
-            }
-            
-            Assert(!ControllersInitialized(), "controller has been initialized");
-            CalculateUserFeeController();
-            CreateReferendumControllerForUserFee();
-            CreateAssociationControllerForUserFee();
-            
-            CalculateDeveloperFeeController();
-            CreateDeveloperController();
-            CreateAssociationControllerForDeveloperFee();
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetControllerCreateInputForSideChainRental());
         }
-        
-        public override Empty SetControllerForSymbolsToPayTXSizeFee(Address input)
+
+        public override Empty ChangeSymbolsToPayTXSizeFeeController(Address input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
             var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
-            State.ControllerForSymbolToPayTxFee.Value = input;
+            State.SymbolToPayTxFeeController.Value = input;
             return new Empty();
         }
         
-        public override Empty SetControllerForSideChainParliament(Address input)
+        public override Empty ChangeSideChainParliamentController(Address input)
         {
             AssertControllerForSideChainRental();
             Assert(input != null, "invalid input");
             var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
-            State.ControllerForSideRentalParliament.Value = input;
+            State.SideRentalParliamentController.Value = input;
             return new Empty();
         }
         
         private bool ControllersInitialized()
         {
-            if(State.ControllerForDeveloperFee.Value == null)
-                State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
-            if(State.ControllerForUserFee.Value == null)
-                State.ControllerForUserFee.Value = new ControllerForUserFee();
-            return !(State.ControllerForDeveloperFee.Value.DeveloperController == null ||
-                    State.ControllerForDeveloperFee.Value.ParliamentController == null ||
-                    State.ControllerForDeveloperFee.Value.RootController == null ||
-                    State.ControllerForUserFee.Value.ParliamentController == null ||
-                    State.ControllerForUserFee.Value.ReferendumController == null ||
-                    State.ControllerForUserFee.Value.RootController == null);
+            if(State.DeveloperFeeController.Value == null)
+                State.DeveloperFeeController.Value = new ControllerForDeveloperFee();
+            if(State.UserFeeController.Value == null)
+                State.UserFeeController.Value = new ControllerForUserFee();
+            return !(State.DeveloperFeeController.Value.DeveloperController == null ||
+                    State.DeveloperFeeController.Value.ParliamentController == null ||
+                    State.DeveloperFeeController.Value.RootController == null ||
+                    State.UserFeeController.Value.ParliamentController == null ||
+                    State.UserFeeController.Value.ReferendumController == null ||
+                    State.UserFeeController.Value.RootController == null);
         }
         
         private void CalculateDeveloperFeeController()
         {
-            State.ControllerForDeveloperFee.Value = new ControllerForDeveloperFee();
-            State.ControllerForDeveloperFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
-            State.ControllerForDeveloperFee.Value.DeveloperController =
+            State.DeveloperFeeController.Value = new ControllerForDeveloperFee();
+            State.DeveloperFeeController.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
+            State.DeveloperFeeController.Value.DeveloperController =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperControllerCreateInput()
                     .OrganizationCreationInput);
-            State.ControllerForDeveloperFee.Value.RootController =
+            State.DeveloperFeeController.Value.RootController =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerCreateInputForDeveloperFee()
                     .OrganizationCreationInput);
         }
 
         private void CalculateUserFeeController()
         {
-            State.ControllerForUserFee.Value = new ControllerForUserFee();
-            State.ControllerForUserFee.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
-            State.ControllerForUserFee.Value.ReferendumController =
+            State.UserFeeController.Value = new ControllerForUserFee();
+            State.UserFeeController.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
+            State.UserFeeController.Value.ReferendumController =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumControllerCreateInputForUserFee()
                     .OrganizationCreationInput);
-            State.ControllerForUserFee.Value.RootController =
+            State.UserFeeController.Value.RootController =
                 State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerCreateInputForUserFee()
                     .OrganizationCreationInput);
         }
@@ -127,7 +104,7 @@ namespace AElf.Contracts.MultiToken
         #region organization create input
         private Referendum.CreateOrganizationBySystemContractInput GetReferendumControllerCreateInputForUserFee()
         {
-            var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
+            var parliamentOrg = State.UserFeeController.Value.ParliamentController;
             var whiteList = new List<Address> {parliamentOrg};
             var tokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
             return new Referendum.CreateOrganizationBySystemContractInput
@@ -152,9 +129,9 @@ namespace AElf.Contracts.MultiToken
 
         private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForUserFee()
         {
-            var parliamentOrg = State.ControllerForUserFee.Value.ParliamentController;
+            var parliamentOrg = State.UserFeeController.Value.ParliamentController;
             var proposers = new List<Address>
-                {State.ControllerForUserFee.Value.ReferendumController, parliamentOrg};
+                {State.UserFeeController.Value.ReferendumController, parliamentOrg};
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -179,7 +156,7 @@ namespace AElf.Contracts.MultiToken
         }
         private Association.CreateOrganizationBySystemContractInput GetDeveloperControllerCreateInput()
         {
-            var parliamentOrganization = State.ControllerForDeveloperFee.Value.ParliamentController;
+            var parliamentOrganization = State.DeveloperFeeController.Value.ParliamentController;
             var proposers = new List<Address> {parliamentOrganization};
             return new Association.CreateOrganizationBySystemContractInput
             {
@@ -206,10 +183,10 @@ namespace AElf.Contracts.MultiToken
 
         private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForDeveloperFee()
         {
-            var parliamentOrg = State.ControllerForDeveloperFee.Value.ParliamentController;
+            var parliamentOrg = State.DeveloperFeeController.Value.ParliamentController;
             var proposers = new List<Address>
             {
-                State.ControllerForDeveloperFee.Value.DeveloperController, parliamentOrg
+                State.DeveloperFeeController.Value.DeveloperController, parliamentOrg
             };
             var actualProposalCount = proposers.Count;
             return new Association.CreateOrganizationBySystemContractInput
@@ -268,31 +245,113 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertControllerForSymbolToPayTxSizeFee()
         {
-            if (State.ControllerForSymbolToPayTxFee.Value == null)
+            if (State.SymbolToPayTxFeeController.Value == null)
             {
                 if (State.ParliamentContract.Value == null)
                 {
                     State.ParliamentContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
                 }
-                State.ControllerForSymbolToPayTxFee.Value =
+                State.SymbolToPayTxFeeController.Value =
                     State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             }
-            Assert(State.ControllerForSymbolToPayTxFee.Value == Context.Sender, "no permission");
+            Assert(State.SymbolToPayTxFeeController.Value == Context.Sender, "no permission");
         }
 
         private Address GetControllerForSideRentalParliament()
         {
-            if (State.ControllerForSideRentalParliament.Value != null) return State.ControllerForSideRentalParliament.Value;
+            if (State.SideRentalParliamentController.Value == null)
+            {
+                if (State.ParliamentContract.Value == null)
+                {
+                    State.ParliamentContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                }
+                if (State.AssociationContract.Value == null)
+                {
+                    State.AssociationContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+                }
+                State.SideRentalParliamentController.Value =
+                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            }
+            
+            return State.SideRentalParliamentController.Value;
+        }
+        
+        private void AssertDeveloperFeeController()
+        {
+            if (State.DeveloperFeeController.Value == null)
+            {
+                InitializeDeveloperFeeController();
+            }
+            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController, "no permission");
+        }
+
+        private void InitializeDeveloperFeeController()
+        {
             if (State.ParliamentContract.Value == null)
             {
                 State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
-            State.ControllerForSideRentalParliament.Value =
-                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
 
-            return State.ControllerForSideRentalParliament.Value;
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
+                
+            State.DeveloperFeeController.Value = new ControllerForDeveloperFee();
+            State.DeveloperFeeController.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
+            State.DeveloperFeeController.Value.DeveloperController =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperControllerCreateInput()
+                    .OrganizationCreationInput);
+            State.DeveloperFeeController.Value.RootController =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerCreateInputForDeveloperFee()
+                    .OrganizationCreationInput);
+            CreateDeveloperController();
+            CreateAssociationControllerForDeveloperFee();
+        }
+
+        private void AssertUserFeeController()
+        {
+            if (State.UserFeeController.Value == null)
+            {
+                InitializeUserFeeController();
+            }
+            Assert(Context.Sender == State.UserFeeController.Value.RootController, "no permission");
+        }
+
+        private void InitializeUserFeeController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            if (State.AssociationContract.Value == null)
+            {
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
+            }
+
+            if (State.ReferendumContract.Value == null)
+            {
+                State.ReferendumContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName);
+            }
+            State.UserFeeController.Value = new ControllerForUserFee();
+            State.UserFeeController.Value.ParliamentController = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());;
+            State.UserFeeController.Value.ReferendumController =
+                State.ReferendumContract.CalculateOrganizationAddress.Call(GetReferendumControllerCreateInputForUserFee()
+                    .OrganizationCreationInput);
+            State.UserFeeController.Value.RootController =
+                State.AssociationContract.CalculateOrganizationAddress.Call(GetAssociationControllerCreateInputForUserFee()
+                    .OrganizationCreationInput);
+            CreateReferendumControllerForUserFee();
+            CreateAssociationControllerForUserFee();
         }
         #endregion
     }

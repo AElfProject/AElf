@@ -24,10 +24,9 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.RootController, "no permission");
+            AssertDeveloperFeeController();
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
-            if (coefficientInfoInState == null)
-                return new Empty();
+            Assert(coefficientInfoInState != null, "coefficient does not exist");
             var coefficient = coefficientInput.Coefficient;
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
@@ -45,13 +44,9 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.ControllerForUserFee.Value.RootController, "no permission");
+            AssertUserFeeController();
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
-            if (coefficientInfoInState == null)
-            {
-                return new Empty();
-            }
-
+            Assert(coefficientInfoInState != null, "coefficient does not exist");
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
