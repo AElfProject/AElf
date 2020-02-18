@@ -42,25 +42,51 @@ This repo is where you will find the code that can use to run an AElf node. It a
 
 ### Prerequisites
 
-Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
-Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider, Visual Studio and Visual Studio Code. Strictly speaking, if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
-Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
+We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
+these two guides will get you started:  
+* [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)  
+* [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)  
 
-Note that, if you intend to develop AElf itself you will have to install protobuf/gRPC.
+## Node configuration
 
-### Build
+To configure the nodes behavior, many options are available to the operator (some encountered in the [Running a node](https://docs.aelf.io/v/dev/main/main/run-node) tutorial). The options are located here [appsettings template](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.json).
 
-```bash
-sh scripts/build.sh
+Here's a list of some of the most important:
+
+#### Network
+
+``` JSON
+  "Network": {
+    // list of nodes that the node will try to connect to.
+    "BootNodes": ["127.0.0.1:6801", "127.0.0.1:6802"], 
+    // port on which the node will listen for incoming P2P connections.
+    "ListeningPort": 6800 
+  },
 ```
 
-### Run the tests
+#### Web API endpoint
 
-Our tests are in the **test** folder, in order to run you only have to execute the following script:
-
-```bash
-sh scripts/test.sh
+``` JSON
+"Kestrel": {
+    "EndPoints": {
+        "Http": {
+            // the listening IP and port of the Web API
+            "Url": "http://*:1234/"
+        }
+    }
+},
 ```
+
+## Web API
+
+The node comes with an API from which you can query useful information about the node and the blockchain.
+
+An easy way to discover the available methods is through the API's swagger interface 
+
+```http://localhost:1234/swagger/index.html```
+(replace with the ```ip:port``` of your node's web api)
+
+A more complete reference can be found here [Web Api Reference](https://docs.aelf.io/v/dev/reference).
 
 ## Contributing
 
