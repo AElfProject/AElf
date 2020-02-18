@@ -3,6 +3,7 @@ using AElf.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -289,7 +290,7 @@ namespace AElf.Contracts.Election
             return State.VoteWeightInterestList.Value;
         }
         
-        public override Address GetControllerForManageVoteWeightInterest(Empty input)
+        public override AuthorityInfo GetControllerForManageVoteWeightInterest(Empty input)
         {
             return State.ControllerForManageVoteWeightInterest.Value;
         }

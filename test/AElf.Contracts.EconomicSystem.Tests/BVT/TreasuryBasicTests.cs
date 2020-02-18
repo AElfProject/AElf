@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Acs1;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
@@ -105,7 +106,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 (await bpParliamentStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
             createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculatedNewParliamentAddress = await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetControllerForManageVoteWeightInterest), calculatedNewParliamentAddress);
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = calculatedNewParliamentAddress,
+                ContractAddress = ParliamentContractAddress
+            };
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetControllerForManageVoteWeightInterest), newAuthority);
             var proposalToUpdateInterest = new Acs3.CreateProposalInput
             {
                 OrganizationAddress = calculatedNewParliamentAddress,
