@@ -22,6 +22,8 @@ For more information you can follow these links:
     * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
     * [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)
     * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
+    * [Web Api](https://docs.aelf.io/v/dev/reference)
+    * [Testnet](https://docs.aelf.io/v/dev/resources/testnet)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
 
 This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
