@@ -1,3 +1,5 @@
+#tool nuget:?package=Codecov
+#addin nuget:?package=Cake.Codecov
 var target = Argument("target", "Default");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
@@ -89,6 +91,12 @@ Task("Run-Unit-Tests")
     {
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
+});
+Task("Upload-Coverage")
+    .Does(() =>
+{
+    // Upload a coverage report.
+    Codecov("./test/results/coverage.opencover.xml","$CODECOV_TOKEN");
 });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");

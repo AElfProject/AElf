@@ -30,9 +30,7 @@ jobs:
   - script: bash scripts/download_binary.sh
   - script: bash build.sh -target=Test-with-Codecov
     displayName: 'Build and Test'
-  - script: curl -s https://codecov.io/bash > codecov
-  - script: chmod +x codecov
-  - script: ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN
+  - script: bash build.sh -target=Upload-Coverage
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
