@@ -59,14 +59,15 @@ Task("test_with_codecov")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
-            return args.Append("/p:CollectCoverage=true")
-                       .Append("/p:CoverletOutputFormat=json%2copencover")
-                       .Append("/p:CoverletOutput=../results/coverage")
-                       .Append("/p:MergeWith=../results/coverage.json")
-                       .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Contracts.Authorization]*%2c[AElf.Test.Helpers]*%2c[*]*Exception%2c[*.Tests]*%2c[AElf.Contracts.TestContract.BasicFunctionWithParallel]*%2c[AElf.Contracts.GenesisUpdate]*")
-                       .Append("/p:Exclude=[*.TestContract.*]*")
-                       .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs%2c../../test/*.TestBase/*.cs");}
-};
+             return args.Append("/p:CollectCoverage=true")
+                  .Append("/p:CoverletOutputFormat=json%2copencover")
+                  .Append("/p:CoverletOutput=../results/coverage")
+                  .Append("/p:MergeWith=../results/coverage.json")
+                  .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Contracts.Authorization]*%2c[AElf.Test.Helpers]*%2c[*]*Exception%2c[*.Tests]*%2c[*.TestContract.*]*%2c[AElf.Contracts.GenesisUpdate]*")
+                  .Append("/p:Exclude=[AElf.WebApp.Application.Chain]*%2c[AElf.WebApp.Application.Net]*")
+                  .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs%2c../../test/*.TestBase/*.cs");
+        }
+    };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
     foreach(var testProject in testProjects)
