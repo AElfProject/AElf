@@ -33,7 +33,7 @@ TOOL/LIBRARY | description
 -------------|-------------
 [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | a Javascript development kit for interacting with an AElf node, useful for dApp developers. 
 [aelf-command](https://github.com/AElfProject/aelf-command) | a CLI tool for interacting with an AElf node and wallet.
-[AElf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | a framework for smart contract and dApp development.
+[aelf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | a framework for smart contract and dApp development.
 
 ## Getting Started
 
