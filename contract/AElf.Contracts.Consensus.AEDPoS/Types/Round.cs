@@ -146,18 +146,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash CalculateSignature(Hash inValue)
         {
-            // Sometimes
-            foreach (var minerInRound in RealTimeMinersInformation)
-            {
-                if (minerInRound.Value.Signature == null)
-                {
-                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
-                }
-            }
-
-            return Hash.FromTwoHashes(inValue,
+            return HashHelper.Xor(inValue,
                 RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
-                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+                    (current, minerInRound) => HashHelper.Xor(current, minerInRound.Signature)));
         }
 
         public Timestamp GetExtraBlockMiningTime()

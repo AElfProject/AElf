@@ -167,6 +167,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
             }
 
+            TryToUpdateRoundInformation(currentRound);
             Context.LogDebug(() => $"After supply:\n{currentRound.ToString(Context.RecoverPublicKey().ToHex())}");
         }
 

@@ -100,7 +100,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    var fakePreviousInValue = Hash.FromString(pubkey);
+                    var fakePreviousInValue = Hash.FromString(pubkey.Append(Context.CurrentHeight.ToString()));
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) && previousRound.RoundNumber != 1)
                     {
                         var appointedPreviousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;
