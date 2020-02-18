@@ -8,7 +8,7 @@ namespace AElf.Contracts.Configuration
     {
         public Int32State BlockTransactionLimit { get; set; }
 
-        public SingletonState<Address> Controller { get; set; }
+        public SingletonState<Address> ControllerForManageConfiguration { get; set; }
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 

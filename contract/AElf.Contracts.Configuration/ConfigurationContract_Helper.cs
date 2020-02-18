@@ -14,26 +14,26 @@ namespace AElf.Contracts.Configuration
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
 
-        private Address GetController()
+        private Address GetControllerForManageConfiguration()
         {
-            if (State.Controller.Value != null)
-                return State.Controller.Value;
+            if (State.ControllerForManageConfiguration.Value != null)
+                return State.ControllerForManageConfiguration.Value;
             ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.Controller.Value = organizationAddress;
+            State.ControllerForManageConfiguration.Value = organizationAddress;
 
-            return State.Controller.Value;
+            return State.ControllerForManageConfiguration.Value;
         }
 
         private void CheckControllerAuthority()
         {
-            var controller = GetController();
+            var controller = GetControllerForManageConfiguration();
             Assert(controller.Equals(Context.Sender), "Not authorized to do this.");
         }
 
         private void CheckSenderIsControllerOrZeroContract()
         {
-            var controller = GetController();
+            var controller = GetControllerForManageConfiguration();
             Assert(
                 controller == Context.Sender ||
                 Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");

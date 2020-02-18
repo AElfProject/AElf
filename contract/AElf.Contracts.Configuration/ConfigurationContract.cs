@@ -27,16 +27,16 @@ namespace AElf.Contracts.Configuration
             return new Int32Value {Value = State.BlockTransactionLimit.Value};
         }
 
-        public override Empty ChangeOwnerAddress(Address input)
+        public override Empty ChangeControllerForManageConfiguration(Address input)
         {
             CheckControllerAuthority();
-            State.Controller.Value = input;
+            State.ControllerForManageConfiguration.Value = input;
             return new Empty();
         }
 
-        public override Address GetOwnerAddress(Empty input)
+        public override Address GetControllerForManageConfiguration(Empty input)
         {
-            var address = GetController();
+            var address = GetControllerForManageConfiguration();
             return address;
         }
 
