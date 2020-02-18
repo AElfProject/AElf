@@ -541,17 +541,6 @@ namespace AElf.Contracts.Treasury
         
         private void AssertControllerForManageVoteWeightInterestSetting()
         {
-            if (State.ControllerForManageVoteWeightInterest.Value == null)
-            {
-                if (State.ParliamentContract.Value == null)
-                {
-                    State.ParliamentContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-                }
-                State.ControllerForManageVoteWeightInterest.Value =
-                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            }
-                
             Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
         }
 
