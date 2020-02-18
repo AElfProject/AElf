@@ -264,6 +264,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Hash GetRandomHash(SInt64Value input)
         {
+            Assert(input.Value > 1, "Invalid block height.");
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
             return State.RandomHashes[input.Value] ?? Hash.Empty;
         }
