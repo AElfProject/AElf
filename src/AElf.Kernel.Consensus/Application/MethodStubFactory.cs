@@ -11,6 +11,8 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    //TODO!! this class should not put in AElf.Kernel.Consensus, ConsensusContractAddress should just be a parameters.
+    //at least we should have a base class
     public class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
