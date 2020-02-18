@@ -19,15 +19,23 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [Documentation](https://docs.aelf.io/v/dev/)
+    * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
+    * [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)
+    * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
+
+This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
+ecosystem:
+
+TOOL/LIBRARY | description
+[aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | a Javascript development kit for interacting with an AElf node, useful for dApp developers. 
+[aelf-command](https://github.com/AElfProject/aelf-command) | a CLI tool for interacting with an AElf node and wallet.
 
 ## Getting Started
 
 ### This repository
 
-This repo is where you will find the code that can use to run an AElf node and the command line tool used to interact with it. It also contains a **tests** folder that centralizes all the unit tests.
-
-If you're looking for the js sdk, follow this [link](https://github.com/AElfProject/aelf-sdk.js).
+This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
 
 ### Prerequisites
 
