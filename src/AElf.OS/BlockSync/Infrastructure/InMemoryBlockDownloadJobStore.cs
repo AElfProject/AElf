@@ -1,16 +1,16 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.OS.BlockSync.Types;
-using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.BlockSync.Infrastructure
 {
     public class InMemoryBlockDownloadJobStore : IBlockDownloadJobStore, ISingletonDependency
     {
-        private readonly ConcurrentQueue<Hash> _jobIds = new ConcurrentQueue<Hash>();
-        
-        private readonly ConcurrentDictionary<Hash,BlockDownloadJobInfo> _jobs = new ConcurrentDictionary<Hash, BlockDownloadJobInfo>();
+        private readonly ConcurrentQueue<string> _jobIds = new ConcurrentQueue<string>();
+
+        private readonly ConcurrentDictionary<string, BlockDownloadJobInfo> _jobs =
+            new ConcurrentDictionary<string, BlockDownloadJobInfo>();
 
         public Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo)
         {
@@ -19,7 +19,7 @@ namespace AElf.OS.BlockSync.Infrastructure
 
             _jobIds.Enqueue(blockDownloadJobInfo.JobId);
             _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
-            
+
             return Task.FromResult(true);
         }
 
@@ -31,8 +31,8 @@ namespace AElf.OS.BlockSync.Infrastructure
                 {
                     return Task.FromResult<BlockDownloadJobInfo>(null);
                 }
-                
-                if(_jobs.TryGetValue(jobId, out var blockDownloadJobInfo))
+
+                if (_jobs.TryGetValue(jobId, out var blockDownloadJobInfo))
                 {
                     return Task.FromResult(blockDownloadJobInfo);
                 }
@@ -47,7 +47,7 @@ namespace AElf.OS.BlockSync.Infrastructure
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Hash jobId)
+        public Task RemoveAsync(string jobId)
         {
             _jobs.TryRemove(jobId, out _);
             return Task.CompletedTask;
