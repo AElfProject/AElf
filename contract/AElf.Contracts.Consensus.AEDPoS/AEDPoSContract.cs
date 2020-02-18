@@ -135,9 +135,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Normal situation: previous round information exists and contains this miner.
                 if (previousRound != null && previousRound.RealTimeMinersInformation.ContainsKey(miner.Pubkey))
                 {
-                    previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
-                    Context.LogDebug(() => $"Previous round: {previousRound.ToString(miner.Pubkey)}");
-                    signature = previousRound.CalculateSignature(previousInValue);
+                    // Check this miner's:
+                    // 1. PreviousInValue in current round; (means previous in value recovered by other miners)
+                    // 2. InValue in previous round; (means this miner hasn't produce blocks for a while)
+                    previousInValue = currentRound.RealTimeMinersInformation[miner.Pubkey].PreviousInValue;
+                    if (previousInValue == null)
+                    {
+                        previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
+                    }
+                    // If previousInValue is still null, treat this as abnormal situation.
+                    if (previousInValue != null)
+                    {
+                        Context.LogDebug(() => $"Previous round: {previousRound.ToString(miner.Pubkey)}");
+                        signature = previousRound.CalculateSignature(previousInValue);
+                    }
                 }
 
                 if (previousInValue == null)

@@ -24,10 +24,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             // Remove old in values. (Keep 10 in values.)
             const int keepInValuesCount = 10;
-            var toRemove = _inValues.Keys.Where(id => id < roundId).ToList();
-            if (toRemove.Count > keepInValuesCount)
+            if (_inValues.Keys.Count > keepInValuesCount)
             {
-                foreach (var id in toRemove.OrderBy(id => id).Skip(keepInValuesCount))
+                foreach (var id in _inValues.Keys.OrderByDescending(id => id).Skip(keepInValuesCount))
                 {
                     _inValues.Remove(id);
                 }
