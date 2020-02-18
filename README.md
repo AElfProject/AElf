@@ -28,6 +28,7 @@ This repository contains the code that runs an AElf node, you'll find bellow oth
 ecosystem:
 
 TOOL/LIBRARY | description
+-------------|-------------
 [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | a Javascript development kit for interacting with an AElf node, useful for dApp developers. 
 [aelf-command](https://github.com/AElfProject/aelf-command) | a CLI tool for interacting with an AElf node and wallet.
 
