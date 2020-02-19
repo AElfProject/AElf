@@ -1261,7 +1261,7 @@ namespace AElf.Contracts.Profit
                     Period = 1
                 });
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.ShouldContain("already released");
+                transactionResult.TransactionResult.Error.ShouldContain("Invalid contributing period.");
             }
             
             //Second time
