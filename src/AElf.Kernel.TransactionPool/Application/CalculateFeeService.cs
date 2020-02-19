@@ -162,6 +162,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
                 var funDicToLowerKey = func.CoefficientDic.ToDictionary(x => x.Key.ToLower(), x => x.Value);
                 calWayDic[func.PieceKey] = newCalculateWay;
+                //TODO: if you new a class, why not pass parameters by constructor? you know the type of calWayDic[func.PieceKey], but why don't you use strong signature?
                 calWayDic[func.PieceKey].InitParameter(funDicToLowerKey);
             }
             _cacheCacheProvider.SetPieceWiseFunctionToNormalCache(calWayDic);
