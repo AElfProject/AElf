@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
@@ -14,12 +15,12 @@ namespace AElf.OS.BlockSync.Domain
             _blockDownloadJobStore = blockDownloadJobStore;
         }
 
-        public async Task<Hash> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
+        public async Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
             string suggestedPeerPubkey)
         {
             var blockDownloadJobInfo = new BlockDownloadJobInfo
             {
-                JobId = syncBlockHash,
+                JobId = Guid.NewGuid().ToString(),
                 TargetBlockHash = syncBlockHash,
                 TargetBlockHeight = syncBlockHeight,
                 BatchRequestBlockCount = batchRequestBlockCount,

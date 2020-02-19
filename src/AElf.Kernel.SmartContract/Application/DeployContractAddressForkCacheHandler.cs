@@ -5,6 +5,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: is still in use?
     public class DeployContractAddressForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
