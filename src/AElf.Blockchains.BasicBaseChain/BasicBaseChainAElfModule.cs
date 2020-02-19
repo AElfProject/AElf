@@ -65,26 +65,26 @@ namespace AElf.Blockchains.BasicBaseChain
 
             hostBuilderContext.Configuration = newConfig;
 
-            Configure<EconomicOptions>(configuration.GetSection("Economic"));
+            Configure<EconomicOptions>(newConfig.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =
-                    ChainHelper.ConvertBase58ToChainId(configuration["ChainId"]);
-                option.ChainType = chainType;
-                option.NetType = netType;
+                    ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                option.ChainType = newConfig.GetValue("ChainType", ChainType.MainChain);
+                option.NetType = newConfig.GetValue("NetType", NetType.MainNet);
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
-                    configuration.GetValue("Economic:Symbol", "ELF");
+                    newConfig.GetValue("Economic:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
-                    configuration.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+                    newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
                 options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
-                    configuration.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
+                    newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
-            Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(newConfig.GetSection("Contract"));
             Configure<ContractOptions>(options =>
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
