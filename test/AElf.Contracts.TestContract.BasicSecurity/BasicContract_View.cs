@@ -144,5 +144,25 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 Int64Value = data.Int64Value
             };
         }
+
+        public override ResetOutput QueryFields(Empty input)
+        {
+            return new ResetOutput
+            {
+                Int32Value = _number,
+                Int64Value = _field1,
+                StringValue = _field2,
+                BoolValue = _field3
+            };
+        }
+
+        public override ConstOutput QueryConst(Empty input)
+        {
+            return new ConstOutput
+            {
+                Int64Const = Number,
+                StringConst = String
+            };
+        }
     }
 }
