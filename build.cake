@@ -55,6 +55,7 @@ Task("Build")
 
 Task("Test-with-Codecov")
     .Description("operation test_with_codecov")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -76,8 +77,8 @@ Task("Test-with-Codecov")
     }
 });
 Task("Run-Unit-Tests")
-    .IsDependentOn("Build")
     .Description("operation test")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
