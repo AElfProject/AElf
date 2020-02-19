@@ -389,7 +389,6 @@ namespace AElf.Contracts.Profit
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
 
             scheme.CurrentPeriod = input.Period.Add(1);
-            scheme.UndistributedProfits[input.Symbol] = balance.Sub(input.Amount);
 
             State.SchemeInfos[input.SchemeId] = scheme;
 
@@ -447,8 +446,6 @@ namespace AElf.Contracts.Profit
                 Amount = input.Amount.Add(balance),
                 Symbol = input.Symbol
             });
-            scheme.UndistributedProfits[input.Symbol] =
-                scheme.UndistributedProfits[input.Symbol].Sub(input.Amount);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             State.DistributedProfitsMap[profitsReceivingVirtualAddress] = new DistributedProfitsInfo
@@ -534,8 +531,6 @@ namespace AElf.Contracts.Profit
 
                 remainAmount = remainAmount.Sub(amount);
 
-                UpdateSubSchemeInformation(input, subScheme, amount);
-
                 // Update current_period of detail of sub profit scheme.
                 var subItemDetail = State.ProfitDetailsMap[input.SchemeId][subItemVirtualAddress];
                 foreach (var detail in subItemDetail.Details)
@@ -547,23 +542,6 @@ namespace AElf.Contracts.Profit
             }
 
             return remainAmount;
-        }
-
-        private void UpdateSubSchemeInformation(DistributeProfitsInput input, SchemeBeneficiaryShare subScheme,
-            long amount)
-        {
-            var subItem = State.SchemeInfos[subScheme.SchemeId];
-            if (subItem.UndistributedProfits.ContainsKey(input.Symbol))
-            {
-                subItem.UndistributedProfits[input.Symbol] =
-                    subItem.UndistributedProfits[input.Symbol].Add(amount);
-            }
-            else
-            {
-                subItem.UndistributedProfits.Add(input.Symbol, amount);
-            }
-
-            State.SchemeInfos[subScheme.SchemeId] = subItem;
         }
 
         public override Empty ContributeProfits(ContributeProfitsInput input)
@@ -587,17 +565,6 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Memo = $"Add {input.Amount} dividends."
                 });
-                // ReSharper disable once PossibleNullReferenceException
-                // ReSharper disable once AssignNullToNotNullAttribute
-                if (!scheme.UndistributedProfits.ContainsKey(input.Symbol))
-                {
-                    scheme.UndistributedProfits.Add(input.Symbol, input.Amount);
-                }
-                else
-                {
-                    scheme.UndistributedProfits[input.Symbol] =
-                        scheme.UndistributedProfits[input.Symbol].Add(input.Amount);
-                }
 
                 State.SchemeInfos[input.SchemeId] = scheme;
             }

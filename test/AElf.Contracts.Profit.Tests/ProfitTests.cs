@@ -66,8 +66,6 @@ namespace AElf.Contracts.Profit
             // Check profit scheme and corresponding balance.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                Assert.Equal(amount, profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]);
-
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = profitItem.VirtualAddress,
@@ -88,10 +86,6 @@ namespace AElf.Contracts.Profit
 
             // Check profit scheme and corresponding balance.
             {
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                // Total amount stay.
-                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
-
                 var virtualAddress = await creator.GetSchemeAddress.CallAsync(
                     new SchemePeriod
                     {
@@ -147,13 +141,6 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
-            // Check profit scheme.
-            {
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
-                    .ShouldBe(amountReleasedByCreator);
-            }
-
             // Add profits to release profits virtual address of this profit scheme.
             await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
@@ -165,11 +152,6 @@ namespace AElf.Contracts.Profit
 
             // Check balance of period 1
             {
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                // Total amount stay.
-                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
-                    .ShouldBe(amountReleasedByCreator);
-
                 var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
                     new SchemePeriod
                     {
