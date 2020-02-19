@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
 
         private Hash GetNextInValueOfSlot(RequestSlot requestSlot)
         {
-            MaybeLoadAEDPoSContractAddress();
+            RequireAEDPoSContractStateSet();
             var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
             {
                 Value = requestSlot.RoundNumber
@@ -63,7 +63,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
         /// <returns></returns>
         private RequestSlot GetCurrentSlotInformation()
         {
-            MaybeLoadAEDPoSContractAddress();
+            RequireAEDPoSContractStateSet();
             var round = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
             var lastMinedMiner = round.RealTimeMinersInformation.Values.Where(i => i.OutValue != null)
                 .OrderByDescending(i => i.Order).FirstOrDefault();
@@ -76,7 +76,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
             };
         }
 
-        private void MaybeLoadAEDPoSContractAddress()
+        private void RequireAEDPoSContractStateSet()
         {
             if (State.AEDPoSContract.Value == null)
             {
