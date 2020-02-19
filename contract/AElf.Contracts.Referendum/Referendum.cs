@@ -170,7 +170,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = State.Proposals[input];
             Assert(proposal == null ||
-                   Context.CurrentBlockTime > proposal.ExpiredTime, "Unable to reclaim at this time.");
+                   Context.CurrentBlockTime >= proposal.ExpiredTime, "Unable to reclaim at this time.");
             UnlockToken(input, Context.Sender);
             return new Empty();
         }
@@ -199,7 +199,7 @@ namespace AElf.Contracts.Referendum
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime >= proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }
