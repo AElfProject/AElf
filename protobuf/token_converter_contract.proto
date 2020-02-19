@@ -72,7 +72,6 @@ message InitializeInput {
     string base_token_symbol = 1;
     string fee_rate = 2;
     repeated Connector connectors = 3;
-    aelf.Address manager_address = 4;
 }
 
 message BuyInput {

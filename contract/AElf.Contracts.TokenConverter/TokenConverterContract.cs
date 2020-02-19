@@ -30,7 +30,6 @@ namespace AElf.Contracts.TokenConverter
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
-            State.ConnectorController.Value = input.ManagerAddress;
             var feeRate = AssertedDecimal(input.FeeRate);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);

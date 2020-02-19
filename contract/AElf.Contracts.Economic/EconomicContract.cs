@@ -276,7 +276,6 @@ namespace AElf.Contracts.Economic
                 FeeRate = EconomicContractConstants.TokenConverterFeeRate,
                 Connectors = {connectors},
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
-                ManagerAddress = connectorManager
             });
         }
 
