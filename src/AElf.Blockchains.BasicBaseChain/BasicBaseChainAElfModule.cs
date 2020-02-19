@@ -6,7 +6,6 @@ using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -53,46 +52,41 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
             var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
-            
-            //TODO!! why not use configuration instead of using context.Services.GetConfiguration() ?? 
-            //Who is the joker copycat???
-            var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
-            var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+            var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
+            var netType = configuration.GetValue("NetType", NetType.MainNet);
 
             var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
-                .SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
+                .SetBasePath(contentRootPath)
                 .Build();
 
             hostBuilderContext.Configuration = newConfig;
 
-            Configure<EconomicOptions>(configuration.GetSection("Economic"));
+            Configure<EconomicOptions>(newConfig.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
-                option.ChainId =
-                    ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
                 option.ChainType = chainType;
                 option.NetType = netType;
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
-                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
-                    .GetConfiguration()
-                    .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = context.Services
-                    .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
+                    newConfig.GetValue("Economic:Symbol", "ELF");
+                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
+                    newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
+                    newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
-            Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(newConfig.GetSection("Contract"));
             Configure<ContractOptions>(options =>
             {
-                options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
-                    "genesis");
+                options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
                 options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
