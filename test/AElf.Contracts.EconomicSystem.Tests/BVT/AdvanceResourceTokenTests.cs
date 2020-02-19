@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.TokenConverter;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -16,6 +17,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var contractAddress = SampleAddress.AddressList[0];
             var developerAddress = BootMinerAddress;
+
+            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = ResourceTokenSymbol,
+                Amount = Amount,
+            });
 
             var balanceBeforeAdvancing = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

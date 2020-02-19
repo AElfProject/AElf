@@ -11,6 +11,8 @@ namespace AElf.Kernel.SmartContract.Application
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
+    
+    //TODO: we only need one strategy to calculate tx, read, write ... resources.
 
     public interface ICalculateTxCostStrategy : ICalculateCostStrategy
     {

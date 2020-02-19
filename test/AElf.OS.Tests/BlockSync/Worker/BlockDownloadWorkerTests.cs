@@ -39,7 +39,7 @@ namespace AElf.OS.BlockSync.Worker
             var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
             var peerBlock = response.Payload;
 
-            await _blockDownloadJobManager.EnqueueAsync(peerBlock.GetHash(), peerBlock.Height,
+            var jobId = await _blockDownloadJobManager.EnqueueAsync(peerBlock.GetHash(), peerBlock.Height,
                 _blockSyncOptions.MaxBatchRequestBlockCount,
                 null);
 
@@ -49,11 +49,11 @@ namespace AElf.OS.BlockSync.Worker
             chain.BestChainHeight.ShouldBe(31);
 
             var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
-            jobInfo.JobId.ShouldBe(peerBlock.GetHash());
-             _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out var state).ShouldBeTrue();
-             state.ShouldBeFalse();
+            jobInfo.JobId.ShouldBe(jobId);
+            _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out var state).ShouldBeTrue();
+            state.ShouldBeFalse();
 
-             _blockSyncStateProvider.SetDownloadJobTargetState(chain.BestChainHash, true);
+            _blockSyncStateProvider.SetDownloadJobTargetState(chain.BestChainHash, true);
 
             await _blockDownloadWorker.ProcessDownloadJobAsync();
 

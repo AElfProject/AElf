@@ -34,26 +34,40 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertValidMemo(string memo)
         {
-            Assert(Encoding.UTF8.GetByteCount(memo) <= TokenContractConstants.MemoMaxLength, "Invalid memo size.");
+            Assert(memo == null || Encoding.UTF8.GetByteCount(memo) <= TokenContractConstants.MemoMaxLength,
+                "Invalid memo size.");
         }
 
-        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
+        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo = null)
         {
             Assert(from != to, "Can't do transfer to sender itself.");
             AssertValidMemo(memo);
-            var balanceOfSender = State.Balances[from][symbol];
-            Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
-            var balanceOfReceiver = State.Balances[to][symbol];
-            State.Balances[from][symbol] = balanceOfSender.Sub(amount);
-            State.Balances[to][symbol] = balanceOfReceiver.Add(amount);
+            ModifyBalance(from, symbol, -amount);
+            ModifyBalance(to, symbol, amount);
             Context.Fire(new Transferred
             {
                 From = from,
                 To = to,
                 Symbol = symbol,
                 Amount = amount,
-                Memo = memo,
+                Memo = memo ?? string.Empty
             });
+        }
+
+        private void ModifyBalance(Address address, string symbol, long addAmount)
+        {
+            var before = GetBalance(address, symbol);
+            if (addAmount < 0 && before < -addAmount)
+            {
+                Assert(false, $"Insufficient balance. {symbol}: {before} / {-addAmount}");
+            }
+            var target = before.Add(addAmount);
+            State.Balances[address][symbol] = target;
+        }
+
+        private long GetBalance(Address address, string symbol)
+        {
+            return State.Balances[address][symbol];
         }
 
         private void AssertLockAddress(string symbol)
