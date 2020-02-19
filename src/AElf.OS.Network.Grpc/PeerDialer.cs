@@ -177,7 +177,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Could not ping {peerEndpoint}.");
+                Logger.LogWarning(ex, $"Could not ping {peerEndpoint}.");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -249,7 +249,7 @@ namespace AElf.OS.Network.Grpc
             {
                 // swallow exception because it's currently not a hard requirement to 
                 // upgrade the connection.
-                Logger.LogError(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
+                Logger.LogWarning(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
             }
             finally
             {

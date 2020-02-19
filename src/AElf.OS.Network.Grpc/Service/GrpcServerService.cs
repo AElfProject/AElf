@@ -184,7 +184,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Transaction stream error - {context.GetPeerInfo()}: ");
+                Logger.LogWarning(e, $"Transaction stream error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
@@ -221,6 +221,16 @@ namespace AElf.OS.Network.Grpc
                 return;
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+
+            if (peer == null)
+            {
+                // usually this will not happen, because when receiving the transaction, the auth interceptor will
+                // check that this peer is in the pool. That said there is a race condition between the check in the
+                // interceptor and the get here, mostly with high throughput RPCs. If the peer is already disconnected 
+                // we drop the tx.
+                return;
+            }
+
             if (!peer.TryAddKnownTransaction(tx.GetHash()))
                 return;
 

@@ -524,7 +524,7 @@ namespace AElf.OS.Network.Grpc
                 else
                 {
                     // if idle just after an exception, disconnect.
-                    message = $"Peer error, channel state {_channel.State} - {this}: {errorMessage}";
+                    message = $"Peer idle, channel state {_channel.State} - {this}: {errorMessage}";
                     type = NetworkExceptionType.Unrecoverable;
                 }
             }
