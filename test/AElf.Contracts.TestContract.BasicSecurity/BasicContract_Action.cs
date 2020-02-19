@@ -1,5 +1,6 @@
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -7,6 +8,13 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 {
     public partial class BasicSecurityContract : BasicSecurityContractContainer.BasicSecurityContractBase
     {
+        private const int Number = 1;
+        private const string String = "TEST";
+        private static int _number;
+        private long _field1;
+        private string _field2;
+        private bool _field3;
+
         public override Empty InitialBasicSecurityContract(Address input)
         {
             Assert(!State.Initialized.Value, "Already initialized."); 
@@ -23,7 +31,10 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             State.UInt64Info.Value = 0;
             State.StringInfo.Value = string.Empty;
             State.BytesInfo.Value = new byte[]{};
-            
+            _field1 = 0;
+            _field2 = string.Empty;
+            _field3 = false;
+            _number = 0;
             return new Empty();
         }
         
@@ -166,6 +177,17 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override Empty TestOriginAddress(Address address)
         {
             State.BasicFunctionContract.ValidateOrigin.Send(address);
+            return new Empty();
+        }
+        
+        public override Empty TestResetFields(ResetInput input)
+        {
+            _number = input.Int32Value;
+            _field1 = input.Int64Value;
+            _field2 = input.StringValue;
+            _field3 = input.BoolValue;
+            State.Int64Info.Value =  Number;
+            State.StringInfo.Value = String;
             return new Empty();
         }
     }
