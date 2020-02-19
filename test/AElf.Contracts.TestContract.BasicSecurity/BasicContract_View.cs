@@ -1,3 +1,4 @@
+using System;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -151,7 +152,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             {
                 Int32Value = _number,
                 Int64Value = _field1,
-                StringValue = _field2,
+                StringValue = _field2 ?? string.Empty,
                 BoolValue = _field3
             };
         }
