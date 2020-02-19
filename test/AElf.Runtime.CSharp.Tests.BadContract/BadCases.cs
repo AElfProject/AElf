@@ -1,3 +1,6 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Google.Protobuf.Reflection;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
@@ -34,5 +37,15 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public static readonly BadCase4 field;
 
         public int I;
+    }
+
+    public static class BadCase5
+    {
+        static readonly ReadOnlyCollection<BadCase3> collection;
+
+        static BadCase5()
+        {
+            collection = Array.AsReadOnly(new[] { new BadCase3() });
+        }
     }
 }

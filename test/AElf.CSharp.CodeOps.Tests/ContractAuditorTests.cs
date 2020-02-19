@@ -211,6 +211,10 @@ namespace AElf.CSharp.CodeOps
             findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
                                          f.Info.Type == "BadCase4" && f.Info.Member == "field").ShouldNotBeNull();
             
+            // Non primitive type is not allowed as an argument in ReadOnly GenericInstanceType type in static readonly fields
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase5" && f.Info.Member == "collection").ShouldNotBeNull();
+            
             // A type that is not allowed to be used as a field in contract state
             findings
                 .FirstOrDefault(f => f is ContractStructureValidationResult && 
