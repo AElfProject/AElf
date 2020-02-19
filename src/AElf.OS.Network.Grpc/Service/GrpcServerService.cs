@@ -160,6 +160,12 @@ namespace AElf.OS.Network.Grpc
                 $"Received announce, block hash: {announcement.BlockHash}, block height: {announcement.BlockHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            if (peer == null)
+            {
+                // if peer already removed, drop.
+                return Task.CompletedTask;
+            }
+
             if (!peer.TryAddKnownBlock(announcement.BlockHash))
                 return Task.CompletedTask;
 
@@ -224,10 +230,7 @@ namespace AElf.OS.Network.Grpc
 
             if (peer == null)
             {
-                // usually this will not happen, because when receiving the transaction, the auth interceptor will
-                // check that this peer is in the pool. That said there is a race condition between the check in the
-                // interceptor and the get here, mostly with high throughput RPCs. If the peer is already disconnected 
-                // we drop the tx.
+                // if peer already removed, drop.
                 return;
             }
 
@@ -269,6 +272,12 @@ namespace AElf.OS.Network.Grpc
                 $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            
+            if (peer == null)
+            {
+                // if peer already removed, drop.
+                return Task.CompletedTask;
+            }
 
             peer.UpdateLastKnownLib(announcement);
 
