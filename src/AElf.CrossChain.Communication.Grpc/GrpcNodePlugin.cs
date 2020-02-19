@@ -4,6 +4,7 @@ using AElf.Kernel.Node.Infrastructure;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
+    //TODO: rename to GrpcCrossChainNodePlugin
     public class GrpcNodePlugin : INodePlugin
     {
         private readonly IGrpcServePlugin _grpcServePlugin;
