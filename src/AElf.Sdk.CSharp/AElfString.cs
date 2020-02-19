@@ -47,12 +47,14 @@ namespace AElf.Sdk.CSharp
             var limit = SmartContractConstants.AElfStringLengthLimitInContract;
 #if DEBUG
             // for debug logs
-            limit = int.MaxValue;
+            limit = Limit;
 #endif
             if (str.Length > limit)
                 throw new AssertionException($"String size {str.Length} is too big to concatenate further!");
             return str;
         }
+
+        public static int Limit = int.MaxValue;
     }
     
     public static class StringExtensions

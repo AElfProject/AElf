@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -80,19 +81,39 @@ namespace AElf.OS.Network
             result.Error.ShouldBe(HandshakeError.HandshakeOk);
         }
 
+        [Fact]
+        public async Task ConfirmHandshake_Test()
+        {
+            //var request = new HandshakeRequest {Handshake = new Handshake {HandshakeData = new HandshakeData()}};
+            var request = new ConfirmHandshakeRequest();
+            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
+
+            var result = _serverService.ConfirmHandshake(request, context);
+            result.Result.ShouldBe(new VoidReply());
+        }
+        
         #region Announce and transaction
 
         [Fact]
         public async Task Announce_ShouldAddToBlockCache()
         {
+            Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
+            var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
+            //unormal case
+            var fakePubkey = "FakePubkey";
+            var fakeMetadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, fakePubkey }};
+            await Should.ThrowAsync<Exception>(async () => 
+            {
+                await _serverService.SendAnnouncement(announcement, BuildServerCallContext(fakeMetadata));
+                
+            });
+            
+            //normal case
             var peer = _peerPool.GetPeers(true).First();
             var pubkey = peer.Info.Pubkey;
             var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
-
-            Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
-            var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
+           
             await _serverService.SendAnnouncement(announcement, BuildServerCallContext(metadata));
-            
             peer.TryAddKnownBlock(hash).ShouldBeFalse();
         }
 
@@ -296,6 +317,40 @@ namespace AElf.OS.Network
             received.ShouldBeNull();
         }
 
+        [Fact]
+        public async Task LibAnnouncementBroadcastStream_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var irreversibleBlockHeight =  (int)chain.LastIrreversibleBlockHeight;
+            var bestBlockHeight = (int)chain.BestChainHeight;
+            var requestLibAnnouncements = new List<LibAnnouncement>();
+            var preBlockHash = chain.LastIrreversibleBlockHash;
+            var preBlockHeight = irreversibleBlockHeight;
+            for (var i = irreversibleBlockHeight + 1; i <= bestBlockHeight; i++)
+            {
+                var libBlock = _osTestHelper.GenerateBlock(preBlockHash, preBlockHeight);
+                requestLibAnnouncements.Add(new LibAnnouncement
+                {
+                    LibHeight = preBlockHeight,
+                    LibHash = preBlockHash
+                });
+                preBlockHash = libBlock.GetHash();
+                preBlockHeight++ ;
+            }
+            
+            var requestStream = new TestAsyncStreamReader<LibAnnouncement>(requestLibAnnouncements);
+            var pubKey = NetworkTestConstants.FakePubkey2;
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var context = BuildServerCallContext(metadata);
+            var result = await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
+            result.ShouldBe(new VoidReply());
+
+            var peer = _peerPool.FindPeerByPublicKey(pubKey);
+            var lastBlock = requestLibAnnouncements.Last();
+            peer.LastKnownLibHash.ShouldBe(lastBlock.LibHash);
+            peer.LastKnownLibHeight.ShouldBe(lastBlock.LibHeight);
+        }
+        
         #endregion Announce and transaction
         
         #region RequestBlock
