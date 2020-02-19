@@ -5,7 +5,7 @@ namespace AElf.OS.BlockSync.Domain
 {
     public interface IBlockDownloadJobManager
     {
-        Task<Hash> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
+        Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
             string suggestedPeerPubkey);
     }
 }

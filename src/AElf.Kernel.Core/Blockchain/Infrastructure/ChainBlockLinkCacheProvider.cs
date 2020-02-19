@@ -6,6 +6,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Infrastructure
 {
+    //TODO: why we need cache?
     public interface IChainBlockLinkCacheProvider
     {
         ChainBlockLink GetChainBlockLink(Hash blockHash);
