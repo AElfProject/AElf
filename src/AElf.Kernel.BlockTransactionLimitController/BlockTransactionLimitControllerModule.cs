@@ -7,6 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
 {
+    //TODO!! rename this module, AElf.Kernel.* cannot can reference AElf.Kernel 
     [DependsOn(
         typeof(KernelAElfModule)
     )]
