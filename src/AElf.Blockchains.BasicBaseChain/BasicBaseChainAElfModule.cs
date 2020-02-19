@@ -69,8 +69,8 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ChainOptions>(option =>
             {
                 option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
-                option.ChainType = newConfig.GetValue("ChainType", ChainType.MainChain);
-                option.NetType = newConfig.GetValue("NetType", NetType.MainNet);
+                option.ChainType = chainType;
+                option.NetType = netType;
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>
