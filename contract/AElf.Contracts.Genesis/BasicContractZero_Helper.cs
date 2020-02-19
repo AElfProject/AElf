@@ -75,7 +75,7 @@ namespace AElf.Contracts.Genesis
         private void CreateParliamentOrganizationForInitialControllerAddress(bool proposerAuthorityRequired)
         {
             RequireParliamentContractAddressSet();
-            var parliamentProposerWhitelist = State.ParliamentContract.GetProposerWhiteListContext.Call(new Empty());
+            var parliamentProposerWhitelist = State.ParliamentContract.GetProposerWhiteList.Call(new Empty());
 
             var isWhiteListEmpty = parliamentProposerWhitelist.Proposers.Count == 0;
             State.ParliamentContract.CreateOrganizationBySystemContract.Send(new CreateOrganizationBySystemContractInput
