@@ -5,6 +5,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
+    
+    //TODO!! AElf.CrossChain.Communication -> AElf.CrossChain.Communication.Grpc -> AElf.CrossChain.Communication.Core
+    //move grpc is the default implement of AElf.CrossChain.Communication package
     [DependsOn(typeof(CrossChainCommunicationModule))]
     public class GrpcCrossChainAElfModule : AElfModule
     {
