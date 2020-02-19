@@ -186,6 +186,13 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) || 
                  Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
             {
+                // If field type is ReadOnly GenericInstanceType, only primitive types are allowed
+                // ReadOnlyCollection, ReadOnlyDictionary etc.
+                if (field.FieldType is GenericInstanceType fieldType && field.FieldType.Name.Contains("ReadOnly"))
+                {
+                    return fieldType.GenericArguments.Any(a => !Constants.PrimitiveTypes.Contains(a.FullName));
+                }
+
                 return false;
             }
 
@@ -217,8 +224,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // If not ContractReferenceState then it is not allowed
             return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
         }
-
-        // TODO: Define which types are allowed with generic instance types
+        
         // For example, we need to allow only primitive types in read only collections
         private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
         {
