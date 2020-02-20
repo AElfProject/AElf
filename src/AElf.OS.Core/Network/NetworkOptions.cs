@@ -46,6 +46,11 @@ namespace AElf.OS.Network
         /// Period used to try and reconnect to outbound peers that have disconnected.
         /// </summary>
         public int PeerReconnectionPeriod { get; set; } = NetworkConstants.DefaultPeerReconnectionPeriod;
+        
+        /// <summary>
+        /// The maximum amount of time the node will try a reconnection (0 for no limit).
+        /// </summary>
+        public int MaximumReconnectionTime { get; set; } = NetworkConstants.DefaultMaximumReconnectionTime;
 
         /// <summary>
         /// Amount of time a peer will be placed in the networks blacklist.
