@@ -60,6 +60,11 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = new DownloadBlocksResult();
             var peerPubkey = downloadBlockDto.SuggestedPeerPubkey;
 
+            if (!IsPeerAvailable(peerPubkey))
+            {
+                return downloadResult;
+            }
+
             try
             {
                 if (UseSuggestedPeer(downloadBlockDto))
@@ -109,6 +114,11 @@ namespace AElf.OS.BlockSync.Application
             }
 
             return downloadResult;
+        }
+
+        private bool IsPeerAvailable(string peerPubkey)
+        {
+            return _networkService.GetPeerByPubkey(peerPubkey) != null;
         }
 
         /// <summary>
