@@ -146,8 +146,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
         {
-            var owner = GetOwnerAddress();
-            Assert(Context.Sender == owner, "No permission.");
+            CheckCrossChainTokenContractRegistrationControllerAuthority();
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
@@ -195,7 +194,7 @@ namespace AElf.Contracts.MultiToken
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
             var transferTransactionId = transferTransaction.GetHash();
 
-            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
+            Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
                 "Token already claimed.");
 
             var crossChainTransferInput =
@@ -219,7 +218,7 @@ namespace AElf.Contracts.MultiToken
 
             CrossChainVerify(transferTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = input;
+            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = true;
             tokenInfo.Supply = tokenInfo.Supply.Add(amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;

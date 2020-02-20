@@ -85,12 +85,11 @@ namespace AElf.Contracts.Association
             if (State.Organisations[organizationAddress] == null)
             {
                 State.Organisations[organizationAddress] = organization;
+                Context.Fire(new OrganizationCreated
+                {
+                    OrganizationAddress = organizationAddress
+                });
             }
-            
-            Context.Fire(new OrganizationCreated
-            {
-                OrganizationAddress = organizationAddress
-            });
 
             return organizationAddress;
         }
@@ -210,7 +209,7 @@ namespace AElf.Contracts.Association
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime >= proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }
