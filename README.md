@@ -41,55 +41,12 @@ TOOL/LIBRARY | description
 
 This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
 
-### Prerequisites
+### Documentation
 
 We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
 these two guides will get you started:  
 * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)  
 * [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)  
-
-## Node configuration
-
-To configure the nodes behavior, many options are available to the operator (some encountered in the [Running a node](https://docs.aelf.io/v/dev/main/main/run-node) tutorial). The options are located here [appsettings template](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.json).
-
-Here's a list of some of the most important:
-
-#### Network
-
-``` JSON
-  "Network": {
-    "BootNodes": ["127.0.0.1:6801", "127.0.0.1:6802"], 
-    "ListeningPort": 6800 
-  },
-```
-
-- BootNodes: list of nodes that the node will try to connect to.
-- ListeningPort: port on which the node will listen for incoming P2P connections.
-
-#### Web API endpoint
-
-``` JSON
-"Kestrel": {
-    "EndPoints": {
-        "Http": {
-            "Url": "http://*:1234/"
-        }
-    }
-},
-```
-
-- Url: the listening IP and port of the Web API ('*' for listening on all interfaces).
-
-## Web API
-
-The node comes with an API from which you can query useful information about the node and the blockchain.
-
-An easy way to discover the available methods is through the API's swagger interface, use your browser and past the following (replace with the ```ip:port``` of your node's web api): 
-
-```http://localhost:1234/swagger/index.html```
-
-
-A more complete reference can be found here [Web Api Reference](https://docs.aelf.io/v/dev/reference).
 
 ## Contributing
 
