@@ -20,8 +20,4 @@ install:
 environment:
   CI_TEST: true
 build_script:
-  - ps: dotnet tool install --global Cake.Tool
-  - ps: dotnet tool restore
-  - ps: dotnet tool install --global coverlet.console
-  - ps: dotnet cake ./build.cake --target=build
-  - ps: dotnet cake ./build.cake --target=test
+  - ps: .\build.ps1

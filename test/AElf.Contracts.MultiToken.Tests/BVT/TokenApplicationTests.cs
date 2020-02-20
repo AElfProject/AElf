@@ -275,6 +275,36 @@ namespace AElf.Contracts.MultiToken
             balanceOutput3.Balance.ShouldBe(0L);
         }
 
+        [Fact(DisplayName = "[MultiToken] Token transferFrom with different memo length.")]
+        public async Task MultiTokenContract_TransferFrom_MemoLength_Test()
+        {
+            await MultiTokenContract_Approve_Test();
+            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            {
+                var result = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
+                {
+                    Amount = 1000L,
+                    From = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest..",
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    To = User1Address
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            {
+                var result = await user1Stub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
+                {
+                    Amount = 1000L,
+                    From = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest...",
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    To = User1Address
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.Contains("Invalid memo size.").ShouldBeTrue();
+            }
+        }
+
         private async Task Create_BasicFunctionContract_Issue()
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
