@@ -41,7 +41,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
         private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIndentity() == "acs1");
+            return descriptors.Any(service => service.File.GetIdentity() == "acs1");
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
