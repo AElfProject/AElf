@@ -165,17 +165,17 @@ Depending on your platform, enter one of the following commands (see here for mo
 
 On Windows, open a **Powershell** and enter the following commands:
 ```bash
-choco upgrade protoc -y
+choco install protoc --version=3.11.4
 choco upgrade unzip -y
 ```
 
 On Linux:
 ```bash
 # Make sure you grab the latest version
-curl -OL https://github.com/google/protobuf/releases/download/v3.7.0/protoc-3.7.0-linux-x86_64.zip
+curl -OL https://github.com/google/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
 
 # Unzip
-unzip protoc-3.7.0-linux-x86_64.zip -d protoc3
+unzip protoc-3.11.4-linux-x86_64.zip -d protoc3
 
 # Move protoc to /usr/local/bin/
 sudo mv protoc3/bin/* /usr/local/bin/
@@ -190,8 +190,8 @@ sudo chown -R ${USER} /usr/local/include/google
 
 on macOS:
 ```bash
-brew install protobuf@3.7
-brew link --force --overwrite protobuf@3.7
+brew install protobuf@3.11
+brew link --force --overwrite protobuf@3.11
 ```
 
 
