@@ -113,7 +113,7 @@ namespace AElf.CSharp.CodeOps
             var validator = new ArrayValidator();
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
-            validateResult1.First().Message.ShouldContain("Array size is too large");
+            validateResult1.Last().Message.ShouldContain("Array size is too large");
 
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
