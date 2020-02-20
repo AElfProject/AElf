@@ -165,7 +165,7 @@ Depending on your platform, enter one of the following commands (see here for mo
 
 On Windows, open a **Powershell** and enter the following commands:
 ```bash
-choco install protoc --version=3.11.4
+choco install protoc --version=3.11.4 -y
 choco upgrade unzip -y
 ```
 
