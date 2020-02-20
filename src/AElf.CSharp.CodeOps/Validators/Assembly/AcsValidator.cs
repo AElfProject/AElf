@@ -62,7 +62,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
             var binder = new DescriptorOnlyServiceBinder();
             serviceDefinition.BindService(binder);
             return binder.GetDescriptors()
-                .Select(service => service.File.GetIndentity());
+                .Select(service => service.File.GetIdentity());
         }
     }
 
