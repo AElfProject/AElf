@@ -88,7 +88,6 @@ namespace AElf.Contracts.TokenConverter
             {
                 BaseTokenSymbol = NativeSymbol,
                 FeeRate = "0.005",
-                ManagerAddress = ManagerAddress,          
                 Connectors = {WriteConnector}
             };
 
@@ -116,62 +115,6 @@ namespace AElf.Contracts.TokenConverter
                 var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Already initialized.").ShouldBeTrue();
-            }
-        }
-
-        [Fact]
-        public async Task Set_Connector_Test()
-        {
-            await DeployContractsAsync();
-            await InitializeTokenConverterContract();
-            //with authority user
-            {
-                var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
-                {
-                    Symbol = "TRAFFIC",
-                    TokenName = "NET name",
-                    TotalSupply = 100_0000_0000,
-                    Issuer = ManagerAddress,
-                    IsBurnable = true
-                })).TransactionResult;
-                createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-                var setConnectResult = await AuthorizedTokenConvertStub.AddPairConnector.SendAsync(new PairConnectorParam
-                {
-                    ResourceConnectorSymbol = "TRAFFIC",
-                    ResourceWeight = "0.05",
-                    NativeWeight = "0.05",
-                    NativeVirtualBalance = 1_000_000_00000000,
-                });
-                setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var ramNewInfo = (await AuthorizedTokenConvertStub.GetPairConnector.CallAsync(new TokenSymbol()
-                {
-                    Symbol = "TRAFFIC"
-                })).ResourceConnector;
-                ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
-
-                var createTokenRet2 = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
-                {
-                    Symbol = "READ",
-                    TokenName = "READ name",
-                    TotalSupply = 100_0000_0000,
-                    Issuer = ManagerAddress,
-                    IsBurnable = true
-                })).TransactionResult;
-                createTokenRet2.Status.ShouldBe(TransactionResultStatus.Mined);
-                var connectorsInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = "READ"})).ResourceConnector;
-                connectorsInfo.ShouldBeNull();
-
-                //add Connector
-                var result = (await AuthorizedTokenConvertStub.AddPairConnector.SendAsync(new PairConnectorParam
-                {
-                    ResourceConnectorSymbol = "READ",
-                    ResourceWeight = "0.05",
-                    NativeWeight = "0.05",
-                    NativeVirtualBalance = 1_000_000_00000000,
-                })).TransactionResult;
-                result.Status.ShouldBe(TransactionResultStatus.Mined);
-                var readInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = "READ"})).ResourceConnector;
-                readInfo.Symbol.ShouldBe("READ");
             }
         }
 
@@ -368,167 +311,6 @@ namespace AElf.Contracts.TokenConverter
             sellResultPriceNotGood.Error.Contains("Price not good.").ShouldBeTrue();
         }
 
-        [Fact]
-        public async Task SetFeeRate_Success_Test()
-        {
-            await DeployContractsAsync();
-            await CreateRamToken();
-            await InitializeTokenConverterContract();
-
-            //perform by non manager
-            {
-                var transactionResult = (await DefaultStub.SetFeeRate.SendWithExceptionAsync(
-                    new StringValue
-                    {
-                        Value = "test value"
-                    })).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
-            }
-
-            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
-                TokenConverterContractAddress,
-                ManagerKeyPair);
-
-            //invalid feeRate
-            {
-                var transactionResult = (await testManager.SetFeeRate.SendWithExceptionAsync(
-                    new StringValue
-                    {
-                        Value = "test value"
-                    })).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
-            }
-
-            //feeRate not correct
-            {
-                var transactionResult = (await testManager.SetFeeRate.SendWithExceptionAsync(
-                    new StringValue
-                    {
-                        Value = "1.05"
-                    })).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
-            }
-
-            //correct 
-            {
-                var feeRate = new StringValue
-                {
-                    Value = "0.15"
-                };
-                var transactionResult = (await testManager.SetFeeRate.SendAsync(feeRate))
-                    .TransactionResult;
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var feeRate1 = await testManager.GetFeeRate.CallAsync(new Empty());
-                feeRate1.ShouldBe(feeRate);
-            }
-        }
-
-        [Fact]
-        public async Task Update_Connector_Success_Test()
-        {
-            string token = "NETT";
-            await DeployContractsAsync();
-            await InitializeTokenConverterContract();
-            var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = token,
-                TokenName = "NETT name",
-                TotalSupply = 100_0000_0000,
-                Issuer = ManagerAddress,
-                IsBurnable = true,
-                LockWhiteList = { TokenConverterContractAddress}
-            })).TransactionResult;
-            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var pairConnector = new PairConnectorParam
-            {
-                ResourceConnectorSymbol = token,
-                ResourceWeight = "0.05",
-                NativeWeight = "0.05",
-                NativeVirtualBalance = 1_0000_0000,
-            };
-            var ret = (await AuthorizedTokenConvertStub.AddPairConnector.SendAsync(pairConnector)).TransactionResult;
-            ret.Status.ShouldBe(TransactionResultStatus.Mined);
-            var updateConnector = new Connector
-            {
-                Symbol = token,
-                VirtualBalance = 1000_000,
-                IsVirtualBalanceEnabled = false,
-                IsPurchaseEnabled = true,
-                Weight = "0.49",
-                RelatedSymbol = "change"
-            };
-            var updateRet =  (await AuthorizedTokenConvertStub.UpdateConnector.SendAsync(updateConnector)).TransactionResult;
-            updateRet.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-
-        [Fact]
-        public async Task Add_Pair_Connector_And_Enable_Success_Test()
-        {
-            string token = "NETT";
-            await DeployContractsAsync();
-            await InitializeTokenConverterContract();
-            var createTokenRet = (await AuthorizedTokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = token,
-                TokenName = "NETT name",
-                TotalSupply = 100_0000_0000,
-                Issuer = ManagerAddress,
-                IsBurnable = true,
-                LockWhiteList = { TokenConverterContractAddress}
-            })).TransactionResult;
-            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var pairConnector = new PairConnectorParam
-            {
-                ResourceConnectorSymbol = token,
-                ResourceWeight = "0.05",
-                NativeWeight = "0.05",
-                NativeVirtualBalance = 1_0000_0000,
-            };
-            var ret = (await AuthorizedTokenConvertStub.AddPairConnector.SendAsync(pairConnector)).TransactionResult;
-            ret.Status.ShouldBe(TransactionResultStatus.Mined);
-            var resourceConnector = (await AuthorizedTokenConvertStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
-            resourceConnector.ShouldNotBeNull();
-            resourceConnector.IsPurchaseEnabled.ShouldBe(false);
-            var issueRet = (await AuthorizedTokenContractStub.Issue.SendAsync(new IssueInput
-            {
-                Amount = 99_9999_0000,
-                To = ManagerAddress,
-                Symbol = token
-            })).TransactionResult;
-            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var toBeBuildConnectorInfo = new ToBeConnectedTokenInfo
-            {
-                TokenSymbol = token,
-                AmountToTokenConvert = 99_9999_0000
-            }; 
-            var deposit = await AuthorizedTokenConvertStub.GetNeededDeposit.CallAsync(toBeBuildConnectorInfo);
-            deposit.NeedAmount.ShouldBe(100);
-            var buildRet = (await AuthorizedTokenConvertStub.EnableConnector.SendAsync(toBeBuildConnectorInfo)).TransactionResult;
-            buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var tokenInTokenConvert = await GetBalanceAsync(token, TokenConverterContractAddress);
-            tokenInTokenConvert.ShouldBe(99_9999_0000);
-            resourceConnector = (await AuthorizedTokenConvertStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
-            resourceConnector.ShouldNotBeNull();
-            resourceConnector.IsPurchaseEnabled.ShouldBe(true);
-            var beforeTokenBalance = await GetBalanceAsync(token, ManagerAddress);
-            var beforeBaseBalance = await GetBalanceAsync(NativeSymbol, ManagerAddress);
-            var buyRet = (await AuthorizedTokenConvertStub.Buy.SendAsync(new BuyInput
-            {
-                Symbol = token,
-                Amount = 10000
-            })).TransactionResult;
-            buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var afterTokenBalance = await GetBalanceAsync(token, ManagerAddress);
-            var afterBaseBalance = await GetBalanceAsync(NativeSymbol, ManagerAddress);
-            (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
-            (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
-        }
-
         #endregion
 
         #region Private Task
@@ -564,7 +346,6 @@ namespace AElf.Contracts.TokenConverter
             {
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.005",
-                ManagerAddress = Address.FromPublicKey(ManagerKeyPair.PublicKey),
                 Connectors = {ELFConnector, WriteConnector, NtWriteConnector}
             };
             return (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;

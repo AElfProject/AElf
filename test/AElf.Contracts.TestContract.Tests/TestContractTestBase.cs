@@ -363,7 +363,6 @@ namespace AElf.Contract.TestContract
                     FeeRate = "0.005",
                     Connectors = {connectors},
                     BaseTokenSymbol = "ELF",
-                    ManagerAddress = ManagerTester
                 });
             }
 
