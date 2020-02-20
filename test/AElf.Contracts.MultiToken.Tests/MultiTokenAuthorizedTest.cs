@@ -189,7 +189,78 @@ namespace AElf.Contracts.MultiToken
             hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
             hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
         }
-        
+
+        [Fact]
+        public async Task Change_CrossChainTokenContract_RegistrationController_Test()
+        {
+            var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new Parliament.CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MaximalAbstentionThreshold = 1,
+                        MaximalRejectionThreshold = 1,
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    }
+                });
+
+            var newOrganization = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+
+            var transactionResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetCrossChainTokenContractRegistrationController),
+                new Empty());
+            var defaultController = Address.Parser.ParseFrom(transactionResult.ReturnValue);
+            var transactionResult2 = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                new Empty());
+            var defaultOrganization = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
+            defaultController.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName = nameof(TokenContractContainer.TokenContractStub
+                .ChangeCrossChainTokenContractRegistrationController);
+            var proposalId = await CreateProposalAsync(MainChainTester, ParliamentAddress,
+                proposalCreationMethodName, newOrganization.ToByteString(),
+                TokenContractAddress);
+
+            await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
+            var txResult = await ReleaseProposalAsync(proposalId, ParliamentAddress, MainChainTester);
+            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var txResult2 = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetCrossChainTokenContractRegistrationController),
+                new Empty());
+            ;
+            var newController = Address.Parser.ParseFrom(txResult2.ReturnValue);
+            Assert.True(newController == newOrganization);
+        }
+
+        [Fact]
+        public async Task Change_CrossChainTokenContract_RegistrationController_WithoutAuth_Test()
+        {
+            var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new Parliament.CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MaximalAbstentionThreshold = 1,
+                        MaximalRejectionThreshold = 1,
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    }
+                });
+
+            var newOrganization = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+            var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.ChangeCrossChainTokenContractRegistrationController),
+                newOrganization);
+
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains("No permission.").ShouldBeTrue();
+        }
+
         private async Task<Hash> CreateToRootForDeveloperFeeByTwoLayer(CoefficientFromContract input)
         {
             var organizations = await GetControllerForDeveloperFee();

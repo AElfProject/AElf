@@ -5,6 +5,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         int PieceKey { get; set; }
         long GetCost(int initValue);
+        
+        //TODO: it looks not OOP
         void InitParameter(IDictionary<string, int> param);
         IDictionary<string, int> GetParameterDic();
         int FunctionTypeEnum { get; }

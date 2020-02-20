@@ -570,5 +570,33 @@ namespace AElf.Contracts.MultiToken
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
         }
+
+        [Fact]
+        public async Task IssueTokenWithDifferentMemoLength_Test()
+        {
+            await CreateNativeTokenAsync();
+            await CreateNormalTokenAsync();
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest.."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            {
+                var result = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest..."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.ShouldContain("Invalid memo size.");
+            }
+        }
     }
 }

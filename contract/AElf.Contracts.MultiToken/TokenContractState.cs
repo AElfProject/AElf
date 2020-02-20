@@ -39,7 +39,7 @@ namespace AElf.Contracts.MultiToken
         public BoolState Initialized { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
-        public SingletonState<Address> Owner { get; set; }
+        public SingletonState<Address> CrossChainTokenContractRegistrationController { get; set; }
         public SingletonState<ControllerForUserFee> UserFeeController { get; set; }
         public SingletonState<ControllerForDeveloperFee> DeveloperFeeController { get; set; }
         public SingletonState<Address> SymbolToPayTxFeeController { get; set; }
@@ -52,7 +52,7 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
-        public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
+        public MappedState<Hash, bool> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }

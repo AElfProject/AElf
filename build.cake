@@ -1,4 +1,6 @@
-var target = Argument("target", "default");
+#tool nuget:?package=Codecov
+#addin nuget:?package=Cake.Codecov
+var target = Argument("target", "Default");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
@@ -8,7 +10,7 @@ var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 
-Task("clean")
+Task("Clean")
     .Description("clean up project cache")
     .Does(() =>
 {
@@ -21,7 +23,7 @@ Task("clean")
     CleanDirectories(testPath + "**/obj");
 });
 
-Task("restore")
+Task("Restore")
     .Description("restore project dependencies")
     .Does(() =>
 {
@@ -32,10 +34,10 @@ Task("restore")
     DotNetCoreRestore(solution,restoreSettings);
 });
 
-Task("build")
+Task("Build")
     .Description("Compilation project")
-    .IsDependentOn("clean")
-    .IsDependentOn("restore")
+    .IsDependentOn("Clean")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
     var buildSetting = new DotNetCoreBuildSettings{
@@ -51,8 +53,9 @@ Task("build")
 });
 
 
-Task("test_with_codecov")
+Task("Test-with-Codecov")
     .Description("operation test_with_codecov")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -63,6 +66,7 @@ Task("test_with_codecov")
                        .Append("/p:CoverletOutputFormat=json%2copencover")
                        .Append("/p:CoverletOutput=../results/coverage")
                        .Append("/p:MergeWith=../results/coverage.json")
+                       .Append("/maxcpucount:1")
                        .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Contracts.Authorization]*%2c[AElf.Test.Helpers]*%2c[*]*Exception%2c[*.Tests]*%2c[AElf.Contracts.TestContract.BasicFunctionWithParallel]*%2c[AElf.Contracts.GenesisUpdate]*")
                        .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs%2c../../test/*.TestBase/*.cs");}
 };
@@ -73,8 +77,9 @@ Task("test_with_codecov")
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
 });
-Task("test")
+Task("Run-Unit-Tests")
     .Description("operation test")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
@@ -88,8 +93,13 @@ Task("test")
         DotNetCoreTest(testProject.FullPath, testSetting);
     }
 });
-Task("default")
-    .Description("default run test(-target test)")
-    .IsDependentOn("build");
+Task("Upload-Coverage")
+    .Does(() =>
+{
+    // Upload a coverage report.
+    Codecov("./test/results/coverage.opencover.xml","$CODECOV_TOKEN");
+});
+Task("Default")
+    .IsDependentOn("Run-Unit-Tests");
 
 RunTarget(target);

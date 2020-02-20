@@ -4,6 +4,7 @@ namespace AElf.Kernel
     {
         public BlockHeader BlockHeader { get; set; }
         
+        //TODO!! not used
         public bool HasFork { get; set; }
     }
 }

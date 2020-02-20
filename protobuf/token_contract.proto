@@ -87,7 +87,9 @@ service TokenContract {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
-    
+    rpc ChangeCrossChainTokenContractRegistrationController (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -147,6 +149,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
 
+    rpc GetCrossChainTokenContractRegistrationController(google.protobuf.Empty) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
