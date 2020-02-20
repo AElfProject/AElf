@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         internal static bool IsParallelizable(this IExecutive executive)
         {
-            return executive.Descriptors.Any(service => service.File.GetIndentity() == "acs2");
+            return executive.Descriptors.Any(service => service.File.GetIdentity() == "acs2");
         }
 
         private static TransactionResourceInfo NotParallelizable(Hash transactionId,Hash codeHash)
