@@ -50,6 +50,7 @@ namespace AElf.CrossChain.Cache
         /// <returns></returns>
         public bool TryTake(long height, out IBlockCacheEntity blockCacheEntity, bool isCacheSizeLimited)
         {
+            //TODO!! if(_cache.TryGetValue(height, out var cachedData)){  cacheData.XXX } 
             // clear outdated data
             var cachedInQueue = _cache.TryGetValue(height, out var cachedData);
             blockCacheEntity = cachedData;
@@ -70,7 +71,8 @@ namespace AElf.CrossChain.Cache
 
         private bool ValidateBlockCacheEntity(IBlockCacheEntity blockCacheEntity)
         {
-            return blockCacheEntity.Height >= Constants.GenesisBlockHeight && blockCacheEntity.ChainId == _chainId &&
+            return blockCacheEntity.Height >= Constants.GenesisBlockHeight && 
+                   blockCacheEntity.ChainId == _chainId &&
                    blockCacheEntity.TransactionStatusMerkleTreeRoot != null;
         }
     }

@@ -46,7 +46,11 @@ namespace AElf.OS.Network.Application
                 
             Logger.LogDebug($"Scheduling {endpoint} for reconnection at {nextTry}.");
 
-            var reconnectingPeer = new ReconnectingPeer {Endpoint = endpoint, NextAttempt = nextTry};
+            var reconnectingPeer = new ReconnectingPeer {
+                Endpoint = endpoint, 
+                NextAttempt = nextTry, 
+                DisconnectionTime = TimestampHelper.GetUtcNow() 
+            };
 
             if (!_reconnectionStateProvider.AddReconnectingPeer(endpoint, reconnectingPeer))
             {

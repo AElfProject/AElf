@@ -38,6 +38,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader)
         {
+            //TODO: create a method to get disambiguatingHash
             var disambiguatingHash = blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
             await _transactionResultManager.AddTransactionResultAsync(transactionResult, disambiguatingHash);
         }

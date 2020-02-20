@@ -116,7 +116,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Release(ReleaseInput input)
         {
-            MaybeLoadAEDPoSContractAddress();
+            RequireAEDPoSContractStateSet();
             Assert(
                 Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Treasury
                 Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-            MaybeLoadElectionContractAddress();
+            RequireElectionContractStateSet();
             var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
             {
                 Value = input.TermNumber
@@ -335,7 +335,7 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void MaybeLoadAEDPoSContractAddress()
+        private void RequireAEDPoSContractStateSet()
         {
             if (State.AEDPoSContract.Value == null)
             {
@@ -344,7 +344,7 @@ namespace AElf.Contracts.Treasury
             }
         }
 
-        private void MaybeLoadElectionContractAddress()
+        private void RequireElectionContractStateSet()
         {
             if (State.ElectionContract.Value == null)
             {
