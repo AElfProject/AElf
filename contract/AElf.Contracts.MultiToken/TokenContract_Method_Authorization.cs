@@ -65,7 +65,20 @@ namespace AElf.Contracts.MultiToken
             State.ControllerForSideRentalParliament.Value = input;
             return new Empty();
         }
-        
+
+        public override Empty ChangeCrossChainTokenContractRegistrationController(Address input)
+        {
+            CheckCrossChainTokenContractRegistrationControllerAuthority();
+            State.CrossChainTokenContractRegistrationController.Value = input;
+            return new Empty();
+        }
+
+        public override Address GetCrossChainTokenContractRegistrationController(Empty input)
+        {
+            var controller = GetCrossChainTokenContractRegistrationController();
+            return controller;
+        }
+
         private bool ControllersInitialized()
         {
             if(State.ControllerForDeveloperFee.Value == null)

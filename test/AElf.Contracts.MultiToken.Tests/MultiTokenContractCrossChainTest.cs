@@ -575,6 +575,50 @@ namespace AElf.Contracts.MultiToken
             Assert.Contains("Invalid transfer target chain.", txResult.Error);
         }
 
+        [Fact]
+        public async Task MainChain_CrossChainTransfer_MemoLength_Test()
+        {
+            var sideChainId = await GenerateSideChainAsync();
+            await RegisterSideChainContractAddressOnMainChainAsync();
+            await RegisterMainChainTokenContractAddressOnSideChainAsync(sideChainId);
+
+            {
+                var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer), null, new CrossChainTransferInput
+                    {
+                        Symbol = NativeToken,
+                        ToChainId = sideChainId,
+                        Amount = 1000,
+                        To = SideChainTester.GetCallOwnerAddress(),
+                        IssueChainId = MainChainId,
+                        Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest.."
+                    }, true);
+
+                await MainChainTester.MineAsync(new List<Transaction> {crossChainTransferTransaction});
+                var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
+                Assert.True(txResult.Status == TransactionResultStatus.Mined);
+            }
+
+            {
+                var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer), null, new CrossChainTransferInput
+                    {
+                        Symbol = NativeToken,
+                        ToChainId = sideChainId,
+                        Amount = 1000,
+                        To = SideChainTester.GetCallOwnerAddress(),
+                        IssueChainId = MainChainId,
+                        Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest..."
+                    }, true);
+
+                await MainChainTester.MineAsync(new List<Transaction> {crossChainTransferTransaction});
+                var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
+                Assert.True(txResult.Status == TransactionResultStatus.Failed);
+                Assert.Contains("Invalid memo size.", txResult.Error);
+            }
+            
+        }
+
         #endregion
 
         #region  cross chain receive 
