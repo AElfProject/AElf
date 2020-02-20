@@ -66,7 +66,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
             var pubKeys = miners.Pubkeys.Select(o => o.ToHex()).ToList();
             pubKeys.Count.ShouldBe(5);
-            pubKeys.ShouldBe(pubKeys);
+            pubKeys.ShouldBe(pubkeyList.Pubkeys);
         }
 
         [Fact]

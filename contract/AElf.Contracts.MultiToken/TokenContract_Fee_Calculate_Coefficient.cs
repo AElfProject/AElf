@@ -110,6 +110,8 @@ namespace AElf.Contracts.MultiToken
                 return false;
             if (coefficient.ChangeSpanBase <= 0)
                 return false;
+            if (coefficient.ConstantValue < 0)
+                return false;
             dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
             dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
             dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
