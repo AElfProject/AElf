@@ -53,3 +53,26 @@ Nodes checks new contract code against below whitelist and if there is a usage o
 | `string` | ALL | Allowed |
 | `string` | `Constructor` | Denied |
 | `Byte[]` | ALL | Allowed |
+
+## Types and Members Whitelist in System.Reflection Namespace
+
+| Type | Member (Field / Method) | Allowed |
+| --- | --- | --- |
+| `AssemblyCompanyAttribute` | ALL | Allowed |
+| `AssemblyConfigurationAttribute` | ALL | Allowed |
+| `AssemblyFileVersionAttribute` | ALL | Allowed |
+| `AssemblyInformationalVersionAttribute` | ALL | Allowed |
+| `AssemblyProductAttribute` | ALL | Allowed |
+| `AssemblyTitleAttribute` | ALL | Allowed |
+
+## Other Whitelisted Namespaces
+| Namespace | Type | Member |
+| --- | --- | --- |
+| `System.Linq` | ALL | ALL |
+| `System.Collections` | ALL | ALL |
+| `System.Collections.Generic` | ALL | ALL |
+| `System.Collections.ObjectModel` | ALL | ALL |
+| `System.Globalization` | `CultureInfo` | `InvariantCulture` |
+| `System.Runtime.CompilerServices` | `RuntimeHelpers` | `InitializeArray` |
+| `System.Text` | `Encoding` | `UTF8`, `GetByteCount` |
+
