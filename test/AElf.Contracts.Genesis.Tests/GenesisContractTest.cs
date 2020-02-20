@@ -57,7 +57,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Query_ContractRegistrationByAddress_Test()
+        public async Task Query_ContractRegistration_Test()
         {
             //not exist
             {
@@ -69,15 +69,20 @@ namespace AElf.Contracts.Genesis
             
             //exist contract
             {
+                //query by address
                 var registrationInfo =
                     await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(ContractZeroAddress);
-            
                 registrationInfo.Category.ShouldBe(KernelConstants.CodeCoverageRunnerCategory);
                 registrationInfo.CodeHash.ShouldNotBeNull();
                 registrationInfo.Code.Length.ShouldBeGreaterThan(0);
+                
+                //query by hash
+                var registrationInfo1 =
+                    await DefaultTester.GetSmartContractRegistration.CallAsync(registrationInfo.CodeHash);
+                registrationInfo1.ShouldBe(registrationInfo);
             }
         }
-
+        
         [Fact]
         public async Task Update_SmartContract_Test()
         {
@@ -121,7 +126,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = await Deploy_SmartContracts_Test();
 
             var result = await DefaultTester.UpdateSmartContract.SendWithExceptionAsync(
-                new ContractUpdateInput()
+                new ContractUpdateInput
                 {
                     Address = contractAddress,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
