@@ -781,7 +781,7 @@ namespace AElf.Contracts.Parliament
                 Symbol = "ELF",
                 Amount = 100,
                 To = Tester,
-                Memo = Guid.NewGuid().ToString()
+                Memo = Guid.NewGuid().ToString() //In order to generate different proposal
             };
             var createProposalInput = new CreateProposalInput
             {
