@@ -66,30 +66,30 @@ namespace AElf.Contracts.TokenConverter
         }
 
 
-        public override Empty AddPairConnector(PairConnectorParam connectorParamToBeAdded)
+        public override Empty AddPairConnector(PairConnectorParam input)
         {
             AssertPerformedByConnectorController();
-            Assert(!string.IsNullOrEmpty(connectorParamToBeAdded.ResourceConnectorSymbol),
+            Assert(!string.IsNullOrEmpty(input.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
-            var nativeConnectorSymbol = NtTokenPrefix.Append(connectorParamToBeAdded.ResourceConnectorSymbol);
-            Assert(State.Connectors[connectorParamToBeAdded.ResourceConnectorSymbol] == null,
+            var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
+            Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
                 "resource token symbol has been existed");
             var resourceConnector = new Connector
             {
-                Symbol = connectorParamToBeAdded.ResourceConnectorSymbol,
+                Symbol = input.ResourceConnectorSymbol,
                 IsPurchaseEnabled = false,
                 RelatedSymbol = nativeConnectorSymbol,
-                Weight = connectorParamToBeAdded.ResourceWeight
+                Weight = input.ResourceWeight
             };
             AssertValidConnectorAndNormalizeWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
             {
                 Symbol = nativeConnectorSymbol,
-                VirtualBalance = connectorParamToBeAdded.NativeVirtualBalance,
+                VirtualBalance = input.NativeVirtualBalance,
                 IsVirtualBalanceEnabled = true,
                 IsPurchaseEnabled = false,
-                RelatedSymbol = connectorParamToBeAdded.ResourceConnectorSymbol,
-                Weight = connectorParamToBeAdded.NativeWeight,
+                RelatedSymbol = input.ResourceConnectorSymbol,
+                Weight = input.NativeWeight,
                 IsDepositAccount = true
             };
             AssertValidConnectorWeight(nativeTokenToResourceConnector);
