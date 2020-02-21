@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
-
+//TODO: should not in a .cs file
 [assembly: InternalsVisibleTo("AElf.OS.Tests")]
 
 namespace AElf.OS.BlockSync.Worker
