@@ -84,6 +84,7 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 funcDic[func.PieceKey] = func;
             }
+            //TODO: if only add something to cache, the method name should call AddAlgorithmCacheByBlock
             _cacheCacheProvider.SetPieceWiseFunctionToForkCache(blockIndex,funcDic);
         }
 
