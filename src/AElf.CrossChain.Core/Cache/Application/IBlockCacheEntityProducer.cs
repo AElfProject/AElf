@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Cache.Application
         {
             if (blockCacheEntity == null)
                 throw new ArgumentNullException(nameof(blockCacheEntity));
-            var chainCacheEntity = _crossChainCacheEntityProvider.GetChainCacheEntity(blockCacheEntity.ChainId);
+            _crossChainCacheEntityProvider.TryGetChainCacheEntity(blockCacheEntity.ChainId, out var chainCacheEntity);
 
             var res = chainCacheEntity?.TryAdd(blockCacheEntity);
             if (res == null) return false;
