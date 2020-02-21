@@ -46,6 +46,10 @@ service BasicSecurityContract {
     }
     rpc TestResetFields(ResetInput) returns (google.protobuf.Empty) {
     }
+    rpc TestResetNestedFields(ResetNestedInput) returns (ResetNestedOutput) {
+    }
+    rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
+    }
     
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -97,6 +101,12 @@ service BasicSecurityContract {
              option (aelf.is_view) = true;
     }
     rpc QueryConst(google.protobuf.Empty) returns (ConstOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryNestedFields(google.protobuf.Empty) returns (ResetNestedOutput) {
+             option (aelf.is_view) = true;
+    }
+    rpc QueryOtherNestedFields(google.protobuf.Empty) returns (ResetOtherTypeNestedOutput) {
         option (aelf.is_view) = true;
     }
 }
@@ -171,6 +181,11 @@ message ProtobufMessage {
     int64 int64_value = 3;
 }
 
+message ResetNestedInput {
+    int32 int32_value = 1;
+    string string_value = 2;
+}
+
 //Output
 message BoolOutput {
     bool bool_value = 1;
@@ -228,4 +243,17 @@ message ResetOutput {
 message ConstOutput {
     int64 int64_const = 1;
     string string_const =2;
+}
+
+message ResetNestedOutput {
+    int32 int32_value = 1;
+    string string_value = 2;
+}
+
+message ResetOtherTypeNestedOutput {
+    int32 basic_type_number = 1;
+    int32 basic_type_static_number = 2;
+    int32 type_number = 3;
+    int32 type_const = 4;
+    string string_value = 5;
 }

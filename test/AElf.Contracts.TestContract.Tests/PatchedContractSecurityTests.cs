@@ -15,7 +15,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task ResetFields()
+        public async Task ResetFields_Test()
         {
             var result = await TestBasicSecurityContractStub.TestResetFields.SendAsync(new ResetInput
             {
@@ -37,6 +37,45 @@ namespace AElf.Contract.TestContract
             fields.Int32Value.ShouldBe(0);
             fields.Int64Value.ShouldBe(0);
             fields.StringValue.ShouldBe(string.Empty);
+        }
+        
+        [Fact]
+        public async Task Reset_NestedFields_Test()
+        {
+            var result = await TestBasicSecurityContractStub.TestResetNestedFields.SendAsync(new ResetNestedInput
+            {
+                Int32Value = 100,
+                StringValue = "TEST"
+            });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            result.Output.Int32Value.ShouldBe(100);
+            result.Output.StringValue.ShouldBe("TEST");
+            var fields = await TestBasicSecurityContractStub.QueryNestedFields.CallAsync(new Empty());
+            fields.Int32Value.ShouldBe(0);
+            fields.StringValue.ShouldBe(string.Empty);
+        }
+        
+        [Fact]
+        public async Task Reset_OtherType_NestedFields_Test()
+        {
+            var result = await TestBasicSecurityContractStub.TestResetOtherTypeFields.SendAsync(new ResetNestedInput
+            {
+                Int32Value = 100,
+                StringValue = "TEST"
+            });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            result.Output.StringValue.ShouldBe("test");
+            result.Output.BasicTypeNumber.ShouldBe(100);
+            result.Output.BasicTypeStaticNumber.ShouldBe(100);
+            result.Output.TypeConst.ShouldBe(1);
+            result.Output.TypeNumber.ShouldBe(100);
+
+            var fields = await TestBasicSecurityContractStub.QueryOtherNestedFields.CallAsync(new Empty());
+            fields.StringValue.ShouldBe(string.Empty);
+            fields.BasicTypeNumber.ShouldBe(0);
+            fields.BasicTypeStaticNumber.ShouldBe(0);
+            fields.TypeConst.ShouldBe(1);
+            fields.TypeNumber.ShouldBe(0);
         }
     }
 }

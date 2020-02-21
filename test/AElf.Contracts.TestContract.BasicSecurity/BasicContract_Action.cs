@@ -1,6 +1,5 @@
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -14,15 +13,17 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private long _field1;
         private string _field2;
         private bool _field3;
-
+        private BasicContractTestType _basicTestType;
+        private TestType _test;
+        
         public override Empty InitialBasicSecurityContract(Address input)
         {
-            Assert(!State.Initialized.Value, "Already initialized."); 
-            
+            Assert(!State.Initialized.Value, "Already initialized.");
+
             //set basic1 contract reference
             Assert(input != null, "Basic1Contract address is not exist.");
             State.BasicFunctionContract.Value = input;
-            
+
             State.Initialized.Value = true;
             State.BoolInfo.Value = true;
             State.Int32Info.Value = 0;
@@ -30,70 +31,66 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             State.Int64Info.Value = 0;
             State.UInt64Info.Value = 0;
             State.StringInfo.Value = string.Empty;
-            State.BytesInfo.Value = new byte[]{};
-            _field1 = 0;
-            _field2 = string.Empty;
-            _field3 = false;
-            _number = 0;
+            State.BytesInfo.Value = new byte[] { };
             return new Empty();
         }
-        
+
         public override Empty TestBoolState(BoolInput input)
         {
             State.BoolInfo.Value = input.BoolValue;
-            
+
             return new Empty();
         }
 
         public override Empty TestInt32State(Int32Input input)
         {
             State.Int32Info.Value = State.Int32Info.Value.Add(input.Int32Value);
-            
+
             return new Empty();
         }
 
         public override Empty TestUInt32State(UInt32Input input)
         {
             State.UInt32Info.Value = State.UInt32Info.Value.Add(input.UInt32Value);
-            
+
             return new Empty();
         }
 
         public override Empty TestInt64State(Int64Input input)
         {
             State.Int64Info.Value = State.Int64Info.Value.Add(input.Int64Value);
-            
+
             return new Empty();
         }
 
         public override Empty TestUInt64State(UInt64Input input)
         {
             State.UInt64Info.Value = State.UInt64Info.Value.Add(input.UInt64Value);
-            
+
             return new Empty();
         }
 
         public override Empty TestStringState(StringInput input)
         {
-            if(string.IsNullOrEmpty(State.StringInfo.Value))
+            if (string.IsNullOrEmpty(State.StringInfo.Value))
                 State.StringInfo.Value = string.Empty;
-            
+
             State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
-            
+
             return new Empty();
         }
 
         public override Empty TestBytesState(BytesInput input)
         {
             State.BytesInfo.Value = input.BytesValue.ToByteArray();
-            
+
             return new Empty();
         }
 
         public override Empty TestProtobufState(ProtobufInput input)
         {
             State.ProtoInfo2.Value = input.ProtobufValue;
-            
+
             return new Empty();
         }
 
@@ -101,7 +98,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             State.BoolInfo.Value = input.BoolValue;
             State.Int32Info.Value = input.Int32Value;
-            
+
             return new Empty();
         }
 
@@ -109,20 +106,22 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             State.BoolInfo.Value = input.BoolData.BoolValue;
             State.Int32Info.Value = input.Int32Data.Int32Value;
-            
+
             return new Empty();
         }
 
         public override Empty TestMapped1State(ProtobufInput input)
         {
             var protobufMessage = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
-            if(protobufMessage == null)
-            {    State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] = new ProtobufMessage()
-                {
-                    BoolValue = true,
-                    Int64Value = input.ProtobufValue.Int64Value,
-                    StringValue = input.ProtobufValue.StringValue
-                };
+            if (protobufMessage == null)
+            {
+                State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] =
+                    new ProtobufMessage()
+                    {
+                        BoolValue = true,
+                        Int64Value = input.ProtobufValue.Int64Value,
+                        StringValue = input.ProtobufValue.StringValue
+                    };
             }
             else
             {
@@ -130,7 +129,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                     new ProtobufMessage
                     {
                         BoolValue = true,
-                        Int64Value = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue].Int64Value
+                        Int64Value = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue]
+                            .Int64Value
                             .Add(input.ProtobufValue.Int64Value),
                         StringValue = input.ProtobufValue.StringValue
                     };
@@ -155,7 +155,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
             }
-            
+
             return new Empty();
         }
 
@@ -164,13 +164,13 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             var feeValue = input.Int64Value.Mul(5).Div(100);
             var betValue = input.Int64Value.Sub(feeValue);
-            
+
             State.Int64Info.Value.Add(feeValue);
             State.BasicFunctionContract.UserPlayBet.Send(new BetInput
             {
                 Int64Value = betValue
             });
-            
+
             return new Empty();
         }
 
@@ -179,16 +179,67 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             State.BasicFunctionContract.ValidateOrigin.Send(address);
             return new Empty();
         }
-        
+
         public override Empty TestResetFields(ResetInput input)
         {
             _number = input.Int32Value;
             _field1 = input.Int64Value;
             _field2 = input.StringValue;
             _field3 = input.BoolValue;
-            State.Int64Info.Value =  Number;
+            State.Int64Info.Value = Number;
             State.StringInfo.Value = String;
             return new Empty();
+        }
+
+        public override ResetNestedOutput TestResetNestedFields(ResetNestedInput input)
+        {
+            _test = new TestType();
+            _test.SetValue(input.Int32Value,input.StringValue);
+            var number = _test.CheckNumberValue();
+            var staticString = _test.CheckStaticValue();
+            return new ResetNestedOutput
+            {
+                Int32Value = number,
+                StringValue = staticString
+            };
+        }
+
+        public override ResetOtherTypeNestedOutput TestResetOtherTypeFields(ResetNestedInput input)
+        {
+            _basicTestType = new BasicContractTestType();
+            _basicTestType.SetBasicContractTestType(input.Int32Value);
+            var s = _basicTestType.CheckFunc().Invoke(input.StringValue);
+            var testType =_basicTestType.CheckTypeValue();
+            return new ResetOtherTypeNestedOutput
+            {
+                TypeConst = testType.CheckConstNumberValue(),
+                TypeNumber = testType.CheckNumberValue(),
+                BasicTypeNumber = _basicTestType.CheckNumberValue(),
+                BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
+                StringValue = s
+            };
+        }
+
+        public class TestType
+        {
+            private int _testTypeNumber;
+            private static string _testTypeString;
+
+            public void SetValue(int number,string s)
+            {
+                _testTypeNumber = number;
+                _testTypeString = s;
+            }
+
+            public int CheckNumberValue()
+            {
+                return _testTypeNumber;
+            }
+
+            public string CheckStaticValue()
+            {
+                return _testTypeString;
+            }
         }
     }
 }

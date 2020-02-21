@@ -165,5 +165,35 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 StringConst = String
             };
         }
+
+        public override ResetNestedOutput QueryNestedFields(Empty input)
+        {
+            _test = new TestType();
+            return new ResetNestedOutput
+            {
+                Int32Value = _test.CheckNumberValue(),
+                StringValue = _test.CheckStaticValue() ?? string.Empty
+            };
+        }
+
+        public override ResetOtherTypeNestedOutput QueryOtherNestedFields(Empty input)
+        {
+            _basicTestType = new BasicContractTestType();
+            var func = _basicTestType.CheckFunc();
+            var s = string.Empty;
+            if (func!=null)
+            {
+                s = func.Invoke(String);
+            }
+            var testType = _basicTestType.CheckTypeValue();
+            return new ResetOtherTypeNestedOutput
+            {
+                TypeConst = testType.CheckConstNumberValue(),
+                TypeNumber = testType.CheckNumberValue(),
+                BasicTypeNumber = _basicTestType.CheckNumberValue(),
+                BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
+                StringValue = s
+            };
+        }
     }
 }
