@@ -5,6 +5,8 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: should not implement here, no fork
+
     public class TransactionFeeCalculatorCoefficientForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
         private readonly ICalculateReadCostStrategy _readCostStrategy;
