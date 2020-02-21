@@ -4,6 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: remove 
     public interface IForkCacheHandler
     {
         Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes);

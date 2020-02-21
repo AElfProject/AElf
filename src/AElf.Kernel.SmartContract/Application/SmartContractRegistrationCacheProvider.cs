@@ -6,6 +6,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: remove
     public interface ISmartContractRegistrationCacheProvider
     {
         bool TryGetLibCache(Address address, out SmartContractRegistrationCache cache);
