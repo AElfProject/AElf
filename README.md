@@ -19,37 +19,34 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [Documentation](https://docs.aelf.io/v/dev/)
+    * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
+    * [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)
+    * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
+    * [Web Api](https://docs.aelf.io/v/dev/reference)
+    * [Testnet](https://docs.aelf.io/v/dev/resources/testnet)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
+
+This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
+ecosystem:
+
+TOOL/LIBRARY | description
+-------------|-------------
+[aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | Javascript development kit for interacting with an AElf node, useful for dApp developers. 
+[aelf-command](https://github.com/AElfProject/aelf-command) | CLI tool for interacting with an AElf node and wallet.
+[aelf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | framework for smart contract and dApp development.
 
 ## Getting Started
 
 ### This repository
 
-This repo is where you will find the code that can use to run an AElf node and the command line tool used to interact with it. It also contains a **tests** folder that centralizes all the unit tests.
+This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
 
-If you're looking for the js sdk, follow this [link](https://github.com/AElfProject/aelf-sdk.js).
+### Documentation
 
-### Prerequisites
-
-Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
-Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider, Visual Studio and Visual Studio Code. Strictly speaking, if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
-Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
-
-Note that, if you intend to develop AElf itself you will have to install protobuf/gRPC.
-
-### Build
-
-```bash
-sh scripts/build.sh
-```
-
-### Run the tests
-
-Our tests are in the **test** folder, in order to run you only have to execute the following script:
-
-```bash
-sh scripts/test.sh
-```
+We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
+these two guides will get you started:  
+* [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)  
+* [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)  
 
 ## Contributing
 
