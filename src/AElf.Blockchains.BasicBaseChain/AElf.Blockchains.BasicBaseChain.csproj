@@ -4,6 +4,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackageId>AElf.Blockchains.BasicBaseChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Base AElf Module for different chain types.</Description>
     </PropertyGroup>
 
     <ItemGroup>
