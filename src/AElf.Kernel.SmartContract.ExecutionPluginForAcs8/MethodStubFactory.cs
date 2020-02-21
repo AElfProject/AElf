@@ -6,6 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
+    //TODO: base class
     public class MethodStubFactory : IMethodStubFactory
     {
         private readonly IHostSmartContractBridgeContext _context;
