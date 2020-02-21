@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.OS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Main module for the OS layer.</Description>
     </PropertyGroup>
 
     <ItemGroup>

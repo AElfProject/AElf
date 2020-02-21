@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.OS.Network.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>gRPC implementations of AElf's network communication layer.</Description>
     </PropertyGroup>
 
     <ItemGroup>
