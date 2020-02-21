@@ -133,7 +133,7 @@ service TokenContract {
     rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainRentalControllerInfo (google.protobuf.Empty) returns (SideChainRentalControllerInfo) {
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -564,7 +564,7 @@ message ExtraTokenListModified {
     SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
-message SideChainRentalControllerInfo {
+message ControllerCreateInfo {
     aelf.Address controller = 1;
     bytes organization_creation_input_bytes = 2;
 }

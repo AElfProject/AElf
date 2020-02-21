@@ -30,9 +30,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 (await ParliamentContractStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
             createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculatedNewParliamentAddress = await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController), calculatedNewParliamentAddress);
+            var newAuthority = new Acs1.AuthorityInfo
+            {
+                ContractAddress = ParliamentContractAddress,
+                OwnerAddress = calculatedNewParliamentAddress
+            };
+            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController), newAuthority);
             var controller = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
-            controller.ShouldBe(calculatedNewParliamentAddress);
+            controller.OwnerAddress.ShouldBe(calculatedNewParliamentAddress);
         }
         
          [Fact]

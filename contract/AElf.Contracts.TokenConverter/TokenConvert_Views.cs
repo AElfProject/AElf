@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -20,10 +21,10 @@ namespace AElf.Contracts.TokenConverter
             };
         }
 
-        public override Address GetControllerForManageConnector(Empty input)
+        public override AuthorityInfo GetControllerForManageConnector(Empty input)
         {
             if (State.ConnectorController.Value == null)
-                InitializeConnectorController();
+                return GetDefaultConnectorController();
             return State.ConnectorController.Value;
         }
 

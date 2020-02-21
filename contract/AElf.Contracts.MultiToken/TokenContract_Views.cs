@@ -149,23 +149,23 @@ namespace AElf.Contracts.MultiToken
         public override UserFeeController GetUserFeeController(Empty input)
         {
             if(State.UserFeeController.Value == null)
-                InitializeUserFeeController();
+                return GetDefaultUserFeeController();
             return State.UserFeeController.Value;
         }
         
         public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
             if(State.DeveloperFeeController.Value == null)
-                InitializeDeveloperFeeController();
+                return GetDefaultDeveloperFeeController();
             return State.DeveloperFeeController.Value;
         }
         
-        public override SideChainRentalControllerInfo GetSideChainRentalControllerInfo(Empty input)
+        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
             var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new SideChainRentalControllerInfo
+            var controllerInfo = new ControllerCreateInfo
             {
                 Controller = controllerAddress,
                 OrganizationCreationInputBytes = organization.ToByteString()
@@ -176,7 +176,7 @@ namespace AElf.Contracts.MultiToken
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
         {
             if(State.SymbolToPayTxFeeController.Value == null)
-                InitializeSymbolToPayTxFeeController();
+                return GetDefaultSymbolToPayTxFeeController();
             return State.SymbolToPayTxFeeController.Value;
         }
     }

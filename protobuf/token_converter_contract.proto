@@ -28,13 +28,13 @@ service TokenConverterContract {
     }
     rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConnectorController (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {

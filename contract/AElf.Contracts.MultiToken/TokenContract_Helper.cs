@@ -130,19 +130,15 @@ namespace AElf.Contracts.MultiToken
 
         private AuthorityInfo GetCrossChainTokenContractRegistrationController()
         {
-            var controller = State.CrossChainTokenContractRegistrationController.Value;
-            if (controller != null)
-                return controller;
             var parliamentContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            controller = new AuthorityInfo
+            var controller = new AuthorityInfo
             {
                 ContractAddress = State.ParliamentContract.Value,
                 OwnerAddress = Context.Call<Address>(parliamentContractAddress,
                     nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
                     new Empty())
             };
-            State.CrossChainTokenContractRegistrationController.Value = controller;
             return controller;
         }
 
@@ -164,8 +160,9 @@ namespace AElf.Contracts.MultiToken
 
         private void CheckCrossChainTokenContractRegistrationControllerAuthority()
         {
-            var controller = GetCrossChainTokenContractRegistrationController();
-            Assert(controller.OwnerAddress == Context.Sender, "No permission.");
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+                State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
+            Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
@@ -291,17 +291,18 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        public override Empty ChangeConnectorController(Address input)
+        public override Empty ChangeConnectorController(AuthorityInfo input)
         {
             AssertPerformedByConnectorController();
             Assert(input != null, "invalid input");
+            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
             if (State.ParliamentContract.Value == null)
             {
                 State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
+            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input.OwnerAddress);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
             State.ConnectorController.Value = input;
             return new Empty();
@@ -373,13 +374,14 @@ namespace AElf.Contracts.TokenConverter
         {
             if (State.ConnectorController.Value == null)
             {
-                InitializeConnectorController();
+                State.ConnectorController.Value = GetDefaultConnectorController();
             }
 
-            Assert(Context.Sender == State.ConnectorController.Value, "Only manager can perform this action.");
+            Assert(Context.Sender == State.ConnectorController.Value.OwnerAddress,
+                "Only manager can perform this action.");
         }
 
-        private void InitializeConnectorController()
+        private AuthorityInfo GetDefaultConnectorController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -387,7 +389,11 @@ namespace AElf.Contracts.TokenConverter
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            State.ConnectorController.Value = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
 
         private void AssertValidConnectorAndNormalizeWeight(Connector connector)

@@ -13,6 +13,17 @@ namespace AElf.Contracts.MultiToken
 
         private void InitializeAuthorizedController()
         {
+            var defaultUserFeeController = GetDefaultUserFeeController();
+            CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
+            CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
+                defaultUserFeeController.ReferendumController.OwnerAddress);
+            State.UserFeeController.Value = defaultUserFeeController;
+            
+            var developerController = GetDefaultDeveloperFeeController();
+            CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
+            CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
+                developerController.DeveloperController.OwnerAddress);
+            State.DeveloperFeeController.Value = developerController;
             if (State.SideChainCreator.Value == null) return;
             if (State.AssociationContract.Value == null)
             {
@@ -57,41 +68,45 @@ namespace AElf.Contracts.MultiToken
 
         public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
         {
-            var controller = GetCrossChainTokenContractRegistrationController();
-            return controller;
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+            {
+                return GetCrossChainTokenContractRegistrationController();
+            }
+            return State.CrossChainTokenContractRegistrationController.Value;
         }
 
-        private void CreateReferendumControllerForUserFee()
+        private void CreateReferendumControllerForUserFee(Address parliamentAddress)
         {
             State.ReferendumContract.CreateOrganizationBySystemContract.Send(
-                GetReferendumControllerCreateInputForUserFee());
+                GetReferendumControllerCreateInputForUserFee(parliamentAddress));
         }
 
-        private void CreateAssociationControllerForUserFee()
+        private void CreateAssociationControllerForUserFee(Address parliamentAddress, Address referendumAddress)
         {
             State.AssociationContract.CreateOrganizationBySystemContract.Send(
-                GetAssociationControllerCreateInputForUserFee());
+                GetAssociationControllerCreateInputForUserFee(parliamentAddress, referendumAddress));
         }
 
-        private void CreateDeveloperController()
-        {
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(GetDeveloperControllerCreateInput());
-        }
-
-        private void CreateAssociationControllerForDeveloperFee()
+        private void CreateDeveloperController(Address parliamentAddress)
         {
             State.AssociationContract.CreateOrganizationBySystemContract.Send(
-                GetAssociationControllerCreateInputForDeveloperFee());
+                GetDeveloperControllerCreateInput(parliamentAddress));
+        }
+
+        private void CreateAssociationControllerForDeveloperFee(Address parliamentAddress, Address developerAddress)
+        {
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(
+                GetAssociationControllerCreateInputForDeveloperFee(parliamentAddress, developerAddress));
         }
 
         #endregion
 
         #region organization create input
 
-        private Referendum.CreateOrganizationBySystemContractInput GetReferendumControllerCreateInputForUserFee()
+        private Referendum.CreateOrganizationBySystemContractInput GetReferendumControllerCreateInputForUserFee(
+            Address parliamentAddress)
         {
-            var parliamentOrg = State.UserFeeController.Value.ParliamentController.OwnerAddress;
-            var whiteList = new List<Address> {parliamentOrg};
+            var whiteList = new List<Address> {parliamentAddress};
             var tokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
             return new Referendum.CreateOrganizationBySystemContractInput
             {
@@ -113,11 +128,11 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForUserFee()
+        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForUserFee(
+            Address parliamentAddress, Address referendumAddress)
         {
-            var parliamentOrg = State.UserFeeController.Value.ParliamentController.OwnerAddress;
             var proposers = new List<Address>
-                {State.UserFeeController.Value.ReferendumController.OwnerAddress, parliamentOrg};
+                {referendumAddress, parliamentAddress};
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -141,10 +156,10 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetDeveloperControllerCreateInput()
+        private Association.CreateOrganizationBySystemContractInput GetDeveloperControllerCreateInput(
+            Address parliamentAddress)
         {
-            var parliamentOrganization = State.DeveloperFeeController.Value.ParliamentController.OwnerAddress;
-            var proposers = new List<Address> {parliamentOrganization};
+            var proposers = new List<Address> {parliamentAddress};
             return new Association.CreateOrganizationBySystemContractInput
             {
                 OrganizationCreationInput = new Association.CreateOrganizationInput
@@ -168,12 +183,12 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForDeveloperFee()
+        private Association.CreateOrganizationBySystemContractInput GetAssociationControllerCreateInputForDeveloperFee(
+            Address parliamentAddress, Address developerAddress)
         {
-            var parliamentOrg = State.DeveloperFeeController.Value.ParliamentController.OwnerAddress;
             var proposers = new List<Address>
             {
-                State.DeveloperFeeController.Value.DeveloperController.OwnerAddress, parliamentOrg
+                developerAddress, parliamentAddress
             };
             var actualProposalCount = proposers.Count;
             return new Association.CreateOrganizationBySystemContractInput
@@ -235,7 +250,7 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.SymbolToPayTxFeeController.Value == null)
             {
-                InitializeSymbolToPayTxFeeController();
+                State.SymbolToPayTxFeeController.Value = GetDefaultSymbolToPayTxFeeController();
             }
 
             Assert(State.SymbolToPayTxFeeController.Value.OwnerAddress == Context.Sender, "no permission");
@@ -269,15 +284,16 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertDeveloperFeeController()
         {
-            if (State.DeveloperFeeController.Value == null)
+            var controller = State.DeveloperFeeController.Value;
+            if ( controller== null)
             {
-                InitializeDeveloperFeeController();
+                controller = GetDefaultDeveloperFeeController();
             }
 
-            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController.OwnerAddress, "no permission");
+            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
         }
 
-        private void InitializeDeveloperFeeController()
+        private DeveloperFeeController GetDefaultDeveloperFeeController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -291,37 +307,42 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
 
-            State.DeveloperFeeController.Value = new DeveloperFeeController
+            var developerFeeController = new DeveloperFeeController
             {
                 ParliamentController = new AuthorityInfo(),
                 DeveloperController = new AuthorityInfo(),
                 RootController = new AuthorityInfo()
             };
-            State.DeveloperFeeController.Value.ParliamentController.OwnerAddress =
+            developerFeeController.ParliamentController.OwnerAddress =
                 State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.DeveloperFeeController.Value.ParliamentController.ContractAddress = State.ParliamentContract.Value;
-            State.DeveloperFeeController.Value.DeveloperController.ContractAddress = State.AssociationContract.Value;
-            State.DeveloperFeeController.Value.DeveloperController.OwnerAddress = State.AssociationContract.CalculateOrganizationAddress.Call(GetDeveloperControllerCreateInput()
-                .OrganizationCreationInput);
-            State.DeveloperFeeController.Value.RootController.ContractAddress = State.AssociationContract.Value;
-            State.DeveloperFeeController.Value.RootController.OwnerAddress = State.AssociationContract.CalculateOrganizationAddress.Call(
-                GetAssociationControllerCreateInputForDeveloperFee()
-                    .OrganizationCreationInput);
-            CreateDeveloperController();
-            CreateAssociationControllerForDeveloperFee();
+            developerFeeController.ParliamentController.ContractAddress = State.ParliamentContract.Value;
+            developerFeeController.DeveloperController.ContractAddress = State.AssociationContract.Value;
+            developerFeeController.DeveloperController.OwnerAddress =
+                State.AssociationContract.CalculateOrganizationAddress.Call(
+                    GetDeveloperControllerCreateInput(developerFeeController.ParliamentController.OwnerAddress)
+                        .OrganizationCreationInput);
+            developerFeeController.RootController.ContractAddress = State.AssociationContract.Value;
+            developerFeeController.RootController.OwnerAddress =
+                State.AssociationContract.CalculateOrganizationAddress.Call(
+                    GetAssociationControllerCreateInputForDeveloperFee(
+                            developerFeeController.ParliamentController.OwnerAddress,
+                            developerFeeController.DeveloperController.OwnerAddress)
+                        .OrganizationCreationInput);
+            return developerFeeController;
         }
 
         private void AssertUserFeeController()
         {
-            if (State.UserFeeController.Value == null)
+            var controller = State.UserFeeController.Value;
+            if (controller == null)
             {
-                InitializeUserFeeController();
+                controller = GetDefaultUserFeeController();
             }
 
-            Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
+            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
         }
 
-        private void InitializeUserFeeController()
+        private UserFeeController GetDefaultUserFeeController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -340,30 +361,31 @@ namespace AElf.Contracts.MultiToken
                 State.ReferendumContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumContractSystemName);
             }
-            
-            State.UserFeeController.Value = new UserFeeController
+
+            var userFeeController = new UserFeeController
             {
                 RootController = new AuthorityInfo(),
                 ParliamentController = new AuthorityInfo(),
                 ReferendumController = new AuthorityInfo()
             };
-            State.UserFeeController.Value.ParliamentController.ContractAddress = State.ParliamentContract.Value;
-            State.UserFeeController.Value.ParliamentController.OwnerAddress =
+            userFeeController.ParliamentController.ContractAddress = State.ParliamentContract.Value;
+            userFeeController.ParliamentController.OwnerAddress =
                 State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
 
-            State.UserFeeController.Value.ReferendumController.ContractAddress = State.ReferendumContract.Value;
-            State.UserFeeController.Value.ReferendumController.OwnerAddress = State.ReferendumContract.CalculateOrganizationAddress.Call(
-                GetReferendumControllerCreateInputForUserFee()
+            userFeeController.ReferendumController.ContractAddress = State.ReferendumContract.Value;
+            userFeeController.ReferendumController.OwnerAddress =
+                State.ReferendumContract.CalculateOrganizationAddress.Call(
+                    GetReferendumControllerCreateInputForUserFee(userFeeController.ParliamentController.OwnerAddress)
+                        .OrganizationCreationInput);
+            userFeeController.RootController.ContractAddress = State.AssociationContract.Value;
+            userFeeController.RootController.OwnerAddress = State.AssociationContract.CalculateOrganizationAddress.Call(
+                GetAssociationControllerCreateInputForUserFee(userFeeController.ParliamentController.OwnerAddress,
+                        userFeeController.ReferendumController.OwnerAddress)
                     .OrganizationCreationInput);
-            State.UserFeeController.Value.RootController.ContractAddress = State.AssociationContract.Value;
-            State.UserFeeController.Value.RootController.OwnerAddress = State.AssociationContract.CalculateOrganizationAddress.Call(
-                GetAssociationControllerCreateInputForUserFee()
-                    .OrganizationCreationInput);
-            CreateReferendumControllerForUserFee();
-            CreateAssociationControllerForUserFee();
+            return userFeeController;
         }
 
-        private void InitializeSymbolToPayTxFeeController()
+        private AuthorityInfo GetDefaultSymbolToPayTxFeeController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -371,7 +393,7 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            State.SymbolToPayTxFeeController.Value = new AuthorityInfo
+            return new AuthorityInfo
             {
                 ContractAddress = State.ParliamentContract.Value,
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())

@@ -624,7 +624,7 @@ namespace AElf.Contracts.Economic.TestBase
             var connectorManagerAddress = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
-                OrganizationAddress = connectorManagerAddress,
+                OrganizationAddress = connectorManagerAddress.OwnerAddress,
                 ContractMethodName = nameof(TokenConverterContractStub.AddPairConnector),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = connector.ToByteString(),

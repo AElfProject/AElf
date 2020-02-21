@@ -542,12 +542,12 @@ namespace AElf.Contracts.Treasury
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                InitializeVoteWeightInterestController();
+                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
             Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
         }
 
-        private void InitializeVoteWeightInterestController()
+        private AuthorityInfo GetDefaultVoteWeightInterestController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -555,7 +555,7 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            State.VoteWeightInterestController.Value = new AuthorityInfo
+            return new AuthorityInfo
             {
                 ContractAddress = State.ParliamentContract.Value,
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
@@ -623,7 +623,7 @@ namespace AElf.Contracts.Treasury
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                InitializeVoteWeightInterestController();
+                return GetDefaultVoteWeightInterestController();
             }
             return State.VoteWeightInterestController.Value;
         }
