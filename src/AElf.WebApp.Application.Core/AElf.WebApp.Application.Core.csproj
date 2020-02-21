@@ -6,6 +6,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageId>AElf.WebApp.Application.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Web API core types.</Description>
     </PropertyGroup>
 
     <ItemGroup>
