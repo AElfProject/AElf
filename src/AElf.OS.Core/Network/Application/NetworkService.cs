@@ -268,7 +268,7 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
 
-        public async Task SendHealthChecksAsync()
+        public async Task CheckPeersHealthAsync()
         {
             foreach (var peer in _peerPool.GetPeers(true))
             {
@@ -276,7 +276,7 @@ namespace AElf.OS.Network.Application
                 
                 try
                 {
-                    await peer.CheckHealthAsync();
+                    await peer.PingAsync();
                 }
                 catch (NetworkException ex)
                 {
