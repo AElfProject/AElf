@@ -5,7 +5,8 @@
         <PackageId>AElf.Contracts.Treasury</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
-        <Description>Treasury is a contract used to manage the finances of the system.</Description>
+        <Description>Treasury is a contract used to manage the finances of the system (dividend pool for 
+            example).</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
