@@ -1,3 +1,4 @@
+using System;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -26,7 +27,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             return new BytesOutput
             {
-                BytesValue = ByteString.CopyFrom(State.BytesInfo.Value) 
+                BytesValue = ByteString.CopyFrom(State.BytesInfo.Value)
             };
         }
 
@@ -51,7 +52,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new StringOutput
             {
                 StringValue = State.StringInfo.Value
-            }; 
+            };
         }
 
         public override Complex1Output QueryComplex1State(Empty input)
@@ -99,24 +100,24 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new UInt64Output
             {
                 UInt64Value = State.UInt64Info.Value
-            }; 
+            };
         }
 
         public override ProtobufMessage QueryMappedState1(ProtobufInput input)
         {
             var result = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
-            if(result == null)
+            if (result == null)
                 return new ProtobufMessage();
 
             return result;
         }
-        
+
         public override TradeMessage QueryMappedState2(Complex3Input input)
         {
             var message = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
-            if(message == null)
+            if (message == null)
                 return new TradeMessage();
-            
+
             return new TradeMessage
             {
                 FromAmount = message.FromAmount,
@@ -128,21 +129,66 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override Int64Output QueryExternalMethod1(Address input)
         {
             var data = State.BasicFunctionContract.QueryUserWinMoney.Call(input);
-            
+
             return new Int64Output
             {
                 Int64Value = data.Int64Value
             };
         }
-        
+
         public override Int64Output QueryExternalMethod2(Address input)
         {
             var data = State.BasicFunctionContract.QueryUserLoseMoney.Call(input);
-            
+
             return new Int64Output
             {
                 Int64Value = data.Int64Value
             };
+        }
+
+        public override ResetOutput QueryFields(Empty input)
+        {
+            return new ResetOutput
+            {
+                Int32Value = _number,
+                Int64Value = _field1,
+                StringValue = _field2 ?? string.Empty,
+                BoolValue = _field3
+            };
+        }
+
+        public override ConstOutput QueryConst(Empty input)
+        {
+            return new ConstOutput
+            {
+                Int64Const = Number,
+                StringConst = String
+            };
+        }
+
+        public override ResetNestedOutput QueryNestedFields(Empty input)
+        {
+            _innerContractType = new InnerContractType();
+            return new ResetNestedOutput
+            {
+                Int32Value = _innerContractType.CheckNumberValue(),
+                StringValue = _innerContractType.CheckStaticValue() ?? string.Empty
+            };
+        }
+
+        public override BoolValue CheckNonContractTypesStaticFieldsReset(Empty input)
+        {
+            var res = InnerContractType.CheckAllStaticFieldsReset() 
+                      && BasicContractTestType.CheckAllStaticFieldsReset() 
+                      && BasicContractTestType.InnerTestType.CheckAllStaticFieldsReset();
+            return new BoolValue {Value = res};
+        }
+
+        public override BoolValue CheckFieldsAlreadyReset(Empty input)
+        {
+            var res = _field1 == 0 && _field2 == null && _field3 == false && _basicTestType == null &&
+                      _innerContractType == null;
+            return new BoolValue {Value = res};
         }
     }
 }

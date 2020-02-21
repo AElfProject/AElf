@@ -12,6 +12,8 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -31,6 +33,11 @@ namespace AElf.Contract.TestContract
 
         protected readonly Hash TestBasicSecurityContractSystemName =
             Hash.FromString("AElf.ContractNames.TestContract.BasicSecurity");
+
+        public TestContractTestBase()
+        {
+            PatchedCodes = GetPatchedCodes(ContractPatchedDllDir);
+        }
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -77,6 +84,10 @@ namespace AElf.Contract.TestContract
                 keyPair);
         }
 
+        private const string ContractPatchedDllDir = "../../../../patched/";
+        
+        private IReadOnlyDictionary<string, byte[]> PatchedCodes {get;}
+
         protected void InitializeTestContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
@@ -102,6 +113,44 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
         }
 
+        protected void InitializePatchedContracts()
+        {
+            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
+
+            //deploy test contract1
+            BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
+                    TestBasicFunctionContractSystemName,
+                    DefaultSenderKeyPair));
+            TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitialBasicFunctionContract());
+
+            //deploy test contract2
+            var basicSecurityContractCode = PatchedCodes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value;
+            BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    basicSecurityContractCode,
+                    TestBasicSecurityContractSystemName,
+                    DefaultSenderKeyPair));
+            TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitializeSecurityContract());
+
+            CheckCode(basicSecurityContractCode);
+        }
+        
+        
+        protected void CheckCode(byte[] code)
+        {
+            var auditor = new ContractAuditor(null, null);
+            auditor.Audit(code, new RequiredAcsDto
+            {
+                AcsList = new List<string>()
+            }, false);
+        }
+        
         private async Task InitialBasicFunctionContract()
         {
             await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(

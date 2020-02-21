@@ -58,6 +58,8 @@ namespace AElf.CSharp.CodeOps
     {
         private readonly ContractAuditorFixture _auditorFixture;
         private const string ContractDllDir = "../../../contracts/";
+        private const string ContractPatchedDllDir = "../../../../patched/";
+
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)
         {
@@ -292,7 +294,7 @@ namespace AElf.CSharp.CodeOps
 
         byte[] ReadPatchedContractCode(Type contractType)
         {
-            return ReadCode(ContractDllDir + contractType.Module + ".patched");
+            return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
         }
 
         void RemoveInstruction(MethodDefinition method, Func<Instruction, bool> where)
