@@ -4,6 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Domain
 {
+    //TODO: rename
     public class ReturnSetCollection
     {
         private List<ExecutionReturnSet> _executed = new List<ExecutionReturnSet>();
