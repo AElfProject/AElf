@@ -4,6 +4,8 @@
         <RootNamespace>AElf.Kernel</RootNamespace>
         <PackageId>AElf.Kernel.Types</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Basic (core) kernel and chain types.
+        </Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />

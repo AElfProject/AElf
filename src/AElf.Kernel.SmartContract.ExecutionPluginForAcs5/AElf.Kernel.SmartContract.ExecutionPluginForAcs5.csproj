@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs5</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>ACS 5 execution plugin.</Description>
     </PropertyGroup>
 
     <ItemGroup>

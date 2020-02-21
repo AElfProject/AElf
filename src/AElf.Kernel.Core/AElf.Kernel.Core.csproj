@@ -5,6 +5,7 @@
         <LangVersion>latest</LangVersion>
         <PackageId>AElf.Kernel.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Core Kernel types.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>

@@ -5,6 +5,7 @@
         <PackageId>AElf.Kernel.Consensus</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
+        <Description>Core consensus functionality.</Description>
     </PropertyGroup>
 
     <ItemGroup>

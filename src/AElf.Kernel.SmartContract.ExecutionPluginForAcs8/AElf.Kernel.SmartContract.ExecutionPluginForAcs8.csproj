@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs8</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>ACS 8 execution plugin.</Description>
     </PropertyGroup>
 
     <ItemGroup>
