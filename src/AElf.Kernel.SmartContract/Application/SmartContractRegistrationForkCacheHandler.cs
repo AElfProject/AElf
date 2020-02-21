@@ -4,6 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: remove
     public class SmartContractRegistrationForkCacheHandler: IForkCacheHandler, ITransientDependency
     {
         private readonly ISmartContractRegistrationService _smartContractRegistrationService;
