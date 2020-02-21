@@ -89,7 +89,7 @@ namespace AElf.OS.Worker
                 {
                     // down the stack the AddPeerAsync rethrows any exception,
                     // in order to continue this job, Exception has to be catched for now.
-                    Logger.LogWarning(ex, $"Could not re-connect to {peerEndpoint}.");
+                    Logger.LogInformation(ex, $"Could not re-connect to {peerEndpoint}.");
                 }
 
                 if (connected)

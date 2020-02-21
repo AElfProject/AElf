@@ -332,7 +332,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException ex)
             {
-                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
+                job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTime);
                 return;
             }
@@ -433,7 +433,7 @@ namespace AElf.OS.Network.Grpc
         
         public async Task ConfirmHandshakeAsync()
         {
-            var request = new GrpcRequest {ErrorMessage = "Error while sending confirm handshake."};
+            var request = new GrpcRequest {ErrorMessage = "Could not send confirm handshake."};
 
             Metadata data = new Metadata
             {
@@ -602,7 +602,7 @@ namespace AElf.OS.Network.Grpc
             // is stable.
             if (gracefulDisconnect && (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready))
             {
-                GrpcRequest request = new GrpcRequest {ErrorMessage = "Error while sending disconnect."};
+                GrpcRequest request = new GrpcRequest {ErrorMessage = "Could not send disconnect."};
 
                 try
                 {

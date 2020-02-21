@@ -190,7 +190,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogWarning(e, $"Transaction stream error - {context.GetPeerInfo()}: ");
+                Logger.LogError(e, $"Transaction stream error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
