@@ -5,6 +5,7 @@
         <PackageId>AElf.Contracts.Consensus.AEDPoS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>Consensus is a contract that implements AElf’s DPoS consensus protocol.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
