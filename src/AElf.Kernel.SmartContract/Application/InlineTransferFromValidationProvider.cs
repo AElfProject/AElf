@@ -20,6 +20,7 @@ namespace AElf.Kernel.SmartContract.Application
             if (transaction.To != tokenContractAddress || transaction.MethodName != "TransferFrom") return true;
             return new List<Address>
             {
+                //TODO: a smart contract package should not know these names
                 _smartContractAddressService.GetAddressByContractName(VoteSmartContractAddressNameProvider.Name),
                 _smartContractAddressService.GetAddressByContractName(ProfitSmartContractAddressNameProvider.Name),
                 _smartContractAddressService.GetAddressByContractName(AssociationSmartContractAddressNameProvider
