@@ -11,6 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: remove 
     public class DeployedContractAddressProvider: IDeployedContractAddressProvider, ISingletonDependency
     {
         private AddressList _addressList = new AddressList();

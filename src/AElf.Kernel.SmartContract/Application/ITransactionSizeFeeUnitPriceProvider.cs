@@ -9,10 +9,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: should not be here
     public interface ITransactionSizeFeeUnitPriceProvider
     {
         void SetUnitPrice(long unitPrice,BlockIndex blockIndex);
         Task<long> GetUnitPriceAsync(IChainContext chainContext);
+        
+        //TODO: remove fork logic
         void RemoveForkCache(List<BlockIndex> blockIndexes);
         void SetIrreversedCache(List<BlockIndex> blockIndexes);
     }
