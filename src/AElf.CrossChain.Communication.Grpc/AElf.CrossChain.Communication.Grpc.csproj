@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.CrossChain.Communication.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Grpc implementation of cross-chain communication functionality.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

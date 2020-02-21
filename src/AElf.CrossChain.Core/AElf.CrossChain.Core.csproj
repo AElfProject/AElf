@@ -4,6 +4,7 @@
         <PackageId>AElf.CrossChain.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.CrossChain</RootNamespace>
+        <Description>Core functionality for crosschain operations.</Description>
     </PropertyGroup>
 
     <ItemGroup>
