@@ -1,6 +1,5 @@
 <Project>
   <PropertyGroup>
-    <PackageIconUrl>https://aelf.io/assets/images/logo.jpg</PackageIconUrl>
     <PackageProjectUrl>https://aelf.io</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/AElfProject/AElf/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
