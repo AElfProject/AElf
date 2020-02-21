@@ -13,4 +13,35 @@ service TokenContractImpl {
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs2.proto";
     option (aelf.base) = "token_contract.proto";
+
+    rpc ChangeSideChainParliamentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){
+    }
+    rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){
+        option (aelf.is_view) = true;
+    }
+    rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
+        option (aelf.is_view) = true;
+    }
+    
+}
+message UserFeeController{
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo referendum_controller = 3;
+}
+
+message DeveloperFeeController {
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo developer_controller = 3;
 }

@@ -201,7 +201,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var createNewParliamentRet = await parliamentStub.CreateOrganization.SendAsync(newParliament);
             var newParliamentAddress = new Address();
             newParliamentAddress.MergeFrom(createNewParliamentRet.TransactionResult.ReturnValue);
-            
+            var authority = new Acs1.AuthorityInfo
+            {
+                ContractAddress = ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
+                OwnerAddress = newParliamentAddress
+            };
             var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             var parliamentOrgAddress = defaultOrganizationAddress;
             var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
@@ -230,8 +234,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
-                Params = newParliamentAddress.ToByteString(),
+                // ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainParliamentController),
+                Params = authority.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress
             };

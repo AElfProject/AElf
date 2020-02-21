@@ -39,11 +39,11 @@ namespace AElf.Contracts.MultiToken
         public BoolState Initialized { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
-        public SingletonState<Address> CrossChainTokenContractRegistrationController { get; set; }
-        public SingletonState<ControllerForUserFee> UserFeeController { get; set; }
-        public SingletonState<ControllerForDeveloperFee> DeveloperFeeController { get; set; }
-        public SingletonState<Address> SymbolToPayTxFeeController { get; set; }
-        public SingletonState<Address> SideRentalParliamentController { get; set; }
+        public SingletonState<AuthorityInfo> CrossChainTokenContractRegistrationController { get; set; }
+        public SingletonState<UserFeeController> UserFeeController { get; set; }
+        public SingletonState<DeveloperFeeController> DeveloperFeeController { get; set; }
+        public SingletonState<AuthorityInfo> SymbolToPayTxFeeController { get; set; }
+        public SingletonState<AuthorityInfo> SideRentalParliamentController { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.

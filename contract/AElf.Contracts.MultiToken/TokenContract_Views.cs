@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -145,31 +146,38 @@ namespace AElf.Contracts.MultiToken
             return State.SymbolListToPayTxSizeFee.Value;
         }
         
-        public override ControllerForUserFee GetUserFeeController(Empty input)
+        public override UserFeeController GetUserFeeController(Empty input)
         {
             if(State.UserFeeController.Value == null)
                 InitializeUserFeeController();
             return State.UserFeeController.Value;
         }
         
-        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
             if(State.DeveloperFeeController.Value == null)
                 InitializeDeveloperFeeController();
             return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerInfoForUpdateSideChainRental GetSideChainRentalController(Empty input)
+        public override SideChainRentalControllerInfo GetSideChainRentalControllerInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
             var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            var controllerInfo = new SideChainRentalControllerInfo
             {
                 Controller = controllerAddress,
                 OrganizationCreationInputBytes = organization.ToByteString()
             };
             return controllerInfo;
+        }
+
+        public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
+        {
+            if(State.SymbolToPayTxFeeController.Value == null)
+                InitializeSymbolToPayTxFeeController();
+            return State.SymbolToPayTxFeeController.Value;
         }
     }
 }

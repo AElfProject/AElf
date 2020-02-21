@@ -79,15 +79,9 @@ service TokenContract {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSideChainParliamentController (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
-    rpc ChangeSymbolsToPayTXSizeFeeController(aelf.Address) returns (google.protobuf.Empty){
-    }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeCrossChainTokenContractRegistrationController (aelf.Address) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -139,17 +133,7 @@ service TokenContract {
     rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
         option (aelf.is_view) = true;
     }
-    rpc GetUserFeeController(google.protobuf.Empty) returns (ControllerForUserFee){
-        option (aelf.is_view) = true;
-    }
-    rpc GetDeveloperFeeController(google.protobuf.Empty) returns (ControllerForDeveloperFee){
-        option (aelf.is_view) = true;
-    }
-    rpc GetSideChainRentalController(google.protobuf.Empty) returns (ControllerInfoForUpdateSideChainRental){
-        option (aelf.is_view) = true;
-    }
-
-    rpc GetCrossChainTokenContractRegistrationController(google.protobuf.Empty) returns (aelf.Address){
+    rpc GetSideChainRentalControllerInfo (google.protobuf.Empty) returns (SideChainRentalControllerInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -580,19 +564,7 @@ message ExtraTokenListModified {
     SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
-message ControllerForUserFee{
-    aelf.Address root_controller = 1;
-    aelf.Address parliament_controller = 2;
-    aelf.Address referendum_controller = 3;
-}
-
-message ControllerForDeveloperFee{
-    aelf.Address root_controller = 1;
-    aelf.Address parliament_controller = 2;
-    aelf.Address developer_controller = 3;
-}
-
-message ControllerInfoForUpdateSideChainRental{
+message SideChainRentalControllerInfo {
     aelf.Address controller = 1;
     bytes organization_creation_input_bytes = 2;
 }
