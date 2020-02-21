@@ -40,8 +40,7 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
             Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input.OwnerAddress);
-            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            Assert(CheckOrganizationExist(input), "new controller does not exist");
             State.SymbolToPayTxFeeController.Value = input;
             return new Empty();
         }
@@ -51,8 +50,7 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSideChainRental();
             Assert(input != null, "invalid input");
             Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input.OwnerAddress);
-            Assert(isNewControllerIsExist.Value, "new controller does not exist");
+            Assert(CheckOrganizationExist(input), "new controller does not exist");
             State.SideRentalParliamentController.Value = input;
             return new Empty();
         }
