@@ -5,6 +5,7 @@
         <RootNamespace>AElf</RootNamespace>
         <PackageId>AElf.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Core components of an AElf node (logging, task queue, ...)</Description>
     </PropertyGroup>
 
     <ItemGroup>

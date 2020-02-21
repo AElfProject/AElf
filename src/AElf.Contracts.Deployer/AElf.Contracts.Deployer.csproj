@@ -5,6 +5,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputType>Exe</OutputType>
+        <Description>Smart contract deployer.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>TRACE;UNIT_TEST</DefineConstants>

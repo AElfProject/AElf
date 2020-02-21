@@ -3,6 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Database</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Types and definitions of the data access layer.</Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />

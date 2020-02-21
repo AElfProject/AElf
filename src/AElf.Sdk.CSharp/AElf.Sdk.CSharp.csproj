@@ -5,6 +5,7 @@
         <PackageId>AElf.Sdk.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
+        <Description>Types for the C# smart contract SDK.</Description>
     </PropertyGroup>
 
     <ItemGroup>

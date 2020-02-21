@@ -3,6 +3,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackageId>AElf.Contracts.TestKit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Contract testing kit.</Description>
     </PropertyGroup>
 
     <PropertyGroup>

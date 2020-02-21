@@ -4,6 +4,7 @@
         <RootNamespace>AElf</RootNamespace>
         <PackageId>AElf.Types</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Basic types for AElf.</Description>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.11.4" />
