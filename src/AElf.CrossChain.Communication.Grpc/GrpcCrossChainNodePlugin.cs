@@ -1,16 +1,14 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Infrastructure;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    //TODO: rename to GrpcCrossChainNodePlugin
-    public class GrpcNodePlugin : INodePlugin
+    public class GrpcCrossChainNodePlugin : INodePlugin
     {
         private readonly IGrpcServePlugin _grpcServePlugin;
         private readonly IGrpcClientPlugin _grpcClientPlugin;
         
-        public GrpcNodePlugin(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
+        public GrpcCrossChainNodePlugin(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
         {
             _grpcClientPlugin = grpcClientPlugin;
             _grpcServePlugin = grpcServePlugin;
