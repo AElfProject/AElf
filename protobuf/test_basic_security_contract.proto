@@ -106,7 +106,10 @@ service BasicSecurityContract {
     rpc QueryNestedFields(google.protobuf.Empty) returns (ResetNestedOutput) {
              option (aelf.is_view) = true;
     }
-    rpc QueryOtherNestedFields(google.protobuf.Empty) returns (ResetOtherTypeNestedOutput) {
+    rpc CheckNonContractTypesStaticFieldsReset(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckFieldsAlreadyReset(google.protobuf.Empty) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
 }

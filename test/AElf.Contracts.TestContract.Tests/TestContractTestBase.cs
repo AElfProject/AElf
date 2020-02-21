@@ -12,6 +12,8 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -126,14 +128,27 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(async () => await InitialBasicFunctionContract());
 
             //deploy test contract2
+            var basicSecurityContractCode = PatchedCodes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value;
             BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    PatchedCodes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value,
+                    basicSecurityContractCode,
                     TestBasicSecurityContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
+
+            CheckCode(basicSecurityContractCode);
+        }
+        
+        
+        protected void CheckCode(byte[] code)
+        {
+            var auditor = new ContractAuditor(null, null);
+            auditor.Audit(code, new RequiredAcsDto
+            {
+                AcsList = new List<string>()
+            }, false);
         }
         
         private async Task InitialBasicFunctionContract()

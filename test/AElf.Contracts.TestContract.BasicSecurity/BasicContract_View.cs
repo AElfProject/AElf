@@ -27,7 +27,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             return new BytesOutput
             {
-                BytesValue = ByteString.CopyFrom(State.BytesInfo.Value) 
+                BytesValue = ByteString.CopyFrom(State.BytesInfo.Value)
             };
         }
 
@@ -52,7 +52,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new StringOutput
             {
                 StringValue = State.StringInfo.Value
-            }; 
+            };
         }
 
         public override Complex1Output QueryComplex1State(Empty input)
@@ -100,24 +100,24 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new UInt64Output
             {
                 UInt64Value = State.UInt64Info.Value
-            }; 
+            };
         }
 
         public override ProtobufMessage QueryMappedState1(ProtobufInput input)
         {
             var result = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
-            if(result == null)
+            if (result == null)
                 return new ProtobufMessage();
 
             return result;
         }
-        
+
         public override TradeMessage QueryMappedState2(Complex3Input input)
         {
             var message = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
-            if(message == null)
+            if (message == null)
                 return new TradeMessage();
-            
+
             return new TradeMessage
             {
                 FromAmount = message.FromAmount,
@@ -129,17 +129,17 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override Int64Output QueryExternalMethod1(Address input)
         {
             var data = State.BasicFunctionContract.QueryUserWinMoney.Call(input);
-            
+
             return new Int64Output
             {
                 Int64Value = data.Int64Value
             };
         }
-        
+
         public override Int64Output QueryExternalMethod2(Address input)
         {
             var data = State.BasicFunctionContract.QueryUserLoseMoney.Call(input);
-            
+
             return new Int64Output
             {
                 Int64Value = data.Int64Value
@@ -168,32 +168,27 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override ResetNestedOutput QueryNestedFields(Empty input)
         {
-            _test = new TestType();
+            _innerContractType = new InnerContractType();
             return new ResetNestedOutput
             {
-                Int32Value = _test.CheckNumberValue(),
-                StringValue = _test.CheckStaticValue() ?? string.Empty
+                Int32Value = _innerContractType.CheckNumberValue(),
+                StringValue = _innerContractType.CheckStaticValue() ?? string.Empty
             };
         }
 
-        public override ResetOtherTypeNestedOutput QueryOtherNestedFields(Empty input)
+        public override BoolValue CheckNonContractTypesStaticFieldsReset(Empty input)
         {
-            _basicTestType = new BasicContractTestType();
-            var func = _basicTestType.CheckFunc();
-            var s = string.Empty;
-            if (func!=null)
-            {
-                s = func.Invoke(String);
-            }
-            var testType = _basicTestType.CheckTypeValue();
-            return new ResetOtherTypeNestedOutput
-            {
-                TypeConst = testType.CheckConstNumberValue(),
-                TypeNumber = testType.CheckNumberValue(),
-                BasicTypeNumber = _basicTestType.CheckNumberValue(),
-                BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
-                StringValue = s
-            };
+            var res = InnerContractType.CheckAllStaticFieldsReset() 
+                      && BasicContractTestType.CheckAllStaticFieldsReset() 
+                      && BasicContractTestType.InnerTestType.CheckAllStaticFieldsReset();
+            return new BoolValue {Value = res};
+        }
+
+        public override BoolValue CheckFieldsAlreadyReset(Empty input)
+        {
+            var res = _field1 == 0 && _field2 == null && _field3 == false && _basicTestType == null &&
+                      _innerContractType == null;
+            return new BoolValue {Value = res};
         }
     }
 }

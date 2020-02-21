@@ -4,65 +4,87 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 {
     public class BasicContractTestType
     {
-        private int _number;
+        private int _number = 1;
         private static int _testTypeStaticNumber;
-        private static Func<string, string> _str;
-        private TestType _testType;
+        private static Func<string, string> _strFunc;
 
-        public BasicContractTestType()
-        {
-            _testType = new TestType();
-        }
+        private static InnerTestType _innerTypePrivateStaticField;
+        private static BasicContractTestType _basicContractTestTypePrivateStaticField;
+        public static BasicContractTestType BasicContractTestTypePublicStaticField;
+        
 
         public void SetBasicContractTestType(int number)
         {
             _number = number;
             _testTypeStaticNumber = number;
-            _str = s => s.ToLower();
-            _testType = new TestType(number);
+            _strFunc = s => s.ToLower();
+            _innerTypePrivateStaticField = new InnerTestType(number);
         }
-        
+
         public int CheckNumberValue()
         {
             return _number;
         }
-            
+
         public int CheckStaticNumberValue()
         {
             return _testTypeStaticNumber;
         }
-        
+
         public Func<string, string> CheckFunc()
         {
-            return _str;
-        }
-        
-        public TestType CheckTypeValue()
-        {
-            return _testType;
+            return _strFunc;
         }
 
-        public class TestType
+        public InnerTestType CheckTypeValue()
+        {
+            return _innerTypePrivateStaticField;
+        }
+
+        public void SetStaticField()
+        {
+            _basicContractTestTypePrivateStaticField = this;
+        }
+        
+        public static bool CheckAllStaticFieldsReset()
+        {
+            return _strFunc == null && _innerTypePrivateStaticField == null &&
+                   _basicContractTestTypePrivateStaticField == null &&
+                   BasicContractTestTypePublicStaticField == null;
+        }
+
+        public class InnerTestType
         {
             private readonly int _typeNumber;
             private const int TypeConstNumber = 1;
 
-            public TestType()
-            {
-            }
-            public TestType(int typeNumber)
+            private static InnerTestType _innerTestTypePrivateStaticField;
+            public static InnerTestType InnerTestTypePublicStaticField;
+            
+
+            public InnerTestType(int typeNumber)
             {
                 _typeNumber = typeNumber;
             }
-            
+
             public int CheckNumberValue()
             {
                 return _typeNumber;
             }
-            
+
             public int CheckConstNumberValue()
             {
                 return TypeConstNumber;
+            }
+            
+            public void SetStaticField()
+            {
+                _innerTestTypePrivateStaticField = this;
+            }
+            
+            public static bool CheckAllStaticFieldsReset()
+            {
+                return _innerTestTypePrivateStaticField == null && InnerTestTypePublicStaticField == null;
             }
         }
     }

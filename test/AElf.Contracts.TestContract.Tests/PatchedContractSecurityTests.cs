@@ -37,6 +37,9 @@ namespace AElf.Contract.TestContract
             fields.Int32Value.ShouldBe(0);
             fields.Int64Value.ShouldBe(0);
             fields.StringValue.ShouldBe(string.Empty);
+            
+            var allFieldReset = await TestBasicSecurityContractStub.CheckFieldsAlreadyReset.CallAsync(new Empty());
+            allFieldReset.Value.ShouldBeTrue();
         }
         
         [Fact]
@@ -53,6 +56,9 @@ namespace AElf.Contract.TestContract
             var fields = await TestBasicSecurityContractStub.QueryNestedFields.CallAsync(new Empty());
             fields.Int32Value.ShouldBe(0);
             fields.StringValue.ShouldBe(string.Empty);
+            
+            var allFieldReset = await TestBasicSecurityContractStub.CheckFieldsAlreadyReset.CallAsync(new Empty());
+            allFieldReset.Value.ShouldBeTrue();
         }
         
         [Fact]
@@ -69,13 +75,13 @@ namespace AElf.Contract.TestContract
             result.Output.BasicTypeStaticNumber.ShouldBe(100);
             result.Output.TypeConst.ShouldBe(1);
             result.Output.TypeNumber.ShouldBe(100);
-
-            var fields = await TestBasicSecurityContractStub.QueryOtherNestedFields.CallAsync(new Empty());
-            fields.StringValue.ShouldBe(string.Empty);
-            fields.BasicTypeNumber.ShouldBe(0);
-            fields.BasicTypeStaticNumber.ShouldBe(0);
-            fields.TypeConst.ShouldBe(1);
-            fields.TypeNumber.ShouldBe(0);
+            
+            
+            var allFieldReset = await TestBasicSecurityContractStub.CheckFieldsAlreadyReset.CallAsync(new Empty());
+            allFieldReset.Value.ShouldBeTrue();
+            
+            var allStaticFieldsReset = await TestBasicSecurityContractStub.CheckNonContractTypesStaticFieldsReset.CallAsync(new Empty());
+            allStaticFieldsReset.Value.ShouldBeTrue();
         }
     }
 }
