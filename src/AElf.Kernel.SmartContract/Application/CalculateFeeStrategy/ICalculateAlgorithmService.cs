@@ -4,6 +4,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ICalculateAlgorithmService
     {
+        //TODO: service should not expose a Context as a property
         ICalculateAlgorithmContext CalculateAlgorithmContext { get; }
         void AddAlgorithmByBlock(BlockIndex blockIndex, IList<ICalculateWay> funcList);
         

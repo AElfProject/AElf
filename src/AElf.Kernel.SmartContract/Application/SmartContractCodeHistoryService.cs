@@ -6,12 +6,14 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: should remove this service, we do not need history code, any new smart contract should deal with it old data
     public interface ISmartContractCodeHistoryService
     {
         Task<SmartContractCodeHistory> GetSmartContractCodeHistoryAsync(Address address);
         Task AddSmartContractCodeAsync(Address address, Hash codeHash, BlockIndex blockIndex);
         Task RemoveAsync(List<BlockIndex> blockIndexes);
     }
+    
     
     public class SmartContractCodeHistoryService : ISmartContractCodeHistoryService, ITransientDependency
     {

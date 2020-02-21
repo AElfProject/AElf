@@ -49,7 +49,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     MethodName = nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
+                    //TODO: make a Util to get Block Prefix
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                    //TODO: new Empty() => Empty.Instance, or a constant
                     Params = new Empty().ToByteString()
                 }
             });
