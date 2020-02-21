@@ -1,9 +1,8 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using Acs1;
 using Acs3;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -104,12 +103,11 @@ namespace AElf.Contracts.Parliament
             var minimalVoteThreshold = 8000;
             var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
-            var transferInput = new TransferInput()
+            var transferInput = new TransferInput
             {
                 Symbol = "ELF",
                 Amount = 100,
-                To = Tester,
-                Memo = "Transfer"
+                To = Tester
             };
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var getProposal = await ParliamentContractStub.GetProposal.SendAsync(proposalId);
@@ -119,7 +117,37 @@ namespace AElf.Contracts.Parliament
             getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+            
+            var transferParam = TransferInput.Parser.ParseFrom(getProposal.Output.Params);
+            transferParam.Symbol.ShouldBe(transferInput.Symbol);
+            transferParam.Amount.ShouldBe(transferInput.Amount);
+            transferParam.To.ShouldBe(transferInput.To);
+        }
+
+        [Fact]
+        public async Task ApproveMultiProposals_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var proposalId1 = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            var proposalId2 = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var transactionResult =
+                await ParliamentContractStub.ApproveMultiProposals.SendAsync(new ProposalIdList
+                {
+                    ProposalIds = {proposalId1, proposalId2}
+                });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposal1 = await ParliamentContractStub.GetProposal.CallAsync(proposalId1);
+            proposal1.ApprovalCount.ShouldBe(1);
+            var proposal2 = await ParliamentContractStub.GetProposal.CallAsync(proposalId1);
+            proposal2.ApprovalCount.ShouldBe(1);
         }
 
         [Fact]
@@ -753,7 +781,7 @@ namespace AElf.Contracts.Parliament
                 Symbol = "ELF",
                 Amount = 100,
                 To = Tester,
-                Memo = "Transfer"
+                Memo = Guid.NewGuid().ToString() //In order to generate different proposal
             };
             var createProposalInput = new CreateProposalInput
             {
