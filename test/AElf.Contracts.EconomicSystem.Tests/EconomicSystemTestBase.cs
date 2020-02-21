@@ -1,3 +1,4 @@
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
@@ -9,6 +10,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
@@ -40,6 +42,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
         
         internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub =>
             GetTokenContractImplTester(BootMinerKeyPair);
+
+        internal TokenHolderContractContainer.TokenHolderContractStub TokenHolderStub =>
+            GetTokenHolderTester(BootMinerKeyPair);
         
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub =>
             GetTokenConverterContractTester(BootMinerKeyPair);
@@ -54,6 +59,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub =>
             GetAEDPoSContractTester(BootMinerKeyPair);
+
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AedPoSContractImplStub =>
+            GetAEDPoSImplContractTester(BootMinerKeyPair);
 
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
@@ -70,10 +78,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
 
-        /*
-        internal ConfigurationContainer.ConfigurationContractStub ConfigurationContractStub =>
+        internal ConfigurationContainer.ConfigurationStub ConfigurationContractStub =>
             GetConfigurationContractTester(BootMinerKeyPair);
-        */
+        
         internal BasicContractZeroContainer.BasicContractZeroStub GetBasicContractTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
@@ -87,6 +94,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TokenContractImplContainer.TokenContractImplStub GetTokenContractImplTester(ECKeyPair keyPair)
         {
             return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
+        }
+
+        internal TokenHolderContractContainer.TokenHolderContractStub GetTokenHolderTester(ECKeyPair keyPair)
+        {
+            return GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress, keyPair);
         }
         
         internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
@@ -114,6 +126,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
+        }
+
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSImplContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractTester(ECKeyPair keyPair)
@@ -148,11 +165,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
-        /*
-        internal ConfigurationContainer.ConfigurationContractStub GetConfigurationContractTester(ECKeyPair keyPair)
+        
+        internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ConfigurationContainer.ConfigurationContractStub>(ConfigurationContractAddress, keyPair);
+            return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
         }
-        */
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
@@ -97,6 +98,10 @@ namespace AElf.Contracts.Economic.TestBase
         protected Address TokenHolderContractAddress =>
             GetOrDeployContract(Contracts.TokenHolder, ref _tokenHolderAddress);
 
+        private Address _configurationAddress;
+        protected Address ConfigurationAddress =>
+            GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
+
         #endregion
 
         #region Contract Stub
@@ -136,6 +141,8 @@ namespace AElf.Contracts.Economic.TestBase
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
 
+        internal ConfigurationContainer.ConfigurationStub ConfigurationStub =>
+            GetConfigurationContractTester(BootMinerKeyPair);
         #endregion
 
         #region Get Contract Stub Tester
@@ -208,6 +215,11 @@ namespace AElf.Contracts.Economic.TestBase
         internal EconomicContractContainer.EconomicContractStub GetEconomicContractTester(ECKeyPair keyPair)
         {
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
+        }
+
+        internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
         }
 
         #endregion
