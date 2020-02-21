@@ -56,6 +56,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
         <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.TransactionFeeCharging\AElf.Contracts.TestContract.TransactionFeeCharging.csproj">
@@ -112,6 +117,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf/Proto/configuration_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
