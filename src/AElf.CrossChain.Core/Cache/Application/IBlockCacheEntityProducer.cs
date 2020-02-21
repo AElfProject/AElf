@@ -24,14 +24,16 @@ namespace AElf.CrossChain.Cache.Application
         {
             if (blockCacheEntity == null)
                 throw new ArgumentNullException(nameof(blockCacheEntity));
-            _crossChainCacheEntityProvider.TryGetChainCacheEntity(blockCacheEntity.ChainId, out var chainCacheEntity);
+            if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(blockCacheEntity.ChainId, out var chainCacheEntity))
+            {
+                return false;
+            }
 
-            var res = chainCacheEntity?.TryAdd(blockCacheEntity);
-            if (res == null) return false;
+            var res = chainCacheEntity.TryAdd(blockCacheEntity);
 
             Logger.LogTrace(
                 $"Cached height {blockCacheEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(blockCacheEntity.ChainId)}, {res}");
-            return res.Value;
+            return res;
         }
     }
 }
