@@ -24,6 +24,17 @@ namespace AElf.Contracts.Parliament
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized to propose.").ShouldBeTrue();
+            
+            //verify with view method
+            var byteString = await otherTester.CallContractMethodAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateProposerInWhiteList),
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = Address.FromPublicKey(ecKeyPair.PublicKey)
+                });
+            var verifyResult = BoolValue.Parser.ParseFrom(byteString);
+            verifyResult.Value.ShouldBeFalse();
         }
 
         [Fact]
