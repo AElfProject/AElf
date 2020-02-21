@@ -356,10 +356,20 @@ namespace AElf.Contracts.Election
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
 
+            
             // Withdraw
             {
                 var executionResult = await WithdrawVotes(voterKeyPair, voteId);
                 executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            //check candidate records
+            {
+                var candidateVote = await ElectionContractStub.GetCandidateVoteWithAllRecords.CallAsync(new StringValue
+                {
+                    Value = candidateKeyPair.PublicKey.ToHex()
+                });
+                candidateVote.ObtainedWithdrawnVotesRecords.Select(o=>o.VoteId).ShouldContain(voteId);
             }
 
             // Profit

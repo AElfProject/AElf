@@ -164,7 +164,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             result.TransactionResult.Error.ShouldContain("Can't take back that more.");
         }
 
-        [Fact(Skip = "Wait query api to verify")]
+        [Fact]
         public async Task SetControllerForManageConnector_Test()
         {
             var createOrganizationResult = await ParliamentContractStub.CreateOrganization.SendAsync(

@@ -322,6 +322,12 @@ namespace AElf.Contracts.TokenConverter
         {
             AssertControllerForManageConnector();
             Assert(input != null, "invalid input");
+            
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
             var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
             Assert(isNewControllerIsExist.Value, "new controller does not exist");
             State.ControllerForManageConnector.Value = input;
