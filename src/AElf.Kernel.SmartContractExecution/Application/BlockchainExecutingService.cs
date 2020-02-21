@@ -14,6 +14,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
     {
+        //TODO: should only use IBlockchainService
         private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
@@ -111,6 +112,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {
+            //TODO: split the logic of getting blocks to execute, and the logic of executing blocks, and the logic of mark blocks executed
+            //only keep the logic of executing blocks here
+
             if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
                 Logger.LogDebug( $"Try to attach to chain but the status is {status}.");
