@@ -32,8 +32,8 @@ namespace AElf.Blockchains.SideChain
                             TotalSupply = nativeTokenInfo.TotalSupply,
                             IsProfitable = nativeTokenInfo.IsProfitable
                         },
-                    ResourceTokenList = resourceTokenList,
-                    ChainPrimaryToken = chainPrimaryTokenInfo
+                    ResourceTokenList = GenerateInitialResourceTokenInfoList(resourceTokenList),
+                    ChainPrimaryToken = GenerateInitialChainPrimaryTokenInfo(chainPrimaryTokenInfo)
                 });
 
             foreach (var issueStuff in chainInitializationData.SideChainTokenInitialIssueList)
@@ -61,6 +61,44 @@ namespace AElf.Blockchains.SideChain
                 chainInitializationData.Creator);
 
             return tokenInitializationCallList;
+        }
+
+        private TokenInfo GenerateInitialChainPrimaryTokenInfo(TokenInfo tokenInfo)
+        {
+            return new TokenInfo
+            {
+                Decimals = tokenInfo.Decimals,
+                IssueChainId = tokenInfo.IssueChainId,
+                Issuer = tokenInfo.Issuer,
+                IsBurnable = tokenInfo.IsBurnable,
+                Symbol = tokenInfo.Symbol,
+                TokenName = tokenInfo.TokenName,
+                TotalSupply = tokenInfo.TotalSupply,
+                IsProfitable = tokenInfo.IsProfitable
+            };
+        }
+
+        private TokenInfoList GenerateInitialResourceTokenInfoList(TokenInfoList tokenInfoList)
+        {
+            var resourceTokenInfoList = new TokenInfoList();
+            foreach (var resourceToken in tokenInfoList.Value)
+            {
+                // make sure it is consistent with old data 
+                resourceTokenInfoList.Value.Add(new TokenInfo
+                {
+                    Decimals = resourceToken.Decimals,
+                    IssueChainId = resourceToken.IssueChainId,
+                    Issuer = resourceToken.Issuer,
+                    IsBurnable = resourceToken.IsBurnable,
+                    Symbol = resourceToken.Symbol,
+                    TokenName = resourceToken.TokenName,
+                    Supply = resourceToken.TotalSupply,
+                    TotalSupply = resourceToken.TotalSupply,
+                    IsProfitable = resourceToken.IsProfitable
+                });
+            }
+
+            return resourceTokenInfoList;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 700;
-        private const int HealthCheckTimeout = 3000;
+        private const int PingTimeout = 1000;
         private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
@@ -36,7 +36,8 @@ namespace AElf.OS.Network.Grpc
         private const int BlockCacheMaxItems = 1024;
         private const int TransactionCacheMaxItems = 10_000;
 
-        private const int QueuedItemTimeout = 10_000;
+        private const int QueuedTransactionTimeout = 10_000;
+        private const int QueuedBlockTimeout = 100;
 
         private enum MetricNames
         {
@@ -99,8 +100,8 @@ namespace AElf.OS.Network.Grpc
 
         public PeerConnectionInfo Info { get; }
 
-        private BoundedExpirationCache _knownTransactionCache;
-        private BoundedExpirationCache _knownBlockCache;
+        private readonly BoundedExpirationCache _knownTransactionCache;
+        private readonly BoundedExpirationCache _knownBlockCache;
 
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
@@ -122,8 +123,8 @@ namespace AElf.OS.Network.Grpc
             RemoteEndpoint = remoteEndpoint;
             Info = peerConnectionInfo;
             
-            _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedItemTimeout);
-            _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedItemTimeout);
+            _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedTransactionTimeout);
+            _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedBlockTimeout);
 
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
@@ -203,17 +204,17 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = libAnnouncement.LibHeight;
         }
 
-        public async Task CheckHealthAsync()
+        public async Task PingAsync()
         {
-            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Health check failed." };
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Ping failed." };
 
             Metadata data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, HealthCheckTimeout.ToString() },
+                { GrpcConstants.TimeoutMetadataKey, PingTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
 
-            await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
+            await RequestAsync(() => _client.PingAsync(new PingRequest(), data), request);
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)

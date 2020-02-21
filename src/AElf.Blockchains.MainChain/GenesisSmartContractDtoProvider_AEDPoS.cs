@@ -18,6 +18,8 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
+                //TODO!! maybe we should use a util method to get the name, such as GetCodeByName(_codes,"Consensus.AEDPoS")
+                //apply this to other provider method
                 _codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());

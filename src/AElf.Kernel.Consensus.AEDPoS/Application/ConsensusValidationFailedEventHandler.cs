@@ -31,6 +31,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             var pubkey = await _accountService.GetPublicKeyAsync();
             var allowReTriggerMessage = $"Time slot already passed before execution.{pubkey.ToHex()}";
+            //TODO!! should not compare error message string
             if (eventData.ValidationResultMessage == allowReTriggerMessage)
             {
                 Logger.LogTrace($"Re-trigger consensus because validation failed.");

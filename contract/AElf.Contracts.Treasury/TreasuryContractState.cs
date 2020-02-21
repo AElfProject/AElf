@@ -25,5 +25,8 @@ namespace AElf.Contracts.Treasury
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+        
+        public SingletonState<VoteWeightInterestList> VoteWeightInterestList { get; set; }
+        public SingletonState<Address> ControllerForManageVoteWeightInterest { get; set; }
     }
 }

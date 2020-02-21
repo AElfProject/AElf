@@ -24,6 +24,17 @@ namespace AElf.Contracts.Parliament
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized to propose.").ShouldBeTrue();
+            
+            //verify with view method
+            var byteString = await otherTester.CallContractMethodAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateProposerInWhiteList),
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = Address.FromPublicKey(ecKeyPair.PublicKey)
+                });
+            var verifyResult = BoolValue.Parser.ParseFrom(byteString);
+            verifyResult.Value.ShouldBeFalse();
         }
 
         [Fact]
@@ -75,8 +86,8 @@ namespace AElf.Contracts.Parliament
         {
             var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
-            var proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteList), new Empty());
+            var proposers = ProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
 
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeTrue();
@@ -111,8 +122,8 @@ namespace AElf.Contracts.Parliament
             releaseResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteListContext), new Empty());
-            proposers = GetProposerWhiteListContextOutput.Parser.ParseFrom(result.ReturnValue).Proposers;
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteList), new Empty());
+            proposers = ProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
