@@ -13,7 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Nethereum.KeyStore" Version="3.5.0" />
-      <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="1.1.2" />
+      <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="2.1.1" />
     </ItemGroup>
 
 </Project>
