@@ -82,7 +82,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 _innerTestTypePrivateStaticField = this;
             }
             
-            public static bool CheckAllStaticFieldsReset()
+            public static bool CheckInnerTypeStaticFieldsReset()
             {
                 return _innerTestTypePrivateStaticField == null && InnerTestTypePublicStaticField == null;
             }

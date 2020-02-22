@@ -1,4 +1,3 @@
-using System;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -180,7 +179,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             var res = InnerContractType.CheckAllStaticFieldsReset() 
                       && BasicContractTestType.CheckAllStaticFieldsReset() 
-                      && BasicContractTestType.InnerTestType.CheckAllStaticFieldsReset();
+                      && BasicContractTestType.InnerTestType.CheckInnerTypeStaticFieldsReset();
             return new BoolValue {Value = res};
         }
 

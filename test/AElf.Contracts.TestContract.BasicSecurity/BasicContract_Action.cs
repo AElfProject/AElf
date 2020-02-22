@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private bool _field3;
         private BasicContractTestType _basicTestType;
         private InnerContractType _innerContractType;
-        
+
         public static InnerContractType _innerContractTypeStaticField;
 
         public override Empty InitialBasicSecurityContract(Address input)
@@ -196,10 +196,10 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override ResetNestedOutput TestResetNestedFields(ResetNestedInput input)
         {
             _innerContractType = new InnerContractType();
-            _innerContractType.SetValue(input.Int32Value,input.StringValue);
+            _innerContractType.SetValue(input.Int32Value, input.StringValue);
             var number = _innerContractType.CheckNumberValue();
             var staticString = _innerContractType.CheckStaticValue();
-            
+
             return new ResetNestedOutput
             {
                 Int32Value = number,
@@ -215,16 +215,16 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             var testType = _basicTestType.CheckTypeValue();
             _basicTestType.SetStaticField();
             BasicContractTestType.BasicContractTestTypePublicStaticField = new BasicContractTestType();
-            
+
             var innerTestTypeObj = new BasicContractTestType.InnerTestType(1);
             innerTestTypeObj.SetStaticField();
             BasicContractTestType.InnerTestType.InnerTestTypePublicStaticField =
                 new BasicContractTestType.InnerTestType(2);
-            
+
             var innerContractTypeObj = new InnerContractType();
             innerContractTypeObj.SetStaticField();
             InnerContractType.InnerContractTypePublicStaticField = new InnerContractType();
-            
+
             return new ResetOtherTypeNestedOutput
             {
                 TypeConst = testType.CheckConstNumberValue(),
@@ -239,12 +239,11 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             private int _testTypeNumber;
             private static string _testTypeString;
-            
-            private readonly InnerContractType _innerContractTypeField;
-            private static InnerContractType InnerContractTypePrivateStaticField;
+
+            private static InnerContractType _innerContractTypePrivateStaticField;
             public static InnerContractType InnerContractTypePublicStaticField;
 
-            public void SetValue(int number,string s)
+            public void SetValue(int number, string s)
             {
                 _testTypeNumber = number;
                 _testTypeString = s;
@@ -262,12 +261,12 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
             public void SetStaticField()
             {
-                InnerContractTypePrivateStaticField = this;
+                _innerContractTypePrivateStaticField = this;
             }
-            
+
             public static bool CheckAllStaticFieldsReset()
             {
-                return _testTypeString == null && InnerContractTypePrivateStaticField == null &&
+                return _testTypeString == null && _innerContractTypePrivateStaticField == null &&
                        InnerContractTypePublicStaticField == null;
             }
         }
