@@ -3,12 +3,12 @@
 ## Project Properties
 - It is required to add `IsContract` property in your contract project, so that the contract's DLL will be post processed by AElf's contract patcher to perform necessary injections that are required by code checks during deployment. Otherwise, deployment will fail.
 
-```diff
+```xml
 <PropertyGroup>
   <TargetFramework>netstandard2.0</TargetFramework>
   <RootNamespace>AElf.Contracts.MyContract</RootNamespace>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-+  <IsContract>true</IsContract>
+  <IsContract>true</IsContract>
 </PropertyGroup>
 ```
 
