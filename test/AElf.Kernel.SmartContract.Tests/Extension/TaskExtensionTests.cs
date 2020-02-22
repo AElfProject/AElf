@@ -111,11 +111,14 @@ namespace AElf.Kernel.SmartContract.Extension
         private async Task CounterAsync(int times, int waitingPeriodMilliSecond)
         {
             Counter = 0;
-            while (Counter < times)
+            var counter = 0;
+            while (counter < times)
             {
                 await Task.Delay(waitingPeriodMilliSecond);
-                Counter++;
+                counter++;
             }
+
+            Counter = counter;
         }
     }
 }
