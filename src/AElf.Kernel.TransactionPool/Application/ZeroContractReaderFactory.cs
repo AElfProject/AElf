@@ -3,6 +3,8 @@ using AElf.Contracts.Genesis;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: base class
+
     internal interface IZeroContractReaderFactory
     {
         BasicContractZeroContainer.BasicContractZeroStub Create(IChainContext chainContext);

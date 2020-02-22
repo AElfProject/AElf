@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
         void SetCodeRemark(Address address, CodeRemark codeRemark);
         void AddCodeRemark(Address address, CodeRemark codeRemark);
 
+        //TODO: no fork
         Dictionary<Address,List<CodeRemark>> RemoveForkCache(List<BlockIndex> blockIndexes);
         Dictionary<Address,CodeRemark> SetIrreversedCache(List<BlockIndex> blockIndexes);
     }

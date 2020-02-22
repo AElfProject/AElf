@@ -23,6 +23,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            //TODO: change strategy implement
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
             ICalculateStorageCostStrategy storageCostStrategy,

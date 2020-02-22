@@ -31,6 +31,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 return Task.FromResult(true);
             }
 
+            //TODO: should not know token
             var txsGeneratedByPlugins = new List<string>
             {
                 nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
