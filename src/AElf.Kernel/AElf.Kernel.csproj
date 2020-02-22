@@ -5,6 +5,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Main kernel module for building the kernel.</Description>
     </PropertyGroup>
 
     <ItemGroup>

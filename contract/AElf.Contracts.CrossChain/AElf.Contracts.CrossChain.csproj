@@ -5,6 +5,8 @@
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>CrossChain is a contract that implements cross-chain related features, especially 
+            indexing.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>

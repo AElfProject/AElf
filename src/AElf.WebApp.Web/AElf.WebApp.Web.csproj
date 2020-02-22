@@ -5,6 +5,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackageId>AElf.WebApp.Web</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Main module for the node's Web API.</Description>
     </PropertyGroup>
 
     <ItemGroup>

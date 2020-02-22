@@ -6,6 +6,7 @@
         <PackageId>AElf.Contracts.Profit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>Profit is a contract that enables the creation of schemes for profit distribution.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

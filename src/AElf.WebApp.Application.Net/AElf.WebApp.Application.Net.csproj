@@ -7,6 +7,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageId>AElf.WebApp.Application.Net</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Web API service for the network layer.</Description>
     </PropertyGroup>
 
     <ItemGroup>

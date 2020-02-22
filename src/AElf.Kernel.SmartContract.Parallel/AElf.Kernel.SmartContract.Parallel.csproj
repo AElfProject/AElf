@@ -5,6 +5,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.Parallel</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Service module for parallel execution.</Description>
     </PropertyGroup>
 
     <ItemGroup>

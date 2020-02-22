@@ -6,6 +6,7 @@
         <PackageId>AElf.Contracts.Election</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>Election is a contract that implements voting.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

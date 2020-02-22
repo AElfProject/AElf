@@ -6,6 +6,7 @@
         <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <PackageId>AElf.Runtime.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Primitives for the C# smart contracts runtime.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
