@@ -66,13 +66,30 @@ Nodes checks new contract code against below whitelist and if there is a usage o
 | `AssemblyTitleAttribute` | ALL | Allowed |
 
 ## Other Whitelisted Namespaces
-| Namespace | Type | Member |
-| --- | --- | --- |
-| `System.Linq` | ALL | ALL |
-| `System.Collections` | ALL | ALL |
-| `System.Collections.Generic` | ALL | ALL |
-| `System.Collections.ObjectModel` | ALL | ALL |
-| `System.Globalization` | `CultureInfo` | `InvariantCulture` |
-| `System.Runtime.CompilerServices` | `RuntimeHelpers` | `InitializeArray` |
-| `System.Text` | `Encoding` | `UTF8`, `GetByteCount` |
+| Namespace | Type | Member | Allowed |
+| --- | --- | --- | --- |
+| `System.Linq` | ALL | ALL | Allowed |
+| `System.Collections` | ALL | ALL | Allowed |
+| `System.Collections.Generic` | ALL | ALL | Allowed |
+| `System.Collections.ObjectModel` | ALL | ALL | Allowed |
+| `System.Globalization` | `CultureInfo` | `InvariantCulture` | Allowed |
+| `System.Runtime.CompilerServices` | `RuntimeHelpers` | `InitializeArray` | Allowed |
+| `System.Text` | `Encoding` | `UTF8`, `GetByteCount` | Allowed |
 
+## Allowed Types for Arrays
+| Type | Size Limit | Threshold |
+| --- | --- | --- |
+| byte | By Size | 4 Mb |
+| short | By Size | 4 Mb |
+| int | By Size | 4 Mb |
+| long | By Size | 4 Mb |
+| ushort | By Size | 4 Mb |
+| uint | By Size | 4 Mb |
+| ulong | By Size | 4 Mb |
+| decimal | By Size | 4 Mb |
+| char | By Size | 4 Mb |
+| string | By Size | 128 |
+| Type | By Size | 5 |
+| Object | By Size | 5 |
+| FileDescriptor | By Count | 10 |
+| GeneratedClrTypeInfo | By Count | 100 |
