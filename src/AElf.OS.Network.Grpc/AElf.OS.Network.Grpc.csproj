@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,8 +9,8 @@
 
     <ItemGroup>
       <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5" />
-      <PackageReference Include="Grpc" Version="1.21.0" />
-      <PackageReference Include="Grpc.Tools" Version="1.21.0" />
+      <PackageReference Include="Grpc" Version="2.27.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.27.0" />
       <PackageReference Include="GuerrillaNtp" Version="1.4.2" />
       <PackageReference Include="Volo.Abp.EventBus" Version="1.1.2" />
     </ItemGroup>

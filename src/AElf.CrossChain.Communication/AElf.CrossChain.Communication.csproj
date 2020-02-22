@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,7 +13,7 @@
       <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Grpc" Version="1.19.0" />
-        <PackageReference Include="Grpc.Tools" Version="1.19.0" />
+        <PackageReference Include="Grpc" Version="2.27.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.27.0" />
     </ItemGroup>
 </Project>

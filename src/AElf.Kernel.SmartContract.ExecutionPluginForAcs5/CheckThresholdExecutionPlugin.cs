@@ -25,7 +25,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
         private static bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
+            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
