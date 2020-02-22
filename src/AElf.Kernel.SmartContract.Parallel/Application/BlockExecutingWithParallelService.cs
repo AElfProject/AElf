@@ -6,8 +6,10 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 
+//TODO: namespace
 namespace AElf.Kernel.SmartContract.Parallel
 {
+    //TODO: rename BlockParallelExecutingService
     public class BlockExecutingWithParallelService: BlockExecutingService
     {
         public BlockExecutingWithParallelService(ILocalParallelTransactionExecutingService executingService,
