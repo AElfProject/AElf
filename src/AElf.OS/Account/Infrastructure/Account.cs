@@ -5,6 +5,8 @@ namespace AElf.OS.Account.Infrastructure
 {
     public class Account
     {
+        
+        //TODO: implement is very strange.
         // Close account when time out 
         public Timer LockTimer { private get; set; }
         

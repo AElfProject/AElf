@@ -8,6 +8,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: rename NotAllow
     internal class NotAllowEnterTxHubValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;

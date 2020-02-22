@@ -10,6 +10,7 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+//TODO: should not implement here
 
 namespace AElf.Kernel.TransactionPool.Application
 {

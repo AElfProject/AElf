@@ -1,9 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs1</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>ACS 1 execution plugin.</Description>
     </PropertyGroup>
 
     <ItemGroup>

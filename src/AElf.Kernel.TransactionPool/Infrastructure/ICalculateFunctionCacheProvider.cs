@@ -5,6 +5,7 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
+    //TODO: no fork, not here
     public interface ICalculateFunctionCacheProvider
     {
         Dictionary<int, ICalculateWay> GetPieceWiseFunctionFromNormalCache();
