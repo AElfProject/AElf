@@ -27,7 +27,7 @@ namespace AElf.Contracts.MultiToken
         private async Task InitializeTokenContract()
         {
             var initResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Initialize), new InitializeInput());
+                nameof(TokenContractImplContainer.TokenContractImplStub.Initialize), new InitializeInput());
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -35,7 +35,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Controller_Transfer_For_Symbol_To_Pay_Tx_Fee()
         {
             var primaryTokenRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetPrimaryTokenSymbol), new Empty());
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetPrimaryTokenSymbol), new Empty());
             var primarySymbol = new StringValue();
             primarySymbol.MergeFrom(primaryTokenRet.ReturnValue);
             var newSymbolList = new SymbolListToPayTXSizeFee();
@@ -47,7 +47,7 @@ namespace AElf.Contracts.MultiToken
             });
 
             var symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee), newSymbolList);
+                nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTXSizeFee), newSymbolList);
             symbolSetRet.Status.ShouldBe(TransactionResultStatus.Failed);
 
 
@@ -101,7 +101,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = newSymbolList.ToByteString(),
                 OrganizationAddress = newParliamentAddress,
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSymbolsToPayTXSizeFee),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTXSizeFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var updateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -115,7 +115,7 @@ namespace AElf.Contracts.MultiToken
                 nameof(ParliamentContractContainer.ParliamentContractStub.Release), updateProposalId);
 
             symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetSymbolsToPayTXSizeFee), newSymbolList);
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetSymbolsToPayTXSizeFee), newSymbolList);
             symbolSetRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var updatedSymbolList = new SymbolListToPayTXSizeFee();
             updatedSymbolList.MergeFrom(symbolSetRet.ReturnValue);
@@ -144,7 +144,7 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForUserFeeByTwoLayer(proposalId);
 
             var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfSender), new Empty());
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientOfSender), new Empty());
             userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
             userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
@@ -184,7 +184,7 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
                 {
                     Value = (int) feeType
                 });
@@ -226,7 +226,7 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
                 {
                     Value = (int) feeType
                 });
@@ -270,7 +270,7 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientOfContract), new SInt32Value
                 {
                     Value = (int) feeType
                 });
@@ -430,7 +430,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromContract),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientFromContract),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var createProposalInput = new CreateProposalInput
@@ -578,7 +578,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateCoefficientFromSender),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientFromSender),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
 
@@ -724,14 +724,14 @@ namespace AElf.Contracts.MultiToken
         {
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
             var primaryTokenRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetPrimaryTokenSymbol), new Empty());
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetPrimaryTokenSymbol), new Empty());
             var symbol = new StringValue();
             symbol.MergeFrom(primaryTokenRet.ReturnValue);
 
             await MainChainTester.ExecuteContractWithMiningAsync(ReferendumAddress,
                 nameof(ReferendumContractContainer.ReferendumContractStub.Initialize), new Empty());
             var issueResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                nameof(TokenContractImplContainer.TokenContractImplStub.Issue), new IssueInput
                 {
                     Amount = 100000,
                     To = callOwner,
@@ -740,7 +740,7 @@ namespace AElf.Contracts.MultiToken
             issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var approveResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
+                nameof(TokenContractImplContainer.TokenContractImplStub.Approve), new ApproveInput
                 {
                     Spender = ReferendumAddress,
                     Symbol = symbol.Value,

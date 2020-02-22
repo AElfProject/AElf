@@ -283,7 +283,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRentedResources),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRentedResources),
                 Params = updateParam.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress
@@ -325,7 +325,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.SetSideChainCreator),
                 Params = Creator.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
@@ -334,7 +334,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Initialize),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Initialize),
                 Params = new InitializeInput
                 {
                     ResourceAmount =
@@ -384,7 +384,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRental),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental),
                 Params = updateRentalInput.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress

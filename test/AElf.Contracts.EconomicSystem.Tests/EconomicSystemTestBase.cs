@@ -38,7 +38,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub =>
             GetBasicContractTester(BootMinerKeyPair);
 
-        internal TokenContractContainer.TokenContractStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
         
         internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub =>
             GetTokenContractImplTester(BootMinerKeyPair);
@@ -86,9 +86,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
 
-        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
         {
-            return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
+            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
         
         internal TokenContractImplContainer.TokenContractImplStub GetTokenContractImplTester(ECKeyPair keyPair)

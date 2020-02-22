@@ -123,7 +123,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                    GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
                 Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
             }
 

@@ -39,8 +39,11 @@
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf/Proto/parliament_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractBase>
+        <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
+            <Link>Protobuf/Proto/token_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
@@ -65,6 +68,9 @@
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs2.proto">
+            <Link>Protobuf\Proto\acs2.proto</Link>
         </ContractBase>
     </ItemGroup>
 </Project>

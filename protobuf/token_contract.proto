@@ -33,12 +33,6 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
-    }
-    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
-    }
     rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
@@ -49,37 +43,24 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    //be used in kernel
+    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
-    }
-    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
-    }
-    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
     }
     rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
     }
-    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
-    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
     rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
     }
-    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
-    }
     rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
@@ -103,13 +84,7 @@ service TokenContract {
     rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
-        option (aelf.is_view) = true;
-    }
     rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) {
@@ -124,16 +99,8 @@ service TokenContract {
     rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
         option (aelf.is_view) = true;
     }
-    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
-        option (aelf.is_view) = true;
-    }
+    // referenced by src
     rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
-        option (aelf.is_view) = true;
-    }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -235,24 +202,22 @@ message BurnInput {
     sint64 amount = 2;
 }
 
-message ChargeTransactionFeesInput {
-    string method_name = 1;
-    aelf.Address contract_address = 2;
-    sint64 transaction_size_fee = 3;
-    string primary_token_symbol = 4;
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
-}
-
-message TransactionFeeBill {
-    map<string, sint64> token_to_amount = 1;
-}
-
 message ChargeResourceTokenInput {
     sint64 traffic_cost = 1;
     sint64 storage_cost = 2;
     sint64 read_cost = 3;
     sint64 write_cost = 4;
     aelf.Address caller = 5;
+}
+
+message TransactionFeeBill {
+    map<string, sint64> token_to_amount = 1;
+}
+
+message CheckThresholdInput {
+    aelf.Address sender = 1;
+    map<string, sint64> symbol_to_threshold = 2;
+    bool is_check_allowance = 3;
 }
 
 message GetTokenInfoInput {
@@ -304,45 +269,32 @@ message IsInWhiteListInput {
     aelf.Address address = 2;
 }
 
-message CheckThresholdInput {
-    aelf.Address sender = 1;
-    map<string, sint64> symbol_to_threshold = 2;
-    bool is_check_allowance = 3;
+message SymbolToPayTXSizeFee{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
 }
 
-message ProfitReceivingInformation {
-    aelf.Address contract_address = 1;
-    aelf.Address profit_receiver_address = 2;
-    sint32 donation_parts_per_hundred = 3;
+message SymbolListToPayTXSizeFee{
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
 }
 
-message ReceiveProfitsInput {
-    aelf.Address contract_address = 1;
-    string symbol = 2;
-    sint64 amount = 3;
+message ChargeTransactionFeesInput {
+    string method_name = 1;
+    aelf.Address contract_address = 2;
+    sint64 transaction_size_fee = 3;
+    string primary_token_symbol = 4;
+    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
-message TransferToContractInput {
-    string symbol = 1;
-    sint64 amount = 2;
-    string memo = 3;
+message ExtraTokenListModified {
+    option (aelf.is_event) = true;
+    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
 message ReturnTaxInput {
     sint64 balance_before_selling = 1;
     aelf.Address return_tax_receiver_address = 2;
-}
-
-message AdvanceResourceTokenInput {
-    aelf.Address contract_address = 1;
-    string resource_token_symbol = 2;
-    sint64 amount = 3;
-}
-
-message TakeResourceTokenBackInput {
-    aelf.Address contract_address = 1;
-    string resource_token_symbol = 2;
-    sint64 amount = 3;
 }
 
 message GetLockedAmountInput {
@@ -356,11 +308,6 @@ message GetLockedAmountOutput {
     string symbol = 2;
     aelf.Hash lock_id = 3;
     sint64 amount = 4;
-}
-
-message GetVirtualAddressForLockingInput {
-    aelf.Address address = 1;
-    aelf.Hash lock_id = 2;
 }
 
 message TokenInfoList {
@@ -378,39 +325,8 @@ message CrossChainCreateTokenInput {
     aelf.MerklePath merkle_path = 4;
 }
 
-message RegisterCrossChainTokenContractAddressInput{
-    int32 from_chain_id = 1;
-    int64 parent_chain_height = 2;
-    bytes transaction_bytes = 3;
-    aelf.MerklePath merkle_path = 4;
-    aelf.Address token_contract_address = 5;
-}
-
-message ValidateTokenInfoExistsInput{
-    string symbol = 1;
-    string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
-    aelf.Address issuer = 5;
-    bool is_burnable = 6;
-    sint32 issue_chain_id = 7;
-    bool is_profitable = 8;
-}
-
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
-}
-
-message UpdateRentalInput {
-    map<string, sint64> rental = 1;
-}
-
-message UpdateRentedResourcesInput {
-    map<string, sint32> resource_amount = 1;
-}
-
-message OwningRental {
-    map<string, sint64> resource_amount = 1;
 }
 
 message CoefficientFromSender {
@@ -472,10 +388,6 @@ enum CalculateFunctionTypeEnum {
     POWER = 1;
 }
 
-message ResourceUsage {
-    map<string, sint32> value = 1;
-}
-
 message CalculateFeeCoefficientsOfType{
     repeated CalculateFeeCoefficient coefficients= 1;
 }
@@ -485,16 +397,6 @@ message CalculateFeeCoefficient {
     FeeTypeEnum fee_type = 2;
     CalculateFunctionTypeEnum function_type = 3;
     map<string, sint32> coefficient_dic = 4;
-}
-
-message SymbolToPayTXSizeFee{
-    string token_symbol = 1;
-    sint32 base_token_weight = 2;
-    sint32 added_token_weight = 3;
-}
-
-message SymbolListToPayTXSizeFee{
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
 }
 
 // Events
@@ -559,13 +461,7 @@ message RentalAccountBalanceInsufficient {
     sint64 amount = 2;
 }
 
-message ExtraTokenListModified {
-    option (aelf.is_event) = true;
-    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
-}
 
-message ControllerCreateInfo {
-    aelf.Address controller = 1;
-    bytes organization_creation_input_bytes = 2;
-}
+
+
 

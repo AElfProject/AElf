@@ -48,9 +48,9 @@
         <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
             <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
-        </ContractStub>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractStub>
