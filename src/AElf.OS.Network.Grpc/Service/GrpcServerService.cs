@@ -160,6 +160,12 @@ namespace AElf.OS.Network.Grpc
                 $"Received announce, block hash: {announcement.BlockHash}, block height: {announcement.BlockHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            if (peer == null)
+            {
+                // if peer already removed, drop.
+                return Task.CompletedTask;
+            }
+
             if (!peer.TryAddKnownBlock(announcement.BlockHash))
                 return Task.CompletedTask;
 
@@ -221,6 +227,13 @@ namespace AElf.OS.Network.Grpc
                 return;
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+
+            if (peer == null)
+            {
+                // if peer already removed, drop.
+                return;
+            }
+
             if (!peer.TryAddKnownTransaction(tx.GetHash()))
                 return;
 
@@ -259,6 +272,12 @@ namespace AElf.OS.Network.Grpc
                 $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            
+            if (peer == null)
+            {
+                // if peer already removed, drop.
+                return Task.CompletedTask;
+            }
 
             peer.UpdateLastKnownLib(announcement);
 

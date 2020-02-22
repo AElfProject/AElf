@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AElf.Kernel.SmartContract.ExecutionPluginForProposal</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Execution plugin for proposals.</Description>
     </PropertyGroup>
 
     <ItemGroup>

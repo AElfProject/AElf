@@ -9,7 +9,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     public interface IContractRemarksService
     {
         Task<CodeRemark> GetCodeRemarkAsync(IChainContext chainContext, Address address, Hash codeHash);
+        
+        //TODO: in my view, SetCodeRemark Should like SetCodeRemark(CodeRemark cr). So the name is very strange
         Task SetCodeRemarkAsync(Address address, Hash codeHash, BlockHeader blockHeader);
+        
+        //TODO: no cache, cache logic should not implement in the same level service. You can use a IContractRemarksCacheService to do the cache
         Task RemoveContractRemarksCacheAsync(List<BlockIndex> blockIndexes);
         Task SetIrreversedCacheAsync(List<BlockIndex> blockIndexes);
     }
