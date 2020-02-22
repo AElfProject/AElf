@@ -28,8 +28,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
-        internal TokenContractContainer.TokenContractStub TokenStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(
+        internal TokenContractImplContainer.TokenContractImplStub TokenStub =>
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
         

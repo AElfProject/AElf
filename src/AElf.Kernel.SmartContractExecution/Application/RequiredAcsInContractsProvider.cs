@@ -23,6 +23,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private Address ConfigurationContractAddress => _smartContractAddressService.GetAddressByContractName(
             ConfigurationSmartContractAddressNameProvider.Name);
         
+        //TODO: strange way
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
         public RequiredAcsInContractsProvider(ISmartContractAddressService smartContractAddressService, 
@@ -51,6 +52,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private async Task<ByteString> GetRequiredAcsAsync(IChainContext chainContext)
         {
+            //TODO: maybe we should add a extend method to _transactionReadOnlyExecutionService
+
             var tx = new Transaction
             {
                 From = FromAddress,

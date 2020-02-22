@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -7,11 +8,6 @@ namespace AElf.Contracts.TokenConverter
 {
     public partial class TokenConverterContract
     {
-        public override Address GetTokenContractAddress(Empty input)
-        {
-            return State.TokenContract.Value;
-        }
-
         public override Address GetFeeReceiverAddress(Empty input)
         {
             return State.FeeReceiverAddress.Value;
@@ -25,9 +21,11 @@ namespace AElf.Contracts.TokenConverter
             };
         }
 
-        public override Address GetManagerAddress(Empty input)
+        public override AuthorityInfo GetControllerForManageConnector(Empty input)
         {
-            return State.ManagerAddress.Value;
+            if (State.ConnectorController.Value == null)
+                return GetDefaultConnectorController();
+            return State.ConnectorController.Value;
         }
 
         public override TokenSymbol GetBaseTokenSymbol(Empty input)
@@ -43,9 +41,23 @@ namespace AElf.Contracts.TokenConverter
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Connector GetConnector(TokenSymbol input)
+        public override PairConnector GetPairConnector(TokenSymbol input)
         {
-            return State.Connectors[input.Symbol];
+            var targetConnector = State.Connectors[input.Symbol];
+            Connector relatedConnector = null;
+            if (targetConnector != null)
+                relatedConnector = State.Connectors[targetConnector.RelatedSymbol];
+            if (targetConnector != null && targetConnector.IsDepositAccount)
+                return new PairConnector
+                {
+                    ResourceConnector = relatedConnector,
+                    DepositConnector = targetConnector
+                };
+            return new PairConnector
+            {
+                ResourceConnector = targetConnector,
+                DepositConnector = relatedConnector
+            };
         }
 
         public override DepositInfo GetNeededDeposit(ToBeConnectedTokenInfo input)
@@ -77,16 +89,17 @@ namespace AElf.Contracts.TokenConverter
                     ? toConnector.VirtualBalance.Add(tokenInfo.TotalSupply)
                     : tokenInfo.TotalSupply;
                 needDeposit =
-                    BancorHelper.GetAmountToPayFromReturn(fb, GetWeight(fromConnector), 
+                    BancorHelper.GetAmountToPayFromReturn(fb, GetWeight(fromConnector),
                         tb, GetWeight(toConnector), amountOutOfTokenConvert);
             }
+
             return new DepositInfo
             {
                 NeedAmount = needDeposit,
                 AmountOutOfTokenConvert = amountOutOfTokenConvert
             };
         }
-        
+
         public override Int64Value GetDepositConnectorBalance(StringValue symbolInput)
         {
             var connector = State.Connectors[symbolInput.Value];

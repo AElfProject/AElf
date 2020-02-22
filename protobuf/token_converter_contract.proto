@@ -7,10 +7,10 @@ import "acs1.proto";
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
-    
+
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
     option (aelf.base) = "acs1.proto";
-    
+
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
@@ -22,27 +22,22 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
     }
-    rpc AddPairConnectors(PairConnector) returns (google.protobuf.Empty){
+    rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }
-    rpc EnableConnector(ToBeConnectedTokenInfo) returns (google.protobuf.Empty){
+    rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc SetControllerForManageConnector(aelf.Address) returns (google.protobuf.Empty){
+    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     // Views
-    rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetConnector (TokenSymbol) returns (Connector) {
+    rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
         option (aelf.is_view) = true;
     }
     rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
@@ -77,9 +72,6 @@ message InitializeInput {
     string base_token_symbol = 1;
     string fee_rate = 2;
     repeated Connector connectors = 3;
-    aelf.Address token_contract_address = 4;
-    aelf.Address fee_receiver_address = 5;
-    aelf.Address manager_address = 6;
 }
 
 message BuyInput {
@@ -124,7 +116,7 @@ message TokenSold {
     sint64 base_amount = 3;
     sint64 fee_amount =4;    
 }
-message PairConnector {
+message PairConnectorParam {
     string resource_connector_symbol = 1;
     string resource_weight = 2;
     sint64 native_virtual_balance = 3;
@@ -138,4 +130,8 @@ message ToBeConnectedTokenInfo{
 message DepositInfo{
     sint64 need_amount = 1;
     sint64 amount_out_of_token_convert = 2;
+}
+message PairConnector{
+    Connector resource_connector = 1;
+    Connector deposit_connector = 2;
 }
