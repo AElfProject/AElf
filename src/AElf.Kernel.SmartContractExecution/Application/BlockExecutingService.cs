@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 await _executingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                     CancellationToken.None, true);
-            Logger.LogTrace("Executed non-cancellable txs");
+            Logger.LogTrace("### Executed non-cancellable txs");
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     },
                     cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
-                Logger.LogTrace("Executed cancellable txs");
+                Logger.LogTrace("### Executed cancellable txs");
             }
 
             if (returnSetCollection.Unexecutable.Count > 0)

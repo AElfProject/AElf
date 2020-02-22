@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext, List<Transaction> transactions)
         {
-            Logger.LogTrace("Entered GroupAsync");
+            Logger.LogTrace("### Entered GroupAsync");
 
             var toBeGrouped = GetTransactionsToBeGrouped(transactions, out var groupedTransactions);
 
@@ -78,10 +78,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
                 groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
 
-                Logger.LogTrace("Completed transaction grouping.");
+                Logger.LogTrace("### Completed transaction grouping.");
             }
 
-            Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
+            Logger.LogDebug($"### From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 

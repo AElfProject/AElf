@@ -61,6 +61,7 @@ namespace AElf.Kernel.SmartContract.Application
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
+                    Logger.LogInformation($"### Transaction start: {transaction.MethodName}");
                     TransactionTrace trace;
                     if (cancellationToken.IsCancellationRequested)
                         break;

@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 },
                 cancellationToken, throwException);
-
+            Logger.LogInformation("### Executed non parallelizable.");
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
 
@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     PartialBlockStateSet = updatedPartialBlockStateSet,
                 }, cancellationToken, throwException));
             var results = await Task.WhenAll(tasks);
-            Logger.LogTrace("Executed parallelizables.");
+            Logger.LogTrace("### Executed parallelizables.");
 
             returnSets.AddRange(MergeResults(results, out var conflictingSets));
             Logger.LogTrace("Merged results from parallelizables.");
