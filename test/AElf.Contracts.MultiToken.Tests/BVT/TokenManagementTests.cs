@@ -123,7 +123,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                    GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
                 Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
             }
 
@@ -211,6 +211,13 @@ namespace AElf.Contracts.MultiToken
                 AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
                 AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
             }
+            
+            //AssociationContract
+            {
+                var code = AssociationContractCode;
+                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
+            }
         }
 
         private async Task CreateNativeTokenAsync()
@@ -296,10 +303,8 @@ namespace AElf.Contracts.MultiToken
             await TokenConverterContractStub.Initialize.SendAsync(new TokenConverter.InitializeInput
             {
                 Connectors = {RamConnector, BaseConnector},
-                TokenContractAddress = TokenContractAddress,
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.2",
-                FeeReceiverAddress = User1Address
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {

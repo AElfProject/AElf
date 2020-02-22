@@ -24,7 +24,7 @@ service TreasuryContract {
     }
     rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
     }
-    rpc SetControllerForManageVoteWeightInterest (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
@@ -37,6 +37,9 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

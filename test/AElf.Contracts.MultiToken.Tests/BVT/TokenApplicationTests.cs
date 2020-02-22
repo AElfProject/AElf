@@ -217,7 +217,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_TransferFrom_Test()
         {
             await MultiTokenContract_Approve_Test();
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             var result2 = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
             {
                 Amount = 1000L,
@@ -279,7 +279,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_TransferFrom_MemoLength_Test()
         {
             await MultiTokenContract_Approve_Test();
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             {
                 var result = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
                 {
@@ -443,7 +443,7 @@ namespace AElf.Contracts.MultiToken
             // Try to lock.
             var lockId = Hash.FromString("lockId");
             var defaultSenderStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             // Lock.
             var lockResult = (await defaultSenderStub.Lock.SendWithExceptionAsync(new LockInput
             {
@@ -752,7 +752,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_Burn_BeyondBalance_Test()
         {
             await CreateAndIssueMultiTokensAsync();
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             var result = (await user1Stub.Burn.SendWithExceptionAsync(new BurnInput
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
