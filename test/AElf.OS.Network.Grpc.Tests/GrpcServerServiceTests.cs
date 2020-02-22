@@ -84,12 +84,26 @@ namespace AElf.OS.Network
         [Fact]
         public async Task ConfirmHandshake_Test()
         {
-            //var request = new HandshakeRequest {Handshake = new Handshake {HandshakeData = new HandshakeData()}};
+            PeerConnectedEventData received = null;
+            _eventBus.Subscribe<PeerConnectedEventData>(t =>
+            {
+                received = t;
+                return Task.CompletedTask;
+            });
             var request = new ConfirmHandshakeRequest();
             var context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
 
-            var result = _serverService.ConfirmHandshake(request, context);
-            result.Result.ShouldBe(new VoidReply());
+            var result = await _serverService.ConfirmHandshake(request, context);
+            result.ShouldBe(new VoidReply());
+            received.ShouldBe(null);
+            
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+            context = BuildServerCallContext(metadata, "ipv4:127.0.0.1:7878");
+            result = await _serverService.ConfirmHandshake(request, context);
+            result.ShouldBe(new VoidReply());
+            received.ShouldNotBeNull();
         }
         
         #region Announce and transaction
