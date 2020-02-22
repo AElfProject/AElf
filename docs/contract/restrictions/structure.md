@@ -8,7 +8,7 @@ Below restrictions are put in place to simplify code checks during deployment;
 
 - The type inherited from `ContractState` should be the element type of `CSharpSmartContract` generic instance type, otherwise code check will fail.
 
-<Image>
+![Contract Class Structure](contract-class-structure.png)
 
 # Limitations on Field Usage
 
@@ -140,8 +140,3 @@ In contract state, only below types are allowed:
 | MethodReference<T, T> |
 | ProtobufState<T> |
 | ContractReferenceState |
-
-
-
-
-
