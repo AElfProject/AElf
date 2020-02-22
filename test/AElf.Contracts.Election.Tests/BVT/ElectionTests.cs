@@ -422,6 +422,17 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ConsensusContract_GetPreviousMinerList()
+        {
+            await ElectionContract_GetVictories_ValidCandidatesEnough_Test();
+            await ProduceBlocks(BootMinerKeyPair, 1, true);
+            var previousMiners = await AEDPoSContractStub.GetPreviousMinerList.CallAsync(new Empty());
+            var previousMinersPubkey = previousMiners.Pubkeys.Select(o => o.ToHex()).OrderBy(o=>o).ToList();
+            var initialMinersPubkey = InitialCoreDataCenterKeyPairs.Select(o => o.PublicKey.ToHex()).OrderBy(o=>o).ToList();
+            previousMinersPubkey.ShouldBe(initialMinersPubkey);
+        }
+
+        [Fact]
         public async Task ElectionContract_MarkCandidateAsEvilNode_Test()
         {
             await ElectionContract_AnnounceElection_Test();
