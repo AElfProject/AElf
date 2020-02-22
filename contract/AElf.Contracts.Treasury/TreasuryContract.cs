@@ -15,7 +15,7 @@ namespace AElf.Contracts.Treasury
 {
     // ReSharper disable InconsistentNaming
     /// <summary>
-    /// The Treasury is the largest profit item in AElf main chain.
+    /// The Treasury is the largest profit scheme in AElf main chain.
     /// Actually the Treasury is our Dividends Pool.
     /// Income of the Treasury is mining rewards
     /// (AEDPoS Contract will:
@@ -23,12 +23,12 @@ namespace AElf.Contracts.Treasury
     /// the amount of ELF should be based on blocks produced during last term. 1,000,000 * 1250000 ELF,
     /// then release the Treasury;
     /// 2. Release Treasury)
-    /// 3 sub profit items:
+    /// 3 sub profit schemes:
     /// (Mining Reward for Miners) - 3
     /// (Subsidy for Candidates / Backups) - 1
     /// (Welfare for Electors / Voters / Citizens) - 1
     ///
-    /// 3 sub profit items for Mining Rewards:
+    /// 3 sub profit schemes for Mining Rewards:
     /// (Basic Rewards) - 4
     /// (Miner's Votes Shares) - 1
     /// (Re-Election Rewards) - 1
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
-            // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
+            // Create profit schemes: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {

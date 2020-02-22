@@ -231,6 +231,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
             if (allowance >= input.Amount)
                 State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -246,6 +247,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Unlock(UnlockInput input)
         {
             AssertLockAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
