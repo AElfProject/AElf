@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,6 +7,7 @@
         <PackageId>AElf.Kernel.Consensus.AEDPoS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.Kernel.Consensus.AEDPoS</RootNamespace>
+        <Description>AElf DPoS consensus.</Description>
     </PropertyGroup>
 
     <PropertyGroup>
