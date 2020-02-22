@@ -178,13 +178,13 @@ In contract state, only below types are allowed:
 
 | Primitive Types |
 | --- |
-| BoolState |
-| Int32State |
-| UInt32State |
-| Int64State |
-| UInt64State |
-| StringState |
-| BytesState |
+| `BoolState` |
+| `Int32State` |
+| `UInt32State` |
+| `Int64State` |
+| `UInt64State` |
+| `StringState` |
+| `BytesState` |
 
 | Complex Types |
 | --- |
