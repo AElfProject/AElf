@@ -65,6 +65,7 @@ namespace AElf.Kernel.SmartContract.Extension
             var task = CounterAsync(times, 100);
             await Assert.ThrowsAsync<OperationCanceledException>(() => task.WithCancellation(ct.Token));
 
+            Counter = 0;
             var newCt = new CancellationTokenSource(1000);
             var newTask = CounterAsync(times, 100);
             await newTask.WithCancellation(newCt.Token);
