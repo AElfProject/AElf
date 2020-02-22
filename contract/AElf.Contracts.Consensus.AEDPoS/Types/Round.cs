@@ -155,14 +155,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            return Hash.FromTwoHashes(inValue,
+            return HashHelper.Xor(inValue,
                 RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
-                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
-        }
-
-        public Hash CalculateInValue(Hash randomHash)
-        {
-            return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = RoundId}), randomHash);
+                    (current, minerInRound) => HashHelper.Xor(current, minerInRound.Signature)));
         }
 
         public Timestamp GetExtraBlockMiningTime()

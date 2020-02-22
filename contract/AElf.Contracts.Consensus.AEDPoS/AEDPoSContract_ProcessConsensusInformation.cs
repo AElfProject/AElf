@@ -65,6 +65,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() =>
                     $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
             }
+            
+            var latestSignature = GetLatestSignature(currentRound);
+            var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)];
+            var randomHash = previousRandomHash == null
+                ? latestSignature
+                : HashHelper.Xor(previousRandomHash, latestSignature);
+
+            State.RandomHashes[Context.CurrentHeight] = randomHash;
+
+            Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
             // Clear cache.
             _processingBlockMinerPubkey = null;
@@ -73,6 +83,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Context.LogDebug(() => "[CURRENTMINER]IS NOT CURRENT MINER.");
             }
+        }
+        
+        /// <summary>
+        /// Get latest updated signature.
+        /// A signature is for generating a random hash.
+        /// </summary>
+        /// <param name="currentRound"></param>
+        /// <returns></returns>
+        private Hash GetLatestSignature(Round currentRound)
+        {
+            var latestSignature = currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                .LastOrDefault(m => m.Signature != null)?.Signature;
+            if (latestSignature != null) return latestSignature;
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                latestSignature = previousRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                    .LastOrDefault(m => m.Signature != null)
+                    ?.Signature;
+            }
+
+            return latestSignature;
         }
 
         private void ProcessNextRound(Round nextRound)
