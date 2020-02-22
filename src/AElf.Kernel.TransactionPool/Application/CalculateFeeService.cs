@@ -10,6 +10,7 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+//TODO: should not implement here
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -84,6 +85,7 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 funcDic[func.PieceKey] = func;
             }
+            //TODO: if only add something to cache, the method name should call AddAlgorithmCacheByBlock
             _cacheCacheProvider.SetPieceWiseFunctionToForkCache(blockIndex,funcDic);
         }
 

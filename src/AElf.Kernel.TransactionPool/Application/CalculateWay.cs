@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
+//TODO: should not implement here
 
 namespace AElf.Kernel.TransactionPool.Application
 {

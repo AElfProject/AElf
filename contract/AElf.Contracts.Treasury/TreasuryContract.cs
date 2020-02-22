@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -153,8 +154,8 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol = connector.RelatedSymbol != string.Empty;
+            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
@@ -209,17 +210,17 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
         
-        public override Empty SetControllerForManageVoteWeightInterest(Address input)
+        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
-            Assert(input != null, "invalid input");
-            State.ControllerForManageVoteWeightInterest.Value = input;
+            AssertPerformedByVoteWeightInterestController();
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
+            State.VoteWeightInterestController.Value = input;
             return new Empty();
         }
         
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -537,22 +538,29 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void AssertControllerForManageVoteWeightInterestSetting()
+        private void AssertPerformedByVoteWeightInterestController()
         {
-            if (State.ControllerForManageVoteWeightInterest.Value == null)
+            if (State.VoteWeightInterestController.Value == null)
             {
-                if (State.ParliamentContract.Value == null)
-                {
-                    State.ParliamentContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-                }
-                State.ControllerForManageVoteWeightInterest.Value =
-                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
-                
-            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
         }
 
+        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
+        }
         #endregion
 
         public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(
@@ -609,6 +617,15 @@ namespace AElf.Contracts.Treasury
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
             return State.VoteWeightInterestList.Value;
+        }
+        
+        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
+        {
+            if (State.VoteWeightInterestController.Value == null)
+            {
+                return GetDefaultVoteWeightInterestController();
+            }
+            return State.VoteWeightInterestController.Value;
         }
         
         private long GetVotesWeight(long votesAmount, long lockTime)

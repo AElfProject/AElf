@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <PackageProjectUrl>https://aelf.io</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/AElfProject/AElf/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/AElfProject/AElf/</RepositoryUrl>
+  </PropertyGroup>
+</Project>

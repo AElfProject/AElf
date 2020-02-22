@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: implement should not in TransactionPool, it is a plugin
     internal class SymbolListToPayTxFeeService : ISymbolListToPayTxFeeService, ITransientDependency
     {
         private readonly ISymbolListToPayTxFeeCacheProvider _cacheProvider;

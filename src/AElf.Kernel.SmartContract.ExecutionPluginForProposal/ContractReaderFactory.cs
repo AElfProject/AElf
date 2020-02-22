@@ -10,12 +10,14 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
+    //TODO: base class
     internal interface IParliamentContractReaderFactory
     {
         ParliamentContractContainer.ParliamentContractStub Create(Hash blockHash, long blockHeight,
             Address sender = null);
     }
 
+    //TODO: base class
     internal class ParliamentContractReaderFactory : IParliamentContractReaderFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -49,6 +51,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
         }
     }
     
+    //TODO: base class
     internal class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private Address ParliamentContractMethodAddress =>
@@ -69,6 +72,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             FromAddress = sender ?? Address.FromBytes(new byte[] { }.ComputeHash());
         }
 
+        //TODO: use comment
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()

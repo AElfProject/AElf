@@ -42,6 +42,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader,
             ISmartContractAddressNameProvider smartContractAddressNameProvider)
         {
+            //TODO: maybe we should add a extend method to _transactionExecutingService
             var t = new Transaction()
             {
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),

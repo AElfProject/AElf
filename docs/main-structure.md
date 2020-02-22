@@ -29,6 +29,11 @@
     <!-- * [Contract base](contract/base.md) -->
     * [Deploy guide](contract/deployment.md)
     * [AELF Contract Standard](contract/acs.md)
+    * [Requirements and Restrictions](contract/requirements-restrictions.md)
+      * [Project Requirements](contract/restrictions/project.md)
+      * [Structure Restrictions and Requirements](contract/restrictions/structure.md)
+      * [Namespace and Type Restrictions](contract/restrictions/type.md)
+      * [Other Restrictions](contract/restrictions/others.md)
    <!-- * [Update guide](contract/upd.md) -->
 * [Cross chain](crosschain/main.md)
     * [Introduction](crosschain/introduction.md)
