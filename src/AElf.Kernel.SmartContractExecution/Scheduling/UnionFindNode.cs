@@ -3,6 +3,7 @@ using System.Threading;
 
 namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
+	//TODO: should not be here
 	/// <summary>
 	/// A UnionFindNode represents a set of nodes that it is a member of.
 	/// 
