@@ -53,11 +53,9 @@ namespace AElf.Contracts.CrossChain
 
         public override Empty RequestSideChainCreation(SideChainCreationRequest input)
         {
-            Assert(State.ProposedSideChainCreationRequest[Context.Sender] == null,
-                "Request side chain creation failed.");
             AssertValidSideChainCreationRequest(input, Context.Sender);
-            ProposeNewSideChain(input, Context.Sender);
-            State.ProposedSideChainCreationRequest[Context.Sender] = input;
+            var sideChainCreationRequest = ProposeNewSideChain(input, Context.Sender);
+            State.ProposedSideChainCreationRequest[Context.Sender] = sideChainCreationRequest;
             return new Empty();
         }
 

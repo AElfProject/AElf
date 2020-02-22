@@ -92,7 +92,6 @@ namespace AElf.Blockchains.SideChain
                     IsBurnable = resourceToken.IsBurnable,
                     Symbol = resourceToken.Symbol,
                     TokenName = resourceToken.TokenName,
-                    Supply = resourceToken.TotalSupply,
                     TotalSupply = resourceToken.TotalSupply,
                     IsProfitable = resourceToken.IsProfitable
                 });

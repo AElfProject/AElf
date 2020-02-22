@@ -489,8 +489,9 @@ namespace AElf.Contracts.TestBase
         /// Normal txs will use tx pool while system txs not.
         /// </summary>
         /// <param name="txs"></param>
+        /// <param name="blockTime"></param>
         /// <returns></returns>
-        public async Task<Block> MineAsync(List<Transaction> txs)
+        public async Task<Block> MineAsync(List<Transaction> txs, Timestamp blockTime = null)
         {
             await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -499,7 +500,7 @@ namespace AElf.Contracts.TestBase
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
@@ -552,12 +553,13 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="input"></param>
+        /// <param name="blockTime"></param>
         /// <returns></returns>
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
-            IMessage input)
+            IMessage input, Timestamp blockTime = null)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
-            await MineAsync(new List<Transaction> {tx});
+            await MineAsync(new List<Transaction> {tx}, blockTime);
             var result = await GetTransactionResultAsync(tx.GetHash());
 
             return result;

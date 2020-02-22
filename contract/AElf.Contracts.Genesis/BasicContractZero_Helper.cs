@@ -142,7 +142,7 @@ namespace AElf.Contracts.Genesis
         private void RegisterContractProposingData(Hash proposedContractInputHash)
         {
             var registered = State.ContractProposingInputMap[proposedContractInputHash];
-            Assert(registered == null || Context.CurrentBlockTime > registered.ExpiredTime, "Already proposed.");
+            Assert(registered == null || Context.CurrentBlockTime >= registered.ExpiredTime, "Already proposed.");
             State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
             {
                 Proposer = Context.Sender,
@@ -204,7 +204,7 @@ namespace AElf.Contracts.Genesis
 
         private ByteString ExtractCodeFromContractCodeCheckInput(ContractCodeCheckInput input)
         {
-            switch (input.CodeCheckInvokingMethod)
+            switch (input.CodeCheckReleaseMethod)
             {
                 case nameof(DeploySmartContract):
                     return ContractDeploymentInput.Parser.ParseFrom(input.ContractInput).Code;

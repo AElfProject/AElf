@@ -136,6 +136,7 @@ message SideChainCreationRequest {
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
     map<string, sint32> initial_resource_amount = 10; 
     bool is_side_chain_token_profitable = 11;
+    google.protobuf.Timestamp expired_time = 12;
 }
 
 message SideChainTokenInitialIssue{

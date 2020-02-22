@@ -5,7 +5,6 @@ using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs1;
 using Acs3;
-using InitializeInput = Acs0.InitializeInput;
 
 namespace AElf.Contracts.Genesis
 {
@@ -130,7 +129,7 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        CodeCheckInvokingMethod = nameof(DeploySmartContract),
+                        CodeCheckReleaseMethod = nameof(DeploySmartContract),
                         ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
@@ -171,7 +170,7 @@ namespace AElf.Contracts.Genesis
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
-                        CodeCheckInvokingMethod = nameof(UpdateSmartContract),
+                        CodeCheckReleaseMethod = nameof(UpdateSmartContract),
                         ProposedContractInputHash = proposedContractInputHash
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
@@ -208,7 +207,7 @@ namespace AElf.Contracts.Genesis
                 ProposalInput = new CreateProposalInput
                 {
                     ToAddress = Context.Self,
-                    ContractMethodName = input.CodeCheckInvokingMethod,
+                    ContractMethodName = input.CodeCheckReleaseMethod,
                     Params = input.ContractInput,
                     OrganizationAddress = codeCheckController.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)

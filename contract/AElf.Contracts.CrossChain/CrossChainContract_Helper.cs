@@ -90,6 +90,9 @@ namespace AElf.Contracts.CrossChain
         public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
+            var proposedRequest = State.ProposedSideChainCreationRequest[Context.Sender];
+            Assert(proposedRequest == null || Context.CurrentBlockTime >= proposedRequest.ExpiredTime,
+                "Request side chain creation failed.");
             Assert(
                 sideChainCreationRequest.LockedTokenAmount > 0 &&
                 sideChainCreationRequest.IndexingPrice >= 0 &&
@@ -340,7 +343,7 @@ namespace AElf.Contracts.CrossChain
             return ChainHelper.GetChainId(serialNumber + Context.ChainId);
         }
 
-        private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
+        private SideChainCreationRequest ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
             var sideChainLifeTimeController = GetSideChainLifetimeController();
             var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -361,6 +364,11 @@ namespace AElf.Contracts.CrossChain
             Context.SendInline(sideChainLifeTimeController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
+            var sideChainCreationRequest = new SideChainCreationRequest(request)
+            {
+                ExpiredTime = proposalCreationInput.ProposalInput.ExpiredTime
+            };
+            return sideChainCreationRequest;
         }
 
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)

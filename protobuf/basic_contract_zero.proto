@@ -17,6 +17,11 @@ service BasicContractZero {
     }
     rpc ChangeCodeCheckController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
     rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) {
         option (aelf.is_view) = true;
     }
@@ -26,6 +31,10 @@ service BasicContractZero {
     rpc GetCodeCheckController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
         option (aelf.is_view) = true;
     }
+}
+
+message InitializeInput{
+    bool contract_deployment_authority_required = 1;
 }
 
 message AddressList {
