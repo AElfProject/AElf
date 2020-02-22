@@ -9,6 +9,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: base class, should not know token
     public class TokenContractMethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: not here
+
     public class SymbolListToPayTxFeeUpdatedEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;

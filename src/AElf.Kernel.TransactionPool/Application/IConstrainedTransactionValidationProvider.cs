@@ -6,6 +6,7 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         bool ValidateTransaction(Transaction transaction, Hash blockHash);
 
+        //TODO: no clean
         void ClearBlockHash(Hash blockHash);
     }
 }

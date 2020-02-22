@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.SmartContractExecution
 {
+    //TODO: remove
     public class ExecutionOptions
     {
         public string ExecutorType { get; set; }
