@@ -37,6 +37,7 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            Logger.LogInformation("### Get executable transactions start.");
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
                 {BlockHash = previousBlockHash, BlockHeight = previousBlockHeight});
             var executableTransactionSet =
@@ -54,7 +55,7 @@ namespace AElf.Kernel.Miner.Application
                                   $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
                                   $"best chain hash {previousBlockHash}.");
             }
-
+            Logger.LogInformation("### Get executable transactions end.");
             Logger.LogDebug(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
             return await _miningService.MineAsync(

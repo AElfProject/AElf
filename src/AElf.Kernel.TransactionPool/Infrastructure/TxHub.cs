@@ -89,7 +89,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
                 .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
             var selectTxCount = output.Transactions.Count;
-            Logger.LogWarning($"ValidatedTransactions: {validateTxCount}, LimitCount: {transactionCount}, SelectedTransactions: {selectTxCount}");
+            Logger.LogWarning($"### ValidatedTransactions: {validateTxCount}, LimitCount: {transactionCount}, SelectedTransactions: {selectTxCount}");
             return output;
         }
 

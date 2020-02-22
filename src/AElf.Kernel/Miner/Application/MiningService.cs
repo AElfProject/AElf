@@ -104,19 +104,25 @@ namespace AElf.Kernel.Miner.Application
                         {
                             ts = TimeSpan.FromMilliseconds(int.MaxValue);
                         }
-
+                        Logger.LogInformation($"### Cancel token time span:{ts.TotalMilliseconds} ms");
                         cts.CancelAfter(ts);
                     }
 
+                    Logger.LogInformation($"### Generate block start");
                     var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight, blockTime);
+                    Logger.LogInformation($"### Generate system transactions start");
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
+                    Logger.LogInformation($"### Generate system transactions end");
                     var pending = transactions;
+                    Logger.LogInformation($"### Execute block start");
                     block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
+                    Logger.LogInformation($"### Execute block end");
                     await SignBlockAsync(block);
-                    Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
+                    Logger.LogInformation($"### Sign block end");
+                    Logger.LogInformation($"### Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
                                           $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");

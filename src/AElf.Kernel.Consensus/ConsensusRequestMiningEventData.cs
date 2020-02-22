@@ -21,5 +21,12 @@ namespace AElf.Kernel.Consensus
             BlockExecutionTime = blockExecutionTime;
             MiningDueTime = miningDueTime;
         }
+
+        public override string ToString()
+        {
+            return $"PreviousBlockHash: {PreviousBlockHash}, PreviousBlockHeight: {PreviousBlockHeight}, " +
+                   $"BlockTime: {BlockTime}, MiningDueTime: {MiningDueTime}, " +
+                   $"BlockExecutionTime: {BlockExecutionTime}";
+        }
     }
 }

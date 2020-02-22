@@ -49,8 +49,11 @@ namespace AElf.Kernel
         {
             try
             {
+                Logger.LogInformation($"### Mining event data: {eventData}");
+                Logger.LogInformation($"### Mining enqueue ");
                 _taskQueueManager.Enqueue(async () =>
                 {
+                    Logger.LogInformation("### Mining start.");
                     var chain = await _blockchainService.GetChainAsync();
                     if (eventData.PreviousBlockHash != chain.BestChainHash)
                     {
@@ -79,7 +82,7 @@ namespace AElf.Kernel
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                         throw;
                     }
-
+                    Logger.LogInformation("### Mining end.");
                     if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime - blockExecutionDuration)
                     {
                         await _blockchainService.AddBlockAsync(block);
