@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
@@ -23,51 +23,35 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
-            State.TokenContract.Value = input.TokenContractAddress != null
-                ? input.TokenContractAddress
-                : Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-
-            State.FeeReceiverAddress.Value = input.FeeReceiverAddress != null
-                ? input.FeeReceiverAddress
-                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.FeeReceiverAddress.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
-
-            State.ManagerAddress.Value = input.ManagerAddress != null
-                ? input.ManagerAddress
-                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-
             var feeRate = AssertedDecimal(input.FeeRate);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
-
-            var count = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
-                if(connector.IsDepositAccount)
+                if (connector.IsDepositAccount)
                     AssertValidConnectorWeight(connector);
                 else
                     AssertValidConnectorAndNormalizeWeight(connector);
-                State.ConnectorSymbols[count] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
-                count = count.Add(1);
             }
-
-            State.ConnectorCount.Value = count;
 
             return new Empty();
         }
 
         public override Empty UpdateConnector(Connector input)
         {
-            AssertControllerForManageConnector();
+            AssertPerformedByConnectorController();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can not find target connector.");
             Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been actived");
-            //AssertValidTokenOwnShip(targetConnector.IsDepositAccount?targetConnector.RelatedSymbol:targetConnector.Symbol,Context.Sender);
             if (!string.IsNullOrEmpty(input.Weight))
             {
                 var weight = AssertedDecimal(input.Weight);
@@ -82,40 +66,35 @@ namespace AElf.Contracts.TokenConverter
         }
 
 
-        public override Empty AddPairConnectors(PairConnector pairConnector)
+        public override Empty AddPairConnector(PairConnectorParam input)
         {
-            AssertControllerForManageConnector();
-            Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
+            AssertPerformedByConnectorController();
+            Assert(!string.IsNullOrEmpty(input.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
-            var nativeConnectorSymbol = NtTokenPrefix.Append(pairConnector.ResourceConnectorSymbol);
-            Assert(State.Connectors[pairConnector.ResourceConnectorSymbol] == null,
+            var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
+            Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
                 "resource token symbol has been existed");
-            //AssertValidTokenOwnShip(pairConnector.ResourceConnectorSymbol, Context.Sender);
             var resourceConnector = new Connector
             {
-                Symbol = pairConnector.ResourceConnectorSymbol,
+                Symbol = input.ResourceConnectorSymbol,
                 IsPurchaseEnabled = false,
                 RelatedSymbol = nativeConnectorSymbol,
-                Weight = pairConnector.ResourceWeight
+                Weight = input.ResourceWeight
             };
             AssertValidConnectorAndNormalizeWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
             {
                 Symbol = nativeConnectorSymbol,
-                VirtualBalance = pairConnector.NativeVirtualBalance,
+                VirtualBalance = input.NativeVirtualBalance,
                 IsVirtualBalanceEnabled = true,
                 IsPurchaseEnabled = false,
-                RelatedSymbol = pairConnector.ResourceConnectorSymbol,
-                Weight = pairConnector.NativeWeight,
+                RelatedSymbol = input.ResourceConnectorSymbol,
+                Weight = input.NativeWeight,
                 IsDepositAccount = true
             };
             AssertValidConnectorWeight(nativeTokenToResourceConnector);
-            int count = State.ConnectorCount.Value;
-            State.ConnectorSymbols[ ++ count] = resourceConnector.Symbol;
             State.Connectors[resourceConnector.Symbol] = resourceConnector;
-            State.ConnectorSymbols[ ++ count] = nativeTokenToResourceConnector.Symbol;
             State.Connectors[nativeTokenToResourceConnector.Symbol] = nativeTokenToResourceConnector;
-            State.ConnectorCount.Value = count;
             return new Empty();
         }
 
@@ -266,18 +245,10 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty SetFeeRate(StringValue input)
         {
-            AssertPerformedByManager();
+            AssertPerformedByConnectorController();
             var feeRate = AssertedDecimal(input.Value);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
-            return new Empty();
-        }
-
-        public override Empty SetManagerAddress(Address input)
-        {
-            AssertPerformedByManager();
-            Assert(input != null && input != new Address(), "Input is not a valid address.");
-            State.ManagerAddress.Value = input;
             return new Empty();
         }
 
@@ -301,6 +272,7 @@ namespace AElf.Contracts.TokenConverter
                         Amount = needDeposit.NeedAmount,
                     });
             }
+
             if (input.AmountToTokenConvert > 0)
             {
                 State.TokenContract.TransferFrom.Send(
@@ -312,27 +284,29 @@ namespace AElf.Contracts.TokenConverter
                         Amount = input.AmountToTokenConvert
                     });
             }
+
             State.DepositBalance[toConnector.Symbol] = needDeposit.NeedAmount;
             toConnector.IsPurchaseEnabled = true;
             fromConnector.IsPurchaseEnabled = true;
             return new Empty();
         }
 
-        public override Empty SetControllerForManageConnector(Address input)
+        public override Empty ChangeConnectorController(AuthorityInfo input)
         {
-            AssertControllerForManageConnector();
+            AssertPerformedByConnectorController();
             Assert(input != null, "invalid input");
-            
             if (State.ParliamentContract.Value == null)
             {
                 State.ParliamentContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
-            Assert(isNewControllerIsExist.Value, "new controller does not exist");
-            State.ControllerForManageConnector.Value = input;
+            
+            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
+            Assert(CheckOrganizationExist(input), "new controller does not exist");
+            State.ConnectorController.Value = input;
             return new Empty();
         }
+
         #endregion Actions
 
         #region Helpers
@@ -395,18 +369,30 @@ namespace AElf.Contracts.TokenConverter
             return decimal.Parse(connector.Weight);
         }
 
-        private void AssertValidTokenOwnShip(string symbol, Address sender)
+        private void AssertPerformedByConnectorController()
         {
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            if (State.ConnectorController.Value == null)
             {
-                Symbol = symbol
-            });
-            Assert(tokenInfo != null, $"token: {symbol} does not exist");
-            Assert(tokenInfo.Issuer == sender,"connector must be in control of token issuer");
+                State.ConnectorController.Value = GetDefaultConnectorController();
+            }
+
+            Assert(Context.Sender == State.ConnectorController.Value.OwnerAddress,
+                "Only manager can perform this action.");
         }
-        private void AssertPerformedByManager()
+
+        private AuthorityInfo GetDefaultConnectorController()
         {
-            Assert(Context.Sender == State.ManagerAddress.Value, "Only manager can perform this action.");
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
 
         private void AssertValidConnectorAndNormalizeWeight(Connector connector)
@@ -419,6 +405,7 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
         }
+
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);
@@ -426,16 +413,6 @@ namespace AElf.Contracts.TokenConverter
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 
-        private void AssertControllerForManageConnector()
-        {
-            if (State.ControllerForManageConnector.Value == null)
-            {
-                AssertPerformedByManager();
-                return;
-            }
-                
-            Assert(Context.Sender == State.ControllerForManageConnector.Value, "no permission");
-        }
         #endregion
     }
 }

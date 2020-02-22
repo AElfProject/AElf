@@ -103,7 +103,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult2 =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetOwnerAddress),
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
                     new Empty());
             var address2 = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
             _testOutputHelper.WriteLine(address2.GetFormatted());
@@ -115,7 +115,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.ChangeOwnerAddress),
+                    nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
                     SampleAddress.AddressList[0]);
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);

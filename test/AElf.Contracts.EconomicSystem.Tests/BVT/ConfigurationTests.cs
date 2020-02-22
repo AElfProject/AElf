@@ -82,14 +82,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task ChangeOwnerAddress_Test()
         {
             var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var defaultOwner = await ConfigurationContractStub.GetOwnerAddress.CallAsync(new Empty());
+            var defaultOwner = await ConfigurationContractStub.GetConfigurationController.CallAsync(new Empty());
             defaultOwner.ShouldBe(defaultOrganization);
 
             await ExecuteProposalTransaction(Tester, ConfigurationAddress,
-                nameof(ConfigurationContractStub.ChangeOwnerAddress),
+                nameof(ConfigurationContractStub.ChangeConfigurationController),
                 Tester);
             
-            var newOwner = await ConfigurationContractStub.GetOwnerAddress.CallAsync(new Empty());
+            var newOwner = await ConfigurationContractStub.GetConfigurationController.CallAsync(new Empty());
             newOwner.ShouldBe(Tester);
         }
     }

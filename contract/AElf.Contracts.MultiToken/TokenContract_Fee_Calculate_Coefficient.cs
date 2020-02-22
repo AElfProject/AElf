@@ -14,6 +14,8 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
+
+            InitializeAuthorizedController();
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -22,15 +24,14 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.ControllerForDeveloperFee.Value.RootController, "no permission");
+            AssertDeveloperFeeController();
             var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
-            if (coefficientInfoInState == null)
-                return new Empty();
+            Assert(coefficientInfoInState != null, "coefficient does not exist");
             var coefficient = coefficientInput.Coefficient;
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
-            if (!IsModifiedDbData(coefficientInput.Coefficient, funcCoefficient)) return new Empty();
+            Assert(UpdateCoefficientSuccessfully(coefficientInput.Coefficient, funcCoefficient), "invalid data");
             State.CalculateCoefficientOfContract[coefficientInput.FeeType] = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
@@ -43,18 +44,13 @@ namespace AElf.Contracts.MultiToken
         {
             if (coefficientInput == null)
                 return new Empty();
-            Assert(Context.Sender == State.ControllerForUserFee.Value.RootController, "no permission");
+            AssertUserFeeController();
             var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
-            if (coefficientInfoInState == null)
-            {
-                return new Empty();
-            }
-
+            Assert(coefficientInfoInState != null, "coefficient does not exist");
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
-
-            if (!IsModifiedDbData(coefficientInput, funcCoefficient)) return new Empty();
+            Assert(UpdateCoefficientSuccessfully(coefficientInput, funcCoefficient), "invalid data");
             State.CalculateCoefficientOfSender.Value = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
@@ -63,7 +59,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private bool IsModifiedDbData(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
+        private bool UpdateCoefficientSuccessfully(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
         {
             bool isChanged;
             if (coefficientInput.IsChangePieceKey)

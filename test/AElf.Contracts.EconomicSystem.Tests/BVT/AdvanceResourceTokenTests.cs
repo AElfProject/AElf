@@ -182,7 +182,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var proposal = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ToAddress = TokenConverterContractAddress,
-                ContractMethodName = nameof(TokenConverterContractStub.SetControllerForManageConnector),
+                ContractMethodName = nameof(TokenConverterContractStub.ChangeConnectorController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
                 Params = organizationAddress.ToByteString(),
                 OrganizationAddress = defaultOrganization
