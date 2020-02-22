@@ -6,6 +6,8 @@
         <PackageId>AElf.Contracts.Association</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>Association is a contract that enables the creation of organizations and approvals. 
+            The created proposals can be voted for and eventually released.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

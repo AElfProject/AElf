@@ -7,6 +7,7 @@
         <RootNamespace>AElf.CrossChain.Communication</RootNamespace>
         <PackageId>AElf.CrossChain.Communication</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Base functionality and definition for crosschain communication.</Description>
     </PropertyGroup>
 
     <ItemGroup>

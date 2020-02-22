@@ -5,6 +5,8 @@
         <PackageId>AElf.Contracts.Genesis</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
+        <Description>Genesis is a contract that implements base functionality of the chain such as contract proposal 
+            and updating.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>

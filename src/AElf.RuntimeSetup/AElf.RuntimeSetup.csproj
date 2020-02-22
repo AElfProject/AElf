@@ -5,6 +5,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackageId>AElf.RuntimeSetup</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Module for the nodes runtime setup (logging for example).</Description>
     </PropertyGroup>
 
     <ItemGroup>

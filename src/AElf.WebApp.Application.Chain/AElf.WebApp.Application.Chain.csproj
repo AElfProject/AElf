@@ -8,6 +8,7 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
         <PackageId>AElf.WebApp.Application.Chain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Web API service for the chain layer.</Description>
     </PropertyGroup>
 
     <ItemGroup>

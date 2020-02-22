@@ -6,6 +6,7 @@
         <RootNamespace>AElf.Kernel.SmartContract.Sdk</RootNamespace>
         <PackageId>AElf.Kernel.SmartContract.Sdk.Abstracts</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>High level types for smart contracts.</Description>
     </PropertyGroup>
 
     <ItemGroup>
