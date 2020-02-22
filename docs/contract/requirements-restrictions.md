@@ -1,8 +1,8 @@
 ## Development Requirements and Restrictions
 
-There are several requirements and restrictions for a contract to be deployable that can be separated into below categories;
+There are several requirements and restrictions for a contract to be deployable that are classified into below categories;
 
-1. [**Contract Project Requirements**](restrictions/project-requirements.md)
+1. [**Contract Project Requirements**](restrictions/project.md)
 2. [**Contract Structure Restrictions and Requirements**](restrictions/structure.md)
-3. [**Type and Namespace Restrictions**](restrictions/type.md)
+3. [**Namespace and Type Restrictions**](restrictions/type.md)
 4. [**Other Restrictions**](restrictions/others.md)
