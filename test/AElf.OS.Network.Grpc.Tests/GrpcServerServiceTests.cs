@@ -99,16 +99,6 @@ namespace AElf.OS.Network
         {
             Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
             var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
-            //unormal case
-            var fakePubkey = "FakePubkey";
-            var fakeMetadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, fakePubkey }};
-            await Should.ThrowAsync<Exception>(async () => 
-            {
-                await _serverService.SendAnnouncement(announcement, BuildServerCallContext(fakeMetadata));
-                
-            });
-            
-            //normal case
             var peer = _peerPool.GetPeers(true).First();
             var pubkey = peer.Info.Pubkey;
             var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
