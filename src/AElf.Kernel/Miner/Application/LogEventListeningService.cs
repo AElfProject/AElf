@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Miner.Application
 {
+    //TODO: need to talk about where to put
     public class LogEventListeningService<T> : ILogEventListeningService<T>
         where T : ILogEventHandler
     {

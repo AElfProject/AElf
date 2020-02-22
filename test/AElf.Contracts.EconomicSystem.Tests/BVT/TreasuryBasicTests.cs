@@ -1,9 +1,15 @@
 using System.Threading.Tasks;
+using Acs1;
+using Acs3;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -85,14 +91,75 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             var updateInterestRet = (await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)).TransactionResult;
             updateInterestRet.Status.ShouldBe(TransactionResultStatus.Failed);
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetControllerForManageVoteWeightInterest), BootMinerAddress);
-            updateInterestRet = (await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)).TransactionResult;
-            updateInterestRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var newParliament = new Parliament.CreateOrganizationInput
+            {
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new Acs3.ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var bpParliamentStub = GetParliamentContractTester(InitialCoreDataCenterKeyPairs[0]);
+            var createNewParliament =
+                (await bpParliamentStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
+            createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
+            var calculatedNewParliamentAddress = await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = calculatedNewParliamentAddress,
+                ContractAddress = ParliamentContractAddress
+            };
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.ChangeVoteWeightInterestController), newAuthority);
+            var proposalToUpdateInterest = new Acs3.CreateProposalInput
+            {
+                OrganizationAddress = calculatedNewParliamentAddress,
+                ContractMethodName = nameof(TreasuryContractContainer.TreasuryContractStub.SetVoteWeightInterest),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = newInterest.ToByteString(),
+                ToAddress = TreasuryContractAddress
+            };
+            var createResult = await bpParliamentStub.CreateProposal.SendAsync(proposalToUpdateInterest);
+            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            await bpParliamentStub.Approve.SendAsync(proposalHash);
+            await ParliamentContractStub.Release.SendAsync(proposalHash);
             var interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());
             interestList.VoteWeightInterestInfos.Count.ShouldBe(1);
             interestList.VoteWeightInterestInfos[0].Capital.ShouldBe(1000);
             interestList.VoteWeightInterestInfos[0].Interest.ShouldBe(16);
             interestList.VoteWeightInterestInfos[0].Day.ShouldBe(400);
+        }
+
+        [Fact]
+        public async Task Treasury_ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult = await ParliamentContractStub.CreateOrganization.SendAsync(
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+
+            var organizationAddress = createOrganizationResult.Output;
+
+            var methodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+                nameof(TreasuryContractStub.ChangeMethodFeeController),
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = methodFeeController.ContractAddress
+                });
+
+            var newMethodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
+            newMethodFeeController.OwnerAddress.ShouldBe(organizationAddress);
         }
     }
 }

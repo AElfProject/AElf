@@ -70,7 +70,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 EconomicSmartContractAddressNameProvider.Name,
-                TokenHolderSmartContractAddressNameProvider.Name
+                TokenHolderSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name,
+                ReferendumSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitialEconomicSystem);
@@ -81,6 +83,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // Profit distribution schemes related to Treasury must be created before initialization of Economic System.
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
+                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 TreasuryStub.InitialTreasuryContract.GetTransaction(new Empty()),
                 TreasuryStub.InitialMiningRewardProfitItem.GetTransaction(new Empty())
             });
@@ -94,7 +97,6 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
-                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,

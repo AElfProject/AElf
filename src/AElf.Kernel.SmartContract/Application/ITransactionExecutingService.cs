@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: the inherit is very very strange
     public interface ILocalTransactionExecutingService: ILocalParallelTransactionExecutingService
     {
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
@@ -470,8 +471,13 @@ namespace AElf.Contracts.Election
             buildNewParliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var newParliamentAddress =  new Address();
             newParliamentAddress.MergeFrom(buildNewParliamentRet.ReturnValue);
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newParliamentAddress,
+                ContractAddress = ParliamentContractAddress
+            };
             await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
-                nameof(ElectionContractStub.SetControllerForManageVoteWeightInterest), newParliamentAddress);
+                nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
 
             await ExecuteProposalTransactionWithNewParliament(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);

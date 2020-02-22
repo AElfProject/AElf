@@ -300,7 +300,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 return;
             }
             
-            Logger.LogWarning($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
+            Logger.LogInformation($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {peer.LastKnownLibHeight}" +
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");

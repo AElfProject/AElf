@@ -3,6 +3,8 @@ using AElf.Contracts.MultiToken;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: base class, should not know token
+
     internal interface ITokenContractReaderFactory
     {
         TokenContractContainer.TokenContractStub Create(IChainContext chainContext);
