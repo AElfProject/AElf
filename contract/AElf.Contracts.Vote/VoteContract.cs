@@ -269,7 +269,7 @@ namespace AElf.Contracts.Vote
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             AssertOption(votingItem, input.Option);
-            Assert(votingItem.Options.Count < VoteContractConstants.MaximumOptionsCount,
+            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
