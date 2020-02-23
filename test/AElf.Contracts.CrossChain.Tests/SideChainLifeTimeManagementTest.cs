@@ -1243,5 +1243,91 @@ namespace AElf.Contracts.CrossChain.Tests
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
+
+        [Fact]
+        public async Task ChangeCrossChainMethodFee_Test()
+        {
+            await InitializeCrossChainContractAsync();
+            var organizationAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var methodName = nameof(CrossChainContractStub.Recharge);
+            var proposal = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = CrossChainContractAddress,
+                ContractMethodName = nameof(CrossChainContractStub.SetMethodFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                OrganizationAddress = organizationAddress,
+                Params = new MethodFees
+                {
+                    MethodName = methodName,
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "ELF",
+                            BasicFee = 5000_0000L
+                        }
+                    }
+                }.ToByteString()
+            });
+            var proposalId = proposal.Output;
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+
+            var methodFee = await CrossChainContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = methodName
+            });
+            methodFee.MethodName.ShouldBe(methodName);
+            methodFee.Fees.First().ShouldBe(new MethodFee
+            {
+                Symbol = "ELF",
+                BasicFee = 5000_0000L
+            });
+        }
+
+        [Fact]
+        public async Task GetSideChainIdAndHeight_Test()
+        {
+            var parentChainId = 123;
+            var lockedTokenAmount = 10L;
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
+
+            var sideChainIdAndHeight = await CrossChainContractStub.GetSideChainIdAndHeight.CallAsync(new Empty());
+            sideChainIdAndHeight.IdHeightDict.Count.ShouldBe(1);
+            sideChainIdAndHeight.IdHeightDict.Keys.First().ShouldBe(sideChainId);
+        }
+
+        [Fact]
+        public async Task GetAllChainsIdAndHeight_Test()
+        {
+            var parentChainId = 123;
+            var lockedTokenAmount = 10L;
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
+
+            var sideChainIdAndHeight = await CrossChainContractStub.GetAllChainsIdAndHeight.CallAsync(new Empty());
+            sideChainIdAndHeight.IdHeightDict.Count.ShouldBe(2);
+            var chainIds = sideChainIdAndHeight.IdHeightDict.Keys;
+            chainIds.ShouldContain(parentChainId);
+            chainIds.ShouldContain(sideChainId);
+        }
+
+        [Fact]
+        public async Task GetSideChainIndexingInformationList_Test()
+        {
+            var parentChainId = 123;
+            var lockedTokenAmount = 10L;
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
+
+            var sideChainIndexingInformationList =
+                await CrossChainContractStub.GetSideChainIndexingInformationList.CallAsync(new Empty());
+            sideChainIndexingInformationList.IndexingInformationList.Count.ShouldBe(1);
+            var indexInfo = sideChainIndexingInformationList.IndexingInformationList.First();
+            indexInfo.ChainId.ShouldBe(sideChainId);
+            indexInfo.IndexedHeight.ShouldBe(0);
+        }
     }
 }
