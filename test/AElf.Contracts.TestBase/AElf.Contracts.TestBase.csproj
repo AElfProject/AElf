@@ -1,8 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+    <!--TODO: rename this project to test/AElf.ContractTestBase-->
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -26,22 +43,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
     </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
-        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-    </ItemGroup>
+   
 
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs4.proto">
