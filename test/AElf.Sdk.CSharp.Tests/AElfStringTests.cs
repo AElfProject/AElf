@@ -54,18 +54,5 @@ namespace AElf.Sdk.CSharp.Tests
             var result3 = AElfString.Concat(info1, info2, info3, info4);
             result3.ShouldBe("24test" + info3 + info4);
         }
-
-        [Fact]
-        public void Exception_Concat_Test()
-        {
-            AElfString.Limit = 100;
-            var info = "long description string code test";
-            Should.Throw<AssertionException>(() =>
-            {
-                var array = new[] {info, info, info, info};
-                AElfString.Concat(array);
-            });
-            AElfString.Limit = int.MaxValue;
-        }
     }
 }
