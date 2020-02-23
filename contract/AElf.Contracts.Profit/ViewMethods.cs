@@ -18,8 +18,8 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// If input.Period == 0, the result will be the address of general ledger of a certain profit item;
-        /// Otherwise the result will be the address of a specific account period of a certain profit item,
+        /// If input.Period == 0, the result will be the address of general ledger of a certain profit scheme;
+        /// Otherwise the result will be the address of a specific account period of a certain profit scheme,
         /// which profit receivers will gain profits from.
         /// </summary>
         /// <param name="input"></param>
