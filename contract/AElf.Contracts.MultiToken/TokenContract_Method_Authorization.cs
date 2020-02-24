@@ -290,13 +290,10 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertDeveloperFeeController()
         {
-            var controller = State.DeveloperFeeController.Value;
-            if ( controller== null)
-            {
-                controller = GetDefaultDeveloperFeeController();
-            }
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
 
-            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
+            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController.OwnerAddress, "no permission");
         }
 
         private DeveloperFeeController GetDefaultDeveloperFeeController()
@@ -339,13 +336,9 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertUserFeeController()
         {
-            var controller = State.UserFeeController.Value;
-            if (controller == null)
-            {
-                controller = GetDefaultUserFeeController();
-            }
-
-            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
         }
 
         private UserFeeController GetDefaultUserFeeController()
