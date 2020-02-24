@@ -23,6 +23,7 @@ namespace AElf.OS.Handlers
         private readonly BlockAcceptedEventHandler _blockAcceptedEventHandler;
         private readonly BlockReceivedEventHandler _blockReceivedEventHandler;
         private readonly PeerConnectedEventHandler _peerConnectedEventHandler;
+        private readonly AnnouncementReceivedEventHandler _announcementReceivedEventHandler;
         private readonly ILocalEventBus _eventBus;
 
         public OsHandlerTests()
@@ -34,6 +35,7 @@ namespace AElf.OS.Handlers
             _blockAcceptedEventHandler = GetRequiredService<BlockAcceptedEventHandler>();
             _blockReceivedEventHandler = GetRequiredService<BlockReceivedEventHandler>();
             _peerConnectedEventHandler = GetRequiredService<PeerConnectedEventHandler>();
+            _announcementReceivedEventHandler = GetRequiredService<AnnouncementReceivedEventHandler>();
             _eventBus = GetRequiredService<ILocalEventBus>();
         }
 
@@ -111,6 +113,20 @@ namespace AElf.OS.Handlers
             await _peerConnectedEventHandler.HandleEventAsync(new PeerConnectedEventData(nodeInfo, chain.BestChainHash,
                 chain.BestChainHeight));
             eventData.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task AnnouncementReceivedEventHandler_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight);
+            var pubkey = block.Header.Signature.ToHex();
+            await _announcementReceivedEventHandler.HandleEventAsync(
+                new AnnouncementReceivedEventData(new BlockAnnouncement
+                {
+                    BlockHeight = block.Height,
+                    BlockHash = block.GetHash()
+                }, pubkey));
         }
     }
 }
