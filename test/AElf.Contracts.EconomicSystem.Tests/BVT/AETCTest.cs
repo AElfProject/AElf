@@ -12,7 +12,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public void ElectionContract_CreateTreasury_Test()
         {
-            // Check profit items related to Treasury.
+            // Check profit schemes related to Treasury.
             // Theses items already created during AElf Consensus Contract initialization,
             // and cached in ElectionContractTestBase.InitializeContracts in order to test.
             ProfitItemsIds.Count.ShouldBe(7);

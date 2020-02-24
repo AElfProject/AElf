@@ -33,7 +33,11 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         {
             const long period = 1;
             long distributedAmount;
-
+            
+            //Without candidate announce election
+            var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
+            candidates.Value.Count.ShouldBe(0);
+            
             // First 7 core data centers announce election.
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
@@ -42,7 +46,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
-            var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
+            candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
             candidates.Value.Count.ShouldBe(7);
 
             // First 10 citizens do some votes.

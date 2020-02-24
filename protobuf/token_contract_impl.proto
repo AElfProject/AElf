@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package tokenimpl;
 
+import "aelf/core.proto";
 import "acs1.proto";
 import "acs2.proto";
 import "token_contract.proto";
@@ -13,4 +14,145 @@ service TokenContractImpl {
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs2.proto";
     option (aelf.base) = "token_contract.proto";
+    
+    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
+    }
+    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
+    }
+    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
+    }
+    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSideChainParliamentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){
+    }
+    rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){
+        option (aelf.is_view) = true;
+    }
+    rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ProfitReceivingInformation {
+    aelf.Address contract_address = 1;
+    aelf.Address profit_receiver_address = 2;
+    sint32 donation_parts_per_hundred = 3;
+}
+
+message ReceiveProfitsInput {
+    aelf.Address contract_address = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+
+message AdvanceResourceTokenInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+
+message TakeResourceTokenBackInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+
+message RegisterCrossChainTokenContractAddressInput{
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
+    aelf.Address token_contract_address = 5;
+}
+
+message ValidateTokenInfoExistsInput{
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    sint32 issue_chain_id = 7;
+    bool is_profitable = 8;
+}
+
+message UpdateRentalInput {
+    map<string, sint64> rental = 1;
+}
+
+message UpdateRentedResourcesInput {
+    map<string, sint32> resource_amount = 1;
+}
+
+message ResourceUsage {
+    map<string, sint32> value = 1;
+}
+
+message GetVirtualAddressForLockingInput {
+    aelf.Address address = 1;
+    aelf.Hash lock_id = 2;
+}
+
+message OwningRental {
+    map<string, sint64> resource_amount = 1;
+}
+
+message TransferToContractInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+}
+// about authority
+message ControllerCreateInfo {
+    aelf.Address controller = 1;
+    bytes organization_creation_input_bytes = 2;
+}
+
+message UserFeeController{
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo referendum_controller = 3;
+}
+
+message DeveloperFeeController {
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo developer_controller = 3;
 }
