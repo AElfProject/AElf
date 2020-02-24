@@ -40,7 +40,7 @@ namespace AElf.Contracts.MultiToken
         protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;
         protected long BobCoinTotalAmount => 1_000_000_000_0000L;
         protected Address TokenContractAddress { get; set; }
-        internal TokenContractContainer.TokenContractStub TokenContractStub;
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultAddress => Address.FromPublicKey(DefaultKeyPair.PublicKey);
         protected ECKeyPair User1KeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
@@ -63,6 +63,7 @@ namespace AElf.Contracts.MultiToken
         public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
         public byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
+        public byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
         protected Address TokenConverterContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
@@ -105,7 +106,7 @@ namespace AElf.Contracts.MultiToken
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
-        protected readonly Address Address = SampleAddress.AddressList[0];
+        protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
 
         protected const string SymbolForTest = "ELF";
 
@@ -462,7 +463,7 @@ namespace AElf.Contracts.MultiToken
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
 
             var approveResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
+                nameof(TokenContractImplContainer.TokenContractImplStub.Approve), new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
                     Symbol = "ELF",
@@ -470,7 +471,7 @@ namespace AElf.Contracts.MultiToken
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
             await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetAllowance),
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetAllowance),
                 new GetAllowanceInput
                 {
                     Symbol = "ELF",

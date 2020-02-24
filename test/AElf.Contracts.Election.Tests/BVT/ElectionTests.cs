@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
@@ -356,10 +357,20 @@ namespace AElf.Contracts.Election
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
 
+            
             // Withdraw
             {
                 var executionResult = await WithdrawVotes(voterKeyPair, voteId);
                 executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            //check candidate records
+            {
+                var candidateVote = await ElectionContractStub.GetCandidateVoteWithAllRecords.CallAsync(new StringValue
+                {
+                    Value = candidateKeyPair.PublicKey.ToHex()
+                });
+                candidateVote.ObtainedWithdrawnVotesRecords.Select(o=>o.VoteId).ShouldContain(voteId);
             }
 
             // Profit
@@ -409,6 +420,17 @@ namespace AElf.Contracts.Election
             });
 
             information.Pubkey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+        }
+
+        [Fact]
+        public async Task ConsensusContract_GetPreviousMinerList()
+        {
+            await ElectionContract_GetVictories_ValidCandidatesEnough_Test();
+            await ProduceBlocks(BootMinerKeyPair, 1, true);
+            var previousMiners = await AEDPoSContractStub.GetPreviousMinerList.CallAsync(new Empty());
+            var previousMinersPubkey = previousMiners.Pubkeys.Select(o => o.ToHex()).OrderBy(o=>o).ToList();
+            var initialMinersPubkey = InitialCoreDataCenterKeyPairs.Select(o => o.PublicKey.ToHex()).OrderBy(o=>o).ToList();
+            previousMinersPubkey.ShouldBe(initialMinersPubkey);
         }
 
         [Fact]
@@ -470,8 +492,13 @@ namespace AElf.Contracts.Election
             buildNewParliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var newParliamentAddress =  new Address();
             newParliamentAddress.MergeFrom(buildNewParliamentRet.ReturnValue);
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newParliamentAddress,
+                ContractAddress = ParliamentContractAddress
+            };
             await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
-                nameof(ElectionContractStub.SetControllerForManageVoteWeightInterest), newParliamentAddress);
+                nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
 
             await ExecuteProposalTransactionWithNewParliament(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);
