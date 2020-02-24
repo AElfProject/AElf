@@ -71,7 +71,10 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address TransactionFeeChargingContractAddress =>
             GetOrDeployContract(Contracts.TransactionFee, ref _feeChargingAddress);
-
+        
+        private Address _associationAddress;
+        protected Address AssociationContractAddress => GetOrDeployContract(Contracts.Association, ref _associationAddress);
+        
         private Address _methodCallThresholdAddress;
 
         protected Address MethodCallThresholdContractAddress =>
@@ -302,6 +305,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ReferendumContractAddress;
             _ = TokenContractAddress;
             _ = TokenHolderContractAddress;
+            _ = AssociationContractAddress;
         }
 
         #endregion
@@ -528,7 +532,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected async Task SetConnectors()
         {
             {
-                await SetConnector(new PairConnector
+                await SetConnector(new PairConnectorParam
                 {
                     ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
                     ResourceWeight = "0.05",
@@ -588,6 +592,32 @@ namespace AElf.Contracts.Economic.TestBase
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
+        
+        protected async Task<TransactionResult> ExecuteProposalTransactionWithTransactionResult(Address from, Address contract, string method, IMessage input)
+        {
+            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = genesisOwner,
+                ContractMethodName = method,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contract
+            };
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            CheckResult(createResult.TransactionResult);
+
+            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
+                CheckResult(approveResult.TransactionResult);
+            }
+
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
+            return releaseResult.TransactionResult;
+        }
 
         #endregion
 
@@ -601,13 +631,13 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        private async Task SetConnector(PairConnector connector)
+        private async Task SetConnector(PairConnectorParam connector)
         {
-            var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
+            var connectorManagerAddress = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
-                OrganizationAddress = connectorManagerAddress,
-                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnectors),
+                OrganizationAddress = connectorManagerAddress.OwnerAddress,
+                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnector),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress

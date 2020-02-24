@@ -212,16 +212,8 @@ namespace AElf.Contracts.Economic
             });
         }
 
-        private Address InitialConnectorManager()
-        {
-            State.ParliamentContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-        }
-
         private void InitializeTokenConverterContract()
         {
-            var connectorManager = InitialConnectorManager();
             State.TokenConverterContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             var connectors = new List<Connector>
@@ -276,7 +268,6 @@ namespace AElf.Contracts.Economic
                 FeeRate = EconomicContractConstants.TokenConverterFeeRate,
                 Connectors = {connectors},
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
-                ManagerAddress = connectorManager
             });
         }
 

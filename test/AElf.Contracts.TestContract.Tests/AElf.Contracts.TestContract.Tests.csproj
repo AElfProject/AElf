@@ -71,6 +71,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -109,6 +114,12 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_security_contract.proto">
             <Link>Protobuf/Proto/stub/test_basic_security_contract.proto</Link>
+        </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractBase>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_with_parallel_contract.proto">
             <Link>Protobuf/Proto/stub/test_basic_function_with_parallel_contract.proto</Link>

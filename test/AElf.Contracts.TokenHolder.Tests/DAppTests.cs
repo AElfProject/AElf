@@ -17,12 +17,12 @@ namespace AElf.Contracts.TokenHolder
         {
             // Prepare stubs.
             var userTokenStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPairs[0]);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[0]);
             var userTokenHolderStub =
                 GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
             var receiverTokenStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPairs[1]);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[1]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());
 
