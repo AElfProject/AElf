@@ -26,8 +26,6 @@ namespace AElf.OS.Account.Infrastructure
 
         private readonly List<Account> _unlockedAccounts;
         private readonly KeyStoreService _keyStoreService;
-
-        public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
         
         public ILogger<AElfKeyStore> Logger { get; set; }
         
@@ -39,36 +37,18 @@ namespace AElf.OS.Account.Infrastructure
             
             Logger = NullLogger<AElfKeyStore>.Instance;
         }
-
-        private async Task UnlockAccountAsync(string address, string password, TimeSpan? timeoutToClose)
-        {
-            var keyPair = await ReadKeyPairAsync(address, password);
-            var unlockedAccount = new Account(address) {KeyPair = keyPair};
-
-            if (timeoutToClose.HasValue)
-            {
-                var t = new Timer(LockAccount, unlockedAccount, timeoutToClose.Value, timeoutToClose.Value);
-                unlockedAccount.LockTimer = t;
-            }
-
-            _unlockedAccounts.Add(unlockedAccount);
-        }
-
-        public async Task<AccountError> UnlockAccountAsync(string address, string password, bool withTimeout = true)
+        
+        public async Task<AccountError> UnlockAccountAsync(string address, string password)
         {
             try
             {
                 if (_unlockedAccounts.Any(x => x.AccountName == address))
                     return AccountError.AccountAlreadyUnlocked;
 
-                if (withTimeout)
-                {
-                    await UnlockAccountAsync(address, password, DefaultTimeoutToClose);
-                }
-                else
-                {
-                    await UnlockAccountAsync(address, password, null);
-                }
+                var keyPair = await ReadKeyPairAsync(address, password);
+                var unlockedAccount = new Account(address) {KeyPair = keyPair};
+
+                _unlockedAccounts.Add(unlockedAccount);
             }
             catch (InvalidPasswordException ex)
             {
@@ -82,14 +62,6 @@ namespace AElf.OS.Account.Infrastructure
             }
 
             return AccountError.None;
-        }
-
-        private void LockAccount(object accountObject)
-        {
-            if (!(accountObject is Account unlockedAccount))
-                return;
-            unlockedAccount.Lock();
-            _unlockedAccounts.Remove(unlockedAccount);
         }
 
         public ECKeyPair GetAccountKeyPair(string address)

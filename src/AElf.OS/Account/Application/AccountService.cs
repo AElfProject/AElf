@@ -70,7 +70,7 @@ namespace AElf.OS.Account.Application
             var accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             if (accountKeyPair == null)
             {
-                await _keyStore.UnlockAccountAsync(nodeAccount, nodePassword, false);
+                await _keyStore.UnlockAccountAsync(nodeAccount, nodePassword);
                 accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             }
 

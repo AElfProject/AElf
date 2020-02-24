@@ -35,7 +35,7 @@ namespace AElf.OS.Account.Infrastructure
             address.ShouldNotBe(null);
 
             //Open account
-            var errResult = await _keyStore.UnlockAccountAsync(addString, "12", true);
+            var errResult = await _keyStore.UnlockAccountAsync(addString, "12");
             errResult.ShouldBe(AccountError.WrongPassword);
 
             errResult = await _keyStore.UnlockAccountAsync(addString, "123");
@@ -44,7 +44,7 @@ namespace AElf.OS.Account.Infrastructure
             errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountAlreadyUnlocked);
 
-            errResult = await _keyStore.UnlockAccountAsync(addString, "123", false);
+            errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountAlreadyUnlocked);
 
             await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
@@ -88,28 +88,6 @@ namespace AElf.OS.Account.Infrastructure
 
             var errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountFileNotFound);
-        }
-
-        [Fact]
-        public async Task Open_Account_WithTimeout()
-        {
-            var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
-            var address = Address.FromPublicKey(keyPair.PublicKey);
-            var addString = address.GetFormatted();
-
-            //Open account with timeout
-            _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
-            await _keyStore.UnlockAccountAsync(addString, "123");
-            
-            Thread.Sleep(200); //update due to window ci io speed issue may cased case failed.
-            var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
-            keyPairInfo.ShouldBeNull();
-            
-            //Open account without timeout
-            await _keyStore.UnlockAccountAsync(addString, "123", false);
-            Thread.Sleep(200);
-            keyPairInfo = _keyStore.GetAccountKeyPair(addString);
-            keyPairInfo.ShouldNotBeNull();
         }
     }
 }
