@@ -43,7 +43,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            await _txHub.HandleUnexecutableTransactionsFoundAsync(eventData);
+            await _txHub.CleanTransactionsAsync(eventData.Transactions);
         }
     }
 }

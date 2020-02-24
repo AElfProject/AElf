@@ -323,11 +323,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.CompletedTask;
         }
 
-        //TODO: should implement out of this project, in a new eventHandler class call CleanTransactions
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
         {
-            CleanTransactions(eventData.Transactions);
-
+            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 
