@@ -40,6 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     minerInformation = minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
 
+                minerInformation = minerInformation.AppendLine($"In:\t {minerInRound.InValue?.ToHex()}");
                 minerInformation = minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
                 minerInformation = minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation = minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");

@@ -11,6 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public override Empty NextTerm(Round input)
         {
+            SupplyCurrentRoundInformation();
             ProcessConsensusInformation(input);
             return new Empty();
         }

@@ -24,6 +24,17 @@ namespace AElf.Contracts.Parliament
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized to propose.").ShouldBeTrue();
+            
+            //verify with view method
+            var byteString = await otherTester.CallContractMethodAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateProposerInWhiteList),
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = Address.FromPublicKey(ecKeyPair.PublicKey)
+                });
+            var verifyResult = BoolValue.Parser.ParseFrom(byteString);
+            verifyResult.Value.ShouldBeFalse();
         }
 
         [Fact]
@@ -116,6 +127,27 @@ namespace AElf.Contracts.Parliament
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task ValidateAddressIsParliamentMember_Test()
+        {
+            //miner member
+            var byteResult = await Tester.CallContractMethodAsync(
+                ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                Address.FromPublicKey(Tester.InitialMinerList[0].PublicKey));
+            var checkMinerResult = BoolValue.Parser.ParseFrom(byteResult);
+            checkMinerResult.Value.ShouldBeTrue();
+            
+            //none miner member
+            var tester = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey);
+            byteResult = await Tester.CallContractMethodAsync(
+                ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                tester);
+            var checkTesterResult = BoolValue.Parser.ParseFrom(byteResult);
+            checkTesterResult.Value.ShouldBeFalse();
         }
 
         private async Task<Address> CreateOrganizationAsync(bool proposerAuthorityRequired = false)

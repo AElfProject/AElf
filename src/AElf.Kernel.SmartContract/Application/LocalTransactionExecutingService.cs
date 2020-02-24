@@ -92,11 +92,6 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (!trace.IsSuccessful())
                     {
-                        if (throwException)
-                        {
-                            Logger.LogError(trace.Error);
-                        }
-
                         // Do not package this transaction if any of his inline transactions canceled.
                         if (IsTransactionCanceled(trace))
                         {
@@ -122,11 +117,6 @@ namespace AElf.Kernel.SmartContract.Application
                     else
                     {
                         groupStateCache.Update(trace.GetStateSets());
-                    }
-
-                    if (trace.Error != string.Empty)
-                    {
-                        Logger.LogError(trace.Error);
                     }
 
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
@@ -271,7 +261,6 @@ namespace AElf.Kernel.SmartContract.Application
                 trace.InlineTraces.Add(inlineTrace);
                 if (!inlineTrace.IsSuccessful())
                 {
-                    Logger.LogWarning($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
                     // Already failed, no need to execute remaining inline transactions
                     break;
                 }

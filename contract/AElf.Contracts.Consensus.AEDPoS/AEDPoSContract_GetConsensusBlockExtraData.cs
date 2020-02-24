@@ -79,14 +79,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
-                signature = previousRound.CalculateSignature(triggerInformation.InValue);
-                Context.LogDebug(
-                    () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                 if (triggerInformation.PreviousInValue != null &&
                     triggerInformation.PreviousInValue != Hash.Empty)
                 {
+                    Context.LogDebug(
+                        () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                     // Self check.
-                    if (Hash.FromMessage(triggerInformation.PreviousInValue) !=
+                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) &&
+                        Hash.FromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
@@ -95,6 +95,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     else
                     {
                         previousInValue = triggerInformation.PreviousInValue;
+                    }
+                    signature = previousRound.CalculateSignature(triggerInformation.PreviousInValue);
+                }
+                else
+                {
+                    var fakePreviousInValue = Hash.FromString(pubkey.Append(Context.CurrentHeight.ToString()));
+                    if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) && previousRound.RoundNumber != 1)
+                    {
+                        var appointedPreviousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;
+                        if (appointedPreviousInValue != null)
+                        {
+                            fakePreviousInValue = appointedPreviousInValue;
+                        }
+
+                        Context.LogDebug(() => $"TEST:\n{previousRound.ToString(pubkey)}\nInValue: {fakePreviousInValue}");
+                        signature = previousRound.CalculateSignature(fakePreviousInValue);
+                    }
+                    else
+                    {
+                        // This miner appears first time in current round, like as a replacement of evil miner.
+                        signature = previousRound.CalculateSignature(fakePreviousInValue);
                     }
                 }
             }

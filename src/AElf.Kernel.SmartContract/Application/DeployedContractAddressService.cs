@@ -50,6 +50,7 @@ namespace AElf.Kernel.SmartContract.Application
                 To = contractAddress,
                 MethodName = methodName,
                 Params = input.ToByteString(),
+                //TODO: what's SignaturePlaceholder? consider make as a constant
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
             var chain = await _blockchainService.GetChainAsync();

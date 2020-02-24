@@ -153,6 +153,7 @@ namespace AElf.OS.BlockSync.Application
                 {
                     if (result.Success)
                     {
+                        //TODO: make retry logic in a class, and use callback. then we can easily change the strategy
                         if (result.Payload != null && result.Payload.Count == 1)
                         {
                             correctCount++;
@@ -209,6 +210,7 @@ namespace AElf.OS.BlockSync.Application
 
         private string GetRandomPeerPubkey(string defaultPeerPubkey, long peerLibHeight, List<string> exceptedPeers)
         {
+            //TODO: should not new a Random in a function. it's very basic 
             var random = new Random();
             var peers = _networkService.GetPeers(false)
                 .Where(p => p.SyncState == SyncState.Finished &&

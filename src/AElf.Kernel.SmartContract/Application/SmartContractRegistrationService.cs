@@ -5,6 +5,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO: remove
     public interface ISmartContractRegistrationService
     {
         Task AddSmartContractRegistrationAsync(Address address, Hash codeHash, BlockIndex blockIndex);

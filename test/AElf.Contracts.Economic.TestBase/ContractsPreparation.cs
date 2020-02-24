@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
@@ -70,7 +71,10 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address TransactionFeeChargingContractAddress =>
             GetOrDeployContract(Contracts.TransactionFee, ref _feeChargingAddress);
-
+        
+        private Address _associationAddress;
+        protected Address AssociationContractAddress => GetOrDeployContract(Contracts.Association, ref _associationAddress);
+        
         private Address _methodCallThresholdAddress;
 
         protected Address MethodCallThresholdContractAddress =>
@@ -93,6 +97,10 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address TokenHolderContractAddress =>
             GetOrDeployContract(Contracts.TokenHolder, ref _tokenHolderAddress);
+
+        private Address _configurationAddress;
+        protected Address ConfigurationAddress =>
+            GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
 
         #endregion
 
@@ -133,6 +141,8 @@ namespace AElf.Contracts.Economic.TestBase
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
 
+        internal ConfigurationContainer.ConfigurationStub ConfigurationStub =>
+            GetConfigurationContractTester(BootMinerKeyPair);
         #endregion
 
         #region Get Contract Stub Tester
@@ -205,6 +215,11 @@ namespace AElf.Contracts.Economic.TestBase
         internal EconomicContractContainer.EconomicContractStub GetEconomicContractTester(ECKeyPair keyPair)
         {
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
+        }
+
+        internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
         }
 
         #endregion
@@ -290,6 +305,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ReferendumContractAddress;
             _ = TokenContractAddress;
             _ = TokenHolderContractAddress;
+            _ = AssociationContractAddress;
         }
 
         #endregion
@@ -516,7 +532,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected async Task SetConnectors()
         {
             {
-                await SetConnector(new PairConnector
+                await SetConnector(new PairConnectorParam
                 {
                     ResourceConnectorSymbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
                     ResourceWeight = "0.05",
@@ -576,6 +592,32 @@ namespace AElf.Contracts.Economic.TestBase
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
+        
+        protected async Task<TransactionResult> ExecuteProposalTransactionWithTransactionResult(Address from, Address contract, string method, IMessage input)
+        {
+            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = genesisOwner,
+                ContractMethodName = method,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contract
+            };
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            CheckResult(createResult.TransactionResult);
+
+            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalHash);
+                CheckResult(approveResult.TransactionResult);
+            }
+
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
+            return releaseResult.TransactionResult;
+        }
 
         #endregion
 
@@ -589,13 +631,13 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        private async Task SetConnector(PairConnector connector)
+        private async Task SetConnector(PairConnectorParam connector)
         {
-            var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
+            var connectorManagerAddress = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
-                OrganizationAddress = connectorManagerAddress,
-                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnectors),
+                OrganizationAddress = connectorManagerAddress.OwnerAddress,
+                ContractMethodName = nameof(TokenConverterContractStub.AddPairConnector),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress

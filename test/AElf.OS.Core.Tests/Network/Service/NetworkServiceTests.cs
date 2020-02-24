@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
@@ -13,6 +14,7 @@ namespace AElf.OS.Network
 {
     public class NetworkServiceTests : OSCoreNetworkServiceTestBase
     {
+        private IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
         private readonly IBlackListedPeerProvider _blackListProvider;
@@ -21,6 +23,7 @@ namespace AElf.OS.Network
 
         public NetworkServiceTests()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
             _networkService = GetRequiredService<INetworkService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
@@ -140,6 +143,13 @@ namespace AElf.OS.Network
             peer.ShouldBeNull();
         }
 
+        [Fact]
+        public void PeerIsFull_Test()
+        {
+            var result = _peerPool.IsFull();
+            result.ShouldBeFalse();
+        }
+        
         #endregion GetPeers
 
         #region Broadcast

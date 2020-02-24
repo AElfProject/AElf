@@ -13,7 +13,7 @@ namespace AElf.Contracts.TokenHolder
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
+            //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.RemoveAll<IPostExecutionPlugin>();
             context.Services.RemoveAll<ISystemTransactionGenerator>();

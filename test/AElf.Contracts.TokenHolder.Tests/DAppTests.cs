@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.DApp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -16,12 +17,12 @@ namespace AElf.Contracts.TokenHolder
         {
             // Prepare stubs.
             var userTokenStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPairs[0]);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[0]);
             var userTokenHolderStub =
                 GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
             var receiverTokenStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPairs[1]);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[1]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());
 
@@ -100,7 +101,7 @@ namespace AElf.Contracts.TokenHolder
                 });
                 balance.Balance.ShouldBe(1000_0000);
             }
-            
+
             // Help user to claim profits from token holder profit scheme.
             await TokenHolderContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
@@ -112,6 +113,21 @@ namespace AElf.Contracts.TokenHolder
             // Profits should be 1 ELF.
             (await GetFirstUserBalance("ELF")).ShouldBe(elfBalanceAfter + 1_0000_0000);
 
+            //withdraw
+            var beforeBalance =
+                await userTokenStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Symbol = "APP",
+                    Owner = UserAddresses[0]
+                });
+            var withDrawResult = await userTokenHolderStub.Withdraw.SendAsync(DAppContractAddress);
+            withDrawResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var resultBalance = await userTokenStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "APP",
+                Owner = UserAddresses[0]
+            });
+            resultBalance.Balance.ShouldBe(beforeBalance.Balance + 57_00000000);
         }
 
         private async Task<long> GetFirstUserBalance(string symbol)
