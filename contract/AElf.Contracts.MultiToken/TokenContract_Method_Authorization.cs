@@ -11,20 +11,26 @@ namespace AElf.Contracts.MultiToken
     {
         #region orgnanization init
 
-        private void InitializeAuthorizedController()
+        public override Empty InitializeAuthorizedController(Empty input)
         {
-            var defaultUserFeeController = GetDefaultUserFeeController();
-            CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
-            CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
-                defaultUserFeeController.ReferendumController.OwnerAddress);
-            State.UserFeeController.Value = defaultUserFeeController;
-            
-            var developerController = GetDefaultDeveloperFeeController();
-            CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
-            CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
-                developerController.DeveloperController.OwnerAddress);
-            State.DeveloperFeeController.Value = developerController;
-            if (State.SideChainCreator.Value == null) return;
+            if (State.UserFeeController.Value == null)
+            {
+                var defaultUserFeeController = GetDefaultUserFeeController();
+                CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
+                CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
+                    defaultUserFeeController.ReferendumController.OwnerAddress);
+                State.UserFeeController.Value = defaultUserFeeController;
+            }
+
+            if (State.DeveloperFeeController.Value == null)
+            {
+                var developerController = GetDefaultDeveloperFeeController();
+                CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
+                CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
+                    developerController.DeveloperController.OwnerAddress);
+                State.DeveloperFeeController.Value = developerController;
+            }
+            if (State.SideChainCreator.Value == null) return new Empty();
             if (State.AssociationContract.Value == null)
             {
                 State.AssociationContract.Value =
@@ -33,6 +39,8 @@ namespace AElf.Contracts.MultiToken
 
             State.AssociationContract.CreateOrganizationBySystemContract.Send(
                 GetControllerCreateInputForSideChainRental());
+                
+            return new Empty();
         }
 
         public override Empty ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo input)

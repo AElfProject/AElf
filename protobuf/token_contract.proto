@@ -14,6 +14,8 @@ service TokenContract {
     }
     rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
