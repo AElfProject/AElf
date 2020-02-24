@@ -9,7 +9,7 @@ namespace AElf.Contracts.Configuration
         public override Empty SetBlockTransactionLimit(Int32Value input)
         {
             Assert(input.Value > 0, "Invalid input.");
-            CheckOwnerAuthority();
+            CheckControllerAuthority();
 
             var oldValue = State.BlockTransactionLimit.Value;
             var newValue = input.Value;
@@ -27,16 +27,16 @@ namespace AElf.Contracts.Configuration
             return new Int32Value {Value = State.BlockTransactionLimit.Value};
         }
 
-        public override Empty ChangeOwnerAddress(Address input)
+        public override Empty ChangeConfigurationController(Address input)
         {
-            CheckOwnerAuthority();
-            State.Owner.Value = input;
+            CheckControllerAuthority();
+            State.ConfigurationController.Value = input;
             return new Empty();
         }
 
-        public override Address GetOwnerAddress(Empty input)
+        public override Address GetConfigurationController(Empty input)
         {
-            var address = GetOwnerAddress();
+            var address = GetControllerForManageConfiguration();
             return address;
         }
 
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Configuration
 
         public override Empty InitialTotalResourceTokens(ResourceTokenAmount input)
         {
-            CheckSenderIsParliamentOrZeroContract();
+            CheckSenderIsControllerOrZeroContract();
             State.TotalResourceTokenAmount.Value = input;
             State.RemainResourceTokenAmount.Value = input;
             return new Empty();
@@ -70,14 +70,14 @@ namespace AElf.Contracts.Configuration
 
         public override Empty SetRequiredAcsInContracts(RequiredAcsInContracts input)
         {
-            CheckSenderIsParliamentOrZeroContract();
+            CheckSenderIsControllerOrZeroContract();
             State.RequiredAcsInContracts.Value = input;
             return new Empty();
         }
 
         public override Empty UpdateTotalResourceTokens(ResourceTokenAmount input)
         {
-            CheckOwnerAuthority();
+            CheckControllerAuthority();
             var change = input - State.TotalResourceTokenAmount.Value;
             if (State.RemainResourceTokenAmount.Value == null)
                 State.RemainResourceTokenAmount.Value = change;

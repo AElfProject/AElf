@@ -125,7 +125,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
-                    ContractMethodName = "ChangeOwnerAddress",
+                    ContractMethodName = nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     Params = createProposalInput.ToByteString(),
                     ToAddress = ConfigurationContractAddress,
