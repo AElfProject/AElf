@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
-using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
@@ -13,7 +12,6 @@ using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
 
@@ -79,6 +77,7 @@ namespace AElf.CSharp.CodeOps
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
         private ContractAuditor _auditor;
+        private readonly string _contractDllDir = "../../../contracts/";
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
         private readonly RequiredAcsDto _requiredAcs;
