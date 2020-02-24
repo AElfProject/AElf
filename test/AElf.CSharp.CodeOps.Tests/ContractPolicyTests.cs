@@ -2,14 +2,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
 
@@ -218,6 +222,19 @@ namespace AElf.CSharp.CodeOps
             Should.Throw<InvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
         }
 
+        [Fact]
+        public void ContractAudit_NotInjectAndCheckObserverProxy_Test()
+        {
+            const string contract = "AElf.Contracts.MultiToken.dll";
+            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var changedCode = InjectCallReplacerCode(code);
+            var md = ModuleDefinition.ReadModule(new MemoryStream(changedCode));
+
+            var observerValidator = new ObserverProxyValidator();
+            var validateResult = observerValidator.Validate(md);
+            validateResult.Count().ShouldBeGreaterThan(0);
+        }
+        
         private static List<ValidationResult> ValidateContractCode(byte[] code, IValidator<MethodDefinition> validator)
         {
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
@@ -234,6 +251,22 @@ namespace AElf.CSharp.CodeOps
             }
 
             return validateList;
+        }
+
+        private static byte[] ReadCode(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+        
+        private static byte[] InjectCallReplacerCode(byte[] code)
+        {
+            var asm = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
+            var patcher = new MethodCallReplacer();
+            patcher.Patch(asm.MainModule);
+
+            var newCode = new MemoryStream();
+            asm.Write(newCode);
+            return newCode.ToArray();
         }
     }
 }

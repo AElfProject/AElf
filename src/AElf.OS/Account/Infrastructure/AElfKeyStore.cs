@@ -31,6 +31,7 @@ namespace AElf.OS.Account.Infrastructure
         
         public ILogger<AElfKeyStore> Logger { get; set; }
 
+        //TODO: move out of this class
         public enum Errors
         {
             None = 0,

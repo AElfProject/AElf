@@ -4,6 +4,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
 
@@ -12,7 +13,7 @@ namespace AElf.Contracts.TokenConverter
     public class TokenConverterTestBase:ContractTestBase<TokenConverterTestModule>
     {
         protected Address TokenContractAddress;
-        
+        protected Address TreasuryContractAddress;
         protected Address TokenConverterContractAddress;
 
         internal TokenContractContainer.TokenContractStub TokenContractStub;
@@ -23,7 +24,7 @@ namespace AElf.Contracts.TokenConverter
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address FeeReceiverAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
+        protected Address FeeReceiverAddress => TreasuryContractAddress;
         protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
         
@@ -47,6 +48,12 @@ namespace AElf.Contracts.TokenConverter
                     TokenConverterContractAddress, DefaultSenderKeyPair);
                 AuthorizedTokenConvertStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, ManagerKeyPair);
+            }
+            {
+                // TreasuryContract
+                var category = KernelConstants.CodeCoverageRunnerCategory;
+                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Treasury")).Value;
+                TreasuryContractAddress = await DeploySystemSmartContract(category, code, TreasurySmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             }
             
             await TokenContractStub.Create.SendAsync(new CreateInput()

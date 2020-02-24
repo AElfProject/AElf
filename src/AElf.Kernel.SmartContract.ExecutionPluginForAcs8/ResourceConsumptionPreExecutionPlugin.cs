@@ -18,11 +18,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
 
+        //TODO: Define GetAcsSymbol() method in base class.
+        
         public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
 
+        //TODO: Utl.IsAcs(AcsSymbol, );
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);

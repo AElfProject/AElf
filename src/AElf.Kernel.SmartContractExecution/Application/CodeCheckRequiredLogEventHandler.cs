@@ -14,8 +14,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         private readonly ICodeCheckService _codeCheckService;
+        //TODO: smart contract executing should know nothing about proposal
         private readonly IProposalService _proposalService;
-
 
         private LogEvent _interestedEvent;
 
@@ -55,6 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 if (!codeCheckResult)
                     return;
 
+                //TODO: smart contract executing should know nothing about proposal
                 var proposalId = ProposalCreated.Parser
                     .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                     .ProposalId;

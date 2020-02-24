@@ -29,6 +29,9 @@ namespace AElf.Kernel.TransactionPool.Application
         /// <returns></returns>
         bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash);
 
+        
+        //TODO: no clean
+        
         /// <summary>
         /// Command to clear constrained tx validation provider.
         /// </summary>

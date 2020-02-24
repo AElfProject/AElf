@@ -4,7 +4,7 @@
 
 <details>
 
-  <summary><b>How to create a profit item</b></summary>
+  <summary><b>How to create a profit scheme</b></summary>
 
 Call `CreateScheme` and provide the token symbol you gonna use in this item. Also you can set the `ExpiredPeriodNumber`.
 
@@ -57,7 +57,7 @@ For anyone to create a `ProfitItem`.
 
 ### Purpose
 
-For a profit item `Creator` to register a `SubProfitItem` to one `ProfitItem` he created before.
+For a profit scheme `Creator` to register a `SubProfitScheme` to one `ProfitScheme` he created before.
 
 ### Notes
 
@@ -77,7 +77,7 @@ For a profit item `Creator` to register a `SubProfitItem` to one `ProfitItem` he
 
 ### Purpose
 
-For a profit item `Creator` to add an Address to receive profits of one `ProfitItem` he created before.
+For a profit scheme `Creator` to add an Address to receive profits of one `ProfitItem` he created before.
 
 ### Notes
 
@@ -95,7 +95,7 @@ For a profit item `Creator` to add an Address to receive profits of one `ProfitI
 
 ### Purpose
 
-For a profit item `Creator` to remove an Address to receive profits of one `ProfitItem` he created before.
+For a profit scheme `Creator` to remove an Address to receive profits of one `ProfitItem` he created before.
 
 ### Notes
 
@@ -107,7 +107,7 @@ For a profit item `Creator` to remove an Address to receive profits of one `Prof
 
 ### Purpose
 
-For a profit item `Creator` to release an amount of profits to a virtual address calculated by `ProfitItem` and current period number.
+For a profit scheme `Creator` to release an amount of profits to a virtual address calculated by `ProfitItem` and current period number.
 
 If this `ProfitItem` has `SubProfitItem`s, transfer tokens to `SubProfitItem`s' virtual addresses.
 
