@@ -39,8 +39,6 @@ namespace AElf.Blockchains.MainChain
                     TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                 });
 
-            //TODO!! when to remove?
-            // Issue remain native tokens to first initial miner (temporarily).
             economicContractMethodCallList.Add(
                 nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                 {
