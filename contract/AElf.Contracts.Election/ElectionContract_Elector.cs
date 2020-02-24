@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -172,11 +173,8 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 0;
             var lockDays = lockTime.Div(DaySec);
-
-            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos
-            )
+            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
                 if (lockDays > instMap.Day)
                     continue;
@@ -333,7 +331,7 @@ namespace AElf.Contracts.Election
 
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -351,13 +349,12 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty SetControllerForManageVoteWeightInterest(Address input)
+        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null, "invalid input");
-            var isNewControllerIsExist = State.ParliamentContract.ValidateOrganizationExist.Call(input);
-            Assert(isNewControllerIsExist.Value, "new controller does not exist");
-            State.ControllerForManageVoteWeightInterest.Value = input;
+            Assert(CheckOrganizationExist(input),"Invalid authority input.");
+            State.VoteWeightInterestController.Value = input;
             return new Empty();
         }
 
@@ -509,20 +506,28 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void AssertControllerForManageVoteWeightInterestSetting()
+        private void AssertPerformedByVoteWeightInterestController()
         {
-            if (State.ControllerForManageVoteWeightInterest.Value == null)
+            if (State.VoteWeightInterestController.Value == null)
             {
-                if (State.ParliamentContract.Value == null)
-                {
-                    State.ParliamentContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-                }
-                State.ControllerForManageVoteWeightInterest.Value =
-                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
-                
-            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+        }
+
+        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
     }
 }

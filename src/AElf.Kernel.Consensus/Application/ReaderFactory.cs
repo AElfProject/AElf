@@ -3,6 +3,8 @@ using Acs4;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    
+    //TODO!! why not implement a IReaderFactory<T>?
     internal interface IConsensusReaderFactory
     {
         ConsensusContractContainer.ConsensusContractStub Create(IChainContext chainContext);

@@ -62,7 +62,8 @@ namespace AElf.Contracts.Association
         {
             if (organization.ProposerWhiteList.Empty() || organization.OrganizationMemberList.Empty())
                 return false;
-            
+            if (organization.OrganizationAddress == null || organization.OrganizationHash == null)
+                return false;
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             var organizationMemberCount = organization.OrganizationMemberList.Count();
             return proposalReleaseThreshold.MinimalVoteThreshold <= organizationMemberCount &&
@@ -78,10 +79,17 @@ namespace AElf.Contracts.Association
 
         private bool Validate(ProposalInfo proposal)
         {
-            var validDestinationAddress = proposal.ToAddress != null;
-            var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
-            var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime;
+            if (proposal.ToAddress == null)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(proposal.ContractMethodName))
+            {
+                return false;
+            }
+
+            return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)

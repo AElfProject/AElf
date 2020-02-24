@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -38,7 +39,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
-                Balance = State.Balances[input.Owner][input.Symbol]
+                Balance = GetBalance(input.Owner, input.Symbol)
             };
         }
 
@@ -76,7 +77,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Address = input.Address,
                 LockId = input.LockId,
-                Amount = State.Balances[virtualAddress][input.Symbol]
+                Amount = GetBalance(virtualAddress, input.Symbol)
             };
         }
 
@@ -145,27 +146,38 @@ namespace AElf.Contracts.MultiToken
             return State.SymbolListToPayTxSizeFee.Value;
         }
         
-        public override ControllerForUserFee GetUserFeeController(Empty input)
+        public override UserFeeController GetUserFeeController(Empty input)
         {
-            return State.ControllerForUserFee.Value;
+            if(State.UserFeeController.Value == null)
+                return GetDefaultUserFeeController();
+            return State.UserFeeController.Value;
         }
         
-        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
-            return State.ControllerForDeveloperFee.Value;
+            if(State.DeveloperFeeController.Value == null)
+                return GetDefaultDeveloperFeeController();
+            return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
             var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            var controllerInfo = new ControllerCreateInfo
             {
                 Controller = controllerAddress,
                 OrganizationCreationInputBytes = organization.ToByteString()
             };
             return controllerInfo;
+        }
+
+        public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
+        {
+            if(State.SymbolToPayTxFeeController.Value == null)
+                return GetDefaultSymbolToPayTxFeeController();
+            return State.SymbolToPayTxFeeController.Value;
         }
     }
 }

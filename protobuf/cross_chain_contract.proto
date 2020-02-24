@@ -3,7 +3,6 @@ syntax = "proto3";
 import "acs7.proto";
 import "google/protobuf/wrappers.proto";
 import "acs1.proto";
-import "acs3.proto";
 import public "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";

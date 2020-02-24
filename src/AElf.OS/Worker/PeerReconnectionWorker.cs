@@ -14,14 +14,14 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS.Worker
 {
-    public class PeerReconnectionWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
+    public class PeerReconnectionWorker : PeriodicBackgroundWorkerBase
     {
         private readonly IPeerPool _peerPool;
         private readonly IReconnectionService _reconnectionService;
         private readonly INetworkService _networkService;
 
         private readonly NetworkOptions _networkOptions;
-        
+
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
         public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
@@ -45,15 +45,12 @@ namespace AElf.OS.Worker
         {
             CheckNtpClockDrift();
                 
-            await _networkService.SendHealthChecksAsync();
+            await _networkService.CheckPeersHealthAsync();
             
             var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
 
-            if (peersToConnect.Count <= 0)
-            {
-                Logger.LogDebug("No peers to reconnect.");
+            if (peersToConnect.Count <= 0) 
                 return;
-            }
 
             foreach (var peerToConnect in peersToConnect)
             {
@@ -89,7 +86,7 @@ namespace AElf.OS.Worker
                 {
                     // down the stack the AddPeerAsync rethrows any exception,
                     // in order to continue this job, Exception has to be catched for now.
-                    Logger.LogError(ex, $"Could not re-connect to {peerEndpoint}.");
+                    Logger.LogInformation(ex, $"Could not re-connect to {peerEndpoint}.");
                 }
 
                 if (connected)
@@ -101,10 +98,28 @@ namespace AElf.OS.Worker
                 }
                 else
                 {
-                    peerToConnect.NextAttempt =
-                        TimestampHelper.GetUtcNow().AddMilliseconds(_networkOptions.PeerReconnectionPeriod);
-                    
-                    Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}.");
+                    var timeExtension = _networkOptions.PeerReconnectionPeriod * (int)Math.Pow(2, ++peerToConnect.RetryCount);
+                    peerToConnect.NextAttempt = TimestampHelper.GetUtcNow().AddMilliseconds(timeExtension);
+
+                    // if the option is set, verify that the next attempt does not exceed
+                    // the maximum reconnection time. 
+                    if (_networkOptions.MaximumReconnectionTime != 0)
+                    {
+                        var maxReconnectionDate = peerToConnect.DisconnectionTime +
+                                      TimestampHelper.DurationFromMilliseconds(_networkOptions.MaximumReconnectionTime);
+
+                        if (peerToConnect.NextAttempt > maxReconnectionDate)
+                        {
+                            _reconnectionService.CancelReconnection(peerEndpoint);
+                            Logger.LogDebug($"Maximum reconnection time reached {peerEndpoint}, " +
+                                            $"next was {peerToConnect.NextAttempt}.");
+                            
+                            continue;
+                        }
+                    }
+
+                    Logger.LogDebug($"Could not connect to {peerEndpoint}, next attempt {peerToConnect.NextAttempt}, " +
+                                    $"current retries {peerToConnect.RetryCount}.");
                 }
             }
 

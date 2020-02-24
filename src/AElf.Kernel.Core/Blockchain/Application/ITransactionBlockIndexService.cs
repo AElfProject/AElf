@@ -9,6 +9,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
 {
+    //TODO: we need a meeting to talk about the this class how to deal with the fork, and the performance problem
     public interface ITransactionBlockIndexService
     {
         Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId);

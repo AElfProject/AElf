@@ -1,7 +1,15 @@
 using System.Threading.Tasks;
+using Acs1;
+using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.TokenConverter;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -16,6 +24,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var contractAddress = SampleAddress.AddressList[0];
             var developerAddress = BootMinerAddress;
+
+            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = ResourceTokenSymbol,
+                Amount = Amount,
+            });
 
             var balanceBeforeAdvancing = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -149,6 +163,43 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Can't take back that more.");
+        }
+
+        [Fact]
+        public async Task SetControllerForManageConnector_Test()
+        {
+            var createOrganizationResult = await ParliamentContractStub.CreateOrganization.SendAsync(
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+            var organizationAddress = createOrganizationResult.Output;
+            var defaultController =
+                await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = TokenConverterContractAddress,
+                ContractMethodName = nameof(TokenConverterContractStub.ChangeConnectorController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = new AuthorityInfo
+                {
+                    ContractAddress = defaultController.ContractAddress,
+                    OwnerAddress = organizationAddress
+                }.ToByteString(),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = proposal.Output;
+            await ApproveWithAllMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var newController = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
+            newController.OwnerAddress.ShouldBe(organizationAddress);
+            
         }
     }
 }

@@ -120,13 +120,23 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             //default fee
             {
-                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
+                //create scheme
+                var createSchemeFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
                 {
                     Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(CreateSchemeAmount);
+                createSchemeFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                createSchemeFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                createSchemeFeeAmount.Fees.First().BasicFee.ShouldBe(CreateSchemeAmount);
+                
+                //others
+                var othersFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
+                {
+                    Value = nameof(ProfitContractStub.AddBeneficiaries)
+                });
+                othersFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                othersFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                othersFeeAmount.Fees.First().BasicFee.ShouldBe(DefaultFeeAmount);
             }
 
             //set transaction fee

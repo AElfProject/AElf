@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInput;
@@ -671,12 +672,12 @@ namespace AElf.Contracts.Genesis
         public async Task UpdateSmartContract_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.UpdateSmartContract), (
-                    new ContractUpdateInput()
+                nameof(ACS0Container.ACS0Stub.UpdateSmartContract),
+                    new ContractUpdateInput
                     {
                         Address = ParliamentAddress,
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
-                    }));
+                    });
 
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
@@ -919,6 +920,46 @@ namespace AElf.Contracts.Genesis
 
             methodFeeControllerAfterChange.ContractAddress.ShouldBe(AssociationContractAddress);
             methodFeeControllerAfterChange.OwnerAddress.ShouldBe(organizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeCodeCheckController_Test()
+        {
+            var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+
+            var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                new Empty());
+            var codeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
+            
+            const string proposalCreationMethodName =
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeCodeCheckController);
+            var proposalId = await CreateProposalAsync(Tester, codeCheckController.ContractAddress,
+                codeCheckController.OwnerAddress, proposalCreationMethodName,
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentAddress
+                });
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                new Empty());
+            var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
+            Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
         }
 
         #endregion

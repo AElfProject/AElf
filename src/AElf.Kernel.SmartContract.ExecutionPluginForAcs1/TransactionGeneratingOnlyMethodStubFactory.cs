@@ -6,6 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
+    //TODO: make a base class
     public class TransactionGeneratingOnlyMethodStubFactory : IMethodStubFactory
     {
         public Address Sender { get; set; }

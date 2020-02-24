@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Infrastructure
 
         PeerConnectionInfo Info { get; }
 
-        Task CheckHealthAsync();
+        Task PingAsync();
 
         bool KnowsBlock(Hash hash);
         bool TryAddKnownBlock(Hash blockHash);

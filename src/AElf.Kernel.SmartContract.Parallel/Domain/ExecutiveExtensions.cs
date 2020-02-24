@@ -13,6 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private static Address FromAddress => Address.FromBytes(new byte[] { }.ComputeHash());
 
+        //TODO: should call a util, this method should not know how to build transaction and call executive, but it knows Resource
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
@@ -72,7 +73,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         internal static bool IsParallelizable(this IExecutive executive)
         {
-            return executive.Descriptors.Any(service => service.File.GetIndentity() == "acs2");
+            return executive.Descriptors.Any(service => service.File.GetIdentity() == "acs2");
         }
 
         private static TransactionResourceInfo NotParallelizable(Hash transactionId,Hash codeHash)

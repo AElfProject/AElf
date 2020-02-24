@@ -50,8 +50,6 @@ namespace AElf.Contracts.Profit.BVT
             var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
 
             scheme.Manager.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
-            scheme.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
-                .ShouldBe(contributeAmount);
 
             var schemeAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
                 new SchemePeriod
