@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
@@ -77,7 +78,6 @@ namespace AElf.CSharp.CodeOps
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
         private ContractAuditor _auditor;
-        private readonly string _contractDllDir = "../../../contracts/";
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
         private readonly RequiredAcsDto _requiredAcs;
@@ -224,8 +224,7 @@ namespace AElf.CSharp.CodeOps
         [Fact]
         public void ContractAudit_NotInjectAndCheckObserverProxy_Test()
         {
-            const string contract = "AElf.Contracts.MultiToken.dll";
-            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var code = ReadCode(typeof(TokenContract).Assembly.Location);
             var changedCode = InjectCallReplacerCode(code);
             var md = ModuleDefinition.ReadModule(new MemoryStream(changedCode));
 
