@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@ namespace AElf.Kernel.SmartContract
         {
             var services = context.Services;
 
-            services.AddTransient<ISmartContractRunner>(p =>
+            services.AddTransient(p =>
             {
                 var mockExecutive = new Mock<IExecutive>();
 
@@ -28,6 +29,23 @@ namespace AElf.Kernel.SmartContract
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
+
+            services.AddSingleton(p =>
+            {
+                var smartContractService = new Mock<ISmartContractAddressService>();
+                smartContractService.Setup(o =>
+                        o.GetAddressByContractName(It.Is<Hash>(hash =>
+                            hash == TokenSmartContractAddressNameProvider.Name)))
+                    .Returns(SampleAddress.AddressList[0]);
+                smartContractService.Setup(o =>
+                        o.GetAddressByContractName(It.Is<Hash>(hash =>
+                            hash != TokenSmartContractAddressNameProvider.Name)))
+                    .Returns(SampleAddress.AddressList[1]);
+
+                return smartContractService.Object;
+            });
+
+            services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
     }
 }

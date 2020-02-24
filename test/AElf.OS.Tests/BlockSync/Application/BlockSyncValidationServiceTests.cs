@@ -101,6 +101,29 @@ namespace AElf.OS.BlockSync.Application
 
             validateResult.ShouldBeTrue();
         }
+
+        [Fact]
+        public async Task ValidateBlockBeforeAttachAsync_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactions = await _osTestHelper.GenerateTransferTransactions(2);
+            var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
+                chain.LastIrreversibleBlockHeight, transactions);
+            var blockWithTransactions = new BlockWithTransactions
+            {
+                Header = block.Header,
+                Transactions = {block.Transactions}
+            };
+            //expired txs
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            validateResult.ShouldBeFalse();
+            
+            //normal txs
+            transactions[0].RefBlockNumber = chain.LastIrreversibleBlockHeight;
+            transactions[1].RefBlockNumber = chain.LastIrreversibleBlockHeight;
+            validateResult = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            validateResult.ShouldBeTrue();
+        }
         
         [Fact]
         public async Task ValidateBlock_LessThenLIBHeight()
