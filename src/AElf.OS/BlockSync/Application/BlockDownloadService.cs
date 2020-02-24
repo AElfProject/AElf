@@ -13,6 +13,7 @@ using AElf.OS.Network.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application
@@ -210,8 +211,6 @@ namespace AElf.OS.BlockSync.Application
 
         private string GetRandomPeerPubkey(string defaultPeerPubkey, long peerLibHeight, List<string> exceptedPeers)
         {
-            //TODO: should not new a Random in a function. it's very basic 
-            var random = new Random();
             var peers = _networkService.GetPeers(false)
                 .Where(p => p.SyncState == SyncState.Finished &&
                             p.LastKnownLibHeight >= peerLibHeight &&
@@ -220,7 +219,7 @@ namespace AElf.OS.BlockSync.Application
 
             var randomPeerPubkey = peers.Count == 0
                 ? defaultPeerPubkey
-                : peers[random.Next() % peers.Count].Pubkey;
+                : peers[RandomHelper.GetRandom() % peers.Count].Pubkey;
 
             return randomPeerPubkey;
         }
