@@ -30,17 +30,7 @@ namespace AElf.OS.Account.Infrastructure
         public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
         
         public ILogger<AElfKeyStore> Logger { get; set; }
-
-        //TODO: move out of this class
-        public enum Errors
-        {
-            None = 0,
-            AccountAlreadyUnlocked = 1,
-            WrongPassword = 2,
-            WrongAccountFormat = 3,
-            AccountFileNotFound = 4
-        }
-
+        
         public AElfKeyStore(INodeEnvironmentService nodeEnvironmentService)
         {
             _nodeEnvironmentService = nodeEnvironmentService;
@@ -64,12 +54,12 @@ namespace AElf.OS.Account.Infrastructure
             _unlockedAccounts.Add(unlockedAccount);
         }
 
-        public async Task<Errors> UnlockAccountAsync(string address, string password, bool withTimeout = true)
+        public async Task<AccountError> UnlockAccountAsync(string address, string password, bool withTimeout = true)
         {
             try
             {
                 if (_unlockedAccounts.Any(x => x.AccountName == address))
-                    return Errors.AccountAlreadyUnlocked;
+                    return AccountError.AccountAlreadyUnlocked;
 
                 if (withTimeout)
                 {
@@ -83,15 +73,15 @@ namespace AElf.OS.Account.Infrastructure
             catch (InvalidPasswordException ex)
             {
                 Logger.LogError(ex, "Invalid password: ");
-                return Errors.WrongPassword;
+                return AccountError.WrongPassword;
             }
             catch (KeyStoreNotFoundException ex)
             {
                 Logger.LogError(ex, "Could not load account:");
-                return Errors.AccountFileNotFound;
+                return AccountError.AccountFileNotFound;
             }
 
-            return Errors.None;
+            return AccountError.None;
         }
 
         private void LockAccount(object accountObject)

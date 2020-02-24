@@ -53,7 +53,7 @@ namespace AElf.OS
                 keyStore.Setup(k => k.UnlockAccountAsync(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(() =>
                 {
                     keyPair = ecKeyPair;
-                    return Task.FromResult(AElfKeyStore.Errors.None);
+                    return Task.FromResult(AccountError.None);
                 });
 
                 return keyStore.Object;

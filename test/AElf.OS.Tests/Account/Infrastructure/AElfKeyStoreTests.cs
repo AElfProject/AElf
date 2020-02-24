@@ -36,16 +36,16 @@ namespace AElf.OS.Account.Infrastructure
 
             //Open account
             var errResult = await _keyStore.UnlockAccountAsync(addString, "12", true);
-            errResult.ShouldBe(AElfKeyStore.Errors.WrongPassword);
+            errResult.ShouldBe(AccountError.WrongPassword);
 
             errResult = await _keyStore.UnlockAccountAsync(addString, "123");
-            errResult.ShouldBe(AElfKeyStore.Errors.None);
+            errResult.ShouldBe(AccountError.None);
 
             errResult = await _keyStore.UnlockAccountAsync(addString, "123");
-            errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
+            errResult.ShouldBe(AccountError.AccountAlreadyUnlocked);
 
             errResult = await _keyStore.UnlockAccountAsync(addString, "123", false);
-            errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
+            errResult.ShouldBe(AccountError.AccountAlreadyUnlocked);
 
             await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
             Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
@@ -87,7 +87,7 @@ namespace AElf.OS.Account.Infrastructure
             keyPair.ShouldBe(null);
 
             var errResult = await _keyStore.UnlockAccountAsync(addString, "123");
-            errResult.ShouldBe(AElfKeyStore.Errors.AccountFileNotFound);
+            errResult.ShouldBe(AccountError.AccountFileNotFound);
         }
 
         [Fact]
