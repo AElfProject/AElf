@@ -105,7 +105,7 @@ namespace AElf.CSharp.CodeOps
             });
 
             multiplePolicies.Whitelist.NameSpaces.ShouldNotBeNull();
-            multiplePolicies.MethodValidators.Count.ShouldBe(6);
+            multiplePolicies.MethodValidators.Count.ShouldBe(4);
         }
 
         [Fact]
