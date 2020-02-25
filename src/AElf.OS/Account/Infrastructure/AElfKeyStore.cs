@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Nethereum.KeyStore;
 using Nethereum.KeyStore.Crypto;
+using Nethereum.KeyStore.Model;
 
 namespace AElf.OS.Account.Infrastructure
 {
@@ -23,9 +24,12 @@ namespace AElf.OS.Account.Infrastructure
 
         private const string KeyFileExtension = ".json";
         private const string KeyFolderName = "keys";
+        private const int ParamN = 8192;
+        private const int ParamR = 8;
+        private const int ParamP = 1;
 
         private readonly List<Account> _unlockedAccounts;
-        private readonly KeyStoreService _keyStoreService;
+        private readonly KeyStoreScryptService _keyStoreScryptService;
 
         public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
         
@@ -45,7 +49,7 @@ namespace AElf.OS.Account.Infrastructure
         {
             _nodeEnvironmentService = nodeEnvironmentService;
             _unlockedAccounts = new List<Account>();
-            _keyStoreService = new KeyStoreService();
+            _keyStoreScryptService = new KeyStoreScryptService();
             
             Logger = NullLogger<AElfKeyStore>.Instance;
         }
@@ -132,7 +136,7 @@ namespace AElf.OS.Account.Infrastructure
                     using (var textReader = File.OpenText(keyFilePath))
                     {
                         var json = textReader.ReadToEnd();
-                        return _keyStoreService.DecryptKeyStoreFromJson(password, json);
+                        return _keyStoreScryptService.DecryptKeyStoreFromJson(password, json);
                     }
                 });
 
@@ -162,15 +166,18 @@ namespace AElf.OS.Account.Infrastructure
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var fullPath = GetKeyFileFullPath(address.GetFormatted());
+            var scryptParams = new ScryptParams {Dklen = 32, N = ParamN, R = ParamR, P = ParamP};
 
             await Task.Run(() =>
             {
                 using (var writer = File.CreateText(fullPath))
                 {
-                    var scryptResult = _keyStoreService.EncryptAndGenerateDefaultKeyStoreAsJson(password,
+                    var keyStore = _keyStoreScryptService.EncryptAndGenerateKeyStore(password,
                         keyPair.PrivateKey,
-                        address.GetFormatted());
-                    writer.Write(scryptResult);
+                        address.GetFormatted(),
+                        scryptParams);
+                    var keyStoreToJson = _keyStoreScryptService.SerializeKeyStoreToJson(keyStore);
+                    writer.Write(keyStoreToJson);
                     writer.Flush();
                 }
             });
