@@ -20,4 +20,5 @@ install:
 environment:
   CI_TEST: true
 build_script:
-  - ps: .\build.ps1
+  - ps: .\build.ps1 -target=Test-with-Codecov
+  - ps: .\build.ps1 -target=Upload-Coverage

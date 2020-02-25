@@ -15,9 +15,8 @@ jobs:
   - task: BatchScript@1
     inputs:
       filename: 'scripts/download_binary.bat'
-  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov
+  - script: PowerShell.exe -file build.ps1
     displayName: 'Build and Test'
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
