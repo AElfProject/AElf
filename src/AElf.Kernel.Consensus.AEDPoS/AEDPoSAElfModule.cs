@@ -53,7 +53,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
-            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            context.Services.AddSingleton<ITransactionValidationProvider, ExcludeFromTxHubValidationProvider>();
 
             //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
 
