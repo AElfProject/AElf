@@ -148,15 +148,15 @@ namespace AElf.Contracts.MultiToken
         
         public override UserFeeController GetUserFeeController(Empty input)
         {
-            if(State.UserFeeController.Value == null)
-                return GetDefaultUserFeeController();
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
             return State.UserFeeController.Value;
         }
         
         public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
-            if(State.DeveloperFeeController.Value == null)
-                return GetDefaultDeveloperFeeController();
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
             return State.DeveloperFeeController.Value;
         }
         
