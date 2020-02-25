@@ -7,11 +7,12 @@ namespace AElf.CSharp.CodeOps
 {
     public class CSharpCodeOpsTestBase : AElfIntegratedTest<TestCSharpCodeOpsAElfModule>
     {
+        private const string ContractDllDir = "../../../../../src/AElf.Launcher/contracts/";
         protected const string ContractPatchedDllDir = "../../../../patched/";
         
         protected byte[] ReadContractCode(Type contractType)
         {
-            var location = Assembly.GetAssembly(contractType).Location;
+            var location = Path.Combine(ContractDllDir, Assembly.GetAssembly(contractType).ManifestModule.Name);
             return ReadCode( location);
         }
 
