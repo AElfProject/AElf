@@ -9,7 +9,7 @@ using Xunit;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class TokenConverterContractTests : TokenConverterTestBase
+    public partial class TokenConverterContractTests : TokenConverterTestBase
     {
         private const string NativeSymbol = "ELF";
 

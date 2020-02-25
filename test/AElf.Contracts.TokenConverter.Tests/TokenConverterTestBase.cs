@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -21,13 +22,15 @@ namespace AElf.Contracts.TokenConverter
         
         internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
         internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedTokenConvertStub;
-        
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address FeeReceiverAddress => TreasuryContractAddress;
         protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        
+        protected Address ParliamentContractAddress { get; set; }
+
         protected async Task DeployContractsAsync()
         {
             {
@@ -55,6 +58,14 @@ namespace AElf.Contracts.TokenConverter
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Treasury")).Value;
                 TreasuryContractAddress = await DeploySystemSmartContract(category, code, TreasurySmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             }
+            //ParliamentContract
+            {
+                var category = KernelConstants.CodeCoverageRunnerCategory;
+                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Parliament")).Value;;
+                ParliamentContractAddress = await DeploySystemSmartContract(category, code, ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                ParliamentContractStub =
+                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, DefaultSenderKeyPair);
+            }
             
             await TokenContractStub.Create.SendAsync(new CreateInput()
             {
@@ -79,6 +90,11 @@ namespace AElf.Contracts.TokenConverter
                 Amount = 100_0000_0000L,
                 To = ManagerAddress,
                 Memo = "Set for token converter."
+            });
+            await ParliamentContractStub.Initialize.SendAsync(new Parliament.InitializeInput()
+            {
+                PrivilegedProposer = DefaultSender,
+                ProposerAuthorityRequired = true
             });
         }
 
