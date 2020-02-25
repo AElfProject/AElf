@@ -11,20 +11,26 @@ namespace AElf.Contracts.MultiToken
     {
         #region orgnanization init
 
-        private void InitializeAuthorizedController()
+        public override Empty InitializeAuthorizedController(Empty input)
         {
-            var defaultUserFeeController = GetDefaultUserFeeController();
-            CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
-            CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
-                defaultUserFeeController.ReferendumController.OwnerAddress);
-            State.UserFeeController.Value = defaultUserFeeController;
-            
-            var developerController = GetDefaultDeveloperFeeController();
-            CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
-            CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
-                developerController.DeveloperController.OwnerAddress);
-            State.DeveloperFeeController.Value = developerController;
-            if (State.SideChainCreator.Value == null) return;
+            if (State.UserFeeController.Value == null)
+            {
+                var defaultUserFeeController = GetDefaultUserFeeController();
+                CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
+                CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
+                    defaultUserFeeController.ReferendumController.OwnerAddress);
+                State.UserFeeController.Value = defaultUserFeeController;
+            }
+
+            if (State.DeveloperFeeController.Value == null)
+            {
+                var developerController = GetDefaultDeveloperFeeController();
+                CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
+                CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
+                    developerController.DeveloperController.OwnerAddress);
+                State.DeveloperFeeController.Value = developerController;
+            }
+            if (State.SideChainCreator.Value == null) return new Empty();
             if (State.AssociationContract.Value == null)
             {
                 State.AssociationContract.Value =
@@ -33,6 +39,8 @@ namespace AElf.Contracts.MultiToken
 
             State.AssociationContract.CreateOrganizationBySystemContract.Send(
                 GetControllerCreateInputForSideChainRental());
+                
+            return new Empty();
         }
 
         public override Empty ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo input)
@@ -282,13 +290,10 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertDeveloperFeeController()
         {
-            var controller = State.DeveloperFeeController.Value;
-            if ( controller== null)
-            {
-                controller = GetDefaultDeveloperFeeController();
-            }
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
 
-            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
+            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController.OwnerAddress, "no permission");
         }
 
         private DeveloperFeeController GetDefaultDeveloperFeeController()
@@ -331,13 +336,9 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertUserFeeController()
         {
-            var controller = State.UserFeeController.Value;
-            if (controller == null)
-            {
-                controller = GetDefaultUserFeeController();
-            }
-
-            Assert(Context.Sender == controller.RootController.OwnerAddress, "no permission");
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
         }
 
         private UserFeeController GetDefaultUserFeeController()
