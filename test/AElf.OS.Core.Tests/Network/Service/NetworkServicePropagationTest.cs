@@ -69,5 +69,16 @@ namespace AElf.OS.Network.Service
                 peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
                     It.IsAny<Action<NetworkException>>()), Times.Once());
         }
+
+        [Fact]
+        public async Task BroadcastLibAnnounceAsyncTest()
+        {
+            var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(1, 2);
+            
+            await _networkService.BroadcastLibAnnounceAsync(blockHeader.GetHash(), blockHeader.Height);
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueLibAnnouncement(It.Is<LibAnnouncement>(block => block.LibHash == blockHeader.GetHash()),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+        }
     }
 }
