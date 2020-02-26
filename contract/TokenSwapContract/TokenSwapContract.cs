@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
@@ -17,8 +18,7 @@ namespace TokenSwapContract
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), "Token not found.");
 
             var pairId = Hash.FromTwoHashes(Context.TransactionId, Hash.FromMessage(input));
-            AssertValidOriginToken(input);
-            State.SwapPairs[pairId] = new SwapPair
+            var swapPair = new SwapPair
             {
                 SwapPairId = pairId,
                 Controller = Context.Sender,
@@ -26,6 +26,8 @@ namespace TokenSwapContract
                 TargetTokenSymbol = input.TargetTokenSymbol,
                 SwapRatio = input.SwapRatio
             };
+            AssertValidSwapPair(swapPair);
+            State.SwapPairs[pairId] = swapPair;
             return pairId;
         }
 
@@ -46,11 +48,14 @@ namespace TokenSwapContract
         {
             var swapPair = GetTokenSwapPair(input.SwapPairId);
             ValidateSwapTokenInput(input);
-            Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount), "Invalid token swap input.");
-
+            Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount) && amount > 0,
+                "Invalid token swap input.");
             var leafHash = ComputeLeafHash(amount, input.UniqueId, swapPair);
             var computed = input.MerklePath.ComputeRootWithLeafNode(leafHash);
-            Assert(computed == swapPair.CurrentRound.MerkleTreeRoot);
+            Assert(computed == swapPair.CurrentRound.MerkleTreeRoot, "Failed to swap token.");
+
+            var targetTokenAmount = GetTargetTokenAmount(amount, swapPair.SwapRatio);
+            TransferToken(swapPair.TargetTokenSymbol, targetTokenAmount, Context.Sender);
             return new Empty();
         }
 
@@ -71,10 +76,29 @@ namespace TokenSwapContract
 
         private TokenInfo GetTokenInfo(string symbol)
         {
-            if (State.TokenContract.Value == null)
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            RequireTokenContractStateSet();
             return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
+        }
+
+        private void TransferToken(string symbol, long amount, Address to)
+        {
+            RequireTokenContractStateSet();
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                Amount = amount,
+                Symbol = symbol,
+                To = to,
+                Memo = "Token swap."
+            });
+        }
+
+        private void RequireTokenContractStateSet()
+        {
+            if (State.TokenContract.Value != null)
+                return;
+
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
 
         private SwapPair GetTokenSwapPair(Hash swapPairId)
@@ -84,21 +108,30 @@ namespace TokenSwapContract
             return swapPair;
         }
 
+        private void AssertValidSwapPair(SwapPair swapPair)
+        {
+            Assert(ValidOriginToken(swapPair) && ValidateSwapRatio(swapPair.SwapRatio), "Invalid swap pair.");
+        }
 
-        private void AssertValidOriginToken(AddSwapPairInput input)
+        private bool ValidateSwapRatio(SwapRatio swapRatio)
+        {
+            return swapRatio.OriginShare > 0 && swapRatio.TargetShare > 0;
+        }
+
+        private bool ValidOriginToken(SwapPair swapPair)
         {
             Assert(
-                input.OriginTokenSizeInByte <= MaximalOriginTokenRangeSizeInByte &&
-                input.OriginTokenSizeInByte >= MinimalOriginTokenRangeSizeInByte, "Invalid origin token.");
+                swapPair.OriginTokenSizeInByte <= MaximalOriginTokenRangeSizeInByte &&
+                swapPair.OriginTokenSizeInByte >= MinimalOriginTokenRangeSizeInByte, "Invalid origin token.");
             var expectedSize = MaximalOriginTokenRangeSizeInByte;
             while (expectedSize >= MinimalOriginTokenRangeSizeInByte)
             {
-                if (input.OriginTokenSizeInByte == expectedSize)
-                    return;
+                if (swapPair.OriginTokenSizeInByte == expectedSize)
+                    return true;
                 expectedSize >>= 1;
             }
 
-            Assert(false, "Invalid origin token.");
+            return false;
         }
 
         private bool TryGetOriginTokenAmount(string amountInString, out decimal amount)
@@ -134,7 +167,7 @@ namespace TokenSwapContract
                 {
                     cur.Add(new byte());
                 }
-                
+
                 cur.AddRange(i.ToBytes());
                 return cur;
             });
@@ -151,6 +184,13 @@ namespace TokenSwapContract
             var hashFromAmount = GetHashTokenAmountData(amount, swapPair.OriginTokenSizeInByte);
             var hashFromAddress = GetHashFromAddressData();
             return HashHelper.ConcatAndCompute(hashFromAmount, hashFromAddress, uniqueId);
+        }
+
+        private long GetTargetTokenAmount(decimal amount, SwapRatio swapRatio)
+        {
+            var expected = amount * swapRatio.TargetShare / swapRatio.OriginShare;
+            var targetTokenAmount = decimal.ToInt64(expected);
+            return targetTokenAmount;
         }
     }
 }
