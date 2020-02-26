@@ -18,11 +18,11 @@ jobs:
       filename: 'scripts/download_binary.bat'
   - script: PowerShell.exe -file build.ps1 -target=Build
     displayName: 'Build and Test'
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: '**/*Tests/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
