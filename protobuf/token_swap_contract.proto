@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package tokenswap;
+
+import "aelf/core.proto";
+import "acs1.proto";
+import "google/protobuf/timestamp.proto";
+
+service TokenSwapContract{
+    option (aelf.csharp_state) = "TokenSwapContract.TokenSwapContractState";
+    option (aelf.base) = "acs1.proto";
+
+    rpc AddSwapPair(AddSwapPairInput) returns (aelf.Hash) {
+    }
+    rpc AddSwapRound(AddSwapRoundInput) returns (google.protobuf.Empty) {
+    }
+    rpc SwapToken(SwapTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSwapRatio(SwapRatio) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetSwapPair(aelf.Hash) returns (SwapPair) {
+    }
+    rpc GetCurrentSwapRound(google.protobuf.Empty) returns (SwapRound) {
+    }
+}
+
+message AddSwapPairInput {
+    int32 origin_token_size_in_byte = 1;
+    string target_token_symbol = 2;
+    SwapRatio swap_ratio = 3;
+}
+
+message SwapPair{
+    aelf.Hash swap_pair_id = 1;
+    int32 origin_token_size_in_byte = 2;
+    string target_token_symbol = 3;
+    SwapRatio swap_ratio = 4;
+    aelf.Address controller = 5;
+    int64 swapped_amount = 6;
+    int64 swapped_times = 7;
+    SwapRound current_round = 8;
+}
+
+message SwapRatio{
+    int64 origin_share = 1;
+    int64 target_share = 2;
+}
+
+message AddSwapRoundInput{
+    aelf.Hash swap_pair_id = 1;
+    aelf.Hash merkle_tree_root = 2;
+}
+
+message SwapRound{
+    aelf.Hash swap_pair_id = 1;
+    aelf.Hash merkle_tree_root = 2;
+    google.protobuf.Timestamp start_time = 3;
+    int64 swapped_amount = 4;
+    int64 swapped_times = 5;
+}
+
+message SwapTokenInput{
+    aelf.Hash swap_pair_id = 1;
+    string origin_amount = 2;
+    aelf.MerklePath merkle_path = 3;
+    aelf.Hash unique_id = 4; // to make every swap unique 
+}
+
