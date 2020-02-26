@@ -1,6 +1,5 @@
 variables:
-  configuration: DEBUG
-  platform: x64
+  buildConfiguration: DEBUG
 
 jobs:
 # All tasks on Windows....
