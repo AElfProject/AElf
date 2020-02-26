@@ -1,11 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
-    
-    //TODO: should move to SmartContract, because we just need to know the smart contract to handle the LogEvent,
-    //but we don't need to know how the smart contract was executed.
     public interface ILogEventHandler
     {
         LogEvent InterestedEvent { get; }

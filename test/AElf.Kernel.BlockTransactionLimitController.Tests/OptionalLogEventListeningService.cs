@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types;
-using Volo.Abp.DependencyInjection;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {

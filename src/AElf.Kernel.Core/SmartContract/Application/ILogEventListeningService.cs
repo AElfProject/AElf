@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
     public interface ILogEventListeningService<T> where T : ILogEventHandler
     {

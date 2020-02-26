@@ -10,7 +10,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

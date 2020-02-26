@@ -1,7 +1,6 @@
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;

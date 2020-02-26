@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.Miner.Application
+namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO: need to talk about where to put
     public class LogEventListeningService<T> : ILogEventListeningService<T>
         where T : ILogEventHandler
     {
