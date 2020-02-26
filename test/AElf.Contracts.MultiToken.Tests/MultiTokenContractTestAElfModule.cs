@@ -31,8 +31,6 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            // context.Services
-            //     .AddSingleton<IInlineTransactionValidationProvider, AElf.CrossChain.InlineTransferFromValidationProvider>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             
             Configure<HostSmartContractBridgeContextOptions>(options =>

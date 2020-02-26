@@ -28,14 +28,5 @@ namespace AElf.Kernel.TransactionPool.Application
         /// <param name="blockHash"></param>
         /// <returns></returns>
         bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash);
-
-        
-        //TODO: no clean
-        
-        /// <summary>
-        /// Command to clear constrained tx validation provider.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        void ClearConstrainedTransactionValidationProvider(Hash blockHash);
     }
 }

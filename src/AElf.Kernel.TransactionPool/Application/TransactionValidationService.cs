@@ -59,13 +59,5 @@ namespace AElf.Kernel.TransactionPool.Application
             return _constrainedTransactionValidationProviders.All(provider =>
                 provider.ValidateTransaction(transaction, blockHash));
         }
-
-        public void ClearConstrainedTransactionValidationProvider(Hash blockHash)
-        {
-            foreach (var provider in _constrainedTransactionValidationProviders)
-            {
-                provider.ClearBlockHash(blockHash);
-            }
-        }
     }
 }

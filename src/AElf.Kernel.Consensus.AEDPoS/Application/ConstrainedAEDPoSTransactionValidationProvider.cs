@@ -57,10 +57,5 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return false;
 
         }
-
-        public void ClearBlockHash(Hash blockHash)
-        {
-            _alreadyHas.TryRemove(blockHash, out _);
-        }
     }
 }
