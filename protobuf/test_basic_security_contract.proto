@@ -44,6 +44,12 @@ service BasicSecurityContract {
     }
     rpc TestOriginAddress(aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc TestResetFields(ResetInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestResetNestedFields(ResetNestedInput) returns (ResetNestedOutput) {
+    }
+    rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
+    }
     
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -89,6 +95,21 @@ service BasicSecurityContract {
         option (aelf.is_view) = true;
     }
     rpc QueryExternalMethod2(aelf.Address) returns (Int64Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryFields(google.protobuf.Empty) returns (ResetOutput) {
+             option (aelf.is_view) = true;
+    }
+    rpc QueryConst(google.protobuf.Empty) returns (ConstOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryNestedFields(google.protobuf.Empty) returns (ResetNestedOutput) {
+             option (aelf.is_view) = true;
+    }
+    rpc CheckNonContractTypesStaticFieldsReset(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckFieldsAlreadyReset(google.protobuf.Empty) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
 }
@@ -144,6 +165,13 @@ message Complex3Input {
     TradeMessage trade_details = 5;
 }
 
+message ResetInput {
+    int64 int64_value = 1;
+    int32 int32_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+}
+
 message TradeMessage {
     int64 from_amount = 1;
     int64 to_amount = 2;
@@ -154,6 +182,11 @@ message ProtobufMessage {
     string string_value = 1;
     bool bool_value = 2;
     int64 int64_value = 3;
+}
+
+message ResetNestedInput {
+    int32 int32_value = 1;
+    string string_value = 2;
 }
 
 //Output
@@ -201,4 +234,29 @@ message Complex1Output {
 message Complex2Output {
     BoolOutput bool_data = 1;
     Int32Output int32_data = 2;
+}
+
+message ResetOutput {
+    int64 int64_value = 1;
+    int32 int32_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+}
+
+message ConstOutput {
+    int64 int64_const = 1;
+    string string_const =2;
+}
+
+message ResetNestedOutput {
+    int32 int32_value = 1;
+    string string_value = 2;
+}
+
+message ResetOtherTypeNestedOutput {
+    int32 basic_type_number = 1;
+    int32 basic_type_static_number = 2;
+    int32 type_number = 3;
+    int32 type_const = 4;
+    string string_value = 5;
 }

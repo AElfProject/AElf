@@ -8,6 +8,7 @@ namespace AElf.CSharp.CodeOps
     public static class ContractPatcher
     {
         private static readonly IPatcher<ModuleDefinition>[] ModulePatchers = {
+            new ResetFieldsMethodInjector(),
             new ExecutionObserverInjector(),
             new MethodCallReplacer()
         };
