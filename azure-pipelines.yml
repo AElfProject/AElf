@@ -12,8 +12,10 @@ jobs:
     CI_TEST: true
   steps:
   - task: UseDotNet@2
-      inputs:
-        version: '3.1.x'
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 3.1.x
+      performMultiLevelLookup: true
   - script: choco install protoc --version=3.11.4 -y
   - script: choco install unzip
   - task: BatchScript@1
