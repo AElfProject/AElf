@@ -13,17 +13,12 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
-        private readonly IEnumerable<IConstrainedTransactionValidationProvider>
-            _constrainedTransactionValidationProviders;
-
         public ILogger<TransactionValidationService> Logger { get; set; }
 
         public TransactionValidationService(
-            IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
-            IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
+            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
-            _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
 
             Logger = NullLogger<TransactionValidationService>.Instance;
         }
@@ -52,12 +47,6 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             return true;
-        }
-
-        public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
-        {
-            return _constrainedTransactionValidationProviders.All(provider =>
-                provider.ValidateTransaction(transaction, blockHash));
         }
     }
 }

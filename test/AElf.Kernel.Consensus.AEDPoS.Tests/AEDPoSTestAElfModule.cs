@@ -192,11 +192,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
                 return mockService.Object;
             });
-
-            context.Services
-                .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
-                >();
-            //context.Services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
         }
     }
 }
