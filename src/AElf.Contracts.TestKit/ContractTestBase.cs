@@ -26,8 +26,7 @@ namespace AElf.Contracts.TestKit
         where TModule : ContractTestModule
     {
         private IReadOnlyDictionary<string, byte[]> _codes;
-        private IReadOnlyDictionary<string, byte[]> _patchedCodes;
-        
+
 
         public IReadOnlyDictionary<string, byte[]> Codes => _codes ??= ContractsDeployer.GetContractCodes<TModule>();
 
