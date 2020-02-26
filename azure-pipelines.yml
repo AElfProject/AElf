@@ -11,9 +11,9 @@ jobs:
   variables:
     CI_TEST: true
   steps:
-  - task: DotNetCoreInstaller@0
-    inputs:
-      version: '3.1.100'
+  - task: UseDotNet@2
+      inputs:
+        version: '3.1.x'
   - script: choco install protoc --version=3.11.4 -y
   - script: choco install unzip
   - task: BatchScript@1
@@ -26,7 +26,7 @@ jobs:
     inputs:
       command: test
       projects: '**/*Tests/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --no-build --no-restore --collect "Code coverage"'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
