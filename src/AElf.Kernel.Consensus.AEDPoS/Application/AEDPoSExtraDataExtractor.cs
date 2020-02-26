@@ -17,7 +17,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public ByteString ExtractConsensusExtraData(BlockHeader header)
         {
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", header);
+            var consensusExtraData =
+                _blockExtraDataService.GetExtraDataFromBlockHeader(ConsensusBlockExtraDataNameProvider.Name, header);
             if (consensusExtraData == null)
                 return null;
 

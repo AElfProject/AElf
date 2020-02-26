@@ -76,8 +76,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
-            var crossChainExtraByteString =
-                GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataNamePrefix);
+            var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader);
             
             //TODO!! make an extend method ByteString.IsNullOrEmpty()
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
@@ -86,7 +85,7 @@ namespace AElf.CrossChain.Communication.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {CrossChainConstants.ConsensusExtraDataNamePrefix}));
+                new[] {CrossChainBlockExtraDataNameProvider.Name}));
             return parentChainBlockData;
         }
         
@@ -120,9 +119,9 @@ namespace AElf.CrossChain.Communication.Application
             return res;
         }
         
-        private ByteString GetExtraDataFromHeader(BlockHeader header, string symbol)
+        private ByteString GetExtraDataFromHeader(BlockHeader header)
         {
-            return _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
+            return _blockExtraDataService.GetExtraDataFromBlockHeader(CrossChainBlockExtraDataNameProvider.Name, header);
         }
         
         private Dictionary<string, ByteString> GetExtraDataForExchange(BlockHeader header, IEnumerable<string> symbolsOfExchangedExtraData)
@@ -130,7 +129,7 @@ namespace AElf.CrossChain.Communication.Application
             var res = new Dictionary<string, ByteString>();
             foreach (var symbol in symbolsOfExchangedExtraData)
             {
-                var extraData = GetExtraDataFromHeader(header, symbol);
+                var extraData = GetExtraDataFromHeader(header);
                 if (extraData != null)
                     res.Add(symbol, extraData);
             }

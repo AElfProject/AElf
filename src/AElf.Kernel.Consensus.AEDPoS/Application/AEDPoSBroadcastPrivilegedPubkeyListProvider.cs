@@ -31,7 +31,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
         {
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
+            var consensusExtraData =
+                _blockExtraDataService.GetExtraDataFromBlockHeader(ConsensusBlockExtraDataNameProvider.Name,
+                    blockHeader);
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
             if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
