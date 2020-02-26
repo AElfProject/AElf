@@ -17,9 +17,7 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
-            await DeployContractsAsync();
             await InitializeParliamentContractAsync();
-            await InitializeAElfConsensusAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput
@@ -57,9 +55,7 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
-            await DeployContractsAsync();
             await InitializeParliamentContractAsync();
-            await InitializeAElfConsensusAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput

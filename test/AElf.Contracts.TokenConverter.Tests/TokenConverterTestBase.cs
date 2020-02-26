@@ -2,41 +2,56 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
-using Google.Protobuf;
+using Volo.Abp.Threading;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class TokenConverterTestBase:ContractTestBase<TokenConverterTestModule>
+    public class TokenConverterTestBase : AEDPoSExtensionTestBase
     {
-        protected Address TokenContractAddress;
-        protected Address TreasuryContractAddress;
-        protected Address TokenConverterContractAddress;
+        #region Contract Address
 
-        internal TokenContractContainer.TokenContractStub TokenContractStub;
-        internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub;
-        
-        internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
-        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedTokenConvertStub;
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+        protected Address TokenContractAddress =>
+            ContractAddresses[TokenSmartContractAddressNameProvider.Name];
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address FeeReceiverAddress => TreasuryContractAddress;
-        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
-        protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        protected Address ParliamentContractAddress { get; set; }
-        protected Address ConsensusContractAddress { get; set; }
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs => SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected Address TreasuryContractAddress =>
+            ContractAddresses[TreasurySmartContractAddressNameProvider.Name];
+
+        protected Address TokenConverterContractAddress =>
+            ContractAddresses[TokenConverterSmartContractAddressNameProvider.Name];
+
+        protected Address ParliamentContractAddress =>
+            ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+
+        #endregion
+
+        #region Stubs
+
+        internal TokenContractContainer.TokenContractStub TokenContractStub =>
+            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+
+        internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub =>
+            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
+
+        internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub =>
+            GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                DefaultSenderKeyPair);
+
+        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedTokenConvertStub =>
+            GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                ManagerKeyPair);
+
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+            GetParliamentContractTester(DefaultSenderKeyPair);
 
         internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
@@ -45,54 +60,46 @@ namespace AElf.Contracts.TokenConverter
                 keyPair);
         }
 
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
+        #endregion
+
+        #region Properties
+
+        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        protected Address FeeReceiverAddress => TreasuryContractAddress;
+        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
+        protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
+        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs => SampleECKeyPairs.KeyPairs.Take(5).ToList();
+
+        #endregion
+
+        public TokenConverterTestBase()
         {
-            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
+            ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
+            {
+                TokenSmartContractAddressNameProvider.Name,
+                TokenConverterSmartContractAddressNameProvider.Name,
+                TreasurySmartContractAddressNameProvider.Name,
+                ParliamentSmartContractAddressNameProvider.Name,
+                ConsensusSmartContractAddressNameProvider.Name,
+            }));
+
+            AsyncHelper.RunSync(InitializeTokenAsync);
         }
 
-        protected async Task DeployContractsAsync()
+        protected async Task<long> GetBalanceAsync(string symbol, Address owner)
         {
-            var category = KernelConstants.CodeCoverageRunnerCategory;
-            {
-                // TokenContract
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
-                TokenContractAddress = await DeploySystemSmartContract(category, code, TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-                TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
-                AuthorizedTokenContractStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
-            }
-            {
-                // TokenConverterContract
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
-                TokenConverterContractAddress = await DeploySystemSmartContract(category, code, TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-                DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
-                    TokenConverterContractAddress, DefaultSenderKeyPair);
-                AuthorizedTokenConvertStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
-                    TokenConverterContractAddress, ManagerKeyPair);
-            }
-            {
-                // TreasuryContract
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Treasury")).Value;
-                TreasuryContractAddress = await DeploySystemSmartContract(category, code, TreasurySmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-            }
-            //ParliamentContract
-            {
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Parliament")).Value;
-                ;
-                ParliamentContractAddress = await DeploySystemSmartContract(category, code,
-                    ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-                ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
-                        DefaultSenderKeyPair);
-            }
-            //AEDPOSContract
-            {
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Consensus.AEDPoS")).Value;
-                ConsensusContractAddress = await DeploySystemSmartContract(category, code,
-                    Hash.FromString("AElf.ContractNames.Consensus"), DefaultSenderKeyPair);
-                AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
-            }
-            
+            var balanceResult = await TokenContractStub.GetBalance.CallAsync(
+                new GetBalanceInput()
+                {
+                    Owner = owner,
+                    Symbol = symbol
+                });
+            return balanceResult.Balance;
+        }
+
+        private async Task InitializeTokenAsync()
+        {
             await TokenContractStub.Create.SendAsync(new CreateInput()
             {
                 Symbol = "ELF",
@@ -101,7 +108,7 @@ namespace AElf.Contracts.TokenConverter
                 TokenName = "elf token",
                 TotalSupply = 1000_0000_0000L,
                 Issuer = DefaultSender,
-                LockWhiteList = { TokenConverterContractAddress} 
+                LockWhiteList = {TokenConverterContractAddress}
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
@@ -119,17 +126,6 @@ namespace AElf.Contracts.TokenConverter
             });
         }
 
-        protected async Task<long> GetBalanceAsync(string symbol, Address owner)
-        {
-            var balanceResult = await TokenContractStub.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = owner,
-                    Symbol = symbol
-                });
-            return balanceResult.Balance;
-        }
-
         protected async Task InitializeParliamentContractAsync()
         {
             var initializeResult = await ParliamentContractStub.Initialize.SendAsync(new Parliament.InitializeInput()
@@ -138,27 +134,6 @@ namespace AElf.Contracts.TokenConverter
                 ProposerAuthorityRequired = true
             });
             CheckResult(initializeResult.TransactionResult);
-        }
-
-        protected async Task InitializeAElfConsensusAsync()
-        {
-            {
-                var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
-                    new InitialAElfConsensusContractInput
-                    {
-                        TimeEachTerm = 604800L,
-                        MinerIncreaseInterval = 31536000
-                    });
-                CheckResult(result.TransactionResult);
-            }
-            {
-                var result = await AEDPoSContractStub.FirstRound.SendAsync(
-                    new MinerList
-                    {
-                        Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                    }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
-                CheckResult(result.TransactionResult);
-            }
         }
 
         private void CheckResult(TransactionResult result)

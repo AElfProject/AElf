@@ -52,7 +52,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task View_Test()
         {
-            await DeployContractsAsync();
             await InitializeTokenConverterContract();
             //GetConnector
             var ramConnectorInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol()
@@ -82,8 +81,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Initialize_Failed_Test()
         {
-            await DeployContractsAsync();
-            //init token converter
             var input = new InitializeInput
             {
                 BaseTokenSymbol = NativeSymbol,
@@ -121,7 +118,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Buy_Success_Test()
         {
-            await DeployContractsAsync();
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
@@ -170,7 +166,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Buy_Failed_Test()
         {
-            await DeployContractsAsync();
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
@@ -209,7 +204,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Sell_Success_Test()
         {
-            await DeployContractsAsync();
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
@@ -266,7 +260,6 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Sell_Failed_Test()
         {
-            await DeployContractsAsync();
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
