@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class InlineTransferFromValidationProviderTest : SmartContractRunnerTestBase
+    public class InlineTransferFromValidationProviderTest : SmartContractInnerTransactionTestBase
     {
         private readonly IInlineTransactionValidationProvider _inlineTransactionValidationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;

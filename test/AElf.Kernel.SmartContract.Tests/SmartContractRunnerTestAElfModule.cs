@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
@@ -29,7 +28,16 @@ namespace AElf.Kernel.SmartContract
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
+        }
+    }
 
+    [DependsOn(
+        typeof(SmartContractRunnerTestAElfModule))]
+    public class SmartContractInnerTransactionRunnerTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
             services.AddSingleton(p =>
             {
                 var smartContractService = new Mock<ISmartContractAddressService>();

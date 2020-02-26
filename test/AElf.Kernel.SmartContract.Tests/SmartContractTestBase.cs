@@ -10,6 +10,8 @@ namespace AElf.Kernel.SmartContract
     public class SmartContractRunnerTestBase : AElfIntegratedTest<SmartContractRunnerTestAElfModule>
     {
     }
-
     
+    public class SmartContractInnerTransactionTestBase : AElfIntegratedTest<SmartContractInnerTransactionRunnerTestModule>
+    {
+    }
 }
