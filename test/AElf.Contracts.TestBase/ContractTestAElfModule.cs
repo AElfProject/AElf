@@ -54,8 +54,6 @@ namespace AElf.Contracts.TestBase
 
                 return mockService.Object;
             });
-
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             
             context.Services.RemoveAll<IPreExecutionPlugin>();
             

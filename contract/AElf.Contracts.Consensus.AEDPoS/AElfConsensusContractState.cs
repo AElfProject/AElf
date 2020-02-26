@@ -58,6 +58,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public MappedState<long, Hash> RandomHashes { get; set; }
 
-        public SInt64Value LatestExecutedHeight { get; set; }
+        public SingletonState<long> LatestExecutedHeight { get; set; }
     }
 }

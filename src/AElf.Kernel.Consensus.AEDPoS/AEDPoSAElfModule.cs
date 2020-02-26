@@ -38,7 +38,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services.AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockFoundLogEventHandler>();
             context.Services
                 .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
