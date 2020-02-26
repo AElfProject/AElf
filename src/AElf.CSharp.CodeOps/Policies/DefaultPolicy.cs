@@ -59,6 +59,8 @@ namespace AElf.CSharp.CodeOps.Policies
             Whitelist
                 // Selectively allowed types and members
                 .Namespace("System", Permission.Denied, type => type
+                    .Type(typeof(Array), Permission.Denied, member => member
+                        .Member(nameof(Array.AsReadOnly), Permission.Allowed))
                     .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
@@ -118,6 +120,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Linq", Permission.Allowed)
                 .Namespace("System.Collections", Permission.Allowed)
                 .Namespace("System.Collections.Generic", Permission.Allowed)
+                .Namespace("System.Collections.ObjectModel", Permission.Allowed)
                 ;
         }
 
@@ -150,6 +153,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
                 new GetHashCodeValidator(),
+                new DescriptorAccessValidator(), 
             });
         }
 
@@ -157,7 +161,9 @@ namespace AElf.CSharp.CodeOps.Policies
         {
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
-                new ObserverProxyValidator()
+                new ObserverProxyValidator(), 
+                new ContractStructureValidator(), 
+                new ResetFieldsValidator()
             });
         }
 

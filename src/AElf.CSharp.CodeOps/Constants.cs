@@ -28,5 +28,18 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Brtrue_S,
             OpCodes.Br_S
         };
+        
+        public static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
+        {
+            typeof(bool).FullName,
+            typeof(decimal).FullName,
+            typeof(short).FullName,
+            typeof(int).FullName,
+            typeof(long).FullName,
+            typeof(ushort).FullName,
+            typeof(uint).FullName,
+            typeof(ulong).FullName,
+            typeof(string).FullName,
+        };
     }
 }
