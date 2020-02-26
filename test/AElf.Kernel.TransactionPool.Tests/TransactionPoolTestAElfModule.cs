@@ -97,7 +97,7 @@ namespace AElf.Kernel.TransactionPool
             });
 
             services.AddSingleton<TransactionMethodNameValidationProvider>();
-            services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
+            services.AddSingleton<ExcludeFromTxHubValidationProvider>();
         }
     }
 }
