@@ -9,6 +9,8 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 {
     public class BadContract : BadContractContainer.BadContractBase
     {
+        int i = 1;
+        
         public override Empty UpdateDoubleState(DoubleInput input)
         {
             State.Double.Value = input.DoubleValue;
