@@ -19,6 +19,6 @@ namespace AElf.Sdk.CSharp
         public static readonly Hash ConfigurationContractSystemName = Hash.FromString("AElf.ContractNames.Configuration");
         public static readonly Hash TokenHolderContractSystemName = Hash.FromString("AElf.ContractNames.TokenHolder");
 
-        public static readonly int AElfStringLengthLimitInContract = 15360;
+        public static readonly int AElfStringLengthLimitInContract = 20000;
     }
 }
