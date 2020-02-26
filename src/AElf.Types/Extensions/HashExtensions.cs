@@ -16,9 +16,9 @@ namespace AElf
             return HashHelper.Xor(hash, another);
         }
         
-        public static Hash Concat(this Hash left, Hash right)
+        public static Hash ComputeWith(this Hash left, Hash right)
         {
-            var res = left.ToByteArray().Concat(right.ToByteArray()).ToArray();
+            var res = left.Value.ToByteArray().Concat(right.Value.ToByteArray()).ToArray();
             return Hash.FromRawBytes(res);
         }
     }

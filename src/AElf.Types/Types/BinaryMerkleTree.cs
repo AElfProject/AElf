@@ -44,7 +44,7 @@ namespace AElf.Types
             {
                 var left = leafNodes[i++];
                 var right = leafNodes[i++];
-                leafNodes.Add(left.Concat(right));
+                leafNodes.Add(left.ComputeWith(right));
                 if (++newAdded != nodeToAdd)
                     continue;
 
