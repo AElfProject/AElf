@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using AElf.Types;
 
 namespace AElf
@@ -14,12 +13,6 @@ namespace AElf
         public static Hash Xor(this Hash hash, Hash another)
         {
             return HashHelper.Xor(hash, another);
-        }
-        
-        public static Hash ComputeWith(this Hash left, Hash right)
-        {
-            var res = left.Value.ToByteArray().Concat(right.Value.ToByteArray()).ToArray();
-            return Hash.FromRawBytes(res);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace AElf
             if (validNUmber < 195112)
                 validNUmber += 195112;
 
-            var validNUmberBytes = BitConverter.GetBytes(validNUmber);
+            var validNUmberBytes = validNUmber.ToBytes(false);
 
             // Use BigInteger(BigEndian) format (bytes size = 3)
             var integerBytes = new byte[4];
@@ -26,7 +26,7 @@ namespace AElf
         public static string ConvertChainIdToBase58(int chainId)
         {
             // Default chain id is 4 base58 chars, bytes size is 3
-            var bytes = BitConverter.GetBytes(chainId);
+            var bytes = chainId.ToBytes(false);
             Array.Resize(ref bytes, 3);
             return bytes.ToPlainBase58();
         }

@@ -150,7 +150,7 @@ namespace AElf.Types
         public string GetFormatted(string addressPrefix, int chainId)
         {
             if (_formatted != null) return _formatted;
-            var addressSuffix = Base58CheckEncoding.Encode(chainId.DumpByteArray());
+            var addressSuffix = ChainHelper.ConvertChainIdToBase58(chainId);
             _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
             return _formatted;
         }

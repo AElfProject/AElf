@@ -15,7 +15,7 @@ namespace AElf.Types
             binaryMerkleTree.Root = binaryMerkleTree.Nodes.Any() ? binaryMerkleTree.Nodes.Last() : Hash.Empty;
             return binaryMerkleTree;
         }
-        
+
         /// <summary>
         /// Calculate merkle tree root from leaf node list.
         /// </summary>
@@ -39,12 +39,12 @@ namespace AElf.Types
                 leafNodes.Add(leafNodes.Last());
             var nodeToAdd = leafNodes.Count / 2;
             var newAdded = 0;
-            var i = 0; 
+            var i = 0;
             while (i < leafNodes.Count - 1)
             {
                 var left = leafNodes[i++];
                 var right = leafNodes[i++];
-                leafNodes.Add(left.ComputeWith(right));
+                leafNodes.Add(HashHelper.ConcatAndCompute(left, right));
                 if (++newAdded != nodeToAdd)
                     continue;
 
@@ -84,20 +84,20 @@ namespace AElf.Types
                     neighbor = Nodes[index - 1];
                     isLeftNeighbor = true;
                 }
-                
+
                 path.MerklePathNodes.Add(new MerklePathNode
                 {
                     Hash = Hash.FromByteArray(neighbor.ToByteArray()),
                     IsLeftChildNode = isLeftNeighbor
                 });
-                
+
                 nodeCountInRow = nodeCountInRow % 2 == 0 ? nodeCountInRow : nodeCountInRow + 1;
                 int shift = (index - indexOfFirstNodeInRow) / 2;
                 indexOfFirstNodeInRow += nodeCountInRow;
                 index = indexOfFirstNodeInRow + shift;
                 nodeCountInRow /= 2;
             }
-            
+
             return path;
         }
     }
