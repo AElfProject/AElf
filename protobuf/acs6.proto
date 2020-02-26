@@ -3,7 +3,6 @@ syntax = "proto3";
 package acs6;
 import "aelf/options.proto";
 import "aelf/core.proto";
-import "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs6";
 
