@@ -35,7 +35,7 @@ namespace AElf.OS.BlockSync
                 {
                     Pubkey = pubkey,
                     SyncState = SyncState.Finished,
-                    LastKnownLibHeight = 150
+                    LastKnownLibHeight = 150 + i
                 });
             }
 

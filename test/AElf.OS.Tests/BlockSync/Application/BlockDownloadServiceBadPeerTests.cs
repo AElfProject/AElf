@@ -76,7 +76,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var wrongLIBPubkey = "WrongLIBPubkey";
 
-            _blockSyncStateProvider.LastRequestPeerPubkey = "GoodPeerPubkey0";
+            _blockSyncStateProvider.LastRequestPeerPubkey = wrongLIBPubkey;
 
             var badPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
             badPeer.ShouldNotBeNull();
@@ -84,7 +84,7 @@ namespace AElf.OS.BlockSync.Application
             var result = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
                 PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                PreviousBlockHeight = 100,
+                PreviousBlockHeight = 155,
                 BatchRequestBlockCount = 5,
                 MaxBlockDownloadCount = 5,
                 SuggestedPeerPubkey = "GoodPeerPubkey14",

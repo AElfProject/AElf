@@ -127,43 +127,31 @@ namespace AElf.OS.BlockSync.Application
                 .Where(p => p.SyncState == SyncState.Finished &&
                             p.LastKnownLibHeight >= blockHeight)
                 .ToList();
-            bool? checkResult = null;
 
-            if (peers.Count >= PeerCheckMinimumCount)
+            if (peers.Count < PeerCheckMinimumCount)
             {
-                var correctCount = 0;
-                var incorrectCount = 0;
+                return null;
+            }
 
-                var taskList = peers.Select(async peer =>
-                    await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
+            bool? checkResult = null;
+            var taskList = peers.Select(async peer =>
+                await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
 
-                var hashCheckResult = await Task.WhenAll(taskList);
+            var hashCheckResult = await Task.WhenAll(taskList);
 
-                foreach (var result in hashCheckResult)
+            var groupedResult = hashCheckResult.Where(h => h.Success)
+                .GroupBy(a => a.Payload != null && a.Payload.Count == 1);
+
+            var confirmCount = 2 * peers.Count() / 3 + 1;
+
+            foreach (var result in groupedResult)
+            {
+                if (result.Count() < confirmCount)
                 {
-                    if (result.Success)
-                    {
-                        //TODO: make retry logic in a class, and use callback. then we can easily change the strategy
-                        if (result.Payload != null && result.Payload.Count == 1)
-                        {
-                            correctCount++;
-                        }
-                        else
-                        {
-                            incorrectCount++;
-                        }
-                    }
+                    continue;
                 }
-
-                var confirmCount = 2 * peers.Count() / 3 + 1;
-                if (correctCount >= confirmCount)
-                {
-                    checkResult = true;
-                }
-                else if (incorrectCount >= confirmCount)
-                {
-                    checkResult = false;
-                }
+                checkResult = result.Key;
+                break;
             }
 
             return checkResult;
