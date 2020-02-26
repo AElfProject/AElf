@@ -264,6 +264,8 @@ namespace AElf.Contracts.MultiToken
 
             if (calculateWayList.Any())
                 selectedStrategy.AddAlgorithm(blockIndex, calculateWayList);
+
+            await Task.CompletedTask;
         }
     }
 }
