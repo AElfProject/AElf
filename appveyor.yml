@@ -21,3 +21,7 @@ environment:
   CI_TEST: true
 build_script:
   - ps: .\build.ps1
+branches:
+  only:
+    - master
+    - dev
