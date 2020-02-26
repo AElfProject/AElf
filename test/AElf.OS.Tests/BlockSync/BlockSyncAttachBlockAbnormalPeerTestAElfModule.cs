@@ -13,13 +13,13 @@ using Volo.Abp.Modularity;
 namespace AElf.OS.BlockSync
 {
     [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
-    public class BlockSyncAttachBlockBadPeerTestAElfModule : AElfModule
+    public class BlockSyncAttachBlockAbnormalPeerTestAElfModule : AElfModule
     {
         private readonly Dictionary<string, PeerInfo> _peers = new Dictionary<string, PeerInfo>();
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            _peers.Add("BadPeerPubkey", new PeerInfo());
+            _peers.Add("AbnormalPeerPubkey", new PeerInfo());
             
             context.Services.AddSingleton(o =>
             {

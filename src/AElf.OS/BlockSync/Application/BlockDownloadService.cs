@@ -68,10 +68,10 @@ namespace AElf.OS.BlockSync.Application
                 }
                 else
                 {
-                    // If cannot get the blocks, there should be network problems or bad peer,
+                    // If cannot get the blocks, there should be network problems or abnormal peer,
                     // because we have selected peer with lib height greater than or equal to the target height.
                     // 1. network problems, need to retry from other peer.
-                    // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
+                    // 2. not network problems, this peer or the last peer is abnormal peer, we need to remove it.
                     var downloadTargetHeight =
                         downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
                     var exceptedPeers = new List<string> {_blockSyncStateProvider.LastRequestPeerPubkey};
@@ -93,14 +93,14 @@ namespace AElf.OS.BlockSync.Application
 
                     if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                     {
-                        await CheckBadPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
+                        await CheckAbnormalPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
                             downloadBlockDto.PreviousBlockHeight);
                     }
                 }
             }
             catch (BlockDownloadException e)
             {
-                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {
                     BlockHash = e.BlockHash,
                     BlockHeight = e.BlockHeight,
@@ -157,7 +157,7 @@ namespace AElf.OS.BlockSync.Application
             return checkResult;
         }
 
-        private async Task CheckBadPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
+        private async Task CheckAbnormalPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
             long downloadPreviousBlockHeight)
         {
             var checkResult =

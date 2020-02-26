@@ -13,13 +13,13 @@ using Volo.Abp.Modularity;
 namespace AElf.OS.BlockSync
 {
     [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
-    public class BlockSyncBadPeerTestAElfModule : AElfModule
+    public class BlockSyncAbnormalPeerTestAElfModule : AElfModule
     {
         private readonly Dictionary<string, PeerInfo> _peers = new Dictionary<string, PeerInfo>();
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            _peers.Add("BadPeerPubkey", new PeerInfo());
+            _peers.Add("AbnormalPeerPubkey", new PeerInfo());
             _peers.Add("NotLinkedBlockPubkey", new PeerInfo());
             _peers.Add("WrongLIBPubkey", new PeerInfo
             {
@@ -49,7 +49,7 @@ namespace AElf.OS.BlockSync
                     .Returns<Hash, string>((hash, peerPubkey) =>
                     {
                         BlockWithTransactions result = null;
-                        if (peerPubkey == "BadPeerPubkey")
+                        if (peerPubkey == "AbnormalPeerPubkey")
                         {
                             result = osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("BadBlock"),
                                 1000);
