@@ -1,9 +1,9 @@
 using System;
 using Xunit;
 
-namespace AElf.Kernel.SmartContractExecution.Scheduling
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class UnionFindNodeTest: SmartContractExecutionTestBase
+    public class UnionFindNodeTest
     {
         [Fact]
         public void Trivial_Test()

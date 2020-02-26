@@ -26,8 +26,8 @@ namespace AElf.Kernel.SmartContract.Application
                 _smartContractAddressService.GetAddressByContractName(AssociationSmartContractAddressNameProvider
                     .Name),
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider
-                    .Name),
+                // _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider
+                //     .Name),
                 _smartContractAddressService.GetAddressByContractName(ReferendumSmartContractAddressNameProvider
                     .Name),
                 _smartContractAddressService.GetAddressByContractName(TokenConverterSmartContractAddressNameProvider
