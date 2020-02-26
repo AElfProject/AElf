@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Genesis;
-using AElf.CSharp.CodeOps;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
@@ -14,7 +13,6 @@ using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
 
@@ -80,18 +78,17 @@ namespace AElf.CSharp.CodeOps
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
         private ContractAuditor _auditor;
-        private readonly string _contractDllDir = "../../../contracts/";
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
         private readonly RequiredAcsDto _requiredAcs;
 
         public ContractPolicyTests()
         {
-            _systemContractCode = ReadCode(_contractDllDir + typeof(BasicContractZero).Module + ".patched");
-            _badContractCode = ReadCode(_contractDllDir + typeof(BadContract).Module);
+            _systemContractCode = ReadPatchedContractCode(typeof(BasicContractZero));
+            _badContractCode = ReadContractCode(typeof(BadContract));
             _requiredAcs = new RequiredAcsDto
             {
-                AcsList = new[] {"acs1", "acs8"}.ToList(), 
+                AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
             };
         }
@@ -116,7 +113,9 @@ namespace AElf.CSharp.CodeOps
             var validator = new ArrayValidator();
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
-            validateResult1.First().Message.ShouldContain("Array size is too large");
+            var messages = validateResult1.Select(res => res.Message).ToArray();
+            messages.ShouldContain("Array size is too large that causes overflow when estimating memory usage.");
+            messages.ShouldContain("Array of AElf.Runtime.CSharp.Tests.BadContract.BadCase3 type is not allowed.");
 
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
@@ -169,7 +168,7 @@ namespace AElf.CSharp.CodeOps
         public void Policy_UncheckedMathValidator_Test()
         {
             var validator = new UncheckedMathValidator();
-            var validateResult1 = ValidateContractCode(ReadCode(_contractDllDir + typeof(TestContract).Module), validator);
+            var validateResult1 = ValidateContractCode(ReadContractCode(typeof(TestContract)), validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
             validateResult1.First().Message.ShouldContain("contains unsafe OpCode add");
         }
@@ -192,7 +191,7 @@ namespace AElf.CSharp.CodeOps
 
             Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs, true));
         }
-        
+
         [Fact]
         public void ContractAuditor_AcsRequired_Test()
         {
@@ -212,7 +211,7 @@ namespace AElf.CSharp.CodeOps
             var requireAcs = new RequiredAcsDto();
             requireAcs.AcsList = new List<string> {"acs1"};
             Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs, true));
-            
+
             Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
 
             requireAcs.AcsList.Add("acs8");
@@ -225,8 +224,7 @@ namespace AElf.CSharp.CodeOps
         [Fact]
         public void ContractAudit_NotInjectAndCheckObserverProxy_Test()
         {
-            const string contract = "AElf.Contracts.MultiToken.dll";
-            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var code = ReadCode(typeof(TokenContract).Assembly.Location);
             var changedCode = InjectCallReplacerCode(code);
             var md = ModuleDefinition.ReadModule(new MemoryStream(changedCode));
 
@@ -243,7 +241,7 @@ namespace AElf.CSharp.CodeOps
             {
                 foreach (var method in typeInfo.Methods)
                 {
-                    var validateResult = validator.Validate(method);
+                    var validateResult = validator.Validate(method).ToList();
                     var count = validateResult.Count();
                     if (count != 0)
                         validateList.AddRange(validateResult);
