@@ -123,7 +123,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                    GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
                 Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
             }
 
@@ -211,6 +211,13 @@ namespace AElf.Contracts.MultiToken
                 AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
                 AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
             }
+            
+            //AssociationContract
+            {
+                var code = AssociationContractCode;
+                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
+            }
         }
 
         private async Task CreateNativeTokenAsync()
@@ -296,10 +303,8 @@ namespace AElf.Contracts.MultiToken
             await TokenConverterContractStub.Initialize.SendAsync(new TokenConverter.InitializeInput
             {
                 Connectors = {RamConnector, BaseConnector},
-                TokenContractAddress = TokenContractAddress,
                 BaseTokenSymbol = "ELF",
                 FeeRate = "0.2",
-                FeeReceiverAddress = User1Address
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -563,6 +568,34 @@ namespace AElf.Contracts.MultiToken
                     Address = TokenContractAddress
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+        }
+
+        [Fact]
+        public async Task IssueTokenWithDifferentMemoLength_Test()
+        {
+            await CreateNativeTokenAsync();
+            await CreateNormalTokenAsync();
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest.."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            {
+                var result = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest..."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.ShouldContain("Invalid memo size.");
             }
         }
     }

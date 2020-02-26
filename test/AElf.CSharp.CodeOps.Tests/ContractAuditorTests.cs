@@ -19,9 +19,12 @@ using AElf.Contracts.Treasury;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
+using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -35,7 +38,7 @@ namespace AElf.CSharp.CodeOps
             _auditor = new ContractAuditor(null, null);
             _requiredAcs = new RequiredAcsDto
             {
-                AcsList = new [] {"acs1", "acs8"}.ToList(), 
+                AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
             };
         }
@@ -54,24 +57,7 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditorTests : CSharpCodeOpsTestBase, IClassFixture<ContractAuditorFixture>
     {
         private readonly ContractAuditorFixture _auditorFixture;
-        private readonly string _contractDllDir = "../../../contracts/";
 
-        private readonly Type[] _contracts =
-        {
-            typeof(AssociationContract),
-            typeof(ConfigurationContract),
-            typeof(AEDPoSContract),
-            typeof(CrossChainContract),
-            typeof(EconomicContract),
-            typeof(ElectionContract),
-            typeof(BasicContractZero),
-            typeof(TokenContract),
-            typeof(ParliamentContract),
-            typeof(ProfitContract),
-            typeof(ReferendumContract),
-            typeof(TokenConverterContract),
-            typeof(TreasuryContract)
-        };
 
         public ContractAuditorTests(ContractAuditorFixture auditorFixture)
         {
@@ -81,21 +67,29 @@ namespace AElf.CSharp.CodeOps
 
         #region Positive Cases
 
-        [Fact]
-        public void CheckSystemContracts_AllShouldPass()
+        [Theory]
+        [InlineData(typeof(AssociationContract))]
+        [InlineData(typeof(ConfigurationContract))]
+        [InlineData(typeof(AEDPoSContract))]
+        [InlineData(typeof(CrossChainContract))]
+        [InlineData(typeof(EconomicContract))]
+        [InlineData(typeof(ElectionContract))]
+        [InlineData(typeof(BasicContractZero))]
+        [InlineData(typeof(TokenContract))]
+        [InlineData(typeof(ParliamentContract))]
+        [InlineData(typeof(ProfitContract))]
+        [InlineData(typeof(ReferendumContract))]
+        [InlineData(typeof(TokenConverterContract))]
+        [InlineData(typeof(TreasuryContract))]
+        public void CheckSystemContracts_AllShouldPass(Type contractType)
         {
-            // Load the DLL's from contracts folder to prevent codecov injection
-            foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module + ".patched"))
-            {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
-            }
+            Should.NotThrow(() => _auditorFixture.Audit(ReadPatchedContractCode(contractType)));
         }
 
         [Fact]
         public void ContractPatcher_Test()
         {
-            const string contract = "AElf.Contracts.MultiToken.dll";
-            var code = ReadCode(Path.Combine(_contractDllDir, contract));
+            var code = ReadContractCode(typeof(TokenContract));
             var updateCode = ContractPatcher.Patch(code);
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(() => _auditorFixture.Audit(updateCode));
@@ -104,18 +98,24 @@ namespace AElf.CSharp.CodeOps
 
         #endregion
 
+        [Fact]
+        public void PatchTest()
+        {
+            ContractPatcher.Patch(ReadContractCode(typeof(AEDPoSContract)));
+        }
+
         #region Negative Cases
 
         [Fact]
         public void CheckBadContract_ForFindings()
         {
             var findings = Should.Throw<InvalidCodeException>(
-                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract).Module)))
+                    () => _auditorFixture.Audit(ReadContractCode(typeof(BadContract))))
                 .Findings;
-            
+
             // Should have identified that ACS1 or ACS8 is not there
             findings.FirstOrDefault(f => f is AcsValidationResult).ShouldNotBeNull();
-            
+
             // Random usage
             LookFor(findings,
                     "UpdateStateWithRandom",
@@ -187,6 +187,70 @@ namespace AElf.CSharp.CodeOps
             var getHashCodeFindings = findings.Where(f => f is GetHashCodeValidationResult).ToList();
             LookFor(getHashCodeFindings, "TestGetHashCodeCall", f => f != null).ShouldNotBeNull();
             LookFor(getHashCodeFindings, "GetHashCode", f => f != null).ShouldNotBeNull();
+
+            // FileDescriptor type field not allowed to be set outside of its declaring type constructor
+            findings
+                .FirstOrDefault(f => f is DescriptorAccessValidationResult &&
+                                     f.Info.Type == "BadCase1" && f.Info.ReferencingMethod == "SetFileDescriptor")
+                .ShouldNotBeNull();
+
+            // Initialization value not allowed for resettable members, in regular type
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                     f.Info.Type == "BadCase2" && f.Info.ReferencingMethod == ".cctor" &&
+                                     f.Info.Member == "Number").ShouldNotBeNull();
+
+            // Initialization value not allowed for resettable members, in contract
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                     f.Info.Type == "BadContract" && f.Info.ReferencingMethod == ".ctor" &&
+                                     f.Info.Member == "i").ShouldNotBeNull();
+
+            // A type that is not allowed as a static readonly field
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase3" && f.Info.Member == "field").ShouldNotBeNull();
+
+            // Not allowed as readonly if a type has a field with its own type and has instance field
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase4" && f.Info.Member == "field").ShouldNotBeNull();
+
+            // Non primitive type is not allowed as an argument in ReadOnly GenericInstanceType type in static readonly fields
+            findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                         f.Info.Type == "BadCase5" && f.Info.Member == "collection").ShouldNotBeNull();
+
+            // A type that is not allowed to be used as a field in contract state
+            findings
+                .FirstOrDefault(f => f is ContractStructureValidationResult &&
+                                     f.Info.Type == "BadContractState" && f.Info.Member == "i").ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void CheckResetField_ForMissingReset()
+        {
+            var code = ReadContractCode(typeof(BadContract));
+            var module = Mono.Cecil.ModuleDefinition.ReadModule(new MemoryStream(code));
+            var resetFieldsMethod = module.Types
+                .Single(t => t.IsContractImplementation())
+                .Methods.Single(m => m.Name == "ResetFields");
+
+            RemoveInstruction(resetFieldsMethod, i => i.OpCode == OpCodes.Stfld); // Remove field reset
+            RemoveInstruction(resetFieldsMethod, i =>
+                i.OpCode == OpCodes.Call && // Remove call to other type's ResetFields
+                i.Operand is MethodDefinition method &&
+                method.Name == "ResetFields");
+
+            var tamperedContract = new MemoryStream();
+            module.Write(tamperedContract);
+
+            var findings = Should.Throw<InvalidCodeException>(
+                    () => _auditorFixture.Audit(tamperedContract.ToArray()))
+                .Findings;
+
+            findings.FirstOrDefault(f => f is ResetFieldsValidationResult &&
+                                         f.Message.Contains("missing reset for certain fields")).ShouldNotBeNull();
+
+            findings.FirstOrDefault(f => f is ResetFieldsValidationResult &&
+                                         f.Message.Contains("missing certain method calls")).ShouldNotBeNull();
         }
 
         [Fact]
@@ -195,15 +259,15 @@ namespace AElf.CSharp.CodeOps
             // Here, we use any contract that contains unchecked math OpCode even with "Check for arithmetic overflow"
             // checked in the project. If first section of below test case fails, need to create another contract  
             // that iterates an array with foreach loop.
-            var contractCode = ReadCode(_contractDllDir + typeof(TransactionFeesContract).Module);
-            
+            var contractCode = ReadContractCode(typeof(TransactionFeesContract));
+
             var findings = Should.Throw<InvalidCodeException>(
-                    ()=>_auditorFixture.Audit(contractCode))
+                    () => _auditorFixture.Audit(contractCode))
                 .Findings;
-            
+
             findings.FirstOrDefault(f => f is UncheckedMathValidationResult)
                 .ShouldNotBeNull();
-            
+
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditorFixture.Audit(ContractPatcher.Patch(contractCode)));
         }
@@ -212,17 +276,18 @@ namespace AElf.CSharp.CodeOps
 
         #region Test Helpers
 
-        byte[] ReadCode(string path)
-        {
-            return File.Exists(path)
-                ? File.ReadAllBytes(path)
-                : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
-        }
-
         Info LookFor(IEnumerable<ValidationResult> findings, string referencingMethod, Func<Info, bool> criteria)
         {
             return findings.Select(f => f.Info)
                 .FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
+        }
+
+
+        void RemoveInstruction(MethodDefinition method, Func<Instruction, bool> where)
+        {
+            var il = method.Body.GetILProcessor();
+
+            il.Remove(method.Body.Instructions.First(where));
         }
 
         #endregion

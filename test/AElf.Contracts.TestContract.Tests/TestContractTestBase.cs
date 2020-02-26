@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
@@ -12,6 +13,8 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -31,6 +34,11 @@ namespace AElf.Contract.TestContract
 
         protected readonly Hash TestBasicSecurityContractSystemName =
             Hash.FromString("AElf.ContractNames.TestContract.BasicSecurity");
+
+        public TestContractTestBase()
+        {
+            PatchedCodes = GetPatchedCodes(ContractPatchedDllDir);
+        }
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -77,6 +85,10 @@ namespace AElf.Contract.TestContract
                 keyPair);
         }
 
+        private const string ContractPatchedDllDir = "../../../../patched/";
+        
+        private IReadOnlyDictionary<string, byte[]> PatchedCodes {get;}
+
         protected void InitializeTestContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
@@ -102,6 +114,44 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
         }
 
+        protected void InitializePatchedContracts()
+        {
+            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
+
+            //deploy test contract1
+            BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
+                    TestBasicFunctionContractSystemName,
+                    DefaultSenderKeyPair));
+            TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitialBasicFunctionContract());
+
+            //deploy test contract2
+            var basicSecurityContractCode = PatchedCodes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value;
+            BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    basicSecurityContractCode,
+                    TestBasicSecurityContractSystemName,
+                    DefaultSenderKeyPair));
+            TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitializeSecurityContract());
+
+            CheckCode(basicSecurityContractCode);
+        }
+        
+        
+        protected void CheckCode(byte[] code)
+        {
+            var auditor = new ContractAuditor(null, null);
+            auditor.Audit(code, new RequiredAcsDto
+            {
+                AcsList = new List<string>()
+            }, false);
+        }
+        
         private async Task InitialBasicFunctionContract()
         {
             await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
@@ -143,6 +193,7 @@ namespace AElf.Contract.TestContract
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         
         internal Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.ContractStub
             Acs8ContractStub { get; set; }
@@ -187,6 +238,14 @@ namespace AElf.Contract.TestContract
             TokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                     DefaultSenderKeyPair);
+                    
+            var parliamentAddress = await DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                Codes.Single(kv => kv.Key.EndsWith("Parliament")).Value,
+                SmartContractConstants.ParliamentContractSystemName,
+                DefaultSenderKeyPair);
+            ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentAddress,
+                DefaultSenderKeyPair);
 
             var acs8Code = Codes.Single(kv => kv.Key.Contains("Tests.TestContract")).Value;
             Acs8ContractAddress = await DeployContractAsync(
@@ -303,6 +362,11 @@ namespace AElf.Contract.TestContract
                     CheckResult(resourceIssueResult.TransactionResult);
                 }
             }
+            
+            //initialize parliament
+            {
+                await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+            }
 
             //initialize token converter
             {
@@ -348,7 +412,6 @@ namespace AElf.Contract.TestContract
                     FeeRate = "0.005",
                     Connectors = {connectors},
                     BaseTokenSymbol = "ELF",
-                    ManagerAddress = ManagerTester
                 });
             }
 

@@ -1,9 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.CrossChain.Communication.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Grpc implementation of cross-chain communication functionality.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -22,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Grpc" Version="1.21.0" />
-        <PackageReference Include="Grpc.Tools" Version="1.21.0" />
+        <PackageReference Include="Grpc" Version="2.27.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.27.0" />
     </ItemGroup>
 
     <ItemGroup>

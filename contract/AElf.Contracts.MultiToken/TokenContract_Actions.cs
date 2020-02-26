@@ -146,8 +146,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
         {
-            var owner = GetOwnerAddress();
-            Assert(Context.Sender == owner, "No permission.");
+            CheckCrossChainTokenContractRegistrationControllerAuthority();
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
@@ -195,7 +194,7 @@ namespace AElf.Contracts.MultiToken
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
             var transferTransactionId = transferTransaction.GetHash();
 
-            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
+            Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
                 "Token already claimed.");
 
             var crossChainTransferInput =
@@ -219,7 +218,7 @@ namespace AElf.Contracts.MultiToken
 
             CrossChainVerify(transferTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = input;
+            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = true;
             tokenInfo.Supply = tokenInfo.Supply.Add(amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;
@@ -232,6 +231,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
             if (allowance >= input.Amount)
                 State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -247,6 +247,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Unlock(UnlockInput input)
         {
             AssertLockAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());

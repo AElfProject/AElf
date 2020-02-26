@@ -118,7 +118,7 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
 
-            // Add 1 Shares for this candidate in subsidy profit item.
+            // Add 1 Shares for this candidate in subsidy profit scheme.
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
@@ -165,7 +165,7 @@ namespace AElf.Contracts.Election
                 Option = pubkey
             });
 
-            // Remove this candidate from subsidy profit item.
+            // Remove this candidate from subsidy profit scheme.
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,

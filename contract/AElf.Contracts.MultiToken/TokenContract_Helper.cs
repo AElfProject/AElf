@@ -7,6 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
+using Acs1;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -126,19 +127,19 @@ namespace AElf.Contracts.MultiToken
             var verificationResult = GetValidCrossChainContractReferenceState().VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Cross chain verification failed.");
         }
-        
-        private Address GetOwnerAddress()
+
+        private AuthorityInfo GetCrossChainTokenContractRegistrationController()
         {
-            var owner = State.Owner.Value;
-            if (owner != null)
-                return owner;
             var parliamentContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            owner = Context.Call<Address>(parliamentContractAddress,
-                nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
-                new Empty());
-            State.Owner.Value = owner;
-            return owner;
+            var controller = new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = Context.Call<Address>(parliamentContractAddress,
+                    nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
+                    new Empty())
+            };
+            return controller;
         }
 
         private int GetIssueChainId(string symbol)
@@ -155,6 +156,13 @@ namespace AElf.Contracts.MultiToken
                           && input.Decimals >= 0
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
+        }
+
+        private void CheckCrossChainTokenContractRegistrationControllerAuthority()
+        {
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+                State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
+            Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
         }
     }
 }

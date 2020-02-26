@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -14,7 +15,7 @@ namespace AElf.Contracts.Treasury
 {
     // ReSharper disable InconsistentNaming
     /// <summary>
-    /// The Treasury is the largest profit item in AElf main chain.
+    /// The Treasury is the largest profit scheme in AElf main chain.
     /// Actually the Treasury is our Dividends Pool.
     /// Income of the Treasury is mining rewards
     /// (AEDPoS Contract will:
@@ -22,12 +23,12 @@ namespace AElf.Contracts.Treasury
     /// the amount of ELF should be based on blocks produced during last term. 1,000,000 * 1250000 ELF,
     /// then release the Treasury;
     /// 2. Release Treasury)
-    /// 3 sub profit items:
+    /// 3 sub profit schemes:
     /// (Mining Reward for Miners) - 3
     /// (Subsidy for Candidates / Backups) - 1
     /// (Welfare for Electors / Voters / Citizens) - 1
     ///
-    /// 3 sub profit items for Mining Rewards:
+    /// 3 sub profit schemes for Mining Rewards:
     /// (Basic Rewards) - 4
     /// (Miner's Votes Shares) - 1
     /// (Re-Election Rewards) - 1
@@ -46,7 +47,7 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
-            // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
+            // Create profit schemes: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {
@@ -116,7 +117,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Release(ReleaseInput input)
         {
-            MaybeLoadAEDPoSContractAddress();
+            RequireAEDPoSContractStateSet();
             Assert(
                 Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
@@ -126,7 +127,7 @@ namespace AElf.Contracts.Treasury
                 Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-            MaybeLoadElectionContractAddress();
+            RequireElectionContractStateSet();
             var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
             {
                 Value = input.TermNumber
@@ -153,8 +154,8 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol = connector.RelatedSymbol != string.Empty;
+            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
@@ -209,17 +210,17 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
         
-        public override Empty SetControllerForManageVoteWeightInterest(Address input)
+        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
-            Assert(input != null, "invalid input");
-            State.ControllerForManageVoteWeightInterest.Value = input;
+            AssertPerformedByVoteWeightInterestController();
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
+            State.VoteWeightInterestController.Value = input;
             return new Empty();
         }
         
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            AssertControllerForManageVoteWeightInterestSetting();
+            AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -335,7 +336,7 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void MaybeLoadAEDPoSContractAddress()
+        private void RequireAEDPoSContractStateSet()
         {
             if (State.AEDPoSContract.Value == null)
             {
@@ -344,7 +345,7 @@ namespace AElf.Contracts.Treasury
             }
         }
 
-        private void MaybeLoadElectionContractAddress()
+        private void RequireElectionContractStateSet()
         {
             if (State.ElectionContract.Value == null)
             {
@@ -537,22 +538,29 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void AssertControllerForManageVoteWeightInterestSetting()
+        private void AssertPerformedByVoteWeightInterestController()
         {
-            if (State.ControllerForManageVoteWeightInterest.Value == null)
+            if (State.VoteWeightInterestController.Value == null)
             {
-                if (State.ParliamentContract.Value == null)
-                {
-                    State.ParliamentContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-                }
-                State.ControllerForManageVoteWeightInterest.Value =
-                    State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
-                
-            Assert(Context.Sender == State.ControllerForManageVoteWeightInterest.Value, "no permission");
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
         }
 
+        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
+        }
         #endregion
 
         public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(
@@ -609,6 +617,15 @@ namespace AElf.Contracts.Treasury
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
             return State.VoteWeightInterestList.Value;
+        }
+        
+        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
+        {
+            if (State.VoteWeightInterestController.Value == null)
+            {
+                return GetDefaultVoteWeightInterestController();
+            }
+            return State.VoteWeightInterestController.Value;
         }
         
         private long GetVotesWeight(long votesAmount, long lockTime)

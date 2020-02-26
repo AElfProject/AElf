@@ -1,8 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>High level smart contract definitions and core functionality implementation.</Description>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />

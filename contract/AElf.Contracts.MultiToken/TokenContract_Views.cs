@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -145,27 +146,38 @@ namespace AElf.Contracts.MultiToken
             return State.SymbolListToPayTxSizeFee.Value;
         }
         
-        public override ControllerForUserFee GetUserFeeController(Empty input)
+        public override UserFeeController GetUserFeeController(Empty input)
         {
-            return State.ControllerForUserFee.Value;
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.UserFeeController.Value;
         }
         
-        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
-            return State.ControllerForDeveloperFee.Value;
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
             var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            var controllerInfo = new ControllerCreateInfo
             {
                 Controller = controllerAddress,
                 OrganizationCreationInputBytes = organization.ToByteString()
             };
             return controllerInfo;
+        }
+
+        public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
+        {
+            if(State.SymbolToPayTxFeeController.Value == null)
+                return GetDefaultSymbolToPayTxFeeController();
+            return State.SymbolToPayTxFeeController.Value;
         }
     }
 }

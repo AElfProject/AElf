@@ -649,31 +649,10 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetFeeReceiver(Address input)
         {
-            Assert(State.FeeReceiver.Value != null, "Fee receiver already set.");
+            Assert(State.SideChainCreator.Value == Context.Sender, "No permission.");
+            Assert(State.FeeReceiver.Value == null, "Fee receiver already set.");
             State.FeeReceiver.Value = input;
             return new Empty();
-        }
-
-        private void AssertIsAuthorized()
-        {
-            if (State.ZeroContract.Value == null)
-            {
-                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-            }
-
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
-
-            Assert(
-                contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
-                "No permission to set tx，read，sto，write，net, and rental.");
         }
 
         private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,

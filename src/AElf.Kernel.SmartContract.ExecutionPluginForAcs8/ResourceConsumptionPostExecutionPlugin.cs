@@ -23,6 +23,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            //TODO: change strategy implement
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
             ICalculateStorageCostStrategy storageCostStrategy,
@@ -37,7 +38,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
+            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
         }
 
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,

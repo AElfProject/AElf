@@ -9,6 +9,8 @@ using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
+
+//TODO: assembly: InternalsVisibleTo should not in class .cs file
 [assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
 [assembly: InternalsVisibleTo("AElf.Kernel.TransactionPool.Tests")]
 

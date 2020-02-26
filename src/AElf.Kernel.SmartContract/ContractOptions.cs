@@ -12,6 +12,7 @@ namespace AElf.Kernel.SmartContract
         public int TransactionExecutionTimePeriodLimitInMilliSeconds { get; set; } =
             SmartContractConstants.TransactionExecutionTimePeriodLimitInMilliSeconds;
         
+        //TODO: remove
         public List<string> ContractFeeStrategyAcsList { get; set; }
     }
 }
