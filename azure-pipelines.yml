@@ -1,3 +1,7 @@
+variables:
+  configuration: DEBUG
+  platform: x64
+
 jobs:
 # All tasks on Windows....
 - job: build_all_windows
@@ -17,8 +21,9 @@ jobs:
     inputs:
       filename: 'scripts/download_binary.bat'
   - script: PowerShell.exe -file build.ps1 -target=Build
-    displayName: 'Build and Test'
+    displayName: 'Build'
   - task: DotNetCoreCLI@2
+    displayName: 'Test and Code coverage'
     inputs:
       command: test
       projects: '**/*Tests/*.csproj'
