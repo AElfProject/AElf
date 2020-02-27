@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
@@ -25,6 +26,7 @@ namespace AElf.Contracts.TestKit
         where TModule : ContractTestModule
     {
         private IReadOnlyDictionary<string, byte[]> _codes;
+
 
         public IReadOnlyDictionary<string, byte[]> Codes => _codes ??= ContractsDeployer.GetContractCodes<TModule>();
 
@@ -81,5 +83,22 @@ namespace AElf.Contracts.TestKit
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);
         }
+
+        protected IReadOnlyDictionary<string, byte[]> GetPatchedCodes(string dir)
+        {
+            return ContractsDeployer.GetContractCodes<TModule>(dir, true);
+        }
+
+        // byte[] ReadPatchedContractCode(Type contractType)
+        // {
+        //     return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
+        // }
+        //
+        // byte[] ReadCode(string path)
+        // {
+        //     return File.Exists(path)
+        //         ? File.ReadAllBytes(path)
+        //         : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+        // }
     }
 }
