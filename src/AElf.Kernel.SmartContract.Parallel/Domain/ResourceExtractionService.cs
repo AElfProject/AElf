@@ -8,7 +8,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
@@ -22,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IContractRemarksService _contractRemarksService;
+        private readonly IBlockchainStateService _blockchainStateService;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
@@ -30,10 +29,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IContractRemarksService contractRemarksService)
+            IBlockchainStateService blockchainStateService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _contractRemarksService = contractRemarksService;
+            _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
 
             Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -77,7 +76,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 if (contractResourceInfoCache.TryGetValue(transaction.To, out var contractResourceInfo))
                 {
                     if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
-                        resourceCache.ResourceInfo.IsContractRemarks == contractResourceInfo.IsContractRemarks)
+                        resourceCache.ResourceInfo.IsNonparallelContractCode == contractResourceInfo.IsNonparallelContractCode)
                     {
                         return new TransactionWithResourceInfo
                         {
@@ -94,7 +93,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 contractResourceInfoCache[transaction.To] = new ContractResourceInfo
                 {
                     CodeHash = resourceInfo.ContractHash,
-                    IsContractRemarks = resourceInfo.IsContractRemarks
+                    IsNonparallelContractCode = resourceInfo.IsNonparallelContractCode
                 };
             }
 
@@ -124,23 +123,22 @@ namespace AElf.Kernel.SmartContract.Parallel
                     };
                 }
 
-                var codeRemark =
-                    await _contractRemarksService.GetCodeRemarkAsync(chainContext, address,
-                        executive.ContractHash);
-                if (codeRemark != null && codeRemark.NonParallelizable)
+                var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(chainContext,
+                    executive.ContractHash);
+                if (nonparallelContractCode != null && nonparallelContractCode.NonParallelizable)
                 {
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
                         ParallelType = ParallelType.NonParallelizable,
                         ContractHash = executive.ContractHash,
-                        IsContractRemarks = true
+                        IsNonparallelContractCode = true
                     };
                 }
 
                 if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
                     executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
-                    resourceCache.ResourceInfo.IsContractRemarks == false)
+                    resourceCache.ResourceInfo.IsNonparallelContractCode == false)
                 {
                     return resourceCache.ResourceInfo;
                 }
@@ -246,7 +244,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             public Hash CodeHash { get; set; }
 
-            public bool IsContractRemarks { get; set; }
+            public bool IsNonparallelContractCode { get; set; }
         }
     }
 

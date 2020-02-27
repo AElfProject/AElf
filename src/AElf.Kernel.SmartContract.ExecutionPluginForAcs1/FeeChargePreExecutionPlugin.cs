@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ICalculateTxCostStrategy _calStrategy;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
-        private readonly ISymbolListToPayTxFeeService _symbolListToPayTxFeeService;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
@@ -29,13 +29,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             ICalculateTxCostStrategy calStrategy,
-            ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
+            IBlockchainStateService blockchainStateService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _calStrategy = calStrategy;
+            _blockchainStateService = blockchainStateService;
             _transactionFeeExemptionService = transactionFeeExemptionService;
-            _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -91,17 +91,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     TransactionSizeFee = txCost,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
-                var symbolListToPayTxSizeFee =
-                    await _symbolListToPayTxFeeService.GetExtraAcceptedTokensInfoAsync(chainContext);
-                if (symbolListToPayTxSizeFee != null)
+                
+                var transactionSizeFeeSymbols =
+                    await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext);
+                if (transactionSizeFeeSymbols != null)
                 {
-                    foreach (var tokenInfo in symbolListToPayTxSizeFee)
+                    foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)
                     {
                         chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
                         {
-                            TokenSymbol = tokenInfo.TokenSymbol,
-                            BaseTokenWeight = tokenInfo.BaseTokenWeight,
-                            AddedTokenWeight = tokenInfo.AddedTokenWeight
+                            TokenSymbol = transactionSizeFeeSymbol.TokenSymbol,
+                            BaseTokenWeight = transactionSizeFeeSymbol.BaseTokenWeight,
+                            AddedTokenWeight = transactionSizeFeeSymbol.AddedTokenWeight
                         });
                     }
                 }

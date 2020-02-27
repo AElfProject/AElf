@@ -1,7 +1,8 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel.Domain;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -12,16 +13,16 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly IResourceExtractionService _resourceExtractionService;
-        private readonly IContractRemarksService _contractRemarksService;
+        private readonly IBlockchainStateService _blockchainStateService;
  
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
             IResourceExtractionService resourceExtractionService, 
-            IContractRemarksService contractRemarksService)
+            IBlockchainStateService blockchainStateService)
         {
             _conflictingTransactionIdentificationService = conflictingTransactionIdentificationService;
             _resourceExtractionService = resourceExtractionService;
-            _contractRemarksService = contractRemarksService;
+            _blockchainStateService = blockchainStateService;
         }
 
         public async Task HandleEventAsync(ConflictingTransactionsFoundInParallelGroupsEvent eventData)
@@ -36,14 +37,16 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             var wrongTransactionIds = wrongTxWithResources.Select(t => t.Transaction.GetHash()).ToArray();
 
-            var wrongAddressAndCodeHashMap = wrongTxWithResources.GroupBy(t => t.Transaction.To)
-                .ToDictionary(g => g.Key, g => g.First().TransactionResourceInfo.ContractHash);
-            var wrongAddresses = wrongAddressAndCodeHashMap.Keys;
-            foreach (var address in wrongAddresses)
+            var wrongCodeHashList =
+                wrongTxWithResources.Select(r => r.TransactionResourceInfo.ContractHash).Distinct();
+            
+            var dic = wrongCodeHashList.ToDictionary(codeHash => codeHash, codeHash => new NonparallelContractCode
             {
-                await _contractRemarksService.SetCodeRemarkAsync(address, wrongAddressAndCodeHashMap[address],
-                    eventData.BlockHeader);
-            }
+                CodeHash = codeHash,
+                NonParallelizable = true
+            });
+            await _blockchainStateService.AddBlockExecutedDataAsync<Hash, NonparallelContractCode>(
+                eventData.BlockHeader.GetHashWithoutCache(), dic);
 
             _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }

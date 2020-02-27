@@ -120,6 +120,7 @@ message BlockStateSet {
     int64 block_height = 3;
     map<string, bytes> changes = 4;
     repeated string deletes = 5;
+    map<string, bytes> block_executed_cache = 6;
 }
 
 enum ChainStateMergingStatus {

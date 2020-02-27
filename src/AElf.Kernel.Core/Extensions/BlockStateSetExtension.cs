@@ -17,6 +17,12 @@ namespace AElf.Kernel
                 value = blockStateSet.Changes[key];
                 return true;
             }
+            
+            if (blockStateSet.BlockExecutedCache.ContainsKey(key))
+            {
+                value = blockStateSet.BlockExecutedCache[key];
+                return true;
+            }
 
             return false;
         }

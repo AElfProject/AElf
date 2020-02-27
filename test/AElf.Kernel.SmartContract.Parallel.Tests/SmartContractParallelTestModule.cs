@@ -39,7 +39,18 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     }));
                     return mock.Object;
                 });
-            context.Services.AddSingleton<IContractRemarksService, MockContractRemarksService>();
+            context.Services.AddSingleton<IBlockchainStateService>(
+                _ =>
+                {
+                    var mock = new Mock<IBlockchainStateService>();
+                    mock.Setup(s =>
+                            s.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                        .Returns(Task.FromResult(new NonparallelContractCode
+                        {
+                            CodeHash = Hash.Empty
+                        }));
+                    return mock.Object;
+                });
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 

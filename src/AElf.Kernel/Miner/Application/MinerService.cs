@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;
@@ -13,18 +15,18 @@ namespace AElf.Kernel.Miner.Application
     {
         public ILogger<MinerService> Logger { get; set; }
         private readonly ITxHub _txHub;
-        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ITransactionPackingService _transactionPackingService;
         private readonly IMiningService _miningService;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         public MinerService(IMiningService miningService, ITxHub txHub,
-            IBlockTransactionLimitProvider blockTransactionLimitProvider,
-            ITransactionPackingService transactionPackingService)
+            ITransactionPackingService transactionPackingService, 
+            IBlockchainStateService blockchainStateService)
         {
             _miningService = miningService;
             _txHub = txHub;
-            _blockTransactionLimitProvider = blockTransactionLimitProvider;
             _transactionPackingService = transactionPackingService;
+            _blockchainStateService = blockchainStateService;
 
             Logger = NullLogger<MinerService>.Instance;
         }
@@ -37,11 +39,14 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
-            var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
-                {BlockHash = previousBlockHash, BlockHeight = previousBlockHeight});
+            var limit = await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(new ChainContext
+            {
+                BlockHash = previousBlockHash,
+                BlockHeight = previousBlockHeight
+            });
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_transactionPackingService.IsTransactionPackingEnabled()
-                    ? limit
+                    ? limit?.Value ?? 0
                     : -1);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
