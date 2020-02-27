@@ -40,6 +40,11 @@ namespace TokenSwapContract
                 StartTime = Context.CurrentBlockTime
             };
             State.SwapPairs[input.SwapPairId] = swapPair;
+            Context.Fire(new NewSwapRoundEvent
+            {
+                MerkleTreeRoot = input.MerkleTreeRoot,
+                StartTime = Context.CurrentBlockTime
+            });
             return new Empty();
         }
 
@@ -71,7 +76,8 @@ namespace TokenSwapContract
 
         public override SwapPair GetSwapPair(Hash input)
         {
-            return base.GetSwapPair(input);
+            var swapPair = State.SwapPairs[input];
+            return swapPair;
         }
 
         public override SwapRound GetCurrentSwapRound(Empty input)
@@ -163,7 +169,7 @@ namespace TokenSwapContract
             var amountInIntegers = decimal.GetBits(amount).Reverse().ToArray();
 
             if (preHolderSize < 0)
-                amountInIntegers = amountInIntegers.TakeLast(originTokenSizeInByte).ToArray();
+                amountInIntegers = amountInIntegers.TakeLast(originTokenSizeInByte / 4).ToArray();
 
             var amountBytes = new List<byte>();
             amountInIntegers.Aggregate(amountBytes, (cur, i) =>
