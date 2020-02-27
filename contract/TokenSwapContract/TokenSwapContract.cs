@@ -54,16 +54,16 @@ namespace TokenSwapContract
             ValidateSwapTokenInput(input);
             Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount) && amount > 0,
                 "Invalid token swap input.");
-            var leafHash = ComputeLeafHash(amount, input.UniqueId, swapPair);
+            var leafHash = ComputeLeafHash(amount, input.UniqueId, swapPair, input.ReceiverAddress);
             var computed = input.MerklePath.ComputeRootWithLeafNode(leafHash);
             Assert(computed == swapPair.CurrentRound.MerkleTreeRoot, "Failed to swap token.");
 
             var targetTokenAmount = GetTargetTokenAmount(amount, swapPair.SwapRatio);
-            TransferToken(swapPair.TargetTokenSymbol, targetTokenAmount, Context.Sender);
+            TransferToken(swapPair.TargetTokenSymbol, targetTokenAmount, input.ReceiverAddress);
             Context.Fire(new TokenSwapEvent
             {
                 Amount = targetTokenAmount,
-                Address = Context.Sender,
+                Address = input.ReceiverAddress,
                 Symbol = swapPair.TargetTokenSymbol
             });
             return new Empty();
@@ -185,15 +185,15 @@ namespace TokenSwapContract
             return Hash.FromRawBytes(amountBytes.ToArray());
         }
 
-        private Hash GetHashFromAddressData()
+        private Hash GetHashFromAddressData(Address receiverAddress)
         {
-            return Hash.FromString(Context.Sender.GetFormatted());
+            return Hash.FromString(receiverAddress.GetFormatted());
         }
 
-        private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapPair swapPair)
+        private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapPair swapPair, Address receiverAddress)
         {
             var hashFromAmount = GetHashTokenAmountData(amount, swapPair.OriginTokenSizeInByte);
-            var hashFromAddress = GetHashFromAddressData();
+            var hashFromAddress = GetHashFromAddressData(receiverAddress);
             return HashHelper.ConcatAndCompute(hashFromAmount, hashFromAddress, uniqueId);
         }
 

@@ -63,7 +63,8 @@ message SwapTokenInput{
     aelf.Hash swap_pair_id = 1;
     string origin_amount = 2;
     aelf.MerklePath merkle_path = 3;
-    aelf.Hash unique_id = 4; // to make every swap unique 
+    aelf.Address receiver_address = 4;
+    aelf.Hash unique_id = 5; // to make every swap unique 
 }
 
 message NewSwapRoundEvent{
