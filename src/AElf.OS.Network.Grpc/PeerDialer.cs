@@ -222,11 +222,13 @@ namespace AElf.OS.Network.Grpc
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
-            
+
             TcpClient client = null;
             try
             {
-                client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
+                client = new TcpClient();
+                client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port)
+                    .Wait(NetworkConstants.DefaultSslCertifFetchTimeout);
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {
