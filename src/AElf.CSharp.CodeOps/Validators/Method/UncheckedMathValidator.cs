@@ -17,7 +17,7 @@ namespace AElf.CSharp.CodeOps.Validators.Method
         public IEnumerable<ValidationResult> Validate(MethodDefinition method)
         {
             if (!method.HasBody)
-                return Enumerable.Empty<GenericParamValidationResult>();
+                return Enumerable.Empty<ValidationResult>();
 
             var errors = new List<ValidationResult>();
             
