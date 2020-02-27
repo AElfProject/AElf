@@ -1,10 +1,8 @@
 using System;
-using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 
 namespace AElf.CSharp.CodeOps
 {
-    // To be injected into contract, not used directly, used for authenticity validation
+    // Injected into contract, not used directly, kept as a template to compare IL codes
     public static class ExecutionObserverProxy
     {
         [ThreadStatic]
@@ -13,25 +11,16 @@ namespace AElf.CSharp.CodeOps
         public static void SetObserver(IExecutionObserver observer)
         {
             _observer = observer;
-            #if DEBUG
-            ExecutionObserverDebugger.Test(_observer);
-            #endif
         }
 
         public static void BranchCount()
         {
-            #if DEBUG
-            ExecutionObserverDebugger.Test(_observer);
-            #endif
             if (_observer != null)
                 _observer.BranchCount();
         }
         
         public static void CallCount()
         {
-            #if DEBUG
-            ExecutionObserverDebugger.Test(_observer);
-            #endif
             if (_observer != null)
                 _observer.CallCount();
         }
