@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-import "aelf/core.proto";
 import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.TransactionFeeCharging";
