@@ -7,8 +7,7 @@ using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
-using AElf.Sdk.CSharp;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -16,11 +15,11 @@ using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
-    public class ExecutionPluginForAcs8Test : ExecutionPluginForAcs8TestBase
+    public class ExecutionPluginForResourceFeeTest : ExecutionPluginForResourceFeeTestBase
     {
-        public ExecutionPluginForAcs8Test()
+        public ExecutionPluginForResourceFeeTest()
         {
             AsyncHelper.RunSync(InitializeContracts);
         }

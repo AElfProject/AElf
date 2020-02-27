@@ -11,7 +11,7 @@ using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     public class ResourceConsumptionPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {

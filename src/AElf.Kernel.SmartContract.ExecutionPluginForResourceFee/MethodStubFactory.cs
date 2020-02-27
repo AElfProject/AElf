@@ -4,7 +4,7 @@ using AElf.CSharp.Core;
 using Google.Protobuf;
 
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     //TODO: base class
     public class MethodStubFactory : IMethodStubFactory

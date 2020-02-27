@@ -10,7 +10,7 @@ using AElf.Types;
 using Google.Protobuf.Reflection;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {

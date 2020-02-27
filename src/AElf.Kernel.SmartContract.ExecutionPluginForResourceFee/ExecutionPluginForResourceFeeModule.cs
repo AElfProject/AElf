@@ -3,10 +3,10 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class ExecutionPluginForAcs8Module : AElfModule
+    public class ExecutionPluginForResourceFeeModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

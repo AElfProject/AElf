@@ -4,11 +4,11 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
     [DependsOn(typeof(ContractTestModule),
-        typeof(ExecutionPluginForAcs8Module))]
-    public class ExecutionPluginForAcs8TestModule : ContractTestModule
+        typeof(ExecutionPluginForResourceFeeModule))]
+    public class ExecutionPluginForResourceFeeTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

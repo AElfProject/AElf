@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {

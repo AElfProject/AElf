@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
      public class TestCalculateTxStrategy : CalculateCostStrategyBase, ICalculateTxCostStrategy
     {

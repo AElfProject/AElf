@@ -5,7 +5,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract
 {
     public class Contract : ContractContainer.ContractBase
     {

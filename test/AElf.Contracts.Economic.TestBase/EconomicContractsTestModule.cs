@@ -6,7 +6,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;

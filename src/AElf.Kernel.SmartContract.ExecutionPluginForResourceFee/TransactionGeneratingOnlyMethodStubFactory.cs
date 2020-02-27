@@ -4,7 +4,7 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     public class TransactionGeneratingOnlyMethodStubFactory : IMethodStubFactory
     {

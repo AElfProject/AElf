@@ -5,7 +5,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
     public class TokenContractChargeFeeStrategy : IChargeFeeStrategy
     {

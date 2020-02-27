@@ -13,9 +13,9 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
-    public class ExecutionPluginForAcs8TestBase : ContractTestBase<ExecutionPluginForAcs8TestModule>
+    public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionPluginForResourceFeeTestModule>
     {
         internal const long StoUnitPrice = 1_00000000;
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         internal Address TokenContractAddress { get; set; }
         internal Address TokenConverterAddress { get; set; }
         internal Address TreasuryContractAddress { get; set; }
-        internal TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
+        internal ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
-                    GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
+                    GetTester<ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }
             
             // Parliament

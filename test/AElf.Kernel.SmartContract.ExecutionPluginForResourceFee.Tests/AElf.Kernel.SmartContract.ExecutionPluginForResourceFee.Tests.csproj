@@ -18,10 +18,10 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.csproj">
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
