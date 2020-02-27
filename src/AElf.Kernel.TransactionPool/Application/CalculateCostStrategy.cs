@@ -8,7 +8,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
 //TODO: assembly: InternalsVisibleTo should not in class .cs file
-[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests")]
+[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests")]
 [assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.TestContract.Tests")]
 

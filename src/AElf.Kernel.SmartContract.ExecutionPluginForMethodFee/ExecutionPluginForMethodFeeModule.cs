@@ -1,13 +1,13 @@
 ﻿using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class ExecutionPluginForAcs1Module : AElfModule
+    public class ExecutionPluginForMethodFeeModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public class TokenContractChargeFeeStrategy : IChargeFeeStrategy
     {
@@ -22,20 +23,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
 
         public bool IsFree(Transaction transaction)
         {
-            // Stop charging fee from system txs and plugin txs.
             return new List<string>
             {
-                // System tx
-                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
-                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
-
-                // Pre-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
-                nameof(TokenContractContainer.TokenContractStub.CheckThreshold),
-                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
-
-                // Post-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                nameof(TokenContractContainer.TokenContractStub.Issue),
             }.Contains(transaction.MethodName);
         }
     }

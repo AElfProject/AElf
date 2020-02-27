@@ -3,7 +3,7 @@ using System.Linq;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions
 {
     public class TransactionFeeExemptionService : ITransactionFeeExemptionService, ISingletonDependency
     {

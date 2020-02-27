@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Acs1;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public class TestContractChargeFeeStrategy : IChargeFeeStrategy
     {

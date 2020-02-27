@@ -15,9 +15,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Shouldly;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public sealed class ExecutionPluginForAcs1Test : ExecutionPluginForAcs1TestBase
+    public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFeeTestBase
     {
         private TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         private Address TestContractAddress { get; set; }

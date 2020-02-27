@@ -4,7 +4,7 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     //TODO: make a base class
     public class TransactionGeneratingOnlyMethodStubFactory : IMethodStubFactory

@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {

@@ -1,7 +1,7 @@
 using Acs1;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract
 {
     public class Contract : ContractContainer.ContractBase
     {

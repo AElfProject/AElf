@@ -1,10 +1,10 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
-using TokenContractChargeFeeStrategy = AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TokenContractChargeFeeStrategy;
+using TokenContractChargeFeeStrategy = AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TokenContractChargeFeeStrategy;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 {
