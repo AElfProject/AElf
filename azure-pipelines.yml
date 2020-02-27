@@ -28,7 +28,7 @@ jobs:
     inputs:
       command: test
       projects: '**/*Tests/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --no-build --no-restore --collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --no-build --no-restore --collect "Code coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.CodeCoverage.UseVerifiableInstrumentation=False DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.CodeCoverage.AllowLowIntegrityProcesses=False DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.CodeCoverage.CollectFromChildProcesses=False'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
