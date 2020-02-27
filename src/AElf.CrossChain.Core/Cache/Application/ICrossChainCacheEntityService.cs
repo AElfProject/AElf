@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Volo.Abp.DependencyInjection;
 
@@ -32,13 +33,20 @@ namespace AElf.CrossChain.Cache.Application
 
         public long GetTargetHeightForChainCacheEntity(int chainId)
         {
-            return _crossChainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
+            if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out var chainCacheEntity))
+            {
+                throw new InvalidOperationException($"ChainCacheEntity of {chainId} not found");
+            }
+
+            return chainCacheEntity.TargetChainHeight();
         }
 
         public void ClearOutOfDateCrossChainCache(int chainId, long height)
         {
-            var chainCacheEntity = _crossChainCacheEntityProvider.GetChainCacheEntity(chainId);
-            chainCacheEntity.ClearOutOfDateCacheByHeight(height);
+            if (_crossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out var chainCacheEntity))
+            {
+                chainCacheEntity.ClearOutOfDateCacheByHeight(height);
+            }
         }
     }
 }

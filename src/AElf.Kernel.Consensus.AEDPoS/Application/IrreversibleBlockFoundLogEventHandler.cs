@@ -9,6 +9,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -17,19 +18,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
         private LogEvent _interestedEvent;
 
         public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
             IBlockchainService blockchainService, ITaskQueueManager taskQueueManager,
-            ITransactionPackingService transactionPackingService)
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
             _taskQueueManager = taskQueueManager;
-            _transactionPackingService = transactionPackingService;
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
 
             Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
         }
@@ -69,7 +70,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 if (libBlockHash == null) return;
 
                 // enable transaction packing
-                _transactionPackingService.EnableTransactionPacking();
+                _transactionPackingOptions.IsTransactionPackable = true;
                 if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
