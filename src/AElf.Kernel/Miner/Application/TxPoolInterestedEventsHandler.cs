@@ -5,7 +5,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.Miner.Application
 {
     public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
         ILocalEventHandler<BlockAcceptedEvent>,

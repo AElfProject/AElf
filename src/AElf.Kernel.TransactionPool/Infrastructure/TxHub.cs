@@ -7,8 +7,6 @@ using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-//TODO: AElf.Kernel.TransactionPool should not reference AElf.Kernel.SmartContractExecution
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
