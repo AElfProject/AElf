@@ -72,7 +72,7 @@ namespace AElf.Contracts.MultiToken
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
 
-        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
             return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
@@ -106,7 +106,7 @@ namespace AElf.Contracts.MultiToken
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
-        protected readonly Address Address = SampleAddress.AddressList[0];
+        protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
 
         protected const string SymbolForTest = "ELF";
 

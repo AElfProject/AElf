@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Types.Tests
@@ -393,6 +394,28 @@ namespace AElf.Types.Tests
             var hashFromUid = Hash.FromByteArray(ByteArrayHelper.HexStringToByteArray(uid));
             var hash = HashHelper.ConcatAndCompute(hashFromAmount, hashFromString, hashFromUid);
             Assert.True(hash == Hash.FromByteArray(ByteArrayHelper.HexStringToByteArray(result)));
+        }
+
+        [Fact]
+        public void TestEndian()
+        {
+            {
+                int i = 1;
+                var hex1 = BitConverter.GetBytes(i).ToHex();
+                var hex = (BitConverter.IsLittleEndian
+                    ? BitConverter.GetBytes(i)
+                    : BitConverter.GetBytes(i).Reverse().ToArray()).ToHex();
+                hex.ShouldBe(hex1);
+            }
+            
+            {
+                int i = 1 << 31;
+                var hex1 = BitConverter.GetBytes(i).ToHex();
+                var hex = (BitConverter.IsLittleEndian
+                    ? BitConverter.GetBytes(i)
+                    : BitConverter.GetBytes(i).Reverse().ToArray()).ToHex();
+                hex.ShouldBe(hex1);
+            }
         }
 
         #region Some useful methods

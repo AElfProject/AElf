@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 import "aelf/core.proto";
-import "google/protobuf/wrappers.proto";
 import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenHolder";

@@ -16,5 +16,7 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public SingletonState<DateTime> CurrentTimeToday;
 
         public SingletonState<Int32> CurrentRandom;
+
+        public int i;
     }
 }
