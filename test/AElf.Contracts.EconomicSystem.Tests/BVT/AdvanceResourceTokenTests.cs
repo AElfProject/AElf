@@ -199,7 +199,41 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var newController = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             newController.OwnerAddress.ShouldBe(organizationAddress);
-            
+        }
+
+        [Fact]
+        public async Task TokenConverter_ChangeMethodFeeController_Test()
+        {
+            var createOrganizationResult = await ParliamentContractStub.CreateOrganization.SendAsync(
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+            var organizationAddress = createOrganizationResult.Output;
+            var defaultController = await TokenConverterContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = TokenConverterContractAddress,
+                ContractMethodName = nameof(TokenConverterContractStub.ChangeMethodFeeController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = new AuthorityInfo
+                {
+                    ContractAddress = defaultController.ContractAddress,
+                    OwnerAddress = organizationAddress
+                }.ToByteString(),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = proposal.Output;
+            await ApproveWithAllMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var newController = await TokenConverterContractStub.GetMethodFeeController.CallAsync(new Empty());
+            newController.OwnerAddress.ShouldBe(organizationAddress);
         }
     }
 }
