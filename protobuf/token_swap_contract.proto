@@ -67,3 +67,10 @@ message SwapTokenInput{
     aelf.Hash unique_id = 4; // to make every swap unique 
 }
 
+message TokenSwapEvent{
+    option (aelf.is_event) = true;
+    aelf.Address address = 1;
+    int64 amount = 2;
+    string symbol = 3;
+}
+

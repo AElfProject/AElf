@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
@@ -56,6 +55,12 @@ namespace TokenSwapContract
 
             var targetTokenAmount = GetTargetTokenAmount(amount, swapPair.SwapRatio);
             TransferToken(swapPair.TargetTokenSymbol, targetTokenAmount, Context.Sender);
+            Context.Fire(new TokenSwapEvent
+            {
+                Amount = targetTokenAmount,
+                Address = Context.Sender,
+                Symbol = swapPair.TargetTokenSymbol
+            });
             return new Empty();
         }
 
@@ -168,7 +173,7 @@ namespace TokenSwapContract
                     cur.Add(new byte());
                 }
 
-                cur.AddRange(i.ToBytes());
+                cur.AddRange(i.ToBytes(true));
                 return cur;
             });
             return Hash.FromRawBytes(amountBytes.ToArray());
