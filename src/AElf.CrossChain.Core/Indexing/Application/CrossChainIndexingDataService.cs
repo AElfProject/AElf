@@ -11,6 +11,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -20,7 +21,7 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
 
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
@@ -28,13 +29,13 @@ namespace AElf.CrossChain.Indexing.Application
             IBlockCacheEntityConsumer blockCacheEntityConsumer,
             ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
             IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            ITransactionPackingService transactionPackingService)
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _transactionInputForBlockMiningDataProvider = transactionInputForBlockMiningDataProvider;
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
-            _transactionPackingService = transactionPackingService;
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
@@ -184,7 +185,7 @@ namespace AElf.CrossChain.Indexing.Application
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
-            if (!_transactionPackingService.IsTransactionPackingEnabled())
+            if (!_transactionPackingOptions.IsTransactionPackable)
                 return ByteString.Empty;
 
             var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
