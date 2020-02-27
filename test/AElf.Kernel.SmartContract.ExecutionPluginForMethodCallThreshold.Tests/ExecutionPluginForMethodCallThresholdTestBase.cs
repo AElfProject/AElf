@@ -9,9 +9,9 @@ using AElf.Types;
 using Shouldly;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests
 {
-    public class ExecutionPluginForAcs5TestBase : ContractTestBase<ExecutionPluginForAcs5TestModule>
+    public class ExecutionPluginForMethodCallThresholdTestBase : ContractTestBase<ExecutionPluginForMethodCallThresholdTestModule>
     {
         //init connector
         internal Connector ELFConnector = new Connector

@@ -12,9 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests
 {
-    public class ExecutionPluginForAcs5Test : ExecutionPluginForAcs5TestBase
+    public class ExecutionPluginForMethodCallThresholdTest : ExecutionPluginForMethodCallThresholdTestBase
     {
         [Fact]
         public async Task GetPreTransactionsTest()

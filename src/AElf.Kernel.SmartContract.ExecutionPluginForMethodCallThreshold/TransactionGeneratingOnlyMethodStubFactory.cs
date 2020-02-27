@@ -4,7 +4,7 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold
 {
     //TODO: base class
     public class TransactionGeneratingOnlyMethodStubFactory : IMethodStubFactory

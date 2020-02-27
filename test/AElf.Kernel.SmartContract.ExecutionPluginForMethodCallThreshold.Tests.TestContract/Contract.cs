@@ -2,7 +2,7 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests.TestContract
 {
     public class Contract : ContractContainer.ContractBase
     {

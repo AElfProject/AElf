@@ -3,7 +3,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs5</PackageId>
+        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 5 execution plugin.</Description>
     </PropertyGroup>

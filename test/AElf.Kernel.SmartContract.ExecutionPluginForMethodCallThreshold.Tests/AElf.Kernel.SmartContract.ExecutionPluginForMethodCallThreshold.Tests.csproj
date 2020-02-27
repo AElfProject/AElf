@@ -17,11 +17,11 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract.csproj">
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests.TestContract.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

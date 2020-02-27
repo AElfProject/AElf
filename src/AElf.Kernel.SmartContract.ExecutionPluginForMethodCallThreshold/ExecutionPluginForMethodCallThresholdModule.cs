@@ -1,10 +1,10 @@
 ﻿using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class ExecutionPluginForAcs5Module : AElfModule
+    public class ExecutionPluginForMethodCallThresholdModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
