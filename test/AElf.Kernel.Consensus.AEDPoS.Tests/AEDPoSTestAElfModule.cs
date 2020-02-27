@@ -119,7 +119,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {
                         Behaviour = AElfConsensusBehaviour.UpdateValue,
                         SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
-                        Round = new Round()
+                        Round = new Round
+                        {
+                            RealTimeMinersInformation =
+                            {
+                                {"pubkey1", new MinerInRound{OutValue = Hash.FromString("pubkey1")}},
+                                {"pubkey2", new MinerInRound{OutValue = Hash.FromString("pubkey2")}},
+                                {"pubkey3", new MinerInRound{OutValue = Hash.FromString("pubkey3")}}
+                            }
+                        }
                     }.ToByteArray()));
                 mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.Is<BlockHeader>(o => o == null)))
                     .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation

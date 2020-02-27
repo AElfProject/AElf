@@ -162,6 +162,16 @@ namespace AElf.CrossChain.Communication
                         });
                         return mockCrossChainClient.Object;
                     });
+                var grpcClientInitializationContext = new GrpcClientInitializationContext
+                {
+                    RemoteChainId = 1,
+                    LocalChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
+                    DialTimeout = 1000,
+                    UriStr = "127.0.0.1:6250"
+                };
+                var client = new ClientForSideChain(grpcClientInitializationContext) as ICrossChainClient;
+                mockCrossChainClientProvider.Setup(m => m.TryGetClient(It.IsAny<int>(), out client))
+                    .Returns(true);
                 return mockCrossChainClientProvider.Object;
             });
 
