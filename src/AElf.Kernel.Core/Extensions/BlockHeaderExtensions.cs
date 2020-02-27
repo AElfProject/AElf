@@ -18,5 +18,10 @@ namespace AElf.Kernel
                 Height = blockHeader.Height
             }.ToByteArray());
         }
+
+        public static Hash GetDisambiguatingHash(this BlockHeader blockHeader)
+        {
+            return blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
+        }
     }
 }
