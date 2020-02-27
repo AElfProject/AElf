@@ -75,20 +75,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var il = countMethod.Body.GetILProcessor();
 
             var ret = il.Create(OpCodes.Ret);
-            
-            #if DEBUG
+
             il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
-            
-            il.Emit(OpCodes.Ldsfld, observerField);
-            #if DEBUG // Below is optimized by compiler in release mode
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Cgt_Un);
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldloc_0);
-            #endif
             il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Callvirt, module.ImportReference(
@@ -111,18 +99,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             var ret = il.Create(OpCodes.Ret);
             
-            #if DEBUG
             il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
-            il.Emit(OpCodes.Ldsfld, observerField);
-            #if DEBUG // Below is optimized by compiler in release mode
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Cgt_Un);
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldloc_0);
-            #endif
             il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Callvirt, module.ImportReference(
@@ -147,11 +124,6 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Stsfld, observerField);
-            #if DEBUG
-            il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
             il.Emit(OpCodes.Ret);
 
             return setObserverMethod;
