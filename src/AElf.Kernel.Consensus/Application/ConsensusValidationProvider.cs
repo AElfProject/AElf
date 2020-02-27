@@ -6,26 +6,27 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Txn.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly IBlockchainService _blockchainService;
         private readonly IConsensusExtraDataExtractor _consensusExtraDataExtractor;
         private readonly int _systemTransactionCount;
         public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
         public ConsensusValidationProvider(IConsensusService consensusService,
-            ITransactionPackingService transactionPackingService,
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             IBlockchainService blockchainService,
             IConsensusExtraDataExtractor consensusExtraDataExtractor,
             IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
             _consensusService = consensusService;
-            _transactionPackingService = transactionPackingService;
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
             _blockchainService = blockchainService;
             _consensusExtraDataExtractor = consensusExtraDataExtractor;
             _systemTransactionCount = systemTransactionGenerators.Count();
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Consensus.Application
 
         private async Task<bool> ValidateTransactionCount(IBlock block)
         {
-            if (_transactionPackingService.IsTransactionPackingEnabled()) return true;
+            if (_transactionPackingOptions.IsTransactionPackable) return true;
 
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash == block.Header.PreviousBlockHash &&
