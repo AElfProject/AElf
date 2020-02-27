@@ -24,6 +24,11 @@ message SideChainCreationRequest {
     bool is_side_chain_token_profitable = 11;
 }
 
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
+}
+
 message ProposalCreated{
     option (aelf.is_event) = true;
     aelf.Hash proposal_id = 1;
@@ -31,6 +36,13 @@ message ProposalCreated{
 ```
 
 The creation request will create a proposal with the Parliament contract. After calling this method, a **ProposalCreated** log will be created in which the **ProposalId** be found. This ID will enable the producers to approve it.
+
+In order for the creation request to succeed, some assertions must pass:
+- the Sender can only have one pending request at any time.
+- the locked token amount must be greater than 0 and higher than the indexing price.
+- the token initial issue list must contain at least one token and all with an **amount** greater than 0.
+- the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0.
+- the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)).
 
 ### Approving the proposal (producers)
 
