@@ -13,7 +13,6 @@ namespace AElf.CrossChain.Communication.Grpc
         /// <returns></returns>
         public static bool TryParsePrefixedEndpoint(string url, out IPEndPoint endPoint)
         {
-            //TODO!! use Uri.Parse
             endPoint = null;
             
             var splitRes = url.Split(':');
