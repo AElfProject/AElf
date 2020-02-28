@@ -26,6 +26,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             _blockExtraDataService = blockExtraDataService;
             _accountService = accountService;
+            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
 
             Logger = NullLogger<AEDPoSBroadcastPrivilegedPubkeyListProvider>.Instance;
         }
