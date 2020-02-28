@@ -29,7 +29,6 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPreExecutionPlugin, MethodCallingThresholdPreExecutionPlugin>();
             context.Services.AddSingleton<IPreExecutionPlugin, ResourceConsumptionPreExecutionPlugin>();
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
-            context.Services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
