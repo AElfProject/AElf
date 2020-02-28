@@ -5,7 +5,6 @@ dotnet: 3.1.102
 dist: xenial
 os:
   - linux
-  - osx
 osx_image: xcode11
 cache:
   directories:
