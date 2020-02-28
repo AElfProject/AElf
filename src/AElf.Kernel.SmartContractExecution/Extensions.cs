@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContractExecution
                 To = to,
                 MethodName = methodName,
                 Params = param,
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 
             var transactionResult =

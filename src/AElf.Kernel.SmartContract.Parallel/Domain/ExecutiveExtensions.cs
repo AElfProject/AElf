@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 To = to,
                 MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
                 Params = param,
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 
             trace = new TransactionTrace
