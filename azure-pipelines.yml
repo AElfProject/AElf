@@ -19,6 +19,11 @@ jobs:
   - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov
     displayName: 'Build and Test'
   - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage
+    displayName: 'Upload data to Codecov'
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
