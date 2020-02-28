@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="callerMethodName"></param>
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string callerMethodName = null)
         {
-            AssertTransactionOnlyExecutedOnceInOneBlock();
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
 
             Context.LogDebug(() => $"Processing {callerMethodName}");
 

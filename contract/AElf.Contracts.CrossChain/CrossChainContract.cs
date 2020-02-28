@@ -244,7 +244,7 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
-            AssertTransactionOnlyExecutedOnceInOneBlock();
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertValidCrossChainIndexingProposer(Context.Sender);
             ClearExpiredCrossChainIndexingProposalIfExists();
             AssertValidCrossChainDataBeforeIndexing(input);
@@ -274,7 +274,7 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override Empty ReleaseCrossChainIndexing(Hash input)
         {
-            AssertTransactionOnlyExecutedOnceInOneBlock();
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertValidCrossChainIndexingProposer(Context.Sender);
             var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
                 out var pendingCrossChainIndexingProposal);

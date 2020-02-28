@@ -142,7 +142,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void AssertTransactionOnlyExecutedOnceInOneBlock()
+        private void EnsureTransactionOnlyExecutedOnceInOneBlock()
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
