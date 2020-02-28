@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Miner.Application;
+using AElf.Kernel.BlockTransactionLimitController;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
