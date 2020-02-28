@@ -78,9 +78,8 @@ namespace AElf.CrossChain.Communication.Application
 
             var crossChainExtraByteString =
                 GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataNamePrefix);
-            
-            //TODO!! make an extend method ByteString.IsNullOrEmpty()
-            var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
+
+            var crossChainExtra = crossChainExtraByteString.IsNullOrEmpty()
                 ? null
                 : CrossChainExtraData.Parser.ParseFrom(crossChainExtraByteString);
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
