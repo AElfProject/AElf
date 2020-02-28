@@ -5,6 +5,7 @@ using Acs7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -85,7 +86,7 @@ namespace AElf.CrossChain.Communication.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {CrossChainBlockExtraDataNameProvider.Name}));
+                new[] {ConsensusBlockExtraDataNameProvider.Name}));
             return parentChainBlockData;
         }
         

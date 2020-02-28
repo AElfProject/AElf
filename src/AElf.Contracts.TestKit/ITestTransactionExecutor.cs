@@ -6,7 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestKit
 {
-    public interface ITransactionExecutor
+    public interface ITestTransactionExecutor
     {
         Task ExecuteAsync(Transaction transaction);
         Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction);

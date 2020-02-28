@@ -19,6 +19,7 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services
                 .AddSingleton<ITransactionSizeFeeUnitPriceProvider, DefaultTransactionSizeFeeUnitPriceProvider>();
+            context.Services.AddSingleton<ITransactionExecutor, TransactionExecutor>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
