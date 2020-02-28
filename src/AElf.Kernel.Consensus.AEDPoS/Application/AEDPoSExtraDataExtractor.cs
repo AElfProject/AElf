@@ -9,8 +9,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class AEDPoSExtraDataExtractor : IConsensusExtraDataExtractor
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IConsensusExtraDataNameProvider _consensusExtraDataNameProvider;
 
-        public AEDPoSExtraDataExtractor(IBlockExtraDataService blockExtraDataService)
+        public AEDPoSExtraDataExtractor(IBlockExtraDataService blockExtraDataService, 
+            IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
         {
             _blockExtraDataService = blockExtraDataService;
         }
@@ -18,7 +20,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ByteString ExtractConsensusExtraData(BlockHeader header)
         {
             var consensusExtraData =
-                _blockExtraDataService.GetExtraDataFromBlockHeader(ConsensusBlockExtraDataNameProvider.Name, header);
+                _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataNameProvider.ExtraDataName, header);
             if (consensusExtraData == null)
                 return null;
 

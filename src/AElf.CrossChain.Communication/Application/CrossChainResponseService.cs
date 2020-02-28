@@ -5,6 +5,7 @@ using Acs7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -16,13 +17,16 @@ namespace AElf.CrossChain.Communication.Application
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ICrossChainService _crossChainService;
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
+        private readonly IConsensusExtraDataNameProvider _consensusExtraDataNameProvider;
 
         public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
-            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService)
+            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService,
+            IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _crossChainService = crossChainService;
             _crossChainIndexingDataService = crossChainIndexingDataService;
+            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
@@ -72,12 +76,13 @@ namespace AElf.CrossChain.Communication.Application
             return chainInitializationData;
         }
 
-        private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
+        private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData,
+            BlockHeader blockHeader)
         {
             parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
-            var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader);
-            
+            var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataNamePrefix);
+
             //TODO!! make an extend method ByteString.IsNullOrEmpty()
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
                 ? null
@@ -85,10 +90,10 @@ namespace AElf.CrossChain.Communication.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {CrossChainBlockExtraDataNameProvider.Name}));
+                new[] {_consensusExtraDataNameProvider.ExtraDataName}));
             return parentChainBlockData;
         }
-        
+
         private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
             var indexedSideChainBlockData =
@@ -119,9 +124,9 @@ namespace AElf.CrossChain.Communication.Application
             return res;
         }
         
-        private ByteString GetExtraDataFromHeader(BlockHeader header)
+        private ByteString GetExtraDataFromHeader(BlockHeader header, string symbol)
         {
-            return _blockExtraDataService.GetExtraDataFromBlockHeader(CrossChainBlockExtraDataNameProvider.Name, header);
+            return _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
         }
         
         private Dictionary<string, ByteString> GetExtraDataForExchange(BlockHeader header, IEnumerable<string> symbolsOfExchangedExtraData)
@@ -129,7 +134,7 @@ namespace AElf.CrossChain.Communication.Application
             var res = new Dictionary<string, ByteString>();
             foreach (var symbol in symbolsOfExchangedExtraData)
             {
-                var extraData = GetExtraDataFromHeader(header);
+                var extraData = GetExtraDataFromHeader(header, symbol);
                 if (extraData != null)
                     res.Add(symbol, extraData);
             }

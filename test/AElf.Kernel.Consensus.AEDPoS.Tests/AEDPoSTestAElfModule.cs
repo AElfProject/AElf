@@ -114,7 +114,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IBlockExtraDataService>();
-                mockService.Setup(m => m.GetExtraDataFromBlockHeader(ConsensusBlockExtraDataNameProvider.Name,
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus",
                         It.Is<BlockHeader>(o => o != null)))
                     .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
                     {
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
                         Round = new Round()
                     }.ToByteArray()));
-                mockService.Setup(m => m.GetExtraDataFromBlockHeader(ConsensusBlockExtraDataNameProvider.Name,
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus",
                         It.Is<BlockHeader>(o => o == null)))
                     .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
                     {

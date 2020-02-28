@@ -21,7 +21,7 @@ namespace AElf.CrossChain
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             var crossChainConfiguration = context.Services.GetConfiguration()
-                .GetSection(CrossChainBlockExtraDataNameProvider.Name);
+                .GetSection(CrossChainConstants.CrossChainExtraDataNamePrefix);
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
 
             context.Services.AddSingleton<IChargeFeeStrategy, CrossChainContractChargeFeeStrategy>();
