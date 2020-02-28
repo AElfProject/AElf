@@ -9,6 +9,8 @@ namespace TokenSwapContract
     {
         public MappedState<Hash, SwapPair> SwapPairs { get; set; }
         
+        public MappedState<Hash, Hash, long> Ledger { get; set; }
+
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     }
 }
