@@ -132,7 +132,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
                 To = ConfigurationContractAddress,
                 MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
                 Params = new Empty().ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var transactionTrace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
