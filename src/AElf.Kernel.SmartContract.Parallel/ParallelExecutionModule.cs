@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Parallel.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +11,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<IBlockExecutingService, BlockExecutingWithParallelService>();
+            context.Services.AddTransient<IBlockExecutingService, BlockParallelExecutingService>();
         }
     }
 }
