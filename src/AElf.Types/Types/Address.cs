@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Google.Protobuf;
-
-[assembly: InternalsVisibleTo("AElf.Kernel.Core.Tests")]
-[assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
-[assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
 namespace AElf.Types
 {

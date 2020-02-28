@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -99,6 +98,26 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             var limitNum = await provider.GetLimitAsync(new ChainContext
                 {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight});
             Assert.Equal(55, limitNum);
+        }
+
+        [Fact]
+        public async Task TransactionLimitSetAndGet_Test()
+        {
+            var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
+            var chain = await _blockchainService.GetChainAsync();
+            
+            provider.SetLimit(50, new BlockIndex
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            });
+
+            var limit = await provider.GetLimitAsync(new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            });
+            Assert.Equal(50, limit);
         }
     }
 }

@@ -3,7 +3,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -32,7 +31,6 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
             services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
             services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
-            services.AddStoreKeyPrefixProvide<SmartContractCodeHistory>("sc");
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
@@ -45,8 +43,6 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-            services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

@@ -2,14 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using Acs3;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.CSharp.Core.Utils;
+using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
@@ -313,7 +318,7 @@ namespace AElf.Contracts.MultiToken
             Assert.True(newTokenInfo.IssueChainId == createdTokenInfo.IssueChainId);
             Assert.True(newTokenInfo.Symbol == createdTokenInfo.Symbol);
         }
-        
+
         [Fact]
         public async Task CrossChainCreateToken_WithoutRegister_Test()
         {
@@ -616,7 +621,6 @@ namespace AElf.Contracts.MultiToken
                 Assert.True(txResult.Status == TransactionResultStatus.Failed);
                 Assert.Contains("Invalid memo size.", txResult.Error);
             }
-            
         }
 
         #endregion
@@ -1094,7 +1098,8 @@ namespace AElf.Contracts.MultiToken
             var height = mainChainIndexSideChain > 1 ? mainChainIndexSideChain + 1 : 1;
             for (var i = height; i < sideTransactionHeight; i++)
             {
-                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i, sideChainId,
+                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i,
+                    sideChainId,
                     root));
             }
 
@@ -1113,7 +1118,8 @@ namespace AElf.Contracts.MultiToken
             var height = mainChainIndexSideChain > 1 ? mainChainIndexSideChain + 1 : 1;
             for (var i = height; i < sideTransactionHeight; i++)
             {
-                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i, sideChainId,
+                crossChainBlockData.SideChainBlockDataList.Add(CreateSideChainBlockData(_fakeBlockHeader, i,
+                    sideChainId,
                     root));
             }
 

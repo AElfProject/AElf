@@ -380,7 +380,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     MaximalAbstentionThreshold = 0
                 }
             };
-            var associationAddress = await AssociationStub.CalculateOrganizationAddress.CallAsync(createOrganizationInput2);
+            var associationAddressRet = await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2);
+            var associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.TransactionResult.ReturnValue);
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],

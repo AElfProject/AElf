@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Shouldly;
@@ -58,7 +57,7 @@ namespace AElf.Kernel.Consensus.Application
 
             await TriggerConsensusAsync();
             var result = await _consensusService.GenerateConsensusTransactionsAsync(chainContext);
-            result.Count().ShouldBe(1);
+            result.Count.ShouldBe(1);
         }
 
         private async Task TriggerConsensusAsync()

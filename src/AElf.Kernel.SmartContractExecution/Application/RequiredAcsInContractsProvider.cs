@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 To = ConfigurationContractAddress,
                 MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
                 Params = new Empty().ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 
             var transactionTrace =

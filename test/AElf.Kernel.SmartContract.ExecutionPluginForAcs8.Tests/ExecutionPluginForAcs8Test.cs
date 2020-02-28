@@ -371,34 +371,5 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeNet - afterNet, txResult);
         }
-
-        [Fact]
-        public async Task SendTransferFromAsInlineTxTest()
-        {
-            await AdvanceResourceToken();
-
-            var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TestContractAddress,
-                Symbol = "ELF"
-            });
-            var txResult =
-                await TestContractStub.SendTransferFromAsInlineTx.SendAsync(new SInt64Value
-                {
-                    Value = balanceBefore.Balance * 2
-                });
-            // Success though insufficient balance to do transfer. Because the TransferFrom inline tx cancelled.
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Check balance
-            {
-                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {
-                    Owner = TestContractAddress,
-                    Symbol = "ELF"
-                })).Balance;
-                balance.ShouldBe(balanceBefore.Balance);
-            }
-        }
     }
 }
