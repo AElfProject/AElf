@@ -75,8 +75,7 @@ namespace AElf.Benchmark
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
                 _block.Header.GetPreMiningHash());
 
-            await _txHub.HandleUnexecutableTransactionsFoundAsync(new UnexecutableTransactionsFoundEvent
-                (null, _transactions.Select(t => t.GetHash()).ToList()));
+            await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
 
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {

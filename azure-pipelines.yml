@@ -2,6 +2,7 @@ jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
+  timeoutInMinutes: 120
   pool:
     vmImage: windows-2019
   variables:

@@ -72,7 +72,7 @@ namespace AElf.Contracts.MultiToken
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
 
-        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
             return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
