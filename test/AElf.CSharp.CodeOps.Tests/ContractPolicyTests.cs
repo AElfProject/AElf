@@ -44,7 +44,6 @@ namespace AElf.CSharp.CodeOps
 
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]
             {
-                new GenericParamValidator(),
                 new MultiDimArrayValidator(),
             });
         }
@@ -60,7 +59,6 @@ namespace AElf.CSharp.CodeOps
 
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]
             {
-                new NewObjValidator(),
                 new UncheckedMathValidator()
             });
         }
@@ -104,7 +102,7 @@ namespace AElf.CSharp.CodeOps
             });
 
             multiplePolicies.Whitelist.NameSpaces.ShouldNotBeNull();
-            multiplePolicies.MethodValidators.Count.ShouldBe(6);
+            multiplePolicies.MethodValidators.Count.ShouldBe(4);
         }
 
         [Fact]
@@ -134,17 +132,6 @@ namespace AElf.CSharp.CodeOps
         }
 
         [Fact]
-        public void Policy_GenericParamValidator_Test()
-        {
-            var validator = new GenericParamValidator();
-            var validateResult1 = ValidateContractCode(_badContractCode, validator);
-            validateResult1.Count.ShouldBe(0); //no error sample
-
-            var validateResult2 = ValidateContractCode(_systemContractCode, validator);
-            validateResult2.Count.ShouldBe(0);
-        }
-
-        [Fact]
         public void Policy_MultiDimArrayValidator_Test()
         {
             var validator = new MultiDimArrayValidator();
@@ -153,15 +140,6 @@ namespace AElf.CSharp.CodeOps
 
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
-        }
-
-        [Fact]
-        public void Policy_NewObjValidator_Test()
-        {
-            var validator = new NewObjValidator();
-            var validateResult1 = ValidateContractCode(_badContractCode, validator);
-            validateResult1.Count.ShouldBeGreaterThan(0);
-            validateResult1.First().Message.ShouldContain("objects is not supported");
         }
 
         [Fact]

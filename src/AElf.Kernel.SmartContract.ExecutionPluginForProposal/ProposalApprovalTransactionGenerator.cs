@@ -9,31 +9,33 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
     public class ProposalApprovalTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly IProposalService _proposalService;
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         public ILogger<ProposalApprovalTransactionGenerator> Logger { get; set; }
 
-        public ProposalApprovalTransactionGenerator(IProposalService proposalService, 
-            ISmartContractAddressService smartContractAddressService, ITransactionPackingService transactionPackingService)
+        public ProposalApprovalTransactionGenerator(IProposalService proposalService,
+            ISmartContractAddressService smartContractAddressService,
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
         {
             _proposalService = proposalService;
             _smartContractAddressService = smartContractAddressService;
-            _transactionPackingService = transactionPackingService;
-            
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
+
             Logger = NullLogger<ProposalApprovalTransactionGenerator>.Instance;
         }
         
         public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight, Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (!_transactionPackingService.IsTransactionPackingEnabled())
+            if (!_transactionPackingOptions.IsTransactionPackable)
                 return generatedTransactions;
             
             var parliamentContractAddress = _smartContractAddressService.GetAddressByContractName(
