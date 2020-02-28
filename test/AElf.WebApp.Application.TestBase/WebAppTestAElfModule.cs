@@ -92,7 +92,7 @@ namespace AElf.WebApp.Application
                 .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, TransactionExecutor>());
+            context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, LocalTransactionExecutingService>());
         }
     }
 }
