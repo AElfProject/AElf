@@ -16,9 +16,6 @@
 
 #endregion
 
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("AElf.Runtime.CSharp.Tests")]
 namespace AElf.CSharp.Core
 {
     internal static class ServerCalls
