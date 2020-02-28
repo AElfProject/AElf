@@ -68,9 +68,9 @@ namespace AElf.Contracts.TestBase
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
         {
-            CleanTransactions(eventData.Transactions);
+            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 
