@@ -5,6 +5,12 @@ namespace AElf
 {
     public static class NumericExtensions
     {
+        public static byte[] ToBytes(this long n, bool bigEndian = true)
+        {
+            var bytes = BitConverter.GetBytes(n);
+            return GetBytesWithEndian(bytes, bigEndian);
+        }
+        
         public static byte[] ToBytes(this ulong n, bool bigEndian = true)
         {
             var bytes = BitConverter.GetBytes(n);
