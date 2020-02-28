@@ -60,7 +60,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
-            var blockInfoCache = CrossChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            CrossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out var blockInfoCache);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(expectedBlockInfo);
@@ -73,7 +73,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
-            var blockInfoCache = CrossChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            CrossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out var blockInfoCache);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(expectedBlockInfo);
