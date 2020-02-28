@@ -15,6 +15,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
         {
             _blockExtraDataService = blockExtraDataService;
+            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
         }
 
         public ByteString ExtractConsensusExtraData(BlockHeader header)
