@@ -20,5 +20,4 @@ enum ParallelType {
 
 message NonparallelContractCode{
     aelf.Hash code_hash = 1;
-    bool non_parallelizable = 2;
 }

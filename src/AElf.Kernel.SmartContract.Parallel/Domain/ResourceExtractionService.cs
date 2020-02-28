@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
                 var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(chainContext,
                     executive.ContractHash);
-                if (nonparallelContractCode != null && nonparallelContractCode.NonParallelizable)
+                if (nonparallelContractCode != null)
                 {
                     return new TransactionResourceInfo
                     {

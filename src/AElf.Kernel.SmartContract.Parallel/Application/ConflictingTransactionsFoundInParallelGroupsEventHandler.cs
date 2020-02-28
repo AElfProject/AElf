@@ -42,11 +42,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             var dic = wrongCodeHashList.ToDictionary(codeHash => codeHash, codeHash => new NonparallelContractCode
             {
-                CodeHash = codeHash,
-                NonParallelizable = true
+                CodeHash = codeHash
             });
             await _blockchainStateService.AddBlockExecutedDataAsync<Hash, NonparallelContractCode>(
-                eventData.BlockHeader.GetHashWithoutCache(), dic);
+                eventData.BlockHeader.GetHash(), dic);
 
             _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }
