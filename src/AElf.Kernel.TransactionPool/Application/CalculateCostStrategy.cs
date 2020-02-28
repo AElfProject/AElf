@@ -1,16 +1,10 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
-
-//TODO: assembly: InternalsVisibleTo should not in class .cs file
-[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests")]
-[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests")]
-[assembly: InternalsVisibleTo("AElf.Contracts.TestContract.Tests")]
 
 namespace AElf.Kernel.TransactionPool.Application
 {

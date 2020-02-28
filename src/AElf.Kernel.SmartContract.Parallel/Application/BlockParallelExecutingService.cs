@@ -6,13 +6,11 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 
-//TODO: namespace
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Application
 {
-    //TODO: rename BlockParallelExecutingService
-    public class BlockExecutingWithParallelService: BlockExecutingService
+    public class BlockParallelExecutingService: BlockExecutingService
     {
-        public BlockExecutingWithParallelService(ILocalParallelTransactionExecutingService executingService,
+        public BlockParallelExecutingService(ILocalParallelTransactionExecutingService executingService,
             IBlockchainStateService blockchainStateService) : base(executingService, blockchainStateService)
         {
         }

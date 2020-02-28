@@ -3,17 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Configuration;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using Volo.Abp.DependencyInjection;
 using AElf.Types;
-using AElf.Contracts.Configuration;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Miner.Application
+namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitProvider : IBlockTransactionLimitProvider, ISingletonDependency
     {
@@ -132,7 +132,7 @@ namespace AElf.Kernel.Miner.Application
                 To = ConfigurationContractAddress,
                 MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
                 Params = new Empty().ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var transactionTrace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
