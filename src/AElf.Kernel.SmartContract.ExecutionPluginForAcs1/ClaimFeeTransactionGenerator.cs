@@ -10,26 +10,27 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
     public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
         public ILogger<ClaimFeeTransactionGenerator> Logger { get; set; }
 
         public ClaimFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            ITransactionPackingService transactionPackingService)
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
         {
             _smartContractAddressService = smartContractAddressService;
-            _transactionPackingService = transactionPackingService;
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (!_transactionPackingService.IsTransactionPackingEnabled())
+            if (!_transactionPackingOptions.IsTransactionPackable)
                 return Task.FromResult(generatedTransactions);
 
             if (preBlockHeight < Constants.GenesisBlockHeight)

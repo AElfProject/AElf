@@ -17,24 +17,21 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
-        private readonly ISmartContractCodeHistoryService _smartContractCodeHistoryService;
 
         public SmartContractRegistrationService(ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider, 
-            ISmartContractExecutiveProvider smartContractExecutiveProvider,
-            ISmartContractCodeHistoryService smartContractCodeHistoryService)
+            ISmartContractExecutiveProvider smartContractExecutiveProvider)
         {
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
             _smartContractExecutiveProvider = smartContractExecutiveProvider;
-            _smartContractCodeHistoryService = smartContractCodeHistoryService;
         }
 
-        public async Task AddSmartContractRegistrationAsync(Address address, Hash codeHash, BlockIndex blockIndex)
+        public Task AddSmartContractRegistrationAsync(Address address, Hash codeHash, BlockIndex blockIndex)
         {
             _smartContractRegistrationCacheProvider.AddSmartContractRegistration(address, codeHash, blockIndex);
-            await _smartContractCodeHistoryService.AddSmartContractCodeAsync(address, codeHash, blockIndex);
+            return Task.CompletedTask;
         }
 
-        public async Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
+        public Task RemoveForkCacheAsync(List<BlockIndex> blockIndexes)
         {
             var codeHashDic = _smartContractRegistrationCacheProvider.RemoveForkCache(blockIndexes);
             var addresses = codeHashDic.Keys;
@@ -42,8 +39,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 _smartContractExecutiveProvider.ClearExecutives(address, codeHashDic[address]);
             }
-
-            await _smartContractCodeHistoryService.RemoveAsync(blockIndexes);
+            return Task.CompletedTask;
         }
 
         public void SetIrreversedCache(List<BlockIndex> blockIndexes)

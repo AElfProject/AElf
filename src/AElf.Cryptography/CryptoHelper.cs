@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.Exceptions;
 using Secp256k1Net;
 using Virgil.Crypto;
-
-[assembly: InternalsVisibleTo("AElf.Cryptography.Tests")]
 
 namespace AElf.Cryptography
 {

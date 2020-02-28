@@ -72,8 +72,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             FromAddress = sender ?? Address.FromBytes(new byte[] { }.ComputeHash());
         }
 
-        //TODO: use comment
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
