@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -42,25 +40,18 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader,
             ISmartContractAddressNameProvider smartContractAddressNameProvider)
         {
-            //TODO: maybe we should add a extend method to _transactionExecutingService
-            var t = new Transaction()
+            var chainContext = new ChainContext
             {
-                From = _smartContractAddressService.GetZeroSmartContractAddress(),
-                To = _smartContractAddressService.GetZeroSmartContractAddress(),
-                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName), 
-                Params = smartContractAddressNameProvider.ContractName.ToByteString()
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height
             };
+            var returnValue = await _transactionExecutingService.ExecuteTransactionAsync(chainContext,
+                _smartContractAddressService.GetZeroSmartContractAddress(),
+                _smartContractAddressService.GetZeroSmartContractAddress(),
+                nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName),
+                smartContractAddressNameProvider.ContractName.ToByteString());
 
-            var transactionResult =
-                (await _transactionExecutingService.ExecuteAsync(
-                    new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    TimestampHelper.GetUtcNow()));
-
-            if (!transactionResult.IsSuccessful())
-                throw new InvalidOperationException();
-
-            var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
-
+            var address = Address.Parser.ParseFrom(returnValue);
             if (!address.Value.IsEmpty)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);
         }
