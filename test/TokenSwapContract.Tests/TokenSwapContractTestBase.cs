@@ -19,11 +19,11 @@ namespace TokenSwapContract.Tests
 
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected ECKeyPair NormalKeyPair => SampleECKeyPairs.KeyPairs[1];
         protected Address DefaultSenderAddress => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenSwapContractAddress { get; set; }
 
         private IReadOnlyDictionary<string, byte[]> _patchedCodes;
-
         internal TokenSwapContractContainer.TokenSwapContractStub TokenSwapContractStub { get; set; }
 
         private const string ContractPatchedDllDir = "../../../../patched/";
@@ -93,8 +93,8 @@ namespace TokenSwapContract.Tests
             await CreateAndIssueTokenAsync(tokenName, symbol, 8, totalSupply);
             var swapRatio = new SwapRatio
             {
-                OriginShare = 10_000_000_000,
-                TargetShare = 1
+                OriginShare = 10_000_000_000, //1e18
+                TargetShare = 1 // 1e8
             };
             var originTokenSizeInByte = 32;
             var addSwapPairTx = await TokenSwapContractStub.AddSwapPair.SendAsync(new AddSwapPairInput
@@ -115,6 +115,11 @@ namespace TokenSwapContract.Tests
                 SwapPairId = pairId
             };
             await TokenSwapContractStub.AddSwapRound.SendAsync(addSwapRoundInput);
+        }
+
+        internal TokenSwapContractContainer.TokenSwapContractStub GetTokenSwapContractStub(ECKeyPair ecKeyPair)
+        {
+            return GetTester<TokenSwapContractContainer.TokenSwapContractStub>(TokenSwapContractAddress, ecKeyPair);
         }
     }
 }

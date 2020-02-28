@@ -16,11 +16,11 @@ service TokenSwapContract{
     }
     rpc SwapToken(SwapTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSwapRatio(SwapRatio) returns (google.protobuf.Empty) {
+    rpc ChangeSwapRatio(ChainSwapRatioInput) returns (google.protobuf.Empty) {
     }
     rpc GetSwapPair(aelf.Hash) returns (SwapPair) {
     }
-    rpc GetCurrentSwapRound(google.protobuf.Empty) returns (SwapRound) {
+    rpc GetCurrentSwapRound(aelf.Hash) returns (SwapRound) {
     }
 }
 
@@ -46,6 +46,11 @@ message SwapRatio{
     int64 target_share = 2;
 }
 
+message ChainSwapRatioInput{
+    aelf.Hash pair_id = 1;
+    SwapRatio swap_ratio = 2;
+}
+
 message AddSwapRoundInput{
     aelf.Hash swap_pair_id = 1;
     aelf.Hash merkle_tree_root = 2;
@@ -67,11 +72,22 @@ message SwapTokenInput{
     aelf.Hash unique_id = 5; // to make every swap unique 
 }
 
-message NewSwapRoundEvent{
+message SwapPairAdded{
+    option (aelf.is_event) = true;
+    aelf.Hash pair_id = 1;
+}
+
+message SwapRoundUpdated{
     option (aelf.is_event) = true;
     aelf.Hash merkle_tree_root = 1;
     google.protobuf.Timestamp start_time = 2;
     aelf.Hash pair_id = 3;
+}
+
+message SwapRatioChanged{
+    option (aelf.is_event) = true;
+    aelf.Hash pair_id = 1;
+    SwapRatio new_swap_ratio = 2;
 }
 
 message TokenSwapEvent{

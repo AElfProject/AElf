@@ -5,7 +5,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Tokenswap;
 using Xunit;
@@ -122,10 +121,19 @@ namespace TokenSwapContract.Tests
             var tokenTransferredEvent = swapTokenTx.TransactionResult.Logs
                 .First(l => l.Name == nameof(Transferred));
             var nonIndexed = Transferred.Parser.ParseFrom(tokenTransferredEvent.NonIndexed);
-            nonIndexed.Amount.ShouldBe(7590000000);
+            var expectedAmount = 7590000000;
+            nonIndexed.Amount.ShouldBe(expectedAmount);
 
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[1]).To.ShouldBe(receiverAddress);
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[2]).Symbol.ShouldBe("ELF");
+
+            var swapPair = await TokenSwapContractStub.GetSwapPair.CallAsync(pairId);
+            swapPair.SwappedTimes.ShouldBe(1);
+            swapPair.SwappedAmount.ShouldBe(expectedAmount);
+
+            var swapRound = await TokenSwapContractStub.GetCurrentSwapRound.CallAsync(pairId);
+            swapRound.SwappedAmount.ShouldBe(expectedAmount);
+            swapPair.SwappedTimes.ShouldBe(1);
         }
 
         [Fact]
@@ -184,6 +192,64 @@ namespace TokenSwapContract.Tests
 
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[1]).To.ShouldBe(receiverAddress);
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[2]).Symbol.ShouldBe("ELF");
+        }
+
+        [Fact]
+        public async Task TestChangeSwapRatio()
+        {
+            var pairId = await AddSwapPairAsync();
+            {
+                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                {
+                    PairId = pairId,
+                    SwapRatio = new SwapRatio
+                    {
+                        OriginShare = 1,
+                        TargetShare = 0,
+                    }
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid swap pair.");
+            }
+            
+            {
+                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                {
+                    PairId = pairId,
+                    SwapRatio = new SwapRatio
+                    {
+                        OriginShare = 0,
+                        TargetShare = 1,
+                    }
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid swap pair.");
+            }
+
+            {
+                var newStub = GetTokenSwapContractStub(NormalKeyPair);
+                var tx = await newStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                {
+                    PairId = pairId,
+                    SwapRatio = new SwapRatio
+                    {
+                        OriginShare = 1,
+                        TargetShare = 1,
+                    }
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            
+            {
+                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendAsync(new ChainSwapRatioInput
+                {
+                    PairId = pairId,
+                    SwapRatio = new SwapRatio
+                    {
+                        OriginShare = 1,
+                        TargetShare = 1,
+                    }
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid swap pair.");
+            }
         }
     }
 }

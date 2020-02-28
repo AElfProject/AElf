@@ -27,6 +27,10 @@ namespace TokenSwapContract
             };
             AssertValidSwapPair(swapPair);
             State.SwapPairs[pairId] = swapPair;
+            Context.Fire(new SwapPairAdded
+            {
+                PairId = pairId
+            });
             return pairId;
         }
 
@@ -40,7 +44,7 @@ namespace TokenSwapContract
                 StartTime = Context.CurrentBlockTime
             };
             State.SwapPairs[input.SwapPairId] = swapPair;
-            Context.Fire(new NewSwapRoundEvent
+            Context.Fire(new SwapRoundUpdated
             {
                 MerkleTreeRoot = input.MerkleTreeRoot,
                 StartTime = Context.CurrentBlockTime
@@ -57,8 +61,16 @@ namespace TokenSwapContract
             var leafHash = ComputeLeafHash(amount, input.UniqueId, swapPair, input.ReceiverAddress);
             var computed = input.MerklePath.ComputeRootWithLeafNode(leafHash);
             Assert(computed == swapPair.CurrentRound.MerkleTreeRoot, "Failed to swap token.");
-
             var targetTokenAmount = GetTargetTokenAmount(amount, swapPair.SwapRatio);
+
+            // update swap pair
+            swapPair.SwappedAmount = swapPair.SwappedAmount.Add(targetTokenAmount);
+            swapPair.SwappedTimes = swapPair.SwappedTimes.Add(1);
+            swapPair.CurrentRound.SwappedAmount = swapPair.CurrentRound.SwappedAmount.Add(targetTokenAmount);
+            swapPair.CurrentRound.SwappedTimes = swapPair.CurrentRound.SwappedTimes.Add(1);
+            State.SwapPairs[input.SwapPairId] = swapPair;
+            
+            // transfer
             TransferToken(swapPair.TargetTokenSymbol, targetTokenAmount, input.ReceiverAddress);
             Context.Fire(new TokenSwapEvent
             {
@@ -69,9 +81,19 @@ namespace TokenSwapContract
             return new Empty();
         }
 
-        public override Empty ChangeSwapRatio(SwapRatio input)
+        public override Empty ChangeSwapRatio(ChainSwapRatioInput input)
         {
-            return base.ChangeSwapRatio(input);
+            var swapPair = GetTokenSwapPair(input.PairId);
+            Assert(swapPair.Controller == Context.Sender, "No permission.");
+            swapPair.SwapRatio = input.SwapRatio;
+            AssertValidSwapPair(swapPair);
+            State.SwapPairs[input.PairId] = swapPair;
+            Context.Fire(new SwapRatioChanged
+            {
+                PairId = input.PairId,
+                NewSwapRatio = input.SwapRatio
+            });
+            return new Empty();
         }
 
         public override SwapPair GetSwapPair(Hash input)
@@ -80,9 +102,10 @@ namespace TokenSwapContract
             return swapPair;
         }
 
-        public override SwapRound GetCurrentSwapRound(Empty input)
+        public override SwapRound GetCurrentSwapRound(Hash input)
         {
-            return base.GetCurrentSwapRound(input);
+            var swapPair = GetTokenSwapPair(input);
+            return swapPair.CurrentRound;
         }
 
         private TokenInfo GetTokenInfo(string symbol)
@@ -179,7 +202,7 @@ namespace TokenSwapContract
                     cur.Add(new byte());
                 }
 
-                cur.AddRange(i.ToBytes(true));
+                cur.AddRange(i.ToBytes());
                 return cur;
             });
             return Hash.FromRawBytes(amountBytes.ToArray());
