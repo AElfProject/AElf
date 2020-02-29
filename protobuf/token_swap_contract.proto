@@ -28,9 +28,10 @@ service TokenSwapContract{
 
 message AddSwapPairInput {
     int32 origin_token_size_in_byte = 1;
-    string target_token_symbol = 2;
-    SwapRatio swap_ratio = 3;
-    int64 deposit_amount = 4;
+    bool origin_token_numeric_little_endian = 2;
+    string target_token_symbol = 3;
+    SwapRatio swap_ratio = 4;
+    int64 deposit_amount = 5;
 }
 
 message SwapPair{
