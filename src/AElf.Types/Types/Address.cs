@@ -135,7 +135,7 @@ namespace AElf.Types
             }
 
             var address = AddressHelper.Base58StringToAddress(arr[1]);
-            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
+            var chainId = Base58CheckEncoding.Decode(arr[2]).ToInt32(false);
 
             return new ChainAddress(address, chainId);
         }
