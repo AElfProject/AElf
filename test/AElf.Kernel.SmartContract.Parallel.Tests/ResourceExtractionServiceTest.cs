@@ -144,7 +144,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 To = AddressHelper.Base58StringToAddress(InternalConstants.Acs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
         }
 
@@ -156,7 +156,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 To = AddressHelper.Base58StringToAddress(InternalConstants.NonAcs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
         }
 

@@ -47,8 +47,6 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
-        private readonly ISmartContractCodeHistoryProvider _smartContractCodeHistoryProvider;
-        private readonly ISmartContractCodeHistoryManager _smartContractCodeHistoryManager;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -59,8 +57,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
-            _smartContractCodeHistoryProvider = GetRequiredService<ISmartContractCodeHistoryProvider>();
-            _smartContractCodeHistoryManager = GetRequiredService<ISmartContractCodeHistoryManager>();
         }
 
         [Fact]
@@ -134,18 +130,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionResult = await _osTestHelper.GetTransactionResultsAsync(deployTransaction.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
-            var smartContractCode = new SmartContractCode
-            {
-                BlockHash = deployBlock.GetHash(),
-                BlockHeight = deployBlock.Height,
-                CodeHash = Hash.FromRawBytes(VoteContractCode)
-            };
-            var smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
-            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            var smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
-            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
             var transaction = new Transaction
             {
                 From = accountAddress,
@@ -204,27 +188,15 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters);
 
             sendTransactionResponse.TransactionId.ShouldBe(updateTransaction.GetHash().ToHex());
-            var updateBlock = await _osTestHelper.MinedOneBlock();
+            await _osTestHelper.MinedOneBlock();
             transactionResult = await _osTestHelper.GetTransactionResultsAsync(updateTransaction.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
                 $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
-            var updateSmartContractCode = new SmartContractCode
-            {
-                BlockHash = updateBlock.GetHash(),
-                BlockHeight = updateBlock.Height,
-                CodeHash = Hash.FromRawBytes(ConfigurationContractCode)
-            };
-            smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
-            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInCache.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
-            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInDb.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
+            response.Transaction.Params.ShouldBe(transaction.Params.ToBase64());
+            response.Transaction.Params.ShouldNotBe(
+                GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
         }
 
         [Fact]

@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Parallel.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

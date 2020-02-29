@@ -179,15 +179,3 @@ message TransactionBlockIndex {
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
 }
-
-message SmartContractCodeHistory
-{
-    repeated SmartContractCode codes = 1;
-}
-
-message SmartContractCode
-{
-    aelf.Hash code_hash = 1;
-    aelf.Hash block_hash = 2;
-    int64 block_height = 3;
-}
