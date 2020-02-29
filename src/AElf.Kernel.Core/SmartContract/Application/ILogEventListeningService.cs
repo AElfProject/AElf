@@ -5,6 +5,6 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ILogEventListeningService<T> where T : ILogEventHandler
     {
-        Task ApplyAsync(IEnumerable<Block> blocks);
+        Task ProcessAsync(IEnumerable<Block> blocks);
     }
 }

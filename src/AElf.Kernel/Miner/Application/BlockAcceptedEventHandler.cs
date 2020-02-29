@@ -17,7 +17,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            await _logEventListeningService.ApplyAsync(new[] {eventData.Block});
+            await _logEventListeningService.ProcessAsync(new[] {eventData.Block});
         }
     }
 }

@@ -28,7 +28,7 @@ namespace AElf.Kernel.SmartContract.Application
             _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public async Task ApplyAsync(IEnumerable<Block> blocks)
+        public async Task ProcessAsync(IEnumerable<Block> blocks)
         {
             Logger.LogTrace("Apply log event handler.");
             foreach (var block in blocks)
