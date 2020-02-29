@@ -7,7 +7,7 @@ namespace AElf
     {
         public static Hash ToHash(this int intValue)
         {
-            return Hash.FromRawBytes(intValue.ToBytes());
+            return Hash.FromRawBytes(intValue.ToBytes(false));
         }
 
         public static Hash Xor(this Hash hash, Hash another)
