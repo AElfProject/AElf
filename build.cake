@@ -79,7 +79,11 @@ Task("Test-with-Codecov")
         actions.Add(new Action( ()=>
             DotNetCoreTest(testProject.FullPath, testSetting)));
     }
-    Parallel.Invoke(actions.ToArray());
+
+    ParallelOptions options=new ParallelOptions(){
+        MaxDegreeOfParallelism = Environment.ProcessorCount * 2
+    };
+    Parallel.Invoke(options, actions.ToArray());
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
