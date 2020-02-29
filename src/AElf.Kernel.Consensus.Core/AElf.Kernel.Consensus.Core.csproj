@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
-<!--TODO!! rename this to AElf.Kernel.Consensus.Core -->
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Kernel.Consensus</PackageId>
+        <RootNamespace>AElf.Kernel.Consensus</RootNamespace>
+        <PackageId>AElf.Kernel.Consensus.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
         <Description>Core consensus functionality.</Description>

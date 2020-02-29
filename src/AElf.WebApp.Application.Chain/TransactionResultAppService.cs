@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -75,21 +74,9 @@ namespace AElf.WebApp.Application.Chain
                 return output;
             }
 
-            ChainContext chainContext = null;
-            if (transactionResult.BlockNumber > 0)
-            {
-                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block.GetHash().ToHex();
-                chainContext = new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                };
-            }
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
-                chainContext, false);
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
@@ -106,6 +93,8 @@ namespace AElf.WebApp.Application.Chain
             {
                 return output;
             }
+            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+            output.BlockHash = block.GetHash().ToHex();
 
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
@@ -280,9 +269,7 @@ namespace AElf.WebApp.Application.Chain
 
             var methodDescriptor =
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
-                    new ChainContext
-                        {BlockHash = blockHash, BlockHeight = transactionResult.BlockNumber}, false);
+                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
