@@ -6,7 +6,7 @@ namespace AElf.OS.Account.Infrastructure
 {
     public interface IKeyStore
     {
-        Task<AElfKeyStore.Errors> UnlockAccountAsync(string address, string password, bool withTimeout = true);
+        Task<AccountError> UnlockAccountAsync(string address, string password);
 
         ECKeyPair GetAccountKeyPair(string address);
 

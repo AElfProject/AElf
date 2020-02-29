@@ -62,7 +62,8 @@ Task("Test-with-Codecov")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
-            return args.Append("/p:CollectCoverage=true")
+            return args.Append("--logger trx")
+                       .Append("/p:CollectCoverage=true")
                        .Append("/p:CoverletOutputFormat=json%2copencover")
                        .Append("/p:CoverletOutput=../results/coverage")
                        .Append("/p:MergeWith=../results/coverage.json")
