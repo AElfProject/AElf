@@ -73,5 +73,27 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
         }
+        
+        [Fact]
+        public async Task DownloadBlocks_RemovedPeer()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+
+            var downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+            {
+                PreviousBlockHash = chain.BestChainHash,
+                PreviousBlockHeight = chain.BestChainHeight,
+                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
+                MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                SuggestedPeerPubkey = "RemovedPeer",
+                UseSuggestedPeer = true
+            });
+
+            downloadResult.Success.ShouldBeFalse();
+            downloadResult.DownloadBlockCount.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(11);
+        }
     }
 }
