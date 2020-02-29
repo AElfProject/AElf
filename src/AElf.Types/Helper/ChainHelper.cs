@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AElf
 {
@@ -13,14 +14,12 @@ namespace AElf
             if (validNUmber < 195112)
                 validNUmber += 195112;
 
-            var validNUmberBytes = validNUmber.ToBytes(false);
+            var validNUmberBytes = validNUmber.ToBytes().Skip(1).ToArray();
 
             // Use BigInteger(BigEndian) format (bytes size = 3)
-            var integerBytes = new byte[4];
-            for (var i = 0; i < 3; i++)
-                integerBytes[2 - i] = validNUmberBytes[i];
+            Array.Resize(ref validNUmberBytes, 4);
 
-            return integerBytes.ToInt32(false);
+            return validNUmberBytes.ToInt32(false);
         }
 
         public static string ConvertChainIdToBase58(int chainId)

@@ -41,6 +41,13 @@ namespace AElf.Types.Tests.Helper
                 var convertedChainIdMinValue = ChainHelper.ConvertBase58ToChainId(chainIdBased58MinValue);
                 convertedChainIdMinValue.ShouldBe(convertedChainIdMaxValue);
             }
+
+            {
+                var chainIdAElf = ChainHelper.ConvertBase58ToChainId("AELF");
+                var chainId = ChainHelper.GetChainId(chainIdAElf + 1);
+                var chainIdBased58 = ChainHelper.ConvertChainIdToBase58(chainId);
+                chainIdBased58.ShouldBe("tDVV");
+            }
         }
     }
 }
