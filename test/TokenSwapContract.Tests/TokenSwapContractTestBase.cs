@@ -6,6 +6,8 @@ using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -53,18 +55,30 @@ namespace TokenSwapContract.Tests
                 GetTester<TokenContractContainer.TokenContractStub>(tokenContractAddress, DefaultSenderKeyPair);
 
             //deploy token swap contract
+            var tokenSwapContractCode = _patchedCodes.Single(kv => kv.Key.EndsWith("TokenSwapContract")).Value;
             TokenSwapContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    _patchedCodes.Single(kv => kv.Key.EndsWith("TokenSwapContract")).Value,
+                    tokenSwapContractCode,
                     Hash.FromString("TokenSwapContract"),
                     DefaultSenderKeyPair));
             TokenSwapContractStub = GetTester<TokenSwapContractContainer.TokenSwapContractStub>(
                 TokenSwapContractAddress,
                 DefaultSenderKeyPair);
+            CheckCode(tokenSwapContractCode);
         }
 
-        public async Task CreateAndApproveTokenAsync(string tokenName, string symbol, int decimals, long totalSupply,
+
+        protected void CheckCode(byte[] code)
+        {
+            var auditor = new ContractAuditor(null, null);
+            auditor.Audit(code, new RequiredAcsDto
+            {
+                AcsList = new List<string>()
+            }, false);
+        }
+
+        protected async Task CreateAndApproveTokenAsync(string tokenName, string symbol, int decimals, long totalSupply,
             long approveAmount)
         {
             var createInput = new CreateInput
@@ -95,7 +109,7 @@ namespace TokenSwapContract.Tests
             await TokenContractStub.Approve.SendAsync(approveInput);
         }
 
-        internal async Task<Hash> AddSwapPairAsync( string symbol = "ELF", int originTokenSizeInByte = 32,
+        internal async Task<Hash> AddSwapPairAsync(string symbol = "ELF", int originTokenSizeInByte = 32,
             SwapRatio ration = null, long depositAmount = 0, bool isBigEndian = true)
         {
             var swapRatio = ration ?? new SwapRatio

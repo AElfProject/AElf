@@ -329,7 +329,7 @@ namespace TokenSwapContract.Tests
                 var amount = int.MaxValue;
                 foreach (var address in addressList)
                 {
-                    tokenLocker.Lock(address, amount);
+                    tokenLocker.Lock(address, amount, false);
                 }
 
                 tokenLocker.GenerateMerkleTree();
@@ -338,7 +338,7 @@ namespace TokenSwapContract.Tests
                 {
                     OriginShare = 1,
                     TargetShare = 1
-                }, totalSupply);
+                }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
                 await AddSwapRound(pairId, merkleTreeRoot);
 
@@ -380,7 +380,7 @@ namespace TokenSwapContract.Tests
                 var amount = long.MaxValue;
                 foreach (var address in addressList)
                 {
-                    tokenLocker.Lock(address, amount);
+                    tokenLocker.Lock(address, amount, false);
                 }
 
                 tokenLocker.GenerateMerkleTree();
@@ -389,7 +389,7 @@ namespace TokenSwapContract.Tests
                 {
                     OriginShare = SampleECKeyPairs.KeyPairs.Count,
                     TargetShare = 1
-                }, totalSupply);
+                }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
                 await AddSwapRound(pairId, merkleTreeRoot);
 
@@ -432,7 +432,7 @@ namespace TokenSwapContract.Tests
                 var amount = decimal.MaxValue;
                 foreach (var address in addressList)
                 {
-                    tokenLocker.Lock(address, amount);
+                    tokenLocker.Lock(address, amount, false);
                 }
 
                 tokenLocker.GenerateMerkleTree();
@@ -442,7 +442,7 @@ namespace TokenSwapContract.Tests
                 {
                     OriginShare = originShare,
                     TargetShare = 1
-                }, totalSupply);
+                }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
                 await AddSwapRound(pairId, merkleTreeRoot);
 
