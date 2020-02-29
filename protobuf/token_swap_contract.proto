@@ -28,7 +28,7 @@ service TokenSwapContract{
 
 message AddSwapPairInput {
     int32 origin_token_size_in_byte = 1;
-    bool origin_token_numeric_little_endian = 2;
+    bool origin_token_numeric_big_endian = 2;
     string target_token_symbol = 3;
     SwapRatio swap_ratio = 4;
     int64 deposit_amount = 5;
@@ -37,13 +37,14 @@ message AddSwapPairInput {
 message SwapPair{
     aelf.Hash pair_id = 1;
     int32 origin_token_size_in_byte = 2;
-    string target_token_symbol = 3;
-    SwapRatio swap_ratio = 4;
-    aelf.Address controller = 5;
-    int64 swapped_amount = 6;
-    int64 swapped_times = 7;
-    SwapRound current_round = 8;
-    int64 deposit_amount = 9;
+    bool origin_token_numeric_big_endian = 3;
+    string target_token_symbol = 4;
+    SwapRatio swap_ratio = 5;
+    aelf.Address controller = 6;
+    int64 swapped_amount = 7;
+    int64 swapped_times = 8;
+    SwapRound current_round = 9;
+    int64 deposit_amount = 10;
 }
 
 message SwapRatio{

@@ -89,25 +89,39 @@ namespace TokenSwapContract
             Assert(State.Ledger[swapTokenInput.PairId][swapTokenInput.UniqueId] == 0, "Already claimed.");
         }
 
-        private Hash GetHashTokenAmountData(decimal amount, int originTokenSizeInByte)
+        private Hash GetHashTokenAmountData(decimal amount, int originTokenSizeInByte, bool isBigEndian)
         {
             var preHolderSize = originTokenSizeInByte - 16;
-            var amountInIntegers = decimal.GetBits(amount).Reverse().ToArray();
-
-            if (preHolderSize < 0)
-                amountInIntegers = amountInIntegers.TakeLast(originTokenSizeInByte / 4).ToArray();
+            int[] amountInIntegers;
+            if (isBigEndian)
+            {
+                amountInIntegers = decimal.GetBits(amount).Reverse().ToArray();
+                if (preHolderSize < 0)
+                    amountInIntegers = amountInIntegers.TakeLast(originTokenSizeInByte / 4).ToArray();
+            }
+            else
+            {
+                amountInIntegers = decimal.GetBits(amount).ToArray();
+                if (preHolderSize < 0)
+                    amountInIntegers = amountInIntegers.Take(originTokenSizeInByte / 4).ToArray();
+            }
 
             var amountBytes = new List<byte>();
+
             amountInIntegers.Aggregate(amountBytes, (cur, i) =>
             {
-                while (cur.Count < preHolderSize)
-                {
-                    cur.Add(new byte());
-                }
-
-                cur.AddRange(i.ToBytes());
+                cur.AddRange(i.ToBytes(isBigEndian));
                 return cur;
             });
+
+            if (preHolderSize > 0)
+            {
+                var placeHolder = Enumerable.Repeat(new byte(), preHolderSize).ToArray();
+                amountBytes = isBigEndian
+                    ? placeHolder.Concat(amountBytes).ToList()
+                    : amountBytes.Concat(placeHolder).ToList();
+            }
+
             return Hash.FromRawBytes(amountBytes.ToArray());
         }
 
@@ -118,7 +132,8 @@ namespace TokenSwapContract
 
         private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapPair swapPair, Address receiverAddress)
         {
-            var hashFromAmount = GetHashTokenAmountData(amount, swapPair.OriginTokenSizeInByte);
+            var hashFromAmount = GetHashTokenAmountData(amount, swapPair.OriginTokenSizeInByte,
+                swapPair.OriginTokenNumericBigEndian);
             var hashFromAddress = GetHashFromAddressData(receiverAddress);
             return HashHelper.ConcatAndCompute(hashFromAmount, hashFromAddress, uniqueId);
         }

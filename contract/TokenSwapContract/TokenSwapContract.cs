@@ -19,6 +19,7 @@ namespace TokenSwapContract
                 PairId = pairId,
                 Controller = Context.Sender,
                 OriginTokenSizeInByte = input.OriginTokenSizeInByte,
+                OriginTokenNumericBigEndian = input.OriginTokenNumericBigEndian,
                 TargetTokenSymbol = input.TargetTokenSymbol,
                 SwapRatio = input.SwapRatio,
                 DepositAmount = input.DepositAmount
@@ -37,6 +38,7 @@ namespace TokenSwapContract
         public override Empty AddSwapRound(AddSwapRoundInput input)
         {
             var swapPair = GetTokenSwapPair(input.PairId);
+            Assert(swapPair.Controller == Context.Sender, "No permission.");
             swapPair.CurrentRound = new SwapRound
             {
                 PairId = swapPair.PairId,

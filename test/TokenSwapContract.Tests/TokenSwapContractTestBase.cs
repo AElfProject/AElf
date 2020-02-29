@@ -95,8 +95,8 @@ namespace TokenSwapContract.Tests
             await TokenContractStub.Approve.SendAsync(approveInput);
         }
 
-        internal async Task<Hash> AddSwapPairAsync(string symbol = "ELF", int originTokenSizeInByte = 32,
-            SwapRatio ration = null, long depositAmount = 0)
+        internal async Task<Hash> AddSwapPairAsync( string symbol = "ELF", int originTokenSizeInByte = 32,
+            SwapRatio ration = null, long depositAmount = 0, bool isBigEndian = true)
         {
             var swapRatio = ration ?? new SwapRatio
             {
@@ -108,7 +108,8 @@ namespace TokenSwapContract.Tests
                 OriginTokenSizeInByte = originTokenSizeInByte,
                 SwapRatio = swapRatio,
                 TargetTokenSymbol = symbol,
-                DepositAmount = depositAmount == 0 ? TotalSupply : depositAmount
+                DepositAmount = depositAmount == 0 ? TotalSupply : depositAmount,
+                OriginTokenNumericBigEndian = isBigEndian
             });
             var pairId = addSwapPairTx.Output;
             return pairId;
