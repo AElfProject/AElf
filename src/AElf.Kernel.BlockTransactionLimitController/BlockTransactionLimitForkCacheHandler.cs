@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Miner.Application
+namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
