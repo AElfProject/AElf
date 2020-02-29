@@ -66,12 +66,12 @@
     <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
         <PropertyGroup>
             <CmdPatchOverwrite></CmdPatchOverwrite>
-            <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-overwrite </CmdPatchOverwrite>
+            <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-w </CmdPatchOverwrite>
             <CmdSkipAudit></CmdSkipAudit>
-            <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-skipaudit </CmdSkipAudit>
+            <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
         </PropertyGroup>
         <Exec WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)$(TargetDir)$(TargetName).dll"
+              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)-p $(TargetDir)$(TargetName).dll"
               ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
         </Exec>
