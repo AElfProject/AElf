@@ -109,13 +109,6 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void RandomByteArrayGenerate_Test()
-        {
-            var byteArray1 = CryptoHelper.RandomFill(30);
-            byteArray1.Length.ShouldBe(30);
-        }
-        
-        [Fact]
         public void Ecdh_BadArgument_ShouldThrowException()
         {
             Assert.Throws<PublicKeyOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
