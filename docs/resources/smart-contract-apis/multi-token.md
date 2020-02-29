@@ -6,17 +6,11 @@ The multi-token contract is most essentially used for managing balances.
 
 These methods constitute the basic functionality needed to maintain balances for tokens. For a full listing of the contracts methods you can check the [Token Contract definition](https://github.com/AElfProject/AElf/blob/master/protobuf/token_contract.proto) on GitHub.
 
+## **Create**
+
 ```Protobuf
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
-rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
-rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
-```
 
-**Creation of a new token**:
-
-The token contract permits the creation of an entirely new token and the first action needed before using a token is its creation. The **Create** method takes exactly on parameter, a **CreateInput** message:
-
-```Protobuf
 message CreateInput {
     string symbol = 1;
     string tokenName = 2;
@@ -28,9 +22,9 @@ message CreateInput {
     bool is_profitable = 8;
     int32 issue_chain_id = 9;
 }
-
-rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 ```
+
+The token contract permits the creation of an entirely new token and the first action needed before using a token is its creation. The **Create** method takes exactly on parameter, a **CreateInput** message.
 
 - the **issuer** is the creator of this token.
 - a **symbol** is a short string between 1 and 8 characters composed only of upper-case letters like for example "ELF" or "AETC" (no numbers allowed). Of course, since tokens are uniquely identified by the symbol, it must not already exist.
@@ -45,20 +39,20 @@ JSON template:
 {"issuer":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","tokenName":"Token name","decimals":2,"isBurnable":true,"totalSupply":100000}
 ```
 
-**Issuance of tokens**
-
-Issuing some amount of tokens to an address is the action of increasing that addresses balance for the given token. The total amount of issued tokens must not exceed the total supply of the token and only the issuer (creator) of the token can issue tokens. Issuing tokens effectively increases the circulating supply. The **Issue** method takes exactly one parameter, a **IssueInput** message:
+## **Issue**
 
 ```Protobuf
+rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
+
 message IssueInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
     aelf.Address to = 4;
 }
-
-rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
 ```
+
+Issuing some amount of tokens to an address is the action of increasing that addresses balance for the given token. The total amount of issued tokens must not exceed the total supply of the token and only the issuer (creator) of the token can issue tokens. Issuing tokens effectively increases the circulating supply. The **Issue** method takes exactly one parameter, a **IssueInput** message.
 
 - **symbol** is the symbol that identifies the token, it must exist.
 - **amount** is the amount to issue.
@@ -70,21 +64,21 @@ JSON template:
 {"to":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","amount":100,"memo":"some memo"}
 ```
 
-**Transferring tokens**
-
-Transferring tokens simply is the action of transferring a given amount of tokens from one address to another. The origin or source address is the signer of the transaction. The balance of the sender must be higher than the amount that is transferred.
-The **Transfer** method takes exactly one parameter, a **TransferInput** message:
+## **Transfer**
 
 ```Protobuf
+rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
+
 message TransferInput {
     aelf.Address to = 1;
     string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
 }
-
-rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
 ```
+
+Transferring tokens simply is the action of transferring a given amount of tokens from one address to another. The origin or source address is the signer of the transaction. The balance of the sender must be higher than the amount that is transferred.
+The **Transfer** method takes exactly one parameter, a **TransferInput** message.
 
 - the **to** field is the receiver of the tokens.
 - **symbol** is the symbol that identifies the token, it must exist.
