@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +16,16 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunnerForCategoryThirty : SmartContractRunnerForCategoryZero
     {
+#if DEBUG
+        private static ConcurrentDictionary<string, Action> _coverageHintActions = new ConcurrentDictionary<string, Action>();
+        public static void WriteCoverageHints()
+        {
+            foreach (var coverageHintAction in _coverageHintActions.Values.ToList())
+            {
+                coverageHintAction();
+            }
+        }
+#endif
         public SmartContractRunnerForCategoryThirty(string sdkDir, IServiceContainer<IExecutivePlugin> executivePlugins)
             : base(sdkDir, executivePlugins)
         {
@@ -46,7 +58,32 @@ namespace AElf.Runtime.CSharp
                 if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
                 {
                     assembly = assembly2;
+                    loadContext.Unload();
+#if DEBUG
+                    var type = assembly.GetTypes()
+                        .FirstOrDefault(t => t.Namespace == "Coverlet.Core.Instrumentation.Tracker");
+                    if (type != null)
+                    {
+                        var action = new Action(() =>
+                        {
+                            var method = type.GetMethod("UnloadModule", BindingFlags.Public | BindingFlags.Static);
+
+                            method.Invoke(null, new object[2]);
+
+                            //manual call unload module at exit
+                            //throw new InvalidOperationException(method.ToString());
+                        });
+
+
+                        //AppDomain.CurrentDomain.ProcessExit += (sender, e) => { action(); };
+                        //AppDomain.CurrentDomain.DomainUnload += (sender, e) => { action(); };
+
+                        //action();
+                        _coverageHintActions.TryAdd(type.Assembly.Location, action);
+                    }
+#endif
                 }
+
                 // else
                 // {
                 //     throw new InvalidCodeException("local code not match.");
