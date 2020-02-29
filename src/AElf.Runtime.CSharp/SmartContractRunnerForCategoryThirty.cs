@@ -30,22 +30,27 @@ namespace AElf.Runtime.CSharp
             using (Stream stream = new MemoryStream(code))
             {
                 assembly = loadContext.LoadFromStream(stream);
-                
+
                 //load by main context, not load in code, directly load in dll
 
+                Assembly assembly2 = null;
                 try
                 {
-                    var assembly2 = Assembly.Load(assembly.FullName);
-
-                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
-                    {
-                        assembly = assembly2;
-                    }
+                    assembly2 = Assembly.Load(assembly.FullName);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     //may cannot find assembly in local
                 }
+
+                if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
+                {
+                    assembly = assembly2;
+                }
+                // else
+                // {
+                //     throw new InvalidCodeException("local code not match.");
+                // }
             }
 
             if (assembly == null)
@@ -54,7 +59,7 @@ namespace AElf.Runtime.CSharp
             }
 
             var executive = new Executive(assembly, _executivePlugins);
-            
+
             executive.ContractHash = reg.CodeHash;
 
             return await Task.FromResult(executive);
