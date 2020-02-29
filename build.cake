@@ -72,10 +72,14 @@ Task("Test-with-Codecov")
     };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
+    List<Action> actions=new List<Action>();
+
     foreach(var testProject in testProjects)
     {
-        DotNetCoreTest(solution, testSetting);
+        actions.Add(new Action( ()=>
+            DotNetCoreTest(testProject.FullPath, testSetting)));
     }
+    Parallel.Invoke(actions.ToArray());
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
