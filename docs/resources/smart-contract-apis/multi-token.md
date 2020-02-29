@@ -88,15 +88,17 @@ message TransferFromInput {
 }
 ```
 
-- **from**
-- **to**
-- **symbol**
-- **amount**
-- **memo**
+The **TransferFrom** action will transfer a specified amount of tokens from one address to another. For this operation to succeed the **from** address needs to have approved (see *allowances*) enough tokens to Sender of this transaction. If successful the amount will be removed from the allowance.
+
+- **from** the source address of the tokens.
+- **to** the destination address of the tokens.
+- **symbol** the symbol of the token to transfer.
+- **amount** the amount to transfer.
+- **memo** an optional memo.
 
 ## Allowances.
 
-Allowances allow some entity (in fact an address in this case) to authorize another address to transfer tokens on his behalf. There are two methods available for controlling this, namely **Approve** and **UnApprove**, that take as input respectively, a ApproveInput and UnApproveInput message (both define the same fields).
+Allowances allow some entity (in fact an address) to authorize another address to transfer tokens on his behalf (see **TransferFrom**). There are two methods available for controlling this, namely **Approve** and **UnApprove**.
 
 ## **Approve**
 
@@ -110,9 +112,11 @@ message ApproveInput {
 }
 ```
 
-- **spender**
-- **symbol**
-- **amount**
+The approve action increases the allowance from the *Sender* to the **Spender** address, enabling the Spender to call **TransferFrom**.
+
+- **spender** the address that will have it's allowance increased.
+- **symbol** the symbol of the token to approve.
+- **amount** the amount of tokens to approve.
 
 ## **UnApprove**
 
@@ -126,9 +130,11 @@ message UnApproveInput {
 }
 ```
 
-- **spender**
-- **symbol**
-- **amount**
+This is the reverse operation for **Approve**, it will decrease the allowance.
+
+- **spender** the address that will have it's allowance decreased.
+- **symbol** the symbol of the token to un-approve.
+- **amount** the amount of tokens to un-approve.
 
 ## Locking.
 
@@ -138,7 +144,7 @@ message UnApproveInput {
 rpc Lock (LockInput) returns (google.protobuf.Empty) { }
 
 message LockInput {
-    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Address address = 1;
     aelf.Hash lock_id = 2;
     string symbol = 3;
     string usage = 4;
@@ -146,11 +152,13 @@ message LockInput {
 }
 ```
 
-- **address** 
-- **lock_id**
-- **symbol**
-- **usage**
-- **amount**
+This method can be used to lock tokens.
+
+- **address** the entity that wants to lock its tokens.
+- **lock_id** id of the lock. 
+- **symbol** the symbol of the token to lock.
+- **usage** a memo.
+- **amount** the amount of tokens to lock.
 
 ## **Unlock**
 
@@ -166,11 +174,13 @@ message UnlockInput {
 }
 ```
 
-- **address** 
-- **lock_id**
-- **symbol**
-- **usage**
-- **amount**
+This is the reverse operation of locking, it un-locks some previously locked tokens.
+
+- **address** the entity that wants to un-lock its tokens.
+- **lock_id** id of the lock. 
+- **symbol** the symbol of the token to un-lock.
+- **usage** a memo.
+- **amount** the amount of tokens to un-lock.
 
 ## Burning tokens.
 
@@ -185,8 +195,10 @@ message BurnInput {
 }
 ```
 
-- **symbol**
-- **amount**
+This action will burn the specified amount of tokens, removing them from the token's *Supply*
+
+- **symbol** the symbol of the token to burn.
+- **amount** the amount of tokens to burn.
 
 ## View methods
 
@@ -198,14 +210,6 @@ rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) { }
 message GetTokenInfoInput {
     string symbol = 1;
 }
-```
-
-- **symbol**
-
-## **GetNativeTokenInfo**
-
-``` Proto
-rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) { }
 
 message TokenInfo {
     string symbol = 1;
@@ -219,8 +223,35 @@ message TokenInfo {
     sint32 issue_chain_id = 9;
     sint64 burned = 10;
 }
-
 ```
+
+This view method returns a **TokenInfo** object that describes information about a token.
+
+Input:
+- **symbol** the token for which you want the information.
+
+Output:
+- **symbol** the symbol of the token.
+- **token_name** the full name of the token.
+- **supply** the current supply of the token.
+- **total_supply** the total supply of the token.
+- **decimals** the amount of decimal places this token has.
+- **issuer** the address that created the token.
+- **is_burnable** a flag indicating if this token is burnable.
+- **is_profitable** a flag indicating if this token is profitable.
+- **issue_chain_id** the chain of this token.
+- **burned** the amount of burned tokens.
+
+## **GetNativeTokenInfo**
+
+``` Proto
+rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) { }
+```
+
+note: *for TokenInfo see GetTokenInfo*
+
+This view method returns the TokenInfo object associated with the native token.
+
 
 ## **GetResourceTokenInfo**
 
@@ -232,9 +263,10 @@ message TokenInfoList {
 }
 ```
 
-note: *for TokenInfo see GetNativeTokenInfo*
+note: *for TokenInfo see GetTokenInfo*
 
-- **value** (TokenInfo) 
+This view method returns the list of TokenInfo objects associated with the chain's resource tokens.
+
 
 ## **GetBalance**
 
@@ -253,14 +285,16 @@ message GetBalanceOutput {
 }
 ```
 
+This view method returns the balance of an address.
+
 Input: 
-- **symbol**
-- **owner**
+- **symbol** the token for which to get the balance.
+- **owner** the address for which to get the balance.
 
 Output:
-- **symbol**
-- **owner**
-- **balance**
+- **symbol** the token for which to get the balance.
+- **owner** the address for which to get the balance.
+- **balance** the current balance.
 
 ## **GetAllowance**
 
@@ -281,17 +315,18 @@ message GetAllowanceOutput {
 }
 ```
 
+This view method returns the allowance of one address to another.
+
 Input: 
-- **symbol**
-- **owner**
-- **spender**
+- **symbol** the token for which to get the allowance.
+- **owner** the address for which to get the allowance (that approved tokens).
+- **spender** the address of the spender.
 
 Output:
-- **symbol**
-- **owner**
-- **balance**
-- **spender**
-- **allowance**
+- **symbol** the token for which to get the allowance.
+- **owner** the address for which to get the allowance (that approved tokens).
+- **spender** the address of the spender.
+- **allowance** the current allowance.
 
 ## **IsInWhiteList**
 
@@ -304,8 +339,10 @@ message IsInWhiteListInput {
 }
 ```
 
-- **symbol**
-- **address**
+This method returns wether or not the given address is in the lock whitelist.
+
+- **symbol** the token.
+- **address** the address that is checked.
 
 ## **GetLockedAmount**
 
@@ -325,16 +362,19 @@ message GetLockedAmountOutput {
     sint64 amount = 4;
 }
 ```
+
+This view method returns the amount of tokens currently locked by an address.
+
 Input:
-- **address**
-- **symbol**
-- **lock_id**
+- **address** the address.
+- **symbol** the token.
+- **lock_id** the lock id.
 
 Output:
-- **address**
-- **symbol**
-- **lock_id**
-- **amount**
+- **address** the address.
+- **symbol** the token.
+- **lock_id** the lock id.
+- **amount** the amount currently locked by the specified address.
 
 ## **GetCrossChainTransferTokenContractAddress**
 
@@ -346,7 +386,9 @@ message GetCrossChainTransferTokenContractAddressInput {
 }
 ```
 
-- **chainId**
+This view method returns the cross-chain transfer address for the given chain.
+
+- **chainId** the id of the chain.
 
 ## **GetPrimaryTokenSymbol**
 
@@ -354,9 +396,7 @@ message GetCrossChainTransferTokenContractAddressInput {
 rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) { 
 ```
 
-Input
-
-Output
+This view method return the primary token symbol if it's set. If not, returns the Native symbol. 
 
 ## **GetCalculateFeeCoefficientOfContract**
 
