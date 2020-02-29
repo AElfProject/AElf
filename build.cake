@@ -81,7 +81,7 @@ Task("Test-with-Codecov")
     }
 
     ParallelOptions options=new ParallelOptions(){
-        MaxDegreeOfParallelism = Environment.ProcessorCount * 2
+        MaxDegreeOfParallelism = 2
     };
     Parallel.Invoke(options, actions.ToArray());
 });
