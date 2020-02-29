@@ -73,3 +73,335 @@ The **Transfer** method takes exactly one parameter, a **TransferInput** message
 - **symbol** is the symbol that identifies the token, it must exist.
 - **amount** is the amount to to transfer.
 - **memo** optionally you can specify a later accessible when parsing the transaction. 
+
+## **TransferFrom**
+
+```Protobuf
+rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) { }
+
+message TransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
+}
+```
+
+- **from**
+- **to**
+- **symbol**
+- **amount**
+- **memo**
+
+## Allowances.
+
+Allowances allow some entity (in fact an address in this case) to authorize another address to transfer tokens on his behalf. There are two methods available for controlling this, namely **Approve** and **UnApprove**, that take as input respectively, a ApproveInput and UnApproveInput message (both define the same fields).
+
+## **Approve**
+
+``` Proto
+rpc Approve (ApproveInput) returns (google.protobuf.Empty) { }
+
+message ApproveInput {
+    aelf.Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+```
+
+- **spender**
+- **symbol**
+- **amount**
+
+## **UnApprove**
+
+``` Proto
+rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) { }
+
+message UnApproveInput {
+    aelf.Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+```
+
+- **spender**
+- **symbol**
+- **amount**
+
+## Locking.
+
+## **Lock**
+
+``` Proto
+rpc Lock (LockInput) returns (google.protobuf.Empty) { }
+
+message LockInput {
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+```
+
+- **address** 
+- **lock_id**
+- **symbol**
+- **usage**
+- **amount**
+
+## **Unlock**
+
+``` Proto
+rpc Unlock (UnlockInput) returns (google.protobuf.Empty) { }
+
+message UnlockInput {
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+```
+
+- **address** 
+- **lock_id**
+- **symbol**
+- **usage**
+- **amount**
+
+## Burning tokens.
+
+## **Burn**
+
+``` Proto
+rpc Burn (BurnInput) returns (google.protobuf.Empty) { }
+
+message BurnInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+```
+
+- **symbol**
+- **amount**
+
+## View methods
+
+## **GetTokenInfo**
+
+``` Proto
+rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) { }
+
+message GetTokenInfoInput {
+    string symbol = 1;
+}
+```
+
+- **symbol**
+
+## **GetNativeTokenInfo**
+
+``` Proto
+rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) { }
+
+message TokenInfo {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 supply = 3;
+    sint64 total_supply = 4;
+    sint32 decimals = 5;
+    aelf.Address issuer = 6;
+    bool is_burnable = 7;
+    bool is_profitable = 8;
+    sint32 issue_chain_id = 9;
+    sint64 burned = 10;
+}
+
+```
+
+## **GetResourceTokenInfo**
+
+``` Proto
+rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) { }
+
+message TokenInfoList {
+    repeated TokenInfo value = 1;
+}
+```
+
+note: *for TokenInfo see GetNativeTokenInfo*
+
+- **value** (TokenInfo) 
+
+## **GetBalance**
+
+``` Proto
+rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) { }
+
+message GetBalanceInput {
+    string symbol = 1;
+    aelf.Address owner = 2;
+}
+
+message GetBalanceOutput {
+    string symbol = 1;
+    aelf.Address owner = 2;
+    sint64 balance = 3;
+}
+```
+
+Input: 
+- **symbol**
+- **owner**
+
+Output:
+- **symbol**
+- **owner**
+- **balance**
+
+## **GetAllowance**
+
+``` Proto
+rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) { }
+
+message GetAllowanceInput {
+    string symbol = 1;
+    aelf.Address owner = 2;
+    aelf.Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    string symbol = 1;
+    aelf.Address owner = 2;
+    aelf.Address spender = 3;
+    sint64 allowance = 4;
+}
+```
+
+Input: 
+- **symbol**
+- **owner**
+- **spender**
+
+Output:
+- **symbol**
+- **owner**
+- **balance**
+- **spender**
+- **allowance**
+
+## **IsInWhiteList**
+
+``` Proto
+rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) { }
+
+message IsInWhiteListInput {
+    string symbol = 1;
+    aelf.Address address = 2;
+}
+```
+
+- **symbol**
+- **address**
+
+## **GetLockedAmount**
+
+``` Proto
+rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) { }
+
+message GetLockedAmountInput {
+    aelf.Address address = 1;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
+}
+
+message GetLockedAmountOutput {
+    aelf.Address address = 1;
+    string symbol = 2;
+    aelf.Hash lock_id = 3;
+    sint64 amount = 4;
+}
+```
+Input:
+- **address**
+- **symbol**
+- **lock_id**
+
+Output:
+- **address**
+- **symbol**
+- **lock_id**
+- **amount**
+
+## **GetCrossChainTransferTokenContractAddress**
+
+``` Proto
+rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) { }
+
+message GetCrossChainTransferTokenContractAddressInput {
+    int32 chainId = 1;
+}
+```
+
+- **chainId**
+
+## **GetPrimaryTokenSymbol**
+
+``` Proto
+rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) { 
+```
+
+Input
+
+Output
+
+## **GetCalculateFeeCoefficientOfContract**
+
+``` Proto
+rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) { }
+
+message CalculateFeeCoefficientsOfType {
+    repeated CalculateFeeCoefficient coefficients = 1;
+}
+
+message CalculateFeeCoefficient {
+    sint32 piece_key = 1;
+    FeeTypeEnum fee_type = 2;
+    CalculateFunctionTypeEnum function_type = 3;
+    map<string, sint32> coefficient_dic = 4;
+}
+
+enum CalculateFunctionTypeEnum {
+    LINER = 0;
+    POWER = 1;
+}
+
+enum FeeTypeEnum {
+    READ = 0;
+    STORAGE = 1;
+    WRITE = 2;
+    TRAFFIC = 3;
+    TX = 4;
+}
+```
+
+Input
+- **coefficients**
+  - **piece_key**
+  - **fee_type**
+  - **function_type**
+  - **coefficient_dic**
+
+Output
+
+## **GetCalculateFeeCoefficientOfSender**
+
+``` Proto
+rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) { }
+
+```
+
+note: *for CalculateFeeCoefficientsOfType see GetCalculateFeeCoefficientOfContract*
