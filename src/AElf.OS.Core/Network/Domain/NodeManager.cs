@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Domain
@@ -54,13 +55,12 @@ namespace AElf.OS.Network.Domain
             
             return addedNodes;
         }
-        
+
         public Task<NodeList> GetRandomNodesAsync(int maxCount)
         {
-            Random rnd = new Random();
-            
-            var randomPeers = _nodes.OrderBy(x => rnd.Next()).Take(maxCount).Select(n => n.Value).ToList();
-            
+            var randomPeers = _nodes.OrderBy(x => RandomHelper.GetRandom()).Take(maxCount).Select(n => n.Value)
+                .ToList();
+
             NodeList nodes = new NodeList();
             nodes.Nodes.AddRange(randomPeers);
 
