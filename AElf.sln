@@ -56,7 +56,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "src\AE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc", "src\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj", "{6875BAB1-307C-4BF7-A729-5C5F0BED838D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus", "src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj", "{4F98F0BE-9C2B-4012-AA11-768303C50E46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Core", "src\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj", "{4F98F0BE-9C2B-4012-AA11-768303C50E46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "src\AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
 EndProject

@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 To = input.To,
                 MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
                 Params = input.ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var txId = input.GetHash();
 
