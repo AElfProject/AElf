@@ -2,6 +2,7 @@ jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
+  timeoutInMinutes: 120
   pool:
     vmImage: windows-2019
   variables:
@@ -9,7 +10,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.1.100'
+      version: '3.1.102'
   - script: choco install protoc --version=3.11.4 -y
   - script: choco install unzip
   - task: BatchScript@1
@@ -18,6 +19,11 @@ jobs:
   - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov
     displayName: 'Build and Test'
   - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage
+    displayName: 'Upload data to Codecov'
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
@@ -26,7 +32,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.1.100'
+      version: '3.1.102'
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - script: bash build.sh
@@ -41,7 +47,7 @@ jobs:
   steps:
   - task: DotNetCoreInstaller@0
     inputs:
-      version: '3.1.100' 
+      version: '3.1.102' 
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - script: bash build.sh

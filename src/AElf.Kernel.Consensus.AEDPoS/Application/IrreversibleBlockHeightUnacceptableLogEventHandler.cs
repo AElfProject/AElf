@@ -7,12 +7,13 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public class IrreversibleBlockHeightUnacceptableLogEventHandler : IBestChainFoundLogEventHandler
     {
-        private readonly ITransactionPackingService _transactionPackingService;
+        private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
@@ -33,10 +34,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventHandler(
-            ITransactionPackingService transactionPackingService,
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             ISmartContractAddressService smartContractAddressService)
         {
-            _transactionPackingService = transactionPackingService;
+            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
             _smartContractAddressService = smartContractAddressService;
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventHandler>.Instance;
@@ -50,11 +51,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionPackingService.DisableTransactionPacking();
+                _transactionPackingOptions.IsTransactionPackable = false;
             }
             else
             {
-                _transactionPackingService.EnableTransactionPacking();
+                _transactionPackingOptions.IsTransactionPackable = true;
             }
 
             await Task.CompletedTask;

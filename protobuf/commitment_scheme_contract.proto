@@ -2,8 +2,6 @@ syntax = "proto3";
 
 import "acs1.proto";
 import "acs6.proto";
-import "aelf/core.proto";
-import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.CommitmentScheme";
 
