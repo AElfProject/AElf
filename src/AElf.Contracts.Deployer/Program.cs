@@ -10,7 +10,7 @@ namespace AElf.Contracts.Deployer
     {
         class Options
         {
-            [Option('s', "skipaudit", Default = false, HelpText = "Skips performing code check on contract code.")]
+            [Option('s', "skipaudit", Default = false, HelpText = "Skip performing code check on contract code.")]
             public bool SkipAudit { get; set; }
             
             [Option('w', "overwrite", Default = false, HelpText = "Overwrite contract's DLL instead of saving with .patched extension.")]
