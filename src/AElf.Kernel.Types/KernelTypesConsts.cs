@@ -1,4 +1,3 @@
-using System;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
@@ -16,5 +15,10 @@ namespace AElf.Kernel
         public const string StorageKeySeparator = ",";
         public static Duration AllowedFutureBlockTimeSpan = new Duration() { Seconds = 4 };
         public const string SignaturePlaceholder = "SignaturePlaceholder";
+    }
+
+    public class ProtoTypeConstants
+    {
+        public static Empty EmptyInstance { get; } = new Empty();
     }
 }

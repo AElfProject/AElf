@@ -9,13 +9,13 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class TransactionNotAllowEnterTxHubTests : TransactionPoolWithValidationTestBase
     {
-        private readonly NotAllowEnterTxHubValidationProvider _validationProvider;
+        private readonly ExcludeFromTxHubValidationProvider _validationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly KernelTestHelper _kernelTestHelper;
 
         public TransactionNotAllowEnterTxHubTests()
         {
-            _validationProvider = GetRequiredService<NotAllowEnterTxHubValidationProvider>();
+            _validationProvider = GetRequiredService<ExcludeFromTxHubValidationProvider>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
