@@ -11,8 +11,6 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ISmartContractExecutiveService
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
-        
-        Task<IExecutive> GetHistoryExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 

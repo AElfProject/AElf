@@ -44,14 +44,14 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             IMessage input)
         {
+            
             var tx = new Transaction
             {
                 From = FromAddress,
                 To = contractAddress,
                 MethodName = methodName,
                 Params = input.ToByteString(),
-                //TODO: what's SignaturePlaceholder? consider make as a constant
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var chain = await _blockchainService.GetChainAsync();
             if(chain == null) return ByteString.Empty;
