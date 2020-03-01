@@ -4,7 +4,7 @@ jobs:
   displayName: Build all tasks (Windows)
   timeoutInMinutes: 120
   pool:
-    vmImage: windows-2019
+    vmImage: windows-latest
   variables:
     CI_TEST: true
   steps:
@@ -50,7 +50,7 @@ jobs:
 - job: build_all_linux
   displayName: Build all tasks (Linux)
   pool:
-    vmImage: ubuntu-16.04
+    vmImage: ubuntu-latest
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -64,7 +64,7 @@ jobs:
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
   pool:
-    vmImage: macos-10.13
+    vmImage: macos-latest
   variables:
     CI_TEST: true
   steps:

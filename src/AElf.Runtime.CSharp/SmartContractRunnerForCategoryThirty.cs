@@ -70,11 +70,11 @@ namespace AElf.Runtime.CSharp
                             {
                                 var method = type.GetMethod("UnloadModule", BindingFlags.Public | BindingFlags.Static);
 
-                                method.Invoke(null, new object[2]);
+                                method?.Invoke(null, new object[2]);
                             }
                             catch
                             {
-                                
+                                // ignored
                             }
 
                             //manual call unload module at exit
