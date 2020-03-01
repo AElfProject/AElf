@@ -41,8 +41,8 @@ jobs:
   - script: bash scripts/download_binary.sh
   - script: bash build.sh -target=Test-with-Codecov
     displayName: 'Build and Test'
-  - script: bash build.sh -target=Upload-Coverage 
-    displayName: 'Upload data to Codecov'
+  #- script: bash build.sh -target=Upload-Coverage 
+  #  displayName: 'Upload data to Codecov'
   - task: PublishTestResults@2
     inputs:
       testRunner: VSTest
