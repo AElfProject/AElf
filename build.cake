@@ -62,27 +62,11 @@ Task("Test-with-Codecov")
         NoBuild = true,
         ArgumentCustomization = args => {
             return args.Append("--logger trx")
-                       .Append("/p:CollectCoverage=true")
-                       .Append("/p:CoverletOutputFormat=cobertura")
-                       .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Test.Helpers]*%2c[*]*Exception%2c[*.Tests]*%2c[AElf.Contracts.GenesisUpdate]*%2c[AElf.WebApp.Application.Chain]*%2c[AElf.WebApp.Application.Net]*")
-                       .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs%2c../../test/*.TestBase/*.cs");
+                       .Append("--collect:\"XPlat Code Coverage\"");
         }                
     };
-    var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
-    List<Action> actions=new List<Action>();
-
-    foreach(var testProject in testProjects)
-    {
-        //actions.Add(new Action( ()=>{
-            DotNetCoreTest(testProject.FullPath, testSetting);
-        //}));
-    }
-
-    ParallelOptions options=new ParallelOptions(){
-        MaxDegreeOfParallelism = 2  //Environment.ProcessorCount 
-    };
-    //Parallel.Invoke(options, actions.ToArray());
+    DotNetCoreTest(solution, testSetting);
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
