@@ -22,26 +22,6 @@ jobs:
       filename: 'scripts/download_binary.bat'
   - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov
     displayName: 'Build and Test'
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: custom
-      custom: tool
-      arguments: install --tool-path . dotnet-reportgenerator-globaltool
-    displayName: Install ReportGenerator tool
-  - script: PowerShell.exe -file build.ps1 -target=Clean
-    displayName: 'Clean'
-  - script: reportgenerator -reports:$(Build.SourcesDirectory)/test/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/test/results -reporttypes:"Cobertura"
-    displayName: Create reports
-    
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage'
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: $(Build.SourcesDirectory)/test/results/Cobertura.xml
-      reportDirectory: '$(Build.SourcesDirectory)/test/results'
-  
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage
-    displayName: 'Upload data to Codecov'
   - task: PublishTestResults@2
     inputs:
       testRunner: VSTest
