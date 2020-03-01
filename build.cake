@@ -104,7 +104,7 @@ Task("Upload-Coverage")
     .Does(() =>
 {
     // Upload a coverage report.
-    Codecov("./test/results/coverage.opencover.xml","$CODECOV_TOKEN");
+    Codecov("./test/results/Cobertura.xml","$CODECOV_TOKEN");
 });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
