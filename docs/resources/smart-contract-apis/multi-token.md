@@ -6,7 +6,7 @@ The multi-token contract is most essentially used for managing balances.
 
 These methods constitute the basic functionality needed to maintain balances for tokens. For a full listing of the contracts methods you can check the [Token Contract definition](https://github.com/AElfProject/AElf/blob/master/protobuf/token_contract.proto) on GitHub.
 
-## **Create**
+### **Create**
 
 ```Protobuf
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
@@ -33,7 +33,7 @@ The token contract permits the creation of an entirely new token and the first a
 - **decimals** is a positive integer between 0-18.
 - **issue_chain_id** is the id of the chain, this defaults to the chain id of the node.
 
-## **Issue**
+### **Issue**
 
 ```Protobuf
 rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
@@ -53,7 +53,7 @@ Issuing some amount of tokens to an address is the action of increasing that add
 - **to** field the receiver address of the newly issued tokens.
 - **memo** optionally you can specify a later accessible when parsing the transaction. 
 
-## **Transfer**
+### **Transfer**
 
 ```Protobuf
 rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
@@ -74,7 +74,7 @@ The **Transfer** method takes exactly one parameter, a **TransferInput** message
 - **amount** is the amount to to transfer.
 - **memo** optionally you can specify a later accessible when parsing the transaction. 
 
-## **TransferFrom**
+### **TransferFrom**
 
 ```Protobuf
 rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) { }
@@ -100,7 +100,7 @@ The **TransferFrom** action will transfer a specified amount of tokens from one 
 
 Allowances allow some entity (in fact an address) to authorize another address to transfer tokens on his behalf (see **TransferFrom**). There are two methods available for controlling this, namely **Approve** and **UnApprove**.
 
-## **Approve**
+### **Approve**
 
 ``` Proto
 rpc Approve (ApproveInput) returns (google.protobuf.Empty) { }
@@ -118,7 +118,7 @@ The approve action increases the allowance from the *Sender* to the **Spender** 
 - **symbol** the symbol of the token to approve.
 - **amount** the amount of tokens to approve.
 
-## **UnApprove**
+### **UnApprove**
 
 ``` Proto
 rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) { }
@@ -138,7 +138,7 @@ This is the reverse operation for **Approve**, it will decrease the allowance.
 
 ## Locking.
 
-## **Lock**
+### **Lock**
 
 ``` Proto
 rpc Lock (LockInput) returns (google.protobuf.Empty) { }
@@ -160,7 +160,7 @@ This method can be used to lock tokens.
 - **usage** a memo.
 - **amount** the amount of tokens to lock.
 
-## **Unlock**
+### **Unlock**
 
 ``` Proto
 rpc Unlock (UnlockInput) returns (google.protobuf.Empty) { }
@@ -184,7 +184,7 @@ This is the reverse operation of locking, it un-locks some previously locked tok
 
 ## Burning tokens.
 
-## **Burn**
+### **Burn**
 
 ``` Proto
 rpc Burn (BurnInput) returns (google.protobuf.Empty) { }
@@ -200,9 +200,75 @@ This action will burn the specified amount of tokens, removing them from the tok
 - **symbol** the symbol of the token to burn.
 - **amount** the amount of tokens to burn.
 
+## Cross-chain
+
+### **CrossChainCreateToken**
+
+```Proto
+rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) { }
+
+message CrossChainCreateTokenInput {
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
+}
+```
+
+This action is used for creating a "cross-chain" token. This action should be called on the side-chain's with the information about the transaction that created the token on the parent chain.
+
+- **from_chain_id** the chain id of the chain on which the token was created.
+- **parent_chain_height** the height of the transaction that created the token.
+- **transaction_bytes** the transaction that created the token.
+- **merkle_path** the merkle path created from the transaction that created the transaction.
+
+### **CrossChainTransfer**
+
+```Proto
+rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) { }
+
+message CrossChainTransferInput {
+    aelf.Address to = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+    string memo = 4;
+    int32 to_chain_id = 5;
+    int32 issue_chain_id = 6;
+}
+```
+
+This action is used for transferring tokens across chains, this effectively burn the tokens on the chain.
+
+- **to** the receiving account.
+- **symbol** the token.
+- **amount** the amount of tokens that will be transferred.
+- **memo** an optional memo.
+- **to_chain_id** the destination chain id.
+- **issue_chain_id** the source chain id.
+
+### **CrossChainReceiveToken**
+
+```Proto
+rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) { }
+
+message CrossChainReceiveTokenInput {
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transfer_transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
+}
+```
+
+This method is used on the destination chain for receiving tokens after a **Transfer** operation.
+
+- **from_chain_id** the source chain.
+- **parent_chain_height** the height of the transfer transaction.
+- **transfer_transaction_bytes** the raw bytes of the transfer transaction.
+- **merkle_path** the merkle path created from the transfer transaction. 
+
 ## View methods
 
-## **GetTokenInfo**
+### **GetTokenInfo**
 
 ``` Proto
 rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) { }
@@ -242,7 +308,7 @@ Output:
 - **issue_chain_id** the chain of this token.
 - **burned** the amount of burned tokens.
 
-## **GetNativeTokenInfo**
+### **GetNativeTokenInfo**
 
 ``` Proto
 rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) { }
@@ -253,7 +319,7 @@ note: *for TokenInfo see GetTokenInfo*
 This view method returns the TokenInfo object associated with the native token.
 
 
-## **GetResourceTokenInfo**
+### **GetResourceTokenInfo**
 
 ``` Proto
 rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) { }
@@ -268,7 +334,7 @@ note: *for TokenInfo see GetTokenInfo*
 This view method returns the list of TokenInfo objects associated with the chain's resource tokens.
 
 
-## **GetBalance**
+### **GetBalance**
 
 ``` Proto
 rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) { }
@@ -296,7 +362,7 @@ Output:
 - **owner** the address for which to get the balance.
 - **balance** the current balance.
 
-## **GetAllowance**
+### **GetAllowance**
 
 ``` Proto
 rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) { }
@@ -328,7 +394,7 @@ Output:
 - **spender** the address of the spender.
 - **allowance** the current allowance.
 
-## **IsInWhiteList**
+### **IsInWhiteList**
 
 ``` Proto
 rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) { }
@@ -344,7 +410,7 @@ This method returns wether or not the given address is in the lock whitelist.
 - **symbol** the token.
 - **address** the address that is checked.
 
-## **GetLockedAmount**
+### **GetLockedAmount**
 
 ``` Proto
 rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) { }
@@ -376,7 +442,7 @@ Output:
 - **lock_id** the lock id.
 - **amount** the amount currently locked by the specified address.
 
-## **GetCrossChainTransferTokenContractAddress**
+### **GetCrossChainTransferTokenContractAddress**
 
 ``` Proto
 rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) { }
@@ -390,7 +456,7 @@ This view method returns the cross-chain transfer address for the given chain.
 
 - **chainId** the id of the chain.
 
-## **GetPrimaryTokenSymbol**
+### **GetPrimaryTokenSymbol**
 
 ``` Proto
 rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) { 
@@ -398,7 +464,7 @@ rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.Strin
 
 This view method return the primary token symbol if it's set. If not, returns the Native symbol. 
 
-## **GetCalculateFeeCoefficientOfContract**
+### **GetCalculateFeeCoefficientOfContract**
 
 ``` Proto
 rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) { }
@@ -437,7 +503,7 @@ Input
 
 Output
 
-## **GetCalculateFeeCoefficientOfSender**
+### **GetCalculateFeeCoefficientOfSender**
 
 ``` Proto
 rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) { }
