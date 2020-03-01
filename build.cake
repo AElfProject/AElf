@@ -66,7 +66,10 @@ Task("Test-with-Codecov")
         }                
     };
 
-    DotNetCoreTest(solution, testSetting);
+    foreach(var testProject in testProjects)
+    {
+        DotNetCoreTest(testProject.FullPath, testSetting);
+    }
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
