@@ -29,6 +29,7 @@ jobs:
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
   pool:
     vmImage: ubuntu-latest
   steps:
@@ -49,6 +50,7 @@ jobs:
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
+  timeoutInMinutes: 120
   pool:
     vmImage: macos-latest
   variables:
