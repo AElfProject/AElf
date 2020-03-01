@@ -20,10 +20,8 @@ jobs:
     displayName: 'Download AElf build tools'
     inputs:
       filename: 'scripts/download_binary.bat'
-  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov
+  - script: PowerShell.exe -file build.ps1 -target=Default
     displayName: 'Build and Test'
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage
-    displayName: 'Upload data to Codecov'
   - task: PublishTestResults@2
     inputs:
       testRunner: VSTest
@@ -31,6 +29,7 @@ jobs:
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
   pool:
     vmImage: ubuntu-latest
   steps:
@@ -40,11 +39,18 @@ jobs:
       version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: bash build.sh
+  - script: bash build.sh -target=Test-with-Codecov
     displayName: 'Build and Test'
+  - script: bash build.sh -target=Upload-Coverage 
+    displayName: 'Upload data to Codecov'
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
+  timeoutInMinutes: 120
   pool:
     vmImage: macos-latest
   variables:
@@ -56,5 +62,11 @@ jobs:
       version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: bash build.sh
+  - script: bash build.sh -target=Default
     displayName: 'Build and Test'
+  #- script: bash build.sh -target=Upload-Coverage 
+  #  displayName: 'Upload data to Codecov'
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
