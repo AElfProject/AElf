@@ -102,7 +102,10 @@ Task("Run-Unit-Tests")
 {
     var testSetting = new DotNetCoreTestSettings{
         NoRestore = true,
-        NoBuild = true
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args.Append("--logger trx");
+        }
 };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
