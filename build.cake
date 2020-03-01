@@ -73,7 +73,7 @@ Task("Test-with-Codecov")
 
     List<Action> actions=new List<Action>();
 
-    foreach(var testProject in testProjects.Take(1))
+    foreach(var testProject in testProjects)
     {
         actions.Add(new Action( ()=>
             DotNetCoreTest(testProject.FullPath, testSetting)));
