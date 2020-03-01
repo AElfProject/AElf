@@ -42,7 +42,6 @@ Task("Build")
 {
     var buildSetting = new DotNetCoreBuildSettings{
         NoRestore = true,
-        Configuration = "Debug",
         ArgumentCustomization = args => {
             return args.Append("/clp:ErrorsOnly")
                        .Append("/p:GeneratePackageOnBuild=false")
@@ -75,14 +74,15 @@ Task("Test-with-Codecov")
 
     foreach(var testProject in testProjects)
     {
-        actions.Add(new Action( ()=>
-            DotNetCoreTest(testProject.FullPath, testSetting)));
+        //actions.Add(new Action( ()=>
+            DotNetCoreTest(testProject.FullPath, testSetting)
+        //));
     }
 
     ParallelOptions options=new ParallelOptions(){
         MaxDegreeOfParallelism = 2  //Environment.ProcessorCount 
     };
-    Parallel.Invoke(options, actions.ToArray());
+    //Parallel.Invoke(options, actions.ToArray());
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
