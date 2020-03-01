@@ -74,9 +74,9 @@ Task("Test-with-Codecov")
 
     foreach(var testProject in testProjects)
     {
-        //actions.Add(new Action( ()=>
-            DotNetCoreTest(testProject.FullPath, testSetting)
-        //));
+        //actions.Add(new Action( ()=>{
+            DotNetCoreTest(testProject.FullPath, testSetting);
+        //}));
     }
 
     ParallelOptions options=new ParallelOptions(){

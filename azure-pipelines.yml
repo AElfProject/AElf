@@ -11,7 +11,7 @@ jobs:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
-      version: 3.0.102
+      version: 3.1.102
   - script: choco install protoc --version=3.11.4 -y
     displayName: 'Install protobuf'
   - script: choco install unzip
@@ -55,7 +55,7 @@ jobs:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
-      version: 3.0.102
+      version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - script: bash build.sh
@@ -71,7 +71,7 @@ jobs:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
-      version: 3.0.102
+      version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
   - script: bash build.sh
