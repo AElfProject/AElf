@@ -25,7 +25,7 @@ jobs:
       arguments: install --tool-path . dotnet-reportgenerator-globaltool
     displayName: Install ReportGenerator tool
   
-  - script: reportgenerator -reports:$(Build.SourcesDirectory)/test/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/test/results -reporttypes:"Cobertura;HtmlInline_AzurePipelines;Badges"
+  - script: reportgenerator -reports:$(Build.SourcesDirectory)/test/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/test/results -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
     displayName: Create reports
     
   - task: PublishCodeCoverageResults@1
