@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForProposal\AElf.Kernel.SmartContract.ExecutionPluginForProposal.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />

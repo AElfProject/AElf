@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold
+namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
 {
     //TODO: base class
     public class MethodStubFactory : IMethodStubFactory

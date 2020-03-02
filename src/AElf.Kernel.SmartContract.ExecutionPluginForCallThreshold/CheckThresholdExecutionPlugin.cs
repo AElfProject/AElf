@@ -11,7 +11,7 @@ using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold
+namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
 {
     public class MethodCallingThresholdPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {

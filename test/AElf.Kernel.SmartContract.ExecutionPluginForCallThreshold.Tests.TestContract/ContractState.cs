@@ -2,7 +2,7 @@ using Acs0;
 using Acs5;
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests.TestContract
+namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract
 {
     public class ContractState : AElf.Sdk.CSharp.State.ContractState
     {

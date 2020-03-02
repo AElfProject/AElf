@@ -6,11 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using TokenContractChargeFeeStrategy = AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TokenContractChargeFeeStrategy;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
 {
     [DependsOn(typeof(ContractTestModule),
-        typeof(ExecutionPluginForMethodCallThresholdModule))]
-    public class ExecutionPluginForMethodCallThresholdTestModule : ContractTestModule
+        typeof(ExecutionPluginForCallThresholdModule))]
+    public class ExecutionPluginForCallThresholdTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

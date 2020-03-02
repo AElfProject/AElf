@@ -1,7 +1,7 @@
 ﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(typeof(SmartContractAElfModule),
         typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForMethodCallThresholdModule),
+        typeof(ExecutionPluginForCallThresholdModule),
         typeof(ExecutionPluginForProposalModule),
         typeof(ExecutionPluginForMethodFeeModule))]
     public class SmartContractExecutionAElfModule : AElfModule
