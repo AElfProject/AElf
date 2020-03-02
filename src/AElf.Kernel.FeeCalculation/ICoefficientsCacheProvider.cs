@@ -1,61 +1,63 @@
 using System.Collections.Generic;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation
 {
     public interface ICoefficientsCacheProvider
     {
-        Coefficients GetCoefficientByTokenName(string tokenName);
-        void SetCoefficientByTokenName(string tokenName);
+        Coefficients GetCoefficientByTokenType(int tokenType);
+        void SetCoefficientByTokenType(int tokenType);
     }
     
-    public class CoefficientsCacheProvider : ICoefficientsCacheProvider
+    public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISingletonDependency
     {
-        private readonly IMockBlockChainStateService _blockchainStateService;
-        private readonly Dictionary<string, Coefficients> _coefficientsDicCache;
-        private readonly Dictionary<string, int> _updateCountDic;
+        private readonly IMockBlockChainStateService _blockChainStateService;
+        private readonly Dictionary<int, Coefficients> _coefficientsDicCache;
+        private readonly Dictionary<int, int> _updateCountDic;
         private readonly object _lock;
 
-        public CoefficientsCacheProvider(IMockBlockChainStateService blockchainStateService)
+        public CoefficientsCacheProvider(IMockBlockChainStateService blockChainStateService)
         {
-            _blockchainStateService = blockchainStateService;
-            _coefficientsDicCache = new Dictionary<string, Coefficients>();
-            _updateCountDic = new Dictionary<string, int>();
+            _blockChainStateService = blockChainStateService;
+            _coefficientsDicCache = new Dictionary<int, Coefficients>();
+            _updateCountDic = new Dictionary<int, int>();
             _lock = new object();
         }
-        public Coefficients GetCoefficientByTokenName(string tokenName)
+        public Coefficients GetCoefficientByTokenType(int tokenType)
         {
             lock (_lock)
             {
-                if(_coefficientsDicCache.TryGetValue(tokenName, out var coefficients) && _updateCountDic[tokenName] == 0)
+                if(_coefficientsDicCache.TryGetValue(tokenType, out var coefficients) && _updateCountDic[tokenType] == 0)
                     return coefficients;
-                coefficients = _blockchainStateService.GetCoefficientByTokenName(tokenName);
-                _coefficientsDicCache[tokenName] = coefficients;
-                if (!_updateCountDic.ContainsKey(tokenName))
-                    _updateCountDic[tokenName] = 0;
-                if (_updateCountDic[tokenName] > 0)
-                    _updateCountDic[tokenName] -= 1;
+                coefficients = _blockChainStateService.GetCoefficientByTokenType(tokenType);
+                _coefficientsDicCache[tokenType] = coefficients;
+                if (!_updateCountDic.ContainsKey(tokenType))
+                    _updateCountDic[tokenType] = 0;
+                if (_updateCountDic[tokenType] > 0)
+                    _updateCountDic[tokenType] -= 1;
                 return coefficients;
             }
         }
-        public void SetCoefficientByTokenName(string tokenName)
+        public void SetCoefficientByTokenType(int tokenType)
         {
             lock (_lock)
             {
-                if(_updateCountDic.ContainsKey(tokenName))
-                    _updateCountDic[tokenName] += 1;
-                _updateCountDic[tokenName] = 1;
+                if(_updateCountDic.ContainsKey(tokenType))
+                    _updateCountDic[tokenType] += 1;
+                _updateCountDic[tokenType] = 1;
             }
         }
     }
     
     public interface IMockBlockChainStateService
     {
-        Coefficients GetCoefficientByTokenName(string tokenName);
+        Coefficients GetCoefficientByTokenType(int tokenType);
+        
     }
     
     public class MockBlockChainStateService : IMockBlockChainStateService
     {
-        public Coefficients GetCoefficientByTokenName(string tokenName)
+        public Coefficients GetCoefficientByTokenType(int tokenType)
         {
             return new Coefficients();
         }

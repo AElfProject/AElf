@@ -31,12 +31,13 @@ namespace AElf.Contracts.MultiToken
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.CoefficientArray[0] == coefficient.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
+            AssertValidCoefficients(coefficientInput.Coefficient, funcCoefficient);
             if (coefficient.CoefficientArray[0] != funcCoefficient.CoefficientArray[0])
             {
                 var oldPieceKey = funcCoefficient.CoefficientArray[0];
                 var newPieceKey = coefficient.CoefficientArray[0];
                 var pieceKeyArray = coefficientInfoInState.Coefficients.Select(x => x.CoefficientArray[0]);
-                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray));
+                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray),"invalid piece key");
             }
             UpdateCoefficient(coefficientInput.Coefficient, funcCoefficient);
             State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)coefficientInput.FeeType] = coefficientInfoInState;
@@ -57,12 +58,13 @@ namespace AElf.Contracts.MultiToken
             var funcCoefficient =
                 coefficientInfoInState.Coefficients.SingleOrDefault(x => x.CoefficientArray[0] == coefficientInput.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
+            AssertValidCoefficients(coefficientInput, funcCoefficient);
             if (coefficientInput.CoefficientArray[0] != funcCoefficient.CoefficientArray[0])
             {
                 var oldPieceKey = funcCoefficient.CoefficientArray[0];
                 var newPieceKey = coefficientInput.CoefficientArray[0];
                 var pieceKeyArray = coefficientInfoInState.Coefficients.Select(x => x.CoefficientArray[0]);
-                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray));
+                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray),"invalid piece key");
             }
             UpdateCoefficient(coefficientInput, funcCoefficient);
             State.CalculateCoefficientOfSender.Value.CoefficientOfSender = coefficientInfoInState;
@@ -75,12 +77,23 @@ namespace AElf.Contracts.MultiToken
 
         private void UpdateCoefficient(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
         {
+            funcCoefficient.CoefficientArray.Clear();
+            funcCoefficient.CoefficientArray.AddRange(coefficientInput.CoefficientArray);
+        }
+
+        private void AssertValidCoefficients(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
+        {
             IEnumerable<int> targetArray = coefficientInput.CoefficientArray;
             IEnumerable<int> currentArray = funcCoefficient.CoefficientArray;
             Assert(targetArray.Count() == currentArray.Count(), "invalid coefficient input");
             Assert(targetArray.Any(x => x <= 0), "invalid coefficient input");
-            funcCoefficient.CoefficientArray.Clear();
-            funcCoefficient.CoefficientArray.AddRange(targetArray);
+        }
+        private bool IsValidNewPieceKey(int newPieceKey, int oldPieceKey, IEnumerable<int> orderPieceKeys)
+        {
+            var pieceKeys = orderPieceKeys as int[] ?? orderPieceKeys.ToArray();
+            if (pieceKeys.Contains(newPieceKey))
+                return false;
+            return !pieceKeys.Any(x => x < oldPieceKey && x < newPieceKey);
         }
 
         private void InitialParameters()
@@ -94,7 +107,7 @@ namespace AElf.Contracts.MultiToken
             if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Write] == null)
                 State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
             if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] == null)
-                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] = GetNetFeeInitialCoefficient();
+                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] = GetTrafficFeeInitialCoefficient();
             if (State.CalculateCoefficientOfSender.Value == null)
             {
                 State.CalculateCoefficientOfSender.Value = new CalculateFeeCoefficientOfSender
@@ -215,7 +228,7 @@ namespace AElf.Contracts.MultiToken
             return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetNetFeeInitialCoefficient()
+        private CalculateFeeCoefficientsOfType GetTrafficFeeInitialCoefficient()
         {
             var totalParameter = new CalculateFeeCoefficientsOfType();
             var netFeeParameter1 = new CalculateFeeCoefficient();
@@ -273,13 +286,6 @@ namespace AElf.Contracts.MultiToken
             totalParameter.Coefficients.Add(txFeeParameter1);
             totalParameter.Coefficients.Add(txFeeParameter2);
             return totalParameter;
-        }
-
-        private bool IsValidNewPieceKey(int newPieceKey, int oldPieceKey, IEnumerable<int> orderPieceKeys)
-        {
-            if (orderPieceKeys.Contains(newPieceKey))
-                return false;
-            return !orderPieceKeys.Any(x => x < oldPieceKey && x < newPieceKey);
         }
     }
 }

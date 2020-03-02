@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AElf.Kernel.FeeCalculation.Impl;
 
 namespace AElf.Kernel.FeeCalculation
 {

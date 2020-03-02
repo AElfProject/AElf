@@ -5,7 +5,6 @@ namespace AElf.Kernel.FeeCalculation
 {
     public interface IResourceTokenFeeProvider
     {
-       string TokenName { get; }
-       long CalculateTokenFeeAsync(TransactionContext transactionContext);
+        long CalculateTokenFeeAsync(TransactionContext transactionContext);
     }
 }
