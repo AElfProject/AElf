@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using AElf.CSharp.CodeOps;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 
 namespace AElf.Runtime.CSharp
@@ -17,28 +13,49 @@ namespace AElf.Runtime.CSharp
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
         }
 
+        // private static Delegate CreateDelegate(object instance, MethodInfo method)
+        // {
+        //     return Delegate.CreateDelegate
+        //     (
+        //         Expression.GetDelegateType
+        //         (
+        //             method.GetParameters()
+        //                 .Select(p => p.ParameterType)
+        //                 .Concat(new Type[] {method.ReturnType})
+        //                 .ToArray()
+        //         ),
+        //         instance,
+        //         method
+        //     );
+        // }
+        //
+        //
+        // private static Delegate CreateDelegate(object instance, Type type, string name)
+        // {
+        //     var methodInfo = GetMethodInfo(type, name);
+        //     return methodInfo == null ? null : CreateDelegate(instance, methodInfo);
+        // }
 
-        private static Delegate CreateDelegate(object instance, MethodInfo method)
+        private static T CreateDelegate<T>(object instance, MethodInfo method)
+            where T : Delegate
         {
-            return Delegate.CreateDelegate
+            return (T) Delegate.CreateDelegate
             (
-                Expression.GetDelegateType
-                (
-                    method.GetParameters()
-                        .Select(p => p.ParameterType)
-                        .Concat(new Type[] {method.ReturnType})
-                        .ToArray()
-                ),
+                typeof(T),
                 instance,
                 method
             );
         }
 
-        private static Delegate CreateDelegate(object instance, Type type, string name)
+        private static T CreateDelegate<T>(object instance, Type type, string name)
+            where T : Delegate
         {
             var methodInfo = GetMethodInfo(type, name);
-            return methodInfo == null ? null : CreateDelegate(instance, methodInfo);
+
+            return methodInfo == null ? null : CreateDelegate<T>(instance, methodInfo);
         }
+
+
 
         private readonly Action _methodCleanup;
         private readonly Func<TransactionExecutingStateSet> _methodGetChanges;
@@ -52,20 +69,20 @@ namespace AElf.Runtime.CSharp
         {
             var instanceType = instance.GetType();
 
-            _methodCleanup = (Action) CreateDelegate(instance, instanceType, nameof(Cleanup));
+            _methodCleanup = CreateDelegate<Action>(instance, instanceType, nameof(Cleanup));
 
             _methodGetChanges =
-                (Func<TransactionExecutingStateSet>) CreateDelegate(instance, instanceType, nameof(GetChanges));
+                CreateDelegate<Func<TransactionExecutingStateSet>>(instance, instanceType, nameof(GetChanges));
 
             _methodInternalInitialize =
-                (Action<ISmartContractBridgeContext>) CreateDelegate(instance, instanceType,
+                CreateDelegate<Action<ISmartContractBridgeContext>>(instance, instanceType,
                     nameof(InternalInitialize));
 
-            _methodResetFields = (Action) CreateDelegate(instance, instanceType, nameof(ResetFields));
+            _methodResetFields = CreateDelegate<Action>(instance, instanceType, nameof(ResetFields));
 
             _methodSetExecutionObserver = counterType == null
                 ? null
-                : (Action<IExecutionObserver>) CreateDelegate(null,
+                : CreateDelegate<Action<IExecutionObserver>>(null,
                     counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver),
                         new[] {typeof(IExecutionObserver)}));
         }
