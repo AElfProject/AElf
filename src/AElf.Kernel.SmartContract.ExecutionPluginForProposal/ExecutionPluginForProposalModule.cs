@@ -1,5 +1,5 @@
 ﻿using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

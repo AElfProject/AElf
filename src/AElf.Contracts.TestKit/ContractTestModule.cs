@@ -11,7 +11,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
