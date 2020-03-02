@@ -37,14 +37,13 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             var wrongTransactionIds = wrongTxWithResources.Select(t => t.Transaction.GetHash()).ToArray();
 
-            var wrongCodeHashList =
-                wrongTxWithResources.Select(r => r.TransactionResourceInfo.ContractHash).Distinct();
-            
-            var dic = wrongCodeHashList.ToDictionary(codeHash => codeHash, codeHash => new NonparallelContractCode
-            {
-                CodeHash = codeHash
-            });
-            await _blockchainStateService.AddBlockExecutedDataAsync<Hash, NonparallelContractCode>(
+            var dic = wrongTxWithResources.GroupBy(t => t.Transaction.To)
+                .ToDictionary(g => g.Key, g => new NonparallelContractCode
+                {
+                    CodeHash = g.First().TransactionResourceInfo.ContractHash
+                });
+
+            await _blockchainStateService.AddBlockExecutedDataAsync<Address, NonparallelContractCode>(
                 eventData.BlockHeader.GetHash(), dic);
 
             _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);

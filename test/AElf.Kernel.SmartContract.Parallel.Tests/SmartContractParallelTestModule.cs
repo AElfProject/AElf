@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 {
                     var mock = new Mock<IBlockchainStateService>();
                     mock.Setup(s =>
-                            s.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                            s.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(It.IsAny<IChainContext>(), It.IsAny<Address>()))
                         .Returns(Task.FromResult((NonparallelContractCode)null));
                     return mock.Object;
                 });

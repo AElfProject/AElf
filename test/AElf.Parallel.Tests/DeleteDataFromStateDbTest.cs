@@ -899,12 +899,11 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var codeHash = Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode);
-                var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(new ChainContext
+                var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
-                }, codeHash);
+                }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
                 nonparallelContractCode.ShouldBeNull();
                     
                 messageValue = new MessageValue
@@ -1046,9 +1045,10 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Hash, NonparallelContractCode>(
-                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
-                    Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+                var nonparallelContractCode =
+                    await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
+                        new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress);
                 nonparallelContractCode.ShouldBeNull();
 
                 messageValue = new MessageValue
