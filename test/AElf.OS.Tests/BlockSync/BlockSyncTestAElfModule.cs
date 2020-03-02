@@ -46,12 +46,12 @@ namespace AElf.OS.BlockSync
                 networkServiceMock
                     .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
                         It.IsAny<string>()))
-                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
+                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubkey) =>
                     {
                         var result = new List<BlockWithTransactions>();
 
                         var hash = previousBlockHash;
-                        
+
                         while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
                         {
                             result.Add(new BlockWithTransactions {Header = block.Header});
@@ -62,7 +62,16 @@ namespace AElf.OS.BlockSync
                         return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
 
-                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(new PeerInfo());
+                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns<string>(
+                    (peerPubkey) =>
+                    {
+                        if (peerPubkey == "RemovedPeer")
+                        {
+                            return null;
+                        }
+
+                        return new PeerInfo();
+                    });
 
                 return networkServiceMock.Object;
             });
