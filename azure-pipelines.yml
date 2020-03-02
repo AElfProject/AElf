@@ -41,8 +41,6 @@ jobs:
   - script: bash scripts/download_binary.sh
   - script: bash build.sh -target=Test-with-Codecov
     displayName: 'Build and Test'
-  #- script: bash build.sh -target=Upload-Coverage 
-  #  displayName: 'Upload data to Codecov'
   - task: PublishTestResults@2
     inputs:
       testRunner: VSTest
@@ -60,7 +58,10 @@ jobs:
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'  
+  - script: bash build.sh -target=Upload-Coverage-Azure
+    displayName: 'Upload data to Codecov'
+
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
