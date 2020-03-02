@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Kernel.SmartContractExecution.Events;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
