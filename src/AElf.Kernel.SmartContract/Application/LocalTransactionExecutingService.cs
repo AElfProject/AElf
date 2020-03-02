@@ -92,6 +92,12 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (!trace.IsSuccessful())
                     {
+#if DEBUG
+                        if (throwException)	
+                        {
+                            Logger.LogError(trace.Error);	
+                        }
+#endif
                         // Do not package this transaction if any of his inline transactions canceled.
                         if (IsTransactionCanceled(trace))
                         {
@@ -118,7 +124,12 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         groupStateCache.Update(trace.GetStateSets());
                     }
-
+#if DEBUG
+                    if (trace.Error != string.Empty)	
+                    {	
+                        Logger.LogError(trace.Error);	
+                    }         
+#endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
                     result.TransactionFee = trace.TransactionFee;
@@ -222,7 +233,7 @@ namespace AElf.Kernel.SmartContract.Application
             finally
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.Transaction.To, executive);
-#if DEBUG                
+#if DEBUG
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
                     TransactionTrace = trace

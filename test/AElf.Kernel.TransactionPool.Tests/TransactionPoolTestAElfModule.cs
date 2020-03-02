@@ -47,7 +47,6 @@ namespace AElf.Kernel.TransactionPool
                 return mockService.Object;
             });
 
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IDeployedContractAddressService>();

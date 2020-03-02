@@ -51,5 +51,10 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForReferendum()
             }.SelectMany(x => x);
         }
+
+        private byte[] GetContractCodeByName(string name)
+        {
+            return _codes.Single(kv => kv.Key.Contains(name)).Value;
+        }
     }
 }

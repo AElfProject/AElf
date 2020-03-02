@@ -40,7 +40,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     return mock.Object;
                 });
             context.Services.AddSingleton<IContractRemarksService, MockContractRemarksService>();
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         #region Mocks
