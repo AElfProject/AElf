@@ -133,7 +133,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return _chainBlockLinkCacheProvider.GetChainBlockLinks();
         }
         
-        protected async Task<ChainBlockLink> GetChainBlockLinkWithCacheAsync(string blockHash)
+        private async Task<ChainBlockLink> GetChainBlockLinkWithCacheAsync(string blockHash)
         {
             var hash = new Hash {Value = ByteString.FromBase64(blockHash)};
             var chainBlockLink = _chainBlockLinkCacheProvider.GetChainBlockLink(hash);
@@ -141,7 +141,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return await GetChainBlockLinkAsync(blockHash);
         }
 
-        protected async Task<ChainBlockLink> GetChainBlockLinkAsync(string blockHash)
+        private async Task<ChainBlockLink> GetChainBlockLinkAsync(string blockHash)
         {
             return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + blockHash);
         }

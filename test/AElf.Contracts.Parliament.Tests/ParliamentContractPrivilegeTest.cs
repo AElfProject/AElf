@@ -129,6 +129,27 @@ namespace AElf.Contracts.Parliament
             proposers.Contains(Tester.GetCallOwnerAddress()).ShouldBeFalse();
         }
 
+        [Fact]
+        public async Task ValidateAddressIsParliamentMember_Test()
+        {
+            //miner member
+            var byteResult = await Tester.CallContractMethodAsync(
+                ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                Address.FromPublicKey(Tester.InitialMinerList[0].PublicKey));
+            var checkMinerResult = BoolValue.Parser.ParseFrom(byteResult);
+            checkMinerResult.Value.ShouldBeTrue();
+            
+            //none miner member
+            var tester = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey);
+            byteResult = await Tester.CallContractMethodAsync(
+                ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                tester);
+            var checkTesterResult = BoolValue.Parser.ParseFrom(byteResult);
+            checkTesterResult.Value.ShouldBeFalse();
+        }
+
         private async Task<Address> CreateOrganizationAsync(bool proposerAuthorityRequired = false)
         {
             var minimalApprovalThreshold = 6667;

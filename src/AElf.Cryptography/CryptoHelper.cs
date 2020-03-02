@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.Exceptions;
 using Secp256k1Net;
 using Virgil.Crypto;
-
-[assembly: InternalsVisibleTo("AElf.Cryptography.Tests")]
 
 namespace AElf.Cryptography
 {
@@ -165,17 +162,6 @@ namespace AElf.Cryptography
             {
                 Lock.ReleaseWriterLock();
             }
-        }
-
-        /// <summary>
-        /// Returns a byte array of the specified length, filled with random bytes.
-        /// </summary>
-        internal static byte[] RandomFill(int count)
-        {
-            var rnd = new Random();
-            var random = new byte[count];
-            rnd.NextBytes(random);
-            return random;
         }
     }
 }

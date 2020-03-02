@@ -53,6 +53,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 }
 
                 var newInValue = await GenerateInValueAsync(secretSharingInformation);
+                Logger.LogInformation(
+                    $"Add in value {newInValue} for round id {secretSharingInformation.CurrentRoundId}");
                 _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
                 if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)

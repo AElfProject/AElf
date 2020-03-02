@@ -62,7 +62,8 @@ Task("Test-with-Codecov")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
-            return args.Append("/p:CollectCoverage=true")
+            return args.Append("--logger trx")
+                       .Append("/p:CollectCoverage=true")
                        .Append("/p:CoverletOutputFormat=json%2copencover")
                        .Append("/p:CoverletOutput=../results/coverage")
                        .Append("/p:MergeWith=../results/coverage.json")
@@ -85,7 +86,10 @@ Task("Run-Unit-Tests")
 {
     var testSetting = new DotNetCoreTestSettings{
         NoRestore = true,
-        NoBuild = true
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args.Append("--logger trx");
+        }
 };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 

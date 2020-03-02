@@ -7,7 +7,6 @@ using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -322,10 +321,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
         {
-            CleanTransactions(eventData.Transactions);
-
+            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 

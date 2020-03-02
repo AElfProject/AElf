@@ -960,6 +960,46 @@ namespace AElf.Contracts.Genesis
             methodFeeControllerAfterChange.OwnerAddress.ShouldBe(organizationAddress);
         }
 
+        [Fact]
+        public async Task ChangeCodeCheckController_Test()
+        {
+            var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000
+                    }
+                });
+            var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+
+            var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                new Empty());
+            var codeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
+            
+            const string proposalCreationMethodName =
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeCodeCheckController);
+            var proposalId = await CreateProposalAsync(Tester, codeCheckController.ContractAddress,
+                codeCheckController.OwnerAddress, proposalCreationMethodName,
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentAddress
+                });
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                new Empty());
+            var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
+            Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
+        }
+
         #endregion
     }
 }

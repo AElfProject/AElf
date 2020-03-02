@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: move
     public class TransactionFeeCalculatorCoefficientUpdatedEventHandle : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;

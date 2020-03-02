@@ -20,10 +20,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
         Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
-        Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData);
         Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
         Task<int> GetAllTransactionCountAsync();
         Task<int> GetValidatedTransactionCountAsync();
         Task<bool> IsTransactionExistsAsync(Hash transactionId);
+        Task CleanTransactionsAsync(IEnumerable<Hash> transactions);
     }
 }

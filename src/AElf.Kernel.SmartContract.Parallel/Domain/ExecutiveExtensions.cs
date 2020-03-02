@@ -13,6 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private static Address FromAddress => Address.FromBytes(new byte[] { }.ComputeHash());
 
+        //TODO: should call a util, this method should not know how to build transaction and call executive, but it knows Resource
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
@@ -22,7 +23,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 To = input.To,
                 MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
                 Params = input.ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var txId = input.GetHash();
 
