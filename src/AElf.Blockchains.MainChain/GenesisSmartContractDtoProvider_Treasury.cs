@@ -14,7 +14,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Treasury")).Value,
+                GetContractCodeByName("AElf.Contracts.Treasury"),
                 TreasurySmartContractAddressNameProvider.Name,
                 GenerateTreasuryInitializationCallList());
             return l;

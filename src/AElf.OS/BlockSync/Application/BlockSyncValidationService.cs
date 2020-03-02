@@ -109,17 +109,6 @@ namespace AElf.OS.BlockSync.Application
                 {
                     return false;
                 }
-
-                var constrainedTransactionValidationResult =
-                    _transactionValidationService.ValidateConstrainedTransaction(transaction,
-                        blockWithTransactions.GetHash());
-                _transactionValidationService.ClearConstrainedTransactionValidationProvider(blockWithTransactions
-                    .GetHash());
-                if (!constrainedTransactionValidationResult)
-                {
-                    Logger.LogWarning($"Transaction {transaction} validation failed for constraint.");
-                    return false;
-                }
             }
 
             return true;

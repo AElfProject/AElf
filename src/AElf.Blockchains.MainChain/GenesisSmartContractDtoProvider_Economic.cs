@@ -15,7 +15,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Economic")).Value,
+                GetContractCodeByName("AElf.Contracts.Economic"),
                 EconomicSmartContractAddressNameProvider.Name, GenerateEconomicInitializationCallList());
             return l;
         }
