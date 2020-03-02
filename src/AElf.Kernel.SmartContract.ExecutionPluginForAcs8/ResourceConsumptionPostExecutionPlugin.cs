@@ -12,22 +12,20 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : SmartContractAcsPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ICalculateReadCostStrategy _readCostStrategy;
         private readonly ICalculateWriteCostStrategy _writeCostStrategy;
         private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
         private readonly ICalculateStorageCostStrategy _storageCostStrategy;
-        
-        private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             //TODO: change strategy implement
             ICalculateReadCostStrategy readCostStrategy,
             ICalculateWriteCostStrategy writeCostStrategy,
             ICalculateStorageCostStrategy storageCostStrategy,
-            ICalculateTrafficCostStrategy trafficCostStrategy)
+            ICalculateTrafficCostStrategy trafficCostStrategy):base("acs8")
         {
             _contextService = contextService;
             _readCostStrategy = readCostStrategy;
@@ -36,9 +34,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             _trafficCostStrategy = trafficCostStrategy;
         }
 
-        private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
+        private bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
+            var acsSymbol = GetAcsSymbol();
+            return descriptors.Any(service => service.File.GetIdentity() == acsSymbol);
         }
 
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,

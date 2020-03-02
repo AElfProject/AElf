@@ -12,11 +12,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Parallel.Tests
 {
-    public class DeleteDataFromStateDbPreExecutionAcsPlugin :SmartContractAcsPluginBase, IPreExecutionPlugin, ISingletonDependency
+    public class DeleteDataFromStateDbPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
 
-        public DeleteDataFromStateDbPreExecutionAcsPlugin(IHostSmartContractBridgeContextService contextService)
+        public DeleteDataFromStateDbPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
