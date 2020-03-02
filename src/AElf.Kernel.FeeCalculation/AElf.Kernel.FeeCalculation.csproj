@@ -7,5 +7,10 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
+     <ItemGroup> 
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
 
 </Project>

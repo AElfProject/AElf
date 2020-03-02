@@ -1,9 +1,12 @@
+using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
+
 namespace AElf.Kernel.FeeCalculation.Impl
 {
     public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
     {
         public TrafficFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider) : base(
-            coefficientsCacheProvider, 3)
+            coefficientsCacheProvider, (int)FeeTypeEnum.Traffic)
         {
         }
 

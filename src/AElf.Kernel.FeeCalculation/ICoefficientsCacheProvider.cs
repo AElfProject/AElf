@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Contracts.MultiToken;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation
@@ -49,9 +50,13 @@ namespace AElf.Kernel.FeeCalculation
         }
     }
     
+    // public SingletonState<CalculateFeeCoefficientOfContract> CalculateCoefficientOfContract { get; set; }
+    // public SingletonState<CalculateFeeCoefficientOfSender> CalculateCoefficientOfSender { get; set; }
+    
     public interface IMockBlockChainStateService
     {
         Coefficients GetCoefficientByTokenType(int tokenType);
+        //Coefficients GetPrimaryCoefficient(int tokenType);
         
     }
     

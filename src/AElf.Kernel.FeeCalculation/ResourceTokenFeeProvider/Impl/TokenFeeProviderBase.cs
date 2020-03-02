@@ -2,7 +2,7 @@ using System;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Kernel.FeeCalculation.Impl
+namespace AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl
 {
     public abstract class TokenFeeProviderBase
     {
