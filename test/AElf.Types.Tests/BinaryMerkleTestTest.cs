@@ -267,12 +267,6 @@ namespace AElf.Types.Tests
             Assert.Equal(expectCount, nodesCount);
         }
 
-        [Fact]
-        public void Test()
-        {
-            
-        }
-
         #region Some useful methods
         
         private List<Hash> CreateLeaves(IEnumerable<string> buffers)

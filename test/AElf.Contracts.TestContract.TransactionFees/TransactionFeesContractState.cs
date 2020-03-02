@@ -9,7 +9,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
         public MappedState<int, int> TestInfo { get; set; }
         public MappedState<string, MethodFees> MethodFees { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.ContractReferenceState Acs8Contract
+        internal AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractReferenceState Acs8Contract
         {
             get;
             set;

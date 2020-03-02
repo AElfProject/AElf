@@ -195,7 +195,7 @@ namespace AElf.Contract.TestContract
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         
-        internal Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.ContractStub
+        internal Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub
             Acs8ContractStub { get; set; }
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
@@ -255,7 +255,7 @@ namespace AElf.Contract.TestContract
                 DefaultSenderKeyPair
             );
             Acs8ContractStub =
-                GetTester<Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.
+                GetTester<Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.
                     ContractStub>(Acs8ContractAddress, DefaultSenderKeyPair);
 
             var feesCode = Codes.Single(kv => kv.Key.Contains("TransactionFees")).Value;

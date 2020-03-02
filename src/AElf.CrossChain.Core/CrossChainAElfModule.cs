@@ -2,7 +2,7 @@ using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
