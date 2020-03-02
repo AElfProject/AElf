@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
@@ -14,43 +14,38 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
     {
-        private Hash _initLibBlockHash = Hash.Empty;
-        private long _initLibBlockHeight;
-
         private const int ExecutiveExpirationTime = 3600; // 1 Hour
         private const int ExecutiveClearLimit = 10;
 
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-        private readonly IChainBlockLinkService _chainBlockLinkService;
-        private readonly IBlockchainService _blockchainService;
+        private readonly IBlockchainStateService _blockchainStateService;
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
+        private readonly ISmartContractHeightInfoProvider _smartContractHeightInfoProvider;
         
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
         public ILogger<SmartContractExecutiveService> Logger { get; set; }
 
-        public SmartContractExecutiveService(IDeployedContractAddressProvider deployedContractAddressProvider,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
+        public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
-            IChainBlockLinkService chainBlockLinkService, IBlockchainService blockchainService,
+            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
+            IBlockchainStateService blockchainStateService,
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
-            ISmartContractExecutiveProvider smartContractExecutiveProvider)
+             ISmartContractExecutiveProvider smartContractExecutiveProvider, 
+            ISmartContractHeightInfoProvider smartContractHeightInfoProvider)
         {
-            _deployedContractAddressProvider = deployedContractAddressProvider;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
-            _chainBlockLinkService = chainBlockLinkService;
-            _blockchainService = blockchainService;
+            _blockchainStateService = blockchainStateService;
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
-            _smartContractExecutiveProvider = smartContractExecutiveProvider;
+             _smartContractExecutiveProvider = smartContractExecutiveProvider;
+             _smartContractHeightInfoProvider = smartContractHeightInfoProvider;
 
-            Logger = new NullLogger<SmartContractExecutiveService>();
+             Logger = new NullLogger<SmartContractExecutiveService>();
         }
 
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
@@ -60,28 +55,31 @@ namespace AElf.Kernel.SmartContract.Application
                 throw new ArgumentNullException(nameof(address));
             }
 
-            var reg = await GetSmartContractRegistrationAsync(chainContext, address);
-            var pool = _smartContractExecutiveProvider.GetPool(address, reg.CodeHash);
+            var pool = _smartContractExecutiveProvider.GetPool(address);
 
-            if (!pool.TryTake(out var executive))
+            if (!pool.TryTake(out var executive) || _smartContractHeightInfoProvider.TryGetValue(address, out _))
             {
-                executive = await GetExecutiveAsync(reg);
+                var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
+                if(executive == null || smartContractRegistration.CodeHash != executive.ContractHash)
+                    executive = await GetExecutiveAsync(smartContractRegistration);
             }
 
             return executive;
         }
 
-        public async Task PutExecutiveAsync(Address address, IExecutive executive)
+        public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            if (_smartContractExecutiveProvider.TryGetExecutiveDictionary(address, out var dictionary))
+            if (_smartContractExecutiveProvider.TryGetValue(address, out var pool))
             {
-                if (dictionary.TryGetValue(executive.ContractHash, out var pool))
+                if (_smartContractRegistrationCacheProvider.TryGetValue(address, out var reg))
                 {
-                    executive.LastUsedTime = TimestampHelper.GetUtcNow();
-                    pool.Add(executive);
-                    return;
+                    if (reg.CodeHash == executive.ContractHash)
+                    {
+                        executive.LastUsedTime = TimestampHelper.GetUtcNow();
+                        pool.Add(executive);
+                        return;
+                    }
                 }
-
                 Logger.LogDebug($"Lost an executive (no registration {address})");
             }
             else
@@ -94,23 +92,43 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void CleanIdleExecutive()
         {
-            var executivePools = _smartContractExecutiveProvider.GetExecutivePools();
-            foreach (var executivePool in executivePools)
+            foreach (var executivePool in _smartContractExecutiveProvider.GetExecutivePools())
             {
-                foreach (var executiveBag in executivePool.Value.Values)
+                var executiveBag = executivePool.Value;
+                if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
+                    TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                 {
-                    if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
-                        TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
+                    if (executiveBag.TryTake(out _))
                     {
-                        if (executiveBag.TryTake(out _))
-                        {
-                            Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
-                        }
+                        Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
                     }
                 }
             }
         }
         
+        public void AddContractInfo(Address address, long blockHeight)
+        {
+            if (blockHeight <= Constants.GenesisBlockHeight) return;
+            _smartContractRegistrationCacheProvider.TryRemove(address, out _);
+            _smartContractExecutiveProvider.TryRemove(address, out _);
+            if (!_smartContractHeightInfoProvider.TryGetValue(address, out var height) || blockHeight > height)
+                _smartContractHeightInfoProvider.Set(address, blockHeight);
+        }
+
+        public void ClearContractInfo(long height)
+        {
+            var removeKeys = new List<Address>();
+            foreach (var contractInfo in _smartContractHeightInfoProvider.GetContractInfos())
+            {
+                if (contractInfo.Value <= height) removeKeys.Add(contractInfo.Key);
+            }
+
+            foreach (var key in removeKeys)
+            {
+                _smartContractHeightInfoProvider.TryRemove(key, out _);
+            }
+        }
+
         private async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
         {
             // get runner
@@ -124,147 +142,83 @@ namespace AElf.Kernel.SmartContract.Application
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
-
-        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(IChainContext chainContext,
-            Address address)
-        {
-            var registrationCache = GetSmartContractRegistrationCacheFromForkCache(chainContext, address);
-
-            if (registrationCache != null)
-            {
-                return await GetSmartContractRegistrationAsync(registrationCache, address);
-            }
-
-            registrationCache = await GetSmartContractRegistrationCacheFromLibCache(chainContext, address);
-            return await GetSmartContractRegistrationAsync(registrationCache, address, chainContext.StateCache);
-        }
-
-        private SmartContractRegistrationCache GetSmartContractRegistrationCacheFromForkCache(
+        
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
-            if (!_smartContractRegistrationCacheProvider.TryGetForkCache(address, out var caches)) return null;
-            var cacheList = caches.ToList();
-            if (cacheList.Count == 0) return null;
-            var minHeight = cacheList.Min(s => s.BlockHeight);
-            var blockHashes = cacheList.Select(s => s.BlockHash).ToList();
-            var blockHash = chainContext.BlockHash;
-            var blockHeight = chainContext.BlockHeight;
-            do
+            if (_smartContractRegistrationCacheProvider.TryGetValue(address, out var smartContractRegistration))
             {
-                if (blockHashes.Contains(blockHash)) return cacheList.Last(s => s.BlockHash == blockHash);
+                if (!_smartContractHeightInfoProvider.TryGetValue(address, out var blockHeight)) return smartContractRegistration;
+                
+                //if contract has smartContractRegistration cache and update height. we need to get code hash in block
+                //executed cache to check whether it is equal to the one in cache.
+                var registration = await _blockchainStateService.GetBlockExecutedDataAsync<Address, SmartContractRegistration>(chainContext,
+                    address);
+                if (registration == null || registration.CodeHash != smartContractRegistration.CodeHash ||
+                    blockHeight == chainContext.BlockHeight + 1)
+                {
+                    //registration is null or registration's code hash isn't equal to cache's code hash
+                    //or current height is equal to update height.maybe the cache is wrong. we need to get
+                    // smartContractRegistration from db to check whether cache's code hash is right.
+                    var registrationInDb = await GetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
+                    if (smartContractRegistration.CodeHash == registrationInDb.CodeHash) return registrationInDb;
+                    _smartContractRegistrationCacheProvider.Set(address, registrationInDb);
+                    _smartContractExecutiveProvider.TryRemove(address, out _);
+                    return registrationInDb;
+                }
 
-                var link = _chainBlockLinkService.GetCachedChainBlockLink(blockHash);
-                blockHash = link?.PreviousBlockHash;
-                blockHeight--;
-            } while (blockHash != null && blockHeight >= minHeight);
-
-            return null;
-        }
-
-        private async Task<SmartContractRegistrationCache> GetSmartContractRegistrationCacheFromLibCache(
-            IChainContext chainContext, Address address)
-        {
-            if (_smartContractRegistrationCacheProvider.TryGetLibCache(address,
-                out var smartContractRegistrationCache)) return smartContractRegistrationCache;
-
-            if (chainContext.BlockHeight > 0 && _initLibBlockHeight == 0)
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                _initLibBlockHash = chain.LastIrreversibleBlockHash;
-                _initLibBlockHeight = chain.LastIrreversibleBlockHeight;
+                return smartContractRegistration;
             }
 
-            //Use lib chain context to set lib cache. Genesis block need to execute with state cache
-            var context = new ChainContext
-            {
-                BlockHash = _initLibBlockHash,
-                BlockHeight = _initLibBlockHeight,
-                StateCache = chainContext.BlockHeight == 0 ? chainContext.StateCache : null
-            };
-            if (!_deployedContractAddressProvider.CheckContractAddress(context, address))
-                return null;
+            smartContractRegistration = await GetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
+
+            return smartContractRegistration;
+        }
+
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationWithoutCacheAsync(
+            IChainContext chainContext, Address address)
+        {
             SmartContractRegistration smartContractRegistration;
+
             if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
             {
                 smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
-                if (context.BlockHeight > Constants.GenesisBlockHeight)
+                if (chainContext.BlockHeight > Constants.GenesisBlockHeight)
                 {
-                    var executive = await GetExecutiveAsync(smartContractRegistration);
+                    //if Height > GenesisBlockHeight, maybe there is a new zero contract,
+                    //the current smartContractRegistration is from code,
+                    //not from zero contract, so we need to load new zero contract from the old smartContractRegistration,
+                    //and replace it
+                    var executiveZero = await GetExecutiveAsync(smartContractRegistration);
                     smartContractRegistration =
-                        await GetSmartContractRegistrationFromZeroAsync(executive, context, address);
+                        await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
                 }
             }
             else
             {
-                smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(context, address);
+                smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
             }
 
-            smartContractRegistrationCache = new SmartContractRegistrationCache
-            {
-                SmartContractRegistration = smartContractRegistration,
-                BlockHash = context.BlockHash,
-                BlockHeight = context.BlockHeight,
-                Address = address
-            };
-            _smartContractRegistrationCacheProvider.SetLibCache(address, smartContractRegistrationCache);
-            return smartContractRegistrationCache;
+            _smartContractRegistrationCacheProvider.TryAdd(address, smartContractRegistration);
+            return smartContractRegistration;
         }
 
-        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
-            SmartContractRegistrationCache smartContractRegistrationCache, Address address,
-            IStateCache stateCache = null)
-        {
-            //Cannot find registration in fork cache and lib cache
-            if (smartContractRegistrationCache == null)
-            {
-                //Check whether stateCache has smartContract registration
-                var smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(new ChainContext
-                {
-                    BlockHash = _initLibBlockHash,
-                    BlockHeight = _initLibBlockHeight,
-                    StateCache = stateCache
-                }, address);
-                if (smartContractRegistration == null)
-                    throw new SmartContractFindRegistrationException("failed to find registration from zero contract");
-                return smartContractRegistration;
-            }
-
-            if (smartContractRegistrationCache.SmartContractRegistration.Code.IsEmpty)
-            {
-                smartContractRegistrationCache.SmartContractRegistration =
-                    await GetSmartContractRegistrationFromZeroAsync(new ChainContext
-                        {
-                            BlockHash = smartContractRegistrationCache.BlockHash,
-                            BlockHeight = smartContractRegistrationCache.BlockHeight
-                        },
-                        smartContractRegistrationCache.Address);
-            }
-
-            return smartContractRegistrationCache.SmartContractRegistration;
-        }
-        
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
         {
             IExecutive executiveZero = null;
             try
             {
-                if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
-                {
-                    executiveZero =
-                        await GetExecutiveAsync(_defaultContractZeroCodeProvider.DefaultContractZeroRegistration);
-                }
-                else
-                {
-                    executiveZero =
-                        await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
-                }
+                executiveZero =
+                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
                 return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
             }
             finally
             {
                 if (executiveZero != null)
+                {
                     await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
+                }
             }
         }
 
@@ -302,10 +256,9 @@ namespace AElf.Kernel.SmartContract.Application
                 return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
-            if (!txCtxt.Trace.IsSuccessful())
-                throw new SmartContractFindRegistrationException(
-                    $"failed to find registration from zero contract {txCtxt.Trace.Error}");
-            return null;
+            throw new SmartContractFindRegistrationException(
+                $"failed to find registration from zero contract {txCtxt.Trace.Error}");
         }
+
     }
 }

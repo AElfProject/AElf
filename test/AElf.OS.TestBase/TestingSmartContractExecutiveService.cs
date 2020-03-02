@@ -7,20 +7,22 @@ namespace AElf.OS
 {
     public class TestingSmartContractExecutiveService : SmartContractExecutiveService
     {
-        public TestingSmartContractExecutiveService(IDeployedContractAddressProvider deployedContractAddressProvider,
+        public TestingSmartContractExecutiveService(
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
-            IChainBlockLinkService chainBlockLinkService, IBlockchainService blockchainService, 
+            IBlockchainStateService blockchainStateService,
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
-            ISmartContractExecutiveProvider smartContractExecutiveProvider) : base(deployedContractAddressProvider,
-            defaultContractZeroCodeProvider,
+            ISmartContractExecutiveProvider smartContractExecutiveProvider,
+            ISmartContractHeightInfoProvider smartContractHeightInfoProvider) 
+            : base(defaultContractZeroCodeProvider,
             smartContractRunnerContainer,
             hostSmartContractBridgeContextService,
-            chainBlockLinkService,
-            blockchainService,
+            blockchainStateService,
             smartContractRegistrationCacheProvider,
-            smartContractExecutiveProvider)
+            smartContractExecutiveProvider,
+            smartContractHeightInfoProvider
+            )
         {
         }
     }

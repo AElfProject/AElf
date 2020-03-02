@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
-        private readonly ISmartContractRegistrationService _smartContractRegistrationService;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         private LogEvent _interestedEvent;
 
@@ -34,12 +34,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public ContractDeployedLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            IDeployedContractAddressProvider deployedContractAddressProvider,
-            ISmartContractRegistrationService smartContractRegistrationService)
+            IDeployedContractAddressProvider deployedContractAddressProvider, 
+            IBlockchainStateService blockchainStateService)
         {
             _smartContractAddressService = smartContractAddressService;
             _deployedContractAddressProvider = deployedContractAddressProvider;
-            _smartContractRegistrationService = smartContractRegistrationService;
+            _blockchainStateService = blockchainStateService;
 
             Logger = NullLogger<ContractDeployedLogEventHandler>.Instance;
         }
@@ -52,11 +52,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address,
                 new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height});
             Logger.LogDebug($"Added deployed contract address of {eventData}");
-            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.CodeHash,
-                new BlockIndex
+
+            await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.Address,
+                new SmartContractRegistration
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
+                    CodeHash = eventData.CodeHash
                 });
         }
     }

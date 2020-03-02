@@ -75,6 +75,7 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
+                        _smartContractExecutiveService.ClearContractInfo(irreversibleBlockHeight);
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);

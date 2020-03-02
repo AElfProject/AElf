@@ -11,7 +11,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class CodeUpdatedLogEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISmartContractRegistrationService _smartContractRegistrationService;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         private LogEvent _interestedEvent;
 
@@ -33,10 +33,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public CodeUpdatedLogEventHandler(ISmartContractAddressService smartContractAddressService, 
-            ISmartContractRegistrationService smartContractRegistrationService)
+            IBlockchainStateService blockchainStateService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _smartContractRegistrationService = smartContractRegistrationService;
+            _blockchainStateService = blockchainStateService;
 
             Logger = NullLogger<CodeUpdatedLogEventHandler>.Instance;
         }
@@ -46,11 +46,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);
 
-            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.NewCodeHash,
-                new BlockIndex
+            await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.Address,
+                new SmartContractRegistration
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
+                    CodeHash = eventData.NewCodeHash
                 });
             Logger.LogDebug($"Updated contract {eventData}");
         }
