@@ -35,7 +35,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task HandleAsync(Block block, TransactionResult result, LogEvent logEvent)
+        public Task ProcessAsync(Block block, TransactionResult result, LogEvent logEvent)
         {
             _secretSharingService.AddSharingInformationAsync(logEvent);
             return Task.CompletedTask;

@@ -41,7 +41,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<CodeUpdatedLogEventHandler>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);

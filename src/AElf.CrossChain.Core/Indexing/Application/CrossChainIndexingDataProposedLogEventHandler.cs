@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Indexing.Application
             _proposalService = proposalService;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
             {

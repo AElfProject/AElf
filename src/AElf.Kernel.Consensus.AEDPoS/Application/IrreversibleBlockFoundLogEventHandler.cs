@@ -48,7 +48,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task HandleAsync(Block block, TransactionResult result, LogEvent log)
+        public Task ProcessAsync(Block block, TransactionResult result, LogEvent log)
         {
             var irreversibleBlockFound = new IrreversibleBlockFound();
             irreversibleBlockFound.MergeFrom(log);

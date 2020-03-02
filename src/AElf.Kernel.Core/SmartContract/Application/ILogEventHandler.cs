@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ILogEventHandler
     {
         LogEvent InterestedEvent { get; }
-        Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent);
+        Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent);
     }
     
     public interface IBlockAcceptedLogEventHandler : ILogEventHandler
@@ -16,6 +16,6 @@ namespace AElf.Kernel.SmartContract.Application
 
     public interface IBestChainFoundLogEventHandler : ILogEventHandler
     {
-        
+
     }
 }

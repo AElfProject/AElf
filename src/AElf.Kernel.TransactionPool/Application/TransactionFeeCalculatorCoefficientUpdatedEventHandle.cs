@@ -60,7 +60,7 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);

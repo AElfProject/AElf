@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.Application
                         {
                             if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
                                 continue;
-                            await handler.HandleAsync(block, result, log);
+                            await handler.ProcessAsync(block, result, log);
                         }
                     }
                 }

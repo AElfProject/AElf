@@ -45,7 +45,7 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<SymbolListToPayTxFeeUpdatedEventHandler>.Instance;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new ExtraTokenListModified();
             eventData.MergeFrom(logEvent);

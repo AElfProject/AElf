@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _proposalService = proposalService;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             // a new task for time-consuming code check job 
             Task.Run(async () =>
