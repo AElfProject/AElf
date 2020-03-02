@@ -47,6 +47,23 @@ jobs:
     inputs:
       testRunner: VSTest
       testResultsFiles: '**/*.trx'
+  - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+  displayName: ReportGenerator
+  inputs:
+    reports: '$(Build.SourcesDirectory)/test/**/**/coverage.cobertura.xml'
+    targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+    reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
+    assemblyfilters: '-xunit*'
+ 
+  # Publish the code coverage result (summary and web site)
+  # The summary allows to view the coverage percentage in the summary tab
+  # The web site allows to view which lines are covered directly in Azure Pipeline
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage'
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
