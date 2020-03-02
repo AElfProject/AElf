@@ -23,11 +23,11 @@ namespace AElf.Kernel.FeeCalculation
             return _next;
         }
 
-        public long CalculateFee(IList<Coefficient> coefficient, int totalCount)
+        public long CalculateFee(IList<int[]> coefficient, int totalCount)
         {
             if (coefficient.Count == 0) return 0;
             var currentCoefficient = coefficient[0];
-            var parameters = currentCoefficient.Parameters;
+            var parameters = currentCoefficient;
             var piece = parameters[0];
             if(piece >= totalCount || _next == null || coefficient.Count == 1)
             {

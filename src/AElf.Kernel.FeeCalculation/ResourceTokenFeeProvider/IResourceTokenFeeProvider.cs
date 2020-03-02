@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.FeeCalculation
 {
     public interface IResourceTokenFeeProvider
     {
-        long CalculateTokenFeeAsync(TransactionContext transactionContext);
+        Task<long> CalculateTokenFeeAsync(TransactionContext transactionContext, ChainContext chainContext);
     }
 }

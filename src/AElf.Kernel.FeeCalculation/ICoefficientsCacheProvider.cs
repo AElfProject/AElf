@@ -1,79 +1,51 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation
 {
     public interface ICoefficientsCacheProvider
     {
-        Coefficients GetCoefficientByTokenType(int tokenType);
-        void SetCoefficientByTokenType(int tokenType);
+        Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, ChainContext chainContext);
+        void SetCoefficientByTokenType(int tokenType, ChainContext chainContext);
     }
     
     public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISingletonDependency
     {
-        private readonly IMockBlockChainStateService _blockChainStateService;
-        private readonly Dictionary<int, Coefficients> _coefficientsDicCache;
-        private readonly Dictionary<int, int> _updateCountDic;
-        private readonly object _lock;
+        private readonly IBlockchainStateService _blockChainStateService;
+        private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
 
-        public CoefficientsCacheProvider(IMockBlockChainStateService blockChainStateService)
+        public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
             _blockChainStateService = blockChainStateService;
-            _coefficientsDicCache = new Dictionary<int, Coefficients>();
-            _updateCountDic = new Dictionary<int, int>();
-            _lock = new object();
+            _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
         }
-        public Coefficients GetCoefficientByTokenType(int tokenType)
-        {
-            lock (_lock)
-            {
-                if(_coefficientsDicCache.TryGetValue(tokenType, out var coefficients) && _updateCountDic[tokenType] == 0)
-                    return coefficients;
-                coefficients = _blockChainStateService.GetCoefficientByTokenType(tokenType);
-                _coefficientsDicCache[tokenType] = coefficients;
-                if (!_updateCountDic.ContainsKey(tokenType))
-                    _updateCountDic[tokenType] = 0;
-                if (_updateCountDic[tokenType] > 0)
-                    _updateCountDic[tokenType] -= 1;
-                return coefficients;
-            }
-        }
-        public void SetCoefficientByTokenType(int tokenType)
-        {
-            lock (_lock)
-            {
-                if(_updateCountDic.ContainsKey(tokenType))
-                    _updateCountDic[tokenType] += 1;
-                _updateCountDic[tokenType] = 1;
-            }
-        }
-    }
-    
-    // public SingletonState<CalculateFeeCoefficientOfContract> CalculateCoefficientOfContract { get; set; }
-    // public SingletonState<CalculateFeeCoefficientOfSender> CalculateCoefficientOfSender { get; set; }
-    
-    public interface IMockBlockChainStateService
-    {
-        Coefficients GetCoefficientByTokenType(int tokenType);
-        //Coefficients GetPrimaryCoefficient(int tokenType);
         
-    }
-    
-    public class MockBlockChainStateService : IMockBlockChainStateService
-    {
-        public Coefficients GetCoefficientByTokenType(int tokenType)
+        public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, ChainContext chainContext)
         {
-            return new Coefficients();
+            if(_coefficientsDicCache.TryGetValue(tokenType, out var coefficientsInCache))
+                    return coefficientsInCache;
+            IList<int[]> coefficientsArray;
+            if (tokenType == (int) FeeTypeEnum.Tx)
+            {
+                var coefficientOfTx = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfSender>(chainContext);
+                coefficientsArray = coefficientOfTx.CoefficientOfSender.Coefficients.AsEnumerable()
+                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToList();
+            }
+            else
+            {
+                var coefficients = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(chainContext);
+                var coefficientOfToken = coefficients.CoefficientDicOfContract[tokenType];
+                coefficientsArray = coefficientOfToken.Coefficients.AsEnumerable()
+                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToList();
+            }
+            return coefficientsArray;
         }
-    }
-    
-    public class Coefficients
-    {
-        public Coefficient[] AllCoefficients { get; set; }
-    }
-    public class Coefficient
-    {
-        public int[] Parameters { get; set; }
+        public void SetCoefficientByTokenType(int tokenType, ChainContext chainContext)
+        {
+        }
     }
 }

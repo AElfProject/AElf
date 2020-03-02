@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 
@@ -15,13 +16,13 @@ namespace AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl
             _coefficientsCacheProvider = coefficientsCacheProvider;
             _tokenType = tokenType;
         }
-        public long CalculateTokenFeeAsync(TransactionContext transactionContext)
+        public async Task<long> CalculateTokenFeeAsync(TransactionContext transactionContext, ChainContext chainContext)
         {
             if(PieceCalculateFunction == null)
                 InitializeFunction();
             var count = transactionContext.Transaction.Size();
-            var coefficients = _coefficientsCacheProvider.GetCoefficientByTokenType(_tokenType);
-            return  PieceCalculateFunction.CalculateFee(coefficients.AllCoefficients, count);
+            var coefficients = await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
+            return  PieceCalculateFunction.CalculateFee(coefficients, count);
         }
         protected abstract void InitializeFunction();
 
