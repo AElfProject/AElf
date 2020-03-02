@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using AElf.CSharp.CodeOps;
 using AElf.Sdk.CSharp;
@@ -16,59 +17,84 @@ namespace AElf.Runtime.CSharp
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
         }
 
-        private object _instance;
-        private Type _counterType;
 
-        private Dictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
+        private static Delegate CreateDelegate(object instance, MethodInfo method)
+        {
+            return Delegate.CreateDelegate
+            (
+                Expression.GetDelegateType
+                (
+                    method.GetParameters()
+                        .Select(p => p.ParameterType)
+                        .Concat(new Type[] {method.ReturnType})
+                        .ToArray()
+                ),
+                instance,
+                method
+            );
+        }
+
+        private static Delegate CreateDelegate(object instance, Type type, string name)
+        {
+            var methodInfo = GetMethodInfo(type, name);
+            return methodInfo == null ? null : CreateDelegate(instance, methodInfo);
+        }
+
+        private readonly Action _methodCleanup;
+        private readonly Func<TransactionExecutingStateSet> _methodGetChanges;
+        private readonly Action<ISmartContractBridgeContext> _methodInternalInitialize;
+
+
+        private readonly Action _methodResetFields; // can be null
+        private readonly Action<IExecutionObserver> _methodSetExecutionObserver; // can be null
 
         public CSharpSmartContractProxy(object instance, Type counterType)
         {
-            _instance = instance;
-            _counterType = counterType;
-            InitializeMethodInfos(_instance.GetType());
-        }
+            var instanceType = instance.GetType();
 
-        private void InitializeMethodInfos(Type instanceType)
-        {
-            _methodInfos = new[]
-            {
-                nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize), nameof(ResetFields), 
-            }.ToDictionary(x => x, x => GetMethodInfo(instanceType, x));
+            _methodCleanup = (Action) CreateDelegate(instance, instanceType, nameof(Cleanup));
 
-            // Add proxy method
-            _methodInfos.Add(nameof(ExecutionObserverProxy.SetObserver), 
-                _counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver), 
-                    new []{ typeof(IExecutionObserver)}));
+            _methodGetChanges =
+                (Func<TransactionExecutingStateSet>) CreateDelegate(instance, instanceType, nameof(GetChanges));
+
+            _methodInternalInitialize =
+                (Action<ISmartContractBridgeContext>) CreateDelegate(instance, instanceType,
+                    nameof(InternalInitialize));
+
+            _methodResetFields = (Action) CreateDelegate(instance, instanceType, nameof(ResetFields));
+
+            _methodSetExecutionObserver = counterType == null
+                ? null
+                : (Action<IExecutionObserver>) CreateDelegate(null,
+                    counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver),
+                        new[] {typeof(IExecutionObserver)}));
         }
 
         public void InternalInitialize(ISmartContractBridgeContext context)
         {
-            _methodInfos[nameof(InternalInitialize)].Invoke(_instance, new object[] {context});
+            _methodInternalInitialize(context);
         }
 
         public TransactionExecutingStateSet GetChanges()
         {
-            return (TransactionExecutingStateSet) _methodInfos[nameof(GetChanges)]
-                .Invoke(_instance, new object[0]);
+            return _methodGetChanges();
         }
 
         internal void Cleanup()
         {
-            _methodInfos[nameof(Cleanup)].Invoke(_instance, new object[0]);
-            _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
-                ?.Invoke(null, new object[] { null });
+            _methodCleanup();
+            _methodSetExecutionObserver?.Invoke(null);
             ResetFields();
         }
 
         void ResetFields()
         {
-            _methodInfos[nameof(ResetFields)]?.Invoke(_instance, new object[0]);
+            _methodResetFields?.Invoke();
         }
 
         internal void SetExecutionObserver(IExecutionObserver observer)
         {
-            _methodInfos[nameof(ExecutionObserverProxy.SetObserver)]
-                ?.Invoke(null, new object[] { observer });
+            _methodSetExecutionObserver?.Invoke(observer);
         }
     }
 }
