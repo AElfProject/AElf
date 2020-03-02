@@ -89,33 +89,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable_Test()
-        {
-            var txn = GetAcs2Transaction(new ResourceInfo
-            {
-                Paths =
-                {
-                    GetPath(12345)
-                }
-            });
-            MockContractRemarksService.NonParallelizable = true;
-            var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
-                .ToList();
-
-            var executive = await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
-            resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().TransactionResourceInfo.ShouldBe(new TransactionResourceInfo()
-            {
-                TransactionId = txn.GetHash(),
-                ParallelType = ParallelType.NonParallelizable,
-                ContractHash = executive.ContractHash,
-                IsContractRemarks = true
-            });
-            MockContractRemarksService.NonParallelizable = false;
-        }
-
-        [Fact]
         public async Task GetResourcesAsync_Acs2_NonParallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
