@@ -13,10 +13,9 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("Parliament")).Value,
+                GetContractCodeByName("AElf.Contracts.Parliament"),
                 ParliamentSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList());
-
             return l;
         }
         

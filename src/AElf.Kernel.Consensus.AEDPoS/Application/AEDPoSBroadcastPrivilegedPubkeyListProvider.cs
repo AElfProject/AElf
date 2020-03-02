@@ -15,23 +15,27 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IAccountService _accountService;
+        private readonly IConsensusExtraDataNameProvider _consensusExtraDataNameProvider;
 
         private readonly List<string> _cachedPubkeyList = new List<string>();
 
         public ILogger<AEDPoSBroadcastPrivilegedPubkeyListProvider> Logger { get; set; }
 
         public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
-            IAccountService accountService)
+            IAccountService accountService, IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _accountService = accountService;
+            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
 
             Logger = NullLogger<AEDPoSBroadcastPrivilegedPubkeyListProvider>.Instance;
         }
 
         public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
         {
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
+            var consensusExtraData =
+                _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataNameProvider.ExtraDataName,
+                    blockHeader);
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
             if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {

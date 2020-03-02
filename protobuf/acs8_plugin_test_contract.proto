@@ -6,10 +6,10 @@ import "acs8.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract";
+option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract";
 
 service Contract {
-    option (aelf.csharp_state) = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractState";
+    option (aelf.csharp_state) = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.ContractState";
     option (aelf.base) = "acs8.proto";
     rpc CpuConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -18,8 +18,6 @@ service Contract {
     rpc NetConsumingMethod (NetConsumingMethodInput) returns (google.protobuf.Empty) {
     }
     rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc SendTransferFromAsInlineTx (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
 }
 
