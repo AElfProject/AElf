@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Txn.Application;
 
