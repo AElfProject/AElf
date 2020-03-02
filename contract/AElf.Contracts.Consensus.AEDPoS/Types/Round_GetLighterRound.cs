@@ -1,5 +1,6 @@
 using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
