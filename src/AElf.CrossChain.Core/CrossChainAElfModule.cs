@@ -30,7 +30,7 @@ namespace AElf.CrossChain
             context.Services.AddSingleton<IChargeFeeStrategy, CrossChainContractChargeFeeStrategy>();
             //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
             context.Services
-                .AddSingleton<IBestChainFoundLogEventHandler, CrossChainIndexingDataProposedLogEventHandler>();
+                .AddSingleton<IBestChainFoundLogEventProcessor, CrossChainIndexingDataProposedLogEventProcessor>();
         }
     }
 }

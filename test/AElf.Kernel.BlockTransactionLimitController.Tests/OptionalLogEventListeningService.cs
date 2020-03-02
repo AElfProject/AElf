@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventHandler
+    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventProcessor
     {
         private LogEventListeningService<T> _inner;
 

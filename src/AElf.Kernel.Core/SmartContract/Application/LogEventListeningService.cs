@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace AElf.Kernel.SmartContract.Application
 {
     public class LogEventListeningService<T> : ILogEventListeningService<T>
-        where T : ILogEventHandler
+        where T : ILogEventProcessor
     {
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private Dictionary<LogEvent, Bloom> _blooms;

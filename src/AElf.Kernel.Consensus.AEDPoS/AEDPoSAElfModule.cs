@@ -46,10 +46,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     ConstrainedAEDPoSTransactionValidationProvider>();
 
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
-            context.Services.AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockFoundLogEventHandler>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
-            context.Services.AddSingleton<IBestChainFoundLogEventHandler, SecretSharingInformationLogEventHandler>();
+                .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 

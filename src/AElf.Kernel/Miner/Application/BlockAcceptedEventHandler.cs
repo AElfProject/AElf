@@ -8,9 +8,9 @@ namespace AElf.Kernel.Miner.Application
 {
     public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
     {
-        private readonly ILogEventListeningService<IBlockAcceptedLogEventHandler> _logEventListeningService;
+        private readonly ILogEventListeningService<IBlockAcceptedLogEventProcessor> _logEventListeningService;
 
-        public BlockAcceptedEventHandler(ILogEventListeningService<IBlockAcceptedLogEventHandler> logEventListeningService)
+        public BlockAcceptedEventHandler(ILogEventListeningService<IBlockAcceptedLogEventProcessor> logEventListeningService)
         {
             _logEventListeningService = logEventListeningService;
         }

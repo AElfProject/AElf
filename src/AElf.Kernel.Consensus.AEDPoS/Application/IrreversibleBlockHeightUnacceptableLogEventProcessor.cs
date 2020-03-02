@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventHandler : IBestChainFoundLogEventHandler
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -31,16 +31,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public ILogger<IrreversibleBlockHeightUnacceptableLogEventHandler> Logger { get; set; }
+        public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
-        public IrreversibleBlockHeightUnacceptableLogEventHandler(
+        public IrreversibleBlockHeightUnacceptableLogEventProcessor(
             IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             ISmartContractAddressService smartContractAddressService)
         {
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
             _smartContractAddressService = smartContractAddressService;
 
-            Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventHandler>.Instance;
+            Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
 
         public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)

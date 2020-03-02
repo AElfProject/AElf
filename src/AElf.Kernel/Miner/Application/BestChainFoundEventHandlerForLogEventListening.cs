@@ -9,9 +9,9 @@ namespace AElf.Kernel.Miner.Application
     public class BestChainFoundEventHandlerForLogEventListening : ILocalEventHandler<BestChainFoundEventData>,
         ITransientDependency
     {
-        private readonly ILogEventListeningService<IBestChainFoundLogEventHandler> _logEventListeningService;
+        private readonly ILogEventListeningService<IBestChainFoundLogEventProcessor> _logEventListeningService;
 
-        public BestChainFoundEventHandlerForLogEventListening(ILogEventListeningService<IBestChainFoundLogEventHandler> logEventListeningService)
+        public BestChainFoundEventHandlerForLogEventListening(ILogEventListeningService<IBestChainFoundLogEventProcessor> logEventListeningService)
         {
             _logEventListeningService = logEventListeningService;
         }

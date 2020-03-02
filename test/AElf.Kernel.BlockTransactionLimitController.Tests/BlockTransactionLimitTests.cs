@@ -35,7 +35,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
-            OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>.Enabled = true;
+            OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>.Enabled = true;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             _configurationStub =

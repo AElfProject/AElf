@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventHandler : IBestChainFoundLogEventHandler
+    public class IrreversibleBlockFoundLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -21,9 +21,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private LogEvent _interestedEvent;
 
-        public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
+        public ILogger<IrreversibleBlockFoundLogEventProcessor> Logger { get; set; }
 
-        public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
+        public IrreversibleBlockFoundLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             IBlockchainService blockchainService, ITaskQueueManager taskQueueManager,
             IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
         {
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _taskQueueManager = taskQueueManager;
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
 
-            Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
+            Logger = NullLogger<IrreversibleBlockFoundLogEventProcessor>.Instance;
         }
 
         public LogEvent InterestedEvent

@@ -13,18 +13,18 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
-    public class CrossChainIndexingDataProposedLogEventHandler : IBestChainFoundLogEventHandler
+    public class CrossChainIndexingDataProposedLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         public LogEvent InterestedEvent => GetInterestedEvent();
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
-        public ILogger<CrossChainIndexingDataProposedLogEventHandler> Logger { get; set; }
+        public ILogger<CrossChainIndexingDataProposedLogEventProcessor> Logger { get; set; }
 
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICrossChainIndexingDataValidationService _crossChainIndexingDataValidationService;
         private readonly IProposalService _proposalService;
         private LogEvent _interestedEvent;
         
-        public CrossChainIndexingDataProposedLogEventHandler(ISmartContractAddressService smartContractAddressService, 
+        public CrossChainIndexingDataProposedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
             ICrossChainIndexingDataValidationService crossChainIndexingDataValidationService, IProposalService proposalService)
         {
             _smartContractAddressService = smartContractAddressService;

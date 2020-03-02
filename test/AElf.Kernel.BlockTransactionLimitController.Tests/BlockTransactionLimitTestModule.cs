@@ -16,8 +16,8 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             context.Services.AddSingleton(typeof(LogEventListeningService<>));
             context.Services
                 .Replace(ServiceDescriptor
-                    .Singleton<ILogEventListeningService<IBlockAcceptedLogEventHandler>,
-                        OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>>());
+                    .Singleton<ILogEventListeningService<IBlockAcceptedLogEventProcessor>,
+                        OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>>());
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }

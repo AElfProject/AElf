@@ -3,18 +3,18 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface ILogEventHandler
+    public interface ILogEventProcessor
     {
         LogEvent InterestedEvent { get; }
         Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent);
     }
     
-    public interface IBlockAcceptedLogEventHandler : ILogEventHandler
+    public interface IBlockAcceptedLogEventProcessor : ILogEventProcessor
     {
 
     }
 
-    public interface IBestChainFoundLogEventHandler : ILogEventHandler
+    public interface IBestChainFoundLogEventProcessor : ILogEventProcessor
     {
 
     }

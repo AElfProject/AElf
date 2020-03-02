@@ -14,12 +14,12 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     //TODO: not here
 
-    public class SymbolListToPayTxFeeUpdatedEventHandler : IBlockAcceptedLogEventHandler
+    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISymbolListToPayTxFeeService _symbolListToPayTxFeeService;
         private LogEvent _interestedEvent;
-        private ILogger<SymbolListToPayTxFeeUpdatedEventHandler> Logger { get; set; }
+        private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -37,12 +37,12 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public SymbolListToPayTxFeeUpdatedEventHandler(ISmartContractAddressService smartContractAddressService,
+        public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
         {
             _smartContractAddressService = smartContractAddressService;
             _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
-            Logger = NullLogger<SymbolListToPayTxFeeUpdatedEventHandler>.Instance;
+            Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
         }
 
         public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
