@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;

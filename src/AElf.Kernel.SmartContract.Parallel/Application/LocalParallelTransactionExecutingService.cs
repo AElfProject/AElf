@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService,
         ISingletonDependency

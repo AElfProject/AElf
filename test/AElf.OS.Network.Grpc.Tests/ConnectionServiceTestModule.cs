@@ -5,6 +5,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;
 using AElf.OS.Network.Types;

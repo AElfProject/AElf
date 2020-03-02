@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

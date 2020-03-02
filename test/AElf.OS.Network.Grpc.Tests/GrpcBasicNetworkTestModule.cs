@@ -8,7 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Grpc.Helpers;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Protocol;
 using AElf.Types;
 using AElf.OS.Network.Infrastructure;

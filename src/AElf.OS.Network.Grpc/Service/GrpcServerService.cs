@@ -7,6 +7,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.Types;
 using Grpc.Core;

@@ -6,7 +6,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public interface IResourceExtractionService
     {

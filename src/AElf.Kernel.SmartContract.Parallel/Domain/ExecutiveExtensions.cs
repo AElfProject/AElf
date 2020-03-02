@@ -7,7 +7,7 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     internal static class ExecutiveExtensions
     {

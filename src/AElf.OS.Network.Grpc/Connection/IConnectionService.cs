@@ -1,9 +1,8 @@
-using System;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network.Grpc.Connection
 {
     public interface IConnectionService
     {

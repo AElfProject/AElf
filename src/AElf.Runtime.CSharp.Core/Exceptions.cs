@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Runtime.CSharp
 {
     public class InvalidMethodNameException : Exception
     {

@@ -8,7 +8,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
@@ -16,7 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public class ResourceExtractionService : IResourceExtractionService, ISingletonDependency
     {

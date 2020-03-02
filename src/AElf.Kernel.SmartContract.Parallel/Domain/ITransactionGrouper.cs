@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public interface ITransactionGrouper
     {

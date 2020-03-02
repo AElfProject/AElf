@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Protocol;
 using Shouldly;

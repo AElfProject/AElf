@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;

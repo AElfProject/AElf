@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class ParallelExecutionInterestedEventsHandler : ILocalEventHandler<TransactionAcceptedEvent>,
 //        ILocalEventHandler<BlockAcceptedEvent>,

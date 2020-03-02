@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Shouldly;

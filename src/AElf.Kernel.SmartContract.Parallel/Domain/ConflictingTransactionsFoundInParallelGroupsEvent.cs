@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
     public class ConflictingTransactionsFoundInParallelGroupsEvent
     {

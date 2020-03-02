@@ -3,7 +3,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
+        <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <PackageId>AElf.Runtime.CSharp.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Core elements of C# smart contracts.</Description>

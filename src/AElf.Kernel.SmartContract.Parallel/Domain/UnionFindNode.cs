@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
 	/// <summary>
 	/// A UnionFindNode represents a set of nodes that it is a member of.

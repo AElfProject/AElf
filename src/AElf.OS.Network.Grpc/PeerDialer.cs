@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;

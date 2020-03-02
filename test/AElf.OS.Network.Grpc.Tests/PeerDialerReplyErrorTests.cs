@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Helpers;
 using Shouldly;
 using Xunit;

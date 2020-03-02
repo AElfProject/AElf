@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.Parallel;
+using AElf.Kernel.SmartContract.Parallel.Application;
 using AElf.Modularity;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 

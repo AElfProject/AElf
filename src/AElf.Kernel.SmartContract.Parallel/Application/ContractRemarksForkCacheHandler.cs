@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class ContractRemarksForkCacheHandler : IForkCacheHandler, ITransientDependency
     {
