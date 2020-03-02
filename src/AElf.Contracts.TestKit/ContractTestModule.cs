@@ -114,8 +114,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
-                .Singleton<ITransactionExecutingService,
-                    Kernel.SmartContract.Application.LocalTransactionExecutingService>());
+                .Singleton<ITransactionExecutingService, LocalTransactionExecutingService>());
             context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
         }
 
@@ -145,6 +144,9 @@ namespace AElf.Contracts.TestKit
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
+#if DEBUG
+            SmartContractRunnerForCategoryThirty.WriteCoverageHints();
+#endif
         }
     }
 
