@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.BlockTransactionLimitController;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
