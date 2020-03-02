@@ -74,15 +74,15 @@ Task("Test-with-Codecov")
         var action=new Action(()=>{
             DotNetCoreTest(testProject.FullPath, testSetting);
 
-            if(codecovToken!=""){
-                var dir=testProject.GetDirectory().FullPath;
-                var reports = GetFiles(dir + "/TestResults/*/coverage.cobertura.xml");
+            // if(codecovToken!=""){
+            //     var dir=testProject.GetDirectory().FullPath;
+            //     var reports = GetFiles(dir + "/TestResults/*/coverage.cobertura.xml");
 
-                foreach(var report in reports)
-                {
-                    Codecov(report.FullPath,"$CODECOV_TOKEN");
-                }
-            }
+            //     foreach(var report in reports)
+            //     {
+            //         Codecov(report.FullPath,"$CODECOV_TOKEN");
+            //     }
+            // }
         });
         actions.Add(action);
     }
@@ -106,7 +106,7 @@ Task("Run-Unit-Tests")
         ArgumentCustomization = args => {
             return args.Append("--logger trx");
         }
-};
+    };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
 
@@ -120,11 +120,7 @@ Task("Upload-Coverage")
 {
     var reports = GetFiles("./test/*.Tests/TestResults/*/coverage.cobertura.xml");
 
-    foreach(var report in reports)
-    {
-        Codecov(report.FullPath,"$CODECOV_TOKEN");
-    }
-    // Upload a coverage report.
+    Codecov(reports.Select(p=>p.FullPath).ToArray(),"$CODECOV_TOKEN");
 });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
