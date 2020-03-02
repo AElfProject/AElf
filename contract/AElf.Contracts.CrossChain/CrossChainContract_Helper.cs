@@ -90,7 +90,7 @@ namespace AElf.Contracts.CrossChain
         public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
-            var proposedRequest = State.ProposedSideChainCreationRequest[Context.Sender];
+            var proposedRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
             Assert(proposedRequest == null || Context.CurrentBlockTime >= proposedRequest.ExpiredTime,
                 "Request side chain creation failed.");
             Assert(
@@ -343,7 +343,7 @@ namespace AElf.Contracts.CrossChain
             return ChainHelper.GetChainId(serialNumber + Context.ChainId);
         }
 
-        private SideChainCreationRequest ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
+        private SideChainCreationRequestState ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
             var sideChainLifeTimeController = GetSideChainLifetimeController();
             var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -364,9 +364,11 @@ namespace AElf.Contracts.CrossChain
             Context.SendInline(sideChainLifeTimeController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
-            var sideChainCreationRequest = new SideChainCreationRequest(request)
+            var sideChainCreationRequest = new SideChainCreationRequestState()
             {
-                ExpiredTime = proposalCreationInput.ProposalInput.ExpiredTime
+                SideChainCreationRequest = request,
+                ExpiredTime = proposalCreationInput.ProposalInput.ExpiredTime,
+                Proposer = proposer
             };
             return sideChainCreationRequest;
         }
@@ -491,7 +493,7 @@ namespace AElf.Contracts.CrossChain
         {
             var isExpired = CheckProposalExpired(proposalId);
             if (isExpired)
-                State.ProposedSideChainCreationRequest.Remove(proposer);
+                State.ProposedSideChainCreationRequestState.Remove(proposer);
             return isExpired;
         }
 

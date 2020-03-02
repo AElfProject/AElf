@@ -61,6 +61,9 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)
                 }
             });
+
+            State.TokenContract.SetPrimaryTokenSymbol.Send(new SetPrimaryTokenSymbolInput
+                {Symbol = input.NativeTokenSymbol});
         }
 
         private void CreateTokenConverterToken()

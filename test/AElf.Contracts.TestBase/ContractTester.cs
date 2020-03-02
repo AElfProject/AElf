@@ -705,6 +705,8 @@ namespace AElf.Contracts.TestBase
                 Issuer = issuer,
                 IsBurnable = true
             });
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
@@ -754,7 +756,8 @@ namespace AElf.Contracts.TestBase
                     parliamentContractCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name,
                     crossChainContractCallList);
-                list.AddGenesisSmartContract(ConfigurationContractCode, ConfigurationSmartContractAddressNameProvider.Name, 
+                list.AddGenesisSmartContract(ConfigurationContractCode,
+                    ConfigurationSmartContractAddressNameProvider.Name,
                     configurationContractCallList);
                 list.AddGenesisSmartContract(AssociationContractCode, AssociationSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ReferendumContractCode, ReferendumSmartContractAddressNameProvider.Name);
@@ -784,29 +787,36 @@ namespace AElf.Contracts.TestBase
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
-                new RegisterNativeAndResourceTokenInfoInput
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                new CreateInput
                 {
-                    NativeTokenInfo = new RegisterNativeTokenInfoInput
-                    {
-                        Decimals = nativeTokenInfo.Decimals,
-                        IssueChainId = nativeTokenInfo.IssueChainId,
-                        Issuer = nativeTokenInfo.Issuer,
-                        IsBurnable = nativeTokenInfo.IsBurnable,
-                        Symbol = nativeTokenInfo.Symbol,
-                        TokenName = nativeTokenInfo.TokenName,
-                        TotalSupply = nativeTokenInfo.TotalSupply
-                    },
-                    ChainPrimaryToken = new TokenInfo
-                    {
-                        Decimals = 2,
-                        IsBurnable = true,
-                        Issuer = Address.FromPublicKey(KeyPair.PublicKey),
-                        TotalSupply = 1_000_000_000,
-                        Symbol = symbol,
-                        TokenName = "TEST",
-                        IssueChainId = chainOptions.ChainId
-                    },
+                    Decimals = nativeTokenInfo.Decimals,
+                    IssueChainId = nativeTokenInfo.IssueChainId,
+                    Issuer = nativeTokenInfo.Issuer,
+                    IsBurnable = nativeTokenInfo.IsBurnable,
+                    Symbol = nativeTokenInfo.Symbol,
+                    TokenName = nativeTokenInfo.TokenName,
+                    TotalSupply = nativeTokenInfo.TotalSupply
+                });
+
+            tokenInitializationCallList.Add(
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                new CreateInput
+                {
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                    TotalSupply = 1_000_000_000,
+                    Symbol = symbol,
+                    TokenName = "TEST",
+                    IssueChainId = chainOptions.ChainId
+                }
+            );
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput
+                {
+                    Symbol = symbol
                 });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

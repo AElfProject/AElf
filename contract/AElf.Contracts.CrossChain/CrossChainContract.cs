@@ -54,14 +54,14 @@ namespace AElf.Contracts.CrossChain
         public override Empty RequestSideChainCreation(SideChainCreationRequest input)
         {
             AssertValidSideChainCreationRequest(input, Context.Sender);
-            var sideChainCreationRequest = ProposeNewSideChain(input, Context.Sender);
-            State.ProposedSideChainCreationRequest[Context.Sender] = sideChainCreationRequest;
+            var sideChainCreationRequestState = ProposeNewSideChain(input, Context.Sender);
+            State.ProposedSideChainCreationRequestState[Context.Sender] = sideChainCreationRequestState;
             return new Empty();
         }
 
         public override Empty ReleaseSideChainCreation(ReleaseSideChainCreationInput input)
         {
-            var sideChainCreationRequest = State.ProposedSideChainCreationRequest[Context.Sender];
+            var sideChainCreationRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
                 Context.SendInline(State.SideChainLifetimeController.Value.ContractAddress,
@@ -80,12 +80,12 @@ namespace AElf.Contracts.CrossChain
             // side chain creation should be triggered by organization address.
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
-            var proposedSideChainCreationRequest = State.ProposedSideChainCreationRequest[input.Proposer];
-            State.ProposedSideChainCreationRequest.Remove(input.Proposer);
+            var proposedSideChainCreationRequestState = State.ProposedSideChainCreationRequestState[input.Proposer];
+            State.ProposedSideChainCreationRequestState.Remove(input.Proposer);
             var sideChainCreationRequest = input.SideChainCreationRequest;
             Assert(
-                proposedSideChainCreationRequest != null &&
-                proposedSideChainCreationRequest.Equals(sideChainCreationRequest),
+                proposedSideChainCreationRequestState != null &&
+                proposedSideChainCreationRequestState.SideChainCreationRequest.Equals(sideChainCreationRequest),
                 "Side chain creation failed without proposed data.");
             AssertValidSideChainCreationRequest(sideChainCreationRequest, input.Proposer);
 
