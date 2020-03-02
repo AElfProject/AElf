@@ -152,7 +152,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
+                Logger.LogInformation(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
                 _peerPool.RemovePeer(currentPeer.Info.Pubkey);
                 await currentPeer.DisconnectAsync(false);
                 throw;

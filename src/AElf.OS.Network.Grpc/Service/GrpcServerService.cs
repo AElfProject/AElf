@@ -66,7 +66,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Handshake failed - {context.Peer}: ");
+                Logger.LogWarning(e, $"Handshake failed - {context.Peer}: ");
                 throw;
             }
         }
@@ -82,7 +82,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error - {context.GetPeerInfo()}: ");
+                Logger.LogWarning(e, $"Confirm handshake error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
