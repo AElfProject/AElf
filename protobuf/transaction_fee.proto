@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package aelf;
 
-option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1";
+option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee";
 
 message TransactionSizeFeeSymbols
 {

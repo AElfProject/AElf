@@ -166,12 +166,6 @@ namespace AElf.CrossChain.Communication
             });
 
             context.Services.AddSingleton<CrossChainPlugin>();
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 }

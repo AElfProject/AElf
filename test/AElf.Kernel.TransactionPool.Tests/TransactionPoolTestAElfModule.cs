@@ -48,12 +48,6 @@ namespace AElf.Kernel.TransactionPool
             });
 
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 
@@ -74,17 +68,6 @@ namespace AElf.Kernel.TransactionPool
                 return service.Object;
             });
             
-            services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressProvider>();
-                mockService.Setup(m => m.CheckContractAddress(It.IsAny<ChainContext>(),
-                        It.Is<Address>(address => address == SampleAddress.AddressList[0])))
-                    .Returns(true);
-                mockService.Setup(m => m.CheckContractAddress(It.IsAny<ChainContext>(),
-                        It.Is<Address>(address => address != SampleAddress.AddressList[0])))
-                    .Returns(false);
-                return mockService.Object;
-            });
             services.AddSingleton(provider =>
             {
                 var service = new Mock<ITransactionFeeExemptionService>();

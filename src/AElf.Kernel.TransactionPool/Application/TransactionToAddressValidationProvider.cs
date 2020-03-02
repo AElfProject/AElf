@@ -11,16 +11,16 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         public bool ValidateWhileSyncing => false;
 
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         public ILogger<TransactionToAddressValidationProvider> Logger { get; set; }
 
-        public TransactionToAddressValidationProvider(IDeployedContractAddressProvider deployedContractAddressProvider,
-            IBlockchainService blockchainService)
+        public TransactionToAddressValidationProvider(IBlockchainService blockchainService, 
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _deployedContractAddressProvider = deployedContractAddressProvider;
             _blockchainService = blockchainService;
+            _smartContractExecutiveService = smartContractExecutiveService;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -31,7 +31,8 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            if (_deployedContractAddressProvider.CheckContractAddress(chainContext, transaction.To))
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, transaction.To);
+            if (executive != null)
             {
                 return true;
             }

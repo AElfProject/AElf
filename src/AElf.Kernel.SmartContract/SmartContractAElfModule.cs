@@ -1,10 +1,7 @@
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
@@ -15,12 +12,6 @@ namespace AElf.Kernel.SmartContract
         {
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
-        }
-
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var deployedContractAddressService = context.ServiceProvider.GetService<IDeployedContractAddressService>();
-            AsyncHelper.RunSync(() => deployedContractAddressService.InitAsync());
         }
     }
 }
