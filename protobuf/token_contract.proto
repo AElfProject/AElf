@@ -331,11 +331,7 @@ message InitializeInput {
 
 message CoefficientFromSender {
     sint32 piece_key = 1;
-    bool is_change_piece_key = 2;
-    bool is_liner = 3;
-    LinerCoefficient liner_coefficient = 4;
-    PowerCoefficient power_coefficient = 5;
-    NewPieceKeyCoefficient new_piece_key_coefficient = 6;
+    repeated sint32 coefficient_array = 2;
 }
 
 message LinerCoefficient{
@@ -393,10 +389,21 @@ message CalculateFeeCoefficientsOfType{
 }
 
 message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
+    repeated sint32 coefficient_array = 1;
+}
+//message CalculateFeeCoefficient {
+//    sint32 piece_key = 1;
+//    FeeTypeEnum fee_type = 2;
+//    CalculateFunctionTypeEnum function_type = 3;
+//    map<string, sint32> coefficient_dic = 4;
+//}
+
+message CalculateFeeCoefficientOfSender{
+    CalculateFeeCoefficientsOfType coefficient_of_sender = 1;
+}
+
+message CalculateFeeCoefficientOfContract{
+    map<sint32, CalculateFeeCoefficientsOfType> coefficient_dic_of_contract = 1;
 }
 
 // Events
