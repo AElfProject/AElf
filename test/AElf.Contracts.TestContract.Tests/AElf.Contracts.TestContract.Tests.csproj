@@ -11,7 +11,7 @@
     </PropertyGroup>
 
    <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="coverlet.msbuild" Version="2.8.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -66,7 +66,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.csproj">
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
