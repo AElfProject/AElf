@@ -15,7 +15,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
-    public class FeeChargePreExecutionPlugin : SmartContractAcsPluginBase, IPreExecutionPlugin, ISingletonDependency
+    public class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             ICalculateTxCostStrategy calStrategy,
-            ISymbolListToPayTxFeeService symbolListToPayTxFeeService):base("acs1")
+            ISymbolListToPayTxFeeService symbolListToPayTxFeeService) : base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
@@ -37,12 +37,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             _transactionFeeExemptionService = transactionFeeExemptionService;
             _symbolListToPayTxFeeService = symbolListToPayTxFeeService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
-        }
-
-        private bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            var acsSymbol = GetAcsSymbol();
-            return descriptors.Any(service => service.File.GetIdentity() == acsSymbol);
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -65,7 +59,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
-                if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
+                if (!IsTargetAcsSymbol(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
                 {
                     return new List<Transaction>();
                 }

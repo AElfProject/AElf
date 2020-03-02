@@ -13,7 +13,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 {
-    public class MethodCallingThresholdPreExecutionPlugin : SmartContractAcsPluginBase, IPreExecutionPlugin, ISingletonDependency
+    public class MethodCallingThresholdPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
 
@@ -22,16 +22,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             _contextService = contextService;
         }
 
-        private bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            var acsSymbol = GetAcsSymbol();
-            return descriptors.Any(service => service.File.GetIdentity() == acsSymbol);
-        }
-
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs5(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }

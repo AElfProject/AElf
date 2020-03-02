@@ -12,7 +12,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPostExecutionPlugin : SmartContractAcsPluginBase, IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : SmartContractExecutionPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ICalculateReadCostStrategy _readCostStrategy;
@@ -34,12 +34,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             _trafficCostStrategy = trafficCostStrategy;
         }
 
-        private bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            var acsSymbol = GetAcsSymbol();
-            return descriptors.Any(service => service.File.GetIdentity() == acsSymbol);
-        }
-
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
@@ -56,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs8(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }
