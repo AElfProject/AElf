@@ -14,7 +14,6 @@ namespace AElf.Kernel.SmartContract
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
-            //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

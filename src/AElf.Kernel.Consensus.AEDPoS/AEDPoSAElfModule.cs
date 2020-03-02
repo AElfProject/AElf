@@ -13,7 +13,6 @@ using Volo.Abp.Threading;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContractExecution.Application;
-using InlineTransferFromValidationProvider = AElf.Kernel.Consensus.AEDPoS.Application.InlineTransferFromValidationProvider;
 using AElf.Kernel.Txn.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
@@ -39,13 +38,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
-            // IConstrainedTransactionValidationProvider is to limit the number of
-            // consensus transactions packaged to one single block.
-            context.Services
-                .AddSingleton<IConstrainedTransactionValidationProvider,
-                    ConstrainedAEDPoSTransactionValidationProvider>();
-
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services.AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockFoundLogEventHandler>();
             context.Services
                 .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
@@ -54,8 +46,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
             context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
-
-            //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
 
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.
