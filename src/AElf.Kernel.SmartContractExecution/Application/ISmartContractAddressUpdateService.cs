@@ -40,18 +40,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader,
             ISmartContractAddressNameProvider smartContractAddressNameProvider)
         {
-            var chainContext = new ChainContext
+            var transaction = new Transaction()
             {
-                BlockHash = blockHeader.GetHash(),
-                BlockHeight = blockHeader.Height
+                From = _smartContractAddressService.GetZeroSmartContractAddress(),
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName), 
+                Params = smartContractAddressNameProvider.ContractName.ToByteString()
             };
-            var returnValue = await _transactionExecutingService.ExecuteTransactionAsync(chainContext,
-                _smartContractAddressService.GetZeroSmartContractAddress(),
-                _smartContractAddressService.GetZeroSmartContractAddress(),
-                nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName),
-                smartContractAddressNameProvider.ContractName.ToByteString());
+            var address = await _transactionExecutingService.ExecuteAsync<Address>(
+                new ChainContext {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, transaction,
+                TimestampHelper.GetUtcNow(), true);
 
-            var address = Address.Parser.ParseFrom(returnValue);
             if (!address.Value.IsEmpty)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);
         }

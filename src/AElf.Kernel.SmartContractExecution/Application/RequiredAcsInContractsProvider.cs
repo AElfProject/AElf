@@ -35,18 +35,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = new ChainContext
+            var tx = new Transaction
             {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
+                From = FromAddress,
+                To = ConfigurationContractAddress,
+                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
+                Params = new Empty().ToByteString(),
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
-            var result = await _transactionReadOnlyExecutionService.ExecuteTransactionAsync(chainContext,
-                FromAddress,
-                ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
-                new Empty().ToByteString());
 
-            var returned = RequiredAcsInContracts.Parser.ParseFrom(result);
+            var returned = await _transactionReadOnlyExecutionService.ExecuteAsync<RequiredAcsInContracts>(
+                new ChainContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }, tx, TimestampHelper.GetUtcNow(), false);
 
             return new RequiredAcsDto
             {
