@@ -61,8 +61,10 @@ Task("Test-with-Codecov")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
-            return args.Append("--logger trx")
-                       .Append("--collect:\"XPlat Code Coverage\"");
+            return args
+                .Append("--logger trx")
+                .Append("--settings CodeCoverage.runsettings")
+                .Append("--collect:\"XPlat Code Coverage\"");
         }                
     };
     var codecovToken = "$CODECOV_TOKEN";
