@@ -15,7 +15,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
-    public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
+    public class FeeChargePreExecutionPlugin : SmartContractAcsPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             ICalculateTxCostStrategy calStrategy,
-            ISymbolListToPayTxFeeService symbolListToPayTxFeeService)
+            ISymbolListToPayTxFeeService symbolListToPayTxFeeService):base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
@@ -39,9 +39,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
-        private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
+        private bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIdentity() == "acs1");
+            var acsSymbol = GetAcsSymbol();
+            return descriptors.Any(service => service.File.GetIdentity() == acsSymbol);
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
