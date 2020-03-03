@@ -10,12 +10,6 @@ var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 
-
-    var n = Argument("n",1);
-    var parts = Argument("parts",1);
-
-    Information($"n:{n}, parts:{parts}");
-
 Task("Clean")
     .Description("clean up project cache")
     .Does(() =>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;

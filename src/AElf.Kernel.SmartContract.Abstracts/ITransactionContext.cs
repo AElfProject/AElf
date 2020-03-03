@@ -1,18 +1,17 @@
-﻿using System;
+﻿using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public interface ITransactionContext
     {
         Address Origin { get; set; }
         Address Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
-        long BlockHeight { get; set;}
-        
+        long BlockHeight { get; set; }
+
         Timestamp CurrentBlockTime { get; set; }
-        
+
         int CallDepth { get; set; }
         int MaxCallDepth { get; set; }
         int ExecutionCallThreshold { get; set; }
@@ -20,6 +19,5 @@ namespace AElf.Kernel.SmartContract.Sdk
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
         IStateCache StateCache { get; set; }
-
     }
 }
