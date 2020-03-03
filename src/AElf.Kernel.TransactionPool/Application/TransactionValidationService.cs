@@ -23,6 +23,11 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<TransactionValidationService>.Instance;
         }
 
+        /// <summary>
+        /// Validate txs before they enter tx hub.
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         public async Task<bool> ValidateTransactionWhileCollectingAsync(Transaction transaction)
         {
             foreach (var provider in _transactionValidationProviders)
