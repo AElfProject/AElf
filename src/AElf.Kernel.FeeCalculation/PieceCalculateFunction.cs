@@ -23,21 +23,21 @@ namespace AElf.Kernel.FeeCalculation
             return _next;
         }
 
-        public long CalculateFee(IList<int[]> coefficient, int totalCount)
+        public long CalculateFee(int[][] coefficient, int totalCount, int currentIndex = 0)
         {
-            if (coefficient.Count == 0) return 0;
-            var currentCoefficient = coefficient[0];
-            var parameters = currentCoefficient;
-            var piece = parameters[0];
-            if(piece >= totalCount || _next == null || coefficient.Count == 1)
+            if (coefficient.Length == 0) return 0;
+            var currentCoefficient = coefficient[currentIndex];
+            var piece = currentCoefficient[0];
+            if(piece >= totalCount || _next == null || coefficient.Length == 1)
             {
                 // totalCount会随着CalculateFee调用不断变小，或不存在下一段分段函数，或不存在更多系数列表，都可以最终阻断CalculateFee的调用。以此实现分段函数
-                return _currentCalculateFunction(parameters, totalCount);
+                return _currentCalculateFunction(currentCoefficient, totalCount);
             }
-            coefficient.Remove(currentCoefficient);
+
+            currentIndex++;
             var nextCount = totalCount - piece;
             nextCount = nextCount > 0 ? nextCount : 0;
-            return _currentCalculateFunction(parameters, piece) + _next.CalculateFee(coefficient, nextCount);
+            return _currentCalculateFunction(currentCoefficient, piece) + _next.CalculateFee(coefficient, nextCount, currentIndex);
         }
 
     }
