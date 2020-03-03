@@ -10,6 +10,12 @@ var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 
+
+    var n = Argument("n",1);
+    var parts = Argument("parts",1);
+
+    Information($"n:{n}, parts:{parts}");
+
 Task("Clean")
     .Description("clean up project cache")
     .Does(() =>
@@ -97,6 +103,49 @@ Task("Test-with-Codecov")
 
     Parallel.Invoke(options, actions.ToArray());
 });
+
+Task("Test-with-Codecov-N")
+    .Description("operation test_with_codecov")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    var testSetting = new DotNetCoreTestSettings{
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args
+                .Append("--logger trx")
+                .Append("--settings CodeCoverage.runsettings")
+                .Append("--collect:\"XPlat Code Coverage\"");
+        }                
+    };
+    var testSetting_nocoverage = new DotNetCoreTestSettings{
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args
+                .Append("--logger trx");
+        }                
+    };
+    var codecovToken = "$CODECOV_TOKEN";
+    var actions = new List<Action>();
+    var testProjects = GetFiles("./test/*.Tests/*.csproj");
+
+    var n = Argument("n",1);
+    var parts = Argument("parts",1);
+
+    Information($"n:{n}, parts:{parts}");
+    int i=0;
+    foreach(var testProject in testProjects)
+    {
+        if(i++ % parts == n - 1){
+            DotNetCoreTest(testProject.FullPath, testSetting);
+        }else{
+            DotNetCoreTest(testProject.FullPath, testSetting_nocoverage);
+        }
+    }
+});
+
 Task("Run-Unit-Tests")
     .Description("operation test")
     .IsDependentOn("Build")
