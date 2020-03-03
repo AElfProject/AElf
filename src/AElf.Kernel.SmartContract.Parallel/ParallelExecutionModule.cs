@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
@@ -11,10 +12,11 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //
             context.Services.AddStoreKeyPrefixProvide<ContractRemarks>("cr");
-
             context.Services.AddTransient<IBlockExecutingService, BlockParallelExecutingService>();
+            context.Services
+                .AddSingleton<IParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
+            context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
         }
     }
 }

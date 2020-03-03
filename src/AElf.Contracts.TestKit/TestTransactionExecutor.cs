@@ -14,11 +14,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
 {
-    public class TransactionExecutor : ITransactionExecutor
+    public class TestTransactionExecutor : ITestTransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public TransactionExecutor(IServiceProvider serviceProvider)
+        public TestTransactionExecutor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
