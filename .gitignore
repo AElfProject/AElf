@@ -300,3 +300,6 @@ coverage*.xml
 
 # Contract patcher dlls
 scripts/patcher/*
+
+tools
+.dotnet

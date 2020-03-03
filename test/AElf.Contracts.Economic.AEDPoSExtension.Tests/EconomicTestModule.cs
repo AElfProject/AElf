@@ -1,7 +1,7 @@
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
