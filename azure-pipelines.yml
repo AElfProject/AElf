@@ -51,7 +51,7 @@ jobs:
     inputs:
       reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
-      reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
+      reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage'
