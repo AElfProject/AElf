@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
-using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.Testing;
 using Xunit.Abstractions;
 
 namespace AElf.Contracts.TestKit
