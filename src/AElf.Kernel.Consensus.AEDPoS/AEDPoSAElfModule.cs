@@ -3,17 +3,15 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.Txn.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
@@ -38,10 +36,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
-            context.Services.AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockFoundLogEventHandler>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
-            context.Services.AddSingleton<IBestChainFoundLogEventHandler, SecretSharingInformationLogEventHandler>();
+                .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 

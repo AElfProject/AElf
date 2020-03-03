@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using AElf.CSharp.Core;
 using Google.Protobuf;
-using Org.BouncyCastle.Asn1.X509.Qualified;
 
-namespace AElf.Sdk.CSharp.State
+namespace AElf
 {
     public static class SerializationHelper
     {
