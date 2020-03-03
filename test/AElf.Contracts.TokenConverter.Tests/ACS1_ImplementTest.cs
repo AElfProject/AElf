@@ -10,13 +10,14 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.MultiToken
+namespace AElf.Contracts.TokenConverter
 {
-    public partial class MultiTokenContractTests
+    public partial class TokenConverterContractTests
     {
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
+            await InitializeParliamentContractAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput
@@ -29,14 +30,14 @@ namespace AElf.Contracts.MultiToken
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
 
-            var methodFeeController = await TokenContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var methodFeeController = await DefaultStub.GetMethodFeeController.CallAsync(new Empty());
             var defaultOrganization =
                 await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(
                     new Empty());
             methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
 
-            const string proposalCreationMethodName = nameof(TokenContractStub.ChangeMethodFeeController);
-            var proposalId = await CreateProposalAsync(TokenContractAddress,
+            const string proposalCreationMethodName = nameof(DefaultStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(TokenConverterContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
@@ -47,13 +48,14 @@ namespace AElf.Contracts.MultiToken
             releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var newMethodFeeController = await TokenContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var newMethodFeeController = await DefaultStub.GetMethodFeeController.CallAsync(new Empty());
             newMethodFeeController.OwnerAddress.ShouldBe(organizationAddress);
         }
 
         [Fact]
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
+            await InitializeParliamentContractAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput
@@ -65,7 +67,7 @@ namespace AElf.Contracts.MultiToken
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await TokenContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
+            var result = await DefaultStub.ChangeMethodFeeController.SendWithExceptionAsync(
                 new AuthorityInfo
                 {
                     OwnerAddress = organizationAddress,
