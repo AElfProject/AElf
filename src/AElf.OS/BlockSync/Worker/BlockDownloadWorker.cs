@@ -9,6 +9,7 @@ using AElf.OS.BlockSync.Types;
 using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
 
@@ -25,8 +26,9 @@ namespace AElf.OS.BlockSync.Worker
             IBlockchainService blockchainService,
             IBlockDownloadService blockDownloadService,
             IBlockDownloadJobStore blockDownloadJobStore,
+            IServiceScopeFactory serviceScopeFactory,
             IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
-            : base(timer)
+            : base(timer, serviceScopeFactory)
         {
             _blockchainService = blockchainService;
             _blockDownloadService = blockDownloadService;
@@ -36,7 +38,7 @@ namespace AElf.OS.BlockSync.Worker
             Timer.Period = _blockSyncOptions.BlockDownloadTimerPeriod;
         }
 
-        protected override void DoWork()
+        protected override void DoWork(PeriodicBackgroundWorkerContext workerContext)
         {
             AsyncHelper.RunSync(ProcessDownloadJobAsync);
         }
