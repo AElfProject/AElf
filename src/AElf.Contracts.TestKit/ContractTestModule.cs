@@ -144,9 +144,6 @@ namespace AElf.Contracts.TestKit
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
-#if DEBUG
-            SmartContractRunnerForCategoryThirty.WriteCoverageHints();
-#endif
         }
     }
 
