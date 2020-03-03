@@ -60,9 +60,14 @@ rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.prot
 message ReleaseSideChainCreationInput {
     aelf.Hash proposal_id = 1;
 }
+
+message SideChainCreatedEvent {
+    aelf.Address creator = 1;
+    int32 chainId = 2;
+}
 ```
 
-Once BP's have approved, the request will become releasable by the requestor.
+Once BP's have approved, the request will become releasable by the requestor. The Id of the newly created chain can be found in the **SideChainCreatedEvent** event.
 
 ### Procedure
 
@@ -216,6 +221,7 @@ const { sha256 } = AElf.utils;
 
 // set the private key of the block producer
 const defaultPrivateKey = 'e119487fea0658badc42f089fbaa56de23d8c0e8d999c5f76ac12ad8ae897d76';
+const defaultPrivateKeyAddress = 'HEtBQStfqu53cHVC3PxJU6iGP3RGxiNUfQGvAPTjfrF3ZWH3U';
 const wallet = Wallet.getWalletByPrivateKey(defaultPrivateKey);
 
 // link to the node
@@ -230,24 +236,57 @@ const parliamentContractName = 'AElf.ContractNames.Parliament';
 const crossChainContractName = 'AElf.ContractNames.CrossChain';
 
 var pollMining = async function(transactionId) {
-    console.log('== Waiting for the transaction to be mined ==');
-    console.log('transaction id: ' + transactionId);
+  console.log(`>> Waiting for ${transactionId} the transaction to be mined.`);
 
-    for (i = 0; i < 5; i++) {
-        const currentResult = await aelf.chain.getTxResult(transactionId);
-        console.log('transaction status: ' + currentResult.Status);
+  for (i = 0; i < 10; i++) {
+      const currentResult = await aelf.chain.getTxResult(transactionId);
+      // console.log('transaction status: ' + currentResult.Status);
 
-        if (currentResult.Status === 'MINED')
-            return currentResult;
+      if (currentResult.Status === 'MINED')
+          return currentResult;
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    }
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      .catch(function () {
+          console.log("Promise Rejected");
+     });;
   }
+}
+
+var setAllowance = async function(tokenContract, crossChainContractAddress)
+{
+    console.log('\n>>>> Setting allowance for the cross-chain contract.');
+
+    // set some allowance to the cross-chain contract
+    const approvalResult = await tokenContract.Approve({
+        symbol:'ELF',
+        spender: crossChainContractAddress,
+        amount: 20000
+        });
+
+    let approveTransactionResult = await pollMining(approvalResult.TransactionId);
+    //console.log(approveTransactionResult);
+}
+
+var checkAllowance = async function(tokenContract, owner, spender)
+{
+    console.log('\n>>>> Checking the cross-chain contract\'s allowance');
+
+    const checkAllowanceTx = await tokenContract.GetAllowance({
+        symbol: 'ELF',
+        owner: owner,
+        spender: spender
+    });
+
+    let checkAllowanceTxResult = await pollMining(checkAllowanceTx.TransactionId);
+    let txReturn = JSON.parse(checkAllowanceTxResult.ReadableReturnValue);
+
+    console.log(`>> allowance to the cross-chain contract: ${txReturn.allowance} ${txReturn.symbol}`);
+} 
 
 const createSideChain = async () => {
 
     // get the status of the chain in order to get the genesis contract address
-    console.log('Starting side chain creation script');
+    console.log('Starting side chain creation script\n');
 
     const chainStatus = await aelf.chain.getChainStatus({sync: true});
     const genesisContract = await aelf.chain.contractAt(chainStatus.GenesisContractAddress, wallet)
@@ -269,74 +308,58 @@ const createSideChain = async () => {
     const tokenContract = await aelf.chain.contractAt(tokenContractAddress, wallet);
     const crossChainContract = await aelf.chain.contractAt(crossChainContractAddress, wallet);
 
-    const approveResult = await tokenContract.Approve({
-      symbol:'ELF',
-      spender: crossChainContractAddress,
-      amount: 20000
+    console.log();
+
+    // 1. set and check the allowance, spender is the cross-chain contract
+    await setAllowance(tokenContract, crossChainContractAddress);
+    await checkAllowance(tokenContract, defaultPrivateKeyAddress, crossChainContractAddress);
+
+    // 2. request the creation of the side-chain with the cross=chain contract
+    console.log('\n>>>> Requesting the side-chain creation.');
+    const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
+        indexingPrice: 1,
+        lockedTokenAmount: '20000',
+        isPrivilegePreserved: false,
+        sideChainTokenDecimals: 8,
+        sideChainTokenName: 'SCATokenName',
+        sideChainTokenSymbol: 'SCA',
+        sideChainTokenTotalSupply: '100000000000000000',
+        isSideChainTokenBurnable: true,
+        sideChainTokenInitialIssueList: [
+            {
+                address: '28Y8JA1i2cN6oHvdv7EraXJr9a1gY6D1PpJXw9QtRMRwKcBQMK',
+                amount: '1000000000000000'
+            }
+        ],
+        initialResourceAmount: { CPU: 2, RAM: 4, DISK: 512, NET: 1024 },
+        isSideChainTokenProfitable: true
     });
 
-    const genesisOwnerAddress = await parliamentContract.GetGenesisOwnerAddress.call();
-    console.log('genesisOwnerAddress: ' + genesisOwnerAddress);
-      
-    let approveTokenTransactionResult = await pollMining(approveResult.TransactionId);
-    console.log(approveTokenTransactionResult);
+    let sideChainCreationRequestTxResult = await pollMining(sideChainCreationRequestTx.TransactionId);
 
-    const proposalRequest = crossChainContract.CreateSideChain.packInput({
-      indexingPrice: 1,
-      lockedTokenAmount: 20000,
-      isPrivilegePreserved: false,
-      sideChainTokenDecimals: 2,
-      sideChainTokenName: 'SCATokenName',
-      sideChainTokenSymbol: 'SCA',
-      sideChainTokenTotalSupply: 100000,
-      isSideChainTokenBurnable: true
+    // deserialize the log to get the proposal's ID.
+    let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
+    console.log(`>> side-chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
+
+    // 3. Approve the proposal 
+    console.log(`\n>>>> Approving the proposal.`);
+
+    var proposalApproveTx = await parliamentContract.Approve(deserializedLogs[0].proposalId);
+    await pollMining(proposalApproveTx.TransactionId);
+
+    // 3. Release the side chain
+    console.log(`\n>>>> Release the side chain.`);
+
+    var releaseResult = await crossChainContract.ReleaseSideChainCreation({
+        proposalId: deserializedLogs[0].proposalId
     });
 
-    let expiredTime = 3600;
-    let time = new Date(); 
-    time.setSeconds(new Date().getSeconds() + expiredTime);
-    let expired_time = { seconds: Math.floor(time/1000), nanos: (time % 1000) * 1000 };
+    let releaseTxResult = await pollMining(releaseResult.TransactionId);
 
-    var result = await parliamentContract.CreateProposal({
-        contractMethodName: 'CreateSideChain',
-        organizationAddress: genesisOwnerAddress,
-        toAddress: crossChainContractAddress,
-        params: proposalRequest,
-        expiredTime: expired_time
-    });
-
-    console.log(result);
-
-    let createProposalResult = await pollMining(result.TransactionId);
-
-    const proposalId = createProposalResult.ReadableReturnValue;
-    console.log('Proposal hash ' + proposalId);
-
-    // approve
-    var approvalResult = await parliamentContract.Approve({
-        proposalId: JSON.parse(proposalId)
-    }).catch((err) => {
-        console.log(err);
-      });
-
-    console.log(approvalResult)
-    let approveTransactionResult = await pollMining(approvalResult.TransactionId);
-    console.log(approveTransactionResult);
-
-    // release
-    var releaseResult = await parliamentContract.Release(JSON.parse(proposalId));
-    console.log('Release txid :' + releaseResult);
-
-    let releaseTransactionResult = await pollMining(releaseResult.TransactionId);
-    console.log(releaseTransactionResult);
-
-    // deserialize the creation log (bytes as base64 encoded strings)
-    const creationLogEvent = releaseTransactionResult.Logs[1].NonIndexed;
-    const creationType = crossChainContract.services[0].lookupType('CreationRequested');
-    let deser = creationType.decode(Buffer.from(creationLogEvent, 'base64'));
-    const resobj = creationType.toObject(deser, { bytes: String });
-
-    console.log(resobj);
+    // Parse the logs to get the chain id.
+    let sideChainCreationEvent = crossChainContract.deserializeLog(releaseTxResult.Logs, 'SideChainCreatedEvent');
+    console.log('Chain chain created : ');
+    console.log(sideChainCreationEvent);
 };
 
 createSideChain();
