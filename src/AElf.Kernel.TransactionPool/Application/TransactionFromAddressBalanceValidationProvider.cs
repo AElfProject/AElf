@@ -1,18 +1,12 @@
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
-
-
-//TODO: assembly: InternalsVisibleTo should not in class .cs file
-[assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
-[assembly: InternalsVisibleTo("AElf.Kernel.TransactionPool.Tests")]
 
 namespace AElf.Kernel.TransactionPool.Application
 {

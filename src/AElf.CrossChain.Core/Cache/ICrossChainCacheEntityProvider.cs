@@ -8,9 +8,9 @@ namespace AElf.CrossChain.Cache
     public interface ICrossChainCacheEntityProvider
     {
         void AddChainCacheEntity(int remoteChainId, long initialTargetHeight);
-        IChainCacheEntity GetChainCacheEntity(int remoteChainId);
         int Size { get; }
         List<int> GetCachedChainIds();
+        bool TryGetChainCacheEntity(int remoteChainId, out IChainCacheEntity chainCacheEntity);
     }
     
     public class CrossChainCacheEntityProvider : ICrossChainCacheEntityProvider, ISingletonDependency
@@ -31,11 +31,9 @@ namespace AElf.CrossChain.Cache
             _chainCacheEntities.TryAdd(remoteChainId, chainCacheEntity);
         }
 
-        public IChainCacheEntity GetChainCacheEntity(int remoteChainId)
+        public bool TryGetChainCacheEntity(int remoteChainId, out IChainCacheEntity chainCacheEntity)
         {
-            return !_chainCacheEntities.TryGetValue(remoteChainId, out var chainCacheEntity)
-                ? null
-                : chainCacheEntity;
+            return _chainCacheEntities.TryGetValue(remoteChainId, out chainCacheEntity);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
+                GetContractCodeByName("AElf.Contracts.CrossChain"),
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList());
 

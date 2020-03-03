@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.ChainController;
+﻿using AElf.Kernel.BlockTransactionLimitController;
+using AElf.Kernel.ChainController;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
@@ -18,7 +19,8 @@ namespace AElf.Kernel
         typeof(SmartContractAElfModule),
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule)
+        typeof(TransactionPoolAElfModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
     public class KernelAElfModule : AElfModule
     {

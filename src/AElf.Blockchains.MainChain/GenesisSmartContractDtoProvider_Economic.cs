@@ -15,7 +15,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Economic")).Value,
+                GetContractCodeByName("AElf.Contracts.Economic"),
                 EconomicSmartContractAddressNameProvider.Name, GenerateEconomicInitializationCallList());
             return l;
         }
@@ -39,8 +39,7 @@ namespace AElf.Blockchains.MainChain
                     TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                 });
 
-            //TODO!! when to remove?
-            // Issue remain native tokens to first initial miner (temporarily).
+            // Issue remain native tokens to first initial miner.
             economicContractMethodCallList.Add(
                 nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                 {

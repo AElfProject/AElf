@@ -280,7 +280,8 @@ namespace AElf.OS.Network.Application
                 }
                 catch (NetworkException ex)
                 {
-                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable)
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable 
+                        || ex.ExceptionType == NetworkExceptionType.PeerUnstable)
                     {
                         Logger.LogInformation(ex, $"Removing unhealthy peer {peer}.");
                         await _networkServer.TrySchedulePeerReconnectionAsync(peer);

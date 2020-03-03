@@ -7,7 +7,7 @@ using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

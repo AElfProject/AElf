@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 To = destination,
                 MethodName = "Dummy",
                 Params = tri.ToByteString(),
-                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
             var rs = new ExecutionReturnSet {TransactionId = txn.GetHash()};
             actualKeys = actualKeys ?? expectedKeys;

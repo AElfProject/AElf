@@ -52,5 +52,7 @@ namespace AElf.Contracts.CrossChain
         public SingletonState<IndexedParentChainBlockData> LastIndexedParentChainBlockData { get; set; }
             
         #endregion
+
+        public SingletonState<long> LatestExecutedHeight { get; set; }
     }
 }

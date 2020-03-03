@@ -50,12 +50,11 @@ namespace AElf.CrossChain.Cache
         /// <returns></returns>
         public bool TryTake(long height, out IBlockCacheEntity blockCacheEntity, bool isCacheSizeLimited)
         {
-            //TODO!! if(_cache.TryGetValue(height, out var cachedData)){  cacheData.XXX } 
             // clear outdated data
-            var cachedInQueue = _cache.TryGetValue(height, out var cachedData);
-            blockCacheEntity = cachedData;
-            if (!cachedInQueue)
+            if (!_cache.TryGetValue(height, out blockCacheEntity))
+            {
                 return false;
+            }
 
             var lastQueuedHeight = _targetHeight - 1;
             return !isCacheSizeLimited || lastQueuedHeight >= height + CrossChainConstants.DefaultBlockCacheEntityCount;

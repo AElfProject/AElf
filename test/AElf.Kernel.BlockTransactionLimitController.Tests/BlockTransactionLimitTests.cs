@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
