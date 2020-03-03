@@ -24,8 +24,9 @@ namespace AElf.Contracts.MultiToken
             if (coefficientInput == null)
                 return new Empty();
             AssertDeveloperFeeController();
+            var feeType = (int) coefficientInput.FeeType;
             var coefficientInfoInState = State.CalculateCoefficientOfContract.Value
-                .CoefficientDicOfContract[(int) coefficientInput.FeeType];
+                .CoefficientDicOfContract[feeType];
             Assert(coefficientInfoInState != null, "coefficient does not exist");
             var coefficient = coefficientInput.Coefficient;
             var funcCoefficient =
@@ -34,15 +35,16 @@ namespace AElf.Contracts.MultiToken
             AssertValidCoefficients(coefficientInput.Coefficient, funcCoefficient);
             if (coefficient.CoefficientArray[0] != funcCoefficient.CoefficientArray[0])
             {
-                var oldPieceKey = funcCoefficient.CoefficientArray[0];
+                var oldPieceKey = funcCoefficient.CoefficientArray[0];  // first element is piece key
                 var newPieceKey = coefficient.CoefficientArray[0];
                 var pieceKeyArray = coefficientInfoInState.Coefficients.Select(x => x.CoefficientArray[0]);
                 Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray),"invalid piece key");
             }
             UpdateCoefficient(coefficientInput.Coefficient, funcCoefficient);
-            State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)coefficientInput.FeeType] = coefficientInfoInState;
+            State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[feeType] = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
+                FeeType = feeType,
                 AllCoefficient = coefficientInfoInState
             });
             return new Empty();
@@ -70,6 +72,7 @@ namespace AElf.Contracts.MultiToken
             State.CalculateCoefficientOfSender.Value.CoefficientOfSender = coefficientInfoInState;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
+                FeeType = (int)FeeTypeEnum.Tx,
                 AllCoefficient = coefficientInfoInState
             });
             return new Empty();

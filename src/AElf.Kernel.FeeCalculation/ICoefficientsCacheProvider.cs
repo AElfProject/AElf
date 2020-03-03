@@ -49,17 +49,17 @@ namespace AElf.Kernel.FeeCalculation
         public async Task SyncCache(ChainContext chainContext)
         {
             CalculateFeeCoefficientOfContract coefficientFromContract = null;
-            foreach (var (key, _) in _needReLoadDic.Where(kp => kp.Value))
+            foreach (var kp in _needReLoadDic.Where(kp => kp.Value))
             {
-                if (key == (int) FeeTypeEnum.Tx)
+                if (kp.Key == (int) FeeTypeEnum.Tx)
                 {
-                    _coefficientsDicCache[key] = await GetFromBlockChainStateAsync(key, chainContext);
+                    _coefficientsDicCache[kp.Key] = await GetFromBlockChainStateAsync(kp.Key, chainContext);
                 }
                 else
                 {
                     if (coefficientFromContract == null)
                         coefficientFromContract = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(chainContext);
-                    _coefficientsDicCache[key] = coefficientFromContract.CoefficientDicOfContract[key].Coefficients.AsEnumerable()
+                    _coefficientsDicCache[kp.Key] = coefficientFromContract.CoefficientDicOfContract[kp.Key].Coefficients.AsEnumerable()
                         .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToArray();
                 }
             }

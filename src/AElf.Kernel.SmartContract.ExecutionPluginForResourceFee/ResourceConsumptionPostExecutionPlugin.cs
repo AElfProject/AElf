@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
@@ -15,25 +16,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ICalculateReadCostStrategy _readCostStrategy;
-        private readonly ICalculateWriteCostStrategy _writeCostStrategy;
-        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
-        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
-        
         private const string AcsSymbol = "acs8";
+        private readonly IEnumerable<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            //TODO: change strategy implement
-            ICalculateReadCostStrategy readCostStrategy,
-            ICalculateWriteCostStrategy writeCostStrategy,
-            ICalculateStorageCostStrategy storageCostStrategy,
-            ICalculateTrafficCostStrategy trafficCostStrategy)
+            IEnumerable<IResourceTokenFeeProvider> resourceTokenFeeProviders)
         {
             _contextService = contextService;
-            _readCostStrategy = readCostStrategy;
-            _writeCostStrategy = writeCostStrategy;
-            _storageCostStrategy = storageCostStrategy;
-            _trafficCostStrategy = trafficCostStrategy;
+            _resourceTokenFeeProviders = resourceTokenFeeProviders;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -85,31 +75,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return new List<Transaction>();
             }
-
-            // Transaction size related to TRAFFIC Token.
-            var trafficSize = transactionContext.Transaction.Size();
-            // Transaction trace state set writes count related to STORAGE Token.
-            var writesCount = transactionContext.Trace.StateSet.Writes.Count;
-            // Transaction trace state set reads count related to WRITE Token.
-            var readsCount = transactionContext.Trace.StateSet.Reads.Count;
             var chainContext = new ChainContext
             {
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-            var trafficCost = await _trafficCostStrategy.GetCostAsync(chainContext, trafficSize);
-            var readCost = await _readCostStrategy.GetCostAsync(chainContext, readsCount);
-            var storageCost = await _storageCostStrategy.GetCostAsync(chainContext, trafficSize);
-            var writeCost = await _writeCostStrategy.GetCostAsync(chainContext, writesCount);
-            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
-                new ChargeResourceTokenInput
-                {
-                    TrafficCost = trafficCost,
-                    StorageCost = storageCost,
-                    ReadCost = readCost,
-                    WriteCost = writeCost,
-                    Caller = transactionContext.Transaction.From
-                })).Transaction;
+            var chargeResourceTokenInput = new ChargeResourceTokenInput
+            {
+                Caller = transactionContext.Transaction.From
+            };
+            foreach (var tokenProvider in _resourceTokenFeeProviders)
+            {
+                chargeResourceTokenInput.CostDic[tokenProvider.TokenName] = await tokenProvider.CalculateTokenFeeAsync(transactionContext, chainContext);
+            }
+            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
 
             return new List<Transaction>
             {

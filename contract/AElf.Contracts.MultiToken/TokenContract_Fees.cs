@@ -161,17 +161,8 @@ namespace AElf.Contracts.MultiToken
                 return consumedResourceTokens;
             }
 
-            var symbolToAmount = new Dictionary<string, long>
-            {
-                {"READ", input.ReadCost},
-                {"TRAFFIC", input.TrafficCost},
-                {"STORAGE", input.StorageCost},
-                {"WRITE", input.WriteCost}
-            };
-
             var bill = new TransactionFeeBill();
-
-            foreach (var pair in symbolToAmount)
+            foreach (var pair in input.CostDic)
             {
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
@@ -677,7 +668,8 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var createOrganizationInput = GetControllerCreateInputForSideChainRental();
-            var controllerForRental = CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
+            var controllerForRental =
+                CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
             Assert(controllerForRental == Context.Sender, "no permission");
         }
 
@@ -689,6 +681,7 @@ namespace AElf.Contracts.MultiToken
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
+
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }

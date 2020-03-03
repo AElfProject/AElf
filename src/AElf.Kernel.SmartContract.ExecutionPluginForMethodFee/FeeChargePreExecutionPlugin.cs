@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContract.Sdk;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly ICalculateTxCostStrategy _calStrategy;
+        private readonly IPrimaryTokenFeeProvider _txFeeProvider;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly IBlockchainStateService _blockchainStateService;
 
@@ -28,12 +29,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            ICalculateTxCostStrategy calStrategy,
+            IPrimaryTokenFeeProvider txFeeProvider,
             IBlockchainStateService blockchainStateService)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _calStrategy = calStrategy;
+            _txFeeProvider = txFeeProvider;
             _blockchainStateService = blockchainStateService;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
@@ -76,14 +77,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     // Skip ChargeTransactionFees itself 
                     return new List<Transaction>();
                 }
-
-                var txSize = transactionContext.Transaction.Size();
+                
                 var chainContext = new ChainContext
                 {
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _calStrategy.GetCostAsync(chainContext, txSize);
+                var txCost = await _txFeeProvider.CalculateTokenFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,

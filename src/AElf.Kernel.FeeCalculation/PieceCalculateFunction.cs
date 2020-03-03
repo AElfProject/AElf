@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-
 namespace AElf.Kernel.FeeCalculation
 {
     public class PieceCalculateFunction
@@ -23,21 +21,21 @@ namespace AElf.Kernel.FeeCalculation
             return _next;
         }
 
-        public long CalculateFee(int[][] coefficient, int totalCount, int currentIndex = 0)
+        public long CalculateFee(int[][] coefficient, int totalCount, int currentCoefficientIndex = 0)
         {
             if (coefficient.Length == 0) return 0;
-            var currentCoefficient = coefficient[currentIndex];
+            var currentCoefficient = coefficient[currentCoefficientIndex];
             var piece = currentCoefficient[0];
-            if(piece >= totalCount || _next == null || coefficient.Length == 1)
+            if(piece >= totalCount || _next == null || coefficient.Length == 1 || currentCoefficientIndex >= coefficient.Length)
             {
                 // totalCount会随着CalculateFee调用不断变小，或不存在下一段分段函数，或不存在更多系数列表，都可以最终阻断CalculateFee的调用。以此实现分段函数
                 return _currentCalculateFunction(currentCoefficient, totalCount);
             }
 
-            currentIndex++;
+            var nextCoefficientIndex = currentCoefficientIndex + 1;
             var nextCount = totalCount - piece;
             nextCount = nextCount > 0 ? nextCount : 0;
-            return _currentCalculateFunction(currentCoefficient, piece) + _next.CalculateFee(coefficient, nextCount, currentIndex);
+            return _currentCalculateFunction(currentCoefficient, piece) + _next.CalculateFee(coefficient, nextCount, nextCoefficientIndex);
         }
 
     }

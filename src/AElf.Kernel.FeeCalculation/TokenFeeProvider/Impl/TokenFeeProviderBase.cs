@@ -16,15 +16,16 @@ namespace AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl
             _coefficientsCacheProvider = coefficientsCacheProvider;
             _tokenType = tokenType;
         }
-        public async Task<long> CalculateTokenFeeAsync(TransactionContext transactionContext, ChainContext chainContext)
+        public async Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext, ChainContext chainContext)
         {
             if(PieceCalculateFunction == null)
                 InitializeFunction();
-            var count = transactionContext.Transaction.Size();
+            var count = GetCalculateCount(transactionContext);
             var coefficients = await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
             return  PieceCalculateFunction.CalculateFee(coefficients, count);
         }
         protected abstract void InitializeFunction();
+        protected abstract int GetCalculateCount(ITransactionContext transactionContext);
 
         protected long LinerFunction(int[] coefficient, int count)
         {
