@@ -6,12 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundWorkers;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Worker
 {
-    public class PeerDiscoveryWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
+    public class PeerDiscoveryWorker : AsyncPeriodicBackgroundWorkerBase
     {
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly INetworkService _networkService;
@@ -32,7 +31,7 @@ namespace AElf.OS.Worker
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
         }
 
-        protected override async void DoWork(PeriodicBackgroundWorkerContext workerContext)
+        protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
             await ProcessPeerDiscoveryJob();
         }

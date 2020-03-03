@@ -15,7 +15,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS.BlockSync.Worker
 {
-    public class BlockDownloadWorker : PeriodicBackgroundWorkerBase
+    public class BlockDownloadWorker : AsyncPeriodicBackgroundWorkerBase
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockDownloadService _blockDownloadService;
@@ -38,9 +38,9 @@ namespace AElf.OS.BlockSync.Worker
             Timer.Period = _blockSyncOptions.BlockDownloadTimerPeriod;
         }
 
-        protected override void DoWork(PeriodicBackgroundWorkerContext workerContext)
+        protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            AsyncHelper.RunSync(ProcessDownloadJobAsync);
+            await ProcessDownloadJobAsync();
         }
 
         internal async Task ProcessDownloadJobAsync()

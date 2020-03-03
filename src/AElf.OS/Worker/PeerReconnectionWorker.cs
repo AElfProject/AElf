@@ -9,13 +9,12 @@ using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.OS.Worker
 {
-    public class PeerReconnectionWorker : PeriodicBackgroundWorkerBase
+    public class PeerReconnectionWorker : AsyncPeriodicBackgroundWorkerBase
     {
         private readonly IPeerPool _peerPool;
         private readonly IReconnectionService _reconnectionService;
@@ -38,9 +37,9 @@ namespace AElf.OS.Worker
             timer.Period = _networkOptions.PeerReconnectionPeriod;
         }
         
-        protected override void DoWork(PeriodicBackgroundWorkerContext workerContext)
+        protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            AsyncHelper.RunSync(DoReconnectionJobAsync);
+            await DoReconnectionJobAsync();
         }
 
         internal async Task DoReconnectionJobAsync()
