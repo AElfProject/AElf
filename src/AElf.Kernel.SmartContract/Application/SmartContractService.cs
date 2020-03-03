@@ -24,8 +24,6 @@ namespace AElf.Kernel.SmartContract.Application
         /// <inheritdoc/>
         public Task DeployContractAsync(ContractDto contractDto)
         {
-            // get runner
-             _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
             _smartContractExecutiveService.AddContractInfo(contractDto.ContractAddress, contractDto.BlockHeight);
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
@@ -34,8 +32,6 @@ namespace AElf.Kernel.SmartContract.Application
 
         public Task UpdateContractAsync(ContractDto contractDto)
         {
-            // get runner
-            _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
             _smartContractExecutiveService.AddContractInfo(contractDto.ContractAddress, contractDto.BlockHeight);
             return Task.CompletedTask;
         }
