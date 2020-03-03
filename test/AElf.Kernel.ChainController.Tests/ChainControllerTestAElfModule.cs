@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,43 +28,10 @@ namespace AElf.Kernel.ChainController
                 .Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
             services.AddSingleton(provider =>
             {
-                var mockTxCostStrategy = new Mock<ICalculateTxCostStrategy>();
-                mockTxCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
-                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
-                
-                return mockTxCostStrategy.Object;
-            });
-            services.AddSingleton(provider =>
-            {
-                var mockReadCostStrategy = new Mock<ICalculateReadCostStrategy>();
-                mockReadCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
-                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
-                
-                return mockReadCostStrategy.Object;
-            });
-            services.AddSingleton(provider =>
-            {
-                var mockWriteCostStrategy = new Mock<ICalculateWriteCostStrategy>();
-                mockWriteCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
-                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
-                
-                return mockWriteCostStrategy.Object;
-            });
-            services.AddSingleton(provider =>
-            {
-                var mockStoCostStrategy = new Mock<ICalculateStorageCostStrategy>();
-                mockStoCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
-                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
-                
-                return mockStoCostStrategy.Object;
-            });
-            services.AddSingleton(provider =>
-            {
-                var mockNetCostStrategy = new Mock<ICalculateTrafficCostStrategy>();
-                mockNetCostStrategy.Setup(m => m.GetCostAsync(It.IsAny<IChainContext>(), It.IsAny<int>()))
-                    .Returns((IChainContext x, int y) => Task.FromResult(100000L));
-                
-                return mockNetCostStrategy.Object;
+                var txTokenFeeProvider = new Mock<IPrimaryTokenFeeProvider>();
+                txTokenFeeProvider.Setup(m => m.CalculateTokenFeeAsync(It.IsAny<ITransactionContext>(), It.IsAny<IChainContext>()))
+                    .Returns((ITransactionContext x, IChainContext y) => Task.FromResult(100000L));
+                return txTokenFeeProvider.Object;
             });
         }
 

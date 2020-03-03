@@ -9,25 +9,25 @@ namespace AElf.Kernel.FeeCalculation
 {
     public interface ICoefficientsCacheProvider
     {
-        Task<int[][]> GetCoefficientByTokenTypeAsync(int tokenType, ChainContext chainContext);
+        Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
         void SetCoefficientByTokenType(int tokenType);
-        Task SyncCache(ChainContext chainContext);
+        Task SyncCache(IChainContext chainContext);
     }
     
     public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISingletonDependency
     {
         private readonly IBlockchainStateService _blockChainStateService;
-        private readonly Dictionary<int, int[][]> _coefficientsDicCache;
+        private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
         private Dictionary<int, bool> _needReLoadDic;
 
         public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
             _blockChainStateService = blockChainStateService;
-            _coefficientsDicCache = new Dictionary<int, int[][]>();
+            _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
             _needReLoadDic = new Dictionary<int, bool>();
         }
         
-        public async Task<int[][]> GetCoefficientByTokenTypeAsync(int tokenType, ChainContext chainContext)
+        public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
             if (!_needReLoadDic.TryGetValue(tokenType, out var isNeedLoadData))
                 _needReLoadDic[tokenType] = false;
@@ -46,7 +46,7 @@ namespace AElf.Kernel.FeeCalculation
         {
             _needReLoadDic[tokenType] = true;
         }
-        public async Task SyncCache(ChainContext chainContext)
+        public async Task SyncCache(IChainContext chainContext)
         {
             CalculateFeeCoefficientOfContract coefficientFromContract = null;
             foreach (var kp in _needReLoadDic.Where(kp => kp.Value))
@@ -60,27 +60,27 @@ namespace AElf.Kernel.FeeCalculation
                     if (coefficientFromContract == null)
                         coefficientFromContract = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(chainContext);
                     _coefficientsDicCache[kp.Key] = coefficientFromContract.CoefficientDicOfContract[kp.Key].Coefficients.AsEnumerable()
-                        .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToArray();
+                        .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToList();
                 }
             }
             _needReLoadDic = _needReLoadDic.ToDictionary(x => x.Key, x => true);
         }
 
-        private async Task<int[][]> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
+        private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
         {
-            int[][] coefficientsArray;
+            IList<int[]> coefficientsArray;
             if (tokenType == (int) FeeTypeEnum.Tx)
             {
                 var coefficientOfTx = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfSender>(chainContext);
                 coefficientsArray = coefficientOfTx.CoefficientOfSender.Coefficients.AsEnumerable()
-                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToArray();
+                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToList();
             }
             else
             {
                 var coefficients = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(chainContext);
                 var coefficientOfToken = coefficients.CoefficientDicOfContract[tokenType];
                 coefficientsArray = coefficientOfToken.Coefficients.AsEnumerable()
-                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToArray();
+                    .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToList();
             }
             return coefficientsArray;
         }

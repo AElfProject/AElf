@@ -5,21 +5,26 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Impl
 {
-    public class StorageFeeProvider: TokenFeeProviderBase, IResourceTokenFeeProvider,ITransientDependency
+    public class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
-        public StorageFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider) : base(
-            coefficientsCacheProvider, (int)FeeTypeEnum.Storage)
+        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
+
+        public StorageFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
+            ICalculateFunctionProvider calculateFunctionProvider) : base(
+            coefficientsCacheProvider, (int) FeeTypeEnum.Storage)
         {
+            _calculateFunctionProvider = calculateFunctionProvider;
         }
-        
+
         public string TokenName { get; } = "STORAGE";
-        
+
         protected override void InitializeFunction()
         {
             PieceCalculateFunction = new PieceCalculateFunction();
-            PieceCalculateFunction.AddFunction(LinerFunction).AddFunction(PowerFunction);
+            PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction)
+                .AddFunction(_calculateFunctionProvider.PowerFunction);
         }
-        
+
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {
             return transactionContext.Transaction.Size();

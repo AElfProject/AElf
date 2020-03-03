@@ -331,21 +331,6 @@ message CoefficientFromSender {
     repeated sint32 coefficient_array = 2;
 }
 
-message LinerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-}
-
-message PowerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-    sint32 change_span_base = 4;
-    sint32 weight = 5;
-    sint32 weight_base = 6;
-}
-
 message NewPieceKeyCoefficient{
     sint32 new_piece_key = 1;
 }
@@ -374,11 +359,6 @@ enum FeeTypeEnum {
     WRITE = 2;
     TRAFFIC = 3;
     TX = 4;
-}
-
-enum CalculateFunctionTypeEnum {
-    LINER = 0;
-    POWER = 1;
 }
 
 message CalculateFeeCoefficientsOfType{
