@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -14,12 +13,12 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     //TODO: not here
 
-    public class SymbolListToPayTxFeeUpdatedEventHandler : IBlockAcceptedLogEventHandler
+    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainStateService _blockchainStateService;
         private LogEvent _interestedEvent;
-        private ILogger<SymbolListToPayTxFeeUpdatedEventHandler> Logger { get; set; }
+        private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -37,15 +36,15 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public SymbolListToPayTxFeeUpdatedEventHandler(ISmartContractAddressService smartContractAddressService, 
+        public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             IBlockchainStateService blockchainStateService)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainStateService = blockchainStateService;
-            Logger = NullLogger<SymbolListToPayTxFeeUpdatedEventHandler>.Instance;
+            Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new ExtraTokenListModified();
             eventData.MergeFrom(logEvent);

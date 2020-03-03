@@ -15,11 +15,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Economic.TestBase
 {
-    public class EconomicTransactionExecutor : ITransactionExecutor
+    public class EconomicTestTransactionExecutor : ITestTransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public EconomicTransactionExecutor(IServiceProvider serviceProvider)
+        public EconomicTestTransactionExecutor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

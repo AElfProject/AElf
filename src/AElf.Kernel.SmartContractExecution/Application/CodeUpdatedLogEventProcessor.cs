@@ -8,15 +8,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class ContractDeployedLogEventHandler : IBlockAcceptedLogEventHandler
+    public class CodeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly ISmartContractRegistrationService _smartContractRegistrationService;
 
         private LogEvent _interestedEvent;
 
-        public ILogger<ContractDeployedLogEventHandler> Logger { get; set; }
+        public ILogger<CodeUpdatedLogEventProcessor> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -27,37 +26,33 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                 var address = _smartContractAddressService.GetZeroSmartContractAddress();
 
-                _interestedEvent = new ContractDeployed().ToLogEvent(address);
+                _interestedEvent = new CodeUpdated().ToLogEvent(address);
 
                 return _interestedEvent;
             }
         }
 
-        public ContractDeployedLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            IDeployedContractAddressProvider deployedContractAddressProvider,
+        public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
             ISmartContractRegistrationService smartContractRegistrationService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _deployedContractAddressProvider = deployedContractAddressProvider;
             _smartContractRegistrationService = smartContractRegistrationService;
 
-            Logger = NullLogger<ContractDeployedLogEventHandler>.Instance;
+            Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new ContractDeployed();
+            var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);
 
-            _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address,
-                new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height});
-            Logger.LogDebug($"Added deployed contract address of {eventData}");
-            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.CodeHash,
+            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.NewCodeHash,
                 new BlockIndex
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
                 });
+            Logger.LogDebug($"Updated contract {eventData}");
         }
     }
 }
