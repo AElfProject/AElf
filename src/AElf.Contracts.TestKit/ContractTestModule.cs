@@ -114,7 +114,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
-                .Singleton<ITransactionExecutingService, LocalTransactionExecutingService>());
+                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
         }
 

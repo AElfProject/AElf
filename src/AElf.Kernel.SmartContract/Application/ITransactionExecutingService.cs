@@ -9,4 +9,9 @@ namespace AElf.Kernel.SmartContract.Application
         Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false);
     }
+
+    public interface IPlainTransactionExecutingService : ITransactionExecutingService
+    {
+
+    }
 }

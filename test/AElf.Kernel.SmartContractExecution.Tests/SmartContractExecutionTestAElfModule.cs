@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContractExecution
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, LocalTransactionExecutingService>());
+            context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IDeployedContractAddressService>();

@@ -14,6 +14,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             context.Services.AddStoreKeyPrefixProvide<ContractRemarks>("cr");
             context.Services.AddTransient<IBlockExecutingService, BlockParallelExecutingService>();
+            context.Services
+                .AddSingleton<IParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
             context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
         }
     }

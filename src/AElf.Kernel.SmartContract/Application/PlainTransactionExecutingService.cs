@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
@@ -15,20 +15,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Application
 {
-    public class TransactionExecutor : ITransactionExecutor, ISingletonDependency
+    public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<TransactionExecutor> Logger { get; set; }
+        public ILogger<PlainTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public TransactionExecutor(ITransactionResultService transactionResultService,
+        public PlainTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
             IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
             IInlineTransactionValidationService inlineTransactionValidationService)
@@ -38,7 +38,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             _inlineTransactionValidationService = inlineTransactionValidationService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
-            Logger = NullLogger<TransactionExecutor>.Instance;
+            Logger = NullLogger<PlainTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 

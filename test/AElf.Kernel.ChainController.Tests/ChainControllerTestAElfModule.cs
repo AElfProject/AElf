@@ -27,7 +27,7 @@ namespace AElf.Kernel.ChainController
             services.AddTransient<ChainCreationService>();
             services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
             context.Services.Replace(ServiceDescriptor
-                .Singleton<ITransactionExecutingService, LocalTransactionExecutingService>());
+                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             services.AddSingleton(provider =>
             {
                 var mockTxCostStrategy = new Mock<ICalculateTxCostStrategy>();
