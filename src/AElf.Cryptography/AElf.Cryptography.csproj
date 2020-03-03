@@ -7,8 +7,8 @@
         <Description>Cryptographic primitives used in AElf.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Portable.BouncyCastle" Version="1.8.5.2" />
-        <PackageReference Include="Secp256k1.Net" Version="0.1.54" />
+        <PackageReference Include="Portable.BouncyCastle" Version="1.8.6" />
+        <PackageReference Include="Secp256k1.Net" Version="0.1.55" />
         <PackageReference Include="Secp256k1.Native" Version="0.1.20" />
         <PackageReference Include="Virgil.Crypto" Version="2.4.10" />
     </ItemGroup>
