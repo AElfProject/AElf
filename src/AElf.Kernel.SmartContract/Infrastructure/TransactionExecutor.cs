@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public class TransactionExecutor : ITransactionExecutor, ISingletonDependency
     {
