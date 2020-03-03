@@ -42,7 +42,6 @@ Task("Build")
 {
     var buildSetting = new DotNetCoreBuildSettings{
         NoRestore = true,
-        Configuration = "Debug",
         ArgumentCustomization = args => {
             return args.Append("/clp:ErrorsOnly")
                        .Append("/p:GeneratePackageOnBuild=false")
@@ -62,22 +61,41 @@ Task("Test-with-Codecov")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
-            return args.Append("--logger trx")
-                       .Append("/p:CollectCoverage=true")
-                       .Append("/p:CoverletOutputFormat=json%2copencover")
-                       .Append("/p:CoverletOutput=../results/coverage")
-                       .Append("/p:MergeWith=../results/coverage.json")
-                       .Append("/maxcpucount:1")
-                       .Append("/p:Exclude=[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Kernel.Consensus.Scheduler.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Test.Helpers]*%2c[*BouncyCastle*]*%2c[System.Reactive]*%2c[*]*Exception%2c[*.Tests]*%2c[AElf.Contracts.GenesisUpdate]*%2c[AElf.WebApp.Application.Chain]*%2c[AElf.WebApp.Application.Net]*")
-                       .Append("/p:ExcludeByFile=../../src/AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../../src/AElf.Kernel.SmartContract/Metadata/*.cs%2c../../src/AElf.Database/RedisDatabase.cs%2c../../test/*.TestBase/*.cs");
+            return args
+                .Append("--logger trx")
+                .Append("--settings CodeCoverage.runsettings")
+                .Append("--collect:\"XPlat Code Coverage\"");
         }                
     };
+    var codecovToken = "$CODECOV_TOKEN";
+    var actions = new List<Action>();
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
     foreach(var testProject in testProjects)
     {
-        DotNetCoreTest(testProject.FullPath, testSetting);
+        var action=new Action(()=>{
+            DotNetCoreTest(testProject.FullPath, testSetting);
+
+            if(codecovToken!=""){
+                var dir=testProject.GetDirectory().FullPath;
+                var reports = GetFiles(dir + "/TestResults/*/coverage.cobertura.xml");
+
+                foreach(var report in reports)
+                {
+                    Codecov(report.FullPath,"$CODECOV_TOKEN");
+                }
+            }
+        });
+        actions.Add(action);
     }
+
+
+    var options = new ParallelOptions {
+        MaxDegreeOfParallelism = 2,
+        //CancellationToken = cancellationToken
+    };
+
+    Parallel.Invoke(options, actions.ToArray());
 });
 Task("Run-Unit-Tests")
     .Description("operation test")
@@ -93,6 +111,7 @@ Task("Run-Unit-Tests")
 };
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
 
+
     foreach(var testProject in testProjects)
     {
         DotNetCoreTest(testProject.FullPath, testSetting);
@@ -101,8 +120,13 @@ Task("Run-Unit-Tests")
 Task("Upload-Coverage")
     .Does(() =>
 {
+    var reports = GetFiles("./test/*.Tests/TestResults/*/coverage.cobertura.xml");
+
+    foreach(var report in reports)
+    {
+        Codecov(report.FullPath,"$CODECOV_TOKEN");
+    }
     // Upload a coverage report.
-    Codecov("./test/results/coverage.opencover.xml","$CODECOV_TOKEN");
 });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
