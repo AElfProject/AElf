@@ -1,10 +1,11 @@
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
 using AElf.Kernel.SmartContract.Sdk;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Impl
 {
-    public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
+    public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider,ITransientDependency
     {
         public TrafficFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider) : base(
             coefficientsCacheProvider, (int)FeeTypeEnum.Traffic)

@@ -17,13 +17,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
-        private readonly IEnumerable<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
+        private readonly List<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            IEnumerable<IResourceTokenFeeProvider> resourceTokenFeeProviders)
+            IServiceContainer<IResourceTokenFeeProvider> resourceTokenFeeProviders)
         {
             _contextService = contextService;
-            _resourceTokenFeeProviders = resourceTokenFeeProviders;
+            _resourceTokenFeeProviders = resourceTokenFeeProviders.ToLookup(p => p.GetType())
+                .Select(coll => coll.First()).ToList();
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -75,6 +76,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return new List<Transaction>();
             }
+
             var chainContext = new ChainContext
             {
                 BlockHash = transactionContext.PreviousBlockHash,
@@ -86,9 +88,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
             foreach (var tokenProvider in _resourceTokenFeeProviders)
             {
-                chargeResourceTokenInput.CostDic[tokenProvider.TokenName] = await tokenProvider.CalculateTokenFeeAsync(transactionContext, chainContext);
+                chargeResourceTokenInput.CostDic[tokenProvider.TokenName] =
+                    await tokenProvider.CalculateTokenFeeAsync(transactionContext, chainContext);
             }
-            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
+
+            var chargeResourceTokenTransaction =
+                (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
 
             return new List<Transaction>
             {

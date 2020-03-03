@@ -1,9 +1,10 @@
 ﻿using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
 using AElf.Kernel.SmartContract.Sdk;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Impl
 {
-    public class WriteFeeProvider: TokenFeeProviderBase, IResourceTokenFeeProvider
+    public class WriteFeeProvider: TokenFeeProviderBase, IResourceTokenFeeProvider,ITransientDependency
     {
         public WriteFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider) : base(
             coefficientsCacheProvider, 2)
