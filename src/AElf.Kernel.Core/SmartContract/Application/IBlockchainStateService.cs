@@ -18,15 +18,12 @@ namespace AElf.Kernel.SmartContract.Application
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
 
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
-        Task<TEntity> GetBlockExecutedDataAsync<TEntity>(IChainContext chainContext);
+        
+        Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key);
 
-        Task<TEntity> GetBlockExecutedDataAsync<TKey, TEntity>(IChainContext chainContext, TKey key);
-        
-        Task AddBlockExecutedDataAsync<TEntity>(Hash blockHash, TEntity blockExecutedData);
-        
-        Task AddBlockExecutedDataAsync<TKey, TEntity>(Hash blockHash, TKey key, TEntity value);
-        
-        Task AddBlockExecutedDataAsync<TKey, TEntity>(Hash blockHash, IDictionary<TKey, TEntity> blockExecutedData);
+        Task AddBlockExecutedDataAsync<T>(Hash blockHash, string key, T blockExecutedData);
+
+        Task AddBlockExecutedDataAsync<T>(Hash blockHash, IDictionary<string, T> blockExecutedData);
     }
 
     public class BlockchainStateService : IBlockchainStateService
@@ -98,56 +95,29 @@ namespace AElf.Kernel.SmartContract.Application
         {
             await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
         }
-        
-        public async Task<TEntity> GetBlockExecutedDataAsync<TEntity>(IChainContext chainContext)
+
+        public async Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key)
         {
-            var byteString = await _blockchainStateManager.GetStateAsync(typeof(TEntity).Name, chainContext.BlockHeight,
+            var byteString = await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight,
                 chainContext.BlockHash);
-            return SerializationHelper.Deserialize<TEntity>(byteString?.ToByteArray());
+            return SerializationHelper.Deserialize<T>(byteString?.ToByteArray());
         }
 
-        public async Task<TEntity> GetBlockExecutedDataAsync<TKey, TEntity>(IChainContext chainContext, TKey key)
-        {
-            var blockExecutedDataKey = GetBlockExecutedCacheKey<TKey, TEntity>(key);
-            var byteString = await _blockchainStateManager.GetStateAsync(blockExecutedDataKey, chainContext.BlockHeight,
-                chainContext.BlockHash);
-            return SerializationHelper.Deserialize<TEntity>(byteString?.ToByteArray());
-        }
-        
-        public async Task AddBlockExecutedDataAsync<TEntity>(Hash blockHash, TEntity blockExecutedData)
+        public async Task AddBlockExecutedDataAsync<T>(Hash blockHash, string key, T blockExecutedData)
         {
             var dic = new Dictionary<string, ByteString>
             {
-                {typeof(TEntity).Name, ByteString.CopyFrom(SerializationHelper.Serialize(blockExecutedData))}
+                {key, ByteString.CopyFrom(SerializationHelper.Serialize(blockExecutedData))}
             };
             await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, dic);
         }
 
-        public async Task AddBlockExecutedDataAsync<TKey, TEntity>(Hash blockHash, TKey key, TEntity blockExecutedData)
-        {
-            var dic = new Dictionary<string, ByteString>
-            {
-                {
-                    GetBlockExecutedCacheKey<TKey, TEntity>(key),
-                    ByteString.CopyFrom(SerializationHelper.Serialize(blockExecutedData))
-                }
-            };
-            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, dic);
-        }
-
-        public async Task AddBlockExecutedDataAsync<TKey, TEntity>(Hash blockHash,
-            IDictionary<TKey, TEntity> blockExecutedData)
+        public async Task AddBlockExecutedDataAsync<T>(Hash blockHash, IDictionary<string, T> blockExecutedData)
         {
             var dic = blockExecutedData.ToDictionary(
-                keyPair => GetBlockExecutedCacheKey<TKey, TEntity>(keyPair.Key),
+                keyPair => keyPair.Key,
                 keyPair => ByteString.CopyFrom(SerializationHelper.Serialize(keyPair.Value)));
             await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, dic);
-        }
-
-        private string GetBlockExecutedCacheKey<TKey, TEntity>(TKey key)
-        {
-            var typeName = typeof(TEntity).Name;
-            return string.Join("/", typeName, key.ToString());
         }
     }
 }

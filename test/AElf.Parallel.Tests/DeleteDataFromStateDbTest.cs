@@ -8,14 +8,12 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp.State;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
@@ -34,6 +32,7 @@ namespace AElf.Parallel.Tests
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IBlockchainStateService _blockchainStateService;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
         private readonly ITransactionGrouper _transactionGrouper;
         private readonly ParallelTestHelper _parallelTestHelper;
 
@@ -47,6 +46,7 @@ namespace AElf.Parallel.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
+            _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
             _transactionGrouper = GetRequiredService<ITransactionGrouper>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
         }
@@ -899,11 +899,12 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+                var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
                 nonparallelContractCode.ShouldBeNull();
                     
                 messageValue = new MessageValue
@@ -1045,10 +1046,9 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var nonparallelContractCode =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
-                        new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
-                        ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+                var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress);
                 nonparallelContractCode.ShouldBeNull();
 
                 messageValue = new MessageValue

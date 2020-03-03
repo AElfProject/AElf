@@ -21,20 +21,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ICalculateTxCostStrategy _calStrategy;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            ICalculateTxCostStrategy calStrategy,
-            IBlockchainStateService blockchainStateService)
+            ICalculateTxCostStrategy calStrategy, 
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _calStrategy = calStrategy;
-            _blockchainStateService = blockchainStateService;
+            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 };
                 
                 var transactionSizeFeeSymbols =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext);
+                    await _transactionSizeFeeSymbolsProvider.GetTransactionSizeFeeSymbolsAsync(chainContext);
                 if (transactionSizeFeeSymbols != null)
                 {
                     foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)

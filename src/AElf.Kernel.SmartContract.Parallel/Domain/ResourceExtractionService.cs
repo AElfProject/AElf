@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
@@ -21,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
@@ -29,10 +30,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IBlockchainStateService blockchainStateService)
+            INonparallelContractCodeProvider nonparallelContractCodeProvider)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _blockchainStateService = blockchainStateService;
+            _nonparallelContractCodeProvider = nonparallelContractCodeProvider;
             _blockchainService = blockchainService;
 
             Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -124,8 +125,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 }
 
                 var nonparallelContractCode =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
-                        chainContext, address);
+                    await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, address);
                 if (nonparallelContractCode != null && nonparallelContractCode.CodeHash == executive.ContractHash)
                 {
                     return new TransactionResourceInfo

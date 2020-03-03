@@ -17,7 +17,7 @@ namespace AElf.Kernel.TransactionPool.Application
     public class SymbolListToPayTxFeeUpdatedEventHandler : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
         private LogEvent _interestedEvent;
         private ILogger<SymbolListToPayTxFeeUpdatedEventHandler> Logger { get; set; }
 
@@ -37,11 +37,11 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public SymbolListToPayTxFeeUpdatedEventHandler(ISmartContractAddressService smartContractAddressService, 
-            IBlockchainStateService blockchainStateService)
+        public SymbolListToPayTxFeeUpdatedEventHandler(ISmartContractAddressService smartContractAddressService,
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _blockchainStateService = blockchainStateService;
+            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             Logger = NullLogger<SymbolListToPayTxFeeUpdatedEventHandler>.Instance;
         }
 
@@ -63,7 +63,8 @@ namespace AElf.Kernel.TransactionPool.Application
                 });
             }
 
-            await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), transactionSizeFeeSymbols);
+            await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(block.GetHash(),
+                transactionSizeFeeSymbols);
         }
     }
 }

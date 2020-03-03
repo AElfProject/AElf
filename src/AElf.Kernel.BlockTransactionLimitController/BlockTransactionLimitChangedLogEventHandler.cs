@@ -12,7 +12,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitChangedLogEventHandler : IBlockAcceptedLogEventHandler
     {
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
@@ -36,10 +36,11 @@ namespace AElf.Kernel.BlockTransactionLimitController
         public ILogger<BlockTransactionLimitChangedLogEventHandler> Logger { get; set; }
 
         public BlockTransactionLimitChangedLogEventHandler(
-            ISmartContractAddressService smartContractAddressService, IBlockchainStateService blockchainStateService)
+            ISmartContractAddressService smartContractAddressService, 
+            IBlockTransactionLimitProvider blockTransactionLimitProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _blockchainStateService = blockchainStateService;
+            _blockTransactionLimitProvider = blockTransactionLimitProvider;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventHandler>.Instance;
         }
 
@@ -47,13 +48,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
         {
             var eventData = new BlockTransactionLimitChanged();
             eventData.MergeFrom(logEvent);
-
-            var limit = new BlockTransactionLimit
-            {
-                Value = eventData.New
-            };
-            await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), limit);
-
+            await _blockTransactionLimitProvider.SetLimitAsync(block.GetHash(), eventData.New);
             Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
         }
     }

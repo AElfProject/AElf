@@ -118,7 +118,7 @@ namespace AElf.Kernel.SmartContract.Application
             };
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
             
-            var transactionDic = new Dictionary<Hash, Transaction>();
+            var transactionDic = new Dictionary<string, Transaction>();
             for (int i = 0; i < 5; i++)
             {
                 var transaction = new Transaction
@@ -128,18 +128,23 @@ namespace AElf.Kernel.SmartContract.Application
                     RefBlockNumber = chain.BestChainHeight - 1,
                     MethodName = "Test"
                 };
-                transactionDic.Add(transaction.GetHash(), transaction);
+                transactionDic.Add(
+                    string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Transaction),
+                        transaction.GetHash().ToString()), transaction);
             }
 
-            await _blockchainStateService.AddBlockExecutedDataAsync<Hash, Transaction>(chain.BestChainHash,
+            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash,
                 transactionDic);
             var transactionResult = new TransactionResult
             {
-                TransactionId = transactionDic.First().Key
+                TransactionId = transactionDic.First().Value.GetHash()
             };
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash,
-                transactionResult.TransactionId, transactionResult);
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, chain);
+            var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedCacheKey,
+                nameof(TransactionResult), transactionResult.TransactionId.ToString());
+            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, transactionResultKey,
+                transactionResult);
+            var chainKey = string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Chain));
+            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, chainKey, chain);
 
             var newBlockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(chain.BestChainHash);
             newBlockStateSet.BlockHash.ShouldBe(blockStateSet.BlockHash);
@@ -154,16 +159,18 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            var chainFromBlockExecutedCache = await _blockchainStateService.GetBlockExecutedDataAsync<Chain>(chainContext);
+            var chainFromBlockExecutedCache =
+                await _blockchainStateService.GetBlockExecutedDataAsync<Chain>(chainContext, chainKey);
             chainFromBlockExecutedCache.ShouldBe(chain);
 
             var transactionResultFromBlockExecutedCache =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Hash, TransactionResult>(chainContext,
-                    transactionResult.TransactionId);
+                await _blockchainStateService.GetBlockExecutedDataAsync<TransactionResult>(chainContext,
+                    transactionResultKey);
             transactionResultFromBlockExecutedCache.ShouldBe(transactionResult);
             foreach (var keyPair in transactionDic)
             {
-                var transaction = await _blockchainStateService.GetBlockExecutedDataAsync<Hash,Transaction>(chainContext,keyPair.Key);
+                var transaction =
+                    await _blockchainStateService.GetBlockExecutedDataAsync<Transaction>(chainContext, keyPair.Key);
                 transaction.ShouldBe(keyPair.Value);
             }
         }

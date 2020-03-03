@@ -14,6 +14,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -40,6 +41,7 @@ namespace AElf.Parallel.Tests
         private readonly ParallelTestHelper _parallelTestHelper;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IStateStore<VersionedState> _versionedStates;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
 
         private int _groupCount = 10;
         private int _transactionCount = 20;
@@ -58,6 +60,7 @@ namespace AElf.Parallel.Tests
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
+            _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
         }
 
         [Fact]
@@ -96,7 +99,7 @@ namespace AElf.Parallel.Tests
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -156,7 +159,7 @@ namespace AElf.Parallel.Tests
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -192,7 +195,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
                     new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                     tokenContractAddress);
             nonparallelContractCode.ShouldBeNull();
@@ -224,7 +227,7 @@ namespace AElf.Parallel.Tests
             var block = await _parallelTestHelper.MinedOneBlock();
 
             var nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
                     new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To);
             nonparallelContractCode.ShouldBeNull();
             
@@ -245,7 +248,7 @@ namespace AElf.Parallel.Tests
             transactionResults.Count(t => t.Status == TransactionResultStatus.Mined).ShouldBe(2);
 
             nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
                     new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To);
             nonparallelContractCode.ShouldBeNull();
         }
@@ -326,7 +329,7 @@ namespace AElf.Parallel.Tests
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
                     new ChainContext
                     {
                         BlockHash = block.GetHash(),
@@ -361,7 +364,7 @@ namespace AElf.Parallel.Tests
             }
 
             nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -380,7 +383,7 @@ namespace AElf.Parallel.Tests
             blockStateSet.ShouldBeNull();
             
             nonparallelContractCode =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
@@ -495,11 +498,12 @@ namespace AElf.Parallel.Tests
 
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var nonparallelContractCode = await _blockchainStateService.GetBlockExecutedDataAsync<Address, NonparallelContractCode>(new ChainContext
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, tokenContractAddress);
+            var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, tokenContractAddress);
             nonparallelContractCode.ShouldBeNull();
             
             groupedTransactions = await _grouper.GroupAsync(new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
