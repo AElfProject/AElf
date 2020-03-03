@@ -18,7 +18,7 @@ namespace AElf.Kernel.FeeCalculation
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, int[][]> _coefficientsDicCache;
-        private readonly Dictionary<int, bool> _needReLoadDic;
+        private Dictionary<int, bool> _needReLoadDic;
 
         public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
@@ -49,20 +49,21 @@ namespace AElf.Kernel.FeeCalculation
         public async Task SyncCache(ChainContext chainContext)
         {
             CalculateFeeCoefficientOfContract coefficientFromContract = null;
-            foreach (var kp in _needReLoadDic.Where(kp => kp.Value))
+            foreach (var (key, _) in _needReLoadDic.Where(kp => kp.Value))
             {
-                if (kp.Key == (int) FeeTypeEnum.Tx)
+                if (key == (int) FeeTypeEnum.Tx)
                 {
-                    _coefficientsDicCache[kp.Key] = await GetFromBlockChainStateAsync(kp.Key, chainContext);
+                    _coefficientsDicCache[key] = await GetFromBlockChainStateAsync(key, chainContext);
                 }
                 else
                 {
                     if (coefficientFromContract == null)
                         coefficientFromContract = await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(chainContext);
-                    _coefficientsDicCache[kp.Key] = coefficientFromContract.CoefficientDicOfContract[kp.Key].Coefficients.AsEnumerable()
+                    _coefficientsDicCache[key] = coefficientFromContract.CoefficientDicOfContract[key].Coefficients.AsEnumerable()
                         .Select(x => (int[])(x.CoefficientArray.AsEnumerable())).ToArray();
                 }
             }
+            _needReLoadDic = _needReLoadDic.ToDictionary(x => x.Key, x => true);
         }
 
         private async Task<int[][]> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
