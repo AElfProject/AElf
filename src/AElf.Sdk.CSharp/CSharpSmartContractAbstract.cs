@@ -1,6 +1,5 @@
 using AElf.Types;
-
-//using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Sdk.CSharp
 {

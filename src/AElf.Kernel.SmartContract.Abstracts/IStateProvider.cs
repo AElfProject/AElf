@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public interface ICachedStateProvider : IStateProvider
     {

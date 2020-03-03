@@ -1,12 +1,8 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
-    public interface ILimitedSmartContractContext
-    {
-    }
-
     [Serializable]
     public class SmartContractBridgeException : Exception
     {
