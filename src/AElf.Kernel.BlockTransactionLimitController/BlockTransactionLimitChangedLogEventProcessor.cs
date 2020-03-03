@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.BlockTransactionLimitController
 {
-    public class BlockTransactionLimitChangedLogEventHandler : IBlockAcceptedLogEventHandler
+    public class BlockTransactionLimitChangedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -32,17 +32,17 @@ namespace AElf.Kernel.BlockTransactionLimitController
             }
         }
 
-        public ILogger<BlockTransactionLimitChangedLogEventHandler> Logger { get; set; }
+        public ILogger<BlockTransactionLimitChangedLogEventProcessor> Logger { get; set; }
 
-        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider blockTransactionLimitProvider,
+        public BlockTransactionLimitChangedLogEventProcessor(IBlockTransactionLimitProvider blockTransactionLimitProvider,
             ISmartContractAddressService smartContractAddressService)
         {
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
             _smartContractAddressService = smartContractAddressService;
-            Logger = NullLogger<BlockTransactionLimitChangedLogEventHandler>.Instance;
+            Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new BlockTransactionLimitChanged();
             eventData.MergeFrom(logEvent);
