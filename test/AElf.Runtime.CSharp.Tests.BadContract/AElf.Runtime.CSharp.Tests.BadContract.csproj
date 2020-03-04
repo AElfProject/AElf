@@ -5,6 +5,7 @@
         <RootNamespace>AElf.Runtime.CSharp.Tests.BadContract</RootNamespace>
         <IsPackable>false</IsPackable>
         <IsContract>true</IsContract>
+        <SkipAudit>true</SkipAudit>
         <PatchOverwrite>true</PatchOverwrite>
     </PropertyGroup>
     <ItemGroup>
