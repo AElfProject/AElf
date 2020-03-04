@@ -226,7 +226,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
-                    Logger.LogWarning("Tx pool is full.");
                     return;
                 }
 

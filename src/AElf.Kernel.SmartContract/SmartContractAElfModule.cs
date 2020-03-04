@@ -14,9 +14,8 @@ namespace AElf.Kernel.SmartContract
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
-            context.Services
-                .AddSingleton<ITransactionSizeFeeUnitPriceProvider, DefaultTransactionSizeFeeUnitPriceProvider>();
-            //context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
+            context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
+            context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

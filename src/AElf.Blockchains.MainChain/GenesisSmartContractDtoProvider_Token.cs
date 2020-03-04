@@ -13,7 +13,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("MultiToken")).Value,
+                GetContractCodeByName("AElf.Contracts.MultiToken"),
                 TokenSmartContractAddressNameProvider.Name,
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
             return l;

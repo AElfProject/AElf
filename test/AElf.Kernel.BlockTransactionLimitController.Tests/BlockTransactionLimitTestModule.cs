@@ -1,7 +1,6 @@
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
@@ -17,8 +16,8 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             context.Services.AddSingleton(typeof(LogEventListeningService<>));
             context.Services
                 .Replace(ServiceDescriptor
-                    .Singleton<ILogEventListeningService<IBlockAcceptedLogEventHandler>,
-                        OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>>());
+                    .Singleton<ILogEventListeningService<IBlockAcceptedLogEventProcessor>,
+                        OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>>());
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
     }
