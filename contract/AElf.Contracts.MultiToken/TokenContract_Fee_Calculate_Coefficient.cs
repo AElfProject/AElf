@@ -15,6 +15,7 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
+
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -25,27 +26,18 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             AssertDeveloperFeeController();
             var feeType = (int) coefficientInput.FeeType;
-            var coefficientInfoInState = State.CalculateCoefficientOfContract.Value
-                .CoefficientDicOfContract[feeType];
+            Assert(feeType != (int) FeeTypeEnum.Tx, "coefficient does not exist");
+            var allTokenCoefficient = State.CalculateCoefficientOfTokenType.Value;
+            var tokenCoefficientList = allTokenCoefficient.CoefficientListOfTokenType;
+            var coefficientInfoInState = tokenCoefficientList.FirstOrDefault(x => x.FeeTokenType == feeType);
             Assert(coefficientInfoInState != null, "coefficient does not exist");
             var coefficient = coefficientInput.Coefficient;
-            var funcCoefficient =
-                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.CoefficientArray[0] == coefficient.PieceKey);
-            Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
-            AssertValidCoefficients(coefficientInput.Coefficient, funcCoefficient);
-            if (coefficient.CoefficientArray[0] != funcCoefficient.CoefficientArray[0])
-            {
-                var oldPieceKey = funcCoefficient.CoefficientArray[0];  // first element is piece key
-                var newPieceKey = coefficient.CoefficientArray[0];
-                var pieceKeyArray = coefficientInfoInState.Coefficients.Select(x => x.CoefficientArray[0]);
-                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray),"invalid piece key");
-            }
-            UpdateCoefficient(coefficientInput.Coefficient, funcCoefficient);
-            State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[feeType] = coefficientInfoInState;
+            UpdateCoefficientOfOneToken(coefficient, coefficientInfoInState);
+            State.CalculateCoefficientOfTokenType.Value = allTokenCoefficient;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
                 FeeType = feeType,
-                AllCoefficient = coefficientInfoInState
+                CoefficientOfAllType = allTokenCoefficient
             });
             return new Empty();
         }
@@ -55,10 +47,27 @@ namespace AElf.Contracts.MultiToken
             if (coefficientInput == null)
                 return new Empty();
             AssertUserFeeController();
-            var coefficientInfoInState = State.CalculateCoefficientOfSender.Value.CoefficientOfSender;
+            var allTokenCoefficient = State.CalculateCoefficientOfTokenType.Value;
+            var tokenCoefficientList = allTokenCoefficient.CoefficientListOfTokenType;
+            var coefficientInfoInState =
+                tokenCoefficientList.FirstOrDefault(x => x.FeeTokenType == (int) FeeTypeEnum.Tx);
             Assert(coefficientInfoInState != null, "coefficient does not exist");
+            UpdateCoefficientOfOneToken(coefficientInput, coefficientInfoInState);
+            State.CalculateCoefficientOfTokenType.Value = allTokenCoefficient;
+            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
+            {
+                FeeType = (int) FeeTypeEnum.Tx,
+                CoefficientOfAllType = allTokenCoefficient
+            });
+            return new Empty();
+        }
+
+        private void UpdateCoefficientOfOneToken(CoefficientFromSender coefficientInput,
+            CalculateFeeCoefficientsOfType coefficientInfoInState)
+        {
             var funcCoefficient =
-                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.CoefficientArray[0] == coefficientInput.PieceKey);
+                coefficientInfoInState.Coefficients.SingleOrDefault(x =>
+                    x.CoefficientArray[0] == coefficientInput.PieceKey);
             Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
             AssertValidCoefficients(coefficientInput, funcCoefficient);
             if (coefficientInput.CoefficientArray[0] != funcCoefficient.CoefficientArray[0])
@@ -66,95 +75,81 @@ namespace AElf.Contracts.MultiToken
                 var oldPieceKey = funcCoefficient.CoefficientArray[0];
                 var newPieceKey = coefficientInput.CoefficientArray[0];
                 var pieceKeyArray = coefficientInfoInState.Coefficients.Select(x => x.CoefficientArray[0]);
-                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray),"invalid piece key");
+                Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray), "invalid piece key");
             }
-            UpdateCoefficient(coefficientInput, funcCoefficient);
-            State.CalculateCoefficientOfSender.Value.CoefficientOfSender = coefficientInfoInState;
-            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
-            {
-                FeeType = (int)FeeTypeEnum.Tx,
-                AllCoefficient = coefficientInfoInState
-            });
-            return new Empty();
-        }
 
-        private void UpdateCoefficient(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
-        {
             funcCoefficient.CoefficientArray.Clear();
             funcCoefficient.CoefficientArray.AddRange(coefficientInput.CoefficientArray);
         }
 
-        private void AssertValidCoefficients(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
+        private void AssertValidCoefficients(CoefficientFromSender coefficientInput,
+            CalculateFeeCoefficient funcCoefficient)
         {
             IList<int> targetArray = coefficientInput.CoefficientArray;
             IList<int> currentArray = funcCoefficient.CoefficientArray;
             Assert(targetArray.Count == currentArray.Count, "invalid coefficient input");
-            Assert(targetArray.Any(x => x > 0) || (targetArray.Count == 4 && targetArray[3] == 0), "invalid coefficient input");
+            Assert(
+                targetArray.Any(x => x > 0) || (targetArray.Count == 4 && targetArray[0] > 0 && targetArray[1] > 0 &&
+                                                targetArray[2] > 0 && targetArray[3] == 0),
+                "invalid coefficient input");
         }
+
         private bool IsValidNewPieceKey(int newPieceKey, int oldPieceKey, IEnumerable<int> orderPieceKeys)
         {
-            var pieceKeys = orderPieceKeys as int[] ?? orderPieceKeys.ToArray();
-            if (pieceKeys.Contains(newPieceKey))
+            if (orderPieceKeys.Contains(newPieceKey))
                 return false;
-            return !pieceKeys.Any(x => x < oldPieceKey && x < newPieceKey);
+            var pieceKeys = orderPieceKeys as int[] ?? orderPieceKeys.ToArray();
+            var index = pieceKeys.Count(x => x < oldPieceKey);
+            var prePieceKeyIndex = index - 1 >= 0 ? index - 1 : -1;
+            var postPieceKeyIndex = index + 1 <= pieceKeys.Length - 1 ? index + 1 : -1;
+            if (prePieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] > newPieceKey)
+                return false;
+            if (postPieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] < newPieceKey)
+                return false;
+            return true;
         }
 
         private void InitialParameters()
         {
-            if (State.CalculateCoefficientOfContract.Value == null)
-                State.CalculateCoefficientOfContract.Value = new CalculateFeeCoefficientOfContract();
-            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Read))
-                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Storage))
-                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Storage] = GetStoFeeInitialCoefficient();
-            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Write))
-                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Traffic))
-                State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] = GetTrafficFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfSender.Value == null)
+            if (State.CalculateCoefficientOfTokenType.Value == null)
+                State.CalculateCoefficientOfTokenType.Value = new CalculateFeeCoefficientOfAllTokenType();
+            var allTokenCoefficient = State.CalculateCoefficientOfTokenType.Value;
+            var tokenCoefficientList = allTokenCoefficient.CoefficientListOfTokenType;
+            if (tokenCoefficientList.All(x => x.FeeTokenType != (int) FeeTypeEnum.Read))
+                tokenCoefficientList.Add(GetReadFeeInitialCoefficient());
+            if (tokenCoefficientList.All(x => x.FeeTokenType != (int) FeeTypeEnum.Storage))
+                tokenCoefficientList.Add(GetStoFeeInitialCoefficient());
+            if (tokenCoefficientList.All(x => x.FeeTokenType != (int) FeeTypeEnum.Write))
+                tokenCoefficientList.Add(GetWriteFeeInitialCoefficient());
+            if (tokenCoefficientList.All(x => x.FeeTokenType != (int) FeeTypeEnum.Traffic))
+                tokenCoefficientList.Add(GetTrafficFeeInitialCoefficient());
+            if (tokenCoefficientList.All(x => x.FeeTokenType != (int) FeeTypeEnum.Tx))
+                tokenCoefficientList.Add(GetTxFeeInitialCoefficient());
+            State.CalculateCoefficientOfTokenType.Value = allTokenCoefficient;
+            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                State.CalculateCoefficientOfSender.Value = new CalculateFeeCoefficientOfSender
-                {
-                    CoefficientOfSender = GetTxFeeInitialCoefficient()
-                };
-            }
-               
+                CoefficientOfAllType = allTokenCoefficient,
+                IsSetAll = true
+            });
         }
 
         private CalculateFeeCoefficientsOfType GetReadFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var totalParameter = new CalculateFeeCoefficientsOfType
+            {
+                FeeTokenType = (int) FeeTypeEnum.Read
+            };
             var readFeeParameter1 = new CalculateFeeCoefficient();
-            int[] coefficient1 = { 10, 1, 8, 1000};
+            // pieceKey , numerator, denominator, constantValue
+            int[] coefficient1 = {10, 1, 8, 1000};
             readFeeParameter1.CoefficientArray.AddRange(coefficient1);
-            // {
-            //     FeeType = FeeTypeEnum.Read,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 10,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 1000}}
-            // };
             var readFeeParameter2 = new CalculateFeeCoefficient();
-            int[] coefficient2 = {100, 1 , 4, 0 };
+            int[] coefficient2 = {100, 1, 4, 0};
             readFeeParameter2.CoefficientArray.AddRange(coefficient2);
-            // {
-            //     FeeType = FeeTypeEnum.Read,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 100,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
-            // };
             var readFeeParameter3 = new CalculateFeeCoefficient();
-            int[] coefficient3 = { int.MaxValue, 1, 4, 2, 5, 250, 40};
+            // pieceKey , numerator, denominator, power, changeSpanBase, weight, weightBase
+            int[] coefficient3 = {int.MaxValue, 1, 4, 2, 5, 250, 40};
             readFeeParameter3.CoefficientArray.AddRange(coefficient3);
-            // {
-            //     FeeType = FeeTypeEnum.Read,
-            //     FunctionType = CalculateFunctionTypeEnum.Power,
-            //     PieceKey = int.MaxValue,
-            //     CoefficientDic =
-            //     {
-            //         {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 5}, {"weight", 250},
-            //         {"weightBase".ToLower(), 40}
-            //     }
-            // };
             totalParameter.Coefficients.Add(readFeeParameter1);
             totalParameter.Coefficients.Add(readFeeParameter2);
             totalParameter.Coefficients.Add(readFeeParameter3);
@@ -163,29 +158,16 @@ namespace AElf.Contracts.MultiToken
 
         private CalculateFeeCoefficientsOfType GetStoFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var totalParameter = new CalculateFeeCoefficientsOfType
+            {
+                FeeTokenType = (int) FeeTypeEnum.Storage
+            };
             var stoFeeParameter1 = new CalculateFeeCoefficient();
-            int[] coefficient1 = {1000000, 1, 4, 1000 };
+            int[] coefficient1 = {1000000, 1, 4, 1000};
             stoFeeParameter1.CoefficientArray.AddRange(coefficient1);
-            // {
-            //     FeeType = FeeTypeEnum.Storage,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 1000000,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantValue".ToLower(), 1000}}
-            // };
             var stoFeeParameter2 = new CalculateFeeCoefficient();
-            int[] coefficient2 = {int.MaxValue, 1, 64, 2, 100, 250, 500 };
+            int[] coefficient2 = {int.MaxValue, 1, 64, 2, 100, 250, 500};
             stoFeeParameter2.CoefficientArray.AddRange(coefficient2);
-            // {
-            //     FeeType = FeeTypeEnum.Storage,
-            //     FunctionType = CalculateFunctionTypeEnum.Power,
-            //     PieceKey = int.MaxValue,
-            //     CoefficientDic =
-            //     {
-            //         {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
-            //         {"weightBase".ToLower(), 500}
-            //     }
-            // };
             totalParameter.Coefficients.Add(stoFeeParameter1);
             totalParameter.Coefficients.Add(stoFeeParameter2);
             return totalParameter;
@@ -193,38 +175,19 @@ namespace AElf.Contracts.MultiToken
 
         private CalculateFeeCoefficientsOfType GetWriteFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var totalParameter = new CalculateFeeCoefficientsOfType
+            {
+                FeeTokenType = (int) FeeTypeEnum.Write
+            };
             var writeFeeParameter1 = new CalculateFeeCoefficient();
-            int[] coefficient1 = { 10, 1, 8, 10000};
+            int[] coefficient1 = {10, 1, 8, 10000};
             writeFeeParameter1.CoefficientArray.AddRange(coefficient1);
-            // {
-            //     FeeType = FeeTypeEnum.Write,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 10,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 10000}}
-            // };
             var writeFeeParameter2 = new CalculateFeeCoefficient();
-            int[] coefficient2 = { 100, 1, 4, 0};
+            int[] coefficient2 = {100, 1, 4, 0};
             writeFeeParameter2.CoefficientArray.AddRange(coefficient2);
-            // {
-            //     FeeType = FeeTypeEnum.Write,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 100,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
-            // };
             var writeFeeParameter3 = new CalculateFeeCoefficient();
-            int[] coefficient3 = {int.MaxValue, 1, 4, 2, 2, 250, 40 };
+            int[] coefficient3 = {int.MaxValue, 1, 4, 2, 2, 250, 40};
             writeFeeParameter3.CoefficientArray.AddRange(coefficient3);
-            // {
-            //     FeeType = FeeTypeEnum.Write,
-            //     FunctionType = CalculateFunctionTypeEnum.Power,
-            //     PieceKey = int.MaxValue,
-            //     CoefficientDic =
-            //     {
-            //         {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 2}, {"weight", 250},
-            //         {"weightBase".ToLower(), 40}
-            //     }
-            // };
             totalParameter.Coefficients.Add(writeFeeParameter1);
             totalParameter.Coefficients.Add(writeFeeParameter2);
             totalParameter.Coefficients.Add(writeFeeParameter3);
@@ -233,29 +196,16 @@ namespace AElf.Contracts.MultiToken
 
         private CalculateFeeCoefficientsOfType GetTrafficFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var totalParameter = new CalculateFeeCoefficientsOfType
+            {
+                FeeTokenType = (int) FeeTypeEnum.Traffic
+            };
             var netFeeParameter1 = new CalculateFeeCoefficient();
-            int[] coefficient1 = {1000000, 1 , 64, 10000 };
+            int[] coefficient1 = {1000000, 1, 64, 10000};
             netFeeParameter1.CoefficientArray.AddRange(coefficient1);
-            // {
-            //     FeeType = FeeTypeEnum.Traffic,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 1000000,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantValue".ToLower(), 10000}}
-            // };
             var netFeeParameter2 = new CalculateFeeCoefficient();
             int[] coefficient2 = {int.MaxValue, 1, 64, 2, 100, 250, 500};
             netFeeParameter2.CoefficientArray.AddRange(coefficient2);
-            // {
-            //     FeeType = FeeTypeEnum.Traffic,
-            //     FunctionType = CalculateFunctionTypeEnum.Power,
-            //     PieceKey = int.MaxValue,
-            //     CoefficientDic =
-            //     {
-            //         {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
-            //         {"weightBase".ToLower(), 500}
-            //     }
-            // };
             totalParameter.Coefficients.Add(netFeeParameter1);
             totalParameter.Coefficients.Add(netFeeParameter2);
             return totalParameter;
@@ -263,29 +213,16 @@ namespace AElf.Contracts.MultiToken
 
         private CalculateFeeCoefficientsOfType GetTxFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
+            var totalParameter = new CalculateFeeCoefficientsOfType
+            {
+                FeeTokenType = (int) FeeTypeEnum.Tx
+            };
             var txFeeParameter1 = new CalculateFeeCoefficient();
-            int[] coefficient1 = { 1000000,1,800,10000 };
+            int[] coefficient1 = {1000000, 1, 800, 10000};
             txFeeParameter1.CoefficientArray.AddRange(coefficient1);
-            // {
-            //     FeeType = FeeTypeEnum.Tx,
-            //     FunctionType = CalculateFunctionTypeEnum.Liner,
-            //     PieceKey = 1000000,
-            //     CoefficientDic = {{"numerator", 1}, {"denominator", 800}, {"constantValue".ToLower(), 10000}}
-            // };
             var txFeeParameter2 = new CalculateFeeCoefficient();
-            int[] coefficient2 = {int.MaxValue, 1, 800, 2, 100, 1, 1 };
+            int[] coefficient2 = {int.MaxValue, 1, 800, 2, 100, 1, 1};
             txFeeParameter2.CoefficientArray.AddRange(coefficient2);
-            // {
-            //     FeeType = FeeTypeEnum.Tx,
-            //     FunctionType = CalculateFunctionTypeEnum.Power,
-            //     PieceKey = int.MaxValue,
-            //     CoefficientDic =
-            //     {
-            //         {"numerator", 1}, {"denominator", 800}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 1},
-            //         {"weightBase".ToLower(), 1}
-            //     }
-            // };
             totalParameter.Coefficients.Add(txFeeParameter1);
             totalParameter.Coefficients.Add(txFeeParameter2);
             return totalParameter;

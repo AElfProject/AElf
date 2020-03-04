@@ -362,19 +362,16 @@ enum FeeTypeEnum {
 }
 
 message CalculateFeeCoefficientsOfType{
-    repeated CalculateFeeCoefficient coefficients= 1;
+    sint32 fee_token_type = 1;
+    repeated CalculateFeeCoefficient coefficients= 2;
 }
 
 message CalculateFeeCoefficient {
     repeated sint32 coefficient_array = 1;
 }
 
-message CalculateFeeCoefficientOfSender{
-    CalculateFeeCoefficientsOfType coefficient_of_sender = 1;
-}
-
-message CalculateFeeCoefficientOfContract{
-    map<sint32, CalculateFeeCoefficientsOfType> coefficient_dic_of_contract = 1;
+message CalculateFeeCoefficientOfAllTokenType{
+    repeated CalculateFeeCoefficientsOfType coefficient_list_of_token_type = 1;
 }
 
 // Events
@@ -424,10 +421,11 @@ message TransactionSizeFeeUnitPriceUpdated {
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
     sint32 fee_type = 1;
-    CalculateFeeCoefficientsOfType all_coefficient = 2;
+    CalculateFeeCoefficientOfAllTokenType coefficient_of_all_type = 2;
+    bool is_set_all = 3;
 }
-
-message RentalCharged {
+ 
+ message RentalCharged {
     option (aelf.is_event) = true;
     string symbol = 1;
     sint64 amount = 2;

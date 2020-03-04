@@ -160,7 +160,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return consumedResourceTokens;
             }
-
+        
             var bill = new TransactionFeeBill();
             foreach (var pair in input.CostDic)
             {
@@ -172,10 +172,10 @@ namespace AElf.Contracts.MultiToken
                     var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
                         .Add(pair.Value.Sub(existingBalance));
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
-
+        
                     consumedResourceTokens.IsFailedToCharge = true;
                     consumedResourceTokens.Owning.Add(pair.Key, owningBalance);
-
+        
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                 }
                 else
@@ -183,16 +183,16 @@ namespace AElf.Contracts.MultiToken
                     bill.TokenToAmount.Add(pair.Key, pair.Value);
                 }
             }
-
+        
             foreach (var pair in bill.TokenToAmount)
             {
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
                 consumedResourceTokens.Value.Add(pair.Key, pair.Value);
             }
-
+        
             Context.LogDebug(() => $"Finished executing ChargeResourceToken.{consumedResourceTokens}");
-
+        
             return consumedResourceTokens;
         }
 
@@ -226,12 +226,12 @@ namespace AElf.Contracts.MultiToken
                     Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
                 }
-
+        
                 AssertSymbolToPayTxFeeIsValid(tokenInfo);
                 Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenInfo.TokenSymbol);
             }
-
+        
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
             State.SymbolListToPayTxSizeFee.Value = input;
             Context.Fire(new ExtraTokenListModified

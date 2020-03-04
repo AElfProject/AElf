@@ -111,12 +111,20 @@ namespace AElf.Contracts.MultiToken
 
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
         {
-            return State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[input.Value];
+            if (input.Value == (int) FeeTypeEnum.Tx)
+                return null;
+            var targetTokenCoefficient =
+                State.CalculateCoefficientOfTokenType.Value.CoefficientListOfTokenType.FirstOrDefault(x =>
+                    x.FeeTokenType == input.Value);
+            return targetTokenCoefficient;
         }
 
         public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
         {
-            return State.CalculateCoefficientOfSender.Value.CoefficientOfSender;
+            var targetTokenCoefficient =
+                State.CalculateCoefficientOfTokenType.Value.CoefficientListOfTokenType.First(x =>
+                    x.FeeTokenType == (int)FeeTypeEnum.Tx);
+            return targetTokenCoefficient;
         }
 
         public override OwningRental GetOwningRental(Empty input)

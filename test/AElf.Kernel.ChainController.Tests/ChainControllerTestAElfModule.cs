@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

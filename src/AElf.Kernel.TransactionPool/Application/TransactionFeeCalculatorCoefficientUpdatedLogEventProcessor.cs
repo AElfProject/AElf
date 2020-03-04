@@ -52,29 +52,9 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);
-            if (eventData.FeeType == (int) FeeTypeEnum.Tx)
-            {
-                var newCoefficient = new CalculateFeeCoefficientOfSender
-                {
-                    CoefficientOfSender = eventData.AllCoefficient
-                };
-                await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), newCoefficient);
-            }
-            else
-            {
-                var chainContext = new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                };
-                var existedCoefficient =
-                    await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(
-                        chainContext);
-                existedCoefficient.CoefficientDicOfContract[eventData.FeeType] = eventData.AllCoefficient;
-                await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), existedCoefficient);
-            }
-
-            _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
+            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.CoefficientOfAllType);
+            if (!eventData.IsSetAll)
+                _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
         }
     }
 }
