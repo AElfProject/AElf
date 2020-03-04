@@ -9,7 +9,7 @@ message TransactionResourceInfo {
     ParallelType parallel_type = 2;
     aelf.Hash transaction_id = 3;
     aelf.Hash contract_hash = 4;
-    bool is_contract_remarks = 5;
+    bool is_nonparallel_contract_code = 5;
 }
 
 enum ParallelType {
@@ -18,14 +18,6 @@ enum ParallelType {
     INVALID_CONTRACT_ADDRESS = 2;
 }
 
-message ContractRemarks {
-    aelf.Address contract_address = 1;
-    repeated CodeRemark code_remarks = 2; 
-}
-
-message CodeRemark{
+message NonparallelContractCode{
     aelf.Hash code_hash = 1;
-    bool non_parallelizable = 2;
-    aelf.Hash block_hash = 3;
-    int64 block_height = 4;
 }

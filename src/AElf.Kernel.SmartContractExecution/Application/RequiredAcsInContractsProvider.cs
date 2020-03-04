@@ -35,25 +35,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
         {
-            var result = await GetRequiredAcsAsync(new ChainContext
-            {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            });
-
-            var returned = RequiredAcsInContracts.Parser.ParseFrom(result);
-
-            return new RequiredAcsDto
-            {
-                AcsList = returned.AcsList.ToList(),
-                RequireAll = returned.RequireAll
-            };
-        }
-
-        private async Task<ByteString> GetRequiredAcsAsync(IChainContext chainContext)
-        {
-            //TODO: maybe we should add a extend method to _transactionReadOnlyExecutionService
-
             var tx = new Transaction
             {
                 From = FromAddress,
@@ -63,10 +44,18 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 
-            var transactionTrace =
-                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
+            var returned = await _transactionReadOnlyExecutionService.ExecuteAsync<RequiredAcsInContracts>(
+                new ChainContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }, tx, TimestampHelper.GetUtcNow(), false);
 
-            return transactionTrace.ReturnValue;
+            return new RequiredAcsDto
+            {
+                AcsList = returned.AcsList.ToList(),
+                RequireAll = returned.RequireAll
+            };
         }
     }
 }
