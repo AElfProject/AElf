@@ -48,6 +48,16 @@ In order for the creation request to succeed, some assertions must pass:
 - the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0.
 - the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)).
 
+
+#### Indexing fee
+
+Side-chain developers who want to implement cross-chain transfers and cross-chain verification
+need to have the main-chain index the side-chain's blocks and this requires a fee paid in ELF tokens.
+The amount charged is determined conjointly by the organization and the developer. The initial index fee is passed in as
+a parameter when applying to create a side chain. The index fee amount can be adjusted
+through a proposal. It will take effect when both the organization and the developer agree to the
+adjusted plan.
+
 ### Approving the proposal (producers)
 
 ```protobuf
