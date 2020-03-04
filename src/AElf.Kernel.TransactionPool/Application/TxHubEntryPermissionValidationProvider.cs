@@ -8,13 +8,13 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class ExcludeFromTxHubValidationProvider : ITransactionValidationProvider
+    internal class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ExcludeFromTxHubValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }
