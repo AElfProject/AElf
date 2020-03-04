@@ -11,7 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface ITransactionBlockIndexService
     {
-        Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null);
+        Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId);
         Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex);
         Task<bool> ValidateTransactionBlockIndexExistsInBranchAsync(Hash txId, Hash chainBranchBlockHash);
         Task LoadTransactionBlockIndexAsync();
@@ -33,7 +33,7 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionBlockIndexProvider = transactionBlockIndexProvider;
         }
 
-        public async Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null)
+        public async Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId)
         {
             var transactionBlockIndex = await GetTransactionBlockIndexByTxIdAsync(txId);
             
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
             
             var chain = await _blockchainService.GetChainAsync();
-            return await GetBlockIndexAsync(chain, transactionBlockIndex, chainBranchBlockHash ?? chain.BestChainHash);
+            return await GetBlockIndexAsync(chain, transactionBlockIndex, chain.BestChainHash);
         }
 
         public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
@@ -84,7 +84,7 @@ namespace AElf.Kernel.Blockchain.Application
                 transactionBlockIndexes.Add(txId, transactionBlockIndex);
             }
 
-            await AddTransactionBlockIndices(transactionBlockIndexes);
+            await AddTransactionBlockIndicesAsync(transactionBlockIndexes);
         }
 
         public async Task<bool> ValidateTransactionBlockIndexExistsInBranchAsync(Hash txId, Hash chainBranchBlockHash)
@@ -156,7 +156,7 @@ namespace AElf.Kernel.Blockchain.Application
             await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(cleanedTransactionBlockIndices);
         }
 
-        private async Task AddTransactionBlockIndices(IDictionary<Hash, TransactionBlockIndex> transactionBlockIndices)
+        private async Task AddTransactionBlockIndicesAsync(IDictionary<Hash, TransactionBlockIndex> transactionBlockIndices)
         {
             foreach (var index in transactionBlockIndices)
             {
