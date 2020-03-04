@@ -1,10 +1,9 @@
-﻿using AElf.Kernel.BlockTransactionLimitController;
+using AElf.Kernel.BlockTransactionLimitController;
 using AElf.Kernel.ChainController;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp;

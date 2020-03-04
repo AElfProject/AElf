@@ -11,7 +11,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -38,7 +37,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
-            OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>.Enabled = true;
+            OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>.Enabled = true;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             _configurationStub =

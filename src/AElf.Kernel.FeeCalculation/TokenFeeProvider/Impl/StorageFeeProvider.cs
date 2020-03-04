@@ -1,7 +1,7 @@
 ﻿using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
-using AElf.Kernel.SmartContract.Sdk;
 using Volo.Abp.DependencyInjection;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.FeeCalculation.Impl
 {

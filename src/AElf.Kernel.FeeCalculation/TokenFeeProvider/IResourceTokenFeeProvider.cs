@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.FeeCalculation
 {

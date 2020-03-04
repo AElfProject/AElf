@@ -2,7 +2,6 @@
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class TransactionFeeCalculatorCoefficientUpdatedEventHandle : IBlockAcceptedLogEventHandler
+    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainStateService _blockChainStateService;
@@ -20,7 +19,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private LogEvent _interestedEvent;
 
-        private ILogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle> Logger { get; set; }
+        private ILogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -38,7 +37,7 @@ namespace AElf.Kernel.TransactionPool.Application
             }
         }
 
-        public TransactionFeeCalculatorCoefficientUpdatedEventHandle(
+        public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
             IBlockchainStateService blockChainStateService,
             ICoefficientsCacheProvider coefficientsCacheProvider)
@@ -46,10 +45,10 @@ namespace AElf.Kernel.TransactionPool.Application
             _smartContractAddressService = smartContractAddressService;
             _blockChainStateService = blockChainStateService;
             _coefficientsCacheProvider = coefficientsCacheProvider;
-            Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
+            Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);
