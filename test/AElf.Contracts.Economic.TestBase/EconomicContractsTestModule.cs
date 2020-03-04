@@ -4,9 +4,9 @@ using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +22,7 @@ namespace AElf.Contracts.Economic.TestBase
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
 
-            context.Services.AddSingleton<ITransactionExecutor, EconomicTransactionExecutor>();
+            context.Services.AddSingleton<ITestTransactionExecutor, EconomicTestTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<IBlockValidationService, MockBlockValidationService>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
@@ -32,8 +32,6 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
-
-            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
         }
     }
 }

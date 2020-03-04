@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Kernel.SmartContract;
+
 
 namespace AElf.Sdk.CSharp
 {

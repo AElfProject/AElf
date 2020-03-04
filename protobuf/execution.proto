@@ -11,3 +11,8 @@ message TransactionTraceMessage
     int64 request_id = 1;
     repeated TransactionTrace transaction_traces = 2;
 }
+
+message BlockTransactionLimit
+{
+    int32 value = 1;
+}
