@@ -51,7 +51,7 @@ In order for the creation request to succeed, some assertions must pass:
 To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag to either true or false.
 
 An **exclusive** side-chain allows developers to choose the transaction fee model and set the
-transaction fee price and the transaction fee receiving address (he chooses between acs1 and acs8).
+transaction fee price and the transaction fee receiving address.
 
 The charging model of an exclusive side-chain is as follows:
  - the pay-per-time model pays the exclusive resource usage fee (CPU resource / RAM

@@ -39,7 +39,7 @@
     * [Introduction](crosschain/introduction.md)
     * [Architecture](crosschain/architecture.md)
     * [Crosschain verification](crosschain/crosschain-verification.md)
-    * [Set up](crosschain/setup.md)
+    * [Creation and set up](crosschain/setup.md)
     * [Transfer](crosschain/transfer.md)
 * [Public chain ecosystem](public-chain/main.md)
     * [Introduction](public-chain/introduction.md)
