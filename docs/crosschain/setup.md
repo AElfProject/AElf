@@ -48,17 +48,19 @@ In order for the creation request to succeed, some assertions must pass:
 
 #### Exclusive and shared 
 
-To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag.
+To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag to either true or false.
 
 An **exclusive** side-chain allows developers to choose the transaction fee model and set the
-transaction fee price and the transaction fee receiving address.
+transaction fee price and the transaction fee receiving address (he chooses between acs1 and acs8).
 
 The charging model of an exclusive side-chain is as follows:
  - the pay-per-time model pays the exclusive resource usage fee (CPU resource / RAM
 resource / DISK resource / NET resource).
  - the cross-chain index fee model.
 
-On a shared side-chain which any developer can deploy a contract on. The shared side-chain can choose to use the developer paying transaction fee model or developer revenue sharing model and user paying transaction fee model.
+On a shared side-chain which any developer can deploy a contract on. The shared side-chain can choose to use the developer paying transaction fee model or developer revenue sharing model and user paying transaction fee model. The **creator** of the shared sidechain has to pay a cross-chain index fee to ensure cross-chain transfer and verification functions.
+
+On a shared side-chain, the developer must choose between acs1 and acs8, depending on the fee model wanted.
 
 See [Economic whitepaper - 4.3 Sidechain Developer Charging Model](https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf?time=1) for more information.
 
