@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Volo.Abp.Threading;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public class NullStateCache : IStateCache
     {

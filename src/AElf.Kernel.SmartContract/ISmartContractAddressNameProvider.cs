@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf
+namespace AElf.Kernel.SmartContract
 {
     public interface ISmartContractAddressNameProvider 
     {

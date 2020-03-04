@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee";
+
+message TransactionSizeFeeSymbols
+{
+    repeated TransactionSizeFeeSymbol transaction_size_fee_symbol_list = 1;
+}
+
+message TransactionSizeFeeSymbol
+{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}

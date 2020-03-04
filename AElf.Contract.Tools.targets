@@ -64,15 +64,14 @@
     </Target>
     <!-- Patch the contract dll after building the contract -->
     <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
-        <Exec Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'"
-              WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll -overwrite $(TargetDir)$(TargetName).dll"
-              ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
-        </Exec>
-        <Exec Condition="'$(PatchOverwrite)' == '' OR !'$(PatchOverwrite)'"
-              WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(TargetDir)$(TargetName).dll"
+        <PropertyGroup>
+            <CmdPatchOverwrite></CmdPatchOverwrite>
+            <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-w </CmdPatchOverwrite>
+            <CmdSkipAudit></CmdSkipAudit>
+            <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
+        </PropertyGroup>
+        <Exec WorkingDirectory = "$(PatcherDir)"
+              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)-p $(TargetDir)$(TargetName).dll"
               ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
         </Exec>

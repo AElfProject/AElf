@@ -19,6 +19,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     public interface INotModifiedCachedStateStore<T> : IStateStore<T>
         where T : IMessage<T>, new()
     {
+        Task SetWithCacheAsync(string key, T value);
     }
 
     public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
@@ -107,6 +108,12 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             }
 
             await _stateStoreImplementation.RemoveAllAsync(keys);
+        }
+
+        public async Task SetWithCacheAsync(string key, T value)
+        {
+            await SetAsync(key, value);
+            _cache[key] = value;
         }
     }
 }
