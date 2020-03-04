@@ -19,10 +19,13 @@
       <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
       <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    </ItemGroup>
 
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
         <ItemGroup>
-            <PatcherDlls Include="$(TargetDir)\*"/>
+            <PatcherDlls Include="$(TargetDir)\*" />
         </ItemGroup>
         <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
         <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />
