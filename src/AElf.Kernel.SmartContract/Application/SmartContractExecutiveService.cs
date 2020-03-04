@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ISmartContractCodeHashProvider _smartContractCodeHashProvider;
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
         private readonly ISmartContractHeightInfoProvider _smartContractHeightInfoProvider;
@@ -32,18 +32,18 @@ namespace AElf.Kernel.SmartContract.Application
         public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
-            IBlockchainStateService blockchainStateService,
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
              ISmartContractExecutiveProvider smartContractExecutiveProvider, 
-            ISmartContractHeightInfoProvider smartContractHeightInfoProvider)
+            ISmartContractHeightInfoProvider smartContractHeightInfoProvider, 
+            ISmartContractCodeHashProvider smartContractCodeHashProvider)
         {
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
-            _blockchainStateService = blockchainStateService;
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
              _smartContractExecutiveProvider = smartContractExecutiveProvider;
              _smartContractHeightInfoProvider = smartContractHeightInfoProvider;
+             _smartContractCodeHashProvider = smartContractCodeHashProvider;
 
              Logger = new NullLogger<SmartContractExecutiveService>();
         }
@@ -152,10 +152,8 @@ namespace AElf.Kernel.SmartContract.Application
                 
                 //if contract has smartContractRegistration cache and update height. we need to get code hash in block
                 //executed cache to check whether it is equal to the one in cache.
-                var registration = await _blockchainStateService.GetBlockExecutedDataAsync<Address, SmartContractRegistration>(chainContext,
-                    address);
-                if (registration == null || registration.CodeHash != smartContractRegistration.CodeHash ||
-                    blockHeight == chainContext.BlockHeight + 1)
+                var codeHash = await _smartContractCodeHashProvider.GetSmartContractCodeHashAsync(chainContext, address);
+                if (smartContractRegistration.CodeHash != codeHash || blockHeight == chainContext.BlockHeight + 1)
                 {
                     //registration is null or registration's code hash isn't equal to cache's code hash
                     //or current height is equal to update height.maybe the cache is wrong. we need to get

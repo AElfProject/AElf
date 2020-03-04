@@ -11,17 +11,18 @@ namespace AElf.OS
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
-            IBlockchainStateService blockchainStateService,
+            ISmartContractCodeHashProvider smartContractCodeHashProvider,
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
             ISmartContractExecutiveProvider smartContractExecutiveProvider,
-            ISmartContractHeightInfoProvider smartContractHeightInfoProvider) 
+            ISmartContractHeightInfoProvider smartContractHeightInfoProvider)
             : base(defaultContractZeroCodeProvider,
-            smartContractRunnerContainer,
-            hostSmartContractBridgeContextService,
-            blockchainStateService,
-            smartContractRegistrationCacheProvider,
-            smartContractExecutiveProvider,
-            smartContractHeightInfoProvider
+                smartContractRunnerContainer,
+                hostSmartContractBridgeContextService,
+
+                smartContractRegistrationCacheProvider,
+                smartContractExecutiveProvider,
+                smartContractHeightInfoProvider,
+                smartContractCodeHashProvider
             )
         {
         }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.BlockTransactionLimitController
@@ -8,7 +9,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
     public interface IBlockTransactionLimitProvider
     {
         Task<int> GetLimitAsync(IChainContext chainContext);
-        Task SetLimitAsync(BlockIndex blockIndex, int limit);
+        Task SetLimitAsync(Hash blockHash, int limit);
     }
 
     public class BlockTransactionLimitProvider : BlockExecutedCacheProvider, IBlockTransactionLimitProvider,
@@ -31,14 +32,14 @@ namespace AElf.Kernel.BlockTransactionLimitController
             return limit?.Value ?? 0;
         }
 
-        public async Task SetLimitAsync(BlockIndex blockIndex, int limit)
+        public async Task SetLimitAsync(Hash blockHash, int limit)
         {
             var key = GetBlockExecutedCacheKey();
             var blockTransactionLimit = new BlockTransactionLimit
             {
                 Value = limit
             };
-            await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, blockTransactionLimit);
+            await _blockchainStateService.AddBlockExecutedDataAsync(blockHash, key, blockTransactionLimit);
         }
 
         protected override string GetBlockExecutedDataName()
