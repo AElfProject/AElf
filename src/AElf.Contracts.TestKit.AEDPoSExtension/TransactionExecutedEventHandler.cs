@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContractExecution.Events;
+using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
+#if DEBUG
     public class TransactionExecutedEventHandler : ILocalEventHandler<TransactionExecutedEventData>,
         ITransientDependency
     {
@@ -21,4 +22,5 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             return Task.CompletedTask;
         }
     }
+#endif
 }
