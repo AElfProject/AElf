@@ -37,8 +37,6 @@ message ProposalCreated{
 
 The creation request will create a proposal with the Parliament contract. After calling this method, a **ProposalCreated** log will be created in which the **ProposalId** be found. This ID will enable the producers to approve it.
 
-To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag.
-
 The **initial_resource_amount** must be set (for example, `{ CPU: 2, RAM: 4, DISK: 512, NET: 1024 }`) in order for the side-chain to be charged by time.
 
 In order for the creation request to succeed, some assertions must pass:
@@ -48,6 +46,21 @@ In order for the creation request to succeed, some assertions must pass:
 - the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0.
 - the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)).
 
+#### Exclusive and shared 
+
+To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag.
+
+An **exclusive** side-chain allows developers to choose the transaction fee model and set the
+transaction fee price and the transaction fee receiving address.
+
+The charging model of an exclusive side-chain is as follows:
+ - the pay-per-time model pays the exclusive resource usage fee (CPU resource / RAM
+resource / DISK resource / NET resource).
+ - the cross-chain index fee model.
+
+On a shared side-chain which any developer can deploy a contract on. The shared side-chain can choose to use the developer paying transaction fee model or developer revenue sharing model and user paying transaction fee model.
+
+See [Economic whitepaper - 4.3 Sidechain Developer Charging Model](https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf?time=1) for more information.
 
 #### Indexing fee
 
@@ -57,6 +70,9 @@ The amount charged is determined conjointly by the organization and the develope
 a parameter when applying to create a side chain. The index fee amount can be adjusted
 through a proposal. It will take effect when both the organization and the developer agree to the
 adjusted plan.
+
+After the side chain is successfully created, the deposited ELF (**locked_token_amount**) will be used to deduct the index
+fee (the index fee amount is jointly determined by the production nodes). 
 
 ### Approving the proposal (producers)
 
