@@ -27,6 +27,7 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
