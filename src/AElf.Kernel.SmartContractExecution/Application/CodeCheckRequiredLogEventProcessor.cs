@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeCheckRequiredLogEventHandler : IBestChainFoundLogEventHandler
+    public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
 
-        public CodeCheckRequiredLogEventHandler(ISmartContractAddressService smartContractAddressService,
+        public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ICodeCheckService codeCheckService, IProposalService proposalService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _proposalService = proposalService;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             // a new task for time-consuming code check job 
             Task.Run(async () =>

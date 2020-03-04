@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.Miner.Application
+namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO: need to talk about where to put
     public class LogEventListeningService<T> : ILogEventListeningService<T>
-        where T : ILogEventHandler
+        where T : ILogEventProcessor
     {
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private Dictionary<LogEvent, Bloom> _blooms;
@@ -30,7 +28,7 @@ namespace AElf.Kernel.Miner.Application
             _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public async Task ApplyAsync(IEnumerable<Block> blocks)
+        public async Task ProcessAsync(IEnumerable<Block> blocks)
         {
             Logger.LogTrace("Apply log event handler.");
             foreach (var block in blocks)
@@ -80,7 +78,7 @@ namespace AElf.Kernel.Miner.Application
                         {
                             if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
                                 continue;
-                            await handler.HandleAsync(block, result, log);
+                            await handler.ProcessAsync(block, result, log);
                         }
                     }
                 }
