@@ -26,8 +26,9 @@ namespace AElf.Contracts.MultiToken
             {
                 Value =
                 {
-                    Context.Variables.SymbolListToPayTxFee.Select(symbol =>
-                        State.TokenInfos[symbol] ?? new TokenInfo())
+                    Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental).Select(
+                        symbol =>
+                            State.TokenInfos[symbol] ?? new TokenInfo())
                 }
             };
         }
