@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -49,7 +51,7 @@ namespace AElf.Contracts.Economic.TestBase
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
                 OutValue = Hash.FromString("OutValue"),
-                Signature = Hash.FromString("Signature"),
+                Signature = Hash.FromString(DateTime.Now.ToLongTimeString()), //in order to generate unique system tx use time signature
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
@@ -57,7 +59,7 @@ namespace AElf.Contracts.Economic.TestBase
                 SupposedOrderOfNextRound = 1
             });
         }
-        
+
         protected async Task ProduceBlocks(ECKeyPair keyPair, int roundsCount, bool changeTerm = false)
         {
             for (var i = 0; i < roundsCount; i++)
