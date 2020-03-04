@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Parliament;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
