@@ -37,6 +37,10 @@ message ProposalCreated{
 
 The creation request will create a proposal with the Parliament contract. After calling this method, a **ProposalCreated** log will be created in which the **ProposalId** be found. This ID will enable the producers to approve it.
 
+To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag.
+
+The **initial_resource_amount** must be set (for example, `{ CPU: 2, RAM: 4, DISK: 512, NET: 1024 }`) in order for the side-chain to be charged by time.
+
 In order for the creation request to succeed, some assertions must pass:
 - the Sender can only have one pending request at any time.
 - the locked token amount must be greater than 0 and higher than the indexing price.
