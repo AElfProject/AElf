@@ -48,14 +48,15 @@ namespace AElf.Contracts.Economic.TestBase
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
+            var rd = new Random(Guid.NewGuid().GetHashCode()); //in order to generate unique system tx use random actual mining time
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
                 OutValue = Hash.FromString("OutValue"),
-                Signature = Hash.FromString(DateTime.Now.ToLongTimeString()), //in order to generate unique system tx use time signature
+                Signature = Hash.FromString("Signature"),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
-                ActualMiningTime = minerInRound.ExpectedMiningTime,
+                ActualMiningTime = minerInRound.ExpectedMiningTime.AddMilliseconds(rd.Next(1, 50)), 
                 SupposedOrderOfNextRound = 1
             });
         }
