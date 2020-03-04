@@ -37,6 +37,7 @@ message ConsensusCommand {
 message ValidationResult {
     bool success = 1;
     string message = 2;
+    bool is_re_trigger = 3;
 }
 
 message TransactionList {

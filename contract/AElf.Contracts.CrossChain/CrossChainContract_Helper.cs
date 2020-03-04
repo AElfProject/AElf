@@ -740,5 +740,11 @@ namespace AElf.Contracts.CrossChain
 
             return indexedSideChainBlockData;
         }
+        
+        private void EnsureTransactionOnlyExecutedOnceInOneBlock()
+        {
+            Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
+            State.LatestExecutedHeight.Value = Context.CurrentHeight;
+        }
     }
 }

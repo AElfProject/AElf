@@ -57,5 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
 
         public MappedState<long, Hash> RandomHashes { get; set; }
+
+        public SingletonState<long> LatestExecutedHeight { get; set; }
     }
 }

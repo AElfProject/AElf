@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -45,6 +46,8 @@ namespace AElf.OS.BlockSync
 
                         return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
+                
+                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(new PeerInfo());
 
                 return networkServiceMock.Object;
             });

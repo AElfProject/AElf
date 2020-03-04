@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public class TransactionContext : ITransactionContext
     {

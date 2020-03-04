@@ -5,6 +5,7 @@ using Acs7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -16,13 +17,16 @@ namespace AElf.CrossChain.Communication.Application
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ICrossChainService _crossChainService;
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
+        private readonly IConsensusExtraDataNameProvider _consensusExtraDataNameProvider;
 
         public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
-            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService)
+            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService,
+            IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _crossChainService = crossChainService;
             _crossChainIndexingDataService = crossChainIndexingDataService;
+            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
@@ -72,7 +76,8 @@ namespace AElf.CrossChain.Communication.Application
             return chainInitializationData;
         }
 
-        private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
+        private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData,
+            BlockHeader blockHeader)
         {
             parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
@@ -85,10 +90,10 @@ namespace AElf.CrossChain.Communication.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {CrossChainConstants.ConsensusExtraDataNamePrefix}));
+                new[] {_consensusExtraDataNameProvider.ExtraDataName}));
             return parentChainBlockData;
         }
-        
+
         private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
             var indexedSideChainBlockData =
