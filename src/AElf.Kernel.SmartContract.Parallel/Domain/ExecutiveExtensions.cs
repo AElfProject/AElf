@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 
