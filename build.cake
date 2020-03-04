@@ -76,27 +76,70 @@ Task("Test-with-Codecov")
         var action=new Action(()=>{
             DotNetCoreTest(testProject.FullPath, testSetting);
 
-            if(codecovToken!=""){
-                var dir=testProject.GetDirectory().FullPath;
-                var reports = GetFiles(dir + "/TestResults/*/coverage.cobertura.xml");
+            // if(codecovToken!=""){
+            //     var dir=testProject.GetDirectory().FullPath;
+            //     var reports = GetFiles(dir + "/TestResults/*/coverage.cobertura.xml");
 
-                foreach(var report in reports)
-                {
-                    Codecov(report.FullPath,"$CODECOV_TOKEN");
-                }
-            }
+            //     foreach(var report in reports)
+            //     {
+            //         Codecov(report.FullPath,"$CODECOV_TOKEN");
+            //     }
+            // }
         });
         actions.Add(action);
     }
 
 
     var options = new ParallelOptions {
-        MaxDegreeOfParallelism = 2,
+        MaxDegreeOfParallelism = 1,
         //CancellationToken = cancellationToken
     };
 
     Parallel.Invoke(options, actions.ToArray());
 });
+
+Task("Test-with-Codecov-N")
+    .Description("operation test_with_codecov")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    var testSetting = new DotNetCoreTestSettings{
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args
+                .Append("--logger trx")
+                .Append("--settings CodeCoverage.runsettings")
+                .Append("--collect:\"XPlat Code Coverage\"");
+        }                
+    };
+    var testSetting_nocoverage = new DotNetCoreTestSettings{
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => {
+            return args
+                .Append("--logger trx");
+        }                
+    };
+    var codecovToken = "$CODECOV_TOKEN";
+    var actions = new List<Action>();
+    var testProjects = GetFiles("./test/*.Tests/*.csproj");
+
+    var n = Argument("n",1);
+    var parts = Argument("parts",1);
+
+    Information($"n:{n}, parts:{parts}");
+    int i=0;
+    foreach(var testProject in testProjects)
+    {
+        if(i++ % parts == n - 1){
+            DotNetCoreTest(testProject.FullPath, testSetting);
+        }else{
+            DotNetCoreTest(testProject.FullPath, testSetting_nocoverage);
+        }
+    }
+});
+
 Task("Run-Unit-Tests")
     .Description("operation test")
     .IsDependentOn("Build")
@@ -126,8 +169,13 @@ Task("Upload-Coverage")
     {
         Codecov(report.FullPath,"$CODECOV_TOKEN");
     }
-    // Upload a coverage report.
 });
+Task("Upload-Coverage-Azure")
+    .Does(() =>
+{
+    Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
+});
+
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
 

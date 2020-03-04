@@ -48,7 +48,7 @@ namespace AElf.Contracts.MultiToken
                 }
 
                 default:
-                    return new ResourceInfo();
+                    return new ResourceInfo {NonParallelizable = true};
             }
         }
 
