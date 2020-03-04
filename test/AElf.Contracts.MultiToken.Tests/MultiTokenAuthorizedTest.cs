@@ -132,15 +132,9 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = 1000000;
             var updateInput = new CoefficientFromSender
             {
-                LinerCoefficient = new LinerCoefficient
-                {
-                    ConstantValue = 1,
-                    Denominator = 2,
-                    Numerator = 3
-                },
                 PieceKey = pieceKey,
-                IsLiner = true
             };
+            updateInput.CoefficientArray.AddRange(new int[] {pieceKey,3,2,1 });
             var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput);
             await ApproveToRootForUserFeeByTwoLayer(proposalId);
             await VoteToReferendum(proposalId);
@@ -151,10 +145,10 @@ namespace AElf.Contracts.MultiToken
             userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
             userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
-            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
-            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
-            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.CoefficientArray[0] == pieceKey);
+            hasModified.CoefficientArray[3].ShouldBe(1);
+            hasModified.CoefficientArray[2].ShouldBe(2);
+            hasModified.CoefficientArray[1].ShouldBe(3);
         }
 
         [Fact]
@@ -167,17 +161,10 @@ namespace AElf.Contracts.MultiToken
                 FeeType = feeType,
                 Coefficient = new CoefficientFromSender
                 {
-                    LinerCoefficient = new LinerCoefficient
-                    {
-                        ConstantValue = 1,
-                        Denominator = 2,
-                        Numerator = 3
-                    },
                     PieceKey = pieceKey,
-                    IsLiner = true
                 }
             };
-
+            updateInput.Coefficient.CoefficientArray.AddRange(new[] {pieceKey,3,2,1});
             var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
 
@@ -194,10 +181,10 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
-            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(1);
-            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(2);
-            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(3);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.CoefficientArray[0] == pieceKey);
+            hasModified.CoefficientArray[3].ShouldBe(1);
+            hasModified.CoefficientArray[2].ShouldBe(2);
+            hasModified.CoefficientArray[1].ShouldBe(3);
         }
 
         [Fact]
@@ -206,20 +193,16 @@ namespace AElf.Contracts.MultiToken
             const int pieceKey = int.MaxValue;
             const int newPieceKey = 999999;
             const FeeTypeEnum feeType = FeeTypeEnum.Read;
+            int[] coefficient3 = { newPieceKey, 1, 4, 2, 5, 250, 40};
             var updateInput = new CoefficientFromContract
             {
                 FeeType = feeType,
                 Coefficient = new CoefficientFromSender
                 {
-                    PieceKey = pieceKey,
-                    IsChangePieceKey = true,
-                    NewPieceKeyCoefficient = new NewPieceKeyCoefficient
-                    {
-                        NewPieceKey = newPieceKey
-                    }
+                    PieceKey = pieceKey
                 }
             };
-
+            updateInput.Coefficient.CoefficientArray.AddRange(coefficient3);
             var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
 
@@ -236,7 +219,7 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == newPieceKey);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.CoefficientArray[0] == newPieceKey);
             hasModified.ShouldNotBeNull();
         }
 
@@ -251,19 +234,9 @@ namespace AElf.Contracts.MultiToken
                 Coefficient = new CoefficientFromSender
                 {
                     PieceKey = pieceKey,
-                    PowerCoefficient = new PowerCoefficient
-                    {
-                        Numerator = 2,
-                        Denominator = 8,
-                        ChangeSpanBase = 6,
-                        ConstantValue = 100,
-                        Weight = 300,
-                        WeightBase = 50
-                    },
-                    IsLiner = false
                 }
             };
-
+            updateInput.Coefficient.CoefficientArray.AddRange(new []{pieceKey,2,8,2,6,300,50});
             var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
 
@@ -280,13 +253,13 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficientsOfType();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.Coefficients.Single(x => x.PieceKey == pieceKey);
-            hasModified.CoefficientDic["Numerator".ToLower()].ShouldBe(2);
-            hasModified.CoefficientDic["Denominator".ToLower()].ShouldBe(8);
-            hasModified.CoefficientDic["ChangeSpanBase".ToLower()].ShouldBe(6);
-            hasModified.CoefficientDic["ConstantValue".ToLower()].ShouldBe(100);
-            hasModified.CoefficientDic["Weight".ToLower()].ShouldBe(300);
-            hasModified.CoefficientDic["WeightBase".ToLower()].ShouldBe(50);
+            var hasModified = userCoefficient.Coefficients.Single(x => x.CoefficientArray[0] == pieceKey);
+            hasModified.CoefficientArray[1].ShouldBe(2);
+            hasModified.CoefficientArray[2].ShouldBe(8);
+            hasModified.CoefficientArray[4].ShouldBe(6);
+            //hasModified.CoefficientArray["ConstantValue".ToLower()].ShouldBe(100);
+            hasModified.CoefficientArray[5].ShouldBe(300);
+            hasModified.CoefficientArray[6].ShouldBe(50);
         }
 
         [Fact]

@@ -86,10 +86,10 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertValidCoefficients(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
         {
-            IEnumerable<int> targetArray = coefficientInput.CoefficientArray;
-            IEnumerable<int> currentArray = funcCoefficient.CoefficientArray;
-            Assert(targetArray.Count() == currentArray.Count(), "invalid coefficient input");
-            Assert(targetArray.Any(x => x <= 0), "invalid coefficient input");
+            IList<int> targetArray = coefficientInput.CoefficientArray;
+            IList<int> currentArray = funcCoefficient.CoefficientArray;
+            Assert(targetArray.Count == currentArray.Count, "invalid coefficient input");
+            Assert(targetArray.Any(x => x > 0) || (targetArray.Count == 4 && targetArray[3] == 0), "invalid coefficient input");
         }
         private bool IsValidNewPieceKey(int newPieceKey, int oldPieceKey, IEnumerable<int> orderPieceKeys)
         {
@@ -103,13 +103,13 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.CalculateCoefficientOfContract.Value == null)
                 State.CalculateCoefficientOfContract.Value = new CalculateFeeCoefficientOfContract();
-            if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Read] == null)
+            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Read))
                 State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Storage] == null)
+            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Storage))
                 State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Storage] = GetStoFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Write] == null)
+            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Write))
                 State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] == null)
+            if (!State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract.ContainsKey((int)FeeTypeEnum.Traffic))
                 State.CalculateCoefficientOfContract.Value.CoefficientDicOfContract[(int)FeeTypeEnum.Traffic] = GetTrafficFeeInitialCoefficient();
             if (State.CalculateCoefficientOfSender.Value == null)
             {

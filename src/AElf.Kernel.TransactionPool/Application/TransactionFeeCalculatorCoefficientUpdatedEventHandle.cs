@@ -14,7 +14,7 @@ namespace AElf.Kernel.TransactionPool.Application
     public class TransactionFeeCalculatorCoefficientUpdatedEventHandle : IBlockAcceptedLogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockchainStateService _blockChainStateService;
         private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
 
 
@@ -40,11 +40,11 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedEventHandle(
             ISmartContractAddressService smartContractAddressService,
-            IBlockchainStateService blockchainStateService,
+            IBlockchainStateService blockChainStateService,
             ICoefficientsCacheProvider coefficientsCacheProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _blockchainStateService = blockchainStateService;
+            _blockChainStateService = blockChainStateService;
             _coefficientsCacheProvider = coefficientsCacheProvider;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedEventHandle>.Instance;
         }
@@ -59,7 +59,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 {
                     CoefficientOfSender = eventData.AllCoefficient
                 };
-                await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), newCoefficient);
+                await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), newCoefficient);
             }
             else
             {
@@ -69,10 +69,10 @@ namespace AElf.Kernel.TransactionPool.Application
                     BlockHeight = block.Height
                 };
                 var existedCoefficient =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(
+                    await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfContract>(
                         chainContext);
                 existedCoefficient.CoefficientDicOfContract[eventData.FeeType] = eventData.AllCoefficient;
-                await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), existedCoefficient);
+                await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), existedCoefficient);
             }
 
             _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
