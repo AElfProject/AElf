@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,6 +22,7 @@ namespace AElf.Kernel
         private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -29,7 +31,8 @@ namespace AElf.Kernel
             ITransactionBlockIndexService transactionBlockIndexService, 
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ISmartContractExecutiveService smartContractExecutiveService, 
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -38,6 +41,7 @@ namespace AElf.Kernel
             _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
+            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -75,6 +79,11 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
+                        await _transactionSizeFeeSymbolsProvider.ClearChangeHeightAsync(new BlockIndex
+                        {
+                            BlockHash = irreversibleBlockHash,
+                            BlockHeight = irreversibleBlockHeight
+                        });
                         _smartContractExecutiveService.ClearContractInfo(irreversibleBlockHeight);
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },

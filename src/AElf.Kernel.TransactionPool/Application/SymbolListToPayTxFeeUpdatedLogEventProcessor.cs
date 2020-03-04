@@ -62,8 +62,11 @@ namespace AElf.Kernel.TransactionPool.Application
                 });
             }
 
-            await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(block.GetHash(),
-                transactionSizeFeeSymbols);
+            await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, transactionSizeFeeSymbols);
         }
     }
 }

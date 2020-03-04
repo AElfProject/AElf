@@ -191,8 +191,8 @@ namespace AElf.Kernel.SmartContract.Domain
 
         public async Task<ChainStateInfo> GetChainStateInfoAsync()
         {
-            var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
-            return o ?? new ChainStateInfo {ChainId = _chainId};
+            var chainStateInfo = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
+            return chainStateInfo ?? new ChainStateInfo {ChainId = _chainId};
         }
 
         public async Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash)

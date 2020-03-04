@@ -20,10 +20,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
         
         Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key);
-
-        Task AddBlockExecutedDataAsync<T>(Hash blockHash, string key, T blockExecutedData);
-
-        Task AddBlockExecutedDataAsync<T>(Hash blockHash, IDictionary<string, T> blockExecutedData);
+        
+        Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);
     }
 
     public class BlockchainStateService : IBlockchainStateService
@@ -103,21 +101,9 @@ namespace AElf.Kernel.SmartContract.Application
             return SerializationHelper.Deserialize<T>(byteString?.ToByteArray());
         }
 
-        public async Task AddBlockExecutedDataAsync<T>(Hash blockHash, string key, T blockExecutedData)
+        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
         {
-            var dic = new Dictionary<string, ByteString>
-            {
-                {key, ByteString.CopyFrom(SerializationHelper.Serialize(blockExecutedData))}
-            };
-            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, dic);
-        }
-
-        public async Task AddBlockExecutedDataAsync<T>(Hash blockHash, IDictionary<string, T> blockExecutedData)
-        {
-            var dic = blockExecutedData.ToDictionary(
-                keyPair => keyPair.Key,
-                keyPair => ByteString.CopyFrom(SerializationHelper.Serialize(keyPair.Value)));
-            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, dic);
+            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData);
         }
     }
 }
