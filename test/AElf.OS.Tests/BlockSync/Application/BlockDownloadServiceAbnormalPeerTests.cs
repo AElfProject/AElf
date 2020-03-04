@@ -8,13 +8,13 @@ using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    public class BlockDownloadServiceBadPeerTests : BlockSyncBadPeerTestBase
+    public class BlockDownloadServiceAbnormalPeerTests : BlockSyncAbnormalPeerTestBase
     {
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly INetworkService _networkService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         
-        public BlockDownloadServiceBadPeerTests()
+        public BlockDownloadServiceAbnormalPeerTests()
         {
             _blockDownloadService = GetRequiredService<IBlockDownloadService>();
             _networkService = GetRequiredService<INetworkService>();
@@ -26,8 +26,8 @@ namespace AElf.OS.BlockSync.Application
         {
             var notLinkedBlockPubkey = "NotLinkedBlockPubkey";
             
-            var badPeer = _networkService.GetPeerByPubkey(notLinkedBlockPubkey);
-            badPeer.ShouldNotBeNull();
+            var abnormalPeer = _networkService.GetPeerByPubkey(notLinkedBlockPubkey);
+            abnormalPeer.ShouldNotBeNull();
 
             var result = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
@@ -40,8 +40,8 @@ namespace AElf.OS.BlockSync.Application
             });
             result.Success.ShouldBeFalse();
 
-            badPeer = _networkService.GetPeerByPubkey(notLinkedBlockPubkey);
-            badPeer.ShouldBeNull();
+            abnormalPeer = _networkService.GetPeerByPubkey(notLinkedBlockPubkey);
+            abnormalPeer.ShouldBeNull();
         }
         
         [Fact]
@@ -51,8 +51,8 @@ namespace AElf.OS.BlockSync.Application
 
             _blockSyncStateProvider.LastRequestPeerPubkey = wrongLIBPubkey;
 
-            var badPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
-            badPeer.ShouldNotBeNull();
+            var abnormalPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
+            abnormalPeer.ShouldNotBeNull();
             
             var result = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
@@ -67,8 +67,8 @@ namespace AElf.OS.BlockSync.Application
             result.Success.ShouldBeTrue();
             result.DownloadBlockCount.ShouldBe(0);
             
-            badPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
-            badPeer.ShouldBeNull();
+            abnormalPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
+            abnormalPeer.ShouldBeNull();
         }
 
         [Fact]
@@ -76,15 +76,15 @@ namespace AElf.OS.BlockSync.Application
         {
             var wrongLIBPubkey = "WrongLIBPubkey";
 
-            _blockSyncStateProvider.LastRequestPeerPubkey = "GoodPeerPubkey0";
+            _blockSyncStateProvider.LastRequestPeerPubkey = wrongLIBPubkey;
 
-            var badPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
-            badPeer.ShouldNotBeNull();
+            var abnormalPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
+            abnormalPeer.ShouldNotBeNull();
             
             var result = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
                 PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                PreviousBlockHeight = 100,
+                PreviousBlockHeight = 155,
                 BatchRequestBlockCount = 5,
                 MaxBlockDownloadCount = 5,
                 SuggestedPeerPubkey = "GoodPeerPubkey14",
@@ -94,8 +94,8 @@ namespace AElf.OS.BlockSync.Application
             result.Success.ShouldBeTrue();
             result.DownloadBlockCount.ShouldBe(0);
             
-            badPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
-            badPeer.ShouldNotBeNull();
+            abnormalPeer = _networkService.GetPeerByPubkey(wrongLIBPubkey);
+            abnormalPeer.ShouldNotBeNull();
         }
     }
 }
