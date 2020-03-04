@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers.Network
+namespace AElf.OS.Handlers
 {
     public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>, ITransientDependency
     {

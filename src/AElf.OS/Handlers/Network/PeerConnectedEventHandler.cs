@@ -7,7 +7,7 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.OS.Handlers.Network
+namespace AElf.OS.Handlers
 {
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ITransientDependency
     {

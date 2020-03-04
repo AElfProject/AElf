@@ -1,5 +1,6 @@
 using System;
 using Xunit;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
