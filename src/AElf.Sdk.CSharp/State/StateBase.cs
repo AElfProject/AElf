@@ -1,5 +1,5 @@
 using AElf.Types;
-
+using AElf.Kernel.SmartContract;
 namespace AElf.Sdk.CSharp.State
 {
     public class StateBase

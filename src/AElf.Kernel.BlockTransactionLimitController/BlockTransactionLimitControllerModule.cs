@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.SmartContractExecution.Application;
+﻿using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -9,7 +9,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IBlockAcceptedLogEventHandler, BlockTransactionLimitChangedLogEventHandler>();
+            context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, BlockTransactionLimitChangedLogEventProcessor>();
         }
     }
 }

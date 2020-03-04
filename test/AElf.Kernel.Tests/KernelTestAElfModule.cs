@@ -88,8 +88,6 @@ namespace AElf.Kernel
 
                     return dataProvider.Object;
                 });
-            
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
     }
 

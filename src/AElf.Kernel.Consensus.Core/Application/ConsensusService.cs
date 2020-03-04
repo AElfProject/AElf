@@ -116,7 +116,8 @@ namespace AElf.Kernel.Consensus.Application
                 Logger.LogWarning($"Consensus validating before execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
-                    ValidationResultMessage = validationResult.Message
+                    ValidationResultMessage = validationResult.Message,
+                    IsReTrigger = validationResult.IsReTrigger
                 });
             }
 
@@ -151,7 +152,8 @@ namespace AElf.Kernel.Consensus.Application
                 Logger.LogWarning($"Consensus validating after execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
-                    ValidationResultMessage = validationResult.Message
+                    ValidationResultMessage = validationResult.Message,
+                    IsReTrigger = validationResult.IsReTrigger
                 });
             }
 
@@ -202,9 +204,8 @@ namespace AElf.Kernel.Consensus.Application
                 generatedTransaction.RefBlockNumber = chainContext.BlockHeight;
                 generatedTransaction.RefBlockPrefix =
                     ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
+                Logger.LogInformation($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
             }
-
-            Logger.LogInformation("Consensus transaction generated.");
 
             return generatedTransactions;
         }

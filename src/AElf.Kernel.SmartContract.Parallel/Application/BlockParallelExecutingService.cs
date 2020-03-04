@@ -10,8 +10,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class BlockParallelExecutingService: BlockExecutingService
     {
-        public BlockParallelExecutingService(ILocalParallelTransactionExecutingService executingService,
-            IBlockchainStateService blockchainStateService) : base(executingService, blockchainStateService)
+        public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
+            IBlockchainStateService blockchainStateService) : base(transactionExecutingService, blockchainStateService)
         {
         }
 

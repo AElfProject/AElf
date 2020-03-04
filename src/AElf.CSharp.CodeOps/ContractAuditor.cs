@@ -48,7 +48,8 @@ namespace AElf.CSharp.CodeOps
             }
             
             // Perform ACS validation
-            findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
+            if (requiredAcs != null)
+                findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
 
             if (findings.Count > 0)
             {

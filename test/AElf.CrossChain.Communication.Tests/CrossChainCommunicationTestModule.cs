@@ -8,8 +8,8 @@ using AElf.CrossChain.Communication.Infrastructure;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -136,7 +136,7 @@ namespace AElf.CrossChain.Communication
                         });
                 return mockCrossChainIndexingDataService.Object;
             });
-            
+
             context.Services.AddTransient(provider =>
             {
                 var mockCrossChainClientProvider = new Mock<ICrossChainClientProvider>();
@@ -144,28 +144,39 @@ namespace AElf.CrossChain.Communication
                     .Returns(() =>
                     {
                         var mockCrossChainClient = new Mock<ICrossChainClient>();
-                        mockCrossChainClient.Setup(m => m.RequestChainInitializationDataAsync(It.IsAny<int>())).Returns(() =>
-                        {
-                            var chainInitialization = new ChainInitializationData
+                        mockCrossChainClient.Setup(m => m.RequestChainInitializationDataAsync(It.IsAny<int>())).Returns(
+                            () =>
                             {
-                                CreationHeightOnParentChain = 1
-                            };
-                            return Task.FromResult(chainInitialization);
-                        });
-                        mockCrossChainClient.Setup(m => m.RequestCrossChainDataAsync(It.IsAny<long>(), It.IsAny<Func<IBlockCacheEntity, bool>>())).Returns(() =>
-                        {
-                            var chainInitialization = new ChainInitializationData
+                                var chainInitialization = new ChainInitializationData
+                                {
+                                    CreationHeightOnParentChain = 1
+                                };
+                                return Task.FromResult(chainInitialization);
+                            });
+                        mockCrossChainClient.Setup(m =>
+                                m.RequestCrossChainDataAsync(It.IsAny<long>(),
+                                    It.IsAny<Func<IBlockCacheEntity, bool>>()))
+                            .Returns(() =>
                             {
-                                CreationHeightOnParentChain = 1
-                            };
-                            return Task.FromResult(chainInitialization);
-                        });
+                                var chainInitialization = new ChainInitializationData
+                                {
+                                    CreationHeightOnParentChain = 1
+                                };
+                                return Task.FromResult(chainInitialization);
+                            });
                         return mockCrossChainClient.Object;
                     });
                 return mockCrossChainClientProvider.Object;
             });
 
             context.Services.AddSingleton<CrossChainPlugin>();
+
+            context.Services.AddSingleton<IConsensusExtraDataNameProvider, MockConsensusExtraDataProvider>();
+        }
+
+        public class MockConsensusExtraDataProvider : IConsensusExtraDataNameProvider
+        {
+            public string ExtraDataName => "Consensus";
         }
     }
 }

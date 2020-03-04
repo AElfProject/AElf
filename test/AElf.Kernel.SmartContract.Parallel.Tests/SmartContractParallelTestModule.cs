@@ -48,7 +48,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                         .Returns(Task.FromResult((NonparallelContractCode) null));
                     return mock.Object;
                 });
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         #region Mocks

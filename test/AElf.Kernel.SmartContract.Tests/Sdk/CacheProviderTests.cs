@@ -3,7 +3,7 @@ using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public class CacheProviderTests : SmartContractTestBase
     {

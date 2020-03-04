@@ -19,8 +19,6 @@ service Contract {
     }
     rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc SendTransferFromAsInlineTx (aelf.SInt64Value) returns (google.protobuf.Empty) {
-    }
 }
 
 message NetConsumingMethodInput {
