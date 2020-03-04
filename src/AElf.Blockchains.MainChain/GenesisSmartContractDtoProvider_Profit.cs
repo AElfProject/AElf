@@ -12,7 +12,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Profit")).Value,
+                GetContractCodeByName("AElf.Contracts.Profit"),
                 ProfitSmartContractAddressNameProvider.Name,
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
             return l;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 

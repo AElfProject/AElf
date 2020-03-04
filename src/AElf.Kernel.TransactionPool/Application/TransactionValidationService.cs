@@ -13,21 +13,21 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
-        private readonly IEnumerable<IConstrainedTransactionValidationProvider>
-            _constrainedTransactionValidationProviders;
-
         public ILogger<TransactionValidationService> Logger { get; set; }
 
         public TransactionValidationService(
-            IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
-            IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
+            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
-            _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
 
             Logger = NullLogger<TransactionValidationService>.Instance;
         }
 
+        /// <summary>
+        /// Validate txs before they enter tx hub.
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         public async Task<bool> ValidateTransactionWhileCollectingAsync(Transaction transaction)
         {
             foreach (var provider in _transactionValidationProviders)
@@ -52,20 +52,6 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             return true;
-        }
-
-        public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
-        {
-            return _constrainedTransactionValidationProviders.All(provider =>
-                provider.ValidateTransaction(transaction, blockHash));
-        }
-
-        public void ClearConstrainedTransactionValidationProvider(Hash blockHash)
-        {
-            foreach (var provider in _constrainedTransactionValidationProviders)
-            {
-                provider.ClearBlockHash(blockHash);
-            }
         }
     }
 }
