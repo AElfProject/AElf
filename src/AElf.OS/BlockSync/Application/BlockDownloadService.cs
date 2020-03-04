@@ -144,28 +144,17 @@ namespace AElf.OS.BlockSync.Application
                 return null;
             }
 
-            bool? checkResult = null;
             var taskList = peers.Select(async peer =>
                 await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
 
             var hashCheckResult = await Task.WhenAll(taskList);
 
-            var groupedResult = hashCheckResult.Where(h => h.Success)
-                .GroupBy(a => a.Payload != null && a.Payload.Count == 1);
-
             var confirmCount = 2 * peers.Count() / 3 + 1;
+            var result = hashCheckResult.Where(r => r.Success)
+                .GroupBy(a => a.Payload != null && a.Payload.Count == 1)
+                .FirstOrDefault(group => group.Count() >= confirmCount);
 
-            foreach (var result in groupedResult)
-            {
-                if (result.Count() < confirmCount)
-                {
-                    continue;
-                }
-                checkResult = result.Key;
-                break;
-            }
-
-            return checkResult;
+            return result?.Key;
         }
 
         private async Task CheckAbnormalPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
