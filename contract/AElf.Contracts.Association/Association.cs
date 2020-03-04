@@ -133,6 +133,13 @@ namespace AElf.Contracts.Association
 
             proposal.Approvals.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Approve)
+            });
             return new Empty();
         }
 
@@ -145,6 +152,13 @@ namespace AElf.Contracts.Association
 
             proposal.Rejections.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Reject)
+            });
             return new Empty();
         }
 
@@ -157,6 +171,13 @@ namespace AElf.Contracts.Association
 
             proposal.Abstentions.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Abstain)
+            });
             return new Empty();
         }
 

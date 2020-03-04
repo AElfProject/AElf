@@ -138,7 +138,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.Type = nameof(Approve);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -150,7 +152,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.Type = nameof(Reject);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -162,7 +166,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.Type = nameof(Abstain);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 

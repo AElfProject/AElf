@@ -190,7 +190,13 @@ namespace AElf.Contracts.Parliament
 
             proposal.Approvals.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Approve)
+            });
             return new Empty();
         }
 
@@ -201,7 +207,13 @@ namespace AElf.Contracts.Parliament
             AssertProposalNotYetVotedBySender(proposal);
             proposal.Rejections.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Reject)
+            });
             return new Empty();
         }
 
@@ -212,7 +224,13 @@ namespace AElf.Contracts.Parliament
             AssertProposalNotYetVotedBySender(proposal);
             proposal.Abstentions.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                Type = nameof(Abstain)
+            });
             return new Empty();
         }
 

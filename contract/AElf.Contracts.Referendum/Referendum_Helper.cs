@@ -36,7 +36,7 @@ namespace AElf.Contracts.Referendum
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
 
-        private void LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress)
+        private ReferendumReceiptCreated LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress)
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
@@ -56,6 +56,15 @@ namespace AElf.Contracts.Referendum
                 Amount = amount,
                 LockId = lockId,
                 TokenSymbol = symbol
+            };
+            
+            return new ReferendumReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = proposalId,
+                Amount = amount,
+                Symbol = symbol,
+                Time = Context.CurrentBlockTime
             };
         }
 

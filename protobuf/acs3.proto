@@ -103,3 +103,11 @@ message OrganizationCreated{
     option (aelf.is_event) = true;
     aelf.Address organization_address = 1;
 }
+
+message ReceiptCreated {
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+    aelf.Address address = 2;
+    string type = 3;
+    google.protobuf.Timestamp time = 4;
+}

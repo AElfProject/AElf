@@ -64,3 +64,13 @@ message CreateOrganizationBySystemContractInput {
     CreateOrganizationInput organization_creation_input = 1;
     string organization_address_feedback_method = 2;
 }
+
+message ReferendumReceiptCreated {
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+    aelf.Address address = 2;
+    string symbol = 3;
+    int64 amount = 4;
+    string type = 5;
+    google.protobuf.Timestamp time = 6;
+}
