@@ -20,6 +20,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task<ChainStateInfo> GetChainStateInfoAsync();
         Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
+        Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -156,7 +157,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
-                var dic = blockState.Changes.Select(change => new VersionedState()
+                var dic = blockState.Changes.Concat(blockState.BlockExecutedCache).Select(change => new VersionedState
                 {
                     Key = change.Key,
                     Value = change.Value,
@@ -191,7 +192,7 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task<ChainStateInfo> GetChainStateInfoAsync()
         {
             var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
-            return o ?? new ChainStateInfo() {ChainId = _chainId};
+            return o ?? new ChainStateInfo {ChainId = _chainId};
         }
 
         public async Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash)
@@ -202,6 +203,17 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
         {
             await _blockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
+        }
+
+        public async Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache)
+        {
+            var blockStateSet = await GetBlockStateSetAsync(blockHash);
+            if (blockStateSet == null) return;
+            foreach (var keyPair in blockExecutedCache)
+            {
+                blockStateSet.BlockExecutedCache[keyPair.Key] = keyPair.Value;
+            }
+            await _blockStateSets.SetWithCacheAsync(GetKey(blockStateSet), blockStateSet);
         }
 
         private string GetKey(BlockStateSet blockStateSet)

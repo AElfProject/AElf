@@ -1,4 +1,4 @@
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf.Kernel.SmartContract
 {
     public interface IStateProviderFactory
     {
