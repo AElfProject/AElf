@@ -1,51 +1,5 @@
 ## Proposing a side-chain
 
-When a user (usually a developer) feels the need to create a new side-chain on AElf he must call the cross-chain contract and request a side-chain creation. After requested, BPs will either approve this creation or reject it. If the request is approved, the  must then release the proposal and this will. 
-
-A side-chain node is usually very similar to a main-chain node because both are based on AElf software and have common modules. The main difference is the configuration which varies depending on if the node is a side chain or not.
-
-### Creation request
-
-```protobuf
-
-rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }
-
-message SideChainCreationRequest {
-    int64 indexing_price = 1;
-    int64 locked_token_amount = 2;
-    bool is_privilege_preserved = 3;
-    string side_chain_token_symbol = 4;
-    string side_chain_token_name = 5;
-    sint64 side_chain_token_total_supply = 6;
-    sint32 side_chain_token_decimals = 7;
-    bool is_side_chain_token_burnable = 8;
-    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
-    map<string, sint32> initial_resource_amount = 10; 
-    bool is_side_chain_token_profitable = 11;
-}
-
-message SideChainTokenInitialIssue{
-    aelf.Address address = 1;
-    int64 amount = 2;
-}
-
-message ProposalCreated{
-    option (aelf.is_event) = true;
-    aelf.Hash proposal_id = 1;
-}
-```
-
-The creation request will create a proposal with the Parliament contract. After calling this method, a **ProposalCreated** log will be created in which the **ProposalId** be found. This ID will enable the producers to approve it.
-
-The **initial_resource_amount** must be set (for example, `{ CPU: 2, RAM: 4, DISK: 512, NET: 1024 }`) in order for the side-chain to be charged by time.
-
-In order for the creation request to succeed, some assertions must pass:
-- the Sender can only have one pending request at any time.
-- the locked token amount must be greater than 0 and higher than the indexing price.
-- the token initial issue list must contain at least one token and all with an **amount** greater than 0.
-- the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0.
-- the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)).
-
 #### Exclusive and shared 
 
 To decide wether the side chain is **exclusive** or **shared**, the creation request must set the **is_privilege_preserved** flag to either true or false.
