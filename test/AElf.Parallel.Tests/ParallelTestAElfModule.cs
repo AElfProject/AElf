@@ -28,7 +28,7 @@ namespace AElf.Parallel.Tests
             context.Services.AddSingleton<ParallelTestHelper>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.AddSingleton<ILocalParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
+            context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

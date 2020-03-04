@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using AElf.CSharp.CodeOps;
 using AElf.Types;
+using AElf.Kernel.SmartContract;
+
 
 namespace AElf.Runtime.CSharp
 {

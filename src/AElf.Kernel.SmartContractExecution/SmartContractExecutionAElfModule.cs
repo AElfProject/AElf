@@ -21,9 +21,9 @@ namespace AElf.Kernel.SmartContractExecution
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IBlockAcceptedLogEventHandler, ContractDeployedLogEventHandler>();
-            context.Services.AddSingleton<IBlockAcceptedLogEventHandler, CodeUpdatedLogEventHandler>();
-            context.Services.AddSingleton<IBestChainFoundLogEventHandler, CodeCheckRequiredLogEventHandler>();
+            context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
+            context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, CodeUpdatedLogEventProcessor>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
