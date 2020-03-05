@@ -26,10 +26,10 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         {
             var coefficients =
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
+            // First number of each piece coefficients is its piece type.
             var pieceTypeArray = coefficients.Select(a => a[0]);
             if (PieceTypeArray == null || _coefficientsCacheProvider.GetUpdateNotification(_tokenType))
             {
-                // First number of each piece coefficients is its piece type.
                 UpdatePieceWiseFunction(pieceTypeArray.ToArray());
             }
 
@@ -39,6 +39,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public void UpdatePieceWiseFunction(int[] pieceTypeArray)
         {
+            PieceCalculateFunction = new PieceCalculateFunction();
             foreach (var pieceType in pieceTypeArray)
             {
                 if (pieceType == 0)

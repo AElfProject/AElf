@@ -39,15 +39,15 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             if (piece >= totalCount || _next == null || coefficient.Count == 1 ||
                 currentCoefficientIndex >= coefficient.Count)
             {
-                // totalCount will be decreased during calling this method recursively,
+                // piece will increase during calling this method recursively,
                 // finally piece will greater than or equal to totalCount, thus terminate the recursion.
-                // And this is the way to implement piece-wise function.
+                // In this is the way we implemented piece-wise function.
                 return _currentCalculateFunction(currentCoefficient, totalCount);
             }
 
             var nextCoefficientIndex = currentCoefficientIndex + 1;
             var nextCount = totalCount - piece;
-            nextCount = nextCount > 0 ? nextCount : 0;
+            nextCount = Math.Max(nextCount, 0);
             return _currentCalculateFunction(currentCoefficient, piece) +
                    _next.CalculateFee(coefficient, nextCount, nextCoefficientIndex);
         }

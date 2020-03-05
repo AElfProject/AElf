@@ -6,9 +6,10 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
-     public class MockCoefficientProvider : ICoefficientsCacheProvider, ISingletonDependency
+    public class MockCoefficientProvider : ICoefficientsCacheProvider, ISingletonDependency
     {
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
+
         public MockCoefficientProvider()
         {
             _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
@@ -44,7 +45,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             };
             _coefficientsDicCache[(int) FeeTypeEnum.Traffic] = trafficCoefficient;
         }
-        
+
         public Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
             return Task.FromResult(_coefficientsDicCache[tokenType]);
