@@ -172,7 +172,7 @@ namespace AElf.Contracts.MultiToken
                 PieceNumbers = {1},
                 Coefficients = new CalculateFeeCoefficients
                 {
-                    FeeTokenType = (int)feeType,
+                    FeeTokenType = (int) feeType,
                     PieceCoefficientsList =
                     {
                         new CalculateFeePieceCoefficients
@@ -191,7 +191,8 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
+                new SInt32Value
                 {
                     Value = (int) feeType
                 });
@@ -215,12 +216,12 @@ namespace AElf.Contracts.MultiToken
                 PieceNumbers = {1},
                 Coefficients = new CalculateFeeCoefficients
                 {
-                    FeeTokenType = (int)feeType,
+                    FeeTokenType = (int) feeType,
                     PieceCoefficientsList =
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = { newPieceUpperBound, 1, 4, 2, 5, 250, 40}
+                            Value = {1, newPieceUpperBound, 1, 4, 2, 5, 250, 40}
                         }
                     }
                 }
@@ -234,7 +235,8 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
+                new SInt32Value
                 {
                     Value = (int) feeType
                 });
@@ -252,7 +254,7 @@ namespace AElf.Contracts.MultiToken
             const FeeTypeEnum feeType = FeeTypeEnum.Read;
             var updateInput = new UpdateCoefficientsInput
             {
-                PieceNumbers = {1},
+                PieceNumbers = {3},
                 Coefficients = new CalculateFeeCoefficients
                 {
                     FeeTokenType = (int) feeType,
@@ -260,7 +262,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {0, pieceUpperBound, 2, 8, 2, 6, 300, 50}
+                            Value = {1, pieceUpperBound, 2, 8, 2, 6, 300, 50}
                         }
                     }
                 }
@@ -274,19 +276,21 @@ namespace AElf.Contracts.MultiToken
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract), new SInt32Value
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
+                new SInt32Value
                 {
                     Value = (int) feeType
                 });
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[0] == pieceUpperBound);
+            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceUpperBound);
             hasModified.Value[2].ShouldBe(2);
             hasModified.Value[3].ShouldBe(8);
-            hasModified.Value[4].ShouldBe(6);
-            hasModified.Value[5].ShouldBe(300);
-            hasModified.Value[6].ShouldBe(50);
+            hasModified.Value[4].ShouldBe(2);
+            hasModified.Value[5].ShouldBe(6);
+            hasModified.Value[6].ShouldBe(300);
+            hasModified.Value[7].ShouldBe(50);
         }
 
         [Fact]
@@ -433,7 +437,8 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForContract),
+                ContractMethodName =
+                    nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForContract),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var createProposalInput = new CreateProposalInput
@@ -581,7 +586,8 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForSender),
+                ContractMethodName =
+                    nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForSender),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
 

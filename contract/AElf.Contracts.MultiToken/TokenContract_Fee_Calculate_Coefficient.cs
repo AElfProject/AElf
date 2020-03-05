@@ -33,6 +33,7 @@ namespace AElf.Contracts.MultiToken
             if (input == null)
                 return new Empty();
             AssertDeveloperFeeController();
+            Assert(input.Coefficients.FeeTokenType != (int) FeeTypeEnum.Tx, "Invalid fee type.");
             UpdateCoefficients(input);
             return new Empty();
         }
@@ -49,7 +50,6 @@ namespace AElf.Contracts.MultiToken
         private void UpdateCoefficients(UpdateCoefficientsInput input)
         {
             var feeType = input.Coefficients.FeeTokenType;
-            Assert(feeType != (int) FeeTypeEnum.Tx, "Invalid fee type.");
             var currentAllCoefficients = State.AllCalculateFeeCoefficients.Value;
             // Coefficients only for this fee type.
             var currentCoefficients = currentAllCoefficients.Value.SingleOrDefault(x =>
@@ -114,7 +114,7 @@ namespace AElf.Contracts.MultiToken
         {
             return new CalculateFeeCoefficients
             {
-                FeeTokenType = (int) FeeTypeEnum.Write,
+                FeeTokenType = (int) FeeTypeEnum.Read,
                 PieceCoefficientsList =
                 {
                     new CalculateFeePieceCoefficients
