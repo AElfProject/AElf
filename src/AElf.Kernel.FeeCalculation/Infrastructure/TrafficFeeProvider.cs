@@ -4,25 +4,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    internal class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
-        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
-
         public TrafficFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, (int) FeeTypeEnum.Traffic)
+            coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Traffic)
         {
-            _calculateFunctionProvider = calculateFunctionProvider;
+
         }
 
-        public string TokenName { get; } = "TRAFFIC";
+        public int[] PieceTypeArray { get; set; }
 
-        protected override void InitializeFunction()
-        {
-            PieceCalculateFunction = new PieceCalculateFunction();
-            PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction)
-                .AddFunction(_calculateFunctionProvider.PowerFunction);
-        }
+        public string TokenName => "TRAFFIC";
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {

@@ -11,19 +11,19 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
     public class CalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
     {
-        private readonly decimal _precision = 100000000;
+        private const decimal Precision = 100000000;
 
         public long LinerFunction(int[] coefficient, int count)
         {
-            var outcome = _precision * count * coefficient[1] / coefficient[2] + coefficient[3];
+            var outcome = Precision * count * coefficient[1] / coefficient[2] + coefficient[3];
             return (long) outcome;
         }
 
         public long PowerFunction(int[] coefficient, int count)
         {
-            var outcome = _precision * (decimal) Math.Pow((double) count / coefficient[4], coefficient[3]) *
+            var outcome = Precision * (decimal) Math.Pow((double) count / coefficient[4], coefficient[3]) *
                           coefficient[5] / coefficient[6] +
-                          _precision * coefficient[1] * count / coefficient[2];
+                          Precision * coefficient[1] * count / coefficient[2];
             return (long) outcome;
         }
     }

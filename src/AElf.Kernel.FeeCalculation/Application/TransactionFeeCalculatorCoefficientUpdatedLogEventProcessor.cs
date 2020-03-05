@@ -16,7 +16,6 @@ namespace AElf.Kernel.FeeCalculation.Application
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
 
-
         private LogEvent _interestedEvent;
 
         private ILogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor> Logger { get; set; }
@@ -53,8 +52,8 @@ namespace AElf.Kernel.FeeCalculation.Application
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
             await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.FeeCoefficients);
-            if(block.Height > 1)
-                _coefficientsCacheProvider.SetModifyHeight(eventData.FeeCoefficients.FeeTokenType);
+            if (block.Height > 1)
+                _coefficientsCacheProvider.UpdateLatestModifiedHeight(block.Height);
         }
     }
 }

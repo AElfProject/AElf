@@ -49,9 +49,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             return Task.FromResult(_coefficientsDicCache[tokenType]);
         }
-        public void SetModifyHeight(int tokenType)
+
+        public void UpdateLatestModifiedHeight(long height)
         {
+            throw new System.NotImplementedException();
         }
+
         public Task SyncCacheAsync(IChainContext chainContext)
         {
             return Task.CompletedTask;

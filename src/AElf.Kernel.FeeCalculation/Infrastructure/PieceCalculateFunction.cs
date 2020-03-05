@@ -10,23 +10,19 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public PieceCalculateFunction(Func<int[], int, long> function)
         {
-            _currentCalculateFunction = function;
+            AddFunction(function);
         }
 
-        public PieceCalculateFunction()
-        {
-        }
-
-        public PieceCalculateFunction AddFunction(Func<int[], int, long> function)
+        public void AddFunction(Func<int[], int, long> function)
         {
             if (_currentCalculateFunction == null)
             {
                 _currentCalculateFunction = function;
-                return this;
             }
-
-            _next = new PieceCalculateFunction(function);
-            return _next;
+            else
+            {
+                _next = new PieceCalculateFunction(function);
+            }
         }
 
         public long CalculateFee(IList<int[]> coefficient, int totalCount, int currentCoefficientIndex = 0)

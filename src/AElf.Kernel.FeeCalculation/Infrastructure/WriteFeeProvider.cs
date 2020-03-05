@@ -4,26 +4,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    internal class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
-        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
-
         public WriteFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, (int) FeeTypeEnum.Write)
+            coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Write)
         {
-            _calculateFunctionProvider = calculateFunctionProvider;
+
         }
 
-        public string TokenName { get; } = "WRITE";
+        public int[] PieceTypeArray { get; set; }
 
-        protected override void InitializeFunction()
-        {
-            PieceCalculateFunction = new PieceCalculateFunction();
-            PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction)
-                .AddFunction(_calculateFunctionProvider.LinerFunction)
-                .AddFunction(_calculateFunctionProvider.PowerFunction);
-        }
+        public string TokenName => "WRITE";
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {
