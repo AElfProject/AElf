@@ -18,20 +18,20 @@ namespace AElf.Kernel.FeeCalculation
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
-        private Dictionary<int, bool> _needReLoadDic;
+        private Dictionary<int, bool> _needReloadDic;
 
         public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
             _blockChainStateService = blockChainStateService;
             _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
-            _needReLoadDic = new Dictionary<int, bool>();
+            _needReloadDic = new Dictionary<int, bool>();
         }
 
         public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
-            if (!_needReLoadDic.TryGetValue(tokenType, out var isNeedLoadData))
-                _needReLoadDic[tokenType] = true;
-            if (!_needReLoadDic[tokenType])
+            if (!_needReloadDic.TryGetValue(tokenType, out var isNeedLoadData))
+                _needReloadDic[tokenType] = true;
+            if (!_needReloadDic[tokenType])
             {
                 if (_coefficientsDicCache.TryGetValue(tokenType, out var coefficientsInCache))
                     return coefficientsInCache;
@@ -45,13 +45,13 @@ namespace AElf.Kernel.FeeCalculation
 
         public void SetCoefficientByTokenType(int tokenType)
         {
-            _needReLoadDic[tokenType] = true;
+            _needReloadDic[tokenType] = true;
         }
-        
+
         public async Task SyncCache(IChainContext chainContext)
         {
             CalculateFeeCoefficientOfAllTokenType coefficientOfAllTokenType = null;
-            foreach (var kp in _needReLoadDic.Where(kp => kp.Value))
+            foreach (var kp in _needReloadDic.Where(kp => kp.Value))
             {
                 if (coefficientOfAllTokenType == null)
                     coefficientOfAllTokenType =
@@ -63,7 +63,7 @@ namespace AElf.Kernel.FeeCalculation
                     .Select(x => (int[]) (x.CoefficientArray.AsEnumerable())).ToList();
             }
 
-            _needReLoadDic = _needReLoadDic.ToDictionary(x => x.Key, x => false);
+            _needReloadDic = _needReloadDic.ToDictionary(x => x.Key, x => false);
         }
 
         private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
