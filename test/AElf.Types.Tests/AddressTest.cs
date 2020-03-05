@@ -80,7 +80,7 @@ namespace AElf.Types.Tests
         public void Chain_Address()
         {
             var address = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
-            var chainId = 2111;
+            var chainId = 0;
             var chainAddress1 = new ChainAddress(address, chainId);
 
             string str = chainAddress1.GetFormatted("ELF", chainAddress1.ChainId);

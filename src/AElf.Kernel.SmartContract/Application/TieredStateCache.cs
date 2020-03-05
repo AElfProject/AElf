@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
