@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using Microsoft.Extensions.Logging;
@@ -7,7 +6,7 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Network
 {
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ITransientDependency
     {

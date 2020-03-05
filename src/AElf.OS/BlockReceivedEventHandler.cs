@@ -11,18 +11,18 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS
 {
-    public class AnnouncementReceivedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, ITransientDependency
+    public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>, ITransientDependency
     {
-        public ILogger<AnnouncementReceivedEventHandler> Logger { get; set; }
-
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
         private readonly BlockSyncOptions _blockSyncOptions;
 
-        public AnnouncementReceivedEventHandler(IBlockSyncService blockSyncService,
+        public ILogger<BlockReceivedEventHandler> Logger { get; set; }
+
+        public BlockReceivedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
             IBlockchainService blockchainService,
             IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
@@ -32,30 +32,29 @@ namespace AElf.OS.Handlers
             _blockchainService = blockchainService;
             _blockSyncOptions = blockSyncOptions.Value;
             
-            Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
+            Logger = NullLogger<BlockReceivedEventHandler>.Instance;
         }
 
-        public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public Task HandleEventAsync(BlockReceivedEvent eventData)
         {
-            var _ = ProcessNewBlockAsync(eventData.Announce, eventData.SenderPubKey);
+            var _ = ProcessNewBlockAsync(eventData.BlockWithTransactions, eventData.SenderPubkey);
             return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubkey)
+        private async Task ProcessNewBlockAsync(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
             var chain = await _blockchainService.GetChainAsync();
-            
-            if (!await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement, senderPubkey))
+
+            if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions, senderPubkey))
             {
                 return;
             }
 
-            await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
+            await _blockSyncService.SyncByBlockAsync(chain,new SyncBlockDto
             {
-                SyncBlockHash = blockAnnouncement.BlockHash,
-                SyncBlockHeight = blockAnnouncement.BlockHeight,
-                SuggestedPeerPubkey = senderPubkey,
-                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount
+                BlockWithTransactions = blockWithTransactions,
+                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
+                SuggestedPeerPubkey = senderPubkey
             });
         }
     }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS
 {
     public class AbnormalPeerEventHandler : ILocalEventHandler<AbnormalPeerFoundEventData>, ITransientDependency
     {

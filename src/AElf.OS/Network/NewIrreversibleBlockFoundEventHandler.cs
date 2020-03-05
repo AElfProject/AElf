@@ -4,7 +4,7 @@ using AElf.OS.Network.Application;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Network
 {
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency
