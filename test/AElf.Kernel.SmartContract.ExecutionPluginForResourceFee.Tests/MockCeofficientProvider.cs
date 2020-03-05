@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.FeeCalculation.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
@@ -16,15 +17,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly IResourceTokenFeeService _resourceTokenFeeService;
         private const string AcsSymbol = "acs8";
-        private readonly List<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            IServiceContainer<IResourceTokenFeeProvider> resourceTokenFeeProviders)
+            IResourceTokenFeeService resourceTokenFeeService)
         {
             _contextService = contextService;
-            _resourceTokenFeeProviders = resourceTokenFeeProviders.ToLookup(p => p.GetType())
-                .Select(coll => coll.First()).ToList();
+            _resourceTokenFeeService = resourceTokenFeeService;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -86,11 +86,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 Caller = transactionContext.Transaction.From
             };
-            foreach (var tokenProvider in _resourceTokenFeeProviders)
-            {
-                chargeResourceTokenInput.CostDic[tokenProvider.TokenName] =
-                    await tokenProvider.CalculateTokenFeeAsync(transactionContext, chainContext);
-            }
+
+            var feeCalculationResult =
+                await _resourceTokenFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
+            chargeResourceTokenInput.CostDic.Add(feeCalculationResult);
 
             var chargeResourceTokenTransaction =
                 (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;

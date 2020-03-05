@@ -2,7 +2,6 @@
 
     <PropertyGroup>
          <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>AElf.Kernel.FeeCalculation</RootNamespace>
         <LangVersion>latest</LangVersion>
         <PackageId>AElf.Kernel.FeeCalculation</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -11,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
      <ItemGroup> 
         <ContractStub Include="..\..\protobuf\token_contract.proto">

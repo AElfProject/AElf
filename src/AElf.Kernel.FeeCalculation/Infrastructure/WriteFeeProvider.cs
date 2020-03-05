@@ -1,21 +1,20 @@
-﻿using AElf.Contracts.MultiToken;
-using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation
+namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public class ReadFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    public class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
-        public ReadFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
+        public WriteFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, (int) FeeTypeEnum.Read)
+            coefficientsCacheProvider, 2)
         {
             _calculateFunctionProvider = calculateFunctionProvider;
         }
 
-        public string TokenName { get; } = "READ";
+        public string TokenName { get; } = "WRITE";
 
         protected override void InitializeFunction()
         {
@@ -27,7 +26,7 @@ namespace AElf.Kernel.FeeCalculation
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {
-            return transactionContext.Trace.StateSet.Reads.Count;
+            return transactionContext.Trace.StateSet.Writes.Count;
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AElf.Kernel.FeeCalculation
+namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public class PieceCalculateFunction
     {

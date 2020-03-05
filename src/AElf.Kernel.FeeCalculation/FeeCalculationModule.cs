@@ -1,4 +1,7 @@
-﻿using AElf.Modularity;
+﻿using AElf.Kernel.FeeCalculation.Application;
+using AElf.Kernel.FeeCalculation.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -15,6 +18,9 @@ namespace AElf.Kernel.FeeCalculation
             services.AddSingleton<IResourceTokenFeeProvider, StorageFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, TrafficFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, WriteFeeProvider>();
+            services.AddSingleton<IPrimaryTokenFeeService, PrimaryTokenFeeService>();
+            services.AddSingleton<IResourceTokenFeeService, ResourceTokenFeeService>();
+            services.AddSingleton<IBlockAcceptedLogEventProcessor, TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
         }
     }
 }
