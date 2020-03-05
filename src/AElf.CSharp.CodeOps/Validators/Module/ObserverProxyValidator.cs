@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -15,22 +16,16 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         public ObserverProxyValidator()
         {
-            _counterProxyTypeRef = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location)
-                .MainModule.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
-            
-            #if DEBUG
-            foreach (var refMethod in _counterProxyTypeRef.Methods)
-            {
-                refMethod.RemoveCoverLetInjectedInstructions();
-            }
-            #endif
+            // Module is only used to construct the type
+            var module = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location).MainModule;
+            _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
         }
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
             var errors = new List<ValidationResult>();
             
-            // Get counter type
+            // Get proxy type reference
             _injProxyType = module.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
 
             if (_injProxyType == null)
@@ -41,6 +36,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
             CheckObserverProxyIsNotTampered(errors);
             
+            // Get references for proxy methods
             _injProxySetObserver =
                 _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.SetObserver));
             _injProxyBranchCount =

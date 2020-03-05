@@ -39,5 +39,18 @@ namespace AElf
 
             return Hash.FromRawBytes(newBytes);
         }
+
+        public static Hash ConcatAndCompute(Hash hash1, Hash hash2)
+        {
+            var bytes = ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray());
+            return Hash.FromRawBytes(bytes);
+        }
+        
+        public static Hash ConcatAndCompute(Hash hash1, Hash hash2, Hash hash3)
+        {
+            var bytes = ByteArrayHelper.ConcatArrays(
+                ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray()), hash3.ToByteArray());
+            return Hash.FromRawBytes(bytes);
+        }
     }
 }
