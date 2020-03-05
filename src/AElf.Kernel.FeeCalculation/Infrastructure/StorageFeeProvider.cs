@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    public class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
     {
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
