@@ -59,7 +59,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 var targetTokeData =
                     coefficientOfAllTokenType.CoefficientListOfTokenType.FirstOrDefault(x => x.FeeTokenType == kp.Key);
                 _coefficientsDicCache[kp.Key] = targetTokeData.Coefficients.AsEnumerable()
-                    .Select(x => (int[]) (x.CoefficientArray.AsEnumerable())).ToList();
+                    .Select(x => (int[]) (x.Coefficients.AsEnumerable())).ToList();
             }
 
             _needReloadDic = _needReloadDic.ToDictionary(x => x.Key, x => false);
@@ -73,7 +73,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             var targetTokeData =
                 coefficientOfAllTokenType.CoefficientListOfTokenType.FirstOrDefault(x => x.FeeTokenType == tokenType);
             var coefficientsArray = targetTokeData.Coefficients.AsEnumerable()
-                .Select(x => (int[]) (x.CoefficientArray.AsEnumerable())).ToList();
+                .Select(x => (int[]) (x.Coefficients.AsEnumerable())).ToList();
             return coefficientsArray;
         }
     }

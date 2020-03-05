@@ -109,20 +109,20 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(SInt32Value input)
         {
             if (input.Value == (int) FeeTypeEnum.Tx)
                 return null;
             var targetTokenCoefficient =
-                State.CalculateCoefficientOfTokenType.Value.CoefficientListOfTokenType.FirstOrDefault(x =>
+                State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
                     x.FeeTokenType == input.Value);
             return targetTokenCoefficient;
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForSender(Empty input)
         {
             var targetTokenCoefficient =
-                State.CalculateCoefficientOfTokenType.Value.CoefficientListOfTokenType.First(x =>
+                State.AllCalculateFeeCoefficients.Value.Value.First(x =>
                     x.FeeTokenType == (int)FeeTypeEnum.Tx);
             return targetTokenCoefficient;
         }
@@ -149,7 +149,7 @@ namespace AElf.Contracts.MultiToken
             return usage;
         }
 
-        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
+        public override SymbolListToPayTxSizeFee GetSymbolsToPayTxSizeFee(Empty input)
         {
             return State.SymbolListToPayTxSizeFee.Value;
         }

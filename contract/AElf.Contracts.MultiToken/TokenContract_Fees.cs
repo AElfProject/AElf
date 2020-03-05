@@ -210,7 +210,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
+        public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
@@ -646,7 +646,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -656,7 +656,7 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");

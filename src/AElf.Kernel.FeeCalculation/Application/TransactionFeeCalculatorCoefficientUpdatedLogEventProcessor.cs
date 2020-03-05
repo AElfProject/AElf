@@ -50,10 +50,10 @@ namespace AElf.Kernel.FeeCalculation.Application
 
         public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new NoticeUpdateCalculateFeeAlgorithm();
+            var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
             await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.CoefficientOfAllType);
-            if (!eventData.IsSetAll)
+            if (!eventData.IsUpdateAll)
                 _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
         }
     }

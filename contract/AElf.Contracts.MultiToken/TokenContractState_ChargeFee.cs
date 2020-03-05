@@ -13,8 +13,8 @@ namespace AElf.Contracts.MultiToken
 
         public SingletonState<Address> SideChainCreator { get; set; }
 
-        public SingletonState<CalculateFeeCoefficientOfAllTokenType> CalculateCoefficientOfTokenType { get; set; }
-        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTxSizeFee { get; set; }
+        public SingletonState<AllCalculateFeeCoefficients> AllCalculateFeeCoefficients { get; set; }
+        public SingletonState<SymbolListToPayTxSizeFee> SymbolListToPayTxSizeFee { get; set; }
 
         /// <summary>
         /// Symbol -> Amount

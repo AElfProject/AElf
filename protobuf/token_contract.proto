@@ -56,11 +56,11 @@ service TokenContract {
     }
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
-    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
     }
-    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
-    rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
@@ -93,14 +93,14 @@ service TokenContract {
     rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
+    rpc GetCalculateFeeCoefficientsForContract (aelf.SInt32Value) returns (CalculateFeeCoefficients) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
+    rpc GetCalculateFeeCoefficientsForSender (google.protobuf.Empty) returns (CalculateFeeCoefficients) {
         option (aelf.is_view) = true;
     }
     // referenced by src
-    rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
+    rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
         option (aelf.is_view) = true;
     }
 }
@@ -266,14 +266,14 @@ message IsInWhiteListInput {
     aelf.Address address = 2;
 }
 
-message SymbolToPayTXSizeFee{
+message SymbolToPayTxSizeFee{
     string token_symbol = 1;
     sint32 base_token_weight = 2;
     sint32 added_token_weight = 3;
 }
 
-message SymbolListToPayTXSizeFee{
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
+message SymbolListToPayTxSizeFee{
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 1;
 }
 
 message ChargeTransactionFeesInput {
@@ -281,12 +281,12 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
-    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
+    SymbolListToPayTxSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
 message ReturnTaxInput {
@@ -322,35 +322,18 @@ message CrossChainCreateTokenInput {
     aelf.MerklePath merkle_path = 4;
 }
 
+message AddTokeWhiteListInput{
+    string token_symbol = 1;
+    aelf.Address address = 2;
+}
+
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
 }
 
-message CoefficientFromSender {
-    sint32 piece_key = 1;
-    repeated sint32 coefficient_array = 2;
-}
-
-message NewPieceKeyCoefficient{
-    sint32 new_piece_key = 1;
-}
-
-message CoefficientFromContract {
-    FeeTypeEnum fee_type = 1;
-    CoefficientFromSender coefficient = 2;
-}
-message TokenSymbolWithAddress{
-    string token_symbol = 1;
-    aelf.Address from_address = 2;
-}
-
-message TokenStateInAddress{
-    bool value = 1;
-}
-
-message AddTokeWhiteListInput{
-    string token_symbol = 1;
-    aelf.Address address = 2;
+message UpdateCoefficientsInput {
+    repeated sint32 piece_numbers = 1;// To specify pieces gonna update.
+    CalculateFeeCoefficients coefficients = 2;
 }
 
 enum FeeTypeEnum {
@@ -361,20 +344,26 @@ enum FeeTypeEnum {
     TX = 4;
 }
 
-message CalculateFeeCoefficientsOfType{
+// Coefficients of one single piece.
+// The first char is its type: liner / power.
+// The second char is its piece upper bound.
+message CalculateFeePieceCoefficients {
+    repeated sint32 value = 1;
+}
+
+// Coefficients of one single type ot token, like READ, WRITE, etc.
+message CalculateFeeCoefficients {
     sint32 fee_token_type = 1;
-    repeated CalculateFeeCoefficient coefficients= 2;
+    repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
 }
 
-message CalculateFeeCoefficient {
-    repeated sint32 coefficient_array = 1;
-}
-
-message CalculateFeeCoefficientOfAllTokenType{
-    repeated CalculateFeeCoefficientsOfType coefficient_list_of_token_type = 1;
+// To include coefficients of all tokens.
+message AllCalculateFeeCoefficients {
+    repeated CalculateFeeCoefficients value = 1;
 }
 
 // Events
+
 message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
@@ -418,14 +407,14 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message NoticeUpdateCalculateFeeAlgorithm {
+// The modification of each fee type will fire one event.
+message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
-    sint32 fee_type = 1;
-    CalculateFeeCoefficientOfAllTokenType coefficient_of_all_type = 2;
-    bool is_set_all = 3;
+    CalculateFeeCoefficients fee_coefficients = 1;
+    bool is_update_all = 2;
 }
  
- message RentalCharged {
+message RentalCharged {
     option (aelf.is_event) = true;
     string symbol = 1;
     sint64 amount = 2;
