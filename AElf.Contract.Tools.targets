@@ -70,11 +70,11 @@
             <CmdSkipAudit></CmdSkipAudit>
             <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
         </PropertyGroup>
-        <Exec WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)-p $(TargetDir)$(TargetName).dll"
-              ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
-        </Exec>
+<!--        <Exec WorkingDirectory = "$(PatcherDir)"-->
+<!--              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)-p $(TargetDir)$(TargetName).dll"-->
+<!--              ConsoleToMSBuild="true">-->
+<!--            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />-->
+<!--        </Exec>-->
         <Message Text="$(PatchContractCodeOutput)"/>
     </Target>
     <!-- Move dlls before codecov injection in travis -->
