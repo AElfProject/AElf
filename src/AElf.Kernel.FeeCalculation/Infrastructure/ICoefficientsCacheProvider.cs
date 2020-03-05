@@ -7,7 +7,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider : ISyncCacheService
+    public interface ICoefficientsCacheProvider
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
         void SetCoefficientByTokenType(int tokenType);
