@@ -58,6 +58,7 @@ message ProposalInfo {
     int64 approval_count = 8;
     int64 rejection_count = 9;
     int64 abstention_count = 10;
+    string proposal_description_url = 11;
 }
 
 message CreateOrganizationBySystemContractInput {
@@ -71,6 +72,6 @@ message ReferendumReceiptCreated {
     aelf.Address address = 2;
     string symbol = 3;
     int64 amount = 4;
-    string type = 5;
+    string receipt_type = 5;
     google.protobuf.Timestamp time = 6;
 }

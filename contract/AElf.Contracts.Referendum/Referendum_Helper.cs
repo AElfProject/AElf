@@ -1,3 +1,4 @@
+using System;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
@@ -96,14 +97,25 @@ namespace AElf.Contracts.Referendum
                    proposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
                    proposalReleaseThreshold.MaximalRejectionThreshold >= 0;
         }
-
+        
         private bool Validate(ProposalInfo proposal)
         {
             var validDestinationAddress = proposal.ToAddress != null;
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
             var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime && hasOrganizationAddress;
+            var validDescriptionUrl = ValidateDescriptionUrlScheme(proposal.ProposalDescriptionUrl);
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime &&
+                   hasOrganizationAddress && validDescriptionUrl;
+        }
+
+        private bool ValidateDescriptionUrlScheme(string uriString)
+        {
+            if (string.IsNullOrEmpty(uriString))
+                return true;
+            bool result = Uri.TryCreate(uriString, UriKind.Absolute, out var uriResult)
+                          && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            return result;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)
@@ -139,7 +151,8 @@ namespace AElf.Contracts.Referendum
                 ExpiredTime = input.ExpiredTime,
                 Params = input.Params,
                 OrganizationAddress = input.OrganizationAddress,
-                Proposer = Context.Sender
+                Proposer = Context.Sender,
+                ProposalDescriptionUrl = input.ProposalDescriptionUrl
             };
             Assert(Validate(proposal), "Invalid proposal.");
             State.Proposals[proposalId] = proposal;

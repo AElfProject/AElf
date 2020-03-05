@@ -52,6 +52,7 @@ message ProposalInfo {
     repeated aelf.Address approvals = 8;
     repeated aelf.Address rejections = 9;
     repeated aelf.Address abstentions = 10;
+    string proposal_description_url = 11;
 }
 
 message OrganizationMemberList {

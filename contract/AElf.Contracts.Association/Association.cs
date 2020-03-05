@@ -23,7 +23,7 @@ namespace AElf.Contracts.Association
             {
                 return new ProposalOutput();
             }
-            
+
             var organization = State.Organisations[proposal.OrganizationAddress];
             var readyToRelease = IsReleaseThresholdReached(proposal, organization);
 
@@ -93,6 +93,7 @@ namespace AElf.Contracts.Association
 
             return organizationAddress;
         }
+
         public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
@@ -138,7 +139,7 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Approve)
+                ReceiptType = nameof(Approve)
             });
             return new Empty();
         }
@@ -157,7 +158,7 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Reject)
+                ReceiptType = nameof(Reject)
             });
             return new Empty();
         }
@@ -176,7 +177,7 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Abstain)
+                ReceiptType = nameof(Abstain)
             });
             return new Empty();
         }
@@ -192,7 +193,7 @@ namespace AElf.Contracts.Association
 
             Context.Fire(new ProposalReleased {ProposalId = input});
             State.Proposals.Remove(input);
-            
+
             return new Empty();
         }
 
@@ -225,7 +226,7 @@ namespace AElf.Contracts.Association
             State.Organisations[Context.Sender] = organization;
             return new Empty();
         }
-        
+
         public override Empty ClearProposal(Hash input)
         {
             // anyone can clear proposal if it is expired

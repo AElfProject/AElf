@@ -90,11 +90,15 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(organization), "Invalid organization data.");
 
+            if (State.Organisations[organizationAddress] != null) 
+                return organizationAddress;
+            
             State.Organisations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
             });
+
             return organizationAddress;
         }
         
@@ -139,7 +143,7 @@ namespace AElf.Contracts.Referendum
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
             var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
-            referendumReceiptCreated.Type = nameof(Approve);
+            referendumReceiptCreated.ReceiptType = nameof(Approve);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
@@ -153,7 +157,7 @@ namespace AElf.Contracts.Referendum
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
             var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
-            referendumReceiptCreated.Type = nameof(Reject);
+            referendumReceiptCreated.ReceiptType = nameof(Reject);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
@@ -167,7 +171,7 @@ namespace AElf.Contracts.Referendum
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;
             var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
-            referendumReceiptCreated.Type = nameof(Abstain);
+            referendumReceiptCreated.ReceiptType = nameof(Abstain);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
         }

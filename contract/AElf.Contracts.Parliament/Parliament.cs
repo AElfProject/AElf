@@ -195,7 +195,7 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Approve)
+                ReceiptType = nameof(Approve)
             });
             return new Empty();
         }
@@ -212,7 +212,7 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Reject)
+                ReceiptType = nameof(Reject)
             });
             return new Empty();
         }
@@ -229,7 +229,7 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                Type = nameof(Abstain)
+                ReceiptType = nameof(Abstain)
             });
             return new Empty();
         }
@@ -260,8 +260,12 @@ namespace AElf.Contracts.Parliament
 
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
-            Assert(State.DefaultOrganizationAddress.Value == Context.Sender, "No permission.");
-            Assert(input.Proposers.Count > 0, "White list can't be empty.");
+            var defaultOrganizationAddress = State.DefaultOrganizationAddress.Value;
+            Assert(defaultOrganizationAddress == Context.Sender, "No permission.");
+            var organization = State.Organisations[defaultOrganizationAddress];
+            Assert(
+                input.Proposers.Count > 0 || !organization.ProposerAuthorityRequired ||
+                organization.ParliamentMemberProposingAllowed, "White list can't be empty.");
             State.ProposerWhiteList.Value = input;
             return new Empty();
         }

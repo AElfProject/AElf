@@ -46,6 +46,7 @@ message CreateProposalInput {
     bytes params = 3;
     google.protobuf.Timestamp expired_time = 4;
     aelf.Address organization_address = 5;
+    string proposal_description_url = 6;
 }
 
 message ProposalOutput {
@@ -108,6 +109,6 @@ message ReceiptCreated {
     option (aelf.is_event) = true;
     aelf.Hash proposal_id = 1;
     aelf.Address address = 2;
-    string type = 3;
+    string receipt_type = 3;
     google.protobuf.Timestamp time = 4;
 }
