@@ -5,16 +5,15 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation
+namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider
+    public interface ICoefficientsCacheProvider : ISyncCacheService
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
         void SetCoefficientByTokenType(int tokenType);
-        Task SyncCache(IChainContext chainContext);
     }
 
-    public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISingletonDependency
+    public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISyncCacheProvider, ISingletonDependency
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;

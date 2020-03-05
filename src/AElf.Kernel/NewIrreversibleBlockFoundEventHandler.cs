@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -22,7 +21,7 @@ namespace AElf.Kernel
         private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
+        private readonly ISyncCacheService _syncCacheService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -32,7 +31,7 @@ namespace AElf.Kernel
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            ICoefficientsCacheProvider coefficientsCacheProvider)
+            ISyncCacheService syncCacheService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -41,7 +40,7 @@ namespace AElf.Kernel
             _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _coefficientsCacheProvider = coefficientsCacheProvider;
+            _syncCacheService = syncCacheService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -79,7 +78,7 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _coefficientsCacheProvider.SyncCache(new ChainContext
+                        await _syncCacheService.SyncCache(new ChainContext
                         {
                             BlockHash = irreversibleBlockHash,
                             BlockHeight = irreversibleBlockHeight

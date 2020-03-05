@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contract.TestContract

@@ -1,7 +1,7 @@
 ﻿using System;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation
+namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public interface ICalculateFunctionProvider
     {

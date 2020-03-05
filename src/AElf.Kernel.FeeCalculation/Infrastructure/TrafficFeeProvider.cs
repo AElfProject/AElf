@@ -2,7 +2,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation
+namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {

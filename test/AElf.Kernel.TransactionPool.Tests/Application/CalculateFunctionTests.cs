@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Infrastructure;
 using Shouldly;
 using Xunit;
 
