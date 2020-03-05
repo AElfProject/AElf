@@ -59,9 +59,10 @@ namespace AElf.Contracts.MultiToken
                 "Piece numbers not match.");
 
             // ReSharper disable once PossibleNullReferenceException
-            currentCoefficients.PieceCoefficientsList.Clear();
             for (var i = 0; i < input.PieceNumbers.Count; i++)
             {
+                Assert(currentCoefficients.PieceCoefficientsList.Count >= input.PieceNumbers[i],
+                    "Piece number exceeded.");
                 var pieceIndex = input.PieceNumbers[i].Sub(1);
                 var pieceCoefficients = input.Coefficients.PieceCoefficientsList[i];
                 Assert(pieceCoefficients.Value[0] == 0 || pieceCoefficients.Value[0] == 1,
