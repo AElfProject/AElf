@@ -4,6 +4,7 @@ Side-chains can be created in the AELF ecosystem to enable scalability. The prop
 
 #### The request
 
+```Proto
 message SideChainCreationRequest {
     int64 indexing_price = 1; // initial index fee
     int64 locked_token_amount = 2;
@@ -17,6 +18,7 @@ message SideChainCreationRequest {
     map<string, sint32> initial_resource_amount = 10; // when charging by time (exclusive side-chain) this must be set
     bool is_side_chain_token_profitable = 11;
 }
+```
 
 #### Exclusive and shared 
 
