@@ -11,7 +11,7 @@ namespace AElf.Kernel.TransactionPool.Application
         [Fact]
         public void PowCalculateFunction_Test()
         {
-            var param = new int[]{int.MaxValue, 100, 1, 1, 2, 5, 10};
+            var param = new int[]{1, int.MaxValue, 100, 1, 1, 2, 5, 10};
             var function = new CalculateFunctionProvider();
             var cost = function.PowerFunction(param, 1000);
             cost.ShouldBeGreaterThan(Precision * 1000);
@@ -20,7 +20,7 @@ namespace AElf.Kernel.TransactionPool.Application
         [Fact]
         public void LinerCalculateFunction_Test()
         {
-            var param = new int[]{int.MaxValue, 1, 2, 5000};
+            var param = new int[]{0, int.MaxValue, 1, 2, 5000};
             var function = new CalculateFunctionProvider();
             var cost = function.LinerFunction(param, 1000);
             cost.ShouldBe(Precision * 1000 / 2 + 5000);
