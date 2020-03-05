@@ -1,15 +1,13 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     public class SymbolListToPayTxFeeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
