@@ -4,6 +4,6 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISyncCacheProvider
     {
-        Task SyncCache(IChainContext chainContext);
+        Task SyncCacheAsync(IChainContext chainContext);
     }
 }

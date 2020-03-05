@@ -4,7 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public class TxFeeProvider : TokenFeeProviderBase, IPrimaryTokenFeeProvider
+    public class TxFeeProvider : TokenFeeProviderBase, IPrimaryTokenFeeProvider, ITransientDependency
     {
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 

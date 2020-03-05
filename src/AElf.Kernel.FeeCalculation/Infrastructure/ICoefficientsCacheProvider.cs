@@ -7,30 +7,28 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider
+    public interface ICoefficientsCacheProvider : ISyncCacheService
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
-        void SetCoefficientByTokenType(int tokenType);
+        void SetModifyHeight(int height);
     }
 
     public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISyncCacheProvider, ISingletonDependency
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
-        private Dictionary<int, bool> _needReloadDic;
+        private int _modifyHeight;
 
         public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
             _blockChainStateService = blockChainStateService;
             _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
-            _needReloadDic = new Dictionary<int, bool>();
+            _modifyHeight = 0;
         }
 
         public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
-            if (!_needReloadDic.TryGetValue(tokenType, out _))
-                _needReloadDic[tokenType] = true;
-            if (!_needReloadDic[tokenType])
+            if (_modifyHeight == 0)
             {
                 if (_coefficientsDicCache.TryGetValue(tokenType, out var coefficientsInCache))
                     return coefficientsInCache;
@@ -42,27 +40,32 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return await GetFromBlockChainStateAsync(tokenType, chainContext);
         }
 
-        public void SetCoefficientByTokenType(int tokenType)
+        public void SetModifyHeight(int height)
         {
-            _needReloadDic[tokenType] = true;
+            _modifyHeight = height;
         }
 
-        public async Task SyncCache(IChainContext chainContext)
+        public async Task SyncCacheAsync(IChainContext chainContext)
         {
+            var currentLibHeight = chainContext.BlockHeight;
             AllCalculateFeeCoefficients coefficientOfAllTokenType = null;
-            foreach (var kp in _needReloadDic.Where(kp => kp.Value))
+            if (_modifyHeight <= currentLibHeight)
             {
-                if (coefficientOfAllTokenType == null)
-                    coefficientOfAllTokenType =
-                        await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(
-                            chainContext);
-                var targetTokeData =
-                    coefficientOfAllTokenType.Value.FirstOrDefault(x => x.FeeTokenType == kp.Key);
-                _coefficientsDicCache[kp.Key] = targetTokeData.PieceCoefficientsList.AsEnumerable()
-                    .Select(x => (int[]) (x.Value.AsEnumerable())).ToList();
+                var tokenTypeList = _coefficientsDicCache.Select(x => x.Key).ToArray();
+                foreach (var tokenType in tokenTypeList)
+                {
+                    if (coefficientOfAllTokenType == null)
+                        coefficientOfAllTokenType =
+                            await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(
+                                chainContext);
+                    var targetTokeData =
+                        coefficientOfAllTokenType.Value.FirstOrDefault(x => x.FeeTokenType == tokenType);
+                    _coefficientsDicCache[tokenType] = targetTokeData.PieceCoefficientsList.AsEnumerable()
+                        .Select(x => (int[]) (x.Value.AsEnumerable())).ToList();
+                }
             }
-
-            _needReloadDic = _needReloadDic.ToDictionary(x => x.Key, x => false);
+            
+            _modifyHeight = 0;
         }
 
         private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)

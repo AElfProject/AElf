@@ -49,10 +49,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             return Task.FromResult(_coefficientsDicCache[tokenType]);
         }
-        public void SetCoefficientByTokenType(int tokenType)
+        public void SetModifyHeight(int tokenType)
         {
         }
-        public Task SyncCache(IChainContext chainContext)
+        public Task SyncCacheAsync(IChainContext chainContext)
         {
             return Task.CompletedTask;
         }
