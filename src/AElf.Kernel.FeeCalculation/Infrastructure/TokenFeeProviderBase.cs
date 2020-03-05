@@ -19,6 +19,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             _coefficientsCacheProvider = coefficientsCacheProvider;
             _calculateFunctionProvider = calculateFunctionProvider;
             _tokenType = tokenType;
+            PieceCalculateFunction = new PieceCalculateFunction();
         }
 
         public async Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext,
@@ -26,7 +27,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         {
             var coefficients =
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
-            if (!PieceTypeArray.Any())
+            if (PieceTypeArray == null)
             {
                 // First number of each piece coefficients is its piece type.
                 var pieceTypeArray = coefficients.Select(a => a[0]);

@@ -14,6 +14,11 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             AddFunction(function);
         }
 
+        public PieceCalculateFunction()
+        {
+
+        }
+
         public void AddFunction(Func<int[], int, long> function)
         {
             if (_currentCalculateFunction == null)
