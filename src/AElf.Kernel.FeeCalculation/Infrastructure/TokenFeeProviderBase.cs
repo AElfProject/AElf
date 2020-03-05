@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
@@ -46,9 +47,13 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 {
                     PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction);
                 }
-                else
+                else if (pieceType == 1)
                 {
                     PieceCalculateFunction.AddFunction(_calculateFunctionProvider.PowerFunction);
+                }
+                else
+                {
+                    throw new Exception("");
                 }
             }
         }

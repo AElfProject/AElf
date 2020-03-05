@@ -1,55 +1,47 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public class PieceCalculateFunction
     {
-        private PieceCalculateFunction _next;
-        private Func<int[], int, long> _currentCalculateFunction;
-
-        public PieceCalculateFunction(Func<int[], int, long> function)
-        {
-            AddFunction(function);
-        }
-
-        public PieceCalculateFunction()
-        {
-
-        }
+        private List<Func<int[], int, long>> _currentCalculateFunctions;
 
         public void AddFunction(Func<int[], int, long> function)
         {
-            if (_currentCalculateFunction == null)
+            if (_currentCalculateFunctions == null)
             {
-                _currentCalculateFunction = function;
+                _currentCalculateFunctions = new List<Func<int[], int, long>>();
             }
-            else
-            {
-                _next = new PieceCalculateFunction(function);
-            }
+
+            _currentCalculateFunctions.Add(function);
         }
 
         public long CalculateFee(IList<int[]> coefficient, int totalCount, int currentCoefficientIndex = 0)
         {
-            if (!coefficient.Any()) return 0;
-            var currentCoefficient = coefficient[currentCoefficientIndex];
-            var piece = currentCoefficient[1];
-            if (piece >= totalCount || _next == null || coefficient.Count == 1 ||
-                currentCoefficientIndex >= coefficient.Count)
+            if (coefficient.Count != _currentCalculateFunctions.Count)
             {
-                // piece will increase during calling this method recursively,
-                // finally piece will greater than or equal to totalCount, thus terminate the recursion.
-                // In this is the way we implemented piece-wise function.
-                return _currentCalculateFunction(currentCoefficient, totalCount);
+                return 0;
             }
 
-            var nextCoefficientIndex = currentCoefficientIndex + 1;
-            var nextCount = totalCount - piece;
-            nextCount = Math.Max(nextCount, 0);
-            return _currentCalculateFunction(currentCoefficient, piece) +
-                   _next.CalculateFee(coefficient, nextCount, nextCoefficientIndex);
+            var remainCount = totalCount;
+            var result = 0L;
+            for (var i = 0; i < _currentCalculateFunctions.Count; i++)
+            {
+                var function = _currentCalculateFunctions[i];
+                var pieceCoefficient = coefficient[i];
+                var pieceUpperBound = pieceCoefficient[1];
+                var count = Math.Min(pieceUpperBound, remainCount);
+                result += function(pieceCoefficient, count);
+                if (pieceUpperBound > totalCount)
+                {
+                    break;
+                }
+
+                remainCount -= pieceUpperBound;
+            }
+
+            return result;
         }
     }
 }

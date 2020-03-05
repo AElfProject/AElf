@@ -43,6 +43,7 @@ namespace AElf.Contracts.MultiToken
             if (input == null)
                 return new Empty();
             AssertUserFeeController();
+            input.Coefficients.FeeTokenType = (int) FeeTypeEnum.Tx; // The only possible for now.
             UpdateCoefficients(input);
             return new Empty();
         }
@@ -271,57 +272,5 @@ namespace AElf.Contracts.MultiToken
                 }
             };
         }
-
-        #region Archive
-
-        /*
-       private void UpdateCoefficientOfOneToken(int pieceKey, RepeatedField<int> coefficients,
-           CalculateFeeCoefficients coefficientInfoInState)
-       {
-           var funcCoefficient =
-               coefficientInfoInState.FeeCoefficient.SingleOrDefault(x =>
-                   x.CoefficientArray[0] == pieceKey);
-           Assert(funcCoefficient != null, $"piece key: {pieceKey} does not exist");
-           AssertValidCoefficients(coefficientInput, funcCoefficient);
-           if (coefficients[0] != funcCoefficient.Coefficients[0])
-           {
-               var oldPieceKey = funcCoefficient.Coefficients[0];
-               var newPieceKey = coefficients[0];
-               var pieceKeyArray = coefficientInfoInState.FeeCoefficient.Select(x => x.Coefficients[0]);
-               Assert(IsValidNewPieceKey(newPieceKey, oldPieceKey, pieceKeyArray), "invalid piece key");
-           }
-
-           funcCoefficient.Coefficients.Clear();
-           funcCoefficient.Coefficients.AddRange(coefficients);
-       }
-       
-       private void AssertValidCoefficients(CoefficientFromSender coefficientInput,
-           CalculateFeeCoefficient funcCoefficient)
-       {
-           IList<int> targetArray = coefficientInput.Coefficients;
-           IList<int> currentArray = funcCoefficient.Coefficients;
-           Assert(targetArray.Count == currentArray.Count, "invalid coefficient input");
-           Assert(
-               targetArray.Any(x => x > 0) || (targetArray.Count == 4 && targetArray[0] > 0 && targetArray[1] > 0 &&
-                                               targetArray[2] > 0 && targetArray[3] == 0),
-               "invalid coefficient input");
-       }
-
-       private bool IsValidNewPieceKey(int newPieceKey, int oldPieceKey, IEnumerable<int> orderPieceKeys)
-       {
-           if (orderPieceKeys.Contains(newPieceKey))
-               return false;
-           var pieceKeys = orderPieceKeys as int[] ?? orderPieceKeys.ToArray();
-           var index = pieceKeys.Count(x => x < oldPieceKey);
-           var prePieceKeyIndex = index - 1 >= 0 ? index - 1 : -1;
-           var postPieceKeyIndex = index + 1 <= pieceKeys.Length - 1 ? index + 1 : -1;
-           if (prePieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] > newPieceKey)
-               return false;
-           if (postPieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] < newPieceKey)
-               return false;
-           return true;
-       }
-*/
-        #endregion
     }
 }
