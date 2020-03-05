@@ -1,6 +1,6 @@
 using AElf.Modularity;
 
-namespace AElf.Blockchain.BasicBaseChain.ContractNames
+namespace AElf.Blockchains.BasicBaseChain.ContractNames
 {
     public class ContractNamesAElfModule : AElfModule
     {

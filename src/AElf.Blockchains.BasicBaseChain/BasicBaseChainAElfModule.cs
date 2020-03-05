@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Blockchain.BasicBaseChain.ContractNames;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
