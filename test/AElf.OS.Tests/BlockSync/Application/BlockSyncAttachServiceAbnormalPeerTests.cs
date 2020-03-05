@@ -6,13 +6,13 @@ using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    public class BlockSyncAttachServiceBadPeerTests : BlockSyncAttachBlockBadPeerTestBase
+    public class BlockSyncAttachServiceAbnormalPeerTests : BlockSyncAttachBlockAbnormalPeerTestBase
     {
         private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly OSTestHelper _osTestHelper;
         private readonly INetworkService _networkService;
         
-        public BlockSyncAttachServiceBadPeerTests()
+        public BlockSyncAttachServiceAbnormalPeerTests()
         {
             _blockSyncAttachService = GetRequiredService<IBlockSyncAttachService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
@@ -22,16 +22,16 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task Attach_InvalidBlock()
         {
-            var badPeerPubkey = "BadPeerPubkey";
+            var abnormalPeerPubkey = "AbnormalPeerPubkey";
             var badBlock = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("BadBlock"), 10000);
             
-            var badPeer = _networkService.GetPeerByPubkey(badPeerPubkey);
-            badPeer.ShouldNotBeNull();
+            var abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
+            abnormalPeer.ShouldNotBeNull();
 
-            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(badBlock, badPeerPubkey);
+            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(badBlock, abnormalPeerPubkey);
             
-            badPeer = _networkService.GetPeerByPubkey(badPeerPubkey);
-            badPeer.ShouldBeNull();
+            abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
+            abnormalPeer.ShouldBeNull();
         }
     }
 }
