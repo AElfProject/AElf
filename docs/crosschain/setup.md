@@ -2,9 +2,15 @@
 
 Side-chains can be created in the AELF ecosystem to enable scalability. The proposer/creator of a new side chain will need to request the creation of the side-chain through the cross-chain contract on the main-chain. The request contains different fields that will determine the type of side-chain that will be created.
 
-#### The request
+#### The creation request
+
+This section show the API to use in order to propose the creation of a side-chain. The fields that are in the **SideChainCreationRequest** will determine the type of side-chain that is created. Later sections explain what they mean.
+
+Note: for a more practical approach you can follow the [request side-chain creation](../tutorials/cross-chain/request-new-side-chain.md).
 
 ```Proto
+rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }
+
 message SideChainCreationRequest {
     int64 indexing_price = 1; // initial index fee
     int64 locked_token_amount = 2;
@@ -17,6 +23,16 @@ message SideChainCreationRequest {
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
     map<string, sint32> initial_resource_amount = 10; // when charging by time (exclusive side-chain) this must be set
     bool is_side_chain_token_profitable = 11;
+}
+
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
 }
 ```
 
