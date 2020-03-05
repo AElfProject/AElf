@@ -1,33 +1,32 @@
-using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
-using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation.Impl
+namespace AElf.Kernel.FeeCalculation.Implementation
 {
-    public class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    public class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
-        public TrafficFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
+        public WriteFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, (int) FeeTypeEnum.Traffic)
+            coefficientsCacheProvider, 2)
         {
             _calculateFunctionProvider = calculateFunctionProvider;
         }
 
-        public string TokenName { get; } = "TRAFFIC";
+        public string TokenName { get; } = "WRITE";
 
         protected override void InitializeFunction()
         {
             PieceCalculateFunction = new PieceCalculateFunction();
             PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction)
+                .AddFunction(_calculateFunctionProvider.LinerFunction)
                 .AddFunction(_calculateFunctionProvider.PowerFunction);
         }
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {
-            return transactionContext.Transaction.Size();
+            return transactionContext.Trace.StateSet.Writes.Count;
         }
     }
 }

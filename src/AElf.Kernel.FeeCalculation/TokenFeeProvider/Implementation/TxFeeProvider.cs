@@ -1,22 +1,19 @@
 ﻿using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl;
-using Volo.Abp.DependencyInjection;
 using AElf.Kernel.SmartContract;
+using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeeCalculation.Impl
+namespace AElf.Kernel.FeeCalculation.Implementation
 {
-    public class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    public class TxFeeProvider : TokenFeeProviderBase, IPrimaryTokenFeeProvider, ITransientDependency
     {
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
-        public StorageFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
+        public TxFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, (int) FeeTypeEnum.Storage)
+            coefficientsCacheProvider, (int) FeeTypeEnum.Tx)
         {
             _calculateFunctionProvider = calculateFunctionProvider;
         }
-
-        public string TokenName { get; } = "STORAGE";
 
         protected override void InitializeFunction()
         {

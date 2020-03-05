@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
 
-namespace AElf.Kernel.FeeCalculation.ResourceTokenFeeProvider.Impl
+namespace AElf.Kernel.FeeCalculation.Implementation
 {
     public abstract class TokenFeeProviderBase
     {
