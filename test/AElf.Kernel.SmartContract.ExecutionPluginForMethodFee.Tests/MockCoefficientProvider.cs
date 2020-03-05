@@ -55,6 +55,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
         }
 
+        public bool GetUpdateNotification(int tokenType)
+        {
+            return false;
+        }
+
         public Task SyncCacheAsync(IChainContext chainContext)
         {
             return Task.CompletedTask;

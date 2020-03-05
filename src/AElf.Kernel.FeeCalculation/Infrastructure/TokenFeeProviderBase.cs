@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
@@ -27,10 +26,10 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         {
             var coefficients =
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
-            if (PieceTypeArray == null)
+            var pieceTypeArray = coefficients.Select(a => a[0]);
+            if (PieceTypeArray == null || _coefficientsCacheProvider.GetUpdateNotification(_tokenType))
             {
                 // First number of each piece coefficients is its piece type.
-                var pieceTypeArray = coefficients.Select(a => a[0]);
                 UpdatePieceWiseFunction(pieceTypeArray.ToArray());
             }
 
@@ -38,12 +37,6 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return PieceCalculateFunction.CalculateFee(coefficients, count);
         }
 
-        /// <summary>
-        /// Piece Type:
-        /// 0 - Liner
-        /// 1 - Power
-        /// </summary>
-        /// <param name="pieceTypeArray"></param>
         public void UpdatePieceWiseFunction(int[] pieceTypeArray)
         {
             foreach (var pieceType in pieceTypeArray)

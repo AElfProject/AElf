@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,28 +7,25 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider : ISyncCacheService
+    public interface ICoefficientsCacheProvider
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
         void UpdateLatestModifiedHeight(long height);
+        bool GetUpdateNotification(int tokenType);
     }
 
     public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISyncCacheProvider, ISingletonDependency
     {
         private readonly IBlockchainStateService _blockChainStateService;
-        private readonly IServiceContainer<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
-        private readonly IPrimaryTokenFeeProvider _primaryTokenFeeProvider;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
+        private readonly List<int> _updateNotifications;
         private long _latestModifiedHeight;
 
-        public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService,
-            IServiceContainer<IResourceTokenFeeProvider> resourceTokenFeeProviders,
-            IPrimaryTokenFeeProvider primaryTokenFeeProvider)
+        public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
             _blockChainStateService = blockChainStateService;
-            _resourceTokenFeeProviders = resourceTokenFeeProviders;
-            _primaryTokenFeeProvider = primaryTokenFeeProvider;
             _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
+            _updateNotifications = new List<int>();
             _latestModifiedHeight = 0;
         }
 
@@ -52,6 +48,13 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             _latestModifiedHeight = height;
         }
 
+        public bool GetUpdateNotification(int tokenType)
+        {
+            if (!_updateNotifications.Contains(tokenType)) return false;
+            _updateNotifications.Remove(tokenType);
+            return true;
+        }
+
         public async Task SyncCacheAsync(IChainContext chainContext)
         {
             var currentLibHeight = chainContext.BlockHeight;
@@ -67,20 +70,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                     if (targetTokeData == null) continue;
                     _coefficientsDicCache[tokenType] = targetTokeData.PieceCoefficientsList.AsEnumerable()
                         .Select(x => (int[]) x.Value.AsEnumerable()).ToList();
-                    var pieceTypeArray = _coefficientsDicCache[tokenType].Select(a => a[0]).ToArray();
-                    if (tokenType == (int) FeeTypeEnum.Tx)
-                    {
-                        _primaryTokenFeeProvider.UpdatePieceWiseFunction(pieceTypeArray);
-                    }
-                    else
-                    {
-                        var targetProvider =
-                            _resourceTokenFeeProviders.SingleOrDefault(p =>
-                                p.TokenName == tokenType.ToString().ToUpper());
-                        if (targetProvider == null) continue;
-                        targetProvider.PieceTypeArray = pieceTypeArray;
-                        targetProvider.UpdatePieceWiseFunction(pieceTypeArray);
-                    }
+                    _updateNotifications.Add(tokenType);
                 }
 
                 _latestModifiedHeight = 0;

@@ -56,6 +56,11 @@ namespace AElf.Contract.TestContract
         {
         }
 
+        public bool GetUpdateNotification(int tokenType)
+        {
+            return false;
+        }
+
         public Task SyncCacheAsync(IChainContext chainContext)
         {
             return Task.CompletedTask;
