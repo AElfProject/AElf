@@ -78,7 +78,7 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _syncCacheService.SyncCache(new ChainContext
+                        await _syncCacheService.SyncCacheAsync(new ChainContext
                         {
                             BlockHash = irreversibleBlockHash,
                             BlockHeight = irreversibleBlockHeight

@@ -1,5 +1,4 @@
 ﻿using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +13,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
-            context.Services
-                .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
         }
     }
 }

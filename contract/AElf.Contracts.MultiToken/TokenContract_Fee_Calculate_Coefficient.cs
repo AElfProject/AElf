@@ -104,7 +104,7 @@ namespace AElf.Contracts.MultiToken
             var postPieceKeyIndex = index + 1 <= pieceKeys.Length - 1 ? index + 1 : -1;
             if (prePieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] > newPieceKey)
                 return false;
-            if (postPieceKeyIndex > 0 && pieceKeys[prePieceKeyIndex] < newPieceKey)
+            if (postPieceKeyIndex > 0 && pieceKeys[postPieceKeyIndex] < newPieceKey)
                 return false;
             return true;
         }

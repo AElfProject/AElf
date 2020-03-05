@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISyncCacheService
     {
-        Task SyncCache(IChainContext chainContext);
+        Task SyncCacheAsync(IChainContext chainContext);
     }
 
     public class SyncCacheService : ISyncCacheService
@@ -20,11 +20,11 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<SyncCacheService>.Instance;
         }
 
-        public async Task SyncCache(IChainContext chainContext)
+        public async Task SyncCacheAsync(IChainContext chainContext)
         {
             foreach (var syncCacheProvider in _syncCacheProviders)
             {
-                await syncCacheProvider.SyncCache(chainContext);
+                await syncCacheProvider.SyncCacheAsync(chainContext);
             }
         }
     }

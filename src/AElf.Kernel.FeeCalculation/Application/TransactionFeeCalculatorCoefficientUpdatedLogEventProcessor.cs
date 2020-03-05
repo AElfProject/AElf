@@ -53,8 +53,8 @@ namespace AElf.Kernel.FeeCalculation.Application
             var eventData = new NoticeUpdateCalculateFeeAlgorithm();
             eventData.MergeFrom(logEvent);
             await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.CoefficientOfAllType);
-            if (!eventData.IsSetAll)
-                _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
+            if(block.Height > 1)
+                _coefficientsCacheProvider.SetModifyHeight(eventData.FeeType);
         }
     }
 }
