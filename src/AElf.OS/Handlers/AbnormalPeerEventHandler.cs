@@ -8,23 +8,23 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class BadPeerEventHandler : ILocalEventHandler<BadPeerFoundEventData>, ITransientDependency
+    public class AbnormalPeerEventHandler : ILocalEventHandler<AbnormalPeerFoundEventData>, ITransientDependency
     {
         private readonly INetworkService _networkService;
 
-        public ILogger<BadPeerEventHandler> Logger { get; set; }
+        public ILogger<AbnormalPeerEventHandler> Logger { get; set; }
 
-        public BadPeerEventHandler(INetworkService networkService)
+        public AbnormalPeerEventHandler(INetworkService networkService)
         {
-            Logger = NullLogger<BadPeerEventHandler>.Instance;
+            Logger = NullLogger<AbnormalPeerEventHandler>.Instance;
 
             _networkService = networkService;
         }
 
-        public async Task HandleEventAsync(BadPeerFoundEventData eventData)
+        public async Task HandleEventAsync(AbnormalPeerFoundEventData eventData)
         {
             Logger.LogWarning(
-                $"Remove bad peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
+                $"Remove abnormal peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
             await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
         }
