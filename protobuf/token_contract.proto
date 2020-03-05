@@ -420,9 +420,7 @@ message TransactionSizeFeeUnitPriceUpdated {
 
 message NoticeUpdateCalculateFeeAlgorithm {
     option (aelf.is_event) = true;
-    sint32 fee_type = 1;
     CalculateFeeCoefficientOfAllTokenType coefficient_of_all_type = 2;
-    bool is_set_all = 3;
 }
  
  message RentalCharged {

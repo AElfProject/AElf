@@ -36,7 +36,6 @@ namespace AElf.Contracts.MultiToken
             State.CalculateCoefficientOfTokenType.Value = allTokenCoefficient;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                FeeType = feeType,
                 CoefficientOfAllType = allTokenCoefficient
             });
             return new Empty();
@@ -56,7 +55,6 @@ namespace AElf.Contracts.MultiToken
             State.CalculateCoefficientOfTokenType.Value = allTokenCoefficient;
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
-                FeeType = (int) FeeTypeEnum.Tx,
                 CoefficientOfAllType = allTokenCoefficient
             });
             return new Empty();
