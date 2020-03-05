@@ -24,7 +24,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             foreach (var syncCacheProvider in _syncCacheProviders)
             {
-                Logger.LogInformation($"Syncing cache via {syncCacheProvider.GetType().FullName}");
                 await syncCacheProvider.SyncCache(chainContext);
             }
         }

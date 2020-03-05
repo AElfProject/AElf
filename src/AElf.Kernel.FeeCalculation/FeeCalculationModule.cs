@@ -13,6 +13,7 @@ namespace AElf.Kernel.FeeCalculation
         {
             var services = context.Services;
             services.AddSingleton<ICalculateFunctionProvider, CalculateFunctionProvider>();
+            services.AddSingleton<ISyncCacheProvider, CoefficientsCacheProvider>();
             services.AddSingleton<IPrimaryTokenFeeProvider, TxFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, ReadFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, StorageFeeProvider>();
