@@ -43,17 +43,16 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             PieceCalculateFunction = new PieceCalculateFunction();
             foreach (var pieceType in pieceTypeArray)
             {
-                if (pieceType == 0)
+                switch (pieceType)
                 {
-                    PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction);
-                }
-                else if (pieceType == 1)
-                {
-                    PieceCalculateFunction.AddFunction(_calculateFunctionProvider.PowerFunction);
-                }
-                else
-                {
-                    throw new Exception("");
+                    case 0 :
+                        PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction);
+                        break;
+                    case 1 :
+                        PieceCalculateFunction.AddFunction(_calculateFunctionProvider.PowerFunction);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Matching piece type not found.");
                 }
             }
         }
