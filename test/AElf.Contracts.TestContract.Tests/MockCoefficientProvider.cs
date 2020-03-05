@@ -51,7 +51,7 @@ namespace AElf.Contract.TestContract
         {
             return Task.FromResult(_coefficientsDicCache[tokenType]);
         }
-        public void SetModifyHeight(int tokenType)
+        public void SetModifyHeight(long tokenType)
         {
         }
         public Task SyncCacheAsync(IChainContext chainContext)

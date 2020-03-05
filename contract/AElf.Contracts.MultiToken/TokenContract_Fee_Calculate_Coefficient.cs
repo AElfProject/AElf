@@ -127,7 +127,6 @@ namespace AElf.Contracts.MultiToken
             Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
             {
                 CoefficientOfAllType = allTokenCoefficient,
-                IsSetAll = true
             });
         }
 

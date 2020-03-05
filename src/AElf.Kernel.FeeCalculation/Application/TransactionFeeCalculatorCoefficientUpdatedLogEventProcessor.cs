@@ -54,7 +54,7 @@ namespace AElf.Kernel.FeeCalculation.Application
             eventData.MergeFrom(logEvent);
             await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.CoefficientOfAllType);
             if(block.Height > 1)
-                _coefficientsCacheProvider.SetModifyHeight(eventData.FeeType);
+                _coefficientsCacheProvider.SetModifyHeight(block.Height);
         }
     }
 }

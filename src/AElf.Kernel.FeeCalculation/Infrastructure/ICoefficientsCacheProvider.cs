@@ -10,14 +10,14 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     public interface ICoefficientsCacheProvider : ISyncCacheService
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
-        void SetModifyHeight(int height);
+        void SetModifyHeight(long height);
     }
 
     public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISyncCacheProvider, ISingletonDependency
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
-        private int _modifyHeight;
+        private long _modifyHeight;
 
         public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
         {
@@ -40,7 +40,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return await GetFromBlockChainStateAsync(tokenType, chainContext);
         }
 
-        public void SetModifyHeight(int height)
+        public void SetModifyHeight(long height)
         {
             _modifyHeight = height;
         }
