@@ -31,7 +31,7 @@ namespace AElf.Kernel.FeeCalculation.Application
                 var address =
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
-                _interestedEvent = new NoticeUpdateCalculateFeeAlgorithm().ToLogEvent(address);
+                _interestedEvent = new CalculateFeeAlgorithmUpdated().ToLogEvent(address);
 
                 return _interestedEvent;
             }
@@ -52,9 +52,9 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.CoefficientOfAllType);
+            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.FeeCoefficients);
             if (!eventData.IsUpdateAll)
-                _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeType);
+                _coefficientsCacheProvider.SetCoefficientByTokenType(eventData.FeeCoefficients.FeeTokenType);
         }
     }
 }

@@ -49,17 +49,17 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public async Task SyncCache(IChainContext chainContext)
         {
-            CalculateFeeCoefficientOfAllTokenType coefficientOfAllTokenType = null;
+            AllCalculateFeeCoefficients coefficientOfAllTokenType = null;
             foreach (var kp in _needReloadDic.Where(kp => kp.Value))
             {
                 if (coefficientOfAllTokenType == null)
                     coefficientOfAllTokenType =
-                        await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfAllTokenType>(
+                        await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(
                             chainContext);
                 var targetTokeData =
-                    coefficientOfAllTokenType.CoefficientListOfTokenType.FirstOrDefault(x => x.FeeTokenType == kp.Key);
-                _coefficientsDicCache[kp.Key] = targetTokeData.Coefficients.AsEnumerable()
-                    .Select(x => (int[]) (x.Coefficients.AsEnumerable())).ToList();
+                    coefficientOfAllTokenType.Value.FirstOrDefault(x => x.FeeTokenType == kp.Key);
+                _coefficientsDicCache[kp.Key] = targetTokeData.PieceCoefficientsList.AsEnumerable()
+                    .Select(x => (int[]) (x.Value.AsEnumerable())).ToList();
             }
 
             _needReloadDic = _needReloadDic.ToDictionary(x => x.Key, x => false);
@@ -68,12 +68,12 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
         {
             var coefficientOfAllTokenType =
-                await _blockChainStateService.GetBlockExecutedDataAsync<CalculateFeeCoefficientOfAllTokenType>(
+                await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(
                     chainContext);
             var targetTokeData =
-                coefficientOfAllTokenType.CoefficientListOfTokenType.FirstOrDefault(x => x.FeeTokenType == tokenType);
-            var coefficientsArray = targetTokeData.Coefficients.AsEnumerable()
-                .Select(x => (int[]) (x.Coefficients.AsEnumerable())).ToList();
+                coefficientOfAllTokenType.Value.FirstOrDefault(x => x.FeeTokenType == tokenType);
+            var coefficientsArray = targetTokeData.PieceCoefficientsList.AsEnumerable()
+                .Select(x => (int[]) (x.Value.AsEnumerable())).ToList();
             return coefficientsArray;
         }
     }

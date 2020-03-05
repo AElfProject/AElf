@@ -99,7 +99,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 {
                     foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)
                     {
-                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
+                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
                         {
                             TokenSymbol = transactionSizeFeeSymbol.TokenSymbol,
                             BaseTokenWeight = transactionSizeFeeSymbol.BaseTokenWeight,

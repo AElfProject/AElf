@@ -37,9 +37,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
-
-
         public override Empty UpdateCoefficientsForSender(UpdateCoefficientsInput input)
         {
             if (input == null)
@@ -48,7 +45,6 @@ namespace AElf.Contracts.MultiToken
             UpdateCoefficients(input);
             return new Empty();
         }
-
 
         private void UpdateCoefficients(UpdateCoefficientsInput input)
         {
@@ -66,9 +62,11 @@ namespace AElf.Contracts.MultiToken
             currentCoefficients.PieceCoefficientsList.Clear();
             for (var i = 0; i < input.PieceNumbers.Count; i++)
             {
-                var pieceNumber = input.PieceNumbers[i];
+                var pieceIndex = input.PieceNumbers[i].Sub(1);
                 var pieceCoefficients = input.Coefficients.PieceCoefficientsList[i];
-                currentCoefficients.PieceCoefficientsList[pieceNumber] = pieceCoefficients;
+                Assert(pieceCoefficients.Value[0] == 0 || pieceCoefficients.Value[0] == 1,
+                    "Invalid piece-wise function type.");
+                currentCoefficients.PieceCoefficientsList[pieceIndex] = pieceCoefficients;
             }
 
             State.AllCalculateFeeCoefficients.Value = currentAllCoefficients;
@@ -106,7 +104,7 @@ namespace AElf.Contracts.MultiToken
                 Context.Fire(new CalculateFeeAlgorithmUpdated
                 {
                     FeeCoefficients = coefficients,
-                    IsSetAll = true
+                    IsUpdateAll = true
                 });
             }
         }
