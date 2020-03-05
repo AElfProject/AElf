@@ -28,7 +28,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
-            if (!_needReloadDic.TryGetValue(tokenType, out var isNeedLoadData))
+            if (!_needReloadDic.TryGetValue(tokenType, out _))
                 _needReloadDic[tokenType] = true;
             if (!_needReloadDic[tokenType])
             {
@@ -38,8 +38,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 _coefficientsDicCache[tokenType] = coefficientsInCache;
                 return coefficientsInCache;
             }
-            else
-                return await GetFromBlockChainStateAsync(tokenType, chainContext);
+
+            return await GetFromBlockChainStateAsync(tokenType, chainContext);
         }
 
         public void SetCoefficientByTokenType(int tokenType)
