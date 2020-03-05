@@ -6,15 +6,12 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     internal class TxFeeProvider : TokenFeeProviderBase, IPrimaryTokenFeeProvider, ITransientDependency
     {
-
         public TxFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
             coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Tx)
         {
 
         }
-        
-        public int[] PieceTypeArray { get; set; }
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)
         {

@@ -13,8 +13,6 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         }
 
-        public int[] PieceTypeArray { get; set; }
-
         public string TokenName => "TRAFFIC";
 
         protected override int GetCalculateCount(ITransactionContext transactionContext)

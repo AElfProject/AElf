@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
@@ -10,6 +11,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
         private readonly int _tokenType;
         protected PieceCalculateFunction PieceCalculateFunction;
+        public int[] PieceTypeArray { get; set; }
 
         protected TokenFeeProviderBase(ICoefficientsCacheProvider coefficientsCacheProvider,
             ICalculateFunctionProvider calculateFunctionProvider, int tokenType)
@@ -22,11 +24,16 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         public async Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext,
             IChainContext chainContext)
         {
-            if (PieceCalculateFunction == null)
-                return 0; // Not calculate fee if function not initialed yet.
-            var count = GetCalculateCount(transactionContext);
             var coefficients =
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
+            if (!PieceTypeArray.Any())
+            {
+                // First number of each piece coefficients is its piece type.
+                var pieceTypeArray = coefficients.Select(a => a[0]);
+                UpdatePieceWiseFunction(pieceTypeArray.ToArray());
+            }
+
+            var count = GetCalculateCount(transactionContext);
             return PieceCalculateFunction.CalculateFee(coefficients, count);
         }
 

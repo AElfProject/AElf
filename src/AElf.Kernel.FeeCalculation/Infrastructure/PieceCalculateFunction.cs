@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
@@ -27,9 +28,9 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public long CalculateFee(IList<int[]> coefficient, int totalCount, int currentCoefficientIndex = 0)
         {
-            if (coefficient.Count == 0) return 0;
+            if (!coefficient.Any()) return 0;
             var currentCoefficient = coefficient[currentCoefficientIndex];
-            var piece = currentCoefficient[0];
+            var piece = currentCoefficient[1];
             if (piece >= totalCount || _next == null || coefficient.Count == 1 ||
                 currentCoefficientIndex >= coefficient.Count)
             {
