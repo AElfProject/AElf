@@ -52,7 +52,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
 
             public void UpdateLatestModifiedHeight(long height)
             {
-                throw new System.NotImplementedException();
             }
 
             public Task SyncCacheAsync(IChainContext chainContext)

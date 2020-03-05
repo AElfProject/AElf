@@ -63,9 +63,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                     _coefficientsDicCache[tokenType] = targetTokeData.PieceCoefficientsList.AsEnumerable()
                         .Select(x => (int[]) x.Value.AsEnumerable()).ToList();
                 }
+                _latestModifiedHeight = 0;
             }
-
-            _latestModifiedHeight = 0;
         }
 
         private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)

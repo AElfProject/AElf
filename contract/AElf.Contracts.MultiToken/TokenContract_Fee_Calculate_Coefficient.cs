@@ -105,7 +105,6 @@ namespace AElf.Contracts.MultiToken
                 Context.Fire(new CalculateFeeAlgorithmUpdated
                 {
                     FeeCoefficients = coefficients,
-                    IsUpdateAll = true
                 });
             }
         }

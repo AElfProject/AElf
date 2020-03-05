@@ -53,7 +53,6 @@ namespace AElf.Contract.TestContract
 
         public void UpdateLatestModifiedHeight(long height)
         {
-            throw new System.NotImplementedException();
         }
 
         public Task SyncCacheAsync(IChainContext chainContext)

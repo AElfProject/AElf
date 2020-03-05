@@ -411,7 +411,6 @@ message TransactionSizeFeeUnitPriceUpdated {
 message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
     CalculateFeeCoefficients fee_coefficients = 1;
-    bool is_update_all = 2;
 }
  
 message RentalCharged {
