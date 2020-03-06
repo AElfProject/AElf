@@ -66,19 +66,19 @@ rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.Boo
 
 Validates if the provided address is a parliament member.
 
-## **GetProposerWhiteListContext**
+## **GetProposerWhiteList**
 
 ```Protobuf
-rpc GetProposerWhiteListContext(google.protobuf.Empty) returns (GetProposerWhiteListContextOutput) { }
+rpc GetProposerWhiteList(google.protobuf.Empty) returns (acs3.ProposerWhiteList) { }
 
-message GetProposerWhiteListContextOutput{
+message ProposerWhiteList {
     repeated aelf.Address proposers = 1;
 }
 ```
 
 Returns a list of whitelisted proposers.
 
-- **GetProposerWhiteListContextOutput**:
+- **ProposerWhiteList**:
   - **proposers**: the whitelisted proposers.
 
 ## **GetNotVotedPendingProposals**
