@@ -19,6 +19,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
         
+        //TODO: return ByteString, make this as an extension method. your setter method's parameter is ByteString.
         Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key);
         
         Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);

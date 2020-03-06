@@ -50,9 +50,11 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         //TODO: 1. check in the pool.
-        //2. if not in the pool, get from SmartContractRegistrationCacheProvider.Get(chainContext,address)
+        //2.A if not in the pool, get from SmartContractRegistrationCacheProvider.Get(chainContext,address)
         //    SmartContractRegistrationCacheProvider.Get(chainContext,address) => BlockchainStateService.GetExecutedData(chainContext,key)
-        //And in my view, you can also implement a general MemoryCacheProvider for BlockchainStateService.GetExecutedData
+        //    And in my view, you can also implement a general MemoryCacheProvider for BlockchainStateService.GetExecutedData
+        //2.B if in the pool, compare executive.Hash with SmartContractRegistrationCacheProvider.Get(chainContext,address).CodeHash.
+        //    if not the same, clean the pool, and try 2.A
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
         {
             if (address == null)
