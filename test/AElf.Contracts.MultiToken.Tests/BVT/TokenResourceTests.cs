@@ -53,7 +53,7 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
-            result.NonParallelizable.ShouldBeFalse();
+            result.NonParallelizable.ShouldBeTrue();
         }
         
         [Fact]
@@ -63,7 +63,7 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
-            result.NonParallelizable.ShouldBeFalse();
+            result.NonParallelizable.ShouldBeTrue();
         }
         
         [Fact]
@@ -73,7 +73,7 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
-            result.ShouldBe(new ResourceInfo());
+            result.ShouldBe(new ResourceInfo {NonParallelizable = true});
         }
 
         private Transaction GenerateTokenTransaction(Address from, string method, IMessage input)

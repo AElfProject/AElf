@@ -135,44 +135,6 @@ namespace AElf.CSharp.CodeOps
                            tp.Name == sp.Name && tp.FieldType.FullName == sp.FieldType.FullName) != null);
         }
 
-        public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
-        {
-            if (!method.IsMethodCoverletInjected())
-                return;
-
-            var methodInstructions = method.Body.Instructions.ToList();
-            var il = method.Body.GetILProcessor();
-            il.Body.SimplifyMacros();
-
-            // Update branching instructions if they are pointing to coverlet injected code
-            foreach (var instruction in methodInstructions)
-            {
-                // Skip if not a branching instruction
-                if (!Constants.JumpingOpCodes.Contains(instruction.OpCode)) continue;
-                
-                var targetInstruction = (Instruction) instruction.Operand;
-
-                if (targetInstruction.Next == null) continue; // Probably end of method body
-                
-                if (targetInstruction.Next.IsCoverletInjectedInstruction())
-                {
-                    // Point to next
-                    il.Replace(instruction, 
-                        il.Create(instruction.OpCode, GetNextNonCoverletInstruction(targetInstruction.Next)));
-                }
-            }
-
-            foreach (var instruction in methodInstructions
-                .Where(instruction => instruction.IsCoverletInjectedInstruction()))
-            {
-                // Remove coverlet injected instructions
-                il.Remove(instruction.Previous);
-                il.Remove(instruction);
-            }
-            
-            il.Body.OptimizeMacros();
-        }
-        
         private static void PrintBody(this MethodDefinition method)
         {
             foreach (var instruction in method.Body.Instructions)

@@ -1,13 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types;
-using Volo.Abp.DependencyInjection;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventHandler
+    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventProcessor
     {
         private LogEventListeningService<T> _inner;
 
@@ -18,11 +15,11 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
 
         public static bool Enabled { get; set; }
 
-        public async Task ApplyAsync(IEnumerable<Block> blocks)
+        public async Task ProcessAsync(IEnumerable<Block> blocks)
         {
             if (Enabled)
             {
-                await _inner.ApplyAsync(blocks);
+                await _inner.ProcessAsync(blocks);
             }
         }
     }

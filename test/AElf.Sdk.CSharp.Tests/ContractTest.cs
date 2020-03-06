@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using Xunit;
 using Shouldly;
 using AElf.Sdk.CSharp.Tests.TestContract;

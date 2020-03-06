@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.ChainController
@@ -27,7 +23,7 @@ namespace AElf.Kernel.ChainController
             services.AddTransient<ChainCreationService>();
             services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
             context.Services.Replace(ServiceDescriptor
-                .Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
+                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             services.AddSingleton(provider =>
             {
                 var mockTxCostStrategy = new Mock<ICalculateTxCostStrategy>();
@@ -68,15 +64,6 @@ namespace AElf.Kernel.ChainController
                 
                 return mockNetCostStrategy.Object;
             });
-            services.AddSingleton(provider =>
-            {
-                var mockExtraAcceptedTokenService = new Mock<ISymbolListToPayTxFeeService>();
-                mockExtraAcceptedTokenService.Setup(m => m.GetExtraAcceptedTokensInfoAsync(It.IsAny<IChainContext>()))
-                    .Returns((IChainContext x) => Task.FromResult(new List<AvailableTokenInfoInCache>()));
-                
-                return mockExtraAcceptedTokenService.Object;
-            });
-
         }
 
     }
