@@ -1,138 +1,73 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs7;
-using AElf.Contracts.CrossChain;
-using AElf.Kernel;
+using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
     public class CrossChainTestHelper
     {
-        private readonly Dictionary<int, long> _sideChainIdHeights = new Dictionary<int, long>();
-        private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
-        private GetPendingCrossChainIndexingProposalOutput _pendingCrossChainIndexingProposalOutput;
-        public long FakeLibHeight { get; private set;}
-        private readonly Dictionary<long, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<long, CrossChainBlockData>();
         
-        public void AddFakeSideChainIdHeight(int sideChainId, long height)
+        private readonly Dictionary<Hash, CrossChainTransactionInput> _fakeCrossChainBlockData =
+            new Dictionary<Hash, CrossChainTransactionInput>();
+
+        private readonly Dictionary<Hash, CrossChainExtraData> _fakeCrossChainExtraData =
+            new Dictionary<Hash, CrossChainExtraData>();
+
+        private readonly Dictionary<long, CrossChainBlockData> _fakeIndexedCrossChainBlockData =
+            new Dictionary<long, CrossChainBlockData>();
+
+        private readonly Dictionary<int, long> _chainIdHeight = new Dictionary<int, long>();
+
+        public void AddFakeCrossChainTransactionInput(Hash previousHash,
+            CrossChainTransactionInput crossChainTransactionInput)
         {
-            _sideChainIdHeights.Add(sideChainId, height);
+            _fakeCrossChainBlockData.Add(previousHash, crossChainTransactionInput);
         }
 
-        public void AddFakeParentChainIdHeight(int parentChainId, long height)
+        public CrossChainTransactionInput GetCrossChainBlockData(Hash previousHash)
         {
-            _parentChainIdHeight.Add(parentChainId, height);
+            return _fakeCrossChainBlockData.TryGetValue(previousHash, out var chainTransactionInput)
+                ? chainTransactionInput
+                : null;
         }
 
-        internal void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
+        public void AddFakeExtraData(Hash previousHash, CrossChainExtraData crossChainExtraData)
         {
-            _indexedCrossChainBlockData.Add(height, crossChainBlockData);
+            _fakeCrossChainExtraData.Add(previousHash, crossChainExtraData);
         }
 
-        internal void AddFakePendingCrossChainIndexingProposal(GetPendingCrossChainIndexingProposalOutput pendingCrossChainIndexingProposalOutput)
+        public CrossChainExtraData GetCrossChainExtraData(Hash previousHash)
         {
-            _pendingCrossChainIndexingProposalOutput = pendingCrossChainIndexingProposalOutput;
+            return _fakeCrossChainExtraData.TryGetValue(previousHash, out var crossChainExtraData)
+                ? crossChainExtraData
+                : null;
+        }
+        
+        public void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
+        {
+            _fakeIndexedCrossChainBlockData.Add(height, crossChainBlockData);
+        }
+        
+        public CrossChainBlockData GetIndexedCrossChainExtraData(long height)
+        {
+            return _fakeIndexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData)
+                ? crossChainBlockData
+                : null;
         }
 
-        public TransactionTrace CreateFakeTransactionTrace(Transaction transaction)
+        public void AddFakeChainIdHeight(int chainId, long libHeight)
         {
-            string methodName = transaction.MethodName;
-
-            var trace = new TransactionTrace
+            _chainIdHeight.Add(chainId, libHeight);
+        }
+        
+        public SideChainIdAndHeightDict GetAllIndexedCrossChainExtraData()
+        {
+            var sideChainIdAndHeightDict = new SideChainIdAndHeightDict
             {
-                TransactionId = transaction.GetHash(),
-                ExecutionStatus = ExecutionStatus.Executed,
+                IdHeightDict = {_chainIdHeight}
             };
-            var returnValue = CreateFakeReturnValue(trace, transaction, methodName);
-            if (returnValue == null)
-                trace.ExecutionStatus = ExecutionStatus.ContractError;
-            else 
-                trace.ReturnValue = ByteString.CopyFrom(returnValue);
-            
-            return trace;
-        }
-
-        private byte[] CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
-        {
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetParentChainId))
-            {
-                var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
-                if (parentChainId != 0)
-                    return new SInt32Value {Value = parentChainId}.ToByteArray();
-                trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return null;
-            }
-            
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetParentChainHeight))
-            {
-                return _parentChainIdHeight.Count == 0
-                    ? null
-                    : new SInt64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
-            }
-
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainHeight))
-            {
-                int sideChainId = SInt32Value.Parser.ParseFrom(transaction.Params).Value;
-                var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
-                if (exist)
-                    return new SInt64Value{Value = sideChainHeight}.ToByteArray();
-                trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new SInt64Value().ToByteArray();
-            }
-
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetAllChainsIdAndHeight))
-            {
-                var dict = new SideChainIdAndHeightDict();
-                dict.IdHeightDict.Add(_sideChainIdHeights);
-                dict.IdHeightDict.Add(_parentChainIdHeight);
-                return dict.ToByteArray();
-            }
-
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIdAndHeight))
-            {
-                var dict = new SideChainIdAndHeightDict();
-                dict.IdHeightDict.Add(_sideChainIdHeights);
-                return dict.ToByteArray();
-            }
-            
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight))
-            {
-                long height = SInt64Value.Parser.ParseFrom(transaction.Params).Value;
-                if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return crossChainBlockData.ToByteArray();
-                trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new CrossChainBlockData().ToByteArray();
-            }
-
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIndexingInformationList))
-            {
-                var sideChainIndexingInformationList = new SideChainIndexingInformationList();
-                foreach (var kv in _sideChainIdHeights)
-                {
-                    sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
-                    {
-                        ChainId = kv.Key,
-                        IndexedHeight = kv.Value
-                    });
-                }
-                
-                return sideChainIndexingInformationList.ToByteArray();
-            }
-
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetPendingCrossChainIndexingProposal))
-            {
-                return _pendingCrossChainIndexingProposalOutput?.ToByteArray();
-            }
-            
-            return new byte[0];
-        }
-        
-        public void SetFakeLibHeight(long height)
-        {
-            FakeLibHeight = height;
+            return sideChainIdAndHeightDict;
         }
     }
 }

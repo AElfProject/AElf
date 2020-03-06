@@ -6,12 +6,10 @@ using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
-using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -21,21 +19,18 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
 
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
         public CrossChainIndexingDataService(IReaderFactory readerFactory,
             IBlockCacheEntityConsumer blockCacheEntityConsumer,
             ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
-            IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _transactionInputForBlockMiningDataProvider = transactionInputForBlockMiningDataProvider;
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
@@ -185,9 +180,6 @@ namespace AElf.CrossChain.Indexing.Application
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
-            if (!_transactionPackingOptions.IsTransactionPackable)
-                return ByteString.Empty;
-
             var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
                 .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
 
@@ -220,31 +212,58 @@ namespace AElf.CrossChain.Indexing.Application
                         nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
                     Value = pendingProposal.ProposalId.ToByteString()
                 });
-            return ExtractCrossChainExtraDataFromCrossChainBlockData(pendingProposal.ProposedCrossChainBlockData);
-        }
-
-
-        public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
-        {
-            if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
-                return ByteString.Empty;
-
-            var txRootHashList = crossChainBlockData.SideChainBlockDataList
-                .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
-
-            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
             Logger.LogInformation("Cross chain extra data generated.");
-            return new CrossChainExtraData
-                {
-                    TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
-                }
-                .ToByteString();
+            return pendingProposal.ProposedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
         }
+
+
+        // public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
+        // {
+        //     if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
+        //         return ByteString.Empty;
+        //
+        //     var txRootHashList = crossChainBlockData.SideChainBlockDataList
+        //         .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
+        //
+        //     var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
+        //     Logger.LogInformation("Cross chain extra data generated.");
+        //     return new CrossChainExtraData
+        //         {
+        //             TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
+        //         }
+        //         .ToByteString();
+        // }
 
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
             _transactionInputForBlockMiningDataProvider.ClearExpiredTransactionInput(blockHeight);
+        }
+        
+        public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
+        {
+            var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
+            return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
+                .CallAsync(new SInt32Value
+                {
+                    Value = chainId
+                });
+        }
+
+        public async Task<Block> GetNonIndexedBlockAsync(long height)
+        {
+            return await _irreversibleBlockStateProvider.GetNotIndexedIrreversibleBlockByHeightAsync(height);
+        }
+
+        public async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
+        {
+            var isReadyToCreateChainCache =
+                await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
+            if (!isReadyToCreateChainCache)
+                return new SideChainIdAndHeightDict();
+            var lib = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
+            return await _readerFactory.Create(lib.BlockHash, lib.BlockHeight).GetAllChainsIdAndHeight
+                .CallAsync(new Empty());
         }
 
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,

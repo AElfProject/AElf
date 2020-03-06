@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Indexing.Infrastructure;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -17,7 +19,10 @@ namespace AElf.CrossChain.Indexing.Application
 
         Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight);
 
-        ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData);
+        // ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData);
         void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight);
+        Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync();
+        Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
+        Task<Block> GetNonIndexedBlockAsync(long requestHeight);
     }
 }

@@ -96,10 +96,6 @@ message CrossChainIndexingDataProposedEvent{
     acs7.CrossChainBlockData proposed_cross_chain_data = 1;
 }
 
-message SideChainBlockDataIndexedEvent{
-    option (aelf.is_event) = true;
-}
-
 message CrossChainIndexingProposal{
     aelf.Hash proposal_id = 1;
     aelf.Address proposer = 2;

@@ -309,7 +309,7 @@ namespace AElf.Contracts.CrossChain
                 State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
                 Context.LogDebug(() =>
                     $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
-                Context.Fire(new SideChainBlockDataIndexedEvent());
+                Context.Fire(new SideChainBlockDataIndexed());
             }
 
             ResetCrossChainIndexingProposal();
