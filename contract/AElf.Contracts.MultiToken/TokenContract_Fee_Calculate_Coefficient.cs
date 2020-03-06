@@ -9,9 +9,10 @@ namespace AElf.Contracts.MultiToken
     {
         public override Empty Initialize(InitializeInput input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
+            // when restart, initialize fee calculate coefficient cache
             InitialCoefficientsAboutCharging();
-
+            Assert(!State.Initialized.Value, "Already initialized.");
+            
             // Initialize resources usage status.
             foreach (var pair in input.ResourceAmount)
             {
@@ -132,24 +133,24 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         private void InitialCoefficientsAboutCharging()
         {
-            State.AllCalculateFeeCoefficients.Value = new AllCalculateFeeCoefficients
-            {
-                Value =
-                {
-                    new List<CalculateFeeCoefficients>
-                    {
-                        GetReadFeeInitialCoefficient(),
-                        GetStorageFeeInitialCoefficient(),
-                        GetWriteFeeInitialCoefficient(),
-                        GetTrafficFeeInitialCoefficient(),
-                        GetTxFeeInitialCoefficient()
-                    }
-                }
-            };
+            var allCalculateFeeCoefficients = State.AllCalculateFeeCoefficients.Value;
+            if (allCalculateFeeCoefficients == null)
+                allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Read))
+                allCalculateFeeCoefficients.Value.Add(GetReadFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Storage))
+                allCalculateFeeCoefficients.Value.Add(GetStorageFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Write))
+                allCalculateFeeCoefficients.Value.Add(GetWriteFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Traffic))
+                allCalculateFeeCoefficients.Value.Add(GetTrafficFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Tx))
+                allCalculateFeeCoefficients.Value.Add(GetTxFeeInitialCoefficient());
+            State.AllCalculateFeeCoefficients.Value = allCalculateFeeCoefficients;
 
             Context.Fire(new CalculateFeeAlgorithmUpdated
             {
-                AllTypeFeeCoefficients = State.AllCalculateFeeCoefficients.Value,
+                AllTypeFeeCoefficients = allCalculateFeeCoefficients,
             });
         }
 
