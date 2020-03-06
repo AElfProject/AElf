@@ -7,13 +7,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider
+    public interface ICoefficientsCacheProvider : ISyncCacheProvider
     {
         Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
         void UpdateLatestModifiedHeight(long height);
     }
 
-    public class CoefficientsCacheProvider : ICoefficientsCacheProvider, ISyncCacheProvider, ISingletonDependency
+    public class CoefficientsCacheProvider : ICoefficientsCacheProvider
     {
         private readonly IBlockchainStateService _blockChainStateService;
         private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;

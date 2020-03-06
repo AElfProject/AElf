@@ -13,7 +13,6 @@ namespace AElf.Kernel.FeeCalculation
         {
             var services = context.Services;
             services.AddSingleton<ICalculateFunctionProvider, CalculateFunctionProvider>();
-            services.AddSingleton<ISyncCacheProvider, CoefficientsCacheProvider>();
             services.AddSingleton<IPrimaryTokenFeeProvider, TxFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, ReadFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, StorageFeeProvider>();
@@ -21,7 +20,15 @@ namespace AElf.Kernel.FeeCalculation
             services.AddSingleton<IResourceTokenFeeProvider, WriteFeeProvider>();
             services.AddSingleton<IPrimaryTokenFeeService, PrimaryTokenFeeService>();
             services.AddSingleton<IResourceTokenFeeService, ResourceTokenFeeService>();
-            services.AddSingleton<IBlockAcceptedLogEventProcessor, TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
+            services
+                .AddSingleton<IBlockAcceptedLogEventProcessor,
+                    TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
+
+            // To make sure instances of interfaces ICoefficientsCacheProvider and ISyncCacheProvider
+            // will be exactly the same instance.
+            services.AddSingleton<ICoefficientsCacheProvider, CoefficientsCacheProvider>();
+            services.AddSingleton<ISyncCacheProvider>(provider =>
+                provider.GetRequiredService<ICoefficientsCacheProvider>());
         }
     }
 }
