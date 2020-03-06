@@ -29,7 +29,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
             // First number of each piece coefficients is its piece type.
             var pieceTypeArray = coefficients.Select(a => a[0]);
-            if (PieceTypeArray == null || _coefficientsCacheProvider.GetUpdateNotification(_tokenType))
+            if (PieceTypeArray == null || PieceCalculateFunction.IsChangedFunctionType(pieceTypeArray))
             {
                 UpdatePieceWiseFunction(pieceTypeArray.ToArray());
             }
@@ -46,10 +46,10 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 switch (pieceType)
                 {
                     case 0 :
-                        PieceCalculateFunction.AddFunction(_calculateFunctionProvider.LinerFunction);
+                        PieceCalculateFunction.AddFunction(0, _calculateFunctionProvider.LinerFunction);
                         break;
                     case 1 :
-                        PieceCalculateFunction.AddFunction(_calculateFunctionProvider.PowerFunction);
+                        PieceCalculateFunction.AddFunction(1, _calculateFunctionProvider.PowerFunction);
                         break;
                     default:
                         throw new InvalidOperationException("Matching piece type not found.");

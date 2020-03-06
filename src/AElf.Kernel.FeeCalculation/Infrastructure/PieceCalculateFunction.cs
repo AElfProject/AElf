@@ -1,19 +1,28 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public class PieceCalculateFunction
     {
         private List<Func<int[], int, long>> _currentCalculateFunctions;
+        private List<int> _latestUpdateFunctionType;
 
-        public void AddFunction(Func<int[], int, long> function)
+        public bool IsChangedFunctionType(IEnumerable<int> currentFunctionType)
+        {
+            return currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i]).Any();
+        }
+
+        public void AddFunction(int functionType, Func<int[], int, long> function)
         {
             if (_currentCalculateFunctions == null)
             {
                 _currentCalculateFunctions = new List<Func<int[], int, long>>();
+                _latestUpdateFunctionType = new List<int>();
             }
 
+            _latestUpdateFunctionType.Add(functionType);
             _currentCalculateFunctions.Add(function);
         }
 

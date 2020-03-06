@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -55,28 +54,75 @@ namespace AElf.Contracts.MultiToken
             // Coefficients only for this fee type.
             var currentCoefficients = currentAllCoefficients.Value.SingleOrDefault(x =>
                 x.FeeTokenType == feeType);
+            var inputPieceCoefficientsList = input.Coefficients.PieceCoefficientsList;
+            var currentPieceCoefficientList = currentCoefficients.PieceCoefficientsList;
+            var inputPieceCount = input.PieceNumbers.Count;
             Assert(currentCoefficients != null, "Specific fee type not existed before.");
-            Assert(input.PieceNumbers.Count == input.Coefficients.PieceCoefficientsList.Count,
+            Assert(inputPieceCount == inputPieceCoefficientsList.Count,
                 "Piece numbers not match.");
-
+            AssertInputValidOrderForPiece(input.PieceNumbers); // valid order for piece count
+            foreach (var coefficients in inputPieceCoefficientsList)
+                AssertValidCoefficient(coefficients);
+            AssertInputValidOrderForPiece(inputPieceCoefficientsList.Select(x => x.Value[1])); //valid order for piece key
             // ReSharper disable once PossibleNullReferenceException
-            for (var i = 0; i < input.PieceNumbers.Count; i++)
+            for (var i = 0; i < inputPieceCount; i++)
             {
-                Assert(currentCoefficients.PieceCoefficientsList.Count >= input.PieceNumbers[i],
+                Assert(currentPieceCoefficientList.Count >= input.PieceNumbers[i],
                     "Piece number exceeded.");
                 var pieceIndex = input.PieceNumbers[i].Sub(1);
-                var pieceCoefficients = input.Coefficients.PieceCoefficientsList[i];
-                Assert(pieceCoefficients.Value[0] == 0 || pieceCoefficients.Value[0] == 1,
-                    "Invalid piece-wise function type.");
-                currentCoefficients.PieceCoefficientsList[pieceIndex] = pieceCoefficients;
+                var pieceCoefficients = inputPieceCoefficientsList[i];
+                currentPieceCoefficientList[pieceIndex] = pieceCoefficients;
             }
 
+            var startIndex = input.PieceNumbers[0].Sub(1);
+            var endIndex = input.PieceNumbers[inputPieceCount.Sub(1)];
+            if (startIndex > 0)
+                Assert(currentPieceCoefficientList[startIndex - 1].Value[1] < currentPieceCoefficientList[startIndex].Value[1]); // order piece key
+
+            if (endIndex < currentPieceCoefficientList.Count - 1)
+                Assert(currentPieceCoefficientList[endIndex].Value[1] < currentPieceCoefficientList[endIndex + 1].Value[1]); // order piece key
             State.AllCalculateFeeCoefficients.Value = currentAllCoefficients;
 
             Context.Fire(new CalculateFeeAlgorithmUpdated
             {
                 FeeCoefficients = currentCoefficients
             });
+        }
+
+        private void AssertInputValidOrderForPiece(IEnumerable<int> pieceList)
+        {
+            var isValidOrder = true;
+            int pre = -1;
+            foreach (var pieceCount in pieceList)
+            {
+                if (pieceCount <= 0 || pre >= pieceCount)
+                {
+                    isValidOrder = false;
+                    break;
+                }
+
+                pre = pieceCount;
+            }
+
+            Assert(isValidOrder, " input invalid piece count");
+        }
+
+        private void AssertValidCoefficient(CalculateFeePieceCoefficients coefficients)
+        {
+            Assert(coefficients.Value.Count > 0, "invalid coefficient num");
+            Assert(coefficients.Value[0] == 0 || coefficients.Value[0] == 1,
+                "Invalid piece-wise function type.");
+            if (coefficients.Value[0] == 0)
+            {
+                Assert(coefficients.Value.Count == 5, $"wrong coefficient number for {coefficients.Value[0]}");
+                Assert(coefficients.Value[1] > 0 && coefficients.Value[2] > 0 && coefficients.Value[3] > 0 &&
+                       coefficients.Value[4] >= 0);
+            }
+            else
+            {
+                Assert(coefficients.Value.Count == 8, $"wrong coefficient number for {coefficients.Value[0]}");
+                Assert(coefficients.Value.All(x => x > 0), $"invalid coefficient for {coefficients.Value[0]}");
+            }
         }
 
         /// <summary>
