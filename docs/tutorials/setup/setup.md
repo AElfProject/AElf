@@ -54,7 +54,7 @@ sudo apt-get install nodejs
 
 We currently support two key-value databases to store our nodes data: **Redis** or **SSDB**. Both work well, it's your decision:
 
-#### Redis (recommended fo the tutorials): 
+#### Redis (recommended for the tutorials): 
 
 Depending on your platform, enter one of the following commands (see here for more details [**Redis download page**](https://redis.io/)):
 
@@ -171,7 +171,7 @@ Wait for the download to finish, launch the installer and follow the instruction
 
 To check the installation, you can open a terminal and run the ``dotnet`` command. If everything went fine it will show you dotnet options for the command line.
 
-# Protobuf
+### Protobuf
 
 Depending on your platform, enter one of the following commands (see here for more details [**Protobuf Github**](https://github.com/protocolbuffers/protobuf)):
 
