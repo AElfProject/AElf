@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -25,20 +26,30 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
+            if (await IsContractAddressAsync(transaction.To)) return true;
+            Logger.LogWarning($"Invalid contract address: {transaction}");
+            return false;
+        }
+
+        private async Task<bool> IsContractAddressAsync(Address address)
+        {
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, transaction.To);
-            if (executive != null)
+            
+            try
             {
-                return true;
+                var smartContractRegistration =
+                    await _smartContractExecutiveService.GetSmartContractRegistrationAsync(chainContext, address);
+                return smartContractRegistration != null;
             }
-
-            Logger.LogWarning($"Invalid contract address: {transaction}");
-            return false;
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

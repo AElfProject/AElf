@@ -14,6 +14,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
+        Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
+            IChainContext chainContext, Address address);
+
         void CleanIdleExecutive();
 
         void AddContractInfo(Address address, long blockHeight);

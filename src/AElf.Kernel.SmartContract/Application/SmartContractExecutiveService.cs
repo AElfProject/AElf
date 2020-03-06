@@ -143,7 +143,7 @@ namespace AElf.Kernel.SmartContract.Application
             return executive;
         }
         
-        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
+        public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
             if (_smartContractRegistrationCacheProvider.TryGetValue(address, out var smartContractRegistration))
