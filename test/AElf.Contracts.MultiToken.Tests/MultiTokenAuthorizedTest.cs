@@ -292,6 +292,122 @@ namespace AElf.Contracts.MultiToken
             hasModified.Value[6].ShouldBe(300);
             hasModified.Value[7].ShouldBe(50);
         }
+        
+        [Fact]
+        public async Task Update_Coefficient_Multiple_Algorithm_Test()
+        {
+            const int pieceUpperBound = int.MaxValue;
+            const FeeTypeEnum feeType = FeeTypeEnum.Write;
+            var updateInput = new UpdateCoefficientsInput
+            {
+                PieceNumbers = {2, 3},
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = (int) feeType,
+                    PieceCoefficientsList =
+                    {
+                        new CalculateFeePieceCoefficients
+                        {
+                            Value = {0, 100, 1, 4, 10000}
+                        },
+                        new CalculateFeePieceCoefficients
+                        {
+                            Value = {1, 1000000, 1, 4, 2, 2, 250, 50}
+                        }
+                    }
+                }
+            };
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
+            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
+
+            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
+            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
+
+            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
+
+            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
+                new SInt32Value
+                {
+                    Value = (int) feeType
+                });
+            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var userCoefficient = new CalculateFeeCoefficients();
+            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
+            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == 100);
+            hasModified.Value[2].ShouldBe(1);
+            hasModified.Value[3].ShouldBe(4);
+            hasModified.Value[4].ShouldBe(10000);
+        }
+        
+         [Fact]
+        public async Task Update_Coefficient_PowerAlgorithm_Should_Fail_Test()
+        {
+            const int pieceUpperBound = int.MaxValue;
+            var feeType = (int) FeeTypeEnum.Read;
+            var checkValue = 1000;
+            var updateInvalidPieceKeyInput = new UpdateCoefficientsInput
+            {
+                PieceNumbers = {2},
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = feeType,
+                    PieceCoefficientsList =
+                    {
+                        new CalculateFeePieceCoefficients
+                        {
+                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                        }
+                    }
+                }
+            };
+            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType, pieceUpperBound, checkValue);
+            updateInvalidPieceKeyInput = new UpdateCoefficientsInput
+            {
+                PieceNumbers = {3, 2},
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = (int) feeType,
+                    PieceCoefficientsList =
+                    {
+                        new CalculateFeePieceCoefficients
+                        {
+                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                        },
+                        new CalculateFeePieceCoefficients
+                        {
+                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                        }
+                    }
+                }
+            };
+            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType,pieceUpperBound, checkValue);
+        }
+
+        private async Task InvalidUpdateCoefficient(UpdateCoefficientsInput input, int feeType, int pieceKey, int checkValue)
+        {
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(input);
+            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
+
+            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
+            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
+
+            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
+
+            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
+                new SInt32Value
+                {
+                    Value = feeType
+                });
+            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var userCoefficient = new CalculateFeeCoefficients();
+            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
+            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceKey);
+            hasModified.Value[2].ShouldNotBe(checkValue);
+            hasModified.Value[3].ShouldNotBe(checkValue);
+            hasModified.Value[4].ShouldNotBe(checkValue);
+        }
 
         [Fact]
         public async Task MethodFeeController_Test()

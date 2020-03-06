@@ -55,10 +55,10 @@ namespace AElf.Contracts.MultiToken
             // Coefficients only for this fee type.
             var currentCoefficients = currentAllCoefficients.Value.SingleOrDefault(x =>
                 x.FeeTokenType == feeType);
+            Assert(currentCoefficients != null, "Specific fee type not existed before.");
             var inputPieceCoefficientsList = input.Coefficients.PieceCoefficientsList;
             var currentPieceCoefficientList = currentCoefficients.PieceCoefficientsList;
             var inputPieceCount = input.PieceNumbers.Count;
-            Assert(currentCoefficients != null, "Specific fee type not existed before.");
             Assert(inputPieceCount == inputPieceCoefficientsList.Count,
                 "Piece numbers not match.");
             AssertInputValidOrderForPiece(input.PieceNumbers); // valid order for piece count
@@ -115,14 +115,14 @@ namespace AElf.Contracts.MultiToken
                 "Invalid piece-wise function type.");
             if (coefficients.Value[0] == 0)
             {
-                Assert(coefficients.Value.Count == 5, $"wrong coefficient number for {coefficients.Value[0]}");
+                Assert(coefficients.Value.Count == 5, "wrong coefficient number");
                 Assert(coefficients.Value[1] > 0 && coefficients.Value[2] > 0 && coefficients.Value[3] > 0 &&
-                       coefficients.Value[4] >= 0);
+                       coefficients.Value[4] >= 0,"invalid coefficient");
             }
             else
             {
-                Assert(coefficients.Value.Count == 8, $"wrong coefficient number for {coefficients.Value[0]}");
-                Assert(coefficients.Value.All(x => x > 0), $"invalid coefficient for {coefficients.Value[0]}");
+                Assert(coefficients.Value.Count == 8, "wrong coefficient number");
+                Assert(coefficients.Value.All(x => x > 0), "invalid coefficient");
             }
         }
 
