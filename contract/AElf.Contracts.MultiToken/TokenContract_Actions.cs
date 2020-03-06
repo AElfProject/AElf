@@ -13,6 +13,20 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        public override Empty Initialize(InitializeInput input)
+        {
+            Assert(!State.Initialized.Value, "MultiToken has been initialized");
+            InitialParameters();
+            foreach (var pair in input.ResourceAmount)
+            {
+                State.ResourceAmount[pair.Key] = pair.Value;
+            }
+
+            State.MinimumProfitsDonationPartsPerHundred.Value = input.MinimumProfitsDonationPartsPerHundred;
+            State.Initialized.Value = true;
+            return new Empty();
+        }
+
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -423,7 +437,9 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100,
+            Assert(
+                State.MinimumProfitsDonationPartsPerHundred.Value <= input.DonationPartsPerHundred &&
+                input.DonationPartsPerHundred <= 100,
                 "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;

@@ -6,17 +6,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        public override Empty Initialize(InitializeInput input)
-        {
-            Assert(!State.Initialized.Value, "MultiToken has been initialized");
-            InitialParameters();
-            foreach (var pair in input.ResourceAmount)
-            {
-                State.ResourceAmount[pair.Key] = pair.Value;
-            }
-            State.Initialized.Value = true;
-            return new Empty();
-        }
+
 
         public override Empty UpdateCoefficientFromContract(CoefficientFromContract coefficientInput)
         {

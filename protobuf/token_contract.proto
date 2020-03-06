@@ -327,6 +327,7 @@ message CrossChainCreateTokenInput {
 
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
+    sint32 minimum_profits_donation_parts_per_hundred = 2;
 }
 
 message CoefficientFromSender {
