@@ -11,6 +11,8 @@ Note: this tutorial assumes the following:
 
 It's also **important** to know that the key-pair (account) used for mining on the side-chain must be the **same** as the one you use for mining on the main-chain. Said in another way both production nodes need to be launched with the **same** key-pair.
 
+Note: for more information about the side-chain creation, refer to the document in the [cross-chain section](../../crosschain/setup.md).
+
 ### Side chain configuration:
 
 Two configuration files must be placed in the configuration folder of the side-chain, this is also the folder from which you will launch the node:

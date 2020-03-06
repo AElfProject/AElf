@@ -10,7 +10,7 @@ This creation of a side-chain (logical, on-chain creation) is done in four steps
 - the BPs must *approve* this request.
 - finally the developer must *release* the request to finalize the creation.
 
-Keep in mind that this is just the logical on-chain creation of the side-chain. After the side-chain is released there's extra steps needed for it to be a fully functional blockchain, include the producers running the side-chain's nodes.
+Keep in mind that this is just the logical on-chain creation of the side-chain. After the side-chain is released there's extra steps needed for it to be a fully functional blockchain, including the producers running the side-chain's nodes.
 
 Note: for more information about the meaning of the different fields, refer to the document in the [cross-chain section](../../crosschain/setup.md).
 
@@ -51,6 +51,7 @@ const createSideChain = async () => {
 
     console.log('Starting side chain creation script\n');
 
+    // check the chain status to make sure the node is running
     const chainStatus = await aelf.chain.getChainStatus({sync: true});
     const genesisContract = await aelf.chain.contractAt(chainStatus.GenesisContractAddress, wallet)
         .catch((err) => {
@@ -71,6 +72,8 @@ const createSideChain = async () => {
 }
 
 ```
+
+When running the script, the **createSideChain** will be executed and automatically will run through the full process of creating the side-chain.
 
 ## Creation of the side chain
 
@@ -166,7 +169,7 @@ The last line will print the proposal ID and this is what will be used for appro
 
 ### Approval from producers
 
-This is where the BPs approve the 
+This is where the BPs approve the proposal:
 
 ```javascript
     console.log(`\n>>>> Approving the proposal.`);
@@ -178,6 +181,8 @@ This is where the BPs approve the
 Note: when calling **Approve** it will be the *Sender* of the transaction that approves. Here the script is set to use the key of a BP, see full script at the end.
 
 ### Release
+
+This part of the script releases the proposal:
 
 ```javascript
     console.log(`\n>>>> Release the side chain.`);
@@ -194,8 +199,23 @@ Note: when calling **Approve** it will be the *Sender* of the transaction that a
     console.log(sideChainCreationEvent);
 ```
 
+This is the last step involved in creating a side-chain, after this the chain id of the new side-chain is accessible in the **SideChainCreatedEvent** event log.
 
 ## Full script
+
+This section presents the full script. Remember that in order to run successfully, a node must be running, configured with one producer. The configured producer must match the **defaultPrivateKey** and **defaultPrivateKeyAddress** of the script.
+
+Also, notice that this script by default tries to connect to the node's API at the following address http://127.0.0.1:1234, if your node is listening on a different address you have to modify the address.
+
+If you haven't already installed it, you need the aelf-sdk:
+```bash
+npm install aelf-sdk
+```
+
+You can simply run the script from anywhere:
+```bash
+node sideChainProposal.js
+```
 
 **sideChainProposal.js**:
 ```javascript
