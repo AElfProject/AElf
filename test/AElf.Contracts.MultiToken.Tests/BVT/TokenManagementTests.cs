@@ -9,7 +9,6 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
