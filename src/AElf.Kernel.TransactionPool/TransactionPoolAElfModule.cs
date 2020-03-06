@@ -24,7 +24,6 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
-            services.AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }
