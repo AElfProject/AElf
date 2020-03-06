@@ -59,7 +59,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                         allCalculateFeeCoefficients.Value.FirstOrDefault(x => x.FeeTokenType == tokenType);
                     if (targetTokeData == null) continue;
                     _coefficientsDicCache[tokenType] = targetTokeData.PieceCoefficientsList.AsEnumerable()
-                        .Select(x => (int[]) x.Value.AsEnumerable()).ToList();
+                        .Select(x => x.Value.ToArray()).ToList();
                 }
 
                 _latestModifiedHeight = 0;
@@ -75,7 +75,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 allCalculateFeeCoefficients.Value.SingleOrDefault(x => x.FeeTokenType == tokenType);
             if (targetTokeData == null) return new List<int[]>();
             var coefficientsArray = targetTokeData.PieceCoefficientsList.AsEnumerable()
-                .Select(x => (int[]) x.Value.AsEnumerable()).ToList();
+                .Select(x =>  x.Value.ToArray()).ToList();
             return coefficientsArray;
         }
     }
