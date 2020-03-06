@@ -14,6 +14,11 @@ namespace AElf.Kernel.SmartContract.Application
         bool TryRemove(Address address, out SmartContractRegistration smartContractRegistration);
     }
     
+    
+    
+    //TODO: why not directly user ConcurrentDictionary? There is no meaning to make a new provider.
+    //If you want to cache something from BlockchainStateService.GetBlockExecutedDataAsync, it makes sense.
+    //But your implement in here is completely no meaning.
     public class SmartContractRegistrationCacheProvider : ISmartContractRegistrationCacheProvider, ISingletonDependency
     {
         private readonly ConcurrentDictionary<Address, SmartContractRegistration> _smartContractRegistrationCache =

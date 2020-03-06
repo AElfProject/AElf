@@ -23,12 +23,13 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractCodeHashProvider _smartContractCodeHashProvider;
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
-        private readonly ISmartContractHeightInfoProvider _smartContractHeightInfoProvider;
+        private readonly ISmartContractHeightInfoProvider _smartContractHeightInfoProvider; 
         
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
         public ILogger<SmartContractExecutiveService> Logger { get; set; }
 
+        //TODO: there are too many injections here.
         public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
@@ -48,6 +49,10 @@ namespace AElf.Kernel.SmartContract.Application
              Logger = new NullLogger<SmartContractExecutiveService>();
         }
 
+        //TODO: 1. check in the pool.
+        //2. if not in the pool, get from SmartContractRegistrationCacheProvider.Get(chainContext,address)
+        //    SmartContractRegistrationCacheProvider.Get(chainContext,address) => BlockchainStateService.GetExecutedData(chainContext,key)
+        //And in my view, you can also implement a general MemoryCacheProvider for BlockchainStateService.GetExecutedData
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
         {
             if (address == null)
@@ -110,7 +115,9 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (blockHeight <= Constants.GenesisBlockHeight) return;
             _smartContractRegistrationCacheProvider.TryRemove(address, out _);
+            //TODO:if system crashed here, will it recovery?
             _smartContractExecutiveProvider.TryRemove(address, out _);
+            //TODO:if system crashed here, will it recovery?
             if (!_smartContractHeightInfoProvider.TryGetValue(address, out var height) || blockHeight > height)
                 _smartContractHeightInfoProvider.Set(address, blockHeight);
         }

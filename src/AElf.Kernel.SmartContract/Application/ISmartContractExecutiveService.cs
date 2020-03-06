@@ -19,8 +19,11 @@ namespace AElf.Kernel.SmartContract.Application
 
         void CleanIdleExecutive();
 
+        //TODO:This method has no relation with Executive, move out. You break an OOD rules, don't make a big class, one
+        //class do one thing. https://www.cnblogs.com/oomusou/archive/2007/05/05/736658.html #8, #27
         void AddContractInfo(Address address, long blockHeight);
 
+        //TODO:This method has no relation with Executive, move out
         void ClearContractInfo(long height);
     }
 }
