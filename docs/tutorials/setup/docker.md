@@ -12,7 +12,7 @@ docker pull aelf/node
 
 While downloading you can follow the next sections.
 
-### Generating the nodes account
+## Generating the nodes account
 
 Next you need to install the **aelf-command** command packet. Open a terminal and enter the following command:
 
