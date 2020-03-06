@@ -2,9 +2,8 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf
+namespace AElf.Blockchains.BasicBaseChain.ContractNames
 {
-    //TODO: move
     public class TokenHolderSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
         public static readonly Hash Name = Hash.FromString("AElf.ContractNames.TokenHolder");

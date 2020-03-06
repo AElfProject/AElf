@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
