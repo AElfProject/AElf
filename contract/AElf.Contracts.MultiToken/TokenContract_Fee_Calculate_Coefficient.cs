@@ -85,7 +85,7 @@ namespace AElf.Contracts.MultiToken
 
             Context.Fire(new CalculateFeeAlgorithmUpdated
             {
-                FeeCoefficients = currentCoefficients
+                AllTypeFeeCoefficients = currentAllCoefficients
             });
         }
 
@@ -147,13 +147,10 @@ namespace AElf.Contracts.MultiToken
                 }
             };
 
-            foreach (var coefficients in State.AllCalculateFeeCoefficients.Value.Value)
+            Context.Fire(new CalculateFeeAlgorithmUpdated
             {
-                Context.Fire(new CalculateFeeAlgorithmUpdated
-                {
-                    FeeCoefficients = coefficients,
-                });
-            }
+                AllTypeFeeCoefficients = State.AllCalculateFeeCoefficients.Value,
+            });
         }
 
         private CalculateFeeCoefficients GetReadFeeInitialCoefficient()

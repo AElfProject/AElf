@@ -410,7 +410,7 @@ message TransactionSizeFeeUnitPriceUpdated {
 // The modification of each fee type will fire one event.
 message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
-    CalculateFeeCoefficients fee_coefficients = 1;
+    AllCalculateFeeCoefficients all_type_fee_coefficients = 1;
 }
 
 message RentalCharged {

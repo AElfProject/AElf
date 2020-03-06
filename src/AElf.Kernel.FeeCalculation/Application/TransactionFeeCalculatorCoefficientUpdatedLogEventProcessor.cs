@@ -51,7 +51,7 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.FeeCoefficients);
+            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
             if (block.Height > 1)
                 _coefficientsCacheProvider.UpdateLatestModifiedHeight(block.Height);
         }
