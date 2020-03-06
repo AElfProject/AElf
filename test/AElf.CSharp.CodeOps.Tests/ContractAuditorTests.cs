@@ -86,7 +86,7 @@ namespace AElf.CSharp.CodeOps
             Should.NotThrow(() => _auditorFixture.Audit(ReadPatchedContractCode(contractType)));
         }
 
-        //[Fact]
+        [Fact]
         public void ContractPatcher_Test()
         {
             var code = ReadContractCode(typeof(TokenContract));
