@@ -169,7 +169,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         }
 
         /// <summary>
-        /// NetConsumingMethod vs FewConsumingMethod
+        /// TrafficConsumingMethod vs FewConsumingMethod
         /// </summary>
         /// <returns></returns>
         [Fact]
