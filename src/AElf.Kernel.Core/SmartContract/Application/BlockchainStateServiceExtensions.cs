@@ -8,14 +8,16 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public static class BlockchainStateServiceExtensions
     {
-        public static async Task<T> GetBlockExecutedDataAsync<T>(this IBlockchainExecutedDataService blockchainExecutedDataService,
-            IChainContext chainContext, string key)
+        public static async Task<T> GetBlockExecutedDataAsync<T>(
+            this IBlockchainExecutedDataService blockchainExecutedDataService,
+            IBlockIndex chainContext, string key)
         {
             var byteString = await blockchainExecutedDataService.GetBlockExecutedDataAsync(chainContext, key);
             return SerializationHelper.Deserialize<T>(byteString?.ToByteArray());
         }
 
-        public static async Task AddBlockExecutedDataAsync<T>(this IBlockchainExecutedDataService blockchainExecutedDataService, 
+        public static async Task AddBlockExecutedDataAsync<T>(
+            this IBlockchainExecutedDataService blockchainExecutedDataService,
             Hash blockHash, string key, T blockExecutedData)
         {
             var dic = new Dictionary<string, ByteString>
@@ -25,7 +27,8 @@ namespace AElf.Kernel.SmartContract.Application
             await blockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, dic);
         }
 
-        public static async Task AddBlockExecutedDataAsync<T>(this IBlockchainExecutedDataService blockchainExecutedDataService,
+        public static async Task AddBlockExecutedDataAsync<T>(
+            this IBlockchainExecutedDataService blockchainExecutedDataService,
             Hash blockHash, IDictionary<string, T> blockExecutedData)
         {
             var dic = blockExecutedData.ToDictionary(

@@ -29,9 +29,9 @@ namespace AElf.Kernel.SmartContract.Domain
             return blockStateSet.TryGetState(key, out value);
         }
 
-        public Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
         {
-            return GetAsync(key, blockHeight, blockHash);
+            return (await GetAsync(key, blockHeight, blockHash)).Value;
         }
     }
 
@@ -48,10 +48,11 @@ namespace AElf.Kernel.SmartContract.Domain
 
     public interface IBlockchainExecutedDataManager
     {
-        Task<ByteString> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash);
+        Task<StateReturn> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash);
 
         Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache);
     }
+
 
     public class BlockchainExecutedDataManager : BlockchainStateBaseManager, IBlockchainExecutedDataManager
     {
@@ -69,9 +70,9 @@ namespace AElf.Kernel.SmartContract.Domain
             return blockStateSet.TryGetExecutedCache(key, out value);
         }
 
-        public Task<ByteString> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash)
+        public async Task<StateReturn> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash)
         {
-            return GetAsync(key, blockHeight, blockHash);
+            return (await GetAsync(key, blockHeight, blockHash));
         }
 
         public async Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache)
@@ -85,6 +86,12 @@ namespace AElf.Kernel.SmartContract.Domain
 
             await _blockStateSets.SetWithCacheAsync(blockStateSet.BlockHash.ToStorageKey(), blockStateSet);
         }
+    }
+
+    public class StateReturn
+    {
+        public ByteString Value { get; set; }
+        public bool IsInStore { get; set; }
     }
 
     public abstract class BlockchainStateBaseManager
@@ -102,10 +109,10 @@ namespace AElf.Kernel.SmartContract.Domain
         protected abstract bool
             TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value);
 
-        protected async Task<ByteString> GetAsync(string key, long blockHeight, Hash blockHash)
+        protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
         {
             ByteString value = null;
-
+            bool isInStore = true;
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
 
@@ -126,7 +133,11 @@ namespace AElf.Kernel.SmartContract.Domain
 
                     //find value in block state set
                     var blockStateSet = await FindBlockStateSetWithKeyAsync(key, bestChainState.BlockHeight, blockHash);
-                    blockStateSet?.TryGetState(key, out value);
+                    if (blockStateSet != null)
+                    {
+                        blockStateSet.TryGetState(key, out value);
+                        isInStore = false;
+                    }
 
                     if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) ||
                                           blockStateSet.BlockHeight <= bestChainState.BlockHeight))
@@ -136,6 +147,7 @@ namespace AElf.Kernel.SmartContract.Domain
                         // retry versioned state in case conflict of get state during merging  
                         bestChainState = await _versionedStates.GetAsync(key);
                         value = bestChainState.Value;
+                        isInStore = false;
                     }
                 }
             }
@@ -151,10 +163,16 @@ namespace AElf.Kernel.SmartContract.Domain
                     // retry versioned state in case conflict of get state during merging  
                     bestChainState = await _versionedStates.GetAsync(key);
                     value = bestChainState?.Value;
+                    isInStore = false;
                 }
             }
 
-            return value;
+
+            return new StateReturn()
+            {
+                Value = value,
+                IsInStore = isInStore
+            };
         }
 
         private async Task<BlockStateSet> FindBlockStateSetWithKeyAsync(string key, long bestChainHeight,

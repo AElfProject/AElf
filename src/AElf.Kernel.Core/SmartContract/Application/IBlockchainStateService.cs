@@ -8,6 +8,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -46,8 +48,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key)
         {
-            return await _blockchainExecutedDataManager.GetExecutedCacheAsync(key, chainContext.BlockHeight,
-                chainContext.BlockHash);
+            return (await _blockchainExecutedDataManager.GetExecutedCacheAsync(key, chainContext.BlockHeight,
+                chainContext.BlockHash)).Value;
         }
 
         public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
@@ -56,18 +58,56 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
+    public interface ICachedBlockchainExecutedDataGettingService<T>
+    {
+        T GetBlockExecutedData(IBlockIndex chainContext, string key);
+    }
+
+    public class CachedBlockchainExecutedDataGettingService<T> : ICachedBlockchainExecutedDataGettingService<T>,
+        ISingletonDependency
+    {
+        private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
+
+        //TODO: make a store in Infrastructure
+        private ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
+
+        public CachedBlockchainExecutedDataGettingService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
+        {
+            _blockchainExecutedDataManager = blockchainExecutedDataManager;
+        }
+
+
+        public T GetBlockExecutedData(IBlockIndex chainContext, string key)
+        {
+            if (_dictionary.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            var ret = AsyncHelper.RunSync(() => _blockchainExecutedDataManager.GetExecutedCacheAsync(key,
+                chainContext.BlockHeight,
+                chainContext.BlockHash));
+
+            var o = SerializationHelper.Deserialize<T>(ret.Value?.ToByteArray());
+            
+            
+            //if executed is in Store, it will not change when forking
+            if(ret.IsInStore)
+                _dictionary.TryAdd(key, o);
+            return o;
+        }
+    }
+
     public class BlockchainStateService : IBlockchainStateService
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IBlockStateSetManger _blockStateSetManger;
         public ILogger<BlockchainStateService> Logger { get; set; }
 
         public BlockchainStateService(IBlockchainService blockchainService,
-            IBlockchainStateManager blockchainStateManager, IBlockStateSetManger blockStateSetManger)
+            IBlockStateSetManger blockStateSetManger)
         {
             _blockchainService = blockchainService;
-            _blockchainStateManager = blockchainStateManager;
             _blockStateSetManger = blockStateSetManger;
             Logger = NullLogger<BlockchainStateService>.Instance;
         }
