@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
@@ -139,7 +140,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {0, pieceUpperBound, 4, 3, 2}
+                            Value = {pieceUpperBound, 4, 3, 2}
                         }
                     }
                 }
@@ -155,11 +156,8 @@ namespace AElf.Contracts.MultiToken
             userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceUpperBound);
-            hasModified.Value[0].ShouldBe(0);
-            hasModified.Value[2].ShouldBe(4);
-            hasModified.Value[3].ShouldBe(3);
-            hasModified.Value[4].ShouldBe(2);
+            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
+            hasModified.Value.Skip(1).ShouldBe(new[] {4, 3, 2});
         }
 
         [Fact]
@@ -177,7 +175,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {0, pieceUpperBound, 4, 3, 2}
+                            Value = {pieceUpperBound, 4, 3, 2}
                         }
                     }
                 }
@@ -199,11 +197,8 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceUpperBound);
-            hasModified.Value[0].ShouldBe(0);
-            hasModified.Value[2].ShouldBe(4);
-            hasModified.Value[3].ShouldBe(3);
-            hasModified.Value[4].ShouldBe(2);
+            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
+            hasModified.Value.Skip(1).ShouldBe(new[] {4, 3, 2});
         }
 
         [Fact]
@@ -221,7 +216,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, newPieceUpperBound, 1, 4, 2, 5, 250, 40}
+                            Value = {newPieceUpperBound, 1, 4, 2, 5, 250, 40}
                         }
                     }
                 }
@@ -243,7 +238,8 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == newPieceUpperBound);
+            var hasModified =
+                GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, newPieceUpperBound);
             hasModified.ShouldNotBeNull();
         }
 
@@ -262,7 +258,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, pieceUpperBound, 2, 8, 2, 6, 300, 50}
+                            Value = {pieceUpperBound, 2, 8, 2, 6, 300, 50}
                         }
                     }
                 }
@@ -284,15 +280,10 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceUpperBound);
-            hasModified.Value[2].ShouldBe(2);
-            hasModified.Value[3].ShouldBe(8);
-            hasModified.Value[4].ShouldBe(2);
-            hasModified.Value[5].ShouldBe(6);
-            hasModified.Value[6].ShouldBe(300);
-            hasModified.Value[7].ShouldBe(50);
+            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
+            hasModified.Value.Skip(1).ShouldBe(new[] {2, 8, 2, 6, 300, 50});
         }
-        
+
         [Fact]
         public async Task Update_Coefficient_Multiple_Algorithm_Test()
         {
@@ -308,21 +299,19 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {0, 100, 1, 4, 10000}
+                            Value = {100, 1, 4, 10000}
                         },
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, 1000000, 1, 4, 2, 2, 250, 50}
+                            Value = {1000000, 1, 4, 2, 2, 250, 50}
                         }
                     }
                 }
             };
             var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-
             var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
             await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-
             await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
@@ -334,18 +323,16 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == 100);
-            hasModified.Value[2].ShouldBe(1);
-            hasModified.Value[3].ShouldBe(4);
-            hasModified.Value[4].ShouldBe(10000);
+            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, 100);
+            hasModified.Value.Skip(1).ShouldBe(new[] {1, 4, 10000});
         }
-        
-         [Fact]
+
+        [Fact]
         public async Task Update_Coefficient_PowerAlgorithm_Should_Fail_Test()
         {
             const int pieceUpperBound = int.MaxValue;
-            var feeType = (int) FeeTypeEnum.Read;
-            var checkValue = 1000;
+            const int feeType = (int) FeeTypeEnum.Read;
+            const int checkValue = 1000;
             var updateInvalidPieceKeyInput = new UpdateCoefficientsInput
             {
                 PieceNumbers = {2},
@@ -356,7 +343,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
                         }
                     }
                 }
@@ -367,24 +354,31 @@ namespace AElf.Contracts.MultiToken
                 PieceNumbers = {3, 2},
                 Coefficients = new CalculateFeeCoefficients
                 {
-                    FeeTokenType = (int) feeType,
+                    FeeTokenType = feeType,
                     PieceCoefficientsList =
                     {
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
                         },
                         new CalculateFeePieceCoefficients
                         {
-                            Value = {1, pieceUpperBound, checkValue, checkValue, checkValue}
+                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
                         }
                     }
                 }
             };
-            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType,pieceUpperBound, checkValue);
+            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType, pieceUpperBound, checkValue);
         }
 
-        private async Task InvalidUpdateCoefficient(UpdateCoefficientsInput input, int feeType, int pieceKey, int checkValue)
+        private CalculateFeePieceCoefficients GetCalculateFeePieceCoefficients(
+            IEnumerable<CalculateFeePieceCoefficients> calculateFeePieceCoefficients, int pieceUpperBound)
+        {
+            return calculateFeePieceCoefficients.SingleOrDefault(c => c.Value[0] == pieceUpperBound);
+        }
+
+        private async Task InvalidUpdateCoefficient(UpdateCoefficientsInput input, int feeType, int pieceUpperBound,
+            int checkValue)
         {
             var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(input);
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
@@ -403,7 +397,7 @@ namespace AElf.Contracts.MultiToken
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var userCoefficient = new CalculateFeeCoefficients();
             userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = userCoefficient.PieceCoefficientsList.Single(x => x.Value[1] == pieceKey);
+            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
             hasModified.Value[2].ShouldNotBe(checkValue);
             hasModified.Value[3].ShouldNotBe(checkValue);
             hasModified.Value[4].ShouldNotBe(checkValue);
@@ -520,7 +514,7 @@ namespace AElf.Contracts.MultiToken
         {
             var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
-                new Parliament.CreateOrganizationInput
+                new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
