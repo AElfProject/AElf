@@ -218,6 +218,8 @@ namespace AElf.Kernel.SmartContract.Domain
             INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
             IStateStore<ChainStateInfo> chainStateInfoCollection, IOptionsSnapshot<ChainOptions> options)
         {
+            _versionedStates = versionedStates;
+            _blockStateSets = blockStateSets;
             _chainStateInfoCollection = chainStateInfoCollection;
             _chainId = options.Value.ChainId;
         }
