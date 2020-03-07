@@ -5,6 +5,7 @@ using Acs2;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Economic.TestBase;

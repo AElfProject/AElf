@@ -42,7 +42,7 @@ namespace AElf.Types.Tests.Extensions
 
             //int
             var iNumber = 10;
-            var byteArray1 = iNumber.DumpByteArray();
+            var byteArray1 = iNumber.ToBytes();
             byteArray1.ShouldNotBe(null);
 
             //hash

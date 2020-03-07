@@ -45,7 +45,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 Logger.LogWarning(
                     $"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
-                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),
                     BlockHeight = blockWithTransactions.Height,

@@ -8,8 +8,8 @@ namespace AElf
         public static Hash ComputeRootWithLeafNode(this MerklePath path, Hash leaf)
         {
             return path.MerklePathNodes.Aggregate(leaf, (current, node) => node.IsLeftChildNode
-                ? node.Hash.Concat(current)
-                : current.Concat(node.Hash));
+                ? HashHelper.ConcatAndCompute(node.Hash, current)
+                : HashHelper.ConcatAndCompute(current, node.Hash));
         }
     }
 }

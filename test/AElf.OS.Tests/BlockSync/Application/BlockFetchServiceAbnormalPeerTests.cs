@@ -6,12 +6,12 @@ using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    public class BlockFetchServiceBadPeerTests : BlockSyncBadPeerTestBase
+    public class BlockFetchServiceAbnormalPeerTests : BlockSyncAbnormalPeerTestBase
     {
         private readonly IBlockFetchService _blockFetchService;
         private readonly INetworkService _networkService;
 
-        public BlockFetchServiceBadPeerTests()
+        public BlockFetchServiceAbnormalPeerTests()
         {
             _blockFetchService = GetRequiredService<IBlockFetchService>();
             _networkService = GetRequiredService<INetworkService>();
@@ -20,17 +20,17 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task FetchBlock_ReturnInvalidBlock()
         {
-            var badPeerPubkey = "BadPeerPubkey";
+            var abnormalPeerPubkey = "AbnormalPeerPubkey";
             
-            var badPeer = _networkService.GetPeerByPubkey(badPeerPubkey);
-            badPeer.ShouldNotBeNull();
+            var abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
+            abnormalPeer.ShouldNotBeNull();
             
             var result =
-                await _blockFetchService.FetchBlockAsync(Hash.FromString("AnnounceBlockHash"), 100, badPeerPubkey);
+                await _blockFetchService.FetchBlockAsync(Hash.FromString("AnnounceBlockHash"), 100, abnormalPeerPubkey);
             result.ShouldBeFalse();
 
-            badPeer = _networkService.GetPeerByPubkey(badPeerPubkey);
-            badPeer.ShouldBeNull();
+            abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
+            abnormalPeer.ShouldBeNull();
         }
     }
 }
