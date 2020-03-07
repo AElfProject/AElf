@@ -46,7 +46,7 @@ namespace AElf.Kernel.TransactionPool.Application
                     await _smartContractExecutiveService.GetSmartContractRegistrationAsync(chainContext, address);
                 return smartContractRegistration != null;
             }
-            catch (Exception)
+            catch (SmartContractFindRegistrationException)
             {
                 return false;
             }

@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task<ChainStateInfo> GetChainStateInfoAsync();
         Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
-        Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache);
+        Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -157,7 +157,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
-                var dic = blockState.Changes.Concat(blockState.BlockExecutedCache).Select(change => new VersionedState
+                var dic = blockState.Changes.Concat(blockState.BlockExecutedData).Select(change => new VersionedState
                 {
                     Key = change.Key,
                     Value = change.Value,
@@ -205,13 +205,13 @@ namespace AElf.Kernel.SmartContract.Domain
             await _blockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
         }
 
-        public async Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache)
+        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
         {
             var blockStateSet = await GetBlockStateSetAsync(blockHash);
             if (blockStateSet == null) return;
-            foreach (var keyPair in blockExecutedCache)
+            foreach (var keyPair in blockExecutedData)
             {
-                blockStateSet.BlockExecutedCache[keyPair.Key] = keyPair.Value;
+                blockStateSet.BlockExecutedData[keyPair.Key] = keyPair.Value;
             }
             await _blockStateSets.SetWithCacheAsync(GetKey(blockStateSet), blockStateSet);
         }

@@ -101,7 +101,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
         {
-            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData);
+            await _blockchainStateManager.AddBlockExecutedDataAsync(blockHash, blockExecutedData);
         }
     }
 }

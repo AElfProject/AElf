@@ -129,7 +129,7 @@ namespace AElf.Kernel.SmartContract.Application
                     MethodName = "Test"
                 };
                 transactionDic.Add(
-                    string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Transaction),
+                    string.Join("/", KernelConstants.BlockExecutedDataKey, nameof(Transaction),
                         transaction.GetHash().ToString()), transaction);
             }
 
@@ -139,34 +139,34 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = transactionDic.First().Value.GetHash()
             };
-            var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedCacheKey,
+            var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedDataKey,
                 nameof(TransactionResult), transactionResult.TransactionId.ToString());
             await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, transactionResultKey,
                 transactionResult);
-            var chainKey = string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Chain));
+            var chainKey = string.Join("/", KernelConstants.BlockExecutedDataKey, nameof(Chain));
             await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, chainKey, chain);
 
             var newBlockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(chain.BestChainHash);
             newBlockStateSet.BlockHash.ShouldBe(blockStateSet.BlockHash);
             newBlockStateSet.BlockHeight.ShouldBe(blockStateSet.BlockHeight);
-            newBlockStateSet.BlockExecutedCache.Count.ShouldBe(7);
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(Transaction).Name));
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(TransactionResult).Name));
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(Chain).Name)); 
+            newBlockStateSet.BlockExecutedData.Count.ShouldBe(7);
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(Transaction).Name));
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(TransactionResult).Name));
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(Chain).Name)); 
             
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            var chainFromBlockExecutedCache =
+            var chainFromBlockExecutedData =
                 await _blockchainStateService.GetBlockExecutedDataAsync<Chain>(chainContext, chainKey);
-            chainFromBlockExecutedCache.ShouldBe(chain);
+            chainFromBlockExecutedData.ShouldBe(chain);
 
-            var transactionResultFromBlockExecutedCache =
+            var transactionResultFromBlockExecutedData =
                 await _blockchainStateService.GetBlockExecutedDataAsync<TransactionResult>(chainContext,
                     transactionResultKey);
-            transactionResultFromBlockExecutedCache.ShouldBe(transactionResult);
+            transactionResultFromBlockExecutedData.ShouldBe(transactionResult);
             foreach (var keyPair in transactionDic)
             {
                 var transaction =

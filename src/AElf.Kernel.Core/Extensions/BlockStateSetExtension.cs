@@ -18,9 +18,9 @@ namespace AElf.Kernel
                 return true;
             }
             
-            if (blockStateSet.BlockExecutedCache.ContainsKey(key))
+            if (blockStateSet.BlockExecutedData.ContainsKey(key))
             {
-                value = blockStateSet.BlockExecutedCache[key];
+                value = blockStateSet.BlockExecutedData[key];
                 return true;
             }
 

@@ -12,7 +12,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
         Task SetLimitAsync(Hash blockHash, int limit);
     }
 
-    public class BlockTransactionLimitProvider : BlockExecutedCacheProvider, IBlockTransactionLimitProvider,
+    public class BlockTransactionLimitProvider : BlockExecutedDataProvider, IBlockTransactionLimitProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(BlockTransactionLimit);
@@ -26,7 +26,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public async Task<int> GetLimitAsync(IChainContext chainContext)
         {
-            var key = GetBlockExecutedCacheKey();
+            var key = GetBlockExecutedDataKey();
             var limit =
                 await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(chainContext, key);
             return limit?.Value ?? 0;
@@ -34,7 +34,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public async Task SetLimitAsync(Hash blockHash, int limit)
         {
-            var key = GetBlockExecutedCacheKey();
+            var key = GetBlockExecutedDataKey();
             var blockTransactionLimit = new BlockTransactionLimit
             {
                 Value = limit

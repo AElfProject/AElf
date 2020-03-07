@@ -70,19 +70,17 @@ namespace AElf.Kernel.SmartContract.Application
             return executive;
         }
 
-        public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
+        public virtual async Task PutExecutiveAsync(IChainContext chainContext, Address address, IExecutive executive)
         {
             if (_smartContractExecutiveProvider.TryGetValue(address, out var pool))
             {
-                if (_smartContractRegistrationProvider.TryGetCachedSmartContractRegistrationAsync(address,
-                    out var smartContractRegistration))
+                var smartContractRegistration =
+                    await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
+                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash)
                 {
-                    if (smartContractRegistration.CodeHash == executive.ContractHash)
-                    {
-                        executive.LastUsedTime = TimestampHelper.GetUtcNow();
-                        pool.Add(executive);
-                        return;
-                    }
+                    executive.LastUsedTime = TimestampHelper.GetUtcNow();
+                    pool.Add(executive);
+                    return;
                 }
 
                 Logger.LogDebug($"Lost an executive (no registration {address})");
@@ -165,7 +163,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executiveZero != null)
                 {
-                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
+                    await PutExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress,
+                        executiveZero);
                 }
             }
         }

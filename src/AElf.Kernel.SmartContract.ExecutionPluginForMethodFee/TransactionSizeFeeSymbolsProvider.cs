@@ -10,10 +10,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
     }
 
-    public class TransactionSizeFeeSymbolsProvider : BlockExecutedCacheProvider, ITransactionSizeFeeSymbolsProvider,
+    public class TransactionSizeFeeSymbolsProvider : BlockExecutedDataProvider, ITransactionSizeFeeSymbolsProvider,
         ISingletonDependency
     {
-        private const string BlockExecutedDataName = "TransactionSizeFeeSymbols";
+        private const string BlockExecutedDataName = nameof(TransactionSizeFeeSymbols);
 
         private TransactionSizeFeeSymbols _transactionSizeFeeSymbols;
 
@@ -36,13 +36,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
         private async Task<TransactionSizeFeeSymbols> GetSymbolsFromStateAsync(IChainContext chainContext)
         {
-            var key = GetBlockExecutedCacheKey();
+            var key = GetBlockExecutedDataKey();
             return await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext, key);
         }
 
         public async Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols)
         {
-            var key = GetBlockExecutedCacheKey();
+            var key = GetBlockExecutedDataKey();
             await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, transactionSizeFeeSymbols);
         }
 
