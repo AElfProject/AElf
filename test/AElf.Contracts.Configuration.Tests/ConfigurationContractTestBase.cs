@@ -9,6 +9,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Configuration;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -54,7 +55,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             return new SetConfigurationInput
             {
-                Key = BlockTransactionLimitNameProvider.Name,
+                Key = BlockTransactionLimitConfigurationNameProvider.Name,
                 Value = new Int32Value{Value = amount}.ToByteString()
             };
         }

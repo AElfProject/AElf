@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -6,10 +5,8 @@ using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestBase;
 using AElf.Kernel.Configuration;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -35,24 +32,9 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
 
-            var configurationSet = ConfigurationSet.Parser.ParseFrom(transactionResult.ReturnValue);
-            var limitFromLogEvent = new Int32Value();
-            limitFromLogEvent.MergeFrom(configurationSet.Value);
-            limitFromLogEvent.Value.ShouldBe(100);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        [InlineData(-2)]
-        public async Task Set_Block_Transaction_Limit_InvalidInput(int amount)
-        {
-            var proposalId = await SetBlockTransactionLimitProposalAsync(amount);
-            await ApproveWithMinersAsync(proposalId);
-            var transactionResult = await ReleaseProposalAsync(proposalId);
-
-            Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Invalid input.", transactionResult.Error);
+            var limitFromResult = new Int32Value();
+            limitFromResult.MergeFrom(ConfigurationSet.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Value);
+            limitFromResult.Value.ShouldBe(100);
         }
 
         [Fact]
@@ -68,7 +50,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to do this.", transactionResult.Error);
+            Assert.Contains("No permission.", transactionResult.Error);
         }
 
         [Fact]
@@ -83,13 +65,9 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
                     new StringValue {Value = BlockTransactionLimitConfigurationNameProvider.Name});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
-            var configurationSet = ConfigurationSet.Parser.ParseFrom(transactionResult.ReturnValue);
-            var limitFromLogEvent = new Int32Value();
-            limitFromLogEvent.MergeFrom(configurationSet.Value);
-            var limitFromResult = Int32Value.Parser.ParseFrom(transactionResult.ReturnValue).Value;
-
-            Assert.True(limitFromLogEvent.Value == 0);
-            Assert.True(limitFromResult == 100);
+            var limitFromResult = new Int32Value();
+            limitFromResult.MergeFrom(BytesValue.Parser.ParseFrom(transactionResult.ReturnValue).Value);
+            limitFromResult.Value.ShouldBe(100);
         }
 
         [Fact]
