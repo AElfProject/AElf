@@ -11,7 +11,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
-    internal class ProposalService : IProposalService, ILocalEventHandler<TransactionResultCheckedEvent>, ITransientDependency
+    internal class ProposalService : IProposalService, ILocalEventHandler<CodeCheckPassedEvent>, ITransientDependency
     {
         private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
         private readonly IParliamentContractReaderFactory _parliamentContractReaderFactory;
@@ -57,7 +57,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
             }
         }
 
-        public Task HandleEventAsync(TransactionResultCheckedEvent eventData)
+        public Task HandleEventAsync(CodeCheckPassedEvent eventData)
         {
             var proposalId = ProposalCreated.Parser
                 .ParseFrom(eventData.TransactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)

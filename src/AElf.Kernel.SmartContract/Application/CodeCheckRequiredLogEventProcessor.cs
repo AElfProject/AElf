@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Application
                 if (!codeCheckResult)
                     return;
 
-                await LocalEventBus.PublishAsync(new TransactionResultCheckedEvent
+                await LocalEventBus.PublishAsync(new CodeCheckPassedEvent
                 {
                     TransactionResult = transactionResult
                 });
