@@ -7,6 +7,7 @@ using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
+using AElf.Kernel.Configuration;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -34,11 +35,10 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
 
-            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Old;
-            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).New;
-
-            Assert.True(oldLimit == 0);
-            Assert.True(newLimit == 100);
+            var configurationSet = ConfigurationSet.Parser.ParseFrom(transactionResult.ReturnValue);
+            var limitFromLogEvent = new Int32Value();
+            limitFromLogEvent.MergeFrom(configurationSet.Value);
+            limitFromLogEvent.Value.ShouldBe(100);
         }
 
         [Theory]
@@ -60,10 +60,11 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetBlockTransactionLimit),
-                    new Int32Value()
+                    nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                    new SetConfigurationInput
                     {
-                        Value = 100
+                        Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                        Value = new Int32Value {Value = 100}.ToByteString()
                     });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
@@ -79,16 +80,16 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                    new Empty());
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    new StringValue {Value = BlockTransactionLimitConfigurationNameProvider.Name});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
-            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).Old;
-            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).New;
-            var limit = Int32Value.Parser.ParseFrom(transactionResult.ReturnValue).Value;
+            var configurationSet = ConfigurationSet.Parser.ParseFrom(transactionResult.ReturnValue);
+            var limitFromLogEvent = new Int32Value();
+            limitFromLogEvent.MergeFrom(configurationSet.Value);
+            var limitFromResult = Int32Value.Parser.ParseFrom(transactionResult.ReturnValue).Value;
 
-            Assert.True(oldLimit == 100);
-            Assert.True(newLimit == 0);
-            Assert.True(limit == 100);
+            Assert.True(limitFromLogEvent.Value == 0);
+            Assert.True(limitFromResult == 100);
         }
 
         [Fact]

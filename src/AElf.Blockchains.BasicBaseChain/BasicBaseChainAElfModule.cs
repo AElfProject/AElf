@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Blockchains.BasicBaseChain.ConfigurationNames;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
@@ -44,7 +45,8 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(WebWebAppAElfModule),
 
         typeof(ParallelExecutionModule),
-        typeof(ContractNamesAElfModule)
+        typeof(ContractNamesAElfModule),
+        typeof(ConfigurationNamesAElfModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {

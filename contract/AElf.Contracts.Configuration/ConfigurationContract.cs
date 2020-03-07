@@ -1,30 +1,30 @@
+using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationContract : ConfigurationContainer.ConfigurationBase
     {
-        public override Empty SetBlockTransactionLimit(Int32Value input)
+        public override Empty SetConfiguration(SetConfigurationInput input)
         {
-            Assert(input.Value > 0, "Invalid input.");
-            CheckControllerAuthority();
-
-            var oldValue = State.BlockTransactionLimit.Value;
-            var newValue = input.Value;
-            State.BlockTransactionLimit.Value = newValue;
-            Context.Fire(new BlockTransactionLimitChanged
+            CheckSenderIsControllerOrZeroContract();
+            Assert(input.Key.Any() && input.Value != null, "Invalid set config input.");
+            State.Configurations[input.Key] = new BytesValue {Value = input.Value};
+            Context.Fire(new ConfigurationSet
             {
-                Old = oldValue,
-                New = newValue
+                Key = input.Key,
+                Value = input.Value
             });
             return new Empty();
         }
 
-        public override Int32Value GetBlockTransactionLimit(Empty input)
+        public override BytesValue GetConfiguration(StringValue input)
         {
-            return new Int32Value {Value = State.BlockTransactionLimit.Value};
+            var value = State.Configurations[input.Value];
+            return value ?? new BytesValue();
         }
 
         public override Empty ChangeConfigurationController(Address input)

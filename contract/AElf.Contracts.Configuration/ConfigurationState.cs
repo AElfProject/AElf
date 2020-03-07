@@ -1,6 +1,7 @@
 ﻿using Acs1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
@@ -14,5 +15,6 @@ namespace AElf.Contracts.Configuration
 
         public SingletonState<RequiredAcsInContracts> RequiredAcsInContracts { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+        public MappedState<string, BytesValue> Configurations { get; set; }
     }
 }

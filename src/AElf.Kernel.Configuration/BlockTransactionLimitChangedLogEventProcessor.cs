@@ -3,12 +3,12 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
-using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.SmartContractExecution.Application;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.BlockTransactionLimitController
+namespace AElf.Kernel.Configuration
 {
     public class BlockTransactionLimitChangedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
@@ -27,14 +27,14 @@ namespace AElf.Kernel.BlockTransactionLimitController
                     _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
                         .Name);
 
-                _interestedEvent = new BlockTransactionLimitChanged().ToLogEvent(address);
+                _interestedEvent = new ConfigurationSet().ToLogEvent(address);
 
                 return _interestedEvent;
             }
         }
 
         public ILogger<BlockTransactionLimitChangedLogEventProcessor> Logger { get; set; }
-        
+
         public BlockTransactionLimitChangedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             IBlockchainStateService blockchainStateService)
         {
@@ -45,16 +45,16 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new BlockTransactionLimitChanged();
+            var eventData = new ConfigurationSet();
             eventData.MergeFrom(logEvent);
 
-            var limit = new BlockTransactionLimit
-            {
-                Value = eventData.New
-            };
+            if (eventData.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
+
+            var limit = new Int32Value();
+            limit.MergeFrom(eventData.ToByteString());
             await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), limit);
 
-            Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
+            Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
         }
     }
 }

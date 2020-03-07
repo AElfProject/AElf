@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
+using AElf.Blockchains.BasicBaseChain.ConfigurationNames;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
@@ -49,9 +50,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 : await Tester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
         }
 
-        internal Int32Value SetBlockTransactionLimitRequest(int amount)
+        internal SetConfigurationInput SetBlockTransactionLimitRequest(int amount)
         {
-            return new Int32Value {Value = amount};
+            return new SetConfigurationInput
+            {
+                Key = BlockTransactionLimitNameProvider.Name,
+                Value = new Int32Value{Value = amount}.ToByteString()
+            };
         }
 
         internal async Task<Hash> SetBlockTransactionLimitProposalAsync(int amount)
@@ -59,7 +64,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var createProposalInput = SetBlockTransactionLimitRequest(amount);
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
             var proposalId =
-                await CreateProposalAsync(organizationAddress, createProposalInput, "SetBlockTransactionLimit");
+                await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
             return proposalId;
         }
 
