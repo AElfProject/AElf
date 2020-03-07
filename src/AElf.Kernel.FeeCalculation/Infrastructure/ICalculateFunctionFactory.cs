@@ -8,7 +8,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// </summary>
     public interface ICalculateFunctionFactory
     {
-        Func<int[], int, long> GetFunction(int type);
+        Func<int, long> GetFunction(params int[] parameters);
     }
 
     public class CalculateFunctionFactory : ICalculateFunctionFactory, ISingletonDependency
@@ -17,16 +17,26 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private const int Liner = 0;
         private const int Power = 1;
 
-        public Func<int[], int, long> GetFunction(int type)
+        public Func<int, long> GetFunction(params int[] parameters)
         {
-            if (type == Liner)
+            if (parameters[0] == Liner)
             {
-                return LinerFunction;
+                return GetLinerFunction(parameters);
             }
 
-            return PowerFunction;
-                
+            return GetPowerFunction(parameters);
         }
+
+        private Func<int, long> GetLinerFunction(int[] coefficient)
+        {
+            return count => LinerFunction(coefficient, count);
+        }
+
+        private Func<int, long> GetPowerFunction(int[] coefficient)
+        {
+            return count => PowerFunction(coefficient, count);
+        }
+
         private long LinerFunction(int[] coefficient, int count)
         {
             if (coefficient.Length != 5)

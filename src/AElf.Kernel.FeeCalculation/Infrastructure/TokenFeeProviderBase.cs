@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
@@ -31,19 +32,19 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             var pieceTypeArray = coefficients.Select(a => a[0]);
             if (PieceTypeArray == null || PieceCalculateFunction.IsChangedFunctionType(pieceTypeArray))
             {
-                UpdatePieceWiseFunction(pieceTypeArray.ToArray());
+                UpdatePieceWiseFunction(coefficients);
             }
 
             var count = GetCalculateCount(transactionContext);
             return PieceCalculateFunction.CalculateFee(coefficients, count);
         }
 
-        public void UpdatePieceWiseFunction(int[] pieceTypeArray)
+        public void UpdatePieceWiseFunction(IList<int[]> pieceTypeList)
         {
             PieceCalculateFunction = new PieceCalculateFunction();
-            foreach (var pieceType in pieceTypeArray)
+            foreach (var pieceCoefficients in pieceTypeList)
             {
-                PieceCalculateFunction.AddFunction(pieceType, _calculateFunctionFactory.GetFunction(pieceType));
+                PieceCalculateFunction.AddFunction(pieceCoefficients[0], _calculateFunctionFactory.GetFunction(pieceCoefficients));
             }
         }
 

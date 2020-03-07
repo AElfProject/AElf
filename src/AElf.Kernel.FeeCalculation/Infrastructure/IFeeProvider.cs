@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
 
@@ -12,7 +13,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         int[] PieceTypeArray { get; set; }
 
         Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext, IChainContext chainContext);
-        void UpdatePieceWiseFunction(int[] pieceTypeArray);
+        void UpdatePieceWiseFunction(IList<int[]> pieceTypeArray);
     }
 
     public interface IPrimaryTokenFeeProvider : IFeeProvider
