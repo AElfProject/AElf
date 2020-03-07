@@ -11,61 +11,39 @@ namespace AElf.Kernel.Blockchain.Domain
     {
         Task<TransactionBlockIndex> GetTransactionBlockIndexAsync(Hash transactionId);
         Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex);
-        Task SetTransactionBlockIndexesAsync(IDictionary<Hash, TransactionBlockIndex> transactionBlockIndexes);
-        Task<TransactionBlockIndex> GetCachedTransactionBlockIndexAsync(Hash transactionId);
-        Task CleanTransactionBlockIndexCacheAsync(long blockHeight);
+        Task SetTransactionBlockIndicesAsync(IDictionary<Hash, TransactionBlockIndex> transactionBlockIndexes);
+        Task RemoveTransactionIndicesAsync(IEnumerable<Hash> txIds);
     }
 
     public class TransactionBlockIndexManager : ITransactionBlockIndexManager
     {
         private readonly IBlockchainStore<TransactionBlockIndex> _transactionBlockIndexes;
-        private readonly ITransactionBlockIndexCacheProvider _transactionBlockIndexCacheProvider;
 
-        public TransactionBlockIndexManager(IBlockchainStore<TransactionBlockIndex> transactionBlockIndexes,
-            ITransactionBlockIndexCacheProvider transactionBlockIndexCacheProvider)
+        public TransactionBlockIndexManager(IBlockchainStore<TransactionBlockIndex> transactionBlockIndexes)
         {
             _transactionBlockIndexes = transactionBlockIndexes;
-            _transactionBlockIndexCacheProvider = transactionBlockIndexCacheProvider;
         }
 
         public async Task<TransactionBlockIndex> GetTransactionBlockIndexAsync(Hash transactionId)
         {
-            if (!_transactionBlockIndexCacheProvider.TryGetValue(transactionId, out var transactionBlockIndex))
-            {
-                transactionBlockIndex = await _transactionBlockIndexes.GetAsync(transactionId.ToStorageKey());
-                _transactionBlockIndexCacheProvider.AddOrUpdate(transactionId, transactionBlockIndex);
-            }
-
+            var transactionBlockIndex = await _transactionBlockIndexes.GetAsync(transactionId.ToStorageKey());
             return transactionBlockIndex;
         }
 
         public async Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
         {
-            _transactionBlockIndexCacheProvider.AddOrUpdate(transactionId, transactionBlockIndex);
             await _transactionBlockIndexes.SetAsync(transactionId.ToStorageKey(), transactionBlockIndex);
         }
         
-        public async Task SetTransactionBlockIndexesAsync(IDictionary<Hash,TransactionBlockIndex> transactionBlockIndexes)
+        public async Task SetTransactionBlockIndicesAsync(IDictionary<Hash,TransactionBlockIndex> transactionBlockIndexes)
         {
-            foreach (var index in transactionBlockIndexes)
-            {
-                _transactionBlockIndexCacheProvider.AddOrUpdate(index.Key, index.Value);
-            }
-            
             await _transactionBlockIndexes.SetAllAsync(
                 transactionBlockIndexes.ToDictionary(t => t.Key.ToStorageKey(), t => t.Value));
         }
 
-        public Task<TransactionBlockIndex> GetCachedTransactionBlockIndexAsync(Hash transactionId)
+        public async Task RemoveTransactionIndicesAsync(IEnumerable<Hash> txIds)
         {
-            _transactionBlockIndexCacheProvider.TryGetValue(transactionId, out var transactionBlockIndex);
-            return Task.FromResult(transactionBlockIndex);
-        }
-
-        public Task CleanTransactionBlockIndexCacheAsync(long blockHeight)
-        {
-            _transactionBlockIndexCacheProvider.CleanByHeight(blockHeight);
-            return Task.CompletedTask;
+            await _transactionBlockIndexes.RemoveAllAsync(txIds.Select(txId => txId.ToStorageKey()).ToList());
         }
     }
 }

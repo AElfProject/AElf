@@ -73,7 +73,7 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHeight = block.Height
             };
 
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(block.Body.TransactionIds, blockIndex);
+            await _transactionBlockIndexService.AddBlockIndexAsync(block.Body.TransactionIds, blockIndex);
         }
 
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
@@ -134,7 +134,7 @@ namespace AElf.Kernel.Blockchain.Application
             // Add TransactionResult after completing and adding block
             await _transactionResultService.AddTransactionResultsAsync(results, block.Header);
 
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {tx.GetHash()},
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {tx.GetHash()},
                 blockIndex);
 
             var queried3 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
