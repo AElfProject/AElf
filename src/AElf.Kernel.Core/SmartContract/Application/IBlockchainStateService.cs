@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -13,33 +14,67 @@ namespace AElf.Kernel.SmartContract.Application
     public interface IBlockchainStateService
     {
         Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash);
-        
+
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
 
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
-        
+    }
+
+    public interface IBlockchainExecutedDataService
+    {
         Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key);
-        
+
         Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);
+    }
+
+
+    public class BlockchainExecutedDataService : IBlockchainExecutedDataService
+    {
+        private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
+
+        //it's a infrastructure
+        private ConcurrentDictionary<string, ByteString> _cache = new ConcurrentDictionary<string, ByteString>();
+
+        public BlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
+        {
+            _blockchainExecutedDataManager = blockchainExecutedDataManager;
+        }
+
+
+        public ILogger<BlockchainExecutedDataService> Logger { get; set; }
+
+
+        public async Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key)
+        {
+            return await _blockchainExecutedDataManager.GetExecutedCacheAsync(key, chainContext.BlockHeight,
+                chainContext.BlockHash);
+        }
+
+        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
+        {
+            await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData);
+        }
     }
 
     public class BlockchainStateService : IBlockchainStateService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         public ILogger<BlockchainStateService> Logger { get; set; }
 
         public BlockchainStateService(IBlockchainService blockchainService,
-            IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager, IBlockStateSetManger blockStateSetManger)
         {
             _blockchainService = blockchainService;
             _blockchainStateManager = blockchainStateManager;
+            _blockStateSetManger = blockStateSetManger;
             Logger = NullLogger<BlockchainStateService>.Instance;
         }
 
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
                 ? Constants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
@@ -57,9 +92,10 @@ namespace AElf.Kernel.SmartContract.Application
                 blockIndexes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
             }
 
-            var reversedBlockIndexes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
+            var reversedBlockIndexes =
+                await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
             reversedBlockIndexes.Reverse();
-            
+
             blockIndexes.AddRange(reversedBlockIndexes);
 
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
@@ -72,7 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
                 try
                 {
                     Logger.LogTrace($"Merging state {chainStateInfo} for block {blockIndex}");
-                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
+                    await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
                 }
                 catch (Exception e)
                 {
@@ -85,23 +121,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
         {
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
         }
-        
+
         public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
         {
-            await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
-        }
-
-        public async Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key)
-        {
-            return await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight,
-                chainContext.BlockHash);
-        }
-
-        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)
-        {
-            await _blockchainStateManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData);
+            await _blockStateSetManger.RemoveBlockStateSetsAsync(blockStateHashes);
         }
     }
 }

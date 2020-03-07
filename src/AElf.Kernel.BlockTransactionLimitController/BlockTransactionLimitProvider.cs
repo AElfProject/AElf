@@ -17,18 +17,19 @@ namespace AElf.Kernel.BlockTransactionLimitController
     {
         private const string BlockExecutedDataName = nameof(BlockTransactionLimit);
 
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
 
-        public BlockTransactionLimitProvider(IBlockchainStateService blockchainStateService)
+        public BlockTransactionLimitProvider(IBlockchainExecutedDataService blockchainExecutedDataService)
         {
-            _blockchainStateService = blockchainStateService;
+            _blockchainExecutedDataService = blockchainExecutedDataService;
         }
+
 
         public async Task<int> GetLimitAsync(IChainContext chainContext)
         {
             var key = GetBlockExecutedCacheKey();
             var limit =
-                await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(chainContext, key);
+                await _blockchainExecutedDataService.GetBlockExecutedDataAsync<BlockTransactionLimit>(chainContext, key);
             return limit?.Value ?? 0;
         }
 
@@ -39,7 +40,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
             {
                 Value = limit
             };
-            await _blockchainStateService.AddBlockExecutedDataAsync(blockHash, key, blockTransactionLimit);
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, key, blockTransactionLimit);
         }
 
         protected override string GetBlockExecutedDataName()

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
@@ -19,13 +20,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private TransactionSizeFeeSymbols _transactionSizeFeeSymbols;
         private long? _changeHeight;
 
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
 
-        public TransactionSizeFeeSymbolsProvider(IBlockchainStateService blockchainStateService)
+        public TransactionSizeFeeSymbolsProvider(IBlockchainExecutedDataService blockchainExecutedDataService)
         {
-            _blockchainStateService = blockchainStateService;
+            _blockchainExecutedDataService = blockchainExecutedDataService;
         }
-        
+
+
         public async Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext)
         {
             if (_transactionSizeFeeSymbols == null)
@@ -43,13 +45,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private async Task<TransactionSizeFeeSymbols> GetSymbolsFromStateAsync(IChainContext chainContext)
         {
             var key = GetBlockExecutedCacheKey();
-            return await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext, key);
+            return await _blockchainExecutedDataService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext, key);
         }
 
         public async Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols)
         {
             var key = GetBlockExecutedCacheKey();
-            await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, transactionSizeFeeSymbols);
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, transactionSizeFeeSymbols);
             if (_changeHeight == null || _changeHeight < blockIndex.BlockHeight) _changeHeight = blockIndex.BlockHeight;
         }
         

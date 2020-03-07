@@ -12,15 +12,17 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public sealed class BlockchainStateServiceTests : AElfKernelWithChainTestBase
     {
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
+        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
 
         public BlockchainStateServiceTests()
         {
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
+            _blockchainExecutedDataService = GetRequiredService<IBlockchainExecutedDataService>();
         }
 
         [Fact]
@@ -32,7 +34,7 @@ namespace AElf.Kernel.SmartContract.Application
             await _blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash);
 
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
             chainStateInfo.BlockHeight.ShouldNotBe(lastIrreversibleBlockHeight);
             chainStateInfo.MergingBlockHash.ShouldNotBe(lastIrreversibleBlockHash);
         }
@@ -46,7 +48,7 @@ namespace AElf.Kernel.SmartContract.Application
             await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash));
             
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
             chainStateInfo.BlockHeight.ShouldNotBe(lastIrreversibleBlockHeight);
             chainStateInfo.MergingBlockHash.ShouldNotBe(lastIrreversibleBlockHash);
         }
@@ -75,23 +77,23 @@ namespace AElf.Kernel.SmartContract.Application
 
             //test merge block height 1
             {
-                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet1);
+                await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet1);
 
                 await _blockchainStateService.MergeBlockStateAsync(blockStateSet1.BlockHeight,
                     blockStateSet1.BlockHash);
 
-                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
                 chainStateInfo.BlockHeight.ShouldBe(1);
                 chainStateInfo.BlockHash.ShouldBe(blockStateSet1.BlockHash);
             }
 
             //test merge block height 2
             {
-                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet2);
+                await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet2);
                 await _blockchainStateService.MergeBlockStateAsync(blockStateSet2.BlockHeight,
                     blockStateSet2.BlockHash);
 
-                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
                 chainStateInfo.BlockHeight.ShouldBe(2);
                 chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
             }
@@ -101,7 +103,7 @@ namespace AElf.Kernel.SmartContract.Application
                 await Should.ThrowAsync<InvalidOperationException>(()=> _blockchainStateService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
                     blockStateSet3.BlockHash));
 
-                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
                 chainStateInfo.BlockHeight.ShouldBe(2);
                 chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
             }
@@ -116,7 +118,7 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight,
             };
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
             
             var transactionDic = new Dictionary<string, Transaction>();
             for (int i = 0; i < 5; i++)
@@ -133,7 +135,7 @@ namespace AElf.Kernel.SmartContract.Application
                         transaction.GetHash().ToString()), transaction);
             }
 
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash,
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash,
                 transactionDic);
             var transactionResult = new TransactionResult
             {
@@ -141,18 +143,18 @@ namespace AElf.Kernel.SmartContract.Application
             };
             var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedCacheKey,
                 nameof(TransactionResult), transactionResult.TransactionId.ToString());
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, transactionResultKey,
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash, transactionResultKey,
                 transactionResult);
             var chainKey = string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Chain));
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash, chainKey, chain);
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash, chainKey, chain);
 
-            var newBlockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(chain.BestChainHash);
+            var newBlockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
             newBlockStateSet.BlockHash.ShouldBe(blockStateSet.BlockHash);
             newBlockStateSet.BlockHeight.ShouldBe(blockStateSet.BlockHeight);
-            newBlockStateSet.BlockExecutedCache.Count.ShouldBe(7);
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(Transaction).Name));
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(TransactionResult).Name));
-            newBlockStateSet.BlockExecutedCache.Keys.ShouldContain(key=>key.Contains(typeof(Chain).Name)); 
+            newBlockStateSet.BlockExecutedData.Count.ShouldBe(7);
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(Transaction).Name));
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(TransactionResult).Name));
+            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key=>key.Contains(typeof(Chain).Name)); 
             
             var chainContext = new ChainContext
             {
@@ -160,17 +162,17 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chain.BestChainHeight
             };
             var chainFromBlockExecutedCache =
-                await _blockchainStateService.GetBlockExecutedDataAsync<Chain>(chainContext, chainKey);
+                await _blockchainExecutedDataService.GetBlockExecutedDataAsync<Chain>(chainContext, chainKey);
             chainFromBlockExecutedCache.ShouldBe(chain);
 
             var transactionResultFromBlockExecutedCache =
-                await _blockchainStateService.GetBlockExecutedDataAsync<TransactionResult>(chainContext,
+                await _blockchainExecutedDataService.GetBlockExecutedDataAsync<TransactionResult>(chainContext,
                     transactionResultKey);
             transactionResultFromBlockExecutedCache.ShouldBe(transactionResult);
             foreach (var keyPair in transactionDic)
             {
                 var transaction =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<Transaction>(chainContext, keyPair.Key);
+                    await _blockchainExecutedDataService.GetBlockExecutedDataAsync<Transaction>(chainContext, keyPair.Key);
                 transaction.ShouldBe(keyPair.Value);
             }
         }

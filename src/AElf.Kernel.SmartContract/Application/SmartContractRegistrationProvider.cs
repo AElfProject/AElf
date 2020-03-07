@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
@@ -29,12 +30,13 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, long> _smartContractChangeHeightMappings =
             new ConcurrentDictionary<Address, long>();
 
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
 
-        public SmartContractRegistrationProvider(IBlockchainStateService blockchainStateService)
+        public SmartContractRegistrationProvider(IBlockchainExecutedDataService blockchainExecutedDataService)
         {
-            _blockchainStateService = blockchainStateService;
+            _blockchainExecutedDataService = blockchainExecutedDataService;
         }
+
 
         public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(IChainContext chainContext, Address address)
         {
@@ -63,7 +65,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var key = GetBlockExecutedCacheKey(address);
             var smartContractRegistration =
-                await _blockchainStateService.GetBlockExecutedDataAsync<SmartContractRegistration>(chainContext, key);
+                await _blockchainExecutedDataService.GetBlockExecutedDataAsync<SmartContractRegistration>(chainContext, key);
             return smartContractRegistration;
         }
 
@@ -71,7 +73,7 @@ namespace AElf.Kernel.SmartContract.Application
             SmartContractRegistration smartContractRegistration)
         {
             var key = GetBlockExecutedCacheKey(address);
-            await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, smartContractRegistration);
+            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, smartContractRegistration);
             _smartContractRegistrationCache[address] = smartContractRegistration;
             
             if (blockIndex.BlockHeight <= Constants.GenesisBlockHeight) return;

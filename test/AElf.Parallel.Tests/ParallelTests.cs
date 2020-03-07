@@ -42,6 +42,7 @@ namespace AElf.Parallel.Tests
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         private int _groupCount = 10;
         private int _transactionCount = 20;
@@ -61,6 +62,7 @@ namespace AElf.Parallel.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -371,15 +373,15 @@ namespace AElf.Parallel.Tests
                 }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
             nonparallelContractCode.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBeGreaterThan(0);
-            blockStateSet.BlockExecutedCache.Count.ShouldBe(1);
-            var blockExecutedData = blockStateSet.BlockExecutedCache.First();
+            blockStateSet.BlockExecutedData.Count.ShouldBe(1);
+            var blockExecutedData = blockStateSet.BlockExecutedData.First();
             var versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
             versionedState.ShouldBeNull();
 
             await _blockchainStateService.MergeBlockStateAsync(block.Height, block.GetHash());
-            blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.ShouldBeNull();
             
             nonparallelContractCode =
