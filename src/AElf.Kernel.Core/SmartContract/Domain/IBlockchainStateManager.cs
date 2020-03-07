@@ -26,7 +26,8 @@ namespace AElf.Kernel.SmartContract.Domain
 
         protected override bool TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value)
         {
-            return blockStateSet.TryGetState(key, out value);
+            value = null;
+            return blockStateSet != null && blockStateSet.TryGetState(key, out value);
         }
 
         public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
