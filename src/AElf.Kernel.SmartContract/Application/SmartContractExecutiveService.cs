@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -20,10 +18,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-        private readonly ISmartContractCodeHashProvider _smartContractCodeHashProvider;
         private readonly ISmartContractRegistrationCacheProvider _smartContractRegistrationCacheProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
-        private readonly ISmartContractHeightInfoProvider _smartContractHeightInfoProvider; 
         
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
@@ -34,17 +30,13 @@ namespace AElf.Kernel.SmartContract.Application
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
-             ISmartContractExecutiveProvider smartContractExecutiveProvider, 
-            ISmartContractHeightInfoProvider smartContractHeightInfoProvider, 
-            ISmartContractCodeHashProvider smartContractCodeHashProvider)
+            ISmartContractExecutiveProvider smartContractExecutiveProvider)
         {
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
              _smartContractExecutiveProvider = smartContractExecutiveProvider;
-             _smartContractHeightInfoProvider = smartContractHeightInfoProvider;
-             _smartContractCodeHashProvider = smartContractCodeHashProvider;
 
              Logger = new NullLogger<SmartContractExecutiveService>();
         }
@@ -63,12 +55,16 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             var pool = _smartContractExecutiveProvider.GetPool(address);
+            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
 
-            if (!pool.TryTake(out var executive) || _smartContractHeightInfoProvider.TryGetValue(address, out _))
+            if (!pool.TryTake(out var executive) )
             {
-                var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
-                if(executive == null || smartContractRegistration.CodeHash != executive.ContractHash)
-                    executive = await GetExecutiveAsync(smartContractRegistration);
+                executive = await GetExecutiveAsync(smartContractRegistration);
+            }
+            else if(smartContractRegistration.CodeHash != executive.ContractHash)
+            {
+                _smartContractExecutiveProvider.TryRemove(address, out _);
+                executive = await GetExecutiveAsync(smartContractRegistration);
             }
 
             return executive;
@@ -112,31 +108,6 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
         }
-        
-        public void AddContractInfo(Address address, long blockHeight)
-        {
-            if (blockHeight <= Constants.GenesisBlockHeight) return;
-            _smartContractRegistrationCacheProvider.TryRemove(address, out _);
-            //TODO:if system crashed here, will it recovery?
-            _smartContractExecutiveProvider.TryRemove(address, out _);
-            //TODO:if system crashed here, will it recovery?
-            if (!_smartContractHeightInfoProvider.TryGetValue(address, out var height) || blockHeight > height)
-                _smartContractHeightInfoProvider.Set(address, blockHeight);
-        }
-
-        public void ClearContractInfo(long height)
-        {
-            var removeKeys = new List<Address>();
-            foreach (var contractInfo in _smartContractHeightInfoProvider.GetContractInfos())
-            {
-                if (contractInfo.Value <= height) removeKeys.Add(contractInfo.Key);
-            }
-
-            foreach (var key in removeKeys)
-            {
-                _smartContractHeightInfoProvider.TryRemove(key, out _);
-            }
-        }
 
         private async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
         {
@@ -155,28 +126,10 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
-            if (_smartContractRegistrationCacheProvider.TryGetValue(address, out var smartContractRegistration))
-            {
-                if (!_smartContractHeightInfoProvider.TryGetValue(address, out var blockHeight)) return smartContractRegistration;
-                
-                //if contract has smartContractRegistration cache and update height. we need to get code hash in block
-                //executed cache to check whether it is equal to the one in cache.
-                var codeHash = await _smartContractCodeHashProvider.GetSmartContractCodeHashAsync(chainContext, address);
-                if (smartContractRegistration.CodeHash != codeHash || blockHeight == chainContext.BlockHeight + 1)
-                {
-                    //registration is null or registration's code hash isn't equal to cache's code hash
-                    //or current height is equal to update height.maybe the cache is wrong. we need to get
-                    // smartContractRegistration from db to check whether cache's code hash is right.
-                    var registrationInDb = await GetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
-                    if (smartContractRegistration.CodeHash == registrationInDb.CodeHash) return registrationInDb;
-                    _smartContractRegistrationCacheProvider.Set(address, registrationInDb);
-                    _smartContractExecutiveProvider.TryRemove(address, out _);
-                    return registrationInDb;
-                }
-
-                return smartContractRegistration;
-            }
-
+            var smartContractRegistration =
+                await _smartContractRegistrationCacheProvider.GetSmartContractRegistrationAsync(chainContext, address);
+            if (smartContractRegistration != null) return smartContractRegistration;
+            
             smartContractRegistration = await GetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
 
             return smartContractRegistration;
@@ -206,7 +159,8 @@ namespace AElf.Kernel.SmartContract.Application
                 smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
             }
 
-            _smartContractRegistrationCacheProvider.TryAdd(address, smartContractRegistration);
+            _smartContractRegistrationCacheProvider.Set(address, smartContractRegistration);
+            _smartContractExecutiveProvider.TryRemove(address, out _);
             return smartContractRegistration;
         }
 

@@ -23,6 +23,7 @@ namespace AElf.Kernel
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
+        private readonly ISmartContractChangeHeightProvider _smartContractChangeHeightProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -32,7 +33,8 @@ namespace AElf.Kernel
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
             ISmartContractExecutiveService smartContractExecutiveService, 
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider, 
+            ISmartContractChangeHeightProvider smartContractChangeHeightProvider)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -42,6 +44,7 @@ namespace AElf.Kernel
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
+            _smartContractChangeHeightProvider = smartContractChangeHeightProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -84,7 +87,7 @@ namespace AElf.Kernel
                             BlockHash = irreversibleBlockHash,
                             BlockHeight = irreversibleBlockHeight
                         });
-                        _smartContractExecutiveService.ClearContractInfo(irreversibleBlockHeight);
+                        _smartContractChangeHeightProvider.ClearSmartContractChangeHeight(irreversibleBlockHeight);
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -19,8 +18,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
         
-        //TODO: return ByteString, make this as an extension method. your setter method's parameter is ByteString.
-        Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key);
+        Task<ByteString> GetBlockExecutedDataAsync(IChainContext chainContext, string key);
         
         Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);
     }
@@ -95,11 +93,10 @@ namespace AElf.Kernel.SmartContract.Application
             await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
         }
 
-        public async Task<T> GetBlockExecutedDataAsync<T>(IChainContext chainContext, string key)
+        public async Task<ByteString> GetBlockExecutedDataAsync(IChainContext chainContext, string key)
         {
-            var byteString = await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight,
+            return await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight,
                 chainContext.BlockHash);
-            return SerializationHelper.Deserialize<T>(byteString?.ToByteArray());
         }
 
         public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData)

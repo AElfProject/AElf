@@ -14,15 +14,14 @@ namespace AElf.OS
             ISmartContractCodeHashProvider smartContractCodeHashProvider,
             ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
             ISmartContractExecutiveProvider smartContractExecutiveProvider,
-            ISmartContractHeightInfoProvider smartContractHeightInfoProvider)
+            ISmartContractChangeHeightInfoProvider smartContractHeightInfoProvider)
             : base(defaultContractZeroCodeProvider,
                 smartContractRunnerContainer,
                 hostSmartContractBridgeContextService,
 
                 smartContractRegistrationCacheProvider,
                 smartContractExecutiveProvider,
-                smartContractHeightInfoProvider,
-                smartContractCodeHashProvider
+                smartContractHeightInfoProvider
             )
         {
         }
