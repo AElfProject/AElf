@@ -40,10 +40,11 @@ namespace AElf.Kernel.Blockchain.Infrastructure
             foreach (var txId in _transactionBlockIndices.Where(m => m.Value.BlockHeight <= blockHeight)
                 .Select(mapping => mapping.Key).ToList())
             {
-                _transactionBlockIndices.TryRemove(txId, out var transactionBlockIndex);
-                res.Add(txId, transactionBlockIndex);
+                if (_transactionBlockIndices.TryRemove(txId, out var transactionBlockIndex))
+                    res.Add(txId, transactionBlockIndex);
             }
 
+            Logger.LogDebug($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
             return res;
         }
     }
