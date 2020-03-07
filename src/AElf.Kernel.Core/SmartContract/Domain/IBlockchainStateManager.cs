@@ -54,7 +54,8 @@ namespace AElf.Kernel.SmartContract.Domain
     }
 
 
-    public class BlockchainExecutedDataManager : BlockchainStateBaseManager, IBlockchainExecutedDataManager
+    public class BlockchainExecutedDataManager : BlockchainStateBaseManager, IBlockchainExecutedDataManager,
+        ITransientDependency
     {
         private IBlockStateSetManger _blockStateSetManger;
 
@@ -213,10 +214,10 @@ namespace AElf.Kernel.SmartContract.Domain
 
         public BlockStateSetManger(IStateStore<VersionedState> versionedStates,
             INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
-            IStateStore<ChainStateInfo> chainStateInfoCollection, IOptionsSnapshot<ChainOptions> options, int chainId)
+            IStateStore<ChainStateInfo> chainStateInfoCollection, IOptionsSnapshot<ChainOptions> options)
         {
             _chainStateInfoCollection = chainStateInfoCollection;
-            _chainId = chainId;
+            _chainId = options.Value.ChainId;
         }
 
 
