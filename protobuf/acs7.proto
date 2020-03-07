@@ -183,3 +183,7 @@ message AdjustIndexingFeeInput{
     int32 side_chain_id = 1;
     int64 indexing_fee = 2;
 }
+
+message SideChainBlockDataIndexed{
+    option (aelf.is_event) = true;
+}

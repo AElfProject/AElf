@@ -95,7 +95,7 @@ namespace AElf.CrossChain
         {
             var crossChainContractAddress =
                 _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            return new SideChainBlockDataIndexedEvent().ToLogEvent(crossChainContractAddress).GetBloom()
+            return new SideChainBlockDataIndexed().ToLogEvent(crossChainContractAddress).GetBloom()
                 .IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
         }
     }
