@@ -11,7 +11,7 @@ using AElf.CSharp.Core;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;

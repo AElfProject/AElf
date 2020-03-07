@@ -1,4 +1,6 @@
-﻿namespace AElf.Sdk.CSharp
+﻿using AElf.Kernel.SmartContract;
+
+namespace AElf.Sdk.CSharp
 {
     public class CSharpSmartContract : ISmartContract
     {

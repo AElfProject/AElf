@@ -21,13 +21,13 @@ namespace AElf.Contracts.TestKit
         public Address Sender => Address.FromPublicKey(KeyPair.PublicKey);
 
         private readonly IRefBlockInfoProvider _refBlockInfoProvider;
-        private readonly ITransactionExecutor _transactionExecutor;
+        private readonly ITestTransactionExecutor _testTransactionExecutor;
         private readonly ITransactionResultService _transactionResultService;
 
         public MethodStubFactory(IServiceProvider serviceProvider)
         {
             _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
-            _transactionExecutor = serviceProvider.GetRequiredService<ITransactionExecutor>();
+            _testTransactionExecutor = serviceProvider.GetRequiredService<ITestTransactionExecutor>();
             _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
@@ -50,7 +50,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                await _transactionExecutor.ExecuteAsync(transaction);
+                await _testTransactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
                 if (transactionResult == null)
@@ -68,7 +68,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendWithExceptionAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                await _transactionExecutor.ExecuteWithExceptionAsync(transaction);
+                await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
                 if (transactionResult == null)
@@ -86,14 +86,14 @@ namespace AElf.Contracts.TestKit
             async Task<TOutput> CallAsync(TInput input)
             {
                 var transaction = GetTransactionWithoutSignature(input, method);
-                var returnValue = await _transactionExecutor.ReadAsync(transaction);
+                var returnValue = await _testTransactionExecutor.ReadAsync(transaction);
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
             async Task<StringValue> CallWithExceptionAsync(TInput input)
             {
                 var transaction = GetTransactionWithoutSignature(input, method);
-                var returnValue = await _transactionExecutor.ReadWithExceptionAsync(transaction);
+                var returnValue = await _testTransactionExecutor.ReadWithExceptionAsync(transaction);
                 return new StringValue {Value = returnValue.Value};
             }
 
