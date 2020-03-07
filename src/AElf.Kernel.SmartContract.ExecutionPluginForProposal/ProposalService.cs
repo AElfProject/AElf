@@ -1,17 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
 using AElf.Contracts.Parliament;
-using AElf.Kernel.SmartContract.Events;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
 {
-    internal class ProposalService : IProposalService, ILocalEventHandler<CodeCheckPassedEvent>, ITransientDependency
+    internal class ProposalService : IProposalService, ITransientDependency
     {
         private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
         private readonly IParliamentContractReaderFactory _parliamentContractReaderFactory;
@@ -55,17 +52,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
                 Logger.LogTrace($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
                 _readyToApproveProposalCacheProvider.RemoveProposalById(proposalId);
             }
-        }
-
-        public Task HandleEventAsync(CodeCheckPassedEvent eventData)
-        {
-            var proposalId = ProposalCreated.Parser
-                .ParseFrom(eventData.TransactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                .ProposalId;
-            // Cache proposal id to generate system approval transaction later
-            AddNotApprovedProposal(proposalId, eventData.TransactionResult.BlockNumber);
-
-            return Task.CompletedTask;
         }
     }
 }
