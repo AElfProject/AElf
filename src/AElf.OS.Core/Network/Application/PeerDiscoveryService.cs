@@ -47,10 +47,8 @@ namespace AElf.OS.Network.Application
                     {
                         Logger.LogDebug($"Discovery: {peer} responded with the following nodes: {nodes}.");
                         
-                        var added = await _nodeManager.AddOrUpdateNodesAsync(nodes);
-                    
-                        if (added != null)
-                            discoveredNodes.Nodes.AddRange(added.Nodes);
+                        await _nodeManager.AddOrUpdateNodesAsync(nodes);
+                        discoveredNodes.Nodes.AddRange(nodes.Nodes);
                     }
                     else
                     {
