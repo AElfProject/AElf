@@ -204,6 +204,11 @@ namespace AElf.Contracts.Association
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
@@ -214,6 +219,11 @@ namespace AElf.Contracts.Association
             organization.OrganizationMemberList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationMemberChanged
+            {
+                OrganizationAddress = Context.Sender,
+                OrganizationMemberList = input
+            });
             return new Empty();
         }
 
@@ -224,6 +234,11 @@ namespace AElf.Contracts.Association
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationWhiteListChanged()
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
 

@@ -112,3 +112,15 @@ message ReceiptCreated {
     string receipt_type = 3;
     google.protobuf.Timestamp time = 4;
 }
+
+message OrganizationWhiteListChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposerWhiteList proposer_white_list = 2;
+}
+
+message OrganizationThresholdChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposalReleaseThreshold proposer_release_threshold = 2;
+}

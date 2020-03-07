@@ -255,6 +255,11 @@ namespace AElf.Contracts.Parliament
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
@@ -267,6 +272,11 @@ namespace AElf.Contracts.Parliament
                 input.Proposers.Count > 0 || !organization.ProposerAuthorityRequired ||
                 organization.ParliamentMemberProposingAllowed, "White list can't be empty.");
             State.ProposerWhiteList.Value = input;
+            Context.Fire(new OrganizationWhiteListChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
 
