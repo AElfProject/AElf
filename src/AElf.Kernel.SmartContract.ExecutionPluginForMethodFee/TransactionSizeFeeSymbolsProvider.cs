@@ -8,7 +8,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext);
         Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
-        Task SyncSymbolsCacheFromStateAsync(BlockIndex blockIndex);
     }
 
     public class TransactionSizeFeeSymbolsProvider : BlockExecutedCacheProvider, ITransactionSizeFeeSymbolsProvider,
@@ -17,7 +16,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private const string BlockExecutedDataName = "TransactionSizeFeeSymbols";
 
         private TransactionSizeFeeSymbols _transactionSizeFeeSymbols;
-        private long? _changeHeight;
 
         private readonly IBlockchainStateService _blockchainStateService;
 
@@ -31,10 +29,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (_transactionSizeFeeSymbols == null)
             {
                 _transactionSizeFeeSymbols = await GetSymbolsFromStateAsync(chainContext);
-            }
-            else if (_changeHeight.HasValue)
-            {
-                return await GetSymbolsFromStateAsync(chainContext);
             }
 
             return _transactionSizeFeeSymbols;
@@ -50,18 +44,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         {
             var key = GetBlockExecutedCacheKey();
             await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, transactionSizeFeeSymbols);
-            if (_changeHeight == null || _changeHeight < blockIndex.BlockHeight) _changeHeight = blockIndex.BlockHeight;
-        }
-        
-        public async Task SyncSymbolsCacheFromStateAsync(BlockIndex blockIndex)
-        {
-            if (_changeHeight == null || _changeHeight > blockIndex.BlockHeight) return;
-            _transactionSizeFeeSymbols = await GetSymbolsFromStateAsync(new ChainContext
-            {
-                BlockHash = blockIndex.BlockHash,
-                BlockHeight = blockIndex.BlockHeight
-            });
-            _changeHeight = null;
         }
 
         protected override string GetBlockExecutedDataName()

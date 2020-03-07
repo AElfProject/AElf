@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -15,8 +14,6 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task SetSmartContractRegistrationAsync(IBlockIndex blockIndex, Address address,
             SmartContractRegistration smartContractRegistration);
-
-        Task SyncRegistrationCacheFromStateAsync(IBlockIndex blockIndex);
     }
 
     public class SmartContractRegistrationProvider : BlockExecutedCacheProvider, ISmartContractRegistrationProvider,
@@ -26,8 +23,6 @@ namespace AElf.Kernel.SmartContract.Application
         
         private readonly ConcurrentDictionary<Address, SmartContractRegistration> _smartContractRegistrationCache =
             new ConcurrentDictionary<Address, SmartContractRegistration>();
-        private readonly ConcurrentDictionary<Address, long> _smartContractChangeHeightMappings =
-            new ConcurrentDictionary<Address, long>();
 
         private readonly IBlockchainStateService _blockchainStateService;
 
@@ -43,10 +38,6 @@ namespace AElf.Kernel.SmartContract.Application
                 smartContractRegistration = await GetRegistrationFromStateAsync(chainContext, address);
                 if (smartContractRegistration != null)
                     _smartContractRegistrationCache[address] = smartContractRegistration;
-            }
-            else if (_smartContractChangeHeightMappings.TryGetValue(address, out _))
-            {
-                return await GetRegistrationFromStateAsync(chainContext, address);
             }
 
             return smartContractRegistration;
@@ -73,30 +64,6 @@ namespace AElf.Kernel.SmartContract.Application
             var key = GetBlockExecutedCacheKey(address);
             await _blockchainStateService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key, smartContractRegistration);
             _smartContractRegistrationCache[address] = smartContractRegistration;
-            
-            if (blockIndex.BlockHeight <= Constants.GenesisBlockHeight) return;
-            if (!_smartContractChangeHeightMappings.TryGetValue(address, out var height) ||
-                height < blockIndex.BlockHeight)
-                _smartContractChangeHeightMappings[address] = blockIndex.BlockHeight;
-        }
-
-        public async Task SyncRegistrationCacheFromStateAsync(IBlockIndex blockIndex)
-        {
-            var removeAddresses = (from contractInfo in _smartContractChangeHeightMappings
-                where contractInfo.Value <= blockIndex.BlockHeight
-                select contractInfo.Key).ToList();
-
-            foreach (var address in removeAddresses)
-            {
-                var smartContractRegistration = await GetRegistrationFromStateAsync(new ChainContext
-                {
-                    BlockHash = blockIndex.BlockHash,
-                    BlockHeight = blockIndex.BlockHeight
-                }, address);
-                if (smartContractRegistration != null)
-                    _smartContractRegistrationCache[address] = smartContractRegistration;
-                _smartContractChangeHeightMappings.TryRemove(address, out _);
-            }
         }
 
         protected override string GetBlockExecutedDataName()

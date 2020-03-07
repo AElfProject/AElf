@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,8 +21,6 @@ namespace AElf.Kernel
         private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
-        private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -32,9 +29,7 @@ namespace AElf.Kernel
             ITransactionBlockIndexService transactionBlockIndexService, 
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
-            ISmartContractExecutiveService smartContractExecutiveService, 
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider, 
-            ISmartContractRegistrationProvider smartContractRegistrationProvider)
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -43,8 +38,6 @@ namespace AElf.Kernel
             _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
-            _smartContractRegistrationProvider = smartContractRegistrationProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -81,14 +74,6 @@ namespace AElf.Kernel
                         {
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
-
-                        var blockIndex = new BlockIndex
-                        {
-                            BlockHash = irreversibleBlockHash,
-                            BlockHeight = irreversibleBlockHeight
-                        };
-                        await _transactionSizeFeeSymbolsProvider.SyncSymbolsCacheFromStateAsync(blockIndex);
-                        await _smartContractRegistrationProvider.SyncRegistrationCacheFromStateAsync(blockIndex);
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
