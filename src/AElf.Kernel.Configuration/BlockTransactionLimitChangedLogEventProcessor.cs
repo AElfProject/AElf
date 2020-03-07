@@ -4,7 +4,6 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -52,6 +51,7 @@ namespace AElf.Kernel.Configuration
 
             var limit = new BlockTransactionLimit();
             limit.MergeFrom(eventData.Value);
+            if (limit.Value < 0) return;
             await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), limit);
 
             Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
