@@ -16,6 +16,9 @@
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
     * [Enterprise development](tutorials/enterprise.md)
+    * [Cross-chain](tutorials/cross-chain/main.md)
+        * [Request side-chain creation](tutorials/cross-chain/request-new-side-chain.md) 
+        * [Running a side chain](tutorials/cross-chain/running-side-chain.md)
 * [AElf protocol](protocol/main.md)
     * [Addresses](protocol/addresses.md)
     * [Transactions](protocol/txs.md)
@@ -39,7 +42,7 @@
     * [Introduction](crosschain/introduction.md)
     * [Architecture](crosschain/architecture.md)
     * [Crosschain verification](crosschain/crosschain-verification.md)
-    * [Set up](crosschain/setup.md)
+    * [Creation](crosschain/setup.md)
     * [Transfer](crosschain/transfer.md)
 * [Public chain ecosystem](public-chain/main.md)
     * [Introduction](public-chain/introduction.md)
