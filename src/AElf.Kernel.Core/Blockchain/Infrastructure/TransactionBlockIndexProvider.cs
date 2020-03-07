@@ -33,7 +33,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
             return _transactionBlockIndices.TryGetValue(transactionId, out transactionBlockIndex);
         }
 
-        public Dictionary<Hash, TransactionBlockIndex> CleanByHeight(long blockHeight)
+        public void CleanByHeight(long blockHeight)
         {
             var res = new Dictionary<Hash, TransactionBlockIndex>();
             foreach (var txId in _transactionBlockIndices.Where(m => m.Value.BlockHeight <= blockHeight)

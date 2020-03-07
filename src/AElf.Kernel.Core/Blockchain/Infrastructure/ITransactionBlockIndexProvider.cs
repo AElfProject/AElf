@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using AElf.Types;
 
 namespace AElf.Kernel.Blockchain.Infrastructure
@@ -7,6 +6,6 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     {
         void AddTransactionBlockIndex(Hash transactionId, TransactionBlockIndex transactionBlockIndex);
         bool TryGetTransactionBlockIndex(Hash transactionId, out TransactionBlockIndex transactionBlockIndex);
-        Dictionary<Hash, TransactionBlockIndex> CleanByHeight(long blockHeight);
+        void CleanByHeight(long blockHeight);
     }
 }
