@@ -128,7 +128,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 {
                     Key = RequiredAcsInContractsConfigurationNameProvider.Name,
                     Value = contractFeeChargingPolicy.ToByteString()
-                }, 
+                },
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
@@ -140,7 +140,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 {
                     Value = RequiredAcsInContractsConfigurationNameProvider.Name
                 });
-            RequiredAcsInContracts.Parser.ParseFrom(actual).ShouldBe(contractFeeChargingPolicy);
+            RequiredAcsInContracts.Parser.ParseFrom(BytesValue.Parser.ParseFrom(actual).Value)
+                .ShouldBe(contractFeeChargingPolicy);
         }
 
         [Fact]
