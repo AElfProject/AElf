@@ -193,7 +193,7 @@ namespace AElf.Contracts.Genesis
         public override Hash ProposeContractCodeCheck(ContractCodeCheckInput input)
         {
             RequireSenderAuthority(State.ContractDeploymentController.Value.OwnerAddress);
-            // AssertDeploymentProposerAuthority(Context.Origin);
+            AssertCodeCheckProposingInput(input);
             var proposedContractInputHash = input.ProposedContractInputHash;
             var proposedInfo = State.ContractProposingInputMap[proposedContractInputHash];
             Assert(proposedInfo != null && proposedInfo.Status == ContractProposingInputStatus.Approved,
