@@ -420,7 +420,13 @@ namespace AElf.Contracts.CrossChain
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
             var proposal = GetCrossChainIndexingProposal(proposalId);
-            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
+            if (!proposal.ToBeReleased)
+            {
+                SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
+                Assert(State.ConsensusContract.GetCurrentRoundInformation.Call(new Empty()).IsMinerListJustChanged,
+                    "Not approved cross chain indexing proposal.");
+            }
+
             var crossChainIndexingController = GetCrossChainIndexingController();
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
@@ -762,7 +768,7 @@ namespace AElf.Contracts.CrossChain
 
             return indexedSideChainBlockData;
         }
-        
+
         private void EnsureTransactionOnlyExecutedOnceInOneBlock()
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");

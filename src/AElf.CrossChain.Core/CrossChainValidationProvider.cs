@@ -30,10 +30,13 @@ namespace AElf.CrossChain
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            // nothing to validate before execution for cross chain
-            return Task.FromResult(true);
+            var extraData = ExtractCrossChainExtraData(block.Header);
+            if (!extraData.IsNullOrEmpty())
+                return await _crossChainIndexingDataService.CheckExtraDataIsNeededAsync(block.Header.PreviousBlockHash,
+                    block.Header.Height - 1, block.Header.Time); 
+            return true;
         }
 
         public Task<bool> ValidateBeforeAttachAsync(IBlock block)
