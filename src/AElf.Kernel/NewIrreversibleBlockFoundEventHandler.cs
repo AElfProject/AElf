@@ -88,7 +88,7 @@ namespace AElf.Kernel
                     KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
-                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(irreversibleBlockHeight);
+                await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
                 
                 // Clean idle executive
                 _smartContractExecutiveService.CleanIdleExecutive();

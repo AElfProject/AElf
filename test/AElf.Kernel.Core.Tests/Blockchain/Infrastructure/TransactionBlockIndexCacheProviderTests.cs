@@ -6,11 +6,11 @@ namespace AElf.Kernel.Blockchain.Infrastructure
 {
     public class TransactionBlockIndexCacheProviderTests : AElfKernelTestBase
     {
-        private readonly ITransactionBlockIndexCacheProvider _transactionBlockIndexCacheProvider;
+        private readonly ITransactionBlockIndexProvider _transactionBlockIndexProvider;
 
         public TransactionBlockIndexCacheProviderTests()
         {
-            _transactionBlockIndexCacheProvider = GetRequiredService<ITransactionBlockIndexCacheProvider>();
+            _transactionBlockIndexProvider = GetRequiredService<ITransactionBlockIndexProvider>();
         }
 
         [Fact]
@@ -23,8 +23,8 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                 BlockHeight = 100
             };
 
-            _transactionBlockIndexCacheProvider.AddOrUpdate(txId1, transactionBlockIndex1);
-            var getResult = _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cachedTransactionBlockIndex);
+            _transactionBlockIndexProvider.AddTransactionBlockIndex(txId1, transactionBlockIndex1);
+            var getResult = _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cachedTransactionBlockIndex);
             getResult.ShouldBeTrue();
             cachedTransactionBlockIndex.ShouldBe(transactionBlockIndex1);
 
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                     new BlockIndex {BlockHash = Hash.FromString("PreviousBlockHash"), BlockHeight = 100}
                 }
             };
-            _transactionBlockIndexCacheProvider.AddOrUpdate(txId2, transactionBlockIndex2);
+            _transactionBlockIndexProvider.AddTransactionBlockIndex(txId2, transactionBlockIndex2);
 
             var txId3 = Hash.FromString("TxId3");
             var transactionBlockIndex3 = new TransactionBlockIndex
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                     new BlockIndex {BlockHash = Hash.FromString("PreviousBlockHash3"), BlockHeight = 103}
                 }
             };
-            _transactionBlockIndexCacheProvider.AddOrUpdate(txId3, transactionBlockIndex3);
+            _transactionBlockIndexProvider.AddTransactionBlockIndex(txId3, transactionBlockIndex3);
             
             var transactionBlockIndex4 = new TransactionBlockIndex
             {
@@ -64,65 +64,65 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                     new BlockIndex {BlockHash = Hash.FromString("PreviousBlockHash3"), BlockHeight = 103}
                 }
             };
-            _transactionBlockIndexCacheProvider.AddOrUpdate(txId3, transactionBlockIndex4);
+            _transactionBlockIndexProvider.AddTransactionBlockIndex(txId3, transactionBlockIndex4);
 
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(99);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(99);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBe(transactionBlockIndex1);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBe(transactionBlockIndex2);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldBe(transactionBlockIndex4);
             }
 
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(100);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(100);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBe(transactionBlockIndex2);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldBe(transactionBlockIndex4);
             }
 
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(101);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(101);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldBe(transactionBlockIndex4);
             }
 
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(102);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(102);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldBe(transactionBlockIndex4);
             }
 
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(103);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(103);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldNotBeNull();
             }
             
             {
-                _transactionBlockIndexCacheProvider.CleanByHeight(104);
-                _transactionBlockIndexCacheProvider.TryGetValue(txId1, out var cacheBlockIndex1);
+                _transactionBlockIndexProvider.CleanByHeight(104);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId1, out var cacheBlockIndex1);
                 cacheBlockIndex1.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId2, out var cacheBlockIndex2);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId2, out var cacheBlockIndex2);
                 cacheBlockIndex2.ShouldBeNull();
-                _transactionBlockIndexCacheProvider.TryGetValue(txId3, out var cacheBlockIndex3);
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId3, out var cacheBlockIndex3);
                 cacheBlockIndex3.ShouldBeNull();
             }
         }
