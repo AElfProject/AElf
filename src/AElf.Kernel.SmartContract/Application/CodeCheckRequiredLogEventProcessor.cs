@@ -1,21 +1,18 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-using Acs3;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
+using AElf.Kernel.SmartContract.Events;
+using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
     public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         private readonly ICodeCheckService _codeCheckService;
-        //TODO: smart contract executing should know nothing about proposal
-        private readonly IProposalService _proposalService;
+        private ILocalEventBus LocalEventBus { get; set; }
 
         private LogEvent _interestedEvent;
 
@@ -35,12 +32,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            ICodeCheckService codeCheckService, IProposalService proposalService)
+            ICodeCheckService codeCheckService)
         {
             _smartContractAddressService = smartContractAddressService;
 
             _codeCheckService = codeCheckService;
-            _proposalService = proposalService;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
@@ -55,14 +52,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 if (!codeCheckResult)
                     return;
 
-                //TODO: smart contract executing should know nothing about proposal
-                var proposalId = ProposalCreated.Parser
-                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                    .ProposalId;
-                // Cache proposal id to generate system approval transaction later
-                _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
+                await LocalEventBus.PublishAsync(new TransactionResultCheckedEvent
+                {
+                    TransactionResult = transactionResult
+                });
             });
-            
             return Task.CompletedTask;
         }
     }

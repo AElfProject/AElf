@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
             context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
+            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

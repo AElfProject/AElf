@@ -23,7 +23,6 @@ namespace AElf.Kernel.SmartContractExecution
         {
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, CodeUpdatedLogEventProcessor>();
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
