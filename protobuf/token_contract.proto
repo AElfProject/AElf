@@ -64,6 +64,8 @@ service TokenContract {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
+    rpc SetMinimumProfitsDonationPartsPerHundred (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {

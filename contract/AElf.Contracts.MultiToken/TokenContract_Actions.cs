@@ -446,6 +446,14 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Empty SetMinimumProfitsDonationPartsPerHundred(Int32Value input)
+        {
+            AssertControllerForSideChainRental();
+            Assert(input.Value >=0 && input.Value <= 100, "Invalid value.");
+            State.MinimumProfitsDonationPartsPerHundred.Value = input.Value;
+            return new Empty();
+        }
+
         public override Empty ReceiveProfits(ReceiveProfitsInput input)
         {
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];

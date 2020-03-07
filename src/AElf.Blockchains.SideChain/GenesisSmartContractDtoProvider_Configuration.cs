@@ -1,7 +1,7 @@
 using Acs0;
 using Acs7;
 using AElf.Contracts.Configuration;
-using AElf.Kernel.Configuration;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 

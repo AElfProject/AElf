@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs0;
 using AElf.Contracts.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.Configuration;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 

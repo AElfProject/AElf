@@ -6,6 +6,7 @@ using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Configuration;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

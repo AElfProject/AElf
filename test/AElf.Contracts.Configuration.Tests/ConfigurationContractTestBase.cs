@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
-using AElf.Blockchains.BasicBaseChain.ConfigurationNames;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;

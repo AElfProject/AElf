@@ -54,7 +54,9 @@ namespace AElf.Blockchains.SideChain
                     {
                         chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
                             kv => kv.Value)
-                    }
+                    },
+                    MinimumProfitsDonationPartsPerHundred =
+                        chainInitializationData.MinimumProfitsDonationPartsPerHundred
                 });
 
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),

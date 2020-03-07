@@ -95,7 +95,8 @@ namespace AElf.Contracts.CrossChain
                 sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
+                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
+                sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
                 "Invalid chain creation request.");
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput

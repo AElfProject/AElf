@@ -1,7 +1,7 @@
 using AElf.Kernel.Configuration;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContractExecution
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class RequiredAcsInContractsConfigurationNameProvider : IConfigurationNameProvider, ISingletonDependency
     {
