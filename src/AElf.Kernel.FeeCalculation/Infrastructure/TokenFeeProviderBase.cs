@@ -29,7 +29,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             var coefficients =
                 await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
             // First number of each piece coefficients is its piece type.
-            var pieceTypeArray = coefficients.Select(a => a[0]);
+            var pieceTypeArray = coefficients.SelectMany(a => a);
             if (PieceTypeArray == null || PieceCalculateFunction.IsChangedFunctionType(pieceTypeArray))
             {
                 UpdatePieceWiseFunction(coefficients);
@@ -44,7 +44,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             PieceCalculateFunction = new PieceCalculateFunction();
             foreach (var pieceCoefficients in pieceTypeList)
             {
-                PieceCalculateFunction.AddFunction(pieceCoefficients[0], _calculateFunctionFactory.GetFunction(pieceCoefficients));
+                if((pieceCoefficients.Length - 1) % 3 == 0)
+                    PieceCalculateFunction.AddFunction(pieceCoefficients, _calculateFunctionFactory.GetFunction(pieceCoefficients));
             }
         }
 

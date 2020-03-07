@@ -8,51 +8,41 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// </summary>
     public interface ICalculateFunctionFactory
     {
-        Func<int, long> GetFunction(params int[] parameters);
+        Func<int, long> GetFunction(int[] parameters);
     }
 
     public class CalculateFunctionFactory : ICalculateFunctionFactory, ISingletonDependency
     {
         private const decimal Precision = 100000000;
-        private const int Liner = 0;
-        private const int Power = 1;
 
-        public Func<int, long> GetFunction(params int[] parameters)
+        public Func<int, long> GetFunction(int[] parameters)
         {
-            if (parameters[0] == Liner)
-            {
-                return GetLinerFunction(parameters);
+            return count => GetExponentialFunc(count, parameters);
+        }
+        
+        // eg. 2x^2 + 3x + 1   (2,2,1,1,3,1,0,1,1)
+        private long GetExponentialFunc (int count, params int[] parameters) {
+            long pieceCost = 0;
+            var currentIndex = 1;  // parameters[0] => pieceKey
+            while (currentIndex < parameters.Length - 1) {
+                pieceCost += GetUnitExponentialCalculation (count, parameters[currentIndex], parameters[currentIndex + 1],
+                    parameters[currentIndex + 2]);
+                currentIndex += 3;
             }
 
-            return GetPowerFunction(parameters);
+            return pieceCost;
         }
-
-        private Func<int, long> GetLinerFunction(int[] coefficient)
+        
+        // (1,2,3)  =>  x^1 * (2/3)
+        private long GetUnitExponentialCalculation(int count, params int[] parameters)
         {
-            return count => LinerFunction(coefficient, count);
-        }
-
-        private Func<int, long> GetPowerFunction(int[] coefficient)
-        {
-            return count => PowerFunction(coefficient, count);
-        }
-
-        private long LinerFunction(int[] coefficient, int count)
-        {
-            if (coefficient.Length != 5)
-                throw new ArgumentException($"Invalid coefficient count, should be 5, but is {coefficient.Length}");
-            var outcome = Precision * count * coefficient[2] / coefficient[3] + coefficient[4];
-            return (long) outcome;
-        }
-
-        private long PowerFunction(int[] coefficient, int count)
-        {
-            if (coefficient.Length != 8)
-                throw new ArgumentException($"Invalid coefficient count, should be 8, but is {coefficient.Length}");
-            var outcome = Precision * (decimal) Math.Pow((double) count / coefficient[5], coefficient[4]) *
-                          coefficient[6] / coefficient[7] +
-                          Precision * coefficient[2] * count / coefficient[3];
-            return (long) outcome;
+            if (parameters[2] == 0)   // denominator cannot be 0
+                parameters[2] = 1;
+            if (parameters[0] == 0)
+                return (long)(Precision * parameters[1] / parameters[2]); 
+            if (parameters[0] == 1)
+                return (long)(Precision * count * parameters[1] / parameters[2]);
+            return (long) (Precision * (decimal)(Math.Pow (count, parameters[0])) * parameters[1]/ parameters[2]);
         }
     }
 }

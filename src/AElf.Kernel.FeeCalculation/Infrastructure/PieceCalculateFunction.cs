@@ -14,7 +14,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i]).Any();
         }
 
-        public void AddFunction(int functionType, Func<int, long> function)
+        public void AddFunction(int[] coefficients, Func<int, long> function)
         {
             if (_currentCalculateFunctions == null)
             {
@@ -22,7 +22,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 _latestUpdateFunctionType = new List<int>();
             }
 
-            _latestUpdateFunctionType.Add(functionType);
+            _latestUpdateFunctionType.AddRange(coefficients);
             _currentCalculateFunctions.Add(function);
         }
 

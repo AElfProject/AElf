@@ -22,33 +22,33 @@ namespace AElf.Contracts.TestKit
             _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
             var txCoefficient = new List<int[]>
             {
-                new[] {0, 1000000, 1, 800, 10000},
-                new[] {1, int.MaxValue, 1, 800, 2, 100, 1, 1}
+                new[] {1000000, 1, 1, 800, 0, 10000, 100000000 },
+                new[] {int.MaxValue, 1, 1, 800, 2, 1, 10000}
             };
             _coefficientsDicCache[(int) FeeTypeEnum.TX] = txCoefficient;
             var readCoefficient = new List<int[]>
             {
-                new[] {0, 10, 1, 8, 1000}, new[] {0, 100, 1, 4, 0},
-                new[] {1, int.MaxValue, 1, 4, 2, 5, 250, 40}
+                new[] {10, 1, 1, 8, 0, 1000, 100000000 }, new[] {100, 1, 1, 4},
+                new[] {int.MaxValue, 2, 25, 16, 1, 1, 4}
             };
             _coefficientsDicCache[(int) FeeTypeEnum.READ] = readCoefficient;
             var storageCoefficient = new List<int[]>
             {
-                new[] {0, 1000000, 1, 4, 1000},
-                new[] {1, int.MaxValue, 1, 64, 2, 100, 250, 500}
+                new[] {1000000, 1, 1, 4, 0, 1000, 100000000 },
+                new[] {int.MaxValue, 2, 1, 20000, 1, 1, 64}
             };
             _coefficientsDicCache[(int) FeeTypeEnum.STORAGE] = storageCoefficient;
             var writeCoefficient = new List<int[]>
             {
-                new[] {0, 10, 1, 8, 10000},
-                new[] {0, 100, 1, 4, 0},
-                new[] {1, int.MaxValue, 1, 4, 2, 2, 250, 40}
+                new[] {10, 1, 1, 8, 0, 10000, 100000000 },
+                new[] {100, 1, 1, 4},
+                new[] {int.MaxValue, 1, 1, 4, 2, 25, 16}
             };
             _coefficientsDicCache[(int) FeeTypeEnum.WRITE] = writeCoefficient;
             var trafficCoefficient = new List<int[]>
             {
-                new[] {0, 1000000, 1, 64, 10000},
-                new[] {1, int.MaxValue, 1, 64, 2, 100, 250, 500}
+                new[] {1000000, 1, 1, 64, 0, 10000, 100000000 },
+                new[] {int.MaxValue, 1, 1, 64, 2, 1, 20000}
             };
             _coefficientsDicCache[(int) FeeTypeEnum.TRAFFIC] = trafficCoefficient;
         }

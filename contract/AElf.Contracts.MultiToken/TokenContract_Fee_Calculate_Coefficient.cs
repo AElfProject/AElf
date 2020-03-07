@@ -12,7 +12,7 @@ namespace AElf.Contracts.MultiToken
             // when restart, initialize fee calculate coefficient cache
             InitialCoefficientsAboutCharging();
             Assert(!State.Initialized.Value, "Already initialized.");
-            
+
             // Initialize resources usage status.
             foreach (var pair in input.ResourceAmount)
             {
@@ -64,7 +64,8 @@ namespace AElf.Contracts.MultiToken
             AssertInputValidOrderForPiece(input.PieceNumbers); // valid order for piece count
             foreach (var coefficients in inputPieceCoefficientsList)
                 AssertValidCoefficient(coefficients);
-            AssertInputValidOrderForPiece(inputPieceCoefficientsList.Select(x => x.Value[1])); //valid order for piece key
+            AssertInputValidOrderForPiece(
+                inputPieceCoefficientsList.Select(x => x.Value[1])); //valid order for piece key
             // ReSharper disable once PossibleNullReferenceException
             for (var i = 0; i < inputPieceCount; i++)
             {
@@ -78,10 +79,12 @@ namespace AElf.Contracts.MultiToken
             var startIndex = input.PieceNumbers[0].Sub(1);
             var endIndex = input.PieceNumbers[inputPieceCount.Sub(1)];
             if (startIndex > 0)
-                Assert(currentPieceCoefficientList[startIndex - 1].Value[1] < currentPieceCoefficientList[startIndex].Value[1]); // order piece key
+                Assert(currentPieceCoefficientList[startIndex - 1].Value[1] <
+                       currentPieceCoefficientList[startIndex].Value[1]); // order piece key
 
             if (endIndex < currentPieceCoefficientList.Count - 1)
-                Assert(currentPieceCoefficientList[endIndex].Value[1] < currentPieceCoefficientList[endIndex + 1].Value[1]); // order piece key
+                Assert(currentPieceCoefficientList[endIndex].Value[1] <
+                       currentPieceCoefficientList[endIndex + 1].Value[1]); // order piece key
             State.AllCalculateFeeCoefficients.Value = currentAllCoefficients;
 
             Context.Fire(new CalculateFeeAlgorithmUpdated
@@ -110,19 +113,14 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertValidCoefficient(CalculateFeePieceCoefficients coefficients)
         {
-            Assert(coefficients.Value.Count > 0, "invalid coefficient num");
-            Assert(coefficients.Value[0] == 0 || coefficients.Value[0] == 1,
-                "Invalid piece-wise function type.");
-            if (coefficients.Value[0] == 0)
+            var count = coefficients.Value.Count;
+            Assert(count > 0 &&
+                   (count - 1) % 3 == 0, "invalid coefficient num");
+            for (var i = 1; i < count;)
             {
-                Assert(coefficients.Value.Count == 5, "wrong coefficient number");
-                Assert(coefficients.Value[1] > 0 && coefficients.Value[2] > 0 && coefficients.Value[3] > 0 &&
-                       coefficients.Value[4] >= 0,"invalid coefficient");
-            }
-            else
-            {
-                Assert(coefficients.Value.Count == 8, "wrong coefficient number");
-                Assert(coefficients.Value.All(x => x > 0), "invalid coefficient");
+                Assert(coefficients.Value[i] >= 0 && coefficients.Value[i + 1] >= 0 && coefficients.Value[i + 2] > 0,
+                    "invalid coefficient");
+                i += 3;
             }
         }
 
@@ -163,29 +161,29 @@ namespace AElf.Contracts.MultiToken
                 {
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval [0, 10]
+                        // Liner function on the interval [0, 10],    x/8 + 1000/100000000 
                         Value =
                         {
-                            0, 10,
-                            1, 8, 1000
+                            10,
+                            1, 1, 8, 0, 1000, 100000000 
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval (10, 100]
+                        // Liner function on the interval (10, 100]   x/4 
                         Value =
                         {
-                            0, 100,
-                            1, 4, 0
+                            100,
+                            1, 1, 4
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Power function on the interval (100, +∞)
+                        // Power function on the interval (100, +∞)       25/16 * x^2 + 1 /4 * x 
                         Value =
                         {
-                            1, int.MaxValue,
-                            1, 4, 2, 2, 250, 40
+                            int.MaxValue,
+                            2, 25, 16, 1, 1, 4
                         }
                     }
                 }
@@ -201,20 +199,20 @@ namespace AElf.Contracts.MultiToken
                 {
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval [0, 1000000]
+                        // Liner function on the interval [0, 1000000]  1/4 *x + 1000/100000000 
                         Value =
                         {
-                            0, 1000000,
-                            1, 4, 1000
+                            1000000,
+                            1, 1, 4, 0, 1000, 100000000 
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Power function on the interval (1000000, +∞)
+                        // Power function on the interval (1000000, +∞)    x^2 * 1/20000 + 1/64 * x 
                         Value =
                         {
-                            1, int.MaxValue,
-                            1, 64, 2, 100, 250, 500
+                            int.MaxValue,
+                            2, 1, 20000, 1, 1, 64
                         }
                     }
                 }
@@ -230,30 +228,33 @@ namespace AElf.Contracts.MultiToken
                 {
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval [0, 10]
+                        // Liner function on the interval [0, 10]    1/8 *x + 10000/100000000 
                         Value =
                         {
-                            0, 10,
-                            1, 8, 10000
+                            10,
+                            1, 1, 8, 0, 10000, 100000000 
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval (10, 100]
+                        // Liner function on the interval (10, 100]  1/4 *x 
                         Value =
                         {
-                            0, 100,
-                            1, 4, 0
+                            100,
+                            1, 1, 4
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Power function on the interval (100, +∞)
+                        // Power function on the interval (100, +∞)  1/4 *x + 25/16 * x^2
                         Value =
                         {
-                            1, int.MaxValue,
-                            1, 4, 2, 2, 250, 40
+                            int.MaxValue,
+                            1, 1, 4, 2, 25, 16
                         }
+                        // var outcome = Precision * (decimal) Math.Pow((double) count / coefficient[5], coefficient[4]) *
+                        // coefficient[6] / coefficient[7] +
+                        // Precision * coefficient[2] * count / coefficient[3];
                     }
                 }
             };
@@ -268,20 +269,20 @@ namespace AElf.Contracts.MultiToken
                 {
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval [0, 1000000]
+                        // Liner function on the interval [0, 1000000]    1/64 *x + 10000/100000000 
                         Value =
                         {
-                            0, 1000000,
-                            1, 64, 10000
+                            1000000,
+                            1, 1, 64, 0, 10000, 100000000 
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Power function on the interval (1000000, +∞)
+                        // Power function on the interval (1000000, +∞)  1/64 * x + x^2 /20000
                         Value =
                         {
-                            1, int.MaxValue,
-                            1, 64, 2, 100, 250, 500
+                            int.MaxValue,
+                            1, 1, 64, 2, 1, 20000
                         }
                     }
                 }
@@ -297,20 +298,20 @@ namespace AElf.Contracts.MultiToken
                 {
                     new CalculateFeePieceCoefficients
                     {
-                        // Liner function on the interval [0, 1000000]
+                        // Liner function on the interval [0, 1000000]   1/800 *x + 10000/100000000 
                         Value =
                         {
-                            0, 1000000,
-                            1, 800, 10000
+                            1000000,
+                            1, 1, 800, 0, 10000, 100000000 
                         }
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Power function on the interval (1000000, ∞)
+                        // Power function on the interval (1000000, ∞)  1/ 800* x + x^2 /10000
                         Value =
                         {
-                            1, int.MaxValue,
-                            1, 800, 2, 100, 1, 1
+                            int.MaxValue,
+                            1, 1, 800, 2, 1, 10000
                         }
                     }
                 }
