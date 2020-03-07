@@ -48,7 +48,13 @@ namespace AElf.OS.Network.Application
                         Logger.LogDebug($"Discovery: {peer} responded with the following nodes: {nodes}.");
                         
                         await _nodeManager.AddOrUpdateNodesAsync(nodes);
-                        discoveredNodes.Nodes.AddRange(nodes.Nodes);
+
+                        foreach (var node in nodes.Nodes)
+                        {
+                            if (_peerPool.FindPeerByPublicKey(node.Pubkey.ToHex()) != null)
+                                continue;
+                            discoveredNodes.Nodes.Add(node);
+                        }
                     }
                     else
                     {
