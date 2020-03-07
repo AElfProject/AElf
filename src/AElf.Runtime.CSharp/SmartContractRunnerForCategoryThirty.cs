@@ -26,8 +26,8 @@ namespace AElf.Runtime.CSharp
             }
         }
 #endif
-        public SmartContractRunnerForCategoryThirty(string sdkDir, IServiceContainer<IExecutivePlugin> executivePlugins)
-            : base(sdkDir, executivePlugins)
+        public SmartContractRunnerForCategoryThirty(string sdkDir)
+            : base(sdkDir)
         {
             Category = KernelConstants.CodeCoverageRunnerCategory;
         }
@@ -102,7 +102,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive(assembly, _executivePlugins);
+            var executive = new Executive(assembly);
 
             executive.ContractHash = reg.CodeHash;
 
