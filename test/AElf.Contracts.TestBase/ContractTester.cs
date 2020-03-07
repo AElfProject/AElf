@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;

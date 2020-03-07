@@ -2,8 +2,7 @@ using AElf.Types;
 
 namespace AElf.OS.BlockSync.Events
 {
-    //TODO: rename BadPeer, who is bad man?
-    public class BadPeerFoundEventData
+    public class AbnormalPeerFoundEventData
     {
         public Hash BlockHash { get; set;}
         public long BlockHeight { get; set;}

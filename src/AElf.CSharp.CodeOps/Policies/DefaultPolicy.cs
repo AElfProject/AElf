@@ -52,7 +52,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
-                .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Abstracts
+                .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
                 ;
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
@@ -40,6 +41,18 @@ namespace AElf
             }
 
             return new string(c);
+        }
+
+        public static int ToInt32(this byte[] bytes, bool bigEndian)
+        {
+            var needReverse = !bigEndian ^ BitConverter.IsLittleEndian;
+            return BitConverter.ToInt32(needReverse ? bytes.Reverse().ToArray() : bytes, 0);
+        }
+        
+        public static long ToInt64(this byte[] bytes, bool bigEndian)
+        {
+            var needReverse = !bigEndian ^ BitConverter.IsLittleEndian;
+            return BitConverter.ToInt64(needReverse ? bytes.Reverse().ToArray() : bytes, 0);
         }
 
         /// <summary>

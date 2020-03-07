@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;

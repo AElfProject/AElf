@@ -129,8 +129,7 @@ namespace AElf.Types
 
         public Int64 ToInt64()
         {
-            return BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? Value.Reverse().ToArray() : Value.ToArray(), 0);
+            return ToByteArray().ToInt64(true);
         }
 
         public static bool operator ==(Hash h1, Hash h2)
