@@ -135,6 +135,9 @@ namespace AElf.Kernel.Blockchain.Application
             if (cleanHeight <= 0)
                 return;
             var cleanedTransactionBlockIndices = _transactionBlockIndexProvider.CleanByHeight(cleanHeight);
+            Logger.LogDebug($"Cleaned block index count {cleanedTransactionBlockIndices.Count} in provider.");
+
+            var noNeedResetCount = 0;
             var chain = await _blockchainService.GetChainAsync();
             var toRemoveList = new List<Hash>();
             foreach (var txId in cleanedTransactionBlockIndices.Keys.ToList())
@@ -154,6 +157,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     // no need to reset
                     cleanedTransactionBlockIndices.Remove(txId);
+                    noNeedResetCount++;
                     continue; 
                 }
 
@@ -168,6 +172,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             await _transactionBlockIndexManager.RemoveTransactionIndicesAsync(toRemoveList);
             await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(cleanedTransactionBlockIndices);
+            Logger.LogDebug($"No need reset transaction block index count {noNeedResetCount}.");
         }
 
         private async Task AddTransactionBlockIndicesAsync(
