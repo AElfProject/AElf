@@ -156,7 +156,7 @@ namespace AElf.CrossChain
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
             var res = await _crossChainBlockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
-            Assert.True(res);
+            Assert.False(res);
         }
 
         [Fact]
