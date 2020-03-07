@@ -6,17 +6,28 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// <summary>
     /// To provide basic function for piece-wise function.
     /// </summary>
-    public interface ICalculateFunctionProvider
+    public interface ICalculateFunctionFactory
     {
-        long LinerFunction(int[] coefficient, int count);
-        long PowerFunction(int[] coefficient, int count);
+        Func<int[], int, long> GetFunction(int type);
     }
 
-    public class CalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
+    public class CalculateFunctionFactory : ICalculateFunctionFactory, ISingletonDependency
     {
         private const decimal Precision = 100000000;
+        private const int Liner = 0;
+        private const int Power = 1;
 
-        public long LinerFunction(int[] coefficient, int count)
+        public Func<int[], int, long> GetFunction(int type)
+        {
+            if (type == Liner)
+            {
+                return LinerFunction;
+            }
+
+            return PowerFunction;
+                
+        }
+        private long LinerFunction(int[] coefficient, int count)
         {
             if (coefficient.Length != 5)
                 throw new ArgumentException($"Invalid coefficient count, should be 5, but is {coefficient.Length}");
@@ -24,7 +35,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return (long) outcome;
         }
 
-        public long PowerFunction(int[] coefficient, int count)
+        private long PowerFunction(int[] coefficient, int count)
         {
             if (coefficient.Length != 8)
                 throw new ArgumentException($"Invalid coefficient count, should be 8, but is {coefficient.Length}");

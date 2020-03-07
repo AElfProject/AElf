@@ -7,8 +7,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     internal class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
         public StorageFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
-            ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Storage)
+            ICalculateFunctionFactory calculateFunctionFactory) : base(
+            coefficientsCacheProvider, calculateFunctionFactory, (int) FeeTypeEnum.Storage)
         {
 
         }

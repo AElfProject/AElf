@@ -8,16 +8,16 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     internal abstract class TokenFeeProviderBase
     {
         private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
-        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
+        private readonly ICalculateFunctionFactory _calculateFunctionFactory;
         private readonly int _tokenType;
         protected PieceCalculateFunction PieceCalculateFunction;
         public int[] PieceTypeArray { get; set; }
 
         protected TokenFeeProviderBase(ICoefficientsCacheProvider coefficientsCacheProvider,
-            ICalculateFunctionProvider calculateFunctionProvider, int tokenType)
+            ICalculateFunctionFactory calculateFunctionFactory, int tokenType)
         {
             _coefficientsCacheProvider = coefficientsCacheProvider;
-            _calculateFunctionProvider = calculateFunctionProvider;
+            _calculateFunctionFactory = calculateFunctionFactory;
             _tokenType = tokenType;
             PieceCalculateFunction = new PieceCalculateFunction();
         }
@@ -43,17 +43,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             PieceCalculateFunction = new PieceCalculateFunction();
             foreach (var pieceType in pieceTypeArray)
             {
-                switch (pieceType)
-                {
-                    case 0 :
-                        PieceCalculateFunction.AddFunction(0, _calculateFunctionProvider.LinerFunction);
-                        break;
-                    case 1 :
-                        PieceCalculateFunction.AddFunction(1, _calculateFunctionProvider.PowerFunction);
-                        break;
-                    default:
-                        throw new InvalidOperationException("Matching piece type not found.");
-                }
+                PieceCalculateFunction.AddFunction(pieceType, _calculateFunctionFactory.GetFunction(pieceType));
             }
         }
 

@@ -7,8 +7,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     internal class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
     {
         public WriteFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
-            ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Write)
+            ICalculateFunctionFactory calculateFunctionFactory) : base(
+            coefficientsCacheProvider, calculateFunctionFactory, (int) FeeTypeEnum.Write)
         {
 
         }
