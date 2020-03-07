@@ -224,7 +224,7 @@ namespace AElf.CrossChain
         private Bloom GetSideChainBlockDataIndexedEventBloom()
         {
             var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            var logEvent = new SideChainBlockDataIndexedEvent().ToLogEvent(contractAddress);
+            var logEvent = new SideChainBlockDataIndexed().ToLogEvent(contractAddress);
             return logEvent.GetBloom();
         }
     }
