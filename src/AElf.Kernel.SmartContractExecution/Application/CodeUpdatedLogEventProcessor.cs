@@ -11,7 +11,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class CodeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISmartContractCodeHashProvider _smartContractCodeHashProvider;
+        private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
+        private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
 
         private LogEvent _interestedEvent;
 
@@ -33,10 +34,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
-            ISmartContractCodeHashProvider smartContractCodeHashProvider)
+            ISmartContractRegistrationProvider smartContractRegistrationProvider, 
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _smartContractCodeHashProvider = smartContractCodeHashProvider;
+            _smartContractRegistrationProvider = smartContractRegistrationProvider;
+            _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
 
             Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
@@ -46,8 +49,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);
 
-            await _smartContractCodeHashProvider.SetSmartContractCodeHashAsync(block.GetHash(), eventData.Address,
-                eventData.NewCodeHash);
+            var smartContractRegistration =
+                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, eventData.Address);
+            await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.Address, smartContractRegistration);
             Logger.LogDebug($"Updated contract {eventData}");
         }
     }

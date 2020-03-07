@@ -23,7 +23,7 @@ namespace AElf.Kernel
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
-        private readonly ISmartContractChangeHeightProvider _smartContractChangeHeightProvider;
+        private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -34,7 +34,7 @@ namespace AElf.Kernel
             IChainBlockLinkService chainBlockLinkService,
             ISmartContractExecutiveService smartContractExecutiveService, 
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider, 
-            ISmartContractChangeHeightProvider smartContractChangeHeightProvider)
+            ISmartContractRegistrationProvider smartContractRegistrationProvider)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -44,7 +44,7 @@ namespace AElf.Kernel
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
-            _smartContractChangeHeightProvider = smartContractChangeHeightProvider;
+            _smartContractRegistrationProvider = smartContractRegistrationProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -82,12 +82,13 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _transactionSizeFeeSymbolsProvider.ClearChangeHeightAsync(new BlockIndex
+                        var blockIndex = new BlockIndex
                         {
                             BlockHash = irreversibleBlockHash,
                             BlockHeight = irreversibleBlockHeight
-                        });
-                        _smartContractChangeHeightProvider.ClearSmartContractChangeHeight(irreversibleBlockHeight);
+                        };
+                        await _transactionSizeFeeSymbolsProvider.SyncSymbolsCacheFromStateAsync(blockIndex);
+                        await _smartContractRegistrationProvider.SyncRegistrationCacheFromStateAsync(blockIndex);
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);

@@ -11,17 +11,13 @@ namespace AElf.OS
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
-            ISmartContractCodeHashProvider smartContractCodeHashProvider,
-            ISmartContractRegistrationCacheProvider smartContractRegistrationCacheProvider,
-            ISmartContractExecutiveProvider smartContractExecutiveProvider,
-            ISmartContractChangeHeightInfoProvider smartContractHeightInfoProvider)
+            ISmartContractRegistrationProvider smartContractRegistrationProvider,
+            ISmartContractExecutiveProvider smartContractExecutiveProvider)
             : base(defaultContractZeroCodeProvider,
                 smartContractRunnerContainer,
                 hostSmartContractBridgeContextService,
-
-                smartContractRegistrationCacheProvider,
-                smartContractExecutiveProvider,
-                smartContractHeightInfoProvider
+                smartContractRegistrationProvider,
+                smartContractExecutiveProvider
             )
         {
         }

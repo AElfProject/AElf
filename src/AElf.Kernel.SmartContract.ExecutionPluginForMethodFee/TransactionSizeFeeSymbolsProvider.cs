@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext);
         Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
-        Task ClearChangeHeightAsync(BlockIndex blockIndex);
+        Task SyncSymbolsCacheFromStateAsync(BlockIndex blockIndex);
     }
 
     public class TransactionSizeFeeSymbolsProvider : BlockExecutedCacheProvider, ITransactionSizeFeeSymbolsProvider,
@@ -53,7 +53,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (_changeHeight == null || _changeHeight < blockIndex.BlockHeight) _changeHeight = blockIndex.BlockHeight;
         }
         
-        public async Task ClearChangeHeightAsync(BlockIndex blockIndex)
+        public async Task SyncSymbolsCacheFromStateAsync(BlockIndex blockIndex)
         {
             if (_changeHeight == null || _changeHeight > blockIndex.BlockHeight) return;
             _transactionSizeFeeSymbols = await GetSymbolsFromStateAsync(new ChainContext
