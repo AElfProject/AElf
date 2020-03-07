@@ -68,7 +68,8 @@ namespace AElf.Kernel.SmartContract.Domain
 
         protected override bool TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value)
         {
-            return blockStateSet.TryGetExecutedCache(key, out value);
+            value = null;
+            return blockStateSet != null && blockStateSet.TryGetExecutedCache(key, out value);
         }
 
         public async Task<StateReturn> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash)
