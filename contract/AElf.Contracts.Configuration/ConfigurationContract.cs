@@ -39,17 +39,5 @@ namespace AElf.Contracts.Configuration
             var address = GetControllerForManageConfiguration();
             return address;
         }
-
-        public override Empty SetRequiredAcsInContracts(RequiredAcsInContracts input)
-        {
-            CheckSenderIsControllerOrZeroContract();
-            State.RequiredAcsInContracts.Value = input;
-            return new Empty();
-        }
-
-        public override RequiredAcsInContracts GetRequiredAcsInContracts(Empty input)
-        {
-            return State.RequiredAcsInContracts.Value ?? new RequiredAcsInContracts();
-        }
     }
 }

@@ -12,12 +12,12 @@
         <ContractStub Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+        <ContractBase Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf/Proto/configuration_contract.proto</Link>
-        </ContractStub>
+        </ContractBase>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 </Project>

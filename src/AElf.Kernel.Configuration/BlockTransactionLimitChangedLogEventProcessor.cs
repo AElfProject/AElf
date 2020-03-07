@@ -50,8 +50,8 @@ namespace AElf.Kernel.Configuration
 
             if (eventData.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
 
-            var limit = new Int32Value();
-            limit.MergeFrom(eventData.ToByteString());
+            var limit = new BlockTransactionLimit();
+            limit.MergeFrom(eventData.Value);
             await _blockchainStateService.AddBlockExecutedDataAsync(block.GetHash(), limit);
 
             Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");

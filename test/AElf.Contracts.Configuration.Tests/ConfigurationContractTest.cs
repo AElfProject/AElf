@@ -105,10 +105,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         public async Task SetRequiredAcsInContracts_NoPermission()
         {
             var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
-                new RequiredAcsInContracts());
-            
-            var test = new RequiredAcsInContracts();
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                new SetConfigurationInput
+                {
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = new RequiredAcsInContracts().ToByteString()
+                });
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission.");
         }
@@ -121,14 +124,22 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 AcsList = {"acsx", "acsy"}
             };
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(organizationAddress, contractFeeChargingPolicy, 
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts));
+            var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput
+                {
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = contractFeeChargingPolicy.ToByteString()
+                }, 
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             var releaseTxResult = await ReleaseProposalAsync(proposalId);
             releaseTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var actual = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts), new Empty());
+                nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                new StringValue
+                {
+                    Value = RequiredAcsInContractsConfigurationNameProvider.Name
+                });
             RequiredAcsInContracts.Parser.ParseFrom(actual).ShouldBe(contractFeeChargingPolicy);
         }
 

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.CodeOps.Validators.Assembly;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -39,8 +40,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 From = FromAddress,
                 To = ConfigurationContractAddress,
-                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
-                Params = new Empty().ToByteString(),
+                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                Params = new StringValue {Value = RequiredAcsInContractsConfigurationNameProvider.Name}.ToByteString(),
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 

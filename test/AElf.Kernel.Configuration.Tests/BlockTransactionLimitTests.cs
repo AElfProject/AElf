@@ -10,15 +10,14 @@ using AElf.Contracts.Parliament;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
-namespace AElf.Kernel.BlockTransactionLimitController.Tests
+namespace AElf.Kernel.Configuration.Tests
 {
-    public sealed class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
+    public sealed class BlockTransactionLimitTests : ContractTestBase<ConfigurationTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub _configurationStub;
@@ -75,25 +74,43 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         [Fact]
         public async Task LimitCanBeSetByExecutingContract_Test()
         {
+            const int targetLimit = 55;
             await DeployContractsAsync();
             var proposalId = (await _parliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
-                ContractMethodName = "SetBlockTransactionLimit",
+                ContractMethodName = "SetConfiguration",
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new Int32Value {Value = 55}.ToByteString(),
+                Params = new SetConfigurationInput
+                {
+                    Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                    Value = new Int32Value {Value = targetLimit}.ToByteString()
+                }.ToByteString(),
                 ToAddress = ConfigurationContractAddress,
                 OrganizationAddress = await _parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
             })).Output;
             await _parliamentContractStub.Approve.SendAsync(proposalId);
-           
+
+            // Before
             {
-                var limit = await _configurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
+                var result = await _configurationStub.GetConfiguration.CallAsync(new StringValue
+                {
+                    Value = BlockTransactionLimitConfigurationNameProvider.Name
+                });
+                var limit = new Int32Value();
+                limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
                 Assert.Equal(0, limit.Value);
             }
             await _parliamentContractStub.Release.SendAsync(proposalId);
+
+            // After
             {
-                var limit = await _configurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
-                Assert.Equal(55, limit.Value);
+                var result = await _configurationStub.GetConfiguration.CallAsync(new StringValue
+                {
+                    Value = BlockTransactionLimitConfigurationNameProvider.Name
+                });
+                var limit = new Int32Value();
+                limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
+                Assert.Equal(targetLimit, limit.Value);
             }
             var chain = await _blockchainService.GetChainAsync();
             var limitNum = await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(

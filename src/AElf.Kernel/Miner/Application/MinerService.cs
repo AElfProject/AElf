@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.Configuration;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;

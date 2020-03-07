@@ -263,7 +263,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuration", "contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj", "{A9436A00-8763-4C23-BBE0-BFC6C5B49056}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController.Tests", "test\AElf.Kernel.BlockTransactionLimitController.Tests\AElf.Kernel.BlockTransactionLimitController.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration.Tests", "test\AElf.Kernel.Configuration.Tests\AElf.Kernel.Configuration.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Tests", "test\AElf.CrossChain.Communication.Tests\AElf.CrossChain.Communication.Tests.csproj", "{DFD63F70-CC2D-4971-A0A2-28A3865EBA02}"
 EndProject
