@@ -202,13 +202,13 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Update_Coefficient_PieceKey_Test()
+        public async Task Update_Coefficient_PieceUpperBound_Test()
         {
             const int newPieceUpperBound = 999999;
             const FeeTypeEnum feeType = FeeTypeEnum.Read;
             var updateInput = new UpdateCoefficientsInput
             {
-                PieceNumbers = {1},
+                PieceNumbers = {2},
                 Coefficients = new CalculateFeeCoefficients
                 {
                     FeeTokenType = (int) feeType,
