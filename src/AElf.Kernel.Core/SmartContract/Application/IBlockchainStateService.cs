@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
         
-        Task<ByteString> GetBlockExecutedDataAsync(IChainContext chainContext, string key);
+        Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key);
         
         Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedData);
     }
@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContract.Application
             await _blockchainStateManager.RemoveBlockStateSetsAsync(blockStateHashes);
         }
 
-        public async Task<ByteString> GetBlockExecutedDataAsync(IChainContext chainContext, string key)
+        public async Task<ByteString> GetBlockExecutedDataAsync(IBlockIndex chainContext, string key)
         {
             return await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight,
                 chainContext.BlockHash);

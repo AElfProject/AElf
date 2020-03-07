@@ -13,10 +13,10 @@ namespace AElf.Kernel.SmartContract.Application
         bool TryGetCachedSmartContractRegistrationAsync(Address address,
             out SmartContractRegistration smartContractRegistration);
 
-        Task SetSmartContractRegistrationAsync(BlockIndex blockIndex, Address address,
+        Task SetSmartContractRegistrationAsync(IBlockIndex blockIndex, Address address,
             SmartContractRegistration smartContractRegistration);
 
-        Task SyncRegistrationCacheFromStateAsync(BlockIndex blockIndex);
+        Task SyncRegistrationCacheFromStateAsync(IBlockIndex blockIndex);
     }
 
     public class SmartContractRegistrationProvider : BlockExecutedCacheProvider, ISmartContractRegistrationProvider,
@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Application
             return smartContractRegistration;
         }
 
-        public async Task SetSmartContractRegistrationAsync(BlockIndex blockIndex, Address address,
+        public async Task SetSmartContractRegistrationAsync(IBlockIndex blockIndex, Address address,
             SmartContractRegistration smartContractRegistration)
         {
             var key = GetBlockExecutedCacheKey(address);
@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Application
                 _smartContractChangeHeightMappings[address] = blockIndex.BlockHeight;
         }
 
-        public async Task SyncRegistrationCacheFromStateAsync(BlockIndex blockIndex)
+        public async Task SyncRegistrationCacheFromStateAsync(IBlockIndex blockIndex)
         {
             var removeAddresses = (from contractInfo in _smartContractChangeHeightMappings
                 where contractInfo.Value <= blockIndex.BlockHeight
