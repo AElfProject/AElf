@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -35,12 +34,10 @@ namespace AElf.Kernel.Blockchain.Infrastructure
 
         public void CleanByHeight(long blockHeight)
         {
-            var res = new Dictionary<Hash, TransactionBlockIndex>();
             foreach (var txId in _transactionBlockIndices.Where(m => m.Value.BlockHeight <= blockHeight)
                 .Select(mapping => mapping.Key).ToList())
             {
-                if (_transactionBlockIndices.TryRemove(txId, out var transactionBlockIndex))
-                    res.Add(txId, transactionBlockIndex);
+                _transactionBlockIndices.TryRemove(txId, out _);
             }
 
             Logger.LogInformation($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
