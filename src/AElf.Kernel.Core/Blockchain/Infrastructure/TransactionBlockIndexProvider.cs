@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +43,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                     res.Add(txId, transactionBlockIndex);
             }
 
-            Logger.LogDebug($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
+            Logger.LogInformation($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
             return res;
         }
     }

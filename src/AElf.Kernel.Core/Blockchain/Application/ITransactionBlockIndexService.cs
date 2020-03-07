@@ -5,7 +5,6 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.Collections;
-using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -25,8 +24,6 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
         private readonly ITransactionBlockIndexProvider _transactionBlockIndexProvider;
 
-        public ILogger<TransactionBlockIndexService> Logger { get; set; }
-
         public TransactionBlockIndexService(IBlockchainService blockchainService,
             ITransactionBlockIndexManager transactionBlockIndexManager,
             ITransactionBlockIndexProvider transactionBlockIndexProvider)
@@ -44,7 +41,10 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
 
             var chain = await _blockchainService.GetChainAsync();
-            return await GetBlockIndexAsync(chain, transactionBlockIndex, chain.BestChainHash);
+            var blockIndex = await GetBlockIndexAsync(chain, transactionBlockIndex, chain.BestChainHash);
+            if (blockIndex != null)
+                await ClearRedundantBlockIndices(txId, transactionBlockIndex, blockIndex, chain);
+            return blockIndex;
         }
 
         public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Blockchain.Application
                         preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
                             l.BlockHash == blockIndex.BlockHash))
                     {
-                        continue;
+                        return;
                     }
 
                     var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
@@ -129,50 +129,13 @@ namespace AElf.Kernel.Blockchain.Application
             }
         }
 
-        public async Task UpdateTransactionBlockIndicesByLibHeightAsync(long blockHeight)
+        public Task UpdateTransactionBlockIndicesByLibHeightAsync(long blockHeight)
         {
             var cleanHeight = blockHeight - KernelConstants.ReferenceBlockValidPeriod;
             if (cleanHeight <= 0)
-                return;
-            var cleanedTransactionBlockIndices = _transactionBlockIndexProvider.CleanByHeight(cleanHeight);
-            Logger.LogDebug($"Cleaned block index count {cleanedTransactionBlockIndices.Count} in provider.");
-
-            var noNeedResetCount = 0;
-            var chain = await _blockchainService.GetChainAsync();
-            var toRemoveList = new List<Hash>();
-            foreach (var txId in cleanedTransactionBlockIndices.Keys.ToList())
-            {
-                var transactionBlockIndex = cleanedTransactionBlockIndices[txId];
-                var blockIndex =
-                    await GetBlockIndexAsync(chain, transactionBlockIndex, chain.LastIrreversibleBlockHash);
-                if (blockIndex == null)
-                {
-                    toRemoveList.Add(txId);
-                    cleanedTransactionBlockIndices.Remove(txId);
-                    continue;
-                }
-
-                if (transactionBlockIndex.BlockHash == blockIndex.BlockHash &&
-                    transactionBlockIndex.PreviousExecutionBlockIndexList.Count == 0)
-                {
-                    // no need to reset
-                    cleanedTransactionBlockIndices.Remove(txId);
-                    noNeedResetCount++;
-                    continue; 
-                }
-
-                transactionBlockIndex.BlockHash = blockIndex.BlockHash;
-                transactionBlockIndex.BlockHeight = blockIndex.BlockHeight;
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Clear();
-                cleanedTransactionBlockIndices[txId] = transactionBlockIndex;
-            }
-
-            Logger.LogDebug($"Remove transaction block index count {toRemoveList.Count}.");
-            Logger.LogDebug($"Reset transaction block index count {cleanedTransactionBlockIndices.Count}.");
-
-            await _transactionBlockIndexManager.RemoveTransactionIndicesAsync(toRemoveList);
-            await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(cleanedTransactionBlockIndices);
-            Logger.LogDebug($"No need reset transaction block index count {noNeedResetCount}.");
+                return Task.CompletedTask;
+            _transactionBlockIndexProvider.CleanByHeight(cleanHeight);
+            return Task.CompletedTask;
         }
 
         private async Task AddTransactionBlockIndicesAsync(
@@ -219,6 +182,23 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             return null;
+        }
+
+        private async Task ClearRedundantBlockIndices(Hash txId, TransactionBlockIndex transactionBlockIndex,
+            BlockIndex blockIndex, Chain chain)
+        {
+            if (blockIndex.BlockHeight > chain.LastIrreversibleBlockHeight 
+                || transactionBlockIndex.PreviousExecutionBlockIndexList.Count == 0)
+            {
+                return;
+            }
+
+            transactionBlockIndex.BlockHash = blockIndex.BlockHash;
+            transactionBlockIndex.BlockHeight = blockIndex.BlockHeight;
+            transactionBlockIndex.PreviousExecutionBlockIndexList.Clear();
+
+            _transactionBlockIndexProvider.AddTransactionBlockIndex(txId, transactionBlockIndex);
+            await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
         }
     }
 }
