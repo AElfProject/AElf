@@ -161,31 +161,6 @@ namespace AElf.Contracts.CrossChain
             });
         }
 
-        private void InitialResourceUsage(int chainId, MapField<string, int> initialResourceAmount)
-        {
-            if (State.ConfigurationContract.Value == null)
-            {
-                var configurationContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
-                if (configurationContractAddress == null)
-                {
-                    // If Configuration Contract has not deployed, skip following options.
-                    return;
-                }
-
-                State.ConfigurationContract.Value = configurationContractAddress;
-            }
-
-            State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput
-            {
-                ChainId = new SInt32Value {Value = chainId},
-                ResourceTokenAmount = new ResourceTokenAmount
-                {
-                    Value = {initialResourceAmount.ToDictionary(i => i.Key, i => i.Value)}
-                }
-            });
-        }
-
         private TokenInfo GetNativeTokenInfo()
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);

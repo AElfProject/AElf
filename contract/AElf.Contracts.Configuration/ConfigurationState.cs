@@ -12,15 +12,6 @@ namespace AElf.Contracts.Configuration
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
-        /// <summary>
-        /// Chain Id (of side chain) -> Resource Usage Information
-        /// </summary>
-        public MappedState<int, ResourceTokenAmount> RentedResourceTokenAmount { get; set; }
-
-        public SingletonState<ResourceTokenAmount> TotalResourceTokenAmount { get; set; }
-
-        public SingletonState<ResourceTokenAmount> RemainResourceTokenAmount { get; set; }
-
         public SingletonState<RequiredAcsInContracts> RequiredAcsInContracts { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }

@@ -723,17 +723,6 @@ namespace AElf.Contracts.TestBase
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens), new ResourceTokenAmount
-                {
-                    Value =
-                    {
-                        {"CPU", SmartContractTestConstants.ResourceSupply},
-                        {"RAM", SmartContractTestConstants.ResourceSupply},
-                        {"DISK", SmartContractTestConstants.ResourceSupply},
-                        {"NET", SmartContractTestConstants.ResourceSupply},
-                    }
-                });
-            configurationContractCallList.Add(
                 nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
                 new RequiredAcsInContracts
                 {

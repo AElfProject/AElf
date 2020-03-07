@@ -64,6 +64,10 @@ service TokenContract {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
+    rpc RentResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateRentedResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -101,6 +105,9 @@ service TokenContract {
     }
     // referenced by src
     rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
+        option (aelf.is_view) = true;
+    }
+    rpc GetRentedResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
         option (aelf.is_view) = true;
     }
 }
@@ -398,6 +405,15 @@ message CalculateFeeCoefficient {
     FeeTypeEnum fee_type = 2;
     CalculateFunctionTypeEnum function_type = 3;
     map<string, sint32> coefficient_dic = 4;
+}
+
+message ResourceTokenAmount {
+    map<string, sint32> value = 1;
+}
+
+message RentResourceTokensInput {
+    aelf.SInt32Value chain_id = 1;
+    ResourceTokenAmount resource_token_amount = 2;
 }
 
 // Events

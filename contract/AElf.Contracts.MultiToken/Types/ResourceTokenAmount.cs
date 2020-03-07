@@ -1,7 +1,7 @@
 using System.Linq;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.Configuration
+namespace AElf.Contracts.MultiToken
 {
     public partial class ResourceTokenAmount
     {

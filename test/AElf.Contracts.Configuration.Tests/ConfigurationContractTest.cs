@@ -123,46 +123,6 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         }
 
         [Fact]
-        public async Task InitialTotalResourceTokensTest()
-        {
-            // Check total resource token amount.
-            {
-                var transactionResult =
-                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                        nameof(ConfigurationContainer.ConfigurationStub.GetTotalResourceTokens),
-                        new Empty());
-                var resourceTokenAmount = new ResourceTokenAmount();
-                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
-                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
-                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
-                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
-                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("NET");
-                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-            }
-
-            // Check remain resource token amount.
-            {
-                var transactionResult =
-                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                        nameof(ConfigurationContainer.ConfigurationStub.GetRemainResourceTokens),
-                        new Empty());
-                var resourceTokenAmount = new ResourceTokenAmount();
-                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
-                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
-                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
-                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
-                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("NET");
-                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-            }
-        }
-
-        [Fact]
         public async Task SetRequiredAcsInContracts_NoPermission()
         {
             var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,

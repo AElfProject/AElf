@@ -18,10 +18,11 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTxSizeFee { get; set; }
 
         /// <summary>
-        /// Symbol -> Amount
+        /// Symbol -> Amount (TBD)
         /// (CPU: core)
         /// (RAM: GiB)
         /// (DISK: GiB)
+        /// (NET: MB)
         /// </summary>
         public MappedState<string, int> ResourceAmount { get; set; }
 
