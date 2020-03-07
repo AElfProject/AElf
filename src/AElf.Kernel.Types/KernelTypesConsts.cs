@@ -16,6 +16,6 @@ namespace AElf.Kernel
         public const string StorageKeySeparator = ",";
         public static Duration AllowedFutureBlockTimeSpan = new Duration() { Seconds = 4 };
         public const string SignaturePlaceholder = "SignaturePlaceholder";
-        public const string BlockExecutedCacheKey = "BlockExecutedCache";
+        public const string BlockExecutedDataKey = "BlockExecutedData";
     }
 }

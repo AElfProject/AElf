@@ -131,7 +131,7 @@ namespace AElf.Kernel.SmartContract.Application
                     MethodName = "Test"
                 };
                 transactionDic.Add(
-                    string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Transaction),
+                    string.Join("/", KernelConstants.BlockExecutedDataKey, nameof(Transaction),
                         transaction.GetHash().ToString()), transaction);
             }
 
@@ -141,11 +141,11 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = transactionDic.First().Value.GetHash()
             };
-            var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedCacheKey,
+            var transactionResultKey = string.Join("/", KernelConstants.BlockExecutedDataKey,
                 nameof(TransactionResult), transactionResult.TransactionId.ToString());
             await _blockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash, transactionResultKey,
                 transactionResult);
-            var chainKey = string.Join("/", KernelConstants.BlockExecutedCacheKey, nameof(Chain));
+            var chainKey = string.Join("/", KernelConstants.BlockExecutedDataKey, nameof(Chain));
             await _blockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash, chainKey, chain);
 
             var newBlockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
@@ -161,14 +161,14 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            var chainFromBlockExecutedCache =
+            var chainFromBlockExecutedData =
                 await _blockchainExecutedDataService.GetBlockExecutedDataAsync<Chain>(chainContext, chainKey);
-            chainFromBlockExecutedCache.ShouldBe(chain);
+            chainFromBlockExecutedData.ShouldBe(chain);
 
-            var transactionResultFromBlockExecutedCache =
+            var transactionResultFromBlockExecutedData =
                 await _blockchainExecutedDataService.GetBlockExecutedDataAsync<TransactionResult>(chainContext,
                     transactionResultKey);
-            transactionResultFromBlockExecutedCache.ShouldBe(transactionResult);
+            transactionResultFromBlockExecutedData.ShouldBe(transactionResult);
             foreach (var keyPair in transactionDic)
             {
                 var transaction =
