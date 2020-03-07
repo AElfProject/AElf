@@ -36,7 +36,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             }
 
             var count = GetCalculateCount(transactionContext);
-            return PieceCalculateFunction.CalculateFee(coefficients, count);
+            var result = PieceCalculateFunction.CalculateFee(coefficients, count);
+            return result;
         }
 
         public void UpdatePieceWiseFunction(IList<int[]> pieceTypeList)

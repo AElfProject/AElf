@@ -39,7 +39,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             {
                 var function = _currentCalculateFunctions[i];
                 var pieceCoefficient = coefficient[i];
-                var pieceUpperBound = pieceCoefficient[1];
+                var pieceUpperBound = pieceCoefficient[0];
                 var count = Math.Min(pieceUpperBound, remainCount);
                 result += function(count);
                 if (pieceUpperBound > totalCount)
