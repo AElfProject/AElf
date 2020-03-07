@@ -67,7 +67,7 @@ namespace AElf.Kernel.Blockchain.Application
                         preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
                             l.BlockHash == blockIndex.BlockHash))
                     {
-                        return;
+                        continue;
                     }
 
                     var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
