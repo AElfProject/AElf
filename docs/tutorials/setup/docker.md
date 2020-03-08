@@ -20,9 +20,7 @@ Once you have finished downloading the latest version of the AElf image, you can
 docker run -it -p 8000:8000 aelf/node:latest /bin/bash
 ```
 
-This command will run the container and a shell within it. From here you can modify the configuration.
-
-Use you favorite editor to modify the **appsettings.json**, here we use vim:
+This command will run the container and a shell within it. From here you can modify the configuration: use you favorite editor to modify the **appsettings.json**, here we use vim:
 
 ```bash
 vim appsettings.json
