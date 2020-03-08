@@ -3,10 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Parliament;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Txn.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -183,16 +185,21 @@ namespace AElf.CrossChain.Indexing.Application
             return Task.FromResult(inputForNextMining);
         }
 
+        public async Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp)
+        {
+            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, timestamp);
+            return pendingProposal != null && pendingProposal.ToBeReleased && pendingProposal.ExpiredTime > timestamp;
+        }
+
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
             if (!_transactionPackingOptions.IsTransactionPackable)
                 return ByteString.Empty;
 
-            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
-                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
-
             var utcNow = TimestampHelper.GetUtcNow();
-            if (pendingProposal == null || pendingProposal.ExpiredTime <= utcNow)
+            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, utcNow);
+
+            if (pendingProposal == null || pendingProposal.ExpiredTime.AddMilliseconds(500) <= utcNow)
             {
                 // propose new cross chain indexing data if pending proposal is null or expired 
                 var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight);
@@ -260,6 +267,14 @@ namespace AElf.CrossChain.Indexing.Application
                 SideChainBlockDataList = {sideChainBlockData}
             };
             return crossChainBlockData;
+        }
+
+        private async Task<GetPendingCrossChainIndexingProposalOutput> GetPendingCrossChainIndexingProposalAsync(
+            Hash blockHash, long blockHeight, Timestamp timestamp)
+        {
+            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight, timestamp)
+                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
+            return pendingProposal;
         }
     }
 }
