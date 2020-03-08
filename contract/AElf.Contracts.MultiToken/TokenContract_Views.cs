@@ -22,14 +22,18 @@ namespace AElf.Contracts.MultiToken
 
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
-            return new TokenInfoList
+            var tokenInfoList = new TokenInfoList();
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
             {
-                Value =
-                {
-                    Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental).Select(symbol =>
-                        State.TokenInfos[symbol] ?? new TokenInfo())
-                }
-            };
+                tokenInfoList.Value.Add(State.TokenInfos[symbol] ?? new TokenInfo());
+            }
+
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                tokenInfoList.Value.Add(State.TokenInfos[symbol] ?? new TokenInfo());
+            }
+
+            return tokenInfoList;
         }
 
         [View]
