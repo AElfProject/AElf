@@ -20,17 +20,24 @@ Once you have finished downloading the latest version of the AElf image, you can
 docker run -it -p 8000:8000 aelf/node:latest /bin/bash
 ```
 
-This command will run the container and a shell within it. 
+This command will run the container and a shell within it. From here you can modify the configuration: use you favorite editor to modify the **appsettings.json**, here we use vim:
 
-## Start Redis
-
-In the container use the following command:
-
-```bash 
-service start redis-server
+```bash
+vim appsettings.json
 ```
 
-This will start the Redis instance that the node will use.
+This will open the file (press i for insert mode in vim). The only fields you have to change are the IP and port of your Redis instance :
+
+```json
+  "ConnectionStrings": {
+    "BlockchainDb": "redis://192.168.1.70:6379?db=1",
+    "StateDb": "redis://192.168.1.70:6379?db=1"
+  },
+```
+
+Replace "192.168.1.70" and 6379 with whatever host your Redis server is on.
+
+Note: with vim, press ESC then ":wq" to save and exit.
 
 ## Run the program
 
