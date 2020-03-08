@@ -24,11 +24,13 @@ namespace AElf.Kernel.Configuration.Tests
         private ParliamentContractContainer.ParliamentContractStub _parliamentContractStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private readonly IBlockchainService _blockchainService;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IBlockchainStateService _blockchainStateService;
 
         public BlockTransactionLimitTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
+            _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
         }
 
@@ -113,30 +115,30 @@ namespace AElf.Kernel.Configuration.Tests
                 Assert.Equal(targetLimit, limit.Value);
             }
             var chain = await _blockchainService.GetChainAsync();
-            var limitNum = await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+            var limitNum = await _blockTransactionLimitProvider.GetLimitAsync(
                 new ChainContext
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });
-            Assert.Equal(55, limitNum.Value);
+            Assert.Equal(55, limitNum);
         }
 
         [Fact]
         public async Task TransactionLimitSetAndGet_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
-            
-            await _blockchainStateService.AddBlockExecutedDataAsync(chain.BestChainHash,
-                new BlockTransactionLimit {Value = 50});
 
-            var limit = await _blockchainStateService.GetBlockExecutedDataAsync<BlockTransactionLimit>(
+            await _blockTransactionLimitProvider.SetLimitAsync(chain.BestChainHash, 50);
+
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(
                 new ChainContext
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });
-            Assert.Equal(50, limit.Value);
+            Assert.Equal(50, limit);
         }
     }
 }

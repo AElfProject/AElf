@@ -59,7 +59,6 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
             context.Services.AddSingleton<ITxHub, MockTxHub>();
-            context.Services.AddTransient<IDeployedContractAddressService, DeployedContractAddressService>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

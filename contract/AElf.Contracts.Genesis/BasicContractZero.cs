@@ -70,11 +70,6 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override AddressList GetDeployedContractAddressList(Empty input)
-        {
-            return State.DeployedContractAddressList.Value;
-        }
-
         public override AuthorityInfo GetContractDeploymentController(Empty input)
         {
             return State.ContractDeploymentController.Value;
@@ -159,17 +154,6 @@ namespace AElf.Contracts.Genesis
                 Author = author,
                 Version = info.Version
             });
-
-            var deployedContractAddressList = State.DeployedContractAddressList.Value;
-            if (deployedContractAddressList == null)
-            {
-                State.DeployedContractAddressList.Value = new AddressList {Value = {contractAddress}};
-            }
-            else
-            {
-                deployedContractAddressList.Value.Add(contractAddress);
-                State.DeployedContractAddressList.Value = deployedContractAddressList;
-            }
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());

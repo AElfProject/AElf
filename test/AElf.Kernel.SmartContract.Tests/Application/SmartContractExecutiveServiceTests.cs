@@ -27,7 +27,8 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
             var mockExecutive = new Mock<IExecutive>();
-            await _smartContractExecutiveService.PutExecutiveAsync(SampleAddress.AddressList[7], mockExecutive.Object);
+            await _smartContractExecutiveService.PutExecutiveAsync(new ChainContext(), SampleAddress.AddressList[7],
+                mockExecutive.Object);
         }
 
     }
