@@ -138,6 +138,17 @@ namespace AElf.Contracts.MultiToken
             return owingRental;
         }
 
+        public override OwningRentalUnitValue GetOwningRentalUnitValue(Empty input)
+        {
+            var rentalResourceUnitValue = new OwningRentalUnitValue();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                rentalResourceUnitValue.ResourceUnitValue[symbol] = State.Rental[symbol];
+            }
+
+            return rentalResourceUnitValue;
+        }
+
         public override ResourceUsage GetResourceUsage(Empty input)
         {
             var usage = new ResourceUsage();
