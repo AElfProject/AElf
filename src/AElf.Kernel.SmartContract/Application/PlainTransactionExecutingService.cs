@@ -231,7 +231,8 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.Transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+                    singleTxExecutingDto.Transaction.To, executive);
 #if DEBUG
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {

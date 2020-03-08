@@ -22,9 +22,6 @@ service BasicContractZero {
     rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
     
-    rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) {
-        option (aelf.is_view) = true;
-    }
     rpc GetContractDeploymentController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
@@ -35,10 +32,6 @@ service BasicContractZero {
 
 message InitializeInput{
     bool contract_deployment_authority_required = 1;
-}
-
-message AddressList {
-    repeated aelf.Address value = 1;
 }
 
 message ContractProposingInput{

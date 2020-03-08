@@ -69,11 +69,6 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override AddressList GetDeployedContractAddressList(Empty input)
-        {
-            return State.DeployedContractAddressList.Value;
-        }
-
         public override AuthorityInfo GetContractDeploymentController(Empty input)
         {
             return State.ContractDeploymentController.Value;

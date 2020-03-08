@@ -59,17 +59,6 @@ namespace AElf.Contracts.Genesis
                 Version = info.Version
             });
 
-            var deployedContractAddressList = State.DeployedContractAddressList.Value;
-            if (deployedContractAddressList == null)
-            {
-                State.DeployedContractAddressList.Value = new AddressList {Value = {contractAddress}};
-            }
-            else
-            {
-                deployedContractAddressList.Value.Add(contractAddress);
-                State.DeployedContractAddressList.Value = deployedContractAddressList;
-            }
-
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
 
