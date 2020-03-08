@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus
 {
-    public class ConsensusAElfModule : AElfModule
+    public class CoreConsensusAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

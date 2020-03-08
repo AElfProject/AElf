@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
@@ -23,20 +21,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            IPrimaryTokenFeeService txFeeService,
-            IBlockchainStateService blockchainStateService)
+            IPrimaryTokenFeeService txFeeService, 
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _txFeeService = txFeeService;
-            _blockchainStateService = blockchainStateService;
+            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -94,7 +92,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 };
                 
                 var transactionSizeFeeSymbols =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext);
+                    await _transactionSizeFeeSymbolsProvider.GetTransactionSizeFeeSymbolsAsync(chainContext);
                 if (transactionSizeFeeSymbols != null)
                 {
                     foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)

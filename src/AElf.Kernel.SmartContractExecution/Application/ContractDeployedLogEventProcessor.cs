@@ -11,8 +11,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class ContractDeployedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
-        private readonly ISmartContractRegistrationService _smartContractRegistrationService;
+        private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
+        private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
 
         private LogEvent _interestedEvent;
 
@@ -32,14 +32,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return _interestedEvent;
             }
         }
-
+        
         public ContractDeployedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            IDeployedContractAddressProvider deployedContractAddressProvider,
-            ISmartContractRegistrationService smartContractRegistrationService)
+            ISmartContractRegistrationProvider smartContractRegistrationProvider,
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _deployedContractAddressProvider = deployedContractAddressProvider;
-            _smartContractRegistrationService = smartContractRegistrationService;
+            _smartContractRegistrationProvider = smartContractRegistrationProvider;
+            _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
 
             Logger = NullLogger<ContractDeployedLogEventProcessor>.Instance;
         }
@@ -49,15 +49,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var eventData = new ContractDeployed();
             eventData.MergeFrom(logEvent);
 
-            _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address,
-                new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height});
-            Logger.LogDebug($"Added deployed contract address of {eventData}");
-            await _smartContractRegistrationService.AddSmartContractRegistrationAsync(eventData.Address, eventData.CodeHash,
-                new BlockIndex
+            var smartContractRegistration =
+                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
-                });
+                }, eventData.Address);
+
+            await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.Address, smartContractRegistration);
+            Logger.LogDebug($"Deployed contract {eventData}");
         }
     }
 }
