@@ -104,7 +104,7 @@ This method is called to rejecting the specified proposal.
 
 **Hash**: the hash of the proposal.
 
-After execution, a **ReferendumReceiptCreated** event log can be found in the transaction result.
+After execution, an **ReferendumReceiptCreated** event log can be found in the transaction result.
 
 **ReferendumReceiptCreated**:
 - **proposal_id**: the proposal id.
@@ -144,7 +144,7 @@ This method is called to abstain from the specified proposal.
 
 **Hash**: the hash of the proposal.
 
-After execution, a **ReferendumReceiptCreated** event log can be found in the transaction result.
+After execution, an **ReferendumReceiptCreated** event log can be found in the transaction result.
 
 **ReferendumReceiptCreated**:
 - **proposal_id**: the proposal id.
@@ -244,7 +244,7 @@ Used by system contracts to create proposals.
   - **to address**: the address of the contract to call after release.
   - **expiration**: the date at which this proposal will expire.
   - **organization address**: the address of the organization.
-  - **proposal_description_url**: the url is used for describing the porposl.
+  - **proposal_description_url**: the url is used for describing the proposal.
 - **origin proposer**: the actor that trigger the call.
 - **proposal id feedback method**: the feedback method, called by inline transaction after creating the proposal.
 

@@ -192,7 +192,7 @@ This method changes the thresholds associated with proposals. All fields will be
 - **maximal abstention threshold**: the new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
-After a successful execution, a **OrganizationThresholdChanged** event log can be found in the transaction result.
+After a successful execution, an **OrganizationThresholdChanged** event log can be found in the transaction result.
 
 **OrganizationThresholdChanged**:
 - **organization_address**: the organization address.
@@ -219,7 +219,7 @@ This method overrides the list of whitelisted proposers.
 **ProposerWhiteList**:
 - **proposers**: the new value for the list.
 
-After a successful execution, a **OrganizationWhiteListChanged** event log can be found in the transaction result.
+After a successful execution, an **OrganizationWhiteListChanged** event log can be found in the transaction result.
 
 **OrganizationWhiteListChanged**:
 - **organization_address**: the organization address.

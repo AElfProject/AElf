@@ -285,10 +285,10 @@ message SymbolToPayTxSizeFee{
 ```
 This action sets available tokens that can be used to pay for transaction fee.
 
-- **symbols_to_pay_tx_size_fee** available token list
+- **symbols_to_pay_tx_size_fee** available token list.
   - **token_symbol** token symbol.
   - **base_token_weight** it is fixed to primary token.  
-  - **added_token_weight**  if base_token_weight set to 1 and added_token_weight set to 10, it will cost 10 this token instead of primary token.
+  - **added_token_weight** if base_token_weight set to 1 and added_token_weight set to 10, it will cost 10 this token instead of primary token.
 
 ### **UpdateCoefficientsForContract**
 
@@ -316,10 +316,10 @@ enum FeeTypeEnum {
 }
 ```
 
-This action sets functions used to calculate resource token fee.
+This action sets methods used to calculate resource token fees.
 
 - **fee_token_type** resource fee type (exclude TX).
-- **piece_coefficients_list** it is a coefficients array
+- **piece_coefficients_list** it is a coefficients array.
   - **value** it is a int array. its first element indicates its piece key. other every three consecutive elements indicates a function, like (2, 1, 1) means (1/1) * x^2.
 
 ### **UpdateCoefficientsForSender**
@@ -338,7 +338,7 @@ message CalculateFeePieceCoefficients {
 }
 ```
 
-This action sets functions used to calculate transaction fee.
+This action sets methods used to calculate transaction fee.
 
 note: *for CalculateFeeCoefficients see UpdateCoefficientsForContract*
 
@@ -355,7 +355,7 @@ message AdvanceResourceTokenInput {
 }
 ```
 
-This action transfer resource token to designated contract address.
+This action transfers resource tokens to designated contract address.
 
 - **contract_address** the contract address.
 - **resource_token_symbol** resource token symbol.
@@ -398,7 +398,7 @@ message ValidateTokenInfoExistsInput{
 }
 ```
 
-This method validate if the token exist.
+This method validates if the token exist.
 
 - **symbol** the token symbol.
 - **token_name** the token name.
@@ -435,9 +435,7 @@ rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protob
 }
 ```
 
-This method initialize controllers for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Besides, if the current chain is side chain, it will create a controller for managinig chain rental. 
-
-
+This method initializes the controller for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Note that, if the current chain is side chain, it will create a controller for managing chain rental. 
 
 ## View methods
 
@@ -660,7 +658,7 @@ enum FeeTypeEnum {
 }
 ```
 
-This view method returns resource tokens fee's calculation function.
+This view method returns the resource tokens fee calculation method.
 
 Input
 resource fee type.
@@ -676,7 +674,7 @@ rpc GetCalculateFeeCoefficientForSender (google.protobuf.Empty) returns (Calcula
 
 ```
 
-This view method returns transaction fee's calculation function.
+This view method returns transaction fee's calculation method.
 
 note: *for CalculateFeeCoefficients see GetCalculateFeeCoefficientForContract*
 
@@ -721,7 +719,7 @@ message AuthorityInfo {
 }
 ```
 
-This method returns controller for UpdateCoefficientsForContract. The root address consists originally of default parliament organization, developer organization. The type of root contoller and developer controller is Assocation  
+This method returns the controller for UpdateCoefficientsForContract. The root address consists originally of default parliament organization, developer organization. The type of root controller and developer controller is Assocation.
 
 - **root_controller** root controller information.
 - **parliament_controller** parliament controller information.
@@ -747,7 +745,7 @@ message AuthorityInfo {
 }
 ```
 
-This method returns controller for UpdateCoefficientsForSender. The root address consists originally of default parliament organization, referendum organization. The type of root contoller and developer controller is Assocation
+This method returns the controller for UpdateCoefficientsForSender. The root address consists originally of default parliament organization, referendum organization. The type of root controller and developer controller is Assocation.
 
 - **root_controller** root controller information.
 - **parliament_controller** parliament controller information.
@@ -768,7 +766,7 @@ message ControllerCreateInfo {
 ```
 
 - **controller** the controller address.
-- **organization_creation_input_bytes** if the controller's organization does not initialize, you can use this as parameter to create it using CreateOrganization in Associate contract.
+- **organization_creation_input_bytes** if the controller's organization is not initialized, you can use this as parameter to create it using CreateOrganization in Association contract.
 
 ### **GetResourceUsage**
 
@@ -781,7 +779,7 @@ message ResourceUsage {
 }
 ```
 
-This method is used in side chain. It returns how much resouces token count should be paid at the moment.
+This method is used on a side chain. It returns how much resource tokens should be paid at the moment.
 
 - **value** resource token symbol => amount.
 
@@ -796,7 +794,7 @@ message OwningRental {
 }
 ```
 
-This method is used in side chain. It returns how much resouces token (count * value) should be paid at the moment.
+This method is used on a side chain. It returns how much resource tokens (count * value) should be paid at the moment.
 
 - **resource_amount** resource token symbol => amount.
 

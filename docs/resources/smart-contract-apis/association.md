@@ -36,7 +36,7 @@ message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
 
-message OrganizationMemberChanged{
+message OrganizationMemberChanged {
     option (aelf.is_event) = true;
     aelf.Address organization_address = 1;
     OrganizationMemberList organization_member_list = 2;
@@ -48,7 +48,7 @@ Changes the members of the organization. Note that this will override the curren
 - **OrganizationMemberList**:
   - **organization_members**: the new members.
 
-  After a successful execution, a **OrganizationMemberChanged** event log can be found in the transaction result.
+After a successful execution, an **OrganizationMemberChanged** event log can be found in the transaction result.
 
 **OrganizationMemberChanged**:
 - **organization_address**: the organization address.
@@ -111,7 +111,7 @@ This method creates a proposal for which organization members can vote. When the
 - **to address**: the address of the contract to call after release.
 - **expiration**: the date at which this proposal will expire.
 - **organization address**: the address of the organization.
-- **proposal_description_url**: the url is used for describing the porposl.
+- **proposal_description_url**: the url is used for describing the proposal.
 
 ## **Reject**
 
@@ -162,7 +162,7 @@ message OrganizationThresholdChanged{
 }
 ```
 
-This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will afects all current proposals of the organization. Note: only the organization can execute this through a proposal.
+This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will affect all current proposals of the organization. Note: only the organization can execute this through a proposal.
 
 **ProposalReleaseThreshold**:
 - **minimal approval threshold**: the new value for the minimum approval threshold.
@@ -170,7 +170,7 @@ This method changes the thresholds associated with proposals. All fields will be
 - **maximal abstention threshold**: he new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
-After a successful execution, a **OrganizationThresholdChanged** event log can be found in the transaction result.
+After a successful execution, an **OrganizationThresholdChanged** event log can be found in the transaction result.
 
 **OrganizationThresholdChanged**:
 - **organization_address**: the organization address.
@@ -223,7 +223,7 @@ Used by system contracts to create proposals.
   - **to address**: the address of the contract to call after release.
   - **expiration**: the date at which this proposal will expire.
   - **organization address**: the address of the organization.
-  - **proposal_description_url**: the url is used for describing the porposl.
+  - **proposal_description_url**: the url is used for describing the proposal.
 - **origin proposer**: the actor that trigger the call.
 - **proposal id feedback method**: the feedback method, called by inline transaction after creating the proposal.
 
