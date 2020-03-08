@@ -52,7 +52,7 @@ namespace AElf.Kernel
         {
             var transactionBlockIndexService =
                 context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
-            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
+            AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
         }
     }
 

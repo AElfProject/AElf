@@ -23,6 +23,7 @@ jobs:
   - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=3 --n=1
     displayName: 'Build and Test'
   - task: PublishTestResults@2
+    condition: always()
     inputs:
       testRunner: VSTest
       testResultsFiles: '**/*.trx'
@@ -52,6 +53,7 @@ jobs:
   - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=2
     displayName: 'Build and Test'
   - task: PublishTestResults@2
+    condition: always()
     inputs:
       testRunner: VSTest
       testResultsFiles: '**/*.trx'
@@ -84,6 +86,7 @@ jobs:
   - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=3
     displayName: 'Build and Test'
   - task: PublishTestResults@2
+    condition: always()
     inputs:
       testRunner: VSTest
       testResultsFiles: '**/*.trx'

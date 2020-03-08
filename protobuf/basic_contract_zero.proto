@@ -4,6 +4,7 @@ package zero;
 
 import "acs0.proto";
 import "acs1.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
@@ -16,6 +17,11 @@ service BasicContractZero {
     }
     rpc ChangeCodeCheckController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
     rpc GetContractDeploymentController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
@@ -24,14 +30,19 @@ service BasicContractZero {
     }
 }
 
+message InitializeInput{
+    bool contract_deployment_authority_required = 1;
+}
+
 message ContractProposingInput{
     aelf.Address proposer = 1;
-    ContractProposingInputStatus status = 2;   
+    ContractProposingInputStatus status = 2;
+    google.protobuf.Timestamp expired_time = 3;
 }
 
 enum ContractProposingInputStatus {
     PROPOSED = 0;
     APPROVED = 1;
-    PRE_CODE_CHECKED = 2;
+    CODE_CHECK_PROPOSED = 2;
     CODE_CHECKED = 3;
 }
