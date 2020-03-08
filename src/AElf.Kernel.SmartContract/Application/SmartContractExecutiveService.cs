@@ -76,7 +76,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 var smartContractRegistration =
                     await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
-                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash)
+                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash ||
+                    chainContext.BlockHeight <= Constants.GenesisBlockHeight)
                 {
                     executive.LastUsedTime = TimestampHelper.GetUtcNow();
                     pool.Add(executive);

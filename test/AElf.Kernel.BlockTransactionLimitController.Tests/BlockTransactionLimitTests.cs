@@ -25,11 +25,13 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         public BlockTransactionLimitTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
         }
 
         private async Task DeployContractsAsync()
@@ -95,6 +97,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 Assert.Equal(55, limit.Value);
             }
             var chain = await _blockchainService.GetChainAsync();
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
             var limitNum = await _blockTransactionLimitProvider.GetLimitAsync(
                 new ChainContext
                 {

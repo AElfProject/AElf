@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -58,20 +59,20 @@ namespace AElf.Kernel.SmartContract.Application
         }
     }
 
-    public interface ICachedBlockchainExecutedDataGettingService<T>
+    public interface ICachedBlockchainExecutedDataService<T>
     {
         T GetBlockExecutedData(IBlockIndex chainContext, string key);
+        Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, T> blockExecutedData);
     }
 
-    public class CachedBlockchainExecutedDataGettingService<T> : ICachedBlockchainExecutedDataGettingService<T>,
-        ISingletonDependency
+    public class CachedBlockchainExecutedDataService<T> : ICachedBlockchainExecutedDataService<T>
     {
         private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
 
         //TODO: make a store in Infrastructure
-        private ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
+        private readonly ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
 
-        public CachedBlockchainExecutedDataGettingService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
+        public CachedBlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
         {
             _blockchainExecutedDataManager = blockchainExecutedDataManager;
         }
@@ -95,6 +96,16 @@ namespace AElf.Kernel.SmartContract.Application
             if(ret.IsInStore)
                 _dictionary.TryAdd(key, o);
             return o;
+        }
+
+        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, T> blockExecutedData)
+        {
+            await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData.ToDictionary
+                (pair => pair.Key, pair => ByteString.CopyFrom(SerializationHelper.Serialize(pair.Value))));
+            foreach (var pair in blockExecutedData)
+            {
+                _dictionary.TryRemove(pair.Key, out _);
+            }
         }
     }
 

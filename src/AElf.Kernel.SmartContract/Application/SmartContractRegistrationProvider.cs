@@ -18,27 +18,29 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private const string BlockExecutedDataName = nameof(SmartContractRegistration);
 
-        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
+        private readonly ICachedBlockchainExecutedDataService<SmartContractRegistration>
+            _cachedBlockchainExecutedDataService;
 
-        public SmartContractRegistrationProvider(IBlockchainExecutedDataService blockchainExecutedDataService)
+        public SmartContractRegistrationProvider(
+            ICachedBlockchainExecutedDataService<SmartContractRegistration> cachedBlockchainExecutedDataService)
         {
-            _blockchainExecutedDataService = blockchainExecutedDataService;
+            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
 
-        public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(IChainContext chainContext, Address address)
+        public Task<SmartContractRegistration> GetSmartContractRegistrationAsync(IChainContext chainContext, Address address)
         {
             var key = GetBlockExecutedDataKey(address);
             var smartContractRegistration =
-                await _blockchainExecutedDataService.GetBlockExecutedDataAsync<SmartContractRegistration>(chainContext, key);
-            return smartContractRegistration;
+                _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            return Task.FromResult(smartContractRegistration);
         }
 
         public async Task SetSmartContractRegistrationAsync(IBlockIndex blockIndex, Address address,
             SmartContractRegistration smartContractRegistration)
         {
             var key = GetBlockExecutedDataKey(address);
-            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key,
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key,
                 smartContractRegistration);
         }
 

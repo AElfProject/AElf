@@ -20,25 +20,28 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     {
         private const string BlockExecutedDataName = nameof(NonparallelContractCode);
 
-        private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
+        private readonly ICachedBlockchainExecutedDataService<NonparallelContractCode>
+            _cachedBlockchainExecutedDataService;
 
-        public NonparallelContractCodeProvider(IBlockchainExecutedDataService blockchainExecutedDataService)
+        public NonparallelContractCodeProvider(
+            ICachedBlockchainExecutedDataService<NonparallelContractCode> cachedBlockchainExecutedDataService)
         {
-            _blockchainExecutedDataService = blockchainExecutedDataService;
+            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
 
-        public async Task<NonparallelContractCode> GetNonparallelContractCodeAsync(IChainContext chainContext, Address address)
+        public Task<NonparallelContractCode> GetNonparallelContractCodeAsync(IChainContext chainContext, Address address)
         {
             var key = GetBlockExecutedDataKey(address);
-            return await _blockchainExecutedDataService.GetBlockExecutedDataAsync<NonparallelContractCode>(chainContext, key);
+            var nonparallelContractCode = _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            return Task.FromResult(nonparallelContractCode);
         }
 
         public async Task SetNonparallelContractCodeAsync(Hash blockHash, IDictionary<Address, NonparallelContractCode> nonparallelContractCodes)
         {
             var dic = nonparallelContractCodes.ToDictionary(pair => GetBlockExecutedDataKey(pair.Key),
                 pair => pair.Value);
-            await _blockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, dic);
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, dic);
         }
         
         protected override string GetBlockExecutedDataName()

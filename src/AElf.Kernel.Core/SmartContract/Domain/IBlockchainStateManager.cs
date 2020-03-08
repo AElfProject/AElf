@@ -115,7 +115,7 @@ namespace AElf.Kernel.SmartContract.Domain
         protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
         {
             ByteString value = null;
-            bool isInStore = true;
+            var isInStore = false;
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
 
@@ -124,6 +124,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 if (bestChainState.BlockHash == blockHash)
                 {
                     value = bestChainState.Value;
+                    isInStore = true;
                 }
                 else
                 {
@@ -136,11 +137,8 @@ namespace AElf.Kernel.SmartContract.Domain
 
                     //find value in block state set
                     var blockStateSet = await FindBlockStateSetWithKeyAsync(key, bestChainState.BlockHeight, blockHash);
-                    if (blockStateSet != null)
-                    {
-                        blockStateSet.TryGetState(key, out value);
-                        isInStore = false;
-                    }
+                    
+                    TryGetFromBlockStateSet(blockStateSet, key, out value);
 
                     if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) ||
                                           blockStateSet.BlockHeight <= bestChainState.BlockHeight))
@@ -150,7 +148,7 @@ namespace AElf.Kernel.SmartContract.Domain
                         // retry versioned state in case conflict of get state during merging  
                         bestChainState = await _versionedStates.GetAsync(key);
                         value = bestChainState.Value;
-                        isInStore = false;
+                        isInStore = true;
                     }
                 }
             }
@@ -166,7 +164,6 @@ namespace AElf.Kernel.SmartContract.Domain
                     // retry versioned state in case conflict of get state during merging  
                     bestChainState = await _versionedStates.GetAsync(key);
                     value = bestChainState?.Value;
-                    isInStore = false;
                 }
             }
 
