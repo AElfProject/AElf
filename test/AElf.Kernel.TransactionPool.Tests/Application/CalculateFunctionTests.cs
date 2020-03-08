@@ -6,24 +6,26 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class CalculateFunction
     {
-        private const long Precision = 100000000L;
+        private const long Precision = 100000000;
 
-        [Fact]
-        public void PowCalculateFunction_Test()
+        [Theory]
+        [InlineData(2, 1,
+            1, 1, 1,
+            0, 1, 1)] // y = x + 1
+        [InlineData(7, 2,
+            2, 1, 1,
+            1, 1, 1,
+            0, 1, 1)] // y = x^2 + x + 1
+        [InlineData(106, 4,
+            3, 1, 1,
+            2, 2, 1,
+            0, 10, 1)] // y = x^3 + 2x^2 + 10
+        public void CalculateFunction_Test(long dependent, params int[] parameters)
         {
-            var param = new int[]{1, int.MaxValue, 100, 1, 1, 2, 5, 10};
-            var function = new CalculateFunctionFactory().GetFunction(param);
-            var cost = function(1000);
-            cost.ShouldBeGreaterThan(Precision * 1000);
-        }
-
-        [Fact]
-        public void LinerCalculateFunction_Test()
-        {
-            var param = new int[]{0, int.MaxValue, 1, 2, 5000};
-            var function = new CalculateFunctionFactory().GetFunction(param);
-            var cost = function(1000);
-            cost.ShouldBe(Precision * 1000 / 2 + 5000);
+            // parameters[0] is the independent variable.
+            var function = new CalculateFunctionFactory().GetFunction(parameters);
+            var cost = function(parameters[0]);
+            cost.ShouldBe(dependent * Precision);
         }
     }
 }

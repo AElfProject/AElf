@@ -40,7 +40,7 @@ namespace AElf.Contract.TestContract
             var cpuResult = await Acs8ContractStub.CpuConsumingMethod.SendAsync(new Empty());
             CheckResult(cpuResult.TransactionResult);
             
-            var netResult = await Acs8ContractStub.NetConsumingMethod.SendAsync(new NetConsumingMethodInput
+            var netResult = await Acs8ContractStub.TrafficConsumingMethod.SendAsync(new TrafficConsumingMethodInput
             {
                 Blob = GenerateBytes(1024)
             });

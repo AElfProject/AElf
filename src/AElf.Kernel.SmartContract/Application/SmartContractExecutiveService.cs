@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -50,7 +49,7 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractRegistrationCacheProvider = smartContractRegistrationCacheProvider;
             _smartContractExecutiveProvider = smartContractExecutiveProvider;
 
-            Logger = new NullLogger<SmartContractExecutiveService>();
+            Logger = NullLogger<SmartContractExecutiveService>.Instance;
         }
 
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -52,21 +53,23 @@ namespace AElf.Contracts.MultiToken
         {
             var feeType = input.Coefficients.FeeTokenType;
             var currentAllCoefficients = State.AllCalculateFeeCoefficients.Value;
-            // Coefficients only for this fee type.
+
+            // Get coefficients for specific fee type.
             var currentCoefficients = currentAllCoefficients.Value.SingleOrDefault(x =>
                 x.FeeTokenType == feeType);
             Assert(currentCoefficients != null, "Specific fee type not existed before.");
+
             var inputPieceCoefficientsList = input.Coefficients.PieceCoefficientsList;
+            // ReSharper disable once PossibleNullReferenceException
             var currentPieceCoefficientList = currentCoefficients.PieceCoefficientsList;
+
             var inputPieceCount = input.PieceNumbers.Count;
             Assert(inputPieceCount == inputPieceCoefficientsList.Count,
                 "Piece numbers not match.");
-            AssertInputValidOrderForPiece(input.PieceNumbers); // valid order for piece count
+
             foreach (var coefficients in inputPieceCoefficientsList)
-                AssertValidCoefficient(coefficients);
-            AssertInputValidOrderForPiece(
-                inputPieceCoefficientsList.Select(x => x.Value[1])); //valid order for piece key
-            // ReSharper disable once PossibleNullReferenceException
+                AssertCoefficientsValid(coefficients);
+
             for (var i = 0; i < inputPieceCount; i++)
             {
                 Assert(currentPieceCoefficientList.Count >= input.PieceNumbers[i],
@@ -76,15 +79,8 @@ namespace AElf.Contracts.MultiToken
                 currentPieceCoefficientList[pieceIndex] = pieceCoefficients;
             }
 
-            var startIndex = input.PieceNumbers[0].Sub(1);
-            var endIndex = input.PieceNumbers[inputPieceCount.Sub(1)];
-            if (startIndex > 0)
-                Assert(currentPieceCoefficientList[startIndex - 1].Value[1] <
-                       currentPieceCoefficientList[startIndex].Value[1]); // order piece key
+            AssertPieceUpperBoundsIsInOrder(currentPieceCoefficientList);
 
-            if (endIndex < currentPieceCoefficientList.Count - 1)
-                Assert(currentPieceCoefficientList[endIndex].Value[1] <
-                       currentPieceCoefficientList[endIndex + 1].Value[1]); // order piece key
             State.AllCalculateFeeCoefficients.Value = currentAllCoefficients;
 
             Context.Fire(new CalculateFeeAlgorithmUpdated
@@ -93,34 +89,34 @@ namespace AElf.Contracts.MultiToken
             });
         }
 
-        private void AssertInputValidOrderForPiece(IEnumerable<int> pieceList)
+        private void AssertCoefficientsValid(CalculateFeePieceCoefficients coefficients)
         {
-            var isValidOrder = true;
-            int pre = -1;
-            foreach (var pieceCount in pieceList)
+            // Assert the count should be (3n + 1), n >= 1.
+            var count = coefficients.Value.Count;
+            Assert(count > 0 && (count - 1) % 3 == 0, "Coefficients count should be (3n + 1), n >= 1.");
+
+            // Assert every unit. one [(B / C) * x ^ A] means one unit.
+            for (var i = 1; i < count; i += 3)
             {
-                if (pieceCount <= 0 || pre >= pieceCount)
-                {
-                    isValidOrder = false;
-                    break;
-                }
-
-                pre = pieceCount;
+                var power = coefficients.Value[i];
+                var divisor = coefficients.Value[i + 1];
+                var dividend = coefficients.Value[i + 2];
+                Assert(power >= 0 && divisor >= 0 && dividend > 0, "Invalid coefficient.");
             }
-
-            Assert(isValidOrder, " input invalid piece count");
         }
 
-        private void AssertValidCoefficient(CalculateFeePieceCoefficients coefficients)
+        private void AssertPieceUpperBoundsIsInOrder(
+            IReadOnlyCollection<CalculateFeePieceCoefficients> calculateFeePieceCoefficientsList)
         {
-            var count = coefficients.Value.Count;
-            Assert(count > 0 &&
-                   (count - 1) % 3 == 0, "invalid coefficient num");
-            for (var i = 1; i < count;)
+            // No same piece upper bound.
+            Assert(!calculateFeePieceCoefficientsList.GroupBy(i => i.Value[0]).Any(g => g.Count() > 1),
+                "Piece upper bounds contains same elements.");
+
+            var pieceUpperBounds = calculateFeePieceCoefficientsList.Select(l => l.Value[0]).ToList();
+            var orderedEnumerable = pieceUpperBounds.OrderBy(i => i).ToList();
+            for (var i = 0; i < calculateFeePieceCoefficientsList.Count; i++)
             {
-                Assert(coefficients.Value[i] >= 0 && coefficients.Value[i + 1] >= 0 && coefficients.Value[i + 2] > 0,
-                    "invalid coefficient");
-                i += 3;
+                Assert(pieceUpperBounds[i] == orderedEnumerable[i], "Piece upper bounds not in order.");
             }
         }
 
