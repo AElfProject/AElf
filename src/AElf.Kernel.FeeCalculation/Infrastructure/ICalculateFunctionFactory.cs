@@ -42,7 +42,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 return (long)(Precision * parameters[1] / parameters[2]); 
             if (parameters[0] == 1)
                 return (long)(Precision * count * parameters[1] / parameters[2]);
-            return (long) (Precision * (decimal)(Math.Pow (count, parameters[0])) * parameters[1]/ parameters[2]);
+            return (long) (Precision * (decimal)((Math.Pow (count, parameters[0])) / parameters[2]) * parameters[1]);
         }
     }
 }

@@ -252,9 +252,6 @@ namespace AElf.Contracts.MultiToken
                             int.MaxValue,
                             1, 1, 4, 2, 25, 16
                         }
-                        // var outcome = Precision * (decimal) Math.Pow((double) count / coefficient[5], coefficient[4]) *
-                        // coefficient[6] / coefficient[7] +
-                        // Precision * coefficient[2] * count / coefficient[3];
                     }
                 }
             };

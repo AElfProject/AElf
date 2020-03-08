@@ -10,7 +10,6 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         /// 0 - Liner function
         /// 1 - Power function
         /// </summary>
-        int[] PieceTypeArray { get; set; }
 
         Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext, IChainContext chainContext);
         void UpdatePieceWiseFunction(IList<int[]> pieceTypeArray);

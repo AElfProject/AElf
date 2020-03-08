@@ -11,6 +11,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public bool IsChangedFunctionType(IEnumerable<int> currentFunctionType)
         {
+            if (_latestUpdateFunctionType == null)
+                return true;
             return currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i]).Any();
         }
 
