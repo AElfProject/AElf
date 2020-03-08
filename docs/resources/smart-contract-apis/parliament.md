@@ -176,6 +176,12 @@ message ProposalReleaseThreshold {
     int64 maximal_abstention_threshold = 3;
     int64 minimal_vote_threshold = 4;
 }
+
+message OrganizationThresholdChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposalReleaseThreshold proposer_release_threshold = 2;
+}
 ```
 
 This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will afects all current proposals of the organization. Note: only the organization can execute this through a proposal.
@@ -186,6 +192,12 @@ This method changes the thresholds associated with proposals. All fields will be
 - **maximal abstention threshold**: the new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
+After a successful execution, a **OrganizationThresholdChanged** event log can be found in the transaction result.
+
+**OrganizationThresholdChanged**:
+- **organization_address**: the organization address.
+- **proposer_release_threshold**: the new threshold.
+
 ## **ChangeOrganizationProposerWhiteList**
 
 ```Protobuf
@@ -194,12 +206,24 @@ rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.proto
 message ProposerWhiteList {
     repeated aelf.Address proposers = 1;
 }
+
+message OrganizationWhiteListChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposerWhiteList proposer_white_list = 2;
+}
 ```
 
 This method overrides the list of whitelisted proposers.
 
 **ProposerWhiteList**:
 - **proposers**: the new value for the list.
+
+After a successful execution, a **OrganizationWhiteListChanged** event log can be found in the transaction result.
+
+**OrganizationWhiteListChanged**:
+- **organization_address**: the organization address.
+- **proposer_white_list**: the new value for the list.
 
 ## **CreateProposalBySystemContract**
 

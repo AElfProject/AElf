@@ -35,12 +35,24 @@ rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Em
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
+
+message OrganizationMemberChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    OrganizationMemberList organization_member_list = 2;
+}
 ```
 
 Changes the members of the organization. Note that this will override the current list.
 
 - **OrganizationMemberList**:
   - **organization_members**: the new members.
+
+  After a successful execution, a **OrganizationMemberChanged** event log can be found in the transaction result.
+
+**OrganizationMemberChanged**:
+- **organization_address**: the organization address.
+- **organization_member_list**: the new member list.
 
 # View methods
 
@@ -81,11 +93,12 @@ Returns the organization with the specified address.
 rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) { }
 
 message CreateProposalInput {
-    string contract_method_name = 2;
-    aelf.Address to_address = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expired_time = 5;
-    aelf.Address organization_address = 6;
+    string contract_method_name = 1;
+    aelf.Address to_address = 2;
+    bytes params = 3;
+    google.protobuf.Timestamp expired_time = 4;
+    aelf.Address organization_address = 5;
+    string proposal_description_url = 6
 }
 ```
 
@@ -98,6 +111,7 @@ This method creates a proposal for which organization members can vote. When the
 - **to address**: the address of the contract to call after release.
 - **expiration**: the date at which this proposal will expire.
 - **organization address**: the address of the organization.
+- **proposal_description_url**: the url is used for describing the porposl.
 
 ## **Reject**
 
@@ -140,6 +154,12 @@ message ProposalReleaseThreshold {
     int64 maximal_abstention_threshold = 3;
     int64 minimal_vote_threshold = 4;
 }
+
+message OrganizationThresholdChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposalReleaseThreshold proposer_release_threshold = 2;
+}
 ```
 
 This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will afects all current proposals of the organization. Note: only the organization can execute this through a proposal.
@@ -150,6 +170,12 @@ This method changes the thresholds associated with proposals. All fields will be
 - **maximal abstention threshold**: he new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
+After a successful execution, a **OrganizationThresholdChanged** event log can be found in the transaction result.
+
+**OrganizationThresholdChanged**:
+- **organization_address**: the organization address.
+- **proposer_release_threshold**: the new threshold.
+
 ## **ChangeOrganizationProposerWhiteList**
 
 ```Protobuf
@@ -158,12 +184,24 @@ rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.proto
 message ProposerWhiteList {
     repeated aelf.Address proposers = 1;
 }
+
+message OrganizationWhiteListChanged{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+    ProposerWhiteList proposer_white_list = 2;
+}
 ```
 
 This method overrides the list of whitelisted proposers.
 
 **ProposerWhiteList**:
 - **proposers**: the new value for the list.
+
+After a successful execution, a **OrganizationWhiteListChanged** event log can be found in the transaction result.
+
+**OrganizationWhiteListChanged**:
+- **organization_address**: the organization address.
+- **proposer_white_list**: the new value for the list.
 
 ## **CreateProposalBySystemContract**
 
@@ -185,6 +223,7 @@ Used by system contracts to create proposals.
   - **to address**: the address of the contract to call after release.
   - **expiration**: the date at which this proposal will expire.
   - **organization address**: the address of the organization.
+  - **proposal_description_url**: the url is used for describing the porposl.
 - **origin proposer**: the actor that trigger the call.
 - **proposal id feedback method**: the feedback method, called by inline transaction after creating the proposal.
 
