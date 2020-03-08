@@ -8,15 +8,15 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     internal abstract class TokenFeeProviderBase
     {
-        private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
+        private readonly ICoefficientsProvider _coefficientsProvider;
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
         private readonly int _tokenType;
         protected PieceCalculateFunction PieceCalculateFunction;
 
-        protected TokenFeeProviderBase(ICoefficientsCacheProvider coefficientsCacheProvider,
+        protected TokenFeeProviderBase(ICoefficientsProvider coefficientsProvider,
             ICalculateFunctionProvider calculateFunctionProvider, int tokenType)
         {
-            _coefficientsCacheProvider = coefficientsCacheProvider;
+            _coefficientsProvider = coefficientsProvider;
             _calculateFunctionProvider = calculateFunctionProvider;
             _tokenType = tokenType;
             PieceCalculateFunction = new PieceCalculateFunction();
@@ -26,7 +26,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             IChainContext chainContext)
         {
             var coefficients =
-                await _coefficientsCacheProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
+                await _coefficientsProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
             // First number of each piece coefficients is its piece type.
             var pieceTypeArray = coefficients.SelectMany(a => a);
             if (PieceCalculateFunction.IsChangedFunctionType(pieceTypeArray))

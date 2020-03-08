@@ -23,12 +23,6 @@ namespace AElf.Kernel.FeeCalculation
             services
                 .AddSingleton<IBlockAcceptedLogEventProcessor,
                     TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
-
-            // To make sure instances of interfaces ICoefficientsCacheProvider and ISyncCacheProvider
-            // will be exactly the same instance.
-            services.AddSingleton<ICoefficientsCacheProvider, CoefficientsCacheProvider>();
-            services.AddSingleton<ISyncCacheProvider>(provider =>
-                provider.GetRequiredService<ICoefficientsCacheProvider>());
         }
     }
 }

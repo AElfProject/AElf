@@ -21,7 +21,6 @@ namespace AElf.Kernel
         private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ISyncCacheService _syncCacheService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
@@ -30,8 +29,7 @@ namespace AElf.Kernel
             ITransactionBlockIndexService transactionBlockIndexService, 
             IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
-            ISmartContractExecutiveService smartContractExecutiveService,
-            ISyncCacheService syncCacheService)
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
@@ -40,7 +38,6 @@ namespace AElf.Kernel
             _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _syncCacheService = syncCacheService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -78,11 +75,6 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _syncCacheService.SyncCacheAsync(new ChainContext
-                        {
-                            BlockHash = irreversibleBlockHash,
-                            BlockHeight = irreversibleBlockHeight
-                        });
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);

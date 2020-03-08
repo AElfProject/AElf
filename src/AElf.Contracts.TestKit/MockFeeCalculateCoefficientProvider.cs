@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.FeeCalculation.Infrastructure;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
 {
-    public class MockFeeCalculateCoefficientProvider : ICoefficientsCacheProvider, ISingletonDependency
+    public class MockFeeCalculateCoefficientProvider : ICoefficientsProvider, ISingletonDependency
     {
         private enum FeeTypeEnum
         {
@@ -17,11 +19,11 @@ namespace AElf.Contracts.TestKit
             Tx = 4,
         }
 
-        private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
+        private readonly Dictionary<int, List<int[]>> _coefficientsDicCache;
 
         public MockFeeCalculateCoefficientProvider()
         {
-            _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
+            _coefficientsDicCache = new Dictionary<int, List<int[]>>();
             var txCoefficient = new List<int[]>
             {
                 new[] {1000000, 1, 1, 800, 0, 10000, 100000000},
@@ -55,16 +57,12 @@ namespace AElf.Contracts.TestKit
             _coefficientsDicCache[(int) FeeTypeEnum.Traffic] = trafficCoefficient;
         }
 
-        public Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
+        public Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
             return Task.FromResult(_coefficientsDicCache[tokenType]);
         }
 
-        public void UpdateLatestModifiedHeight(long height)
-        {
-        }
-
-        public Task SyncCacheAsync(IChainContext chainContext)
+        public Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
         {
             return Task.CompletedTask;
         }

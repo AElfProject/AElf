@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
-            context.Services.AddSingleton<ICoefficientsCacheProvider, MockFeeCalculateCoefficientProvider>();
+            context.Services.AddSingleton<ICoefficientsProvider, MockFeeCalculateCoefficientProvider>();
         }
     }
 }

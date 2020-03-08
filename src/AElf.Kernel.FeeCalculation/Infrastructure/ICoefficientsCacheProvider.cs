@@ -3,80 +3,51 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    public interface ICoefficientsCacheProvider : ISyncCacheProvider
+    public interface ICoefficientsProvider
     {
-        Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
-        void UpdateLatestModifiedHeight(long height);
+        Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
+        Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients);
     }
 
-    public class CoefficientsCacheProvider : ICoefficientsCacheProvider
+    public class CoefficientsProvider : BlockExecutedDataProvider, ICoefficientsProvider, ISingletonDependency
     {
-        private readonly IBlockchainStateService _blockChainStateService;
-        private readonly Dictionary<int, IList<int[]>> _coefficientsDicCache;
-        private long _latestModifiedHeight;
+        private const string BlockExecutedDataName = nameof(AllCalculateFeeCoefficients);
+        
+        private readonly ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients>
+            _cachedBlockchainExecutedDataService;
 
-        public CoefficientsCacheProvider(IBlockchainStateService blockChainStateService)
+        public CoefficientsProvider(
+            ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients> cachedBlockchainExecutedDataService)
         {
-            _blockChainStateService = blockChainStateService;
-            _coefficientsDicCache = new Dictionary<int, IList<int[]>>();
-            _latestModifiedHeight = 0;
+            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
-        public async Task<IList<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
-        {
-            if (_latestModifiedHeight == 0)
-            {
-                if (_coefficientsDicCache.TryGetValue(tokenType, out var coefficientsInCache))
-                    return coefficientsInCache;
-                coefficientsInCache = await GetFromBlockChainStateAsync(tokenType, chainContext);
-                _coefficientsDicCache[tokenType] = coefficientsInCache;
-                return coefficientsInCache;
-            }
-
-            return await GetFromBlockChainStateAsync(tokenType, chainContext);
-        }
-
-        public void UpdateLatestModifiedHeight(long height)
-        {
-            _latestModifiedHeight = height;
-        }
-
-        public async Task SyncCacheAsync(IChainContext chainContext)
-        {
-            var currentLibHeight = chainContext.BlockHeight;
-            if (_latestModifiedHeight <= currentLibHeight)
-            {
-                var allCalculateFeeCoefficients =
-                    await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(chainContext);
-                var tokenTypeList = _coefficientsDicCache.Select(x => x.Key).ToArray();
-                foreach (var tokenType in tokenTypeList)
-                {
-                    var targetTokeData =
-                        allCalculateFeeCoefficients.Value.FirstOrDefault(x => x.FeeTokenType == tokenType);
-                    if (targetTokeData == null) continue;
-                    _coefficientsDicCache[tokenType] = targetTokeData.PieceCoefficientsList.AsEnumerable()
-                        .Select(x => x.Value.ToArray()).ToList();
-                }
-
-                _latestModifiedHeight = 0;
-            }
-        }
-
-        private async Task<IList<int[]>> GetFromBlockChainStateAsync(int tokenType, IChainContext chainContext)
+        public Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
         {
             var allCalculateFeeCoefficients =
-                await _blockChainStateService.GetBlockExecutedDataAsync<AllCalculateFeeCoefficients>(
-                    chainContext);
+                _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, GetBlockExecutedDataKey());
             var targetTokeData =
                 allCalculateFeeCoefficients.Value.SingleOrDefault(x => x.FeeTokenType == tokenType);
-            if (targetTokeData == null) return new List<int[]>();
+            if (targetTokeData == null) return Task.FromResult(new List<int[]>());
             var coefficientsArray = targetTokeData.PieceCoefficientsList.AsEnumerable()
                 .Select(x =>  x.Value.ToArray()).ToList();
-            return coefficientsArray;
+            return Task.FromResult(coefficientsArray);
+        }
+
+        public async Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
+        {
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, GetBlockExecutedDataKey(),
+                allCalculateFeeCoefficients);
+        }
+
+        protected override string GetBlockExecutedDataName()
+        {
+            return BlockExecutedDataName;
         }
     }
 }

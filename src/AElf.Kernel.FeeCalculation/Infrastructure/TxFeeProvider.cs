@@ -6,9 +6,9 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     internal class TxFeeProvider : TokenFeeProviderBase, IPrimaryTokenFeeProvider, ITransientDependency
     {
-        public TxFeeProvider(ICoefficientsCacheProvider coefficientsCacheProvider,
+        public TxFeeProvider(ICoefficientsProvider coefficientsProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsCacheProvider, calculateFunctionProvider, (int) FeeTypeEnum.Tx)
+            coefficientsProvider, calculateFunctionProvider, (int) FeeTypeEnum.Tx)
         {
 
         }

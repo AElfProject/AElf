@@ -13,8 +13,7 @@ namespace AElf.Kernel.FeeCalculation.Application
     public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockchainStateService _blockChainStateService;
-        private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
+        private readonly ICoefficientsProvider _coefficientsProvider;
 
         private LogEvent _interestedEvent;
 
@@ -38,12 +37,10 @@ namespace AElf.Kernel.FeeCalculation.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
-            IBlockchainStateService blockChainStateService,
-            ICoefficientsCacheProvider coefficientsCacheProvider)
+            ICoefficientsProvider coefficientsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _blockChainStateService = blockChainStateService;
-            _coefficientsCacheProvider = coefficientsCacheProvider;
+            _coefficientsProvider = coefficientsProvider;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
@@ -51,9 +48,7 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _blockChainStateService.AddBlockExecutedDataAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
-            if (block.Height > 1)
-                _coefficientsCacheProvider.UpdateLatestModifiedHeight(block.Height);
+            await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
         }
     }
 }
