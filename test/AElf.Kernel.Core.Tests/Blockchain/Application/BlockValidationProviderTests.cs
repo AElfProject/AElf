@@ -151,7 +151,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 transaction
             });
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {transaction.GetHash()},
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {transaction.GetHash()},
                 new BlockIndex
                 {
                     BlockHash = block.GetHash(),
@@ -180,7 +180,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     transaction
                 });
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {transaction.GetHash()},
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {transaction.GetHash()},
                 new BlockIndex
                 {
                     BlockHash = block.GetHash(),
