@@ -206,7 +206,8 @@ namespace AElf.Contracts.TokenHolder
                     TokenHolderContractAddress
                 }
             });
-
+            tokenContractCallList.Add(nameof(TokenContract.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = TokenHolderContractTestConstants.NativeTokenSymbol,
