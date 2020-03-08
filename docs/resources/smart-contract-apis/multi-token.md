@@ -266,6 +266,179 @@ This method is used on the destination chain for receiving tokens after a **Tran
 - **transfer_transaction_bytes** the raw bytes of the transfer transaction.
 - **merkle_path** the merkle path created from the transfer transaction. 
 
+### **SetSymbolsToPayTxSizeFee**
+
+```Proto
+
+rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+}
+
+message SymbolListToPayTxSizeFee{
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 1;
+}
+
+message SymbolToPayTxSizeFee{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}
+```
+This action sets available tokens that can be used to pay for transaction fee.
+
+- **symbols_to_pay_tx_size_fee** available token list
+  - **token_symbol** token symbol.
+  - **base_token_weight** it is fixed to primary token.  
+  - **added_token_weight**  if base_token_weight set to 1 and added_token_weight set to 10, it will cost 10 this token instead of primary token.
+
+### **UpdateCoefficientsForContract**
+
+``` Proto
+message UpdateCoefficientsInput {
+    repeated sint32 piece_numbers = 1;// To specify pieces gonna update.
+    CalculateFeeCoefficients coefficients = 2;
+}
+
+message CalculateFeeCoefficients {
+    sint32 fee_token_type = 1;
+    repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
+}
+
+message CalculateFeePieceCoefficients {
+    repeated sint32 value = 1;
+}
+
+enum FeeTypeEnum {
+    READ = 0;
+    STORAGE = 1;
+    WRITE = 2;
+    TRAFFIC = 3;
+    TX = 4;
+}
+```
+
+This action sets functions used to calculate resource token fee.
+
+- **fee_token_type** resource fee type (exclude TX).
+- **piece_coefficients_list** it is a coefficients array
+  - **value** it is a int array. its first element indicates its piece key. other every three consecutive elements indicates a function, like (2, 1, 1) means (1/1) * x^2.
+
+### **UpdateCoefficientsForSender**
+
+``` Proto
+rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+}
+
+message UpdateCoefficientsInput {
+    repeated sint32 piece_numbers = 1;// To specify pieces gonna update.
+    CalculateFeeCoefficients coefficients = 2;
+}
+
+message CalculateFeePieceCoefficients {
+    repeated sint32 value = 1;
+}
+```
+
+This action sets functions used to calculate transaction fee.
+
+note: *for CalculateFeeCoefficients see UpdateCoefficientsForContract*
+
+### **AdvanceResourceToken**
+
+``` Proto
+rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+}
+
+message AdvanceResourceTokenInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+```
+
+This action transfer resource token to designated contract address.
+
+- **contract_address** the contract address.
+- **resource_token_symbol** resource token symbol.
+- **amount** the amount of tokens.
+
+### **TakeResourceTokenBack**
+
+``` Proto
+rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+}
+
+message TakeResourceTokenBackInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+```
+
+This method takes token from contract address
+
+- **contract_address** the contract address.
+- **resource_token_symbol** resource token symbol.
+- **amount** the amount of tokens.
+
+### **ValidateTokenInfoExists**
+
+``` Proto
+rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
+}
+
+message ValidateTokenInfoExistsInput{
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    sint32 issue_chain_id = 7;
+    bool is_profitable = 8;
+}
+```
+
+This method validate if the token exist.
+
+- **symbol** the token symbol.
+- **token_name** the token name.
+- **total_supply**  total supply of the token.
+- **decimals** decimals.
+- **issuer** the token issuer.
+- **is_burnable** indicates if the token is burnable.
+- **issue_chain_id** issue chain id.
+- **is_profitable** indicates if the token is profitable.
+
+### **TransferToContract**
+
+``` Proto
+rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+}
+
+message TransferToContractInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+}
+```
+
+This method transfer token to token address.
+
+- **symbol** the token symbol.
+- **amount** amount.
+- **memo** transfer memo.
+
+### **InitializeAuthorizedController**
+
+``` Proto
+rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+}
+```
+
+This method initialize controllers for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Besides, if the current chain is side chain, it will create a controller for managinig chain rental. 
+
+
+
 ## View methods
 
 ### **GetTokenInfo**
@@ -467,22 +640,15 @@ This view method return the primary token symbol if it's set. If not, returns th
 ### **GetCalculateFeeCoefficientOfContract**
 
 ``` Proto
-rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) { }
+rpc GetCalculateFeeCoefficientForContract (aelf.SInt32Value) returns (CalculateFeeCoefficients) { }
 
-message CalculateFeeCoefficientsOfType {
-    repeated CalculateFeeCoefficient coefficients = 1;
+message CalculateFeeCoefficients {
+    sint32 fee_token_type = 1;
+    repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
 }
 
-message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
-}
-
-enum CalculateFunctionTypeEnum {
-    LINER = 0;
-    POWER = 1;
+message CalculateFeePieceCoefficients {
+    repeated sint32 value = 1;
 }
 
 enum FeeTypeEnum {
@@ -494,20 +660,157 @@ enum FeeTypeEnum {
 }
 ```
 
+This view method returns resource tokens fee's calculation function.
+
 Input
-- **coefficients**
-  - **piece_key**
-  - **fee_type**
-  - **function_type**
-  - **coefficient_dic**
+resource fee type.
 
 Output
+note: *for CalculateFeeCoefficients see UpdateCoefficientsForContract*
+
 
 ### **GetCalculateFeeCoefficientOfSender**
 
 ``` Proto
-rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) { }
+rpc GetCalculateFeeCoefficientForSender (google.protobuf.Empty) returns (CalculateFeeCoefficients) { }
 
 ```
 
-note: *for CalculateFeeCoefficientsOfType see GetCalculateFeeCoefficientOfContract*
+This view method returns transaction fee's calculation function.
+
+note: *for CalculateFeeCoefficients see GetCalculateFeeCoefficientForContract*
+
+### **GetSymbolsToPayTxSizeFee**
+
+``` Proto
+rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
+    option (aelf.is_view) = true;
+}
+
+message SymbolListToPayTxSizeFee{
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 1;
+}
+
+message SymbolToPayTxSizeFee{
+    string token_symbol = 1;
+    sint32 base_token_weight = 2;
+    sint32 added_token_weight = 3;
+}
+
+```
+
+This method returns available tokens that can be used to pay for transaction fee.
+
+note: *for SymbolListToPayTxSizeFee see SetSymbolsToPayTxSizeFee*
+
+### **GetDeveloperFeeController**
+
+``` Proto
+rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
+}
+
+message DeveloperFeeController {
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo developer_controller = 3;
+}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+This method returns controller for UpdateCoefficientsForContract. The root address consists originally of default parliament organization, developer organization. The type of root contoller and developer controller is Assocation  
+
+- **root_controller** root controller information.
+- **parliament_controller** parliament controller information.
+- **developer_controller** developer controller information.
+ - **contract_address** in which contract the organization is created.
+ - **owner_address** organization address
+
+### **GetUserFeeController**
+
+``` Proto
+rpc GetUserFeeController (google.protobuf.Empty) returns (UserFeeController) {
+}
+
+message UserFeeController{
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo referendum_controller = 3;
+}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+This method returns controller for UpdateCoefficientsForSender. The root address consists originally of default parliament organization, referendum organization. The type of root contoller and developer controller is Assocation
+
+- **root_controller** root controller information.
+- **parliament_controller** parliament controller information.
+- **referendum_controller** referndum controller information.
+ - **contract_address** in which contract the organization is created.
+ - **owner_address** organization address
+
+### **GetSideChainRentalControllerCreateInfo**
+
+``` Proto
+rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+}
+
+message ControllerCreateInfo {
+    aelf.Address controller = 1;
+    bytes organization_creation_input_bytes = 2;
+}
+```
+
+- **controller** the controller address.
+- **organization_creation_input_bytes** if the controller's organization does not initialize, you can use this as parameter to create it using CreateOrganization in Associate contract.
+
+### **GetResourceUsage**
+
+``` Proto
+rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
+}
+
+message ResourceUsage {
+    map<string, sint32> value = 1;
+}
+```
+
+This method is used in side chain. It returns how much resouces token count should be paid at the moment.
+
+- **value** resource token symbol => amount.
+
+### **GetOwningRental**
+
+``` Proto
+rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+}
+
+message OwningRental {
+    map<string, sint64> resource_amount = 1;
+}
+```
+
+This method is used in side chain. It returns how much resouces token (count * value) should be paid at the moment.
+
+- **resource_amount** resource token symbol => amount.
+
+### **GetOwningRentalUnitValue**
+
+``` Proto
+rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+}
+
+message OwningRentalUnitValue {
+    map<string, sint64> resource_unit_value = 1;
+}
+```
+
+This method is used in side chain. It returns resouces token' unit value. (pay = unit value * amount)
+
+- **resource_unit_value** resource token symbol => unit value.
