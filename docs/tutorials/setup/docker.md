@@ -48,6 +48,6 @@ You now should have a node that's running, to check this open the browser and en
 http://your-ip:8000/swagger/index.html
 ```
 
-The ip should be the same as the one you provided for Redis.
+The ip should be localhost if you browser is local.
 
 From here you can try out any of the available API commands on the Swagger page.
