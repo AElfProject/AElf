@@ -12,7 +12,7 @@ namespace AElf.Kernel.FeeCalculation
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<ICalculateFunctionFactory, CalculateFunctionFactory>();
+            services.AddSingleton<ICalculateFunctionProvider, CalculateFunctionProvider>();
             services.AddSingleton<IPrimaryTokenFeeProvider, TxFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, ReadFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, StorageFeeProvider>();

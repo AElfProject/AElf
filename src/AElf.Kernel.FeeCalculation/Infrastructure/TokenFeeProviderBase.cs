@@ -9,15 +9,15 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     internal abstract class TokenFeeProviderBase
     {
         private readonly ICoefficientsCacheProvider _coefficientsCacheProvider;
-        private readonly ICalculateFunctionFactory _calculateFunctionFactory;
+        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
         private readonly int _tokenType;
         protected PieceCalculateFunction PieceCalculateFunction;
 
         protected TokenFeeProviderBase(ICoefficientsCacheProvider coefficientsCacheProvider,
-            ICalculateFunctionFactory calculateFunctionFactory, int tokenType)
+            ICalculateFunctionProvider calculateFunctionProvider, int tokenType)
         {
             _coefficientsCacheProvider = coefficientsCacheProvider;
-            _calculateFunctionFactory = calculateFunctionFactory;
+            _calculateFunctionProvider = calculateFunctionProvider;
             _tokenType = tokenType;
             PieceCalculateFunction = new PieceCalculateFunction();
         }
@@ -45,7 +45,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             foreach (var pieceCoefficients in pieceTypeList)
             {
                 if((pieceCoefficients.Length - 1) % 3 == 0)
-                    PieceCalculateFunction.AddFunction(pieceCoefficients, _calculateFunctionFactory.GetFunction(pieceCoefficients));
+                    PieceCalculateFunction.AddFunction(pieceCoefficients, _calculateFunctionProvider.GetFunction(pieceCoefficients));
             }
         }
 

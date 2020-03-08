@@ -8,20 +8,20 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// <summary>
     /// To provide basic function for piece-wise function.
     /// </summary>
-    public interface ICalculateFunctionFactory
+    public interface ICalculateFunctionProvider
     {
         Func<int, long> GetFunction(int[] parameters);
     }
 
-    public class CalculateFunctionFactory : ICalculateFunctionFactory, ISingletonDependency
+    public class CalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
     {
-        public ILogger<CalculateFunctionFactory> Logger { get; set; }
+        public ILogger<CalculateFunctionProvider> Logger { get; set; }
 
         private const decimal Precision = 100000000;
 
-        public CalculateFunctionFactory()
+        public CalculateFunctionProvider()
         {
-            Logger = NullLogger<CalculateFunctionFactory>.Instance;
+            Logger = NullLogger<CalculateFunctionProvider>.Instance;
         }
 
         public Func<int, long> GetFunction(int[] parameters)

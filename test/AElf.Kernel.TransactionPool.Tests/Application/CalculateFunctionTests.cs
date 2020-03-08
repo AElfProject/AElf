@@ -23,7 +23,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public void CalculateFunction_Test(long dependent, params int[] parameters)
         {
             // parameters[0] is the independent variable.
-            var function = new CalculateFunctionFactory().GetFunction(parameters);
+            var function = new CalculateFunctionProvider().GetFunction(parameters);
             var cost = function(parameters[0]);
             cost.ShouldBe(dependent * Precision);
         }
