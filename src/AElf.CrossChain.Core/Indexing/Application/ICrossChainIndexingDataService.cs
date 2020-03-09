@@ -3,6 +3,7 @@ using Acs7;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -14,6 +15,8 @@ namespace AElf.CrossChain.Indexing.Application
 
         Task<CrossChainTransactionInput> GetCrossChainTransactionInputForNextMiningAsync(Hash blockHash,
             long blockHeight);
+
+        Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp);
 
         Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight);
 
