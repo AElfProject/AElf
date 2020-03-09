@@ -48,7 +48,7 @@ namespace AElf.Contracts.Economic.TestBase
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
-            //var rd = new Random(Guid.NewGuid().GetHashCode()); //in order to generate unique system tx use random actual mining time
+            
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
                 OutValue = minerInRound.OutValue,
