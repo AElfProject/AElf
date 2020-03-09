@@ -373,64 +373,71 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
-            if (trace.ExecutionStatus == ExecutionStatus.Undefined)
+            if (!trace.IsSuccessful())
             {
-                return new TransactionResult
+                if (trace.ExecutionStatus == ExecutionStatus.Undefined)
                 {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    BlockNumber = blockHeight,
-                    Error = ExecutionStatus.Undefined.ToString()
-                };
-            }
+                    // Cannot find specific contract method.
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Unexecutable,
+                        BlockNumber = blockHeight,
+                        Error = ExecutionStatus.Undefined.ToString()
+                    };
+                }
 
-            if (!trace.IsSuccessful() && trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed))
-            {
+                // Show log events if pre-txs executed successfully.
+                var isContainLogEvents = trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed);
+
+                if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
+                {
+                    if (isContainLogEvents)
+                    {
+                        // All pre-txs succeeded, but one plugin stopped tx execution.
+                        // Need to add log events to tx result, as well as show the error message in this situation.
+                        return new TransactionResult
+                        {
+                            TransactionId = trace.TransactionId,
+                            Status = TransactionResultStatus.Failed,
+                            ReturnValue = trace.ReturnValue,
+                            BlockNumber = blockHeight,
+                            Logs = {trace.FlattenedLogs},
+                            Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
+                        };
+                    }
+
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Unexecutable,
+                        BlockNumber = blockHeight,
+                        Error = trace.Error
+                    };
+                }
+
+                // Just failed.
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Failed,
-                    ReturnValue = trace.ReturnValue,
                     BlockNumber = blockHeight,
-                    Logs = {trace.FlattenedLogs},
-                    Error = ExecutionStatus.Prefailed.ToString()
+                    Error = trace.Error,
+                    Logs = {isContainLogEvents ? trace.FlattenedLogs : new List<LogEvent>()}
                 };
             }
 
-            if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
-            {
-                return new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    BlockNumber = blockHeight,
-                    Error = trace.Error
-                };
-            }
-
-            if (trace.IsSuccessful())
-            {
-                var txRes = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Mined,
-                    ReturnValue = trace.ReturnValue,
-                    BlockNumber = blockHeight,
-                    Logs = {trace.FlattenedLogs}
-                };
-
-                txRes.UpdateBloom();
-
-                return txRes;
-            }
-
-            return new TransactionResult
+            // Is successful.
+            var txRes = new TransactionResult
             {
                 TransactionId = trace.TransactionId,
-                Status = TransactionResultStatus.Failed,
+                Status = TransactionResultStatus.Mined,
+                ReturnValue = trace.ReturnValue,
                 BlockNumber = blockHeight,
-                Error = trace.Error
+                Logs = {trace.FlattenedLogs}
             };
+            txRes.UpdateBloom();
+            return txRes;
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)

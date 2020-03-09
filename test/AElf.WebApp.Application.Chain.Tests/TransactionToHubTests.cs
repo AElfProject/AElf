@@ -58,7 +58,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var transactionResult = await QueryTransactionResultAsync(transactionId);
                 Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
                 status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldBe(ExecutionStatus.Prefailed.ToString());
+                transactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
             }
 
             //bp user with token - Mined
