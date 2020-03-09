@@ -30,30 +30,4 @@ namespace AElf.Kernel.SmartContract
             });
         }
     }
-
-    [DependsOn(
-        typeof(SmartContractRunnerTestAElfModule))]
-    public class SmartContractInnerTransactionRunnerTestModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-            services.AddSingleton(p =>
-            {
-                var smartContractService = new Mock<ISmartContractAddressService>();
-                smartContractService.Setup(o =>
-                        o.GetAddressByContractName(It.Is<Hash>(hash =>
-                            hash == TokenSmartContractAddressNameProvider.Name)))
-                    .Returns(SampleAddress.AddressList[0]);
-                smartContractService.Setup(o =>
-                        o.GetAddressByContractName(It.Is<Hash>(hash =>
-                            hash != TokenSmartContractAddressNameProvider.Name)))
-                    .Returns(SampleAddress.AddressList[1]);
-
-                return smartContractService.Object;
-            });
-
-            services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
-        }
-    }
 }
