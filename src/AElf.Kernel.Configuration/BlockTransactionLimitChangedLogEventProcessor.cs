@@ -4,6 +4,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -44,13 +45,13 @@ namespace AElf.Kernel.Configuration
 
         public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new ConfigurationSet();
-            eventData.MergeFrom(logEvent);
+            var configurationSet = new ConfigurationSet();
+            configurationSet.MergeFrom(logEvent);
 
-            if (eventData.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
+            if (configurationSet.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
 
-            var limit = new BlockTransactionLimit();
-            limit.MergeFrom(eventData.Value.ToByteArray());
+            var limit = new Int32Value();
+            limit.MergeFrom(configurationSet.Value.ToByteArray());
             if (limit.Value < 0) return;
             await _blockTransactionLimitProvider.SetLimitAsync(block.GetHash(), limit.Value);
 

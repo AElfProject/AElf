@@ -102,7 +102,13 @@ namespace AElf.Kernel.Configuration.Tests
                 limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
                 Assert.Equal(0, limit.Value);
             }
-            await _parliamentContractStub.Release.SendAsync(proposalId);
+
+            var txResult = await _parliamentContractStub.Release.SendAsync(proposalId);
+            var configurationSet = ConfigurationSet.Parser.ParseFrom(txResult.TransactionResult.Logs
+                .First(l => l.Name == nameof(ConfigurationSet)).NonIndexed);
+            var limitFromLogEvent = new Int32Value();
+            limitFromLogEvent.MergeFrom(configurationSet.Value.ToByteArray());
+            Assert.Equal(limitFromLogEvent.Value, targetLimit);
 
             // After
             {
