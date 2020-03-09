@@ -50,7 +50,7 @@ namespace AElf.Kernel.Configuration
             if (eventData.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
 
             var limit = new BlockTransactionLimit();
-            limit.MergeFrom(eventData.Value);
+            limit.MergeFrom(eventData.Value.ToByteArray());
             if (limit.Value < 0) return;
             await _blockTransactionLimitProvider.SetLimitAsync(block.GetHash(), limit.Value);
 
