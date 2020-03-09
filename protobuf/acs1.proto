@@ -38,11 +38,6 @@ message MethodFee {
     sint64 basic_fee = 2;
 }
 
-message TransactionFee {
-    map<string, sint64> value = 1;// symbol -> amount
-    bool is_failed_to_charge = 2;
-}
-
 // Events
 message MethodFeeSet {
     option (aelf.is_event) = true;

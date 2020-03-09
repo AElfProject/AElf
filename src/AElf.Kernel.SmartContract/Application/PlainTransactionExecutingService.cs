@@ -423,7 +423,7 @@ namespace AElf.Kernel.SmartContract.Application
                     Status = TransactionResultStatus.Failed,
                     BlockNumber = blockHeight,
                     Error = trace.Error,
-                    Logs = {isContainLogEvents ? trace.FlattenedLogs : new List<LogEvent>()}
+                    Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
                 };
             }
 
