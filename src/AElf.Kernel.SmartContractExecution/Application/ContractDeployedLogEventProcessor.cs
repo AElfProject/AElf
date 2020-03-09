@@ -13,6 +13,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         private LogEvent _interestedEvent;
 
@@ -35,11 +36,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
         
         public ContractDeployedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ISmartContractRegistrationProvider smartContractRegistrationProvider,
-            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider)
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider, 
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractAddressService = smartContractAddressService;
             _smartContractRegistrationProvider = smartContractRegistrationProvider;
             _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
+            _smartContractExecutiveService = smartContractExecutiveService;
 
             Logger = NullLogger<ContractDeployedLogEventProcessor>.Instance;
         }
@@ -61,6 +64,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             }, eventData.Address, smartContractRegistration);
+            if (block.Height > Constants.GenesisBlockHeight)
+                _smartContractExecutiveService.CleanExecutive(eventData.Address);
             Logger.LogDebug($"Deployed contract {eventData}");
         }
     }
