@@ -59,7 +59,7 @@ service TokenContract {
     // acs8
     rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.BoolValue) {
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }

@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
         public bool IsStopExecuting(ByteString txReturnValue)
         {
-            return BoolValue.Parser.ParseFrom(txReturnValue).Value;
+            return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,

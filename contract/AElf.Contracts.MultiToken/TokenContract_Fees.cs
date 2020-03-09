@@ -26,7 +26,7 @@ namespace AElf.Contracts.MultiToken
             // Primary token not created yet.
             if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                return new BoolValue();
+                return new BoolValue {Value = true};
             }
 
             // Record tx fee bill during current charging process.
@@ -58,7 +58,7 @@ namespace AElf.Contracts.MultiToken
                 });
             }
 
-            return new BoolValue {Value = !successToChargeBaseFee || !successToChargeSizeFee};
+            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -154,13 +154,12 @@ namespace AElf.Contracts.MultiToken
             return availableBalance >= txSizeFeeAmount;
         }
 
-        public override BoolValue ChargeResourceToken(ChargeResourceTokenInput input)
+        public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
-            var isChargeWithoutDebt = new BoolValue {Value = true};
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
-                return isChargeWithoutDebt;
+                return new Empty();
             }
 
             var symbolToAmount = new Dictionary<string, long>
@@ -183,7 +182,6 @@ namespace AElf.Contracts.MultiToken
                     var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
                         .Add(pair.Value.Sub(existingBalance));
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
-                    isChargeWithoutDebt.Value = false;
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                     Context.Fire(new ResourceTokenOwned
                     {
@@ -208,7 +206,7 @@ namespace AElf.Contracts.MultiToken
                 });
             }
 
-            return isChargeWithoutDebt;
+            return new Empty();
         }
 
 
