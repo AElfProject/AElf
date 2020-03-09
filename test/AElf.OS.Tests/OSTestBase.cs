@@ -30,11 +30,11 @@ namespace AElf.OS
         
     }
 
-    public class BlockSyncBadPeerTestBase : AElfIntegratedTest<BlockSyncBadPeerTestAElfModule>
+    public class BlockSyncAbnormalPeerTestBase : AElfIntegratedTest<BlockSyncAbnormalPeerTestAElfModule>
     {
     }
     
-    public class BlockSyncAttachBlockBadPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockBadPeerTestAElfModule>
+    public class BlockSyncAttachBlockAbnormalPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockAbnormalPeerTestAElfModule>
     {
     }
 }
