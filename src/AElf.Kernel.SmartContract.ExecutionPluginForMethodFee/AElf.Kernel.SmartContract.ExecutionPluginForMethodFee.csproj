@@ -6,6 +6,7 @@
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForMethodFee</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 1 execution plugin.</Description>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
