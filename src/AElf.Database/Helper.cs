@@ -2,6 +2,7 @@
 
 namespace AElf.Database
 {
+    //TODO: rename
     public static class Helper
     {
         public static int Memchr(byte[] bs, byte b, int offset)

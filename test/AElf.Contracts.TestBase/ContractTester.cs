@@ -63,6 +63,7 @@ namespace AElf.Contracts.TestBase
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<TContractTestAElfModule>());
 
+        //TODO: use a util method
         public byte[] ConsensusContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
 
