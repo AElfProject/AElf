@@ -53,8 +53,13 @@ namespace AElf.Contracts.TokenConverter
         public async Task View_Test()
         {
             await InitializeTokenConverterContract();
+            
+            //GetBaseSymbol
+            var baseSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
+            baseSymbol.Symbol.ShouldBe("ELF");
+            
             //GetConnector
-            var ramConnectorInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol()
+            var ramConnectorInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol
             {
                 Symbol = WriteConnector.Symbol
             })).ResourceConnector;
@@ -63,7 +68,14 @@ namespace AElf.Contracts.TokenConverter
             ramConnectorInfo.VirtualBalance.ShouldBe(WriteConnector.VirtualBalance);
             ramConnectorInfo.IsPurchaseEnabled.ShouldBe(WriteConnector.IsPurchaseEnabled);
             ramConnectorInfo.IsVirtualBalanceEnabled.ShouldBe(WriteConnector.IsVirtualBalanceEnabled);
-
+            
+            //query with deposit token symbol
+            var depositConnectorInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol
+            {
+                Symbol = $"NT{WriteConnector.Symbol}" 
+            })).ResourceConnector;
+            ramConnectorInfo.ShouldBe(depositConnectorInfo);
+            
             //GetFeeReceiverAddress
             var feeReceiverAddress = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
             feeReceiverAddress.ShouldBe(feeReceiverAddress);
@@ -74,6 +86,17 @@ namespace AElf.Contracts.TokenConverter
             tokenSymbol.Symbol.ShouldBe("ELF");
         }
 
+        [Fact]
+        public async Task GetDepositConnectorBalance_Test()
+        {
+            await InitializeTokenConverterContract();
+
+            var depositConnector = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
+            depositConnector.Value.ShouldBe(NtWriteConnector.VirtualBalance);
+        }
         #endregion
 
         #region Action Test
