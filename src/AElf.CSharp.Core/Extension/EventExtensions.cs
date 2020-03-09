@@ -1,8 +1,7 @@
-using AElf.CSharp.Core;
-using AElf.Types;
+﻿using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Sdk.CSharp
+namespace AElf.CSharp.Core.Extension
 {
     public static class EventExtensions
     {

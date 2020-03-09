@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
-using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.CSharp.Core.Extension;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

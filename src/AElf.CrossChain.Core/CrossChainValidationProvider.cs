@@ -1,14 +1,13 @@
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.CrossChain
 {

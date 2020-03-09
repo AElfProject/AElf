@@ -11,6 +11,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Xunit;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.CrossChain
 {
