@@ -107,5 +107,20 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<List<Block>> GetNotExecutedBlocksAsync(Hash chainBranchBlockHash)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task SetBlockExecutionStatusAsync(Hash blockHash, bool isExecutedSuccess)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task RemoveLongestBranchAsync(Chain chain)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
