@@ -338,6 +338,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.UserFeeController.Value != null,
                 "controller does not initialize, call InitializeAuthorizedController first");
+            // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
         }
 
