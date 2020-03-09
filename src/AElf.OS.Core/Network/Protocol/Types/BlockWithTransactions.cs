@@ -6,7 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.OS.Network
 {
-    public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase, ICustomDiagnosticMessage
+    public partial class BlockWithTransactions : IBlock, ICustomDiagnosticMessage
     {
         partial void OnConstruction()
         {

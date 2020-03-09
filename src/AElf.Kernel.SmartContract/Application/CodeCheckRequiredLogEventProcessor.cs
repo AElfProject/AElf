@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
 using AElf.Kernel.SmartContract.Events;

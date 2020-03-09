@@ -10,7 +10,6 @@
         <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
         <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />

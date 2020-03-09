@@ -20,7 +20,7 @@ For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [Documentation](https://docs.aelf.io/v/dev/)
     * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
-    * [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)
+    * [Running a node](https://docs.aelf.io/v/dev/main/main/docker)
     * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
     * [Web Api](https://docs.aelf.io/v/dev/reference)
     * [Testnet](https://docs.aelf.io/v/dev/resources/testnet)
