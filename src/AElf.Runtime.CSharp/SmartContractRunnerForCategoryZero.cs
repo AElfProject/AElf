@@ -16,6 +16,7 @@ namespace AElf.Runtime.CSharp
         public int Category { get; protected set; }
         private readonly ISdkStreamManager _sdkStreamManager;
 
+        //TODO: remove
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
             new ConcurrentDictionary<string, MemoryStream>();
 
