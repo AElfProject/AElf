@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Infrastructure
 {
     public interface IReadyToApproveProposalCacheProvider
     {

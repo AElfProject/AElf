@@ -30,5 +30,8 @@
         <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf/Proto/parliament_contract.proto</Link>
         </ContractMessage>
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\configuration_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>

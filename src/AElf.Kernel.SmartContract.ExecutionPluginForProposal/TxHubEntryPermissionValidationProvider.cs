@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
@@ -23,8 +24,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
                 _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
 
             return Task.FromResult(transaction.To != parliamentContractAddress || transaction.MethodName !=
-                                   nameof(ParliamentContractContainer.ParliamentContractStub
-                                       .ApproveMultiProposals));
+                nameof(ParliamentContractContainer.ParliamentContractStub
+                    .ApproveMultiProposals));
         }
     }
 }

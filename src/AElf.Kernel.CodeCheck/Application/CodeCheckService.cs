@@ -1,0 +1,54 @@
+using System.Threading.Tasks;
+using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
+
+namespace AElf.Kernel.CodeCheck.Application
+{
+    public class CodeCheckService : ICodeCheckService, ITransientDependency
+    {
+        private readonly IRequiredAcsInContractsProvider _requiredAcsInContractsProvider;
+        private readonly IContractAuditorContainer _contractAuditorContainer;
+        private readonly CodeCheckOptions _codeCheckOptions;
+
+        public ILogger<CodeCheckService> Logger { get; set; }
+
+
+        public CodeCheckService(IRequiredAcsInContractsProvider requiredAcsInContractsProvider,
+            IContractAuditorContainer contractAuditorContainer,
+            IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor)
+        {
+            _requiredAcsInContractsProvider = requiredAcsInContractsProvider;
+            _contractAuditorContainer = contractAuditorContainer;
+            _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
+        }
+
+        public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category)
+        {
+            if (!_codeCheckOptions.CodeCheckEnabled)
+                return false;
+
+            var requiredAcs =
+                await _requiredAcsInContractsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
+            try
+            {
+                // Check contract code
+                Logger.LogTrace("Start code check.");
+                var contractAuditor = _contractAuditorContainer.GetContractAuditor(category);
+                contractAuditor.Audit(code, requiredAcs);
+                Logger.LogTrace("Finish code check.");
+                return true;
+            }
+            catch (InvalidCodeException e)
+            {
+                // May do something else to indicate that the contract has an issue
+                Logger.LogWarning(e.Message);
+            }
+
+            return false;
+        }
+    }
+}

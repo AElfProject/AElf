@@ -1,19 +1,20 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Acs0;
-using AElf.Kernel.SmartContract.Events;
-using Volo.Abp.EventBus.Local;
+using Acs3;
+using AElf.Kernel.CodeCheck.Application;
+using AElf.Kernel.Proposal.Application;
+using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.CodeCheck
 {
     public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-
         private readonly ICodeCheckService _codeCheckService;
-        private ILocalEventBus LocalEventBus { get; set; }
-
         private LogEvent _interestedEvent;
+        private readonly IProposalService _proposalService;
 
         public LogEvent InterestedEvent
         {
@@ -31,12 +32,11 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            ICodeCheckService codeCheckService)
+            ICodeCheckService codeCheckService, IProposalService proposalService)
         {
             _smartContractAddressService = smartContractAddressService;
-
             _codeCheckService = codeCheckService;
-            LocalEventBus = NullLocalEventBus.Instance;
+            _proposalService = proposalService;
         }
 
         public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
@@ -47,14 +47,15 @@ namespace AElf.Kernel.SmartContract.Application
                 var eventData = new CodeCheckRequired();
                 eventData.MergeFrom(logEvent);
                 var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray(),
-                    transactionResult.BlockHash, transactionResult.BlockNumber);
+                    transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category);
                 if (!codeCheckResult)
                     return;
 
-                await LocalEventBus.PublishAsync(new CodeCheckPassedEvent
-                {
-                    TransactionResult = transactionResult
-                });
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                    .ProposalId;
+                // Cache proposal id to generate system approval transaction later
+                _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
             });
             return Task.CompletedTask;
         }

@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Infrastructure
 {
     public class ReadyToApproveProposalCacheProvider : IReadyToApproveProposalCacheProvider, ISingletonDependency
     {

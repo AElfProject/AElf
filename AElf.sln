@@ -329,6 +329,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Proposal", "src\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj", "{151C28D4-E35D-4C50-BBCE-E664A97E1C44}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.CodeCheck", "src\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj", "{D205205C-FB80-4657-84D2-63B10A4D0D38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -939,6 +941,10 @@ Global
 		{151C28D4-E35D-4C50-BBCE-E664A97E1C44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{151C28D4-E35D-4C50-BBCE-E664A97E1C44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{151C28D4-E35D-4C50-BBCE-E664A97E1C44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D205205C-FB80-4657-84D2-63B10A4D0D38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D205205C-FB80-4657-84D2-63B10A4D0D38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D205205C-FB80-4657-84D2-63B10A4D0D38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D205205C-FB80-4657-84D2-63B10A4D0D38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1105,5 +1111,6 @@ Global
 		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{1861D1B6-8895-42A1-97FB-76AD782620D3} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 		{151C28D4-E35D-4C50-BBCE-E664A97E1C44} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{D205205C-FB80-4657-84D2-63B10A4D0D38} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 	EndGlobalSection
 EndGlobal

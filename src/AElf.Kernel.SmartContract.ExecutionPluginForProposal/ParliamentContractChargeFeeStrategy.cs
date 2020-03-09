@@ -1,4 +1,5 @@
 using AElf.Contracts.Parliament;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Types;

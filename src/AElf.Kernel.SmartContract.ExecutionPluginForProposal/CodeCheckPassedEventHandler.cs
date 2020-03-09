@@ -1,6 +1,7 @@
 using System.Linq;
 using Acs3;
 using System.Threading.Tasks;
+using AElf.Kernel.Proposal.Application;
 using AElf.Kernel.SmartContract.Events;
 using Volo.Abp.EventBus;
 

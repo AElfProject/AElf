@@ -1,18 +1,23 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
-using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
+    public class RequiredAcs
+    {
+        public bool RequireAll;
+        public List<string> AcsList;
+    }
+
     public interface IRequiredAcsInContractsProvider
     {
-        Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight);
+        Task<RequiredAcs> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight);
     }
 
     public class RequiredAcsInContractsProvider : IRequiredAcsInContractsProvider, ISingletonDependency
@@ -33,7 +38,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-        public async Task<RequiredAcsDto> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
+        public async Task<RequiredAcs> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
         {
             var tx = new Transaction
             {
@@ -51,7 +56,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     BlockHeight = blockHeight
                 }, tx, TimestampHelper.GetUtcNow(), false);
 
-            return new RequiredAcsDto
+            return new RequiredAcs
             {
                 AcsList = returned.AcsList.ToList(),
                 RequireAll = returned.RequireAll
