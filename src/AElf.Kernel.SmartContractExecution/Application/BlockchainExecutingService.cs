@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
 using Microsoft.Extensions.Logging;
@@ -14,21 +12,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
     {
-        //TODO: should only use IBlockchainService
-        private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly ITransactionResultService _transactionResultService;
         public ILocalEventBus LocalEventBus { get; set; }
-
-        public FullBlockchainExecutingService(IChainManager chainManager,
-            IBlockchainService blockchainService, IBlockValidationService blockValidationService,
+        public ILogger<FullBlockchainExecutingService> Logger { get; set; }
+        
+        public FullBlockchainExecutingService(IBlockchainService blockchainService,
+            IBlockValidationService blockValidationService,
             IBlockExecutingService blockExecutingService,
             ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger)
         {
-            _chainManager = chainManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
@@ -38,7 +34,40 @@ namespace AElf.Kernel.SmartContractExecution.Application
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public ILogger<FullBlockchainExecutingService> Logger { get; set; }
+        public async Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks)
+        {
+            var executionResult = new BlockExecutionResult();
+            try
+            {
+                foreach (var block in blocks)
+                {
+                    var processResult = await TryProcessBlockAsync(block);
+                    if (!processResult)
+                    {
+                        executionResult.ExecutedFailedBlocks.Add(block);
+                        return executionResult;
+                    }
+
+                    executionResult.ExecutedSuccessBlocks.Add(block);
+                    Logger.LogInformation(
+                        $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
+
+                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {Block = block});
+                }
+            }
+            catch (BlockValidationException ex)
+            {
+                if (!(ex.InnerException is ValidateNextTimeBlockValidationException))
+                {
+                    throw;
+                }
+
+                Logger.LogWarning(
+                    $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
+            }
+
+            return executionResult;
+        }
 
         private async Task<bool> TryExecuteBlockAsync(Block block)
         {
@@ -97,101 +126,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 block.Body.TransactionIds.ToList());
 
             return true;
-        }
-
-        private async Task SetBestChainAsync(List<ChainBlockLink> successLinks, Chain chain)
-        {
-            if (successLinks.Count == 0)
-                return;
-
-            Logger.LogDebug($"Set best chain for block height {string.Join(",", successLinks.Select(l => l.Height))}");
-            var blockLink = successLinks.Last();
-            await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-        }
-
-        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
-            BlockAttachOperationStatus status)
-        {
-            //TODO: split the logic of getting blocks to execute, and the logic of executing blocks, and the logic of mark blocks executed
-            //only keep the logic of executing blocks here
-
-            if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
-            {
-                Logger.LogDebug( $"Try to attach to chain but the status is {status}.");
-                return null;
-            }
-
-            var successLinks = new List<ChainBlockLink>();
-            var successBlocks = new List<Block>();
-            var blockLinks = await _chainManager.GetNotExecutedBlocks(chain.LongestChainHash);
-
-            try
-            {
-                foreach (var blockLink in blockLinks)
-                {
-                    var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
-
-                    var processResult = await TryProcessBlockAsync(linkedBlock);
-                    if (!processResult)
-                    {
-                        await _chainManager.SetChainBlockLinkExecutionStatusAsync(blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionFailed);
-                        await _chainManager.RemoveLongestBranchAsync(chain);
-                        return null;
-                    }
-
-                    successLinks.Add(blockLink);
-                    successBlocks.Add(linkedBlock);
-                    Logger.LogInformation(
-                        $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
-                    
-                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {Block = linkedBlock});
-                }
-            }
-            catch (BlockValidationException ex)
-            {
-                if (!(ex.InnerException is ValidateNextTimeBlockValidationException))
-                {
-                    await _chainManager.RemoveLongestBranchAsync(chain);
-                    throw;
-                }
-
-                Logger.LogWarning(
-                    $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
-            }
-            catch (Exception ex)
-            {
-                await _chainManager.RemoveLongestBranchAsync(chain);
-                Logger.LogError(ex, "Block validate or execute fails.");
-                throw;
-            }
-
-            if (successLinks.Count == 0 || successLinks.Last().Height < chain.BestChainHeight)
-            {
-                Logger.LogWarning("No block execution succeed or no block is higher than best chain.");
-                await _chainManager.RemoveLongestBranchAsync(chain);
-                return null;
-            }
-
-            await SetBestChainAsync(successLinks, chain);
-            await _chainManager.SetChainBlockLinkExecutionStatusesAsync(successLinks,
-                ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            await PublishBestChainFoundEventAsync(chain, successBlocks);
-
-            Logger.LogInformation(
-                $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
-
-            return blockLinks;
-        }
-
-        private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
-        {
-            await LocalEventBus.PublishAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks
-            });
         }
     }
 }
