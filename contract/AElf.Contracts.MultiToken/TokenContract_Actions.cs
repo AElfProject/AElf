@@ -16,7 +16,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "MultiToken has been initialized");
-            InitialParameters();
+            InitialCoefficientsAboutCharging();
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;

@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.CSharp.Core.Extension;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -6,272 +7,301 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-
-
-        public override Empty UpdateCoefficientFromContract(CoefficientFromContract coefficientInput)
+        /// <summary>
+        /// Can only update one token at one time.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty UpdateCoefficientsForContract(UpdateCoefficientsInput input)
         {
-            if (coefficientInput == null)
+            if (input == null)
                 return new Empty();
             AssertDeveloperFeeController();
-            var coefficientInfoInState = State.CalculateCoefficientOfContract[coefficientInput.FeeType];
-            Assert(coefficientInfoInState != null, "coefficient does not exist");
-            var coefficient = coefficientInput.Coefficient;
-            var funcCoefficient =
-                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficient.PieceKey);
-            Assert(funcCoefficient != null, $"piece key:{coefficient.PieceKey} does not exist");
-            Assert(UpdateCoefficientSuccessfully(coefficientInput.Coefficient, funcCoefficient), "invalid data");
-            State.CalculateCoefficientOfContract[coefficientInput.FeeType] = coefficientInfoInState;
-            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
-            {
-                AllCoefficient = coefficientInfoInState
-            });
+            Assert(input.Coefficients.FeeTokenType != (int) FeeTypeEnum.Tx, "Invalid fee type.");
+            UpdateCoefficients(input);
             return new Empty();
         }
 
-        public override Empty UpdateCoefficientFromSender(CoefficientFromSender coefficientInput)
+        public override Empty UpdateCoefficientsForSender(UpdateCoefficientsInput input)
         {
-            if (coefficientInput == null)
+            if (input == null)
                 return new Empty();
             AssertUserFeeController();
-            var coefficientInfoInState = State.CalculateCoefficientOfSender.Value;
-            Assert(coefficientInfoInState != null, "coefficient does not exist");
-            var funcCoefficient =
-                coefficientInfoInState.Coefficients.SingleOrDefault(x => x.PieceKey == coefficientInput.PieceKey);
-            Assert(funcCoefficient != null, $"piece key:{coefficientInput.PieceKey} does not exist");
-            Assert(UpdateCoefficientSuccessfully(coefficientInput, funcCoefficient), "invalid data");
-            State.CalculateCoefficientOfSender.Value = coefficientInfoInState;
-            Context.Fire(new NoticeUpdateCalculateFeeAlgorithm
-            {
-                AllCoefficient = coefficientInfoInState
-            });
+            input.Coefficients.FeeTokenType = (int) FeeTypeEnum.Tx; // The only possible for now.
+            UpdateCoefficients(input);
             return new Empty();
         }
 
-        private bool UpdateCoefficientSuccessfully(CoefficientFromSender coefficientInput, CalculateFeeCoefficient funcCoefficient)
+        private void UpdateCoefficients(UpdateCoefficientsInput input)
         {
-            bool isChanged;
-            if (coefficientInput.IsChangePieceKey)
+            var feeType = input.Coefficients.FeeTokenType;
+            var currentAllCoefficients = State.AllCalculateFeeCoefficients.Value;
+
+            // Get coefficients for specific fee type.
+            var currentCoefficients = currentAllCoefficients.Value.SingleOrDefault(x =>
+                x.FeeTokenType == feeType);
+            Assert(currentCoefficients != null, "Specific fee type not existed before.");
+
+            var inputPieceCoefficientsList = input.Coefficients.PieceCoefficientsList;
+            // ReSharper disable once PossibleNullReferenceException
+            var currentPieceCoefficientList = currentCoefficients.PieceCoefficientsList;
+
+            var inputPieceCount = input.PieceNumbers.Count;
+            Assert(inputPieceCount == inputPieceCoefficientsList.Count,
+                "Piece numbers not match.");
+
+            foreach (var coefficients in inputPieceCoefficientsList)
+                AssertCoefficientsValid(coefficients);
+
+            for (var i = 0; i < inputPieceCount; i++)
             {
-                isChanged = ChangeFeePieceKey(coefficientInput, funcCoefficient);
+                Assert(currentPieceCoefficientList.Count >= input.PieceNumbers[i],
+                    "Piece number exceeded.");
+                var pieceIndex = input.PieceNumbers[i].Sub(1);
+                var pieceCoefficients = inputPieceCoefficientsList[i];
+                currentPieceCoefficientList[pieceIndex] = pieceCoefficients;
             }
-            else if (coefficientInput.IsLiner)
+
+            AssertPieceUpperBoundsIsInOrder(currentPieceCoefficientList);
+
+            State.AllCalculateFeeCoefficients.Value = currentAllCoefficients;
+
+            Context.Fire(new CalculateFeeAlgorithmUpdated
             {
-                isChanged = UpdateLinerAlgorithm(coefficientInput, funcCoefficient);
+                AllTypeFeeCoefficients = currentAllCoefficients
+            });
+        }
+
+        private void AssertCoefficientsValid(CalculateFeePieceCoefficients coefficients)
+        {
+            // Assert the count should be (3n + 1), n >= 1.
+            var count = coefficients.Value.Count;
+            Assert(count > 0 && (count - 1) % 3 == 0, "Coefficients count should be (3n + 1), n >= 1.");
+
+            // Assert every unit. one [(B / C) * x ^ A] means one unit.
+            for (var i = 1; i < count; i += 3)
+            {
+                var power = coefficients.Value[i];
+                var divisor = coefficients.Value[i + 1];
+                var dividend = coefficients.Value[i + 2];
+                Assert(power >= 0 && divisor >= 0 && dividend > 0, "Invalid coefficient.");
             }
-            else
+        }
+
+        private void AssertPieceUpperBoundsIsInOrder(
+            IReadOnlyCollection<CalculateFeePieceCoefficients> calculateFeePieceCoefficientsList)
+        {
+            // No same piece upper bound.
+            Assert(!calculateFeePieceCoefficientsList.GroupBy(i => i.Value[0]).Any(g => g.Count() > 1),
+                "Piece upper bounds contains same elements.");
+
+            var pieceUpperBounds = calculateFeePieceCoefficientsList.Select(l => l.Value[0]).ToList();
+            var orderedEnumerable = pieceUpperBounds.OrderBy(i => i).ToList();
+            for (var i = 0; i < calculateFeePieceCoefficientsList.Count; i++)
             {
-                isChanged = UpdatePowerAlgorithm(coefficientInput, funcCoefficient);
+                Assert(pieceUpperBounds[i] == orderedEnumerable[i], "Piece upper bounds not in order.");
             }
-
-            return isChanged;
         }
 
-        private bool UpdateLinerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
+        /// <summary>
+        /// Initialize coefficients of every type of tokens supporting charging fee.
+        /// Currently for acs1, charge primary token, like ELF;
+        /// for acs8, charge resource tokens including READ, STO, WRITE, TRAFFIC.
+        /// </summary>
+        private void InitialCoefficientsAboutCharging()
         {
-            var coefficient = sender.LinerCoefficient;
-            if (coefficient.Denominator <= 0)
-                return false;
-            if (coefficient.Numerator < 0)
-                return false;
-            if (coefficient.ConstantValue < 0)
-                return false;
-            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
-            return true;
-        }
+            var allCalculateFeeCoefficients = State.AllCalculateFeeCoefficients.Value;
+            if (allCalculateFeeCoefficients == null)
+                allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Read))
+                allCalculateFeeCoefficients.Value.Add(GetReadFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Storage))
+                allCalculateFeeCoefficients.Value.Add(GetStorageFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Write))
+                allCalculateFeeCoefficients.Value.Add(GetWriteFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Traffic))
+                allCalculateFeeCoefficients.Value.Add(GetTrafficFeeInitialCoefficient());
+            if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Tx))
+                allCalculateFeeCoefficients.Value.Add(GetTxFeeInitialCoefficient());
+            State.AllCalculateFeeCoefficients.Value = allCalculateFeeCoefficients;
 
-        private bool UpdatePowerAlgorithm(CoefficientFromSender sender, CalculateFeeCoefficient dbData)
-        {
-            var coefficient = sender.PowerCoefficient;
-            if (coefficient.Denominator <= 0)
-                return false;
-            if (coefficient.Numerator < 0)
-                return false;
-            if (coefficient.Weight <= 0)
-                return false;
-            if (coefficient.WeightBase <= 0)
-                return false;
-            if (coefficient.ChangeSpanBase <= 0)
-                return false;
-            if (coefficient.ConstantValue < 0)
-                return false;
-            dbData.CoefficientDic[nameof(coefficient.Denominator).ToLower()] = coefficient.Denominator;
-            dbData.CoefficientDic[nameof(coefficient.Numerator).ToLower()] = coefficient.Numerator;
-            dbData.CoefficientDic[nameof(coefficient.Weight).ToLower()] = coefficient.Weight;
-            dbData.CoefficientDic[nameof(coefficient.WeightBase).ToLower()] = coefficient.WeightBase;
-            dbData.CoefficientDic[nameof(coefficient.ChangeSpanBase).ToLower()] = coefficient.ChangeSpanBase;
-            dbData.CoefficientDic[nameof(coefficient.ConstantValue).ToLower()] = coefficient.ConstantValue;
-            return true;
-        }
-
-        private bool ChangeFeePieceKey(CoefficientFromSender coefficient, CalculateFeeCoefficient dbData)
-        {
-            var newPieceKey = coefficient.NewPieceKeyCoefficient.NewPieceKey;
-            if (newPieceKey == coefficient.PieceKey || newPieceKey <= 0)
-                return false;
-            dbData.PieceKey = newPieceKey;
-            return true;
-        }
-
-        private void InitialParameters()
-        {
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Read] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Read] = GetReadFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Storage] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Storage] = GetStoFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Write] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Write] = GetWriteFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfContract[FeeTypeEnum.Traffic] == null)
-                State.CalculateCoefficientOfContract[FeeTypeEnum.Traffic] = GetNetFeeInitialCoefficient();
-            if (State.CalculateCoefficientOfSender.Value == null)
-                State.CalculateCoefficientOfSender.Value = GetTxFeeInitialCoefficient();
-        }
-
-        private CalculateFeeCoefficientsOfType GetReadFeeInitialCoefficient()
-        {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
-            var readFeeParameter1 = new CalculateFeeCoefficient
+            Context.Fire(new CalculateFeeAlgorithmUpdated
             {
-                FeeType = FeeTypeEnum.Read,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 10,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 1000}}
-            };
-            var readFeeParameter2 = new CalculateFeeCoefficient
+                AllTypeFeeCoefficients = allCalculateFeeCoefficients,
+            });
+        }
+
+        private CalculateFeeCoefficients GetReadFeeInitialCoefficient()
+        {
+            return new CalculateFeeCoefficients
             {
-                FeeType = FeeTypeEnum.Read,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 100,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
-            };
-            var readFeeParameter3 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Read,
-                FunctionType = CalculateFunctionTypeEnum.Power,
-                PieceKey = int.MaxValue,
-                CoefficientDic =
+                FeeTokenType = (int) FeeTypeEnum.Read,
+                PieceCoefficientsList =
                 {
-                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 5}, {"weight", 250},
-                    {"weightBase".ToLower(), 40}
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval [0, 10]: x/8 + 1 / 100000
+                        Value =
+                        {
+                            10,
+                            1, 1, 8,
+                            0, 1, 100000
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (10, 100]: x/4 
+                        Value =
+                        {
+                            100,
+                            1, 1, 4
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (100, +∞): 25 / 16 * x^2 + x / 4
+                        Value =
+                        {
+                            int.MaxValue,
+                            2, 25, 16,
+                            1, 1, 4
+                        }
+                    }
                 }
             };
-            totalParameter.Coefficients.Add(readFeeParameter1);
-            totalParameter.Coefficients.Add(readFeeParameter2);
-            totalParameter.Coefficients.Add(readFeeParameter3);
-            return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetStoFeeInitialCoefficient()
+        private CalculateFeeCoefficients GetStorageFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
-            var stoFeeParameter1 = new CalculateFeeCoefficient
+            return new CalculateFeeCoefficients
             {
-                FeeType = FeeTypeEnum.Storage,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 4}, {"constantValue".ToLower(), 1000}}
-            };
-            var stoFeeParameter2 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Storage,
-                FunctionType = CalculateFunctionTypeEnum.Power,
-                PieceKey = int.MaxValue,
-                CoefficientDic =
+                FeeTokenType = (int) FeeTypeEnum.Storage,
+                PieceCoefficientsList =
                 {
-                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
-                    {"weightBase".ToLower(), 500}
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval [0, 1000000]: x / 4 + 1 / 100000
+                        Value =
+                        {
+                            1000000,
+                            1, 1, 4, 
+                            0, 1, 100000
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (1000000, +∞): x ^ 2 / 20000 + x / 64
+                        Value =
+                        {
+                            int.MaxValue,
+                            2, 1, 20000,
+                            1, 1, 64
+                        }
+                    }
                 }
             };
-            totalParameter.Coefficients.Add(stoFeeParameter1);
-            totalParameter.Coefficients.Add(stoFeeParameter2);
-            return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetWriteFeeInitialCoefficient()
+        private CalculateFeeCoefficients GetWriteFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
-            var writeFeeParameter1 = new CalculateFeeCoefficient
+            return new CalculateFeeCoefficients
             {
-                FeeType = FeeTypeEnum.Write,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 10,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 8}, {"constantValue".ToLower(), 10000}}
-            };
-            var writeFeeParameter2 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Write,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 100,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 4}}
-            };
-            var writeFeeParameter3 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Write,
-                FunctionType = CalculateFunctionTypeEnum.Power,
-                PieceKey = int.MaxValue,
-                CoefficientDic =
+                FeeTokenType = (int) FeeTypeEnum.Write,
+                PieceCoefficientsList =
                 {
-                    {"numerator", 1}, {"denominator", 4}, {"power", 2}, {"changeSpanBase".ToLower(), 2}, {"weight", 250},
-                    {"weightBase".ToLower(), 40}
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval [0, 10]: x / 8 + 1 / 10000
+                        Value =
+                        {
+                            10,
+                            1, 1, 8, 
+                            0, 1, 10000
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (10, 100]: x / 4
+                        Value =
+                        {
+                            100,
+                            1, 1, 4
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (100, +∞): x / 4 + x^2 * 25 / 16
+                        Value =
+                        {
+                            int.MaxValue,
+                            1, 1, 4, 
+                            2, 25, 16
+                        }
+                    }
                 }
             };
-            totalParameter.Coefficients.Add(writeFeeParameter1);
-            totalParameter.Coefficients.Add(writeFeeParameter2);
-            totalParameter.Coefficients.Add(writeFeeParameter3);
-            return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetNetFeeInitialCoefficient()
+        private CalculateFeeCoefficients GetTrafficFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
-            var netFeeParameter1 = new CalculateFeeCoefficient
+            return new CalculateFeeCoefficients
             {
-                FeeType = FeeTypeEnum.Traffic,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 64}, {"constantValue".ToLower(), 10000}}
-            };
-            var netFeeParameter2 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Traffic,
-                FunctionType = CalculateFunctionTypeEnum.Power,
-                PieceKey = int.MaxValue,
-                CoefficientDic =
+                FeeTokenType = (int) FeeTypeEnum.Traffic,
+                PieceCoefficientsList =
                 {
-                    {"numerator", 1}, {"denominator", 64}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 250},
-                    {"weightBase".ToLower(), 500}
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval [0, 1000000]: x / 64 + 1 / 10000
+                        Value =
+                        {
+                            1000000,
+                            1, 1, 64,
+                            0, 1, 10000
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (1000000, +∞): x / 64 + x^2 / 20000
+                        Value =
+                        {
+                            int.MaxValue,
+                            1, 1, 64, 
+                            2, 1, 20000
+                        }
+                    }
                 }
             };
-            totalParameter.Coefficients.Add(netFeeParameter1);
-            totalParameter.Coefficients.Add(netFeeParameter2);
-            return totalParameter;
         }
 
-        private CalculateFeeCoefficientsOfType GetTxFeeInitialCoefficient()
+        private CalculateFeeCoefficients GetTxFeeInitialCoefficient()
         {
-            var totalParameter = new CalculateFeeCoefficientsOfType();
-            var txFeeParameter1 = new CalculateFeeCoefficient
+            return new CalculateFeeCoefficients
             {
-                FeeType = FeeTypeEnum.Tx,
-                FunctionType = CalculateFunctionTypeEnum.Liner,
-                PieceKey = 1000000,
-                CoefficientDic = {{"numerator", 1}, {"denominator", 800}, {"constantValue".ToLower(), 10000}}
-            };
-            var txFeeParameter2 = new CalculateFeeCoefficient
-            {
-                FeeType = FeeTypeEnum.Tx,
-                FunctionType = CalculateFunctionTypeEnum.Power,
-                PieceKey = int.MaxValue,
-                CoefficientDic =
+                FeeTokenType = (int) FeeTypeEnum.Tx,
+                PieceCoefficientsList =
                 {
-                    {"numerator", 1}, {"denominator", 800}, {"power", 2}, {"changeSpanBase".ToLower(), 100}, {"weight", 1},
-                    {"weightBase".ToLower(), 1}
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval [0, 1000000]: x / 800 + 1 / 10000
+                        Value =
+                        {
+                            1000000,
+                            1, 1, 800, 
+                            0, 1, 10000
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (1000000, ∞): x / 800 + x^2 / 10000
+                        Value =
+                        {
+                            int.MaxValue,
+                            1, 1, 800, 
+                            2, 1, 10000
+                        }
+                    }
                 }
             };
-            totalParameter.Coefficients.Add(txFeeParameter1);
-            totalParameter.Coefficients.Add(txFeeParameter2);
-            return totalParameter;
         }
     }
 }
