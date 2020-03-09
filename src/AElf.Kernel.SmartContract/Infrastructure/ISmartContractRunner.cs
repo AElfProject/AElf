@@ -4,9 +4,8 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
 {
-    public interface ISmartContractRunner
+    public interface ISmartContractRunner : ISmartContractCategoryProvider
     {
-        int Category { get; }
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
     }
 }
