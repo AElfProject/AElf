@@ -52,4 +52,5 @@
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>
