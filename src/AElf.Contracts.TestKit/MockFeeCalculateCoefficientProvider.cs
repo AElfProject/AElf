@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -62,7 +62,7 @@ namespace AElf.Contracts.TestKit
             return Task.FromResult(_coefficientsDicCache[tokenType]);
         }
 
-        public Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeFunctionCoefficients allCalculateFeeCoefficients)
+        public Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
         {
             return Task.CompletedTask;
         }

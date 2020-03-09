@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -10,18 +11,18 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     public interface ICoefficientsProvider
     {
         Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext);
-        Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeFunctionCoefficients allCalculateFeeCoefficients);
+        Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients);
     }
 
     public class CoefficientsProvider : BlockExecutedDataProvider, ICoefficientsProvider, ISingletonDependency
     {
-        private const string BlockExecutedDataName = nameof(AllCalculateFeeFunctionCoefficients);
+        private const string BlockExecutedDataName = nameof(AllCalculateFeeCoefficients);
         
-        private readonly ICachedBlockchainExecutedDataService<AllCalculateFeeFunctionCoefficients>
+        private readonly ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients>
             _cachedBlockchainExecutedDataService;
 
         public CoefficientsProvider(
-            ICachedBlockchainExecutedDataService<AllCalculateFeeFunctionCoefficients> cachedBlockchainExecutedDataService)
+            ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients> cachedBlockchainExecutedDataService)
         {
             _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
@@ -38,7 +39,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             return Task.FromResult(coefficientsArray);
         }
 
-        public async Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeFunctionCoefficients allCalculateFeeCoefficients)
+        public async Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
         {
             await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, GetBlockExecutedDataKey(),
                 allCalculateFeeCoefficients);

@@ -7,20 +7,14 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Fee Calculation Project.</Description>
     </PropertyGroup>
-
-    <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\fee_calculate_coefficient.proto">
-            <Link>Protobuf/Proto/fee_calculate_coefficient.proto</Link>
-        </CommonMessage>
-    </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
      <ItemGroup> 
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </ContractStub>
+        </ContractBase>
     </ItemGroup>
 
 </Project>
