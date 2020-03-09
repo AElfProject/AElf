@@ -65,40 +65,21 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput input)
+        /// <summary>
+        /// Set primary token symbol.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
         {
-            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
-            State.NativeTokenSymbol.Value = input.NativeTokenInfo.Symbol;
+            Assert(!State.Initialized.Value && State.ChainPrimaryTokenSymbol.Value == null,
+                "Failed to set primary token symbol.");
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(State.TokenInfos[input.Symbol] != null && tokenInfo.IssueChainId == Context.ChainId,
+                "Invalid input.");
 
-            var nativeTokenInfo = new TokenInfo
-            {
-                Symbol = input.NativeTokenInfo.Symbol,
-                TokenName = input.NativeTokenInfo.TokenName,
-                TotalSupply = input.NativeTokenInfo.TotalSupply,
-                Issuer = input.NativeTokenInfo.Issuer,
-                Decimals = input.NativeTokenInfo.Decimals,
-                IsBurnable = true,
-                IssueChainId = input.NativeTokenInfo.IssueChainId,
-                IsProfitable = input.NativeTokenInfo.IsProfitable
-            };
-
-            RegisterTokenInfo(nativeTokenInfo);
-
-            Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
-            State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
-            RegisterTokenInfo(input.ChainPrimaryToken);
-
-            if (input.ResourceTokenList?.Value != null)
-            {
-                foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
-                {
-                    resourceTokenInfo.Supply = 0;
-                    RegisterTokenInfo(resourceTokenInfo);
-                }
-            }
-
-            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.ChainPrimaryToken.Symbol});
-
+            State.ChainPrimaryTokenSymbol.Value = input.Symbol;
+            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.Symbol});
             return new Empty();
         }
 

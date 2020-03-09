@@ -33,9 +33,7 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
@@ -143,10 +141,8 @@ message RegisterNativeTokenInfoInput {
     sint32 issue_chain_id = 8;
 }
 
-message RegisterNativeAndResourceTokenInfoInput {
-    RegisterNativeTokenInfoInput native_token_info = 1;
-    TokenInfoList resource_token_list = 2;
-    TokenInfo chain_primary_token = 3;
+message SetPrimaryTokenSymbolInput {
+    string symbol = 1;
 }
 
 message IssueInput {
