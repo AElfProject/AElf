@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs1;
 using Acs3;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;

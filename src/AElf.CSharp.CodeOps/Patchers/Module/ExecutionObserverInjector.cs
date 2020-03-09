@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -18,17 +19,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             // ReSharper disable once IdentifierTypo
             var nmspace = module.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
 
-            var (counterProxy, observerField) = ConstructCounterProxy(module, nmspace);
-
-            var proxySetObserverMethod = ConstructProxySetObserverMethod(module, observerField);
-            var proxyBranchCountMethod = ConstructProxyBranchCountMethod(module, observerField);
-            var proxyCallCountMethod = ConstructProxyCallCountMethod(module, observerField);
-            //var proxyGetUsageMethod = ConstructProxyGetUsageMethod(module, observerField);
+            var counterProxy = ConstructCounterProxy(module, nmspace);
             
-            counterProxy.Methods.Add(proxySetObserverMethod);
-            counterProxy.Methods.Add(proxyBranchCountMethod);
-            counterProxy.Methods.Add(proxyCallCountMethod);
-            //counterProxy.Methods.Add(proxyGetUsageMethod);
+            var proxyBranchCountMethod = counterProxy.Methods.Single(m => m.Name == nameof(ExecutionObserverProxy.BranchCount));
+            var proxyCallCountMethod = counterProxy.Methods.Single(m => m.Name == nameof(ExecutionObserverProxy.CallCount));
 
             // Patch the types
             foreach (var typ in module.Types)
@@ -39,7 +33,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             module.Types.Add(counterProxy);
         }
 
-        private (TypeDefinition, FieldDefinition) ConstructCounterProxy(ModuleDefinition module, string nmspace)
+        public static TypeDefinition ConstructCounterProxy(ModuleDefinition module, string nmspace)
         {
             var observerType = new TypeDefinition(
                 nmspace, nameof(ExecutionObserverProxy),
@@ -60,10 +54,14 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             observerType.Fields.Add(observerField);
 
-            return (observerType, observerField);
+            observerType.Methods.Add(ConstructProxySetObserverMethod(module, observerField));
+            observerType.Methods.Add(ConstructProxyBranchCountMethod(module, observerField));
+            observerType.Methods.Add(ConstructProxyCallCountMethod(module, observerField));
+
+            return observerType;
         }
 
-        private MethodDefinition ConstructProxyBranchCountMethod(ModuleDefinition module, FieldReference observerField)
+        private static MethodDefinition ConstructProxyBranchCountMethod(ModuleDefinition module, FieldReference observerField)
         {
             var countMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.BranchCount), 
@@ -75,20 +73,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var il = countMethod.Body.GetILProcessor();
 
             var ret = il.Create(OpCodes.Ret);
-            
-            #if DEBUG
+
             il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
-            
-            il.Emit(OpCodes.Ldsfld, observerField);
-            #if DEBUG // Below is optimized by compiler in release mode
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Cgt_Un);
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldloc_0);
-            #endif
             il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Callvirt, module.ImportReference(
@@ -98,7 +84,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return countMethod;
         }
         
-        private MethodDefinition ConstructProxyCallCountMethod(ModuleDefinition module, FieldReference observerField)
+        private static MethodDefinition ConstructProxyCallCountMethod(ModuleDefinition module, FieldReference observerField)
         {
             var countMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.CallCount), 
@@ -111,18 +97,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             var ret = il.Create(OpCodes.Ret);
             
-            #if DEBUG
             il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
-            il.Emit(OpCodes.Ldsfld, observerField);
-            #if DEBUG // Below is optimized by compiler in release mode
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Cgt_Un);
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldloc_0);
-            #endif
             il.Emit(OpCodes.Brfalse_S, ret); // Do not call if not initialized
             il.Emit(OpCodes.Ldsfld, observerField);
             il.Emit(OpCodes.Callvirt, module.ImportReference(
@@ -132,7 +107,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return countMethod;
         }
 
-        private MethodDefinition ConstructProxySetObserverMethod(ModuleDefinition module, FieldReference observerField)
+        private static MethodDefinition ConstructProxySetObserverMethod(ModuleDefinition module, FieldReference observerField)
         {
             var setObserverMethod = new MethodDefinition(
                 nameof(ExecutionObserverProxy.SetObserver), 
@@ -147,11 +122,6 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Stsfld, observerField);
-            #if DEBUG
-            il.Emit(OpCodes.Ldsfld, observerField);
-            il.Emit(OpCodes.Call, module.ImportReference(typeof(ExecutionObserverDebugger).
-                GetMethod(nameof(ExecutionObserverDebugger.Test), new []{ typeof(IExecutionObserver) })));
-            #endif
             il.Emit(OpCodes.Ret);
 
             return setObserverMethod;

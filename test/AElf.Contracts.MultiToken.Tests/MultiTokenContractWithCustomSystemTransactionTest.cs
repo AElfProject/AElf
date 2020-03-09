@@ -42,6 +42,10 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = _totalSupply,
                 Issuer = DefaultAddress
             });
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+            {
+                Symbol = DefaultSymbol,
+            });
             await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
                 Symbol = DefaultSymbol,

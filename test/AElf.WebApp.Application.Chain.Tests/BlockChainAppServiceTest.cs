@@ -45,6 +45,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
 
@@ -57,6 +58,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -944,7 +946,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
             blockState.Changes.ShouldNotBeNull();
 
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             await _blockchainStateService.MergeBlockStateAsync(blockStateSet.BlockHeight,
                 blockStateSet.BlockHash);
 

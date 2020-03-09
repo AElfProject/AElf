@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -181,12 +180,6 @@ namespace AElf.CrossChain.Communication
             });
 
             context.Services.AddSingleton<CrossChainPlugin>();
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
 
             context.Services.AddSingleton<IConsensusExtraDataNameProvider, MockConsensusExtraDataProvider>();
         }
