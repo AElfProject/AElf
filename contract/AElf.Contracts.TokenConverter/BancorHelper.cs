@@ -122,7 +122,7 @@ namespace AElf.Contracts.TokenConverter
                 return x;
 
             decimal A = 1m;
-            BitArray e = new BitArray(BitConverter.GetBytes(y));
+            BitArray e = new BitArray(y.ToBytes(false));
             int t = e.Count;
 
             for (int i = t - 1; i >= 0; --i)

@@ -31,7 +31,6 @@ namespace AElf.Runtime.CSharp
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
-        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
         public bool IsSystemContract { get; set; }
@@ -44,10 +43,9 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
+        public Executive(Assembly assembly)
         {
             _contractAssembly = assembly;
-            _executivePlugins = executivePlugins;
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
@@ -80,14 +78,6 @@ namespace AElf.Runtime.CSharp
                 }
 
                 Execute();
-                if (CurrentTransactionContext.CallDepth == 0)
-                {
-                    // Plugin should only apply to top level transaction
-                    foreach (var plugin in _executivePlugins)
-                    {
-                        plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
-                    }
-                }
             }
             finally
             {
