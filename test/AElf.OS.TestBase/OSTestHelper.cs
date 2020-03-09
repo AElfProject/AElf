@@ -414,6 +414,8 @@ namespace AElf.OS
                 Issuer =  ownAddress,
                 IsBurnable = true
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
