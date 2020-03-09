@@ -6,6 +6,9 @@ import "aelf/options.proto";
 
 option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee";
 
+service TransactionFee {
+}
+
 // Messages
 
 message TransactionSizeFeeSymbols
@@ -24,11 +27,18 @@ message TransactionSizeFeeSymbol
 
 message TransactionFeeCharged {
     option (aelf.is_event) = true;
-    map<string, sint64> charged_fees = 1;
+    string symbol = 1;
+    sint64 amount = 2;
 }
 
 message ResourceTokenCharged {
     option (aelf.is_event) = true;
-    map<string, sint64> charged_tokens = 1;
-    map<string, sint64> owing_tokens = 2;
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ResourceTokenOwned {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    sint64 amount = 2;
 }

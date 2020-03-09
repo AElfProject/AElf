@@ -4,6 +4,7 @@ using Acs1;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -25,7 +26,7 @@ namespace AElf.Contracts.MultiToken
             // Primary token not created yet.
             if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                return new BoolValue {Value = true};
+                return new BoolValue();
             }
 
             // Record tx fee bill during current charging process.
@@ -50,9 +51,14 @@ namespace AElf.Contracts.MultiToken
             foreach (var tokenToAmount in bill.TokenToAmount)
             {
                 ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
+                Context.Fire(new TransactionFeeCharged
+                {
+                    Symbol = tokenToAmount.Key,
+                    Amount = tokenToAmount.Value
+                });
             }
 
-            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
+            return new BoolValue {Value = !successToChargeBaseFee || !successToChargeSizeFee};
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -179,6 +185,11 @@ namespace AElf.Contracts.MultiToken
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
                     isChargeWithoutDebt.Value = false;
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                    Context.Fire(new ResourceTokenOwned
+                    {
+                        Symbol = pair.Key,
+                        Amount = owningBalance
+                    });
                 }
                 else
                 {
@@ -190,6 +201,11 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
+                Context.Fire(new ResourceTokenCharged
+                {
+                    Symbol = pair.Key,
+                    Amount = pair.Value
+                });
             }
 
             return isChargeWithoutDebt;

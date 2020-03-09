@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException)
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -90,12 +90,6 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (!trace.IsSuccessful())
                     {
-#if DEBUG
-                        if (throwException)	
-                        {
-                            Logger.LogError(trace.Error);	
-                        }
-#endif
                         // Do not package this transaction if any of his inline transactions canceled.
                         if (IsTransactionCanceled(trace))
                         {
@@ -313,9 +307,9 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (preTrace.ExecutionStatus == ExecutionStatus.Executed) continue;
+                    if (!plugin.IsStopExecuting(preTrace.ReturnValue)) continue;
 
-                    // If pre-tx fails, still count the consuming, but return false to notice outsides.
+                    // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
                     preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
@@ -390,20 +384,21 @@ namespace AElf.Kernel.SmartContract.Application
                 };
             }
 
+            if (!trace.IsSuccessful() && trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed))
+            {
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Failed,
+                    ReturnValue = trace.ReturnValue,
+                    BlockNumber = blockHeight,
+                    Logs = {trace.FlattenedLogs},
+                    Error = ExecutionStatus.Prefailed.ToString()
+                };
+            }
+
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
-                // If any pre-tx executed successful, commit the changes.
-                if (trace.PreTraces.Any(pt => pt.ExecutionStatus == ExecutionStatus.Executed))
-                {
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        ReturnValue = trace.ReturnValue,
-                        BlockNumber = blockHeight,
-                        Logs = {trace.FlattenedLogs}
-                    };
-                }
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,

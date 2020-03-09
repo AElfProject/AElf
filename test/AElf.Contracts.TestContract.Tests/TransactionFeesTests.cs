@@ -99,7 +99,7 @@ namespace AElf.Contract.TestContract
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             var relatedLog = transactionResult.TransactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
-            var txFee = TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees["ELF"];
+            var txFee = relatedLog == null ? 0 : TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).Amount;
             var afterBalance = await GetBalance(DefaultSender);
             beforeBalance.ShouldBe(afterBalance + txFee);
 

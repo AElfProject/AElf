@@ -9,26 +9,26 @@ namespace AElf.Contracts.TestKit
     {
         public static Dictionary<string, long> GetChargedTransactionFees(this TransactionResult transactionResult)
         {
-            var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
-            if (relatedLog == null) return new Dictionary<string, long>();
-            return TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees
-                .ToDictionary(f => f.Key, f => f.Value);
+            var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
+            if (!relatedLogs.Any()) return new Dictionary<string, long>();
+            return relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed))
+                .ToDictionary(e => e.Symbol, e => e.Amount);
         }
 
         public static Dictionary<string, long> GetConsumedResourceTokens(this TransactionResult transactionResult)
         {
-            var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(ResourceTokenCharged));
-            if (relatedLog == null) return new Dictionary<string, long>();
-            return ResourceTokenCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedTokens
-                .ToDictionary(f => f.Key, f => f.Value);
+            var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(ResourceTokenCharged)).ToList();
+            if (!relatedLogs.Any()) return new Dictionary<string, long>();
+            return relatedLogs.Select(l => ResourceTokenCharged.Parser.ParseFrom(l.NonIndexed))
+                .ToDictionary(e => e.Symbol, e => e.Amount);
         }
-        
+
         public static Dictionary<string, long> GetOwningResourceTokens(this TransactionResult transactionResult)
         {
-            var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(ResourceTokenCharged));
-            if (relatedLog == null) return new Dictionary<string, long>();
-            return ResourceTokenCharged.Parser.ParseFrom(relatedLog.NonIndexed).OwingTokens
-                .ToDictionary(f => f.Key, f => f.Value);
+            var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(ResourceTokenOwned)).ToList();
+            if (!relatedLogs.Any()) return new Dictionary<string, long>();
+            return relatedLogs.Select(l => ResourceTokenOwned.Parser.ParseFrom(l.NonIndexed))
+                .ToDictionary(e => e.Symbol, e => e.Amount);
         }
     }
 }

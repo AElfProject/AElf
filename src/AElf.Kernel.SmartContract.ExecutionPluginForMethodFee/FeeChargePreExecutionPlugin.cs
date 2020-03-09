@@ -8,7 +8,9 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -119,6 +121,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
                 throw;
             }
+        }
+
+        public bool IsStopExecuting(ByteString txReturnValue)
+        {
+            return BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,

@@ -539,15 +539,15 @@ namespace AElf.Parallel.Tests
                 cancellableTransactions, CancellationToken.None);
 
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
-            var fee = transactionResults
+            var totalFee = transactionResults
                 .Select(transactionResult =>
-                    transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged)))
-                .Select(relatedLog => TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees["ELF"])
-                .Sum();
+                    transactionResult.Logs.Single(l => l.Name == nameof(TransactionFeeCharged)))
+                .Select(relatedLog => TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed))
+                .Where(chargedEvent => chargedEvent.Symbol == "ELF").Sum(chargedEvent => chargedEvent.Amount);
             var amount = allTransactions.Sum(t => TransferInput.Parser.ParseFrom(t.Params).Amount);
             var endBalance =
                 await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
-            (startBalance - endBalance).ShouldBe(amount + fee);
+            (startBalance - endBalance).ShouldBe(amount + totalFee);
         }
 
         private async Task<List<TransactionResult>> GetTransactionResultsAsync(List<Hash> transactionIds,BlockHeader blockHeader)

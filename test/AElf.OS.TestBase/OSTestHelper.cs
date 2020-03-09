@@ -452,7 +452,7 @@ namespace AElf.OS
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
                 var transactionResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
                 var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
-                var fee = TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees["ELF"];
+                var fee = relatedLog == null ? 0 : TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).Amount;
                 MockChainTokenAmount += fee + TransferInput.Parser.ParseFrom(transaction.Params).Amount;
                 bestBranchBlockList.Add(block);
             }
