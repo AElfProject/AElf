@@ -60,10 +60,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 throw;
             }
 
-            await ProcessExecutionResult(chain, executionResult);
+            await ProcessExecutionResultAsync(chain, executionResult);
         }
 
-        private async Task ProcessExecutionResult(Chain chain, BlockExecutionResult executionResult)
+        private async Task ProcessExecutionResultAsync(Chain chain, BlockExecutionResult executionResult)
         {
             if (executionResult.ExecutedFailedBlocks.Any() ||
                 executionResult.ExecutedSuccessBlocks.Count == 0 ||
