@@ -13,6 +13,7 @@ using AElf.OS.Network.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application
@@ -60,6 +61,11 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = new DownloadBlocksResult();
             var peerPubkey = downloadBlockDto.SuggestedPeerPubkey;
 
+            if (!IsPeerAvailable(peerPubkey))
+            {
+                return downloadResult;
+            }
+
             try
             {
                 if (UseSuggestedPeer(downloadBlockDto))
@@ -68,10 +74,10 @@ namespace AElf.OS.BlockSync.Application
                 }
                 else
                 {
-                    // If cannot get the blocks, there should be network problems or bad peer,
+                    // If cannot get the blocks, there should be network problems or abnormal peer,
                     // because we have selected peer with lib height greater than or equal to the target height.
                     // 1. network problems, need to retry from other peer.
-                    // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
+                    // 2. not network problems, this peer or the last peer is abnormal peer, we need to remove it.
                     var downloadTargetHeight =
                         downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
                     var exceptedPeers = new List<string> {_blockSyncStateProvider.LastRequestPeerPubkey};
@@ -93,14 +99,14 @@ namespace AElf.OS.BlockSync.Application
 
                     if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                     {
-                        await CheckBadPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
+                        await CheckAbnormalPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
                             downloadBlockDto.PreviousBlockHeight);
                     }
                 }
             }
             catch (BlockDownloadException e)
             {
-                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {
                     BlockHash = e.BlockHash,
                     BlockHeight = e.BlockHeight,
@@ -109,6 +115,11 @@ namespace AElf.OS.BlockSync.Application
             }
 
             return downloadResult;
+        }
+
+        private bool IsPeerAvailable(string peerPubkey)
+        {
+            return _networkService.GetPeerByPubkey(peerPubkey) != null;
         }
 
         /// <summary>
@@ -127,49 +138,26 @@ namespace AElf.OS.BlockSync.Application
                 .Where(p => p.SyncState == SyncState.Finished &&
                             p.LastKnownLibHeight >= blockHeight)
                 .ToList();
-            bool? checkResult = null;
 
-            if (peers.Count >= PeerCheckMinimumCount)
+            if (peers.Count < PeerCheckMinimumCount)
             {
-                var correctCount = 0;
-                var incorrectCount = 0;
-
-                var taskList = peers.Select(async peer =>
-                    await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
-
-                var hashCheckResult = await Task.WhenAll(taskList);
-
-                foreach (var result in hashCheckResult)
-                {
-                    if (result.Success)
-                    {
-                        //TODO: make retry logic in a class, and use callback. then we can easily change the strategy
-                        if (result.Payload != null && result.Payload.Count == 1)
-                        {
-                            correctCount++;
-                        }
-                        else
-                        {
-                            incorrectCount++;
-                        }
-                    }
-                }
-
-                var confirmCount = 2 * peers.Count() / 3 + 1;
-                if (correctCount >= confirmCount)
-                {
-                    checkResult = true;
-                }
-                else if (incorrectCount >= confirmCount)
-                {
-                    checkResult = false;
-                }
+                return null;
             }
 
-            return checkResult;
+            var taskList = peers.Select(async peer =>
+                await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
+
+            var hashCheckResult = await Task.WhenAll(taskList);
+
+            var confirmCount = 2 * peers.Count() / 3 + 1;
+            var result = hashCheckResult.Where(r => r.Success)
+                .GroupBy(a => a.Payload != null && a.Payload.Count == 1)
+                .FirstOrDefault(group => group.Count() >= confirmCount);
+
+            return result?.Key;
         }
 
-        private async Task CheckBadPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
+        private async Task CheckAbnormalPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
             long downloadPreviousBlockHeight)
         {
             var checkResult =
@@ -200,8 +188,6 @@ namespace AElf.OS.BlockSync.Application
 
         private string GetRandomPeerPubkey(string defaultPeerPubkey, long peerLibHeight, List<string> exceptedPeers)
         {
-            //TODO: should not new a Random in a function. it's very basic 
-            var random = new Random();
             var peers = _networkService.GetPeers(false)
                 .Where(p => p.SyncState == SyncState.Finished &&
                             p.LastKnownLibHeight >= peerLibHeight &&
@@ -210,7 +196,7 @@ namespace AElf.OS.BlockSync.Application
 
             var randomPeerPubkey = peers.Count == 0
                 ? defaultPeerPubkey
-                : peers[random.Next() % peers.Count].Pubkey;
+                : peers[RandomHelper.GetRandom() % peers.Count].Pubkey;
 
             return randomPeerPubkey;
         }

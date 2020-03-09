@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -205,7 +206,8 @@ namespace AElf.Contracts.TokenHolder
                     TokenHolderContractAddress
                 }
             });
-
+            tokenContractCallList.Add(nameof(TokenContract.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = TokenHolderContractTestConstants.NativeTokenSymbol,

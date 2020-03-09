@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using AElf.CSharp.CodeOps;
-using AElf.Runtime.CSharp;
 
 namespace AElf.Contracts.Deployer
 {

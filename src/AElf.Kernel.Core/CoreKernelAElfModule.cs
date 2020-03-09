@@ -2,6 +2,7 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using AElf.Types;
@@ -31,7 +32,6 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
             services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
             services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
-            services.AddStoreKeyPrefixProvide<SmartContractCodeHistory>("sc");
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
@@ -41,7 +41,9 @@ namespace AElf.Kernel
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
-
+            services.AddSingleton(typeof(ICachedBlockchainExecutedDataService<>),
+                typeof(CachedBlockchainExecutedDataService<>));
+            
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
         }
@@ -50,7 +52,7 @@ namespace AElf.Kernel
         {
             var transactionBlockIndexService =
                 context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
-            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
+            AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
         }
     }
 

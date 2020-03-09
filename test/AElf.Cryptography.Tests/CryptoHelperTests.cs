@@ -54,6 +54,15 @@ namespace AElf.Cryptography.Tests
 
             Assert.True(recoverResult2);
             Assert.False(publicKey2.BytesEqual(keyPair.PublicKey));
+
+            var invalidSignature = ByteArrayHelper.HexStringToByteArray(
+                "1c9469cbd4b9f722056d3eafd9823b14be9d2759192a7980aafba9d767576834ce25cb570e63dede117ff5c831e33ac47d0450b6b4cea0d04d66a435f2275ef3ec");
+            var recoverResult3 = CryptoHelper.RecoverPublicKey(invalidSignature, messageHash2, out var publicKey3);
+            Assert.False(recoverResult3);
+
+            var invalidSignature2 = new byte[10];
+            var recoverResult4 = CryptoHelper.RecoverPublicKey(invalidSignature2, messageHash2, out var publicKey4);
+            Assert.False(recoverResult4);
         }
 
         [Fact]
@@ -108,13 +117,6 @@ namespace AElf.Cryptography.Tests
             Assert.Equal(ecdhKey1.ToHex(), ecdhKey2.ToHex());
         }
 
-        [Fact]
-        public void RandomByteArrayGenerate_Test()
-        {
-            var byteArray1 = CryptoHelper.RandomFill(30);
-            byteArray1.Length.ShouldBe(30);
-        }
-        
         [Fact]
         public void Ecdh_BadArgument_ShouldThrowException()
         {

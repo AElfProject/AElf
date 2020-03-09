@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;

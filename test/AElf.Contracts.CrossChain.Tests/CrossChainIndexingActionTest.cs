@@ -273,7 +273,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var txResult = await CrossChainContractStub.Recharge.SendWithExceptionAsync(rechargeInput);
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.TransactionResult.Error.Contains("Side chain not found or not able to be recharged.")
+            txResult.TransactionResult.Error.Contains("Side chain not found or incorrect side chain status.")
                 .ShouldBeTrue();
         }
 
@@ -294,7 +294,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(100_000L);
             var txResult = await CrossChainContractStub.Recharge.SendWithExceptionAsync(rechargeInput);
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.TransactionResult.Error.Contains("Side chain not found or not able to be recharged.")
+            txResult.TransactionResult.Error.Contains("Side chain not found or incorrect side chain status.")
                 .ShouldBeTrue();
         }
 
@@ -584,7 +584,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     await CrossChainContractStub.ProposeCrossChainIndexing.SendWithExceptionAsync(
                         secondCrossChainBlockData);
                 secondProposingTxRes.TransactionResult.Error.ShouldContain(
-                    "Unable to clear cross chain indexing proposal which is not expired.");
+                    "Unable to clear cross chain indexing proposal not expired.");
             }
 
             {
@@ -861,7 +861,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 var secondProposingTx =
                     await CrossChainContractStub.ProposeCrossChainIndexing.SendWithExceptionAsync(secondCrossChainBlockData);
                 secondProposingTx.TransactionResult.Error.ShouldContain(
-                    "Unable to clear cross chain indexing proposal which is not expired.");
+                    "Unable to clear cross chain indexing proposal not expired.");
             }
             var releaseResult = await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

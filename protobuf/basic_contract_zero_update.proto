@@ -18,4 +18,10 @@ service BasicContractZero {
     }
     rpc ChangeGenesisOwnerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeInput{
+    bool contract_deployment_authority_required = 1;
 }

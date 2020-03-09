@@ -18,7 +18,7 @@ namespace AElf.WebApp.Application.Chain
         internal static async Task<MethodDescriptor> GetContractMethodDescriptorAsync(
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, Address contractAddress,
-            string methodName, IChainContext chainContext = null, bool throwException = true)
+            string methodName, bool throwException = true)
         {
             IEnumerable<FileDescriptor> fileDescriptors;
             _blockchainService = blockchainService;
@@ -26,7 +26,7 @@ namespace AElf.WebApp.Application.Chain
 
             try
             {
-                fileDescriptors = await GetFileDescriptorsAsync(contractAddress, chainContext);
+                fileDescriptors = await GetFileDescriptorsAsync(contractAddress);
             }
             catch
             {
@@ -46,18 +46,14 @@ namespace AElf.WebApp.Application.Chain
             return null;
         }
 
-        private static async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address,
-            IChainContext chainContext)
+        private static async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address)
         {
-            if (chainContext == null)
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext
             {
-                var chain = await _blockchainService.GetChainAsync();
-                chainContext = new ChainContext
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                };
-            }
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
             return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
     }

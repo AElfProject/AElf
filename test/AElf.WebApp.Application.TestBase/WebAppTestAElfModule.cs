@@ -2,9 +2,8 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
@@ -81,18 +80,11 @@ namespace AElf.WebApp.Application
                 return mockService.Object;
             });
 
-            context.Services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<IBlockTransactionLimitProvider>();
-                mockService.Setup(m => m.GetLimitAsync(It.IsAny<IChainContext>())).Returns(Task.FromResult(0));
-                return mockService.Object;
-            });
-
             context.Services
                 .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
+            context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }
     }
 }

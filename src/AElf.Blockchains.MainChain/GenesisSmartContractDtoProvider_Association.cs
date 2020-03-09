@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
 
@@ -12,7 +13,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Association")).Value,
+                GetContractCodeByName("AElf.Contracts.Association"),
                 AssociationSmartContractAddressNameProvider.Name,
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
 

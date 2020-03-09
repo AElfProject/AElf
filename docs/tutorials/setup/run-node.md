@@ -2,6 +2,10 @@
 
 ## Manual build & run the sources
 
+{% hint style="info" %} 
+This tutorial is only if you are interested in building the sources and running the node from the build. 
+{% endhint %} 
+
 This method is not as straightforward as the docker quickstart but is a lot more flexible. If your aim is to develop some dApps it's better you follow these more advanced ways of launching a node. This section will walk you through configuring, running and interacting with an AElf node.
 
 First, if you haven't already done it, clone our [repository](https://github.com/AElfProject/AElf)

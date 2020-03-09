@@ -6,7 +6,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -145,19 +145,6 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Deploy_Contract_ThrowInvalidParameterException()
-        {
-            _bridgeContext.TransactionContext.Transaction = new Transaction()
-            {
-                To = _smartContractAddressService.GetZeroSmartContractAddress()
-            };
-
-            Should.Throw<InvalidParameterException>(() =>
-                _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(){Category = -1}, null));
-        }
-
-        [Fact]
         public void Deploy_Contract_Success()
         {
             _bridgeContext.TransactionContext.Transaction = new Transaction()
@@ -173,19 +160,6 @@ namespace AElf.Kernel.SmartContract
             };
 
             _bridgeContext.DeployContract(SampleAddress.AddressList[0], registration, Hash.FromMessage(registration.CodeHash));
-        }
-
-        [Fact]
-        public void Update_Contract_ThrowAssertionError()
-        {
-            _bridgeContext.TransactionContext.Transaction = new Transaction()
-            {
-                To = _smartContractAddressService.GetZeroSmartContractAddress()
-            };
-
-            Should.Throw<InvalidParameterException>(() =>
-                _bridgeContext.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(){Category = -1}, null));
         }
 
         [Fact]

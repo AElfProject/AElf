@@ -7,6 +7,7 @@ using AElf.OS.Network.Domain;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
 
 namespace AElf.OS.Network.Application
 {
@@ -29,10 +30,8 @@ namespace AElf.OS.Network.Application
         
         public async Task<NodeList> DiscoverNodesAsync()
         {
-            Random rnd = new Random();
-            
             var peers = _peerPool.GetPeers()
-                .OrderBy(x => rnd.Next())
+                .OrderBy(x => RandomHelper.GetRandom())
                 .Take(NetworkConstants.DefaultDiscoveryPeersToRequestCount)
                 .ToList();
 

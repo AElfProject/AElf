@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -45,7 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(chainContext, transaction.To, executive);
             }
 
             return trace;
@@ -66,7 +66,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
                 }
             }
 
@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Application
             IEnumerable<FileDescriptor> output;
             try
             {
-                executive = await _smartContractExecutiveService.GetHistoryExecutiveAsync(
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     chainContext, address);
                 output = executive.GetFileDescriptors();
             }
@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
                 }
             }
 
@@ -108,7 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
                 }
             }
         }

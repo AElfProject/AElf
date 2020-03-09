@@ -193,7 +193,7 @@ namespace AElf.Contracts.Election
             decimal a = 1m;
             if (y == 0)
                 return a;
-            var e = new BitArray(BitConverter.GetBytes(y));
+            var e = new BitArray(y.ToBytes(false));
             var t = e.Count;
             for (var i = t - 1; i >= 0; --i)
             {

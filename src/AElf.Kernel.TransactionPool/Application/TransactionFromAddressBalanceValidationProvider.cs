@@ -1,18 +1,11 @@
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
-
-
-//TODO: assembly: InternalsVisibleTo should not in class .cs file
-[assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
-[assembly: InternalsVisibleTo("AElf.Kernel.TransactionPool.Tests")]
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -24,7 +17,6 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly ITransactionFeeExemptionService _feeExemptionService;
 
         public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
@@ -32,13 +24,11 @@ namespace AElf.Kernel.TransactionPool.Application
         public TransactionFromAddressBalanceValidationProvider(IBlockchainService blockchainService,
             ITokenContractReaderFactory tokenContractReaderFactory,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            IDeployedContractAddressProvider deployedContractAddressProvider,
             ITransactionFeeExemptionService feeExemptionService)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _deployedContractAddressProvider = deployedContractAddressProvider;
             _feeExemptionService = feeExemptionService;
         }
 
@@ -59,12 +49,6 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-
-            // Skip if the sender is a contract.
-            if (_deployedContractAddressProvider.CheckContractAddress(chainContext, transaction.From))
-            {
-                return true;
-            }
 
             // Skip this validation at the very beginning of current chain.
             if (chain.LastIrreversibleBlockHeight == Constants.GenesisBlockHeight)

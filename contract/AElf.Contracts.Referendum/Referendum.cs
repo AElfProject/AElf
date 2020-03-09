@@ -90,11 +90,15 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(organization), "Invalid organization data.");
 
+            if (State.Organisations[organizationAddress] != null) 
+                return organizationAddress;
+            
             State.Organisations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
             });
+
             return organizationAddress;
         }
         
@@ -138,7 +142,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Approve);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -150,7 +156,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Reject);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -162,7 +170,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Abstain);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -182,6 +192,11 @@ namespace AElf.Contracts.Referendum
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
@@ -192,6 +207,11 @@ namespace AElf.Contracts.Referendum
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationWhiteListChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
 

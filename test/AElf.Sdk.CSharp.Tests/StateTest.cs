@@ -1,7 +1,7 @@
 using System;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Moq;
 using Shouldly;

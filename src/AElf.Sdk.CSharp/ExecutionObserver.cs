@@ -48,13 +48,4 @@ namespace AElf.Sdk.CSharp
             return _branchCount;
         }
     }
-    
-    public static class ExecutionObserverDebugger
-    {
-        public static void Test(IExecutionObserver observer)
-        {
-            // To observe the observer's condition during execution,
-            // can place a breakpoint below
-        }
-    }
 }

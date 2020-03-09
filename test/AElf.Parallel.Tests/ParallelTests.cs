@@ -9,7 +9,10 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -30,12 +33,16 @@ namespace AElf.Parallel.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionGrouper _grouper;
-        private readonly IContractRemarksService _contractRemarksService;
+        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly ITxHub _txHub;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IAccountService _accountService;
         private readonly ParallelTestHelper _parallelTestHelper;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IStateStore<VersionedState> _versionedStates;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         private int _groupCount = 10;
         private int _transactionCount = 20;
@@ -46,12 +53,16 @@ namespace AElf.Parallel.Tests
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _grouper = GetRequiredService<ITransactionGrouper>();
-            _contractRemarksService = GetRequiredService<IContractRemarksService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _txHub = GetRequiredService<ITxHub>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _accountService = GetRequiredService<IAccountService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
+            _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
+            _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -89,15 +100,13 @@ namespace AElf.Parallel.Tests
 
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
-            var codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+            var nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
-                }, tokenContractAddress, tokenContractCodeHash);
-            codeRemark.NonParallelizable.ShouldBeFalse();
-            codeRemark.CodeHash.ShouldBe(tokenContractCodeHash);
+                }, tokenContractAddress);
+            nonparallelContractCode.ShouldBeNull();
 
             groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
@@ -151,15 +160,13 @@ namespace AElf.Parallel.Tests
 
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
-            var codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+            var nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
-                }, tokenContractAddress, tokenContractCodeHash);
-            codeRemark.NonParallelizable.ShouldBeFalse();
-            codeRemark.CodeHash.ShouldBe(tokenContractCodeHash);
+                }, tokenContractAddress);
+            nonparallelContractCode.ShouldBeNull();
 
             groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
@@ -189,12 +196,11 @@ namespace AElf.Parallel.Tests
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
 
-            codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(
-                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, tokenContractAddress,
-                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.NonParallelizable.ShouldBeFalse();
-            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                    tokenContractAddress);
+            nonparallelContractCode.ShouldBeNull();
 
             groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
@@ -221,13 +227,11 @@ namespace AElf.Parallel.Tests
             transactionList.Add(transferTransaction);
             await _parallelTestHelper.BroadcastTransactions(transactionList);
             var block = await _parallelTestHelper.MinedOneBlock();
-            
-            var codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(
-                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To,
-                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.NonParallelizable.ShouldBeFalse();
+
+            var nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To);
+            nonparallelContractCode.ShouldBeNull();
             
             transactionList.Clear();
             transferTransaction = _parallelTestHelper.GenerateTransferTransaction(keyPair, accountAddress, symbol, 10);
@@ -244,13 +248,11 @@ namespace AElf.Parallel.Tests
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(),block.Header);
             transactionResults.Count.ShouldBe(2);
             transactionResults.Count(t => t.Status == TransactionResultStatus.Mined).ShouldBe(2);
-            
-            codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(
-                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To,
-                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.NonParallelizable.ShouldBeFalse();
+
+            nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height}, transferTransaction.To);
+            nonparallelContractCode.ShouldBeNull();
         }
 
         [Fact]
@@ -328,15 +330,14 @@ namespace AElf.Parallel.Tests
             
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+            var nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
-                    }, tokenContractAddress,
-                    Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
-            codeRemark.NonParallelizable.ShouldBeFalse();
+                    }, tokenContractAddress);
+            nonparallelContractCode.ShouldBeNull();
             
             foreach (var transaction in transactions)
             {
@@ -364,16 +365,37 @@ namespace AElf.Parallel.Tests
                 }
             }
 
-            codeRemark =
-                await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
-                    {
-                        BlockHash = block.GetHash(),
-                        BlockHeight = block.Height
-                    }, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                    Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-            codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-            codeRemark.NonParallelizable.ShouldBeTrue();
+            nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+            nonparallelContractCode.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBeGreaterThan(0);
+            blockStateSet.BlockExecutedData.Count.ShouldBe(1);
+            var blockExecutedData = blockStateSet.BlockExecutedData.First();
+            var versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
+            versionedState.ShouldBeNull();
+
+            await _blockchainStateService.MergeBlockStateAsync(block.Height, block.GetHash());
+            blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.ShouldBeNull();
+            
+            nonparallelContractCode =
+                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+            nonparallelContractCode.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+
+            versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
+            versionedState.Key.ShouldBe(blockExecutedData.Key);
+            versionedState.Value.ShouldBe(blockExecutedData.Value);
+            
             groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                 transactions);
@@ -478,14 +500,13 @@ namespace AElf.Parallel.Tests
 
             var tokenContractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var tokenContractCodeHash = Hash.FromRawBytes(_parallelTestHelper.TokenContractCode);
-            var codeRemark = await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, tokenContractAddress, tokenContractCodeHash);
-            codeRemark.NonParallelizable.ShouldBeFalse();
-            codeRemark.CodeHash.ShouldBe(tokenContractCodeHash);
+            var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, tokenContractAddress);
+            nonparallelContractCode.ShouldBeNull();
             
             groupedTransactions = await _grouper.GroupAsync(new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                 cancellableTransactions);

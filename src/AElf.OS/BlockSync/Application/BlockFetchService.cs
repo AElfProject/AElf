@@ -55,7 +55,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 Logger.LogWarning(
                     $"Fetched invalid block, peer: {suggestedPeerPubKey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
-                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),
                     BlockHeight = blockWithTransactions.Height,
