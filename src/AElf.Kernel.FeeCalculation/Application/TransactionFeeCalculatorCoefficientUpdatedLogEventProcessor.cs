@@ -48,7 +48,26 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
+
+            var cacheData = new AllCalculateFeeFunctionCoefficients();
+            foreach (var functionCoefficients in eventData.AllTypeFeeCoefficients.Value)
+            {
+                var coefficientsOfEachType = new CalculateFeeFunctionCoefficients
+                {
+                    FeeTokenType = functionCoefficients.FeeTokenType,
+                };
+
+                foreach (var eachPiece in functionCoefficients.PieceCoefficientsList)
+                {
+                    var eachPieceFunctionCoefficients = new CalculateFeePieceFunctionCoefficients();
+                    eachPieceFunctionCoefficients.Value.Add(eachPiece.Value);
+                    coefficientsOfEachType.PieceCoefficientsList.Add(eachPieceFunctionCoefficients);
+                }
+
+                cacheData.Value.Add(coefficientsOfEachType);
+            }
+
+            await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), cacheData);
         }
     }
 }

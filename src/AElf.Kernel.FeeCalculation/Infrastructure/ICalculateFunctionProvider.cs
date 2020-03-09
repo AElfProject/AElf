@@ -36,7 +36,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
             // Skip parameters[0] which is meant to be piece upper bound.
             var currentIndex = 1;
-            while (currentIndex < parameters.Length - 1)
+            while (currentIndex < parameters.Length)
             {
                 cost += GetUnitExponentialCalculation(count, parameters[currentIndex],
                     parameters[currentIndex + 1],
