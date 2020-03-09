@@ -41,25 +41,31 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-    //be used in kernel
+
+    // acs1
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
-    }
-    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
-    }
-    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
     rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
     }
-    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
-    }
     rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
     }
+
+    // acs5
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    }
+
+    // acs8
+    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.BoolValue) {
+    }
+    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
+    }
+
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
 
@@ -456,8 +462,3 @@ message RentalAccountBalanceInsufficient {
     string symbol = 1;
     sint64 amount = 2;
 }
-
-
-
-
-

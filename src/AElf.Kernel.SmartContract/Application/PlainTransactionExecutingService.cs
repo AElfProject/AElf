@@ -130,9 +130,6 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
-                    //TODO!!! remove
-                    result.TransactionFee = trace.TransactionFee;
-                    result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
                     transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
@@ -305,15 +302,7 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
-                    //TODO!! should not implement in this way. make a plugin output fields,maybe a dictionary in Protobuf,
-                    //and save these output in 
-                    if (preTx.MethodName == "ChargeTransactionFees")
-                    {
-                        var txFee = new TransactionFee();
-                        txFee.MergeFrom(preTrace.ReturnValue);
-                        trace.TransactionFee = txFee;
-                    }
-                    
+
                     if (!preTrace.IsSuccessful())
                     {
                         return false;
@@ -324,8 +313,9 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
+                    if (preTrace.ExecutionStatus == ExecutionStatus.Executed) continue;
 
+                    // If pre-tx fails, still count the consuming, but return false to notice outsides.
                     preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
@@ -342,8 +332,10 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
+
             if (!trace.IsSuccessful())
             {
+                // If failed to execute this tx, at least we need to commit pre traces.
                 internalStateCache = new TieredStateCache(txContext.StateCache);
                 foreach (var preTrace in txContext.Trace.PreTraces)
                 {
@@ -373,13 +365,6 @@ namespace AElf.Kernel.SmartContract.Application
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
 
-                    if (postTx.MethodName == "ChargeResourceToken")
-                    {
-                        var consumedResourceTokens = new ConsumedResourceTokens();
-                        consumedResourceTokens.MergeFrom(postTrace.ReturnValue);
-                        trace.ConsumedResourceTokens = consumedResourceTokens;
-                    }
-
                     if (!postTrace.IsSuccessful())
                     {
                         return false;
@@ -407,17 +392,16 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
-                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
+                // If any pre-tx executed successful, commit the changes.
+                if (trace.PreTraces.Any(pt => pt.ExecutionStatus == ExecutionStatus.Executed))
                 {
                     return new TransactionResult
                     {
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Failed,
                         ReturnValue = trace.ReturnValue,
-                        ReadableReturnValue = trace.ReadableReturnValue,
                         BlockNumber = blockHeight,
-                        Logs = {trace.FlattenedLogs},
-                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                        Logs = {trace.FlattenedLogs}
                     };
                 }
                 return new TransactionResult
@@ -436,9 +420,7 @@ namespace AElf.Kernel.SmartContract.Application
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Mined,
                     ReturnValue = trace.ReturnValue,
-                    ReadableReturnValue = trace.ReadableReturnValue,
                     BlockNumber = blockHeight,
-                    //StateHash = trace.GetSummarizedStateHash(),
                     Logs = {trace.FlattenedLogs}
                 };
 

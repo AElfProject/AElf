@@ -9,9 +9,9 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
@@ -534,14 +534,19 @@ namespace AElf.Parallel.Tests
             var cancellableTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             var allTransactions = systemTransactions.Concat(cancellableTransactions).ToList();
             await _parallelTestHelper.BroadcastTransactions(allTransactions);
-            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash,chain.BestChainHeight, allTransactions);
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, allTransactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
-            
+
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
-            var fee = transactionResults.Sum(t => t.TransactionFee.Value["ELF"]);
+            var fee = transactionResults
+                .Select(transactionResult =>
+                    transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged)))
+                .Select(relatedLog => TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees["ELF"])
+                .Sum();
             var amount = allTransactions.Sum(t => TransferInput.Parser.ParseFrom(t.Params).Amount);
-            var endBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
+            var endBalance =
+                await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
             (startBalance - endBalance).ShouldBe(amount + fee);
         }
 

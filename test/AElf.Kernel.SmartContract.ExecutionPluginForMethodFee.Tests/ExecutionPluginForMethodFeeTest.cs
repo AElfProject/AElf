@@ -139,7 +139,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var size = dummy.Transaction.Size();
             var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
             var sizeFee = await txCostStrategy.GetCostAsync(null, size);
-            dummy.TransactionResult.TransactionFee.Value["ELF"].ShouldBe(feeAmount + sizeFee);
+            dummy.TransactionResult.GetChargedTransactionFees()["ELF"].ShouldBe(feeAmount + sizeFee);
             var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
@@ -211,8 +211,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
-                    dummyResult.TransactionResult.TransactionFee.Value.Values.ShouldContain(chargedAmount);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Values.ShouldContain(chargedAmount);
                 }
             }
             else
@@ -222,7 +222,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
                 }
             }
 

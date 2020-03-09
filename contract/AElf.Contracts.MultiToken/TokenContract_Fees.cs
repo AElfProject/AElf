@@ -18,16 +18,14 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override TransactionFee ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
-
-            var transactionFee = new TransactionFee();
 
             // Primary token not created yet.
             if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                return transactionFee;
+                return new BoolValue {Value = true};
             }
 
             // Record tx fee bill during current charging process.
@@ -52,11 +50,9 @@ namespace AElf.Contracts.MultiToken
             foreach (var tokenToAmount in bill.TokenToAmount)
             {
                 ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
-                transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
             }
 
-            transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
-            return transactionFee;
+            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -152,13 +148,13 @@ namespace AElf.Contracts.MultiToken
             return availableBalance >= txSizeFeeAmount;
         }
 
-        public override ConsumedResourceTokens ChargeResourceToken(ChargeResourceTokenInput input)
+        public override BoolValue ChargeResourceToken(ChargeResourceTokenInput input)
         {
-            var consumedResourceTokens = new ConsumedResourceTokens();
+            var isChargeWithoutDebt = new BoolValue {Value = true};
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
-                return consumedResourceTokens;
+                return isChargeWithoutDebt;
             }
 
             var symbolToAmount = new Dictionary<string, long>
@@ -181,10 +177,7 @@ namespace AElf.Contracts.MultiToken
                     var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
                         .Add(pair.Value.Sub(existingBalance));
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
-
-                    consumedResourceTokens.IsFailedToCharge = true;
-                    consumedResourceTokens.Owning.Add(pair.Key, owningBalance);
-
+                    isChargeWithoutDebt.Value = false;
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                 }
                 else
@@ -197,12 +190,9 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
-                consumedResourceTokens.Value.Add(pair.Key, pair.Value);
             }
 
-            Context.LogDebug(() => $"Finished executing ChargeResourceToken.{consumedResourceTokens}");
-
-            return consumedResourceTokens;
+            return isChargeWithoutDebt;
         }
 
 

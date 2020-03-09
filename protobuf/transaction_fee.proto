@@ -2,7 +2,11 @@ syntax = "proto3";
 
 package aelf;
 
+import "aelf/options.proto";
+
 option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee";
+
+// Messages
 
 message TransactionSizeFeeSymbols
 {
@@ -14,4 +18,17 @@ message TransactionSizeFeeSymbol
     string token_symbol = 1;
     sint32 base_token_weight = 2;
     sint32 added_token_weight = 3;
+}
+
+// Events
+
+message TransactionFeeCharged {
+    option (aelf.is_event) = true;
+    map<string, sint64> charged_fees = 1;
+}
+
+message ResourceTokenCharged {
+    option (aelf.is_event) = true;
+    map<string, sint64> charged_tokens = 1;
+    map<string, sint64> owing_tokens = 2;
 }

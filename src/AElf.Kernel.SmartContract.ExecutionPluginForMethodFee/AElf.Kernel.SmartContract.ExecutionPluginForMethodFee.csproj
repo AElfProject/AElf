@@ -14,9 +14,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\transaction_fee.proto">
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf/Proto/transaction_fee.proto</Link>
-        </CommonMessage>
+        </ContractBase>
     </ItemGroup>
 
     <ItemGroup>

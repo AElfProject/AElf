@@ -7,6 +7,7 @@ using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -97,11 +98,11 @@ namespace AElf.Contract.TestContract
                 NetPackage = GenerateBytes(1024)
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            
+            var relatedLog = transactionResult.TransactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
+            var txFee = TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).ChargedFees["ELF"];
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance +
-                                   transactionResult.TransactionResult.TransactionFee.Value.First().Value);
-            
+            beforeBalance.ShouldBe(afterBalance + txFee);
+
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
             feesAfter["TRAFFIC"].ShouldBeLessThan(feesBefore["TRAFFIC"]);
