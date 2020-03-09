@@ -17,6 +17,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
@@ -728,27 +729,19 @@ namespace AElf.Contracts.TestBase
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens), new ResourceTokenAmount
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                new SetConfigurationInput
                 {
-                    Value =
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = new RequiredAcsInContracts
                     {
-                        {"CPU", SmartContractTestConstants.ResourceSupply},
-                        {"RAM", SmartContractTestConstants.ResourceSupply},
-                        {"DISK", SmartContractTestConstants.ResourceSupply},
-                        {"NET", SmartContractTestConstants.ResourceSupply},
-                    }
+                        AcsList =
+                        {
+                            Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
+                                .Value.ContractFeeStrategyAcsList
+                        }
+                    }.ToByteString()
                 });
-            configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
-                new RequiredAcsInContracts
-                {
-                    AcsList =
-                    {
-                        Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
-                            .Value.ContractFeeStrategyAcsList
-                    }
-                });
-
 
             return list =>
             {

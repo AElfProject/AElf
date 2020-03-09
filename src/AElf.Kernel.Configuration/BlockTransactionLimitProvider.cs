@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
+using AElf.Contracts.Configuration;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.BlockTransactionLimitController
+namespace AElf.Kernel.Configuration
 {
     public interface IBlockTransactionLimitProvider
     {

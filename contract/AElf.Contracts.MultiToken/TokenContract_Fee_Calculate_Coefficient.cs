@@ -7,22 +7,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        public override Empty Initialize(InitializeInput input)
-        {
-            // when restart, initialize fee calculate coefficient cache
-            InitialCoefficientsAboutCharging();
-            Assert(!State.Initialized.Value, "Already initialized.");
-
-            // Initialize resources usage status.
-            foreach (var pair in input.ResourceAmount)
-            {
-                State.ResourceAmount[pair.Key] = pair.Value;
-            }
-
-            State.Initialized.Value = true;
-            return new Empty();
-        }
-
         /// <summary>
         /// Can only update one token at one time.
         /// </summary>

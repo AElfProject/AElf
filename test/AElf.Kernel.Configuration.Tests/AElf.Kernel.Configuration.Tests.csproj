@@ -29,7 +29,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.BlockTransactionLimitController\AElf.Kernel.BlockTransactionLimitController.csproj" />
     </ItemGroup>
 
     <ItemGroup>
