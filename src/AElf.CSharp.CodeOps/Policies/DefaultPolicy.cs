@@ -11,6 +11,7 @@ using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
+using AElf.Kernel.SmartContract;
 using Mono.Cecil;
 
 using AElf.Types;
@@ -51,6 +52,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
                 ;
         }
 
@@ -70,6 +72,11 @@ namespace AElf.CSharp.CodeOps.Policies
                         .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
                     .Type(typeof(BitConverter), Permission.Denied, member => member
                         .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
+                    .Type(typeof(Uri), Permission.Denied, member => member
+                        .Member(nameof(Uri.TryCreate), Permission.Allowed)
+                        .Member(nameof(Uri.Scheme), Permission.Allowed)
+                        .Member(nameof(Uri.UriSchemeHttp), Permission.Allowed)
+                        .Member(nameof(Uri.UriSchemeHttps), Permission.Allowed))
                     .Type(typeof(NotImplementedException),
                         Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(NotSupportedException), Permission.Allowed) // Required for protobuf generated code

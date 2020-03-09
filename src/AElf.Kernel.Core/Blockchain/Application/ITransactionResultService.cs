@@ -112,7 +112,7 @@ namespace AElf.Kernel.Blockchain.Application
                 await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
             }
 
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(transactionIds, blockIndex);
+            await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
         }
     }
 }

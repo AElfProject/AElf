@@ -15,9 +15,9 @@ namespace AElf.Kernel.Miner.Application
     {
         public ILogger<MinerService> Logger { get; set; }
         private readonly ITxHub _txHub;
-        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly IMiningService _miningService;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
 
         public MinerService(IMiningService miningService, ITxHub txHub,
             IBlockTransactionLimitProvider blockTransactionLimitProvider,
@@ -40,7 +40,10 @@ namespace AElf.Kernel.Miner.Application
             Duration blockExecutionTime)
         {
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
-                {BlockHash = previousBlockHash, BlockHeight = previousBlockHeight});
+            {
+                BlockHash = previousBlockHash,
+                BlockHeight = previousBlockHeight
+            });
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_transactionPackingOptions.IsTransactionPackable
                     ? limit

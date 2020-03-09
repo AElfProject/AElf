@@ -11,66 +11,52 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveProvider
     {
-        IReadOnlyDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>> GetExecutivePools();
-        ConcurrentBag<IExecutive> GetPool(Address address, Hash codeHash);
-        bool TryGetExecutiveDictionary(Address address,
-            out ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> dictionary);
-        void ClearExecutives(Address address, IEnumerable<Hash> codeHashes);
+        IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools();
+        ConcurrentBag<IExecutive> GetPool(Address address);
+        bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag);
+        bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag);
     }
 
     public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>>
-            _executivePools =
-                new ConcurrentDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>>();
+        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>
+            _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
 
-        private IReadOnlyDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>> ExecutivePools;
+        private readonly IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> ExecutivePools;
 
         public ILogger<SmartContractExecutiveProvider> Logger { get; set; }
 
         public SmartContractExecutiveProvider()
         {
             ExecutivePools =
-                new ReadOnlyDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>>(_executivePools);
+                new ReadOnlyDictionary<Address, ConcurrentBag<IExecutive>>(_executivePools);
             Logger = NullLogger<SmartContractExecutiveProvider>.Instance;
         }
 
-        public IReadOnlyDictionary<Address, ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>> GetExecutivePools()
+        public IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools()
         {
             return ExecutivePools;
         }
 
-        public ConcurrentBag<IExecutive> GetPool(Address address, Hash codeHash)
+        public ConcurrentBag<IExecutive> GetPool(Address address)
         {
-            if (!_executivePools.TryGetValue(address, out var dictionary))
-            {
-                dictionary = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-                _executivePools[address] = dictionary;
-            }
-
-            if (!dictionary.TryGetValue(codeHash, out var pool))
+            if (!_executivePools.TryGetValue(address, out var pool))
             {
                 pool = new ConcurrentBag<IExecutive>();
-                dictionary[codeHash] = pool;
+                _executivePools[address] = pool;
             }
 
             return pool;
         }
 
-        public bool TryGetExecutiveDictionary(Address address,
-            out ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> dictionary)
+        public bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag)
         {
-            return _executivePools.TryGetValue(address, out dictionary);
+            return _executivePools.TryGetValue(address, out executiveBag);
         }
 
-        public void ClearExecutives(Address address, IEnumerable<Hash> codeHashes)
+        public bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag)
         {
-            if (!_executivePools.TryGetValue(address, out var dictionary)) return;
-            foreach (var codeHash in codeHashes)
-            {
-                if (dictionary.TryRemove(codeHash, out _))
-                    Logger.LogDebug($"Removed executive for address {address} and code hash {codeHash}.");
-            }
+            return _executivePools.TryRemove(address, out executiveBag);
         }
     }
 }

@@ -9,11 +9,10 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
@@ -25,17 +24,21 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         private ParliamentContractContainer.ParliamentContractStub _parliamentContractStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private readonly IBlockchainService _blockchainService;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
+        private readonly IBlockchainStateService _blockchainStateService;
 
         public BlockTransactionLimitTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
+            _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
         }
 
         private async Task DeployContractsAsync()
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
-            OptionalLogEventListeningService<IBlockAcceptedLogEventHandler>.Enabled = true;
+            OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>.Enabled = true;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             _configurationStub =
@@ -93,30 +96,30 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 var limit = await _configurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
                 Assert.Equal(55, limit.Value);
             }
-            var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
             var chain = await _blockchainService.GetChainAsync();
-            var limitNum = await provider.GetLimitAsync(new ChainContext
-                {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight});
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+            var limitNum = await _blockTransactionLimitProvider.GetLimitAsync(
+                new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                });
             Assert.Equal(55, limitNum);
         }
 
         [Fact]
         public async Task TransactionLimitSetAndGet_Test()
         {
-            var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
             var chain = await _blockchainService.GetChainAsync();
-            
-            provider.SetLimit(50, new BlockIndex
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            });
 
-            var limit = await provider.GetLimitAsync(new ChainContext
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            });
+            await _blockTransactionLimitProvider.SetLimitAsync(chain.BestChainHash, 50);
+
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(
+                new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                });
             Assert.Equal(50, limit);
         }
     }

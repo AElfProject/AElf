@@ -1,143 +1,52 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Configuration;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.BlockTransactionLimitController
 {
-    public class BlockTransactionLimitProvider : IBlockTransactionLimitProvider, ISingletonDependency
+    public interface IBlockTransactionLimitProvider
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        private readonly IChainBlockLinkService _chainBlockLinkService;
-        public ILogger<BlockTransactionLimitProvider> Logger { get; set; }
+        Task<int> GetLimitAsync(IChainContext chainContext);
+        Task SetLimitAsync(Hash blockHash, int limit);
+    }
 
-        private Address ConfigurationContractAddress => _smartContractAddressService.GetAddressByContractName(
-            ConfigurationSmartContractAddressNameProvider.Name);
+    public class BlockTransactionLimitProvider : BlockExecutedDataProvider, IBlockTransactionLimitProvider,
+        ISingletonDependency
+    {
+        private const string BlockExecutedDataName = nameof(BlockTransactionLimit);
 
-        private readonly ConcurrentDictionary<BlockIndex, int> _forkCache =
-            new ConcurrentDictionary<BlockIndex, int>();
+        private readonly ICachedBlockchainExecutedDataService<BlockTransactionLimit>
+            _cachedBlockchainExecutedDataService;
 
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-
-        private int _limit = -1;
-
-        public BlockTransactionLimitProvider(ISmartContractAddressService smartContractAddressService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            IBlockchainService blockchainService,
-            IChainBlockLinkService chainBlockLinkService)
+        public BlockTransactionLimitProvider(ICachedBlockchainExecutedDataService<BlockTransactionLimit>
+                cachedBlockchainExecutedDataService)
         {
-            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
-            _blockchainService = blockchainService;
-            _smartContractAddressService = smartContractAddressService;
-            _chainBlockLinkService = chainBlockLinkService;
-            Logger = NullLogger<BlockTransactionLimitProvider>.Instance;
+            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
-        public async Task<int> GetLimitAsync(IChainContext chainContext)
+
+        public Task<int> GetLimitAsync(IChainContext chainContext)
         {
-            var keys = _forkCache.Keys.ToArray();
-            if (keys.Length == 0) return await GetLimitAsync();
-            var minHeight = keys.Select(k => k.BlockHeight).Min();
-            int? limit = null;
-            var blockIndex = new BlockIndex
+            var key = GetBlockExecutedDataKey();
+            var limit = _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            return Task.FromResult(limit?.Value ?? 0);
+        }
+
+        public async Task SetLimitAsync(Hash blockHash, int limit)
+        {
+            var key = GetBlockExecutedDataKey();
+            var blockTransactionLimit = new BlockTransactionLimit
             {
-                BlockHash = chainContext.BlockHash,
-                BlockHeight = chainContext.BlockHeight
+                Value = limit
             };
-            do
-            {
-                if (_forkCache.TryGetValue(blockIndex, out var value))
-                {
-                    limit = value;
-                    break;
-                }
-
-                var link = _chainBlockLinkService.GetCachedChainBlockLink(blockIndex.BlockHash);
-                blockIndex.BlockHash = link?.PreviousBlockHash;
-                blockIndex.BlockHeight--;
-            } while (blockIndex.BlockHash != null && blockIndex.BlockHeight >= minHeight);
-
-            return limit ?? await GetLimitAsync();
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, key, blockTransactionLimit);
         }
 
-        public void RemoveForkCache(List<BlockIndex> blockIndexes)
+        protected override string GetBlockExecutedDataName()
         {
-            foreach (var blockIndex in blockIndexes)
-            {
-                if (!_forkCache.TryGetValue(blockIndex, out _)) continue;
-                _forkCache.TryRemove(blockIndex, out _);
-            }
-        }
-
-        public void SetIrreversedCache(List<BlockIndex> blockIndexes)
-        {
-            foreach (var blockIndex in blockIndexes)
-            {
-                if (!_forkCache.TryGetValue(blockIndex, out var limit)) continue;
-                _limit = limit;
-                _forkCache.TryRemove(blockIndex, out _);
-            }
-        }
-
-        public void SetLimit(int limit, BlockIndex blockIndex)
-        {
-            _forkCache[blockIndex] = limit;
-        }
-
-        private async Task<int> GetLimitAsync()
-        {
-            if (_limit == -1)
-            {
-                // Call ConfigurationContract GetBlockTransactionLimit()
-                try
-                {
-                    var chain = await _blockchainService.GetChainAsync();
-                    //Chain was not created
-                    if (chain == null) return 0;
-                    var result = await GetBlockTransactionLimitAsync(new ChainContext
-                    {
-                        BlockHash = chain.LastIrreversibleBlockHash,
-                        BlockHeight = chain.LastIrreversibleBlockHeight
-                    });
-                    _limit = Int32Value.Parser.ParseFrom(result).Value;
-                    Logger.LogTrace($"Get blockTransactionLimit: {_limit} by ConfigurationStub");
-                }
-                catch (InvalidOperationException e)
-                {
-                    Logger.LogError(e, "Invalid configuration contract address");
-                    _limit = 0;
-                }
-            }
-
-            return _limit;
-        }
-
-        private async Task<ByteString> GetBlockTransactionLimitAsync(IChainContext chainContext)
-        {
-            var tx = new Transaction
-            {
-                From = FromAddress,
-                To = ConfigurationContractAddress,
-                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                Params = new Empty().ToByteString(),
-                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
-            };
-            var transactionTrace =
-                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
-
-            return transactionTrace.ReturnValue;
+            return BlockExecutedDataName;
         }
     }
 }

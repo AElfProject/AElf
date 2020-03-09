@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -46,14 +44,6 @@ namespace AElf.Kernel.TransactionPool
 
                 return mockService.Object;
             });
-
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 
@@ -74,17 +64,6 @@ namespace AElf.Kernel.TransactionPool
                 return service.Object;
             });
             
-            services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressProvider>();
-                mockService.Setup(m => m.CheckContractAddress(It.IsAny<ChainContext>(),
-                        It.Is<Address>(address => address == SampleAddress.AddressList[0])))
-                    .Returns(true);
-                mockService.Setup(m => m.CheckContractAddress(It.IsAny<ChainContext>(),
-                        It.Is<Address>(address => address != SampleAddress.AddressList[0])))
-                    .Returns(false);
-                return mockService.Object;
-            });
             services.AddSingleton(provider =>
             {
                 var service = new Mock<ITransactionFeeExemptionService>();

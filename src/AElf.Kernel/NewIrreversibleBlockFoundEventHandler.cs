@@ -74,13 +74,12 @@ namespace AElf.Kernel
                         {
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
-
                         await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
-                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(irreversibleBlockHeight);
+                await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
                 
                 // Clean idle executive
                 _smartContractExecutiveService.CleanIdleExecutive();

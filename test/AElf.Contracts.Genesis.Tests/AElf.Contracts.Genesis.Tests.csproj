@@ -23,7 +23,7 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.8.0" />
+        <PackageReference Include="coverlet.collector" Version="1.2.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -51,9 +51,6 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero_update.proto">
-            <Link>Protobuf\Proto\basic_contract_zero_update.proto</Link>
         </ContractStub>
     </ItemGroup>
     <ItemGroup>

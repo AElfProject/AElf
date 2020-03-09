@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Referendum;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
@@ -14,7 +15,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Referendum")).Value,
+                GetContractCodeByName("AElf.Contracts.Referendum"),
                 ReferendumSmartContractAddressNameProvider.Name,
                 GenerateReferendumInitializationCallList());
             return l;

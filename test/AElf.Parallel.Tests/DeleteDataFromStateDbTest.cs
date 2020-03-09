@@ -14,7 +14,6 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp.State;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
@@ -30,11 +29,11 @@ namespace AElf.Parallel.Tests
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IAccountService _accountService;
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IBlockchainStateService _blockchainStateService;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
         private readonly ITransactionGrouper _transactionGrouper;
-        private readonly IContractRemarksService _contractRemarksService;
         private readonly ParallelTestHelper _parallelTestHelper;
 
         public DeleteDataFromStateDbTest()
@@ -44,12 +43,12 @@ namespace AElf.Parallel.Tests
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _accountService = GetRequiredService<IAccountService>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
+            _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
             _transactionGrouper = GetRequiredService<ITransactionGrouper>();
-            _contractRemarksService = GetRequiredService<IContractRemarksService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -117,7 +116,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -195,7 +194,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -273,7 +272,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -351,7 +350,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -429,7 +428,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -507,7 +506,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -585,7 +584,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -663,7 +662,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -740,7 +739,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
             CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(6);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -900,15 +899,13 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var codeHash = Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode);
-                var codeRemark =
-                    await _contractRemarksService.GetCodeRemarkAsync(new ChainContext
+                var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
-                    }, ParallelTestHelper.BasicFunctionWithParallelContractAddress, codeHash);
-                codeRemark.NonParallelizable.ShouldBeFalse();
-                codeRemark.CodeHash.ShouldBe(codeHash);
+                    }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+                nonparallelContractCode.ShouldBeNull();
                     
                 messageValue = new MessageValue
                 {
@@ -926,7 +923,7 @@ namespace AElf.Parallel.Tests
                 value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
                 CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
 
-                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
                 blockStateSet.Changes.Count.ShouldBe(6);
                 blockStateSet.Deletes.Count.ShouldBe(0);
             }
@@ -1049,13 +1046,10 @@ namespace AElf.Parallel.Tests
                 var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
                 transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
 
-                var codeRemark =
-                    await _contractRemarksService.GetCodeRemarkAsync(
-                        new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
-                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-                codeRemark.NonParallelizable.ShouldBeFalse();
-                codeRemark.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+                var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
+                    new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress);
+                nonparallelContractCode.ShouldBeNull();
 
                 messageValue = new MessageValue
                 {
@@ -1073,7 +1067,7 @@ namespace AElf.Parallel.Tests
                 value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
                 CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
 
-                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
                 blockStateSet.Changes.Count.ShouldBe(6);
                 blockStateSet.Deletes.Count.ShouldBe(0);
             }
@@ -1117,7 +1111,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(3);
             
@@ -1162,7 +1156,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(3);
             
@@ -1230,7 +1224,7 @@ namespace AElf.Parallel.Tests
             CheckValue(value, setAfterRemoveValueInput.StringValue,
                 setAfterRemoveValueInput.Int64Value, setAfterRemoveValueInput.MessageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1362,7 +1356,7 @@ namespace AElf.Parallel.Tests
             var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1407,7 +1401,7 @@ namespace AElf.Parallel.Tests
             var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1450,7 +1444,7 @@ namespace AElf.Parallel.Tests
             var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1487,7 +1481,7 @@ namespace AElf.Parallel.Tests
             var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(3);
             
@@ -1700,7 +1694,7 @@ namespace AElf.Parallel.Tests
                 value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
                 CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
 
-                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
                 blockStateSet.Changes.Count.ShouldBe(9);
                 blockStateSet.Deletes.Count.ShouldBe(12);
             }
@@ -1868,7 +1862,7 @@ namespace AElf.Parallel.Tests
                 value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
                 CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
 
-                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
                 blockStateSet.Changes.Count.ShouldBe(6);
                 blockStateSet.Deletes.Count.ShouldBe(15);
             }
@@ -1917,7 +1911,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1957,7 +1951,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -1997,7 +1991,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2037,7 +2031,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2082,7 +2076,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2127,7 +2121,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2172,7 +2166,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2217,7 +2211,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2262,7 +2256,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2307,7 +2301,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2352,7 +2346,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2397,7 +2391,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2442,7 +2436,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2487,7 +2481,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2532,7 +2526,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2572,7 +2566,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2612,7 +2606,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2652,7 +2646,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2692,7 +2686,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2732,7 +2726,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2777,7 +2771,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2822,7 +2816,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
@@ -2867,7 +2861,7 @@ namespace AElf.Parallel.Tests
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             

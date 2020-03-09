@@ -135,7 +135,7 @@ namespace AElf.Types
             }
 
             var address = AddressHelper.Base58StringToAddress(arr[1]);
-            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
+            var chainId = Base58CheckEncoding.Decode(arr[2]).ToInt32(false);
 
             return new ChainAddress(address, chainId);
         }
@@ -145,7 +145,7 @@ namespace AElf.Types
         public string GetFormatted(string addressPrefix, int chainId)
         {
             if (_formatted != null) return _formatted;
-            var addressSuffix = Base58CheckEncoding.Encode(chainId.DumpByteArray());
+            var addressSuffix = Base58CheckEncoding.Encode(chainId.ToBytes(false));
             _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
             return _formatted;
         }
