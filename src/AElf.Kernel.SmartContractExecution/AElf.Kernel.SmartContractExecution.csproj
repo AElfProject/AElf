@@ -22,6 +22,7 @@
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForProposal\AElf.Kernel.SmartContract.ExecutionPluginForProposal.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
     </ItemGroup>
 
     <ItemGroup>

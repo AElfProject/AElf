@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
