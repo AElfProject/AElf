@@ -6,6 +6,7 @@
         * [Running a node](tutorials/setup/docker.md)
         * [Build and run sources](tutorials/setup/run-node.md)
         * [Running multiple nodes](tutorials/setup/multi-nodes.md)
+        * [Running multiple nodes (docker)](tutorials/setup/docker-multi-node.md)
     * [Smart contract development](tutorials/developing-smart-contracts/main.md)
         * [Setup Boilerplate](tutorials/developing-smart-contracts/setup.md)
         * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
