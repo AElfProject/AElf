@@ -1,4 +1,5 @@
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;

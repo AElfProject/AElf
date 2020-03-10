@@ -20,6 +20,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
@@ -59,6 +60,9 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected Address AnotherSenderAddress => Address.FromPublicKey(AnotherKeyPair.PublicKey);
 
+        protected IBlockTimeProvider BlockTimeProvider =>
+            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+        
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
