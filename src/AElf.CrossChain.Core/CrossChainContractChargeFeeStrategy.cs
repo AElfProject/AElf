@@ -21,6 +21,7 @@ namespace AElf.CrossChain
 
         public bool IsFree(Transaction transaction)
         {
+            
             return CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.Any(methodName =>
                 methodName == transaction.MethodName);
         }

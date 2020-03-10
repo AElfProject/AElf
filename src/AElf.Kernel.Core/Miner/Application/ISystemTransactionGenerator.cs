@@ -8,4 +8,9 @@ namespace AElf.Kernel.Miner.Application
     {
         Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash);
     }
+
+    public interface ISystemTransactionRecognizer
+    {
+        bool IsSystemTransaction(Transaction transaction);
+    }
 }

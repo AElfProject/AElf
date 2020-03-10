@@ -32,12 +32,12 @@ namespace AElf.CSharp.CodeOps
 {
     public class ContractAuditorFixture : IDisposable
     {
-        private ContractAuditor _auditor;
+        private CSharpContractAuditor _auditor;
         private readonly RequiredAcs _requiredAcs;
 
         public ContractAuditorFixture()
         {
-            _auditor = new ContractAuditor(null, null);
+            _auditor = new CSharpContractAuditor(null, null);
             _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),

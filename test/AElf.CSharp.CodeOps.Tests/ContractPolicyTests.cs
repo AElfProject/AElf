@@ -77,7 +77,7 @@ namespace AElf.CSharp.CodeOps
 
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
-        private ContractAuditor _auditor;
+        private CSharpContractAuditor _auditor;
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
         private readonly RequiredAcs _requiredAcs;
@@ -167,7 +167,7 @@ namespace AElf.CSharp.CodeOps
                 "System.DateTime"
             };
 
-            _auditor = new ContractAuditor(blackList, whiteList);
+            _auditor = new CSharpContractAuditor(blackList, whiteList);
 
             Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs));
         }
@@ -186,7 +186,7 @@ namespace AElf.CSharp.CodeOps
                 "System.DateTime"
             };
 
-            _auditor = new ContractAuditor(whiteList, blackList);
+            _auditor = new CSharpContractAuditor(whiteList, blackList);
 
             var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};

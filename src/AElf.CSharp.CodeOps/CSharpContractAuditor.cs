@@ -13,16 +13,20 @@ using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps
 {
-    public class ContractAuditor : IContractAuditor
+    public class CSharpContractAuditor : IContractAuditor
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
         readonly AbstractPolicy _priviligePolicy = new PrivilegePolicy();
-        
+
         readonly AcsValidator _acsValidator = new AcsValidator();
 
         public int Category { get; } = 0;
 
-        public ContractAuditor(IEnumerable<string> blackList, IEnumerable<string> whiteList)
+        public CSharpContractAuditor()
+        {
+        }
+
+        public CSharpContractAuditor(IEnumerable<string> blackList, IEnumerable<string> whiteList)
         {
             // Allow custom whitelisting / blacklisting namespaces, only for privilege policy
             whiteList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Allowed));
@@ -37,12 +41,12 @@ namespace AElf.CSharp.CodeOps
         private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
         {
             var findings = new List<ValidationResult>();
-            
+
             foreach (var method in type.Methods)
             {
                 findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
             }
-            
+
             foreach (var nestedType in type.NestedTypes)
             {
                 findings.AddRange(ValidateMethodsInType(policy, nestedType));
@@ -62,7 +66,7 @@ namespace AElf.CSharp.CodeOps
 
             // Run module validators
             findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
-            
+
             var asm = Assembly.Load(code);
             // Run assembly validators (run after module validators since we invoke BindService method below)
             findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
@@ -72,11 +76,11 @@ namespace AElf.CSharp.CodeOps
             {
                 findings.AddRange(ValidateMethodsInType(policy, type));
             }
-            
+
             // Perform ACS validation
             if (requiredAcs != null)
                 findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
-            
+
             if (findings.Count > 0)
             {
                 throw new CSharpInvalidCodeException(
