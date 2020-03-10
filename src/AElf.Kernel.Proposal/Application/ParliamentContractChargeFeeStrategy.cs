@@ -1,12 +1,11 @@
 using AElf.Contracts.Parliament;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Application
 {
-    public class ParliamentContractChargeFeeStrategy : IChargeFeeStrategy
+    // public class ParliamentContractChargeFeeStrategy : IChargeFeeStrategy
+    public class ParliamentContractChargeFeeStrategy 
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 

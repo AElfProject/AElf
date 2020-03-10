@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
@@ -99,7 +96,7 @@ namespace AElf.Runtime.CSharp
 
             if (assembly == null)
             {
-                throw new InvalidCodeException("Invalid binary code.");
+                throw new CSharpInvalidCodeException("Invalid binary code.");
             }
 
             var executive = new Executive(assembly);

@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Application
 {
     public class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
