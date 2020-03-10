@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,17 +16,17 @@ namespace AElf.Kernel.ChainController.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
+        private readonly IBlockAttachService _blockAttachService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockchainExecutingService blockchainExecutingService)
+            IBlockAttachService blockAttachService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
-            _blockchainExecutingService = blockchainExecutingService;
+            _blockAttachService = blockAttachService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -55,9 +52,8 @@ namespace AElf.Kernel.ChainController.Application
                 var transactions = genesisTransactions.ToList();
                     
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
-                var chain = await _blockchainService.CreateChainAsync(block, transactions);
-                
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
+                await _blockchainService.CreateChainAsync(block, transactions);
+                await _blockAttachService.AttachBlockAsync(block);
 
                 return await _blockchainService.GetChainAsync();
             }

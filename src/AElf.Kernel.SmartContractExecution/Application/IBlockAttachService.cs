@@ -39,11 +39,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task AttachBlockAsync(Block block)
         {
             var chain = await _blockchainService.GetChainAsync();
-            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-            if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
+
+            if (chain.BestChainHeight > Constants.GenesisBlockHeight)
             {
-                Logger.LogDebug($"Try to attach to chain but the status is {status}.");
-                return;
+                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+                if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
+                {
+                    Logger.LogDebug($"Try to attach to chain but the status is {status}.");
+                    return;
+                }
             }
 
             var notExecutedBlocks = await _blockchainService.GetNotExecutedBlocksAsync(chain.LongestChainHash);
