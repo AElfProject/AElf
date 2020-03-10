@@ -16,6 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address);
 
+        void CleanExecutive(Address address);
+
         void CleanIdleExecutive();
     }
 }
