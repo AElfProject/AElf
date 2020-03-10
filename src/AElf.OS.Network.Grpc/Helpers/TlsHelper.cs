@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Grpc.Core;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -50,6 +51,17 @@ namespace AElf.OS.Network.Grpc.Helpers
             certGenerator.SetPublicKey(subjectPublic);
 
             return certGenerator.Generate(signatureFactory);
+        }
+
+        public static KeyCertificatePair GenerateKeyCertificatePair()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair();
+            var certificate = GenerateCertificate(new X509Name(GrpcConstants.DefaultTlsCommonName),
+                new X509Name(GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+
+            var keyCertificatePair = new KeyCertificatePair(ObjectToPem(certificate), ObjectToPem(rsaKeyPair.Private));
+
+            return keyCertificatePair;
         }
     }
 }
