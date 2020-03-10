@@ -42,7 +42,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
 
-            context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
             context.Services.AddSingleton<ISystemTransactionRecognizer, AEDPosSystemTransactionRecognizer>();
 
             context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
