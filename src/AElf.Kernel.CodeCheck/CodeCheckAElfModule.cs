@@ -1,3 +1,4 @@
+using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ namespace AElf.Kernel.CodeCheck
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+            context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
         }
     }
 }

@@ -37,7 +37,12 @@ namespace AElf.Kernel.CodeCheck.Application
             {
                 // Check contract code
                 Logger.LogTrace("Start code check.");
-                var contractAuditor = _contractAuditorContainer.GetContractAuditor(category);
+                if (!_contractAuditorContainer.TryGetContractAuditor(category, out var contractAuditor))
+                {
+                    Logger.LogWarning($"Unrecognized contract category: {category}");
+                    return false;
+                }
+                
                 contractAuditor.Audit(code, requiredAcs);
                 Logger.LogTrace("Finish code check.");
                 return true;
