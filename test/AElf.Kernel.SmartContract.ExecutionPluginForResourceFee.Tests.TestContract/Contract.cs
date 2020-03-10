@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestCont
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty NetConsumingMethod(NetConsumingMethodInput input)
+        public override Empty TrafficConsumingMethod(TrafficConsumingMethodInput input)
         {
             return new Empty();
         }

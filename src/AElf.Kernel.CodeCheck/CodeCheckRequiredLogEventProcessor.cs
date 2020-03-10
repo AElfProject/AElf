@@ -5,6 +5,7 @@ using Acs0;
 using Acs3;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Proposal.Application;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.CodeCheck

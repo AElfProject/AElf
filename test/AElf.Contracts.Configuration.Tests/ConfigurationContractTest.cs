@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -6,9 +5,9 @@ using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestBase;
+using AElf.Kernel.Configuration;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -34,25 +33,9 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
 
-            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Old;
-            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).New;
-
-            Assert.True(oldLimit == 0);
-            Assert.True(newLimit == 100);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        [InlineData(-2)]
-        public async Task Set_Block_Transaction_Limit_InvalidInput(int amount)
-        {
-            var proposalId = await SetBlockTransactionLimitProposalAsync(amount);
-            await ApproveWithMinersAsync(proposalId);
-            var transactionResult = await ReleaseProposalAsync(proposalId);
-
-            Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Invalid input.", transactionResult.Error);
+            var limitFromResult = new Int32Value();
+            limitFromResult.MergeFrom(ConfigurationSet.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Value);
+            limitFromResult.Value.ShouldBe(100);
         }
 
         [Fact]
@@ -60,14 +43,15 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetBlockTransactionLimit),
-                    new Int32Value()
+                    nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                    new SetConfigurationInput
                     {
-                        Value = 100
+                        Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                        Value = new Int32Value {Value = 100}.ToByteString()
                     });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to do this.", transactionResult.Error);
+            Assert.Contains("No permission.", transactionResult.Error);
         }
 
         [Fact]
@@ -79,16 +63,12 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                    new Empty());
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    new StringValue {Value = BlockTransactionLimitConfigurationNameProvider.Name});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
-            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).Old;
-            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.ReturnValue).New;
-            var limit = Int32Value.Parser.ParseFrom(transactionResult.ReturnValue).Value;
-
-            Assert.True(oldLimit == 100);
-            Assert.True(newLimit == 0);
-            Assert.True(limit == 100);
+            var limitFromResult = new Int32Value();
+            limitFromResult.MergeFrom(BytesValue.Parser.ParseFrom(transactionResult.ReturnValue).Value);
+            limitFromResult.Value.ShouldBe(100);
         }
 
         [Fact]
@@ -123,53 +103,16 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         }
 
         [Fact]
-        public async Task InitialTotalResourceTokensTest()
-        {
-            // Check total resource token amount.
-            {
-                var transactionResult =
-                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                        nameof(ConfigurationContainer.ConfigurationStub.GetTotalResourceTokens),
-                        new Empty());
-                var resourceTokenAmount = new ResourceTokenAmount();
-                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
-                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
-                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
-                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
-                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("NET");
-                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-            }
-
-            // Check remain resource token amount.
-            {
-                var transactionResult =
-                    await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                        nameof(ConfigurationContainer.ConfigurationStub.GetRemainResourceTokens),
-                        new Empty());
-                var resourceTokenAmount = new ResourceTokenAmount();
-                resourceTokenAmount.MergeFrom(transactionResult.ReturnValue);
-                resourceTokenAmount.Value.Keys.ShouldContain("CPU");
-                resourceTokenAmount.Value["CPU"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("RAM");
-                resourceTokenAmount.Value["RAM"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("DISK");
-                resourceTokenAmount.Value["DISK"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-                resourceTokenAmount.Value.Keys.ShouldContain("NET");
-                resourceTokenAmount.Value["NET"].ShouldBe(SmartContractTestConstants.ResourceSupply);
-            }
-        }
-
-        [Fact]
         public async Task SetRequiredAcsInContracts_NoPermission()
         {
             var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
-                new RequiredAcsInContracts());
-            
-            var test = new RequiredAcsInContracts();
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                new SetConfigurationInput
+                {
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = new RequiredAcsInContracts().ToByteString()
+                });
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission.");
         }
@@ -182,15 +125,24 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 AcsList = {"acsx", "acsy"}
             };
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(organizationAddress, contractFeeChargingPolicy, 
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts));
+            var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput
+                {
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = contractFeeChargingPolicy.ToByteString()
+                },
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             var releaseTxResult = await ReleaseProposalAsync(proposalId);
             releaseTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var actual = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts), new Empty());
-            RequiredAcsInContracts.Parser.ParseFrom(actual).ShouldBe(contractFeeChargingPolicy);
+                nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                new StringValue
+                {
+                    Value = RequiredAcsInContractsConfigurationNameProvider.Name
+                });
+            RequiredAcsInContracts.Parser.ParseFrom(BytesValue.Parser.ParseFrom(actual).Value)
+                .ShouldBe(contractFeeChargingPolicy);
         }
 
         [Fact]
