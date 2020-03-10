@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Acs0;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

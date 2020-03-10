@@ -12,7 +12,6 @@ using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -41,7 +40,7 @@ namespace AElf.Contract.TestContract
             var cpuResult = await Acs8ContractStub.CpuConsumingMethod.SendAsync(new Empty());
             CheckResult(cpuResult.TransactionResult);
             
-            var netResult = await Acs8ContractStub.NetConsumingMethod.SendAsync(new NetConsumingMethodInput
+            var netResult = await Acs8ContractStub.TrafficConsumingMethod.SendAsync(new TrafficConsumingMethodInput
             {
                 Blob = GenerateBytes(1024)
             });
@@ -70,12 +69,8 @@ namespace AElf.Contract.TestContract
             });
             var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
-            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
-            var afterBalance = await GetBalance(DefaultSender);
-            var txFee = await txCostStrategy.GetCostAsync(null, transactionSize);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + txFee);   //according to the way to calculate
 
-           var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
+            var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             
             acs8After["READ"].ShouldBe(acs8Before["READ"]);
@@ -123,12 +118,6 @@ namespace AElf.Contract.TestContract
                     Memo = "inline fail test"
                 });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            var txTxSize = transactionResult.Transaction.Size();
-            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
-            var afterBalance = await GetBalance(DefaultSender);
-            var sizeFee = await txCostStrategy.GetCostAsync(null, txTxSize);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + sizeFee);
-            
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
             feesAfter["READ"].ShouldBeLessThan(feesBefore["READ"]);
             feesAfter["TRAFFIC"].ShouldBeLessThan(feesBefore["TRAFFIC"]);

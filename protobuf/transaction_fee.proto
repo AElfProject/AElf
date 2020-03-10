@@ -4,7 +4,7 @@ package aelf;
 
 import "aelf/options.proto";
 
-option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee";
+option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TransactionFee {
 }

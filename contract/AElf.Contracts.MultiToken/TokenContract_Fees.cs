@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
-using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -161,18 +159,9 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
-
-            var symbolToAmount = new Dictionary<string, long>
-            {
-                {"READ", input.ReadCost},
-                {"TRAFFIC", input.TrafficCost},
-                {"STORAGE", input.StorageCost},
-                {"WRITE", input.WriteCost}
-            };
-
+        
             var bill = new TransactionFeeBill();
-
-            foreach (var pair in symbolToAmount)
+            foreach (var pair in input.CostDic)
             {
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
@@ -223,7 +212,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
+        public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
@@ -659,7 +648,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -669,7 +658,7 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
@@ -681,7 +670,8 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var createOrganizationInput = GetControllerCreateInputForSideChainRental();
-            var controllerForRental = CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
+            var controllerForRental =
+                CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
             Assert(controllerForRental == Context.Sender, "no permission");
         }
 
@@ -693,6 +683,7 @@ namespace AElf.Contracts.MultiToken
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
+
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }

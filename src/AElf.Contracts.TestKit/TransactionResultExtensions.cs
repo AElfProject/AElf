@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 
 namespace AElf.Contracts.TestKit

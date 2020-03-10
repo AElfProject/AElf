@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 

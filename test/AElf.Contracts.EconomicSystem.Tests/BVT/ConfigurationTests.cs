@@ -2,7 +2,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.Configuration;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -18,7 +21,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 nameof(ConfigurationContractStub.SetMethodFee),
                 new MethodFees
                 {
-                    MethodName = nameof(ConfigurationContractStub.SetBlockTransactionLimit),
+                    MethodName = nameof(ConfigurationContractStub.SetConfiguration),
                     Fees =
                     {
                         new MethodFee
@@ -30,7 +33,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
             var result = await ConfigurationContractStub.GetMethodFee.CallAsync(new StringValue
             {
-                Value = nameof(ConfigurationContractStub.SetBlockTransactionLimit)
+                Value = nameof(ConfigurationContractStub.SetConfiguration)
             });
             var tokenFee = result.Fees.First();
             tokenFee.Symbol.ShouldBe("ELF");
@@ -41,13 +44,22 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task SetBlockTransactionLimit_Test()
         {
             await ExecuteProposalTransaction(Tester, ConfigurationAddress,
-                nameof(ConfigurationContractStub.SetBlockTransactionLimit),
-                new Int32Value
+                nameof(ConfigurationContractStub.SetConfiguration),
+                new SetConfigurationInput
                 {
-                    Value = 50
+                    Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                    Value = new Int32Value
+                    {
+                        Value = 50
+                    }.ToByteString()
                 });
-            var result = await ConfigurationContractStub.GetBlockTransactionLimit.CallAsync(new Empty());
-            result.Value.ShouldBe(50);
+            var result = await ConfigurationContractStub.GetConfiguration.CallAsync(new StringValue
+            {
+                Value = BlockTransactionLimitConfigurationNameProvider.Name
+            });
+            var limit = new Int32Value();
+            limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
+            limit.Value.ShouldBe(50);
         }
 
         [Fact]
