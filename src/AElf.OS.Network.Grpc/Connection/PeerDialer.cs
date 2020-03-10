@@ -50,13 +50,12 @@ namespace AElf.OS.Network.Grpc
 
         private void CreateClientKeyCertificatePair()
         {
-            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
-            
             var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
-                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
-            
-            _clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(GrpcConstants.DefaultTlsCommonName),
+                new X509Name(GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+
+            _clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate),
+                TlsHelper.ObjectToPem(rsaKeyPair.Private));
         }
 
         /// <summary>

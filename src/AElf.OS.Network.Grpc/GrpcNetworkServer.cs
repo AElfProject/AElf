@@ -91,15 +91,14 @@ namespace AElf.OS.Network.Grpc
 
         private SslServerCredentials CreateCredentials()
         {
-            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
-
             // Generate the servers rsa key pair and self-signed certificate.
             var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var certificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName), 
-                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
+            var certificate = TlsHelper.GenerateCertificate(new X509Name(GrpcConstants.DefaultTlsCommonName),
+                new X509Name(GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
 
-            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));	
-            return new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
+            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate),
+                TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            return new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
         }
 
         /// <summary>
