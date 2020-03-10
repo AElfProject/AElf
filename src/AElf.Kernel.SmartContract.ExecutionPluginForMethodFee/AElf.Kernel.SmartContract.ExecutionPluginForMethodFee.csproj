@@ -6,14 +6,13 @@
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForMethodFee</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 1 execution plugin.</Description>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <!-- Have to ref SDK because this project need EventExtensions.ToLogEvent -->
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.BlockTransactionLimitController.Tests
+namespace AElf.Kernel.Configuration.Tests
 {
     public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventProcessor
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.BlockTransactionLimitController;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;

@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.BlockTransactionLimitController.Tests
+namespace AElf.Kernel.Configuration.Tests
 {
     [DependsOn(typeof(ContractTestModule),
-        typeof(BlockTransactionLimitControllerModule))]
-    public class BlockTransactionLimitTestModule : ContractTestModule
+        typeof(ConfigurationAElfModule))]
+    public class ConfigurationTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -18,7 +18,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 .Replace(ServiceDescriptor
                     .Singleton<ILogEventListeningService<IBlockAcceptedLogEventProcessor>,
                         OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>>());
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 }
