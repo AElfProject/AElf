@@ -4,13 +4,13 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ClaimFeeTransactionRecognizer : SystemTransactionRecognizerBase
+    public class DonateTransactionRecognizer : SystemTransactionRecognizerBase
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ClaimFeeTransactionRecognizer(ISmartContractAddressService smartContractAddressService)
+        public DonateTransactionRecognizer(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }
@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                        _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider
                            .Name)) &&
                    CheckSystemContractMethod(transaction.MethodName,
-                       nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees));
+                       nameof(TokenContractContainer.TokenContractStub.DonateResourceToken));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace AElf.Kernel.Proposal
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ProposalApprovalTransactionGenerator>();
-            // context.Services.AddSingleton<IChargeFeeStrategy, ParliamentContractChargeFeeStrategy>();
+            context.Services.AddTransient<ISystemTransactionRecognizer, ProposalTransactionRecognizer>();
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
         }
     }

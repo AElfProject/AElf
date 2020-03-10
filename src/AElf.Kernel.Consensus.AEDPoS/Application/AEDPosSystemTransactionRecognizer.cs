@@ -7,7 +7,7 @@ using AElf.Types;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
-    public class AEDPosSystemTransactionRecognizer : ISystemTransactionRecognizer
+    public class AEDPosSystemTransactionRecognizer : SystemTransactionRecognizerBase
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
@@ -16,24 +16,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public bool IsSystemTransaction(Transaction transaction)
+        public override bool IsSystemTransaction(Transaction transaction)
         {
-            return transaction.To ==
+            return CheckSystemContractAddress(transaction.To,
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                    .Name) && IsSystemTransactionMethod(transaction.MethodName);
-        }
-
-        private bool IsSystemTransactionMethod(string methodName)
-        {
-            return new List<string>
-            {
+                    .Name)) && CheckSystemContractMethod(transaction.MethodName,
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateValue),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateTinyBlockInformation),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm)
-            }.Contains(methodName);
+                nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm));
         }
     }
 }
