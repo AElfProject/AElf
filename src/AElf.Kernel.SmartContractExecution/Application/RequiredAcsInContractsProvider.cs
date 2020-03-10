@@ -1,26 +1,15 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Configuration;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class RequiredAcs
-    {
-        public bool RequireAll;
-        public List<string> AcsList;
-    }
-
-    public interface IRequiredAcsInContractsProvider
-    {
-        Task<RequiredAcs> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight);
-    }
-
     public class RequiredAcsInContractsProvider : IRequiredAcsInContractsProvider, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
