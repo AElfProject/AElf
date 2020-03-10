@@ -93,8 +93,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
-                IsInbound = false,
-                IsSecure = client.IsSecure
+                IsInbound = false
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
@@ -148,8 +147,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 SessionId = handshake.SessionId.ToByteArray(),
                 ProtocolVersion = handshake.HandshakeData.Version,
-                IsInbound = true,
-                IsSecure = client.IsSecure
+                IsInbound = true
             });
 
             peer.UpdateLastReceivedHandshake(handshake);
