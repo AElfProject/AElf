@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.0" />

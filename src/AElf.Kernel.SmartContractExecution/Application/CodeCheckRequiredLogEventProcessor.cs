@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Acs0;
 using Acs3;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
-using AElf.Sdk.CSharp;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
