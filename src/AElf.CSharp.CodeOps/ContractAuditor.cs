@@ -33,11 +33,6 @@ namespace AElf.CSharp.CodeOps
         {
             AuditWithPolicy(code, requiredAcs, _priviligePolicy);
         }
-        
-        public void Audit(byte[] code)
-        {
-            AuditWithPolicy(code, null, _defaultPolicy);
-        }
 
         private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
         {

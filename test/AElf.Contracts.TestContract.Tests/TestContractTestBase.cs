@@ -18,6 +18,7 @@ using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -147,10 +148,10 @@ namespace AElf.Contract.TestContract
         protected void CheckCode(byte[] code)
         {
             var auditor = new ContractAuditor(null, null);
-            auditor.Audit(code, new RequiredAcsDto
+            auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()
-            }, false);
+            });
         }
         
         private async Task InitialBasicFunctionContract()

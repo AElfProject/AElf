@@ -1,10 +1,12 @@
 using AElf.Kernel.Configuration;
 using AElf.Kernel.ChainController;
+using AElf.Kernel.CodeCheck;
 using AElf.Kernel.Node;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp;
@@ -21,7 +23,8 @@ namespace AElf.Kernel
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ConfigurationAElfModule),
-        typeof(ProposalAElfModule)
+        typeof(ProposalAElfModule),
+        typeof(CodeCheckAElfModule)
     )]
     public class KernelAElfModule : AElfModule
     {
