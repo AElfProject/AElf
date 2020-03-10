@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
@@ -19,22 +19,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly ICalculateTxCostStrategy _calStrategy;
+        private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            ICalculateTxCostStrategy calStrategy,
-            IBlockchainStateService blockchainStateService)
+            IPrimaryTokenFeeService txFeeService, 
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _calStrategy = calStrategy;
-            _blockchainStateService = blockchainStateService;
+            _txFeeService = txFeeService;
+            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -76,14 +76,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     // Skip ChargeTransactionFees itself 
                     return new List<Transaction>();
                 }
-
-                var txSize = transactionContext.Transaction.Size();
+                
                 var chainContext = new ChainContext
                 {
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _calStrategy.GetCostAsync(chainContext, txSize);
+                var txCost = await _txFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
@@ -93,12 +92,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 };
                 
                 var transactionSizeFeeSymbols =
-                    await _blockchainStateService.GetBlockExecutedDataAsync<TransactionSizeFeeSymbols>(chainContext);
+                    await _transactionSizeFeeSymbolsProvider.GetTransactionSizeFeeSymbolsAsync(chainContext);
                 if (transactionSizeFeeSymbols != null)
                 {
                     foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)
                     {
-                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTXSizeFee
+                        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
                         {
                             TokenSymbol = transactionSizeFeeSymbol.TokenSymbol,
                             BaseTokenWeight = transactionSizeFeeSymbol.BaseTokenWeight,

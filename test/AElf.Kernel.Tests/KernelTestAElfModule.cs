@@ -91,7 +91,7 @@ namespace AElf.Kernel
         }
     }
 
-    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(ConsensusAElfModule))]
+    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(CoreConsensusAElfModule))]
     public class KernelWithConsensusStaffTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

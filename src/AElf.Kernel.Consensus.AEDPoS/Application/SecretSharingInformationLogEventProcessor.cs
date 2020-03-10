@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application

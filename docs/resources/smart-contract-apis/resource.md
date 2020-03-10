@@ -92,7 +92,6 @@ Change the manager of the token converter contract.
 For reference, you can find here the available view methods.
 
 ```Protobuf
-rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {}
 rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {}
 rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {}
 rpc GetConnector (TokenSymbol) returns (Connector) {}

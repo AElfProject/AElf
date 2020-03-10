@@ -74,10 +74,10 @@ namespace AElf.OS.BlockSync.Application
                 }
                 else
                 {
-                    // If cannot get the blocks, there should be network problems or bad peer,
+                    // If cannot get the blocks, there should be network problems or abnormal peer,
                     // because we have selected peer with lib height greater than or equal to the target height.
                     // 1. network problems, need to retry from other peer.
-                    // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
+                    // 2. not network problems, this peer or the last peer is abnormal peer, we need to remove it.
                     var downloadTargetHeight =
                         downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
                     var exceptedPeers = new List<string> {_blockSyncStateProvider.LastRequestPeerPubkey};
@@ -99,14 +99,14 @@ namespace AElf.OS.BlockSync.Application
 
                     if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                     {
-                        await CheckBadPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
+                        await CheckAbnormalPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
                             downloadBlockDto.PreviousBlockHeight);
                     }
                 }
             }
             catch (BlockDownloadException e)
             {
-                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {
                     BlockHash = e.BlockHash,
                     BlockHeight = e.BlockHeight,
@@ -138,49 +138,26 @@ namespace AElf.OS.BlockSync.Application
                 .Where(p => p.SyncState == SyncState.Finished &&
                             p.LastKnownLibHeight >= blockHeight)
                 .ToList();
-            bool? checkResult = null;
 
-            if (peers.Count >= PeerCheckMinimumCount)
+            if (peers.Count < PeerCheckMinimumCount)
             {
-                var correctCount = 0;
-                var incorrectCount = 0;
-
-                var taskList = peers.Select(async peer =>
-                    await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
-
-                var hashCheckResult = await Task.WhenAll(taskList);
-
-                foreach (var result in hashCheckResult)
-                {
-                    if (result.Success)
-                    {
-                        //TODO: make retry logic in a class, and use callback. then we can easily change the strategy
-                        if (result.Payload != null && result.Payload.Count == 1)
-                        {
-                            correctCount++;
-                        }
-                        else
-                        {
-                            incorrectCount++;
-                        }
-                    }
-                }
-
-                var confirmCount = 2 * peers.Count() / 3 + 1;
-                if (correctCount >= confirmCount)
-                {
-                    checkResult = true;
-                }
-                else if (incorrectCount >= confirmCount)
-                {
-                    checkResult = false;
-                }
+                return null;
             }
 
-            return checkResult;
+            var taskList = peers.Select(async peer =>
+                await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
+
+            var hashCheckResult = await Task.WhenAll(taskList);
+
+            var confirmCount = 2 * peers.Count() / 3 + 1;
+            var result = hashCheckResult.Where(r => r.Success)
+                .GroupBy(a => a.Payload != null && a.Payload.Count == 1)
+                .FirstOrDefault(group => group.Count() >= confirmCount);
+
+            return result?.Key;
         }
 
-        private async Task CheckBadPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
+        private async Task CheckAbnormalPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
             long downloadPreviousBlockHeight)
         {
             var checkResult =

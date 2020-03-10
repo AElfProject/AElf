@@ -16,6 +16,7 @@ namespace AElf.Runtime.CSharp
         public int Category { get; protected set; }
         private readonly ISdkStreamManager _sdkStreamManager;
 
+        //TODO: remove
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
             new ConcurrentDictionary<string, MemoryStream>();
 
@@ -24,15 +25,12 @@ namespace AElf.Runtime.CSharp
 
         private readonly string _sdkDir;
 
-        protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
 
         public SmartContractRunnerForCategoryZero(
-            string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins = null)
+            string sdkDir)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
-            _executivePlugins = executivePlugins ?? ServiceContainerFactory<IExecutivePlugin>.Empty;
         }
 
         /// <summary>
@@ -62,7 +60,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive(assembly, _executivePlugins)
+            var executive = new Executive(assembly)
             {
                 ContractHash = reg.CodeHash,
                 IsSystemContract = reg.IsSystemContract

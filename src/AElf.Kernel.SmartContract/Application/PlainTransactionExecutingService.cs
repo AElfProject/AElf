@@ -130,6 +130,7 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
+                    //TODO!!! remove
                     result.TransactionFee = trace.TransactionFee;
                     result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
                     transactionResults.Add(result);
@@ -230,7 +231,8 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.Transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+                    singleTxExecutingDto.Transaction.To, executive);
 #if DEBUG
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
@@ -303,6 +305,8 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
+                    //TODO!! should not implement in this way. make a plugin output fields,maybe a dictionary in Protobuf,
+                    //and save these output in 
                     if (preTx.MethodName == "ChargeTransactionFees")
                     {
                         var txFee = new TransactionFee();

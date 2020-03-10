@@ -324,6 +324,18 @@ namespace AElf.Contracts.Parliament
                 var transactionResult2 = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+            // invalid proposal description url
+            {
+                createProposalInput.ProposalDescriptionUrl = "www.abc.com";
+                var transactionResult =
+                    await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+                
+                createProposalInput.ProposalDescriptionUrl = "http://www.abc.com";
+                var transactionResult1 = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
@@ -836,26 +848,56 @@ namespace AElf.Contracts.Parliament
 
         private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId)
         {
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var parliamentContractStub = GetParliamentContractTester(reviewer);
             var transactionResult =
                 await parliamentContractStub.Approve.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Approve));
         }
 
         private async Task RejectionAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var parliamentContractStub = GetParliamentContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult =
                 await parliamentContractStub.Reject.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Reject));
         }
 
         private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var parliamentContractStub = GetParliamentContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult =
                 await parliamentContractStub.Abstain.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Abstain));
+        }
+        
+        private void ValidateReceiptCreated(ReceiptCreated receiptCreated, Address sender, Hash proposalId,
+            Timestamp blockTime, string receiptType)
+        {
+            receiptCreated.Address.ShouldBe(sender);
+            receiptCreated.ProposalId.ShouldBe(proposalId);
+            receiptCreated.Time.ShouldBe(blockTime);
+            receiptCreated.ReceiptType.ShouldBe(receiptType);
         }
 
         private async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,

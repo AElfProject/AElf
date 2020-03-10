@@ -16,24 +16,21 @@ namespace AElf.Blockchains.SideChain
             var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
             var chainPrimaryTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[3]);
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            
+            // native token
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
-                new RegisterNativeAndResourceTokenInfoInput
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                GenerateTokenCreateInput(nativeTokenInfo));
+
+            // primary token
+            tokenInitializationCallList.Add(
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                GenerateTokenCreateInput(chainPrimaryTokenInfo));
+            
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput
                 {
-                    NativeTokenInfo =
-                        new RegisterNativeTokenInfoInput
-                        {
-                            Decimals = nativeTokenInfo.Decimals,
-                            IssueChainId = nativeTokenInfo.IssueChainId,
-                            Issuer = nativeTokenInfo.Issuer,
-                            IsBurnable = nativeTokenInfo.IsBurnable,
-                            Symbol = nativeTokenInfo.Symbol,
-                            TokenName = nativeTokenInfo.TokenName,
-                            TotalSupply = nativeTokenInfo.TotalSupply,
-                            IsProfitable = nativeTokenInfo.IsProfitable
-                        },
-                    ResourceTokenList = GenerateInitialResourceTokenInfoList(resourceTokenList),
-                    ChainPrimaryToken = GenerateInitialChainPrimaryTokenInfo(chainPrimaryTokenInfo)
+                    Symbol = chainPrimaryTokenInfo.Symbol
                 });
 
             foreach (var issueStuff in chainInitializationData.SideChainTokenInitialIssueList)
@@ -46,6 +43,15 @@ namespace AElf.Blockchains.SideChain
                     To = issueStuff.Address
                 });
             }
+            
+            // resource token
+            foreach (var resourceTokenInfo in resourceTokenList.Value)
+            {
+                tokenInitializationCallList.Add(
+                    nameof(TokenContractContainer.TokenContractStub.Create),
+                    GenerateTokenCreateInput(resourceTokenInfo));
+            } 
+
 
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
                 new InitializeInput
@@ -54,7 +60,9 @@ namespace AElf.Blockchains.SideChain
                     {
                         chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
                             kv => kv.Value)
-                    }
+                    },
+                    MinimumProfitsDonationPartsPerHundred =
+                        chainInitializationData.MinimumProfitsDonationPartsPerHundred
                 });
 
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
@@ -63,9 +71,9 @@ namespace AElf.Blockchains.SideChain
             return tokenInitializationCallList;
         }
 
-        private TokenInfo GenerateInitialChainPrimaryTokenInfo(TokenInfo tokenInfo)
+        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)
         {
-            return new TokenInfo
+            return new CreateInput
             {
                 Decimals = tokenInfo.Decimals,
                 IssueChainId = tokenInfo.IssueChainId,
@@ -76,29 +84,6 @@ namespace AElf.Blockchains.SideChain
                 TotalSupply = tokenInfo.TotalSupply,
                 IsProfitable = tokenInfo.IsProfitable
             };
-        }
-
-        private TokenInfoList GenerateInitialResourceTokenInfoList(TokenInfoList tokenInfoList)
-        {
-            var resourceTokenInfoList = new TokenInfoList();
-            foreach (var resourceToken in tokenInfoList.Value)
-            {
-                // make sure it is consistent with old data 
-                resourceTokenInfoList.Value.Add(new TokenInfo
-                {
-                    Decimals = resourceToken.Decimals,
-                    IssueChainId = resourceToken.IssueChainId,
-                    Issuer = resourceToken.Issuer,
-                    IsBurnable = resourceToken.IsBurnable,
-                    Symbol = resourceToken.Symbol,
-                    TokenName = resourceToken.TokenName,
-                    Supply = resourceToken.TotalSupply,
-                    TotalSupply = resourceToken.TotalSupply,
-                    IsProfitable = resourceToken.IsProfitable
-                });
-            }
-
-            return resourceTokenInfoList;
         }
     }
 }
