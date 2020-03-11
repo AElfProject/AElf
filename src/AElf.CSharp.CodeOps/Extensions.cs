@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -74,8 +72,12 @@ namespace AElf.CSharp.CodeOps
 
         private static GenericInstanceType FindGenericInstanceType(TypeDefinition type)
         {
+            var maxInheritance = Constants.MaxInheritanceThreshold;
             while (true)
             {
+                if (maxInheritance-- == 0)
+                    throw new MaxInheritanceExceededException();
+                
                 switch (type.BaseType)
                 {
                     case null:
@@ -110,8 +112,12 @@ namespace AElf.CSharp.CodeOps
 
         private static TypeDefinition GetBaseType(this TypeDefinition type)
         {
+            var maxInheritance = Constants.MaxInheritanceThreshold;
             while (true)
             {
+                if (maxInheritance-- == 0)
+                    throw new MaxInheritanceExceededException();
+
                 if (type.BaseType == null || type.BaseType.FullName == typeof(object).FullName) return type;
                 type = type.BaseType.Resolve();
             }

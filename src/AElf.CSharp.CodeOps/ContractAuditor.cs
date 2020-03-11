@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
@@ -14,37 +15,29 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditor
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
-        readonly AbstractPolicy _priviligePolicy = new PrivilegePolicy();
-        
-        readonly AcsValidator _acsValidator = new AcsValidator();
 
-        public ContractAuditor(IEnumerable<string> blackList, IEnumerable<string> whiteList)
-        {
-            // Allow custom whitelisting / blacklisting namespaces, only for privilege policy
-            whiteList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Allowed));
-            blackList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Denied));
-        }
+        private readonly AcsValidator _acsValidator = new AcsValidator();
 
-        public void Audit(byte[] code, RequiredAcsDto requiredAcs, bool priority)
+        public void Audit(byte[] code, RequiredAcsDto requiredAcs)
         {
             var findings = new List<ValidationResult>();
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
-            var policy = priority ? _priviligePolicy : _defaultPolicy;
-            
+            var cts = new CancellationTokenSource(Constants.AuditTimeoutDuration);
+
             // Check against whitelist
-            findings.AddRange(policy.Whitelist.Validate(modDef));
+            findings.AddRange(_defaultPolicy.Whitelist.Validate(modDef, cts.Token));
 
             // Run module validators
-            findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
+            findings.AddRange(_defaultPolicy.ModuleValidators.SelectMany(v => v.Validate(modDef, cts.Token)));
             
             // Run assembly validators (run after module validators since we invoke BindService method below)
-            findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm)));
+            findings.AddRange(_defaultPolicy.AssemblyValidators.SelectMany(v => v.Validate(asm, cts.Token)));
 
             // Run method validators
             foreach (var type in modDef.Types)
             {
-                findings.AddRange(ValidateMethodsInType(policy, type));
+                findings.AddRange(ValidateMethodsInType(_defaultPolicy, type, cts.Token));
             }
             
             // Perform ACS validation
@@ -59,18 +52,18 @@ namespace AElf.CSharp.CodeOps
             }
         }
 
-        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
+        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type, CancellationToken ct)
         {
             var findings = new List<ValidationResult>();
             
             foreach (var method in type.Methods)
             {
-                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
+                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method, ct)));
             }
             
             foreach (var nestedType in type.NestedTypes)
             {
-                findings.AddRange(ValidateMethodsInType(policy, nestedType));
+                findings.AddRange(ValidateMethodsInType(policy, nestedType, ct));
             }
 
             return findings;

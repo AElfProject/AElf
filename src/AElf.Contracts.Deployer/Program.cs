@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using AElf.CSharp.CodeOps;
 using CommandLine;
 
@@ -59,8 +60,8 @@ namespace AElf.Contracts.Deployer
             {
                 try
                 {
-                    var auditor = new ContractAuditor(null, null);
-                    auditor.Audit(patchedCode, null, false);
+                    var auditor = new ContractAuditor();
+                    auditor.Audit(patchedCode, null);
                 }
                 catch (InvalidCodeException ex)
                 {

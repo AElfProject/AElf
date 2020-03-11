@@ -20,4 +20,26 @@ namespace AElf.CSharp.CodeOps
             Findings = findings;
         }
     }
+    
+    public class ContractAuditTimeoutException : Exception
+    {
+        public ContractAuditTimeoutException() : base()
+        {
+        }
+
+        public ContractAuditTimeoutException(string message) : base(message)
+        {
+        }
+    }
+    
+    public class MaxInheritanceExceededException : Exception
+    {
+        public MaxInheritanceExceededException() : base()
+        {
+        }
+
+        public MaxInheritanceExceededException(string message) : base(message)
+        {
+        }
+    }
 }

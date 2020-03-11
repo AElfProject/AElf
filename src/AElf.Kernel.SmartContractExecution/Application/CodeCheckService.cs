@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.CodeOps;
@@ -11,7 +12,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class CodeCheckService : ICodeCheckService, ISingletonDependency
     {
-        private readonly ContractAuditor _contractAuditor = new ContractAuditor(null, null);
+        private readonly ContractAuditor _contractAuditor = new ContractAuditor();
         
         private readonly IRequiredAcsInContractsProvider _requiredAcsInContractsProvider;
         
@@ -44,7 +45,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 // Check contract code
                 Logger.LogTrace("Start code check.");
-                _contractAuditor.Audit(code, requiredAcs, true);
+                _contractAuditor.Audit(code, requiredAcs);
                 Logger.LogTrace("Finish code check.");
                 return true;
             }
