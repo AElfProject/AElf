@@ -13,11 +13,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        protected override void OnInitialized()
-        {
-            Context.Variables.SymbolListToPayTxFee = new List<string> { "WRITE", "READ", "STORAGE", "TRAFFIC"};
-            Context.Variables.SymbolListToPayRental = new List<string> { "CPU", "RAM", "DISK", "NET"};
-        }
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "MultiToken has been initialized");
@@ -446,7 +441,7 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(
-                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                !_symbolListToPayRental.Union(_symbolListToPayTxFee)
                     .Contains(input.Symbol), "Invalid token symbol.");
             var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
             Assert(input.Amount <= contractBalance, "Invalid profit amount.");
@@ -530,7 +525,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
+            Assert(_symbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
