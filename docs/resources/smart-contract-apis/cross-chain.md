@@ -31,35 +31,51 @@ Initialize cross-chain-contract.
 ### function CreateSideChain
 
 ```protobuf
-rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {}
-message SideChainCreationRequest
-{
+rpc CreateSideChain (CreateSideChainInput) returns (aelf.SInt32Value) {}
+
+message CreateSideChainInput{
+    SideChainCreationRequest side_chain_creation_request = 1;
+    aelf.Address proposer = 2;
+}
+
+message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
-    bytes contract_code = 3;
-    bool is_privilege_preserved = 4;
-    string side_chain_token_symbol = 5;
-    string side_chain_token_name = 6;
-    sint64 side_chain_token_total_supply = 7;
-    sint32 side_chain_token_decimals = 8;
-    bool is_side_chain_token_burnable = 9;
+    bool is_privilege_preserved = 3;
+    string side_chain_token_symbol = 4;
+    string side_chain_token_name = 5;
+    sint64 side_chain_token_total_supply = 6;
+    sint32 side_chain_token_decimals = 7;
+    bool is_side_chain_token_burnable = 8;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
+    map<string, sint32> initial_resource_amount = 10; 
+    bool is_side_chain_token_profitable = 11;
+}
+
+message SideChainTokenInitialIssue {
+    aelf.Address address = 1;
+    int64 amount = 2;
 }
 ```
 
-Create a new side chain. Only contract owner is permitted to invoke this method.
+Create a new side chain, this is be triggered by an organization address. 
 
 **Parameters:**
 
-***SideChainCreationRequest*** 
-
-- **indexing_price** - indexing fee.
-- **locked_token_amount** - initial locked balance for a new side chain.
-- **is_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
-- **side_chain_token_symbol** - side chain token symbol.
-- **side_chain_token_name** - side chain token name.
-- **side_chain_token_total_supply** -  total supply of side chain token.
-- **side_chain_token_decimals** - sÏide chain token decimal.
-- **is_side_chain_token_burnable** - side chain token burnable flag.
+- **CreateSideChainInput**
+  - **proposer** the proposer of the proposal that triggered this method.
+  - ***SideChainCreationRequest*** 
+    - **indexing_price** - indexing fee.
+    - **locked_token_amount** - initial locked balance for a new side chain.
+    - **is_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+    - **side_chain_token_symbol** - side chain token symbol.
+    - **side_chain_token_name** - side chain token name.
+    - **side_chain_token_total_supply** -  total supply of side chain token.
+    - **side_chain_token_decimals** - sÏide chain token decimal.
+    - **is_side_chain_token_burnable** - side chain token burnable flag.
+    - **side_chain_token_initial_issue_list** - a list of accounts and amounts that will be issued when the chain starts.
+    - **initial_resource_amount** - the initial rent resources.
+    - **is_side_chain_token_profitable** - a flag to indicate wether the chain is profitable or not.
 
 **Returns:**
 
@@ -79,9 +95,9 @@ Sets the initial controller address.
 ### function ChangeCrossChainIndexingController
 
 ```protobuf
-rpc ChangeCrossChainIndexingController(AuthorityStuff) returns (google.protobuf.Empty) { }
+rpc ChangeCrossChainIndexingController(acs1.AuthorityInfo) returns (google.protobuf.Empty) { }
 
-message AuthorityStuff {
+message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;
 }
@@ -90,16 +106,16 @@ message AuthorityStuff {
 Changes the indexing controller.
 
 **Parameters:**
-- **AuthorityStuff** : 
+- **acs1.AuthorityInfo** : 
   - contract_address - the address of the contract that generated the owner address.
   - owner_address - the address of the owner that was generated.
 
 ### function ChangeSideChainLifetimeController
 
 ```protobuf
-rpc ChangeSideChainLifetimeController(AuthorityStuff) returns (google.protobuf.Empty) { }
+rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty) { }
 
-message AuthorityStuff {
+message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;
 }
@@ -108,7 +124,7 @@ message AuthorityStuff {
 Changes the side chain's lifetime controller.
 
 **Parameters:**
-- **AuthorityStuff** : 
+- **acs1.AuthorityInfo** : 
   - contract_address - the address of the contract that generated the owner address.
   - owner_address - the address of the owner that was generated.
 

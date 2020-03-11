@@ -200,13 +200,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TransactionSizeFee = txFee,
                 SymbolsToPayTxSizeFee =
                 {
-                    new SymbolToPayTXSizeFee
+                    new SymbolToPayTxSizeFee
                     {
                         TokenSymbol = "CPU",
                         BaseTokenWeight = 1,
                         AddedTokenWeight = 50
                     },
-                    new SymbolToPayTXSizeFee
+                    new SymbolToPayTxSizeFee
                     {
                         TokenSymbol = "ELF",
                         BaseTokenWeight = 1,

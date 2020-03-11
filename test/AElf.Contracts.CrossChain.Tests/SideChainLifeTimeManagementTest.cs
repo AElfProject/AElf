@@ -55,6 +55,8 @@ namespace AElf.Contracts.CrossChain.Tests
             long lockedTokenAmount = 10;
             await ApproveBalanceAsync(lockedTokenAmount);
 
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount - 1, lockedTokenAmount,
                 GetValidResourceAmount(), new SideChainTokenInitialIssue
                 {
@@ -62,9 +64,15 @@ namespace AElf.Contracts.CrossChain.Tests
                     Amount = 100
                 });
             await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
+            
+            BlockTimeProvider.SetBlockTime(utcNow.AddSeconds(86399));
             var secondRequestTx =
                 await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
             secondRequestTx.TransactionResult.Error.ShouldContain("Request side chain creation failed.");
+
+            BlockTimeProvider.SetBlockTime(utcNow.AddSeconds(86400));
+            var thirdRequestTx = await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
+            thirdRequestTx.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
@@ -514,7 +522,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var status = res.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Side chain not found or not able to be recharged.", res.TransactionResult.Error);
+            Assert.Contains("Side chain not found or incorrect side chain status.", res.TransactionResult.Error);
         }
 
         [Fact]
@@ -536,7 +544,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var status = res.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Side chain not found or not able to be recharged.", res.TransactionResult.Error);
+            Assert.Contains("Side chain not found or incorrect side chain status.", res.TransactionResult.Error);
         }
 
         [Fact]
@@ -572,7 +580,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 Symbol = "ELF"
             });
             Assert.True(balanceAfterDisposal.Balance == 0);
-            
+
             // try to adjust indexing fee after disposal
             var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
                 new AdjustIndexingFeeInput
@@ -948,7 +956,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     .TransactionResult;
                 txResult.Error.ShouldContain("Invalid side chain fee price.");
             }
-            
+
             {
                 var newIndexingFeePrice = 2;
                 var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
@@ -974,7 +982,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
             }
         }
-        
+
         [Fact]
         public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
         {
@@ -1020,7 +1028,7 @@ namespace AElf.Contracts.CrossChain.Tests
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
             }
-            
+
             {
                 var newIndexingFeePrice = 11;
                 var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
@@ -1048,7 +1056,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 var sideChainStatus =
                     await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = sideChainId});
                 sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
-                
+
                 var disposalProposalId = await DisposeSideChainProposalAsync(new SInt32Value
                 {
                     Value = sideChainId

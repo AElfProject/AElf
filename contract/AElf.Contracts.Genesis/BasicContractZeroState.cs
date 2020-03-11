@@ -28,7 +28,6 @@ namespace AElf.Contracts.Genesis
         
         public SingletonState<bool> Initialized { get; set; }
 
-        public SingletonState<AddressList> DeployedContractAddressList { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

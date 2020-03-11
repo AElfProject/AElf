@@ -15,12 +15,12 @@ service Contract {
     }
     rpc StoConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc NetConsumingMethod (NetConsumingMethodInput) returns (google.protobuf.Empty) {
+    rpc TrafficConsumingMethod (TrafficConsumingMethodInput) returns (google.protobuf.Empty) {
     }
     rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 }
 
-message NetConsumingMethodInput {
+message TrafficConsumingMethodInput {
     google.protobuf.BytesValue blob = 1;
 }

@@ -169,11 +169,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         }
 
         /// <summary>
-        /// NetConsumingMethod vs FewConsumingMethod
+        /// TrafficConsumingMethod vs FewConsumingMethod
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task CompareNetTokenConsumption()
+        public async Task CompareTrafficTokenConsumption()
         {
             await AdvanceResourceToken();
 
@@ -183,9 +183,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-            await TestContractStub.NetConsumingMethod.SendAsync(new NetConsumingMethodInput
+            await TestContractStub.TrafficConsumingMethod.SendAsync(new TrafficConsumingMethodInput
             {
-                Blob = ByteString.CopyFrom("NetConsumingMethod vs FewConsumingMethod", Encoding.Default)
+                Blob = ByteString.CopyFrom("TrafficConsumingMethod vs FewConsumingMethod", Encoding.Default)
             });
             // Mine a block to use plugin to really consume resource tokens.
             await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());

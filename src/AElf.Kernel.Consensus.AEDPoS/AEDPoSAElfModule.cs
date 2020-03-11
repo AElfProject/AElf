@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 {
     [DependsOn(
         typeof(RxNetSchedulerAElfModule),
-        typeof(ConsensusAElfModule)
+        typeof(CoreConsensusAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSAElfModule : AElfModule
