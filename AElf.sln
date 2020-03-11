@@ -331,6 +331,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation", "src\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj", "{47997F91-65B1-406B-9DB1-2D0BEBF7F759}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Proposal.Tests", "test\AElf.Kernel.Proposal.Tests\AElf.Kernel.Proposal.Tests.csproj", "{71C2856C-6C23-4F2B-A25B-C3819D2D83C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -945,6 +947,10 @@ Global
 		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1112,5 +1118,6 @@ Global
 		{D205205C-FB80-4657-84D2-63B10A4D0D38} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{836C5CB0-8BED-408C-9800-4285F539B8CA} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{47997F91-65B1-406B-9DB1-2D0BEBF7F759} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
