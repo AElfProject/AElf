@@ -7,9 +7,8 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IChainBlockLinkService
     {
-        ChainBlockLink GetCachedChainBlockLink(Hash blockHash);
         List<ChainBlockLink> GetCachedChainBlockLinks();
-        void RemoveCachedChainBlockLink(Hash blockHash);
+        void CleanCachedChainBlockLinks(long height);
     }
 
     public class ChainBlockLinkService : IChainBlockLinkService, ITransientDependency
@@ -21,19 +20,14 @@ namespace AElf.Kernel.Blockchain.Application
             _chainManager = chainManager;
         }
 
-        public ChainBlockLink GetCachedChainBlockLink(Hash blockHash)
-        {
-            return _chainManager.GetCachedChainBlockLink(blockHash);
-        }
-
         public List<ChainBlockLink> GetCachedChainBlockLinks()
         {
             return _chainManager.GetCachedChainBlockLinks();
         }
 
-        public void RemoveCachedChainBlockLink(Hash blockHash)
+        public void CleanCachedChainBlockLinks(long height)
         {
-            _chainManager.RemoveCachedChainBlockLink(blockHash);
+            _chainManager.CleanCachedChainBlockLinks(height);
         }
     }
 }

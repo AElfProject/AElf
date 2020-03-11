@@ -38,12 +38,5 @@ namespace AElf.Contracts.Configuration
                 controller == Context.Sender ||
                 Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
         }
-
-        private void CheckSenderIsCrossChainContract()
-        {
-            Assert(
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
-                "Only cross chain contract can call this method.");
-        }
     }
 }

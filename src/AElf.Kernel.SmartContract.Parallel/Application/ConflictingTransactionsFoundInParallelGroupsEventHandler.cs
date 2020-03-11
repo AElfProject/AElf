@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -13,16 +12,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
     {
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly IResourceExtractionService _resourceExtractionService;
-        private readonly IBlockchainStateService _blockchainStateService;
+        private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
  
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
-            IResourceExtractionService resourceExtractionService, 
-            IBlockchainStateService blockchainStateService)
+            IResourceExtractionService resourceExtractionService,
+            INonparallelContractCodeProvider nonparallelContractCodeProvider)
         {
             _conflictingTransactionIdentificationService = conflictingTransactionIdentificationService;
             _resourceExtractionService = resourceExtractionService;
-            _blockchainStateService = blockchainStateService;
+            _nonparallelContractCodeProvider = nonparallelContractCodeProvider;
         }
 
         public async Task HandleEventAsync(ConflictingTransactionsFoundInParallelGroupsEvent eventData)
@@ -43,8 +42,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                     CodeHash = g.First().TransactionResourceInfo.ContractHash
                 });
 
-            await _blockchainStateService.AddBlockExecutedDataAsync<Address, NonparallelContractCode>(
-                eventData.BlockHeader.GetHash(), dic);
+            await _nonparallelContractCodeProvider.SetNonparallelContractCodeAsync(eventData.BlockHeader.GetHash(), dic);
 
             _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }

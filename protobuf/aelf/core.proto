@@ -46,15 +46,18 @@ message TransactionResult {
     // Merkle proof path for this transaction
     string error = 10;
     string readable_return_value = 11;
-    TransactionFee transaction_fee = 12;
-    ConsumedResourceTokens consumed_resource_tokens = 13;
+    TransactionFee transaction_fee = 12; //TODO!!! remove
+    ConsumedResourceTokens consumed_resource_tokens = 13; //TODO!!! remove
 }
 
+//TODO!!! remove
 message TransactionFee {
     map<string, sint64> value = 1;// symbol -> amount
     bool is_failed_to_charge = 2;
 }
 
+
+//TODO!!! remove
 message ConsumedResourceTokens {
     map<string, sint64> value = 1;// symbol -> amount
     map<string, sint64> owning = 2;// symbol -> amount

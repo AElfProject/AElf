@@ -1,9 +1,11 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -11,19 +13,28 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         public bool ValidateWhileSyncing => false;
 
-        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         public ILogger<TransactionToAddressValidationProvider> Logger { get; set; }
 
-        public TransactionToAddressValidationProvider(IDeployedContractAddressProvider deployedContractAddressProvider,
-            IBlockchainService blockchainService)
+        public TransactionToAddressValidationProvider(IBlockchainService blockchainService, 
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _deployedContractAddressProvider = deployedContractAddressProvider;
             _blockchainService = blockchainService;
+            _smartContractExecutiveService = smartContractExecutiveService;
+            
+            Logger = NullLogger<TransactionToAddressValidationProvider>.Instance;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        {
+            if (await IsContractAddressAsync(transaction.To)) return true;
+            Logger.LogWarning($"Invalid contract address: {transaction}");
+            return false;
+        }
+
+        private async Task<bool> IsContractAddressAsync(Address address)
         {
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext
@@ -31,13 +42,18 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            if (_deployedContractAddressProvider.CheckContractAddress(chainContext, transaction.To))
+            
+            try
             {
-                return true;
+                var smartContractRegistration =
+                    await _smartContractExecutiveService.GetSmartContractRegistrationAsync(chainContext, address);
+                return smartContractRegistration != null;
             }
-
-            Logger.LogWarning($"Invalid contract address: {transaction}");
-            return false;
+            catch (SmartContractFindRegistrationException)
+            {
+                Logger.LogWarning($"Invalid contract address: {address}");
+                return false;
+            }
         }
     }
 }
