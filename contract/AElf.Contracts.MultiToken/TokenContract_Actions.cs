@@ -13,6 +13,11 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        protected override void OnInitialized()
+        {
+            Context.Variables.SymbolListToPayTxFee = new List<string> { "WRITE", "READ", "STORAGE", "TRAFFIC"};
+            Context.Variables.SymbolListToPayRental = new List<string> { "CPU", "RAM", "DISK", "NET"};
+        }
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "MultiToken has been initialized");
