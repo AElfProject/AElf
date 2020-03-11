@@ -64,27 +64,24 @@ namespace AElf.Contracts.TestBase
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<TContractTestAElfModule>());
 
-        //TODO: use a util method
-        public byte[] ConsensusContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] ConsensusContractCode => GetContractCodeByName(SmartContractTestConstants.Consensus);
 
-        public byte[] TokenContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+        public byte[] TokenContractCode => GetContractCodeByName(SmartContractTestConstants.MultiToken);
 
-        public byte[] CrossChainContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
+        public byte[] CrossChainContractCode => GetContractCodeByName(SmartContractTestConstants.CrossChain);
 
-        public byte[] ParliamentContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Parliament")).Value;
+        public byte[] ParliamentContractCode => GetContractCodeByName(SmartContractTestConstants.Parliament);
 
-        public byte[] ConfigurationContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Configuration")).Value;
+        public byte[] ConfigurationContractCode => GetContractCodeByName(SmartContractTestConstants.Configuration);
 
-        public byte[] AssociationContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Association")).Value;
+        public byte[] AssociationContractCode => GetContractCodeByName(SmartContractTestConstants.Association);
 
-        public byte[] ReferendumContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Referendum")).Value;
+        public byte[] ReferendumContractCode => GetContractCodeByName(SmartContractTestConstants.Referendum);
+
+        private byte[] GetContractCodeByName(string contractName)
+        {
+            return Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith(contractName)).Value;
+        }
 
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
