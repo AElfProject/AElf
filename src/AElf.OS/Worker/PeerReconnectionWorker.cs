@@ -16,22 +16,14 @@ namespace AElf.OS.Worker
 {
     public class PeerReconnectionWorker : AsyncPeriodicBackgroundWorkerBase
     {
-        private readonly IPeerPool _peerPool;
-        private readonly IReconnectionService _reconnectionService;
-        private readonly INetworkService _networkService;
-
         private readonly NetworkOptions _networkOptions;
 
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
         public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
-            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService,
             IServiceScopeFactory serviceScopeFactory)
             : base(timer, serviceScopeFactory)
         {
-            _peerPool = peerPool;
-            _reconnectionService = reconnectionService;
-            _networkService = networkService;
             _networkOptions = networkOptions.Value;
 
             timer.Period = _networkOptions.PeerReconnectionPeriod;
@@ -39,16 +31,20 @@ namespace AElf.OS.Worker
         
         protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            await DoReconnectionJobAsync();
+            await DoReconnectionJobAsync(workerContext);
         }
 
-        internal async Task DoReconnectionJobAsync()
+        internal async Task DoReconnectionJobAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            CheckNtpClockDrift();
-                
-            await _networkService.CheckPeersHealthAsync();
+            var networkService = workerContext.ServiceProvider.GetRequiredService<INetworkService>();
+            var reconnectionService = workerContext.ServiceProvider.GetRequiredService<IReconnectionService>();
+            var peerPool = workerContext.ServiceProvider.GetRequiredService<IPeerPool>();
             
-            var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
+            //CheckNtpClockDrift();
+                
+            await networkService.CheckPeersHealthAsync();
+            
+            var peersToConnect = reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
 
             if (peersToConnect.Count <= 0) 
                 return;
@@ -58,18 +54,18 @@ namespace AElf.OS.Worker
                 string peerEndpoint = peerToConnect.Endpoint;
                 if (!AElfPeerEndpointHelper.TryParse(peerEndpoint, out var parsed))
                 {
-                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
+                    if (!reconnectionService.CancelReconnection(peerEndpoint))
                         Logger.LogWarning($"Invalid {peerEndpoint}.");
 
                     continue;
                 }
 
                 // check that we haven't already reconnected to this node
-                if (_peerPool.FindPeerByEndpoint(parsed) != null)
+                if (peerPool.FindPeerByEndpoint(parsed) != null)
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
-                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
+                    if (!reconnectionService.CancelReconnection(peerEndpoint))
                         Logger.LogDebug($"Could not find to {peerEndpoint}.");
                     
                     continue;
@@ -81,7 +77,7 @@ namespace AElf.OS.Worker
                 
                 try
                 {
-                    connected = await _networkService.AddPeerAsync(peerEndpoint);
+                    connected = await networkService.AddPeerAsync(peerEndpoint);
                 }
                 catch (Exception ex)
                 {
@@ -94,7 +90,7 @@ namespace AElf.OS.Worker
                 {
                     Logger.LogDebug($"Reconnection to {peerEndpoint} succeeded.");
 
-                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
+                    if (!reconnectionService.CancelReconnection(peerEndpoint))
                         Logger.LogDebug($"Could not find {peerEndpoint}.");
                 }
                 else
@@ -111,7 +107,7 @@ namespace AElf.OS.Worker
 
                         if (peerToConnect.NextAttempt > maxReconnectionDate)
                         {
-                            _reconnectionService.CancelReconnection(peerEndpoint);
+                            reconnectionService.CancelReconnection(peerEndpoint);
                             Logger.LogDebug($"Maximum reconnection time reached {peerEndpoint}, " +
                                             $"next was {peerToConnect.NextAttempt}.");
                             
@@ -124,17 +120,17 @@ namespace AElf.OS.Worker
                 }
             }
 
-            void CheckNtpClockDrift()
-            {
-                try
-                {
-                    _networkService.CheckNtpDrift();
-                }
-                catch (Exception)
-                {
-                    // swallow any exception, we are not interested in anything else than valid checks. 
-                }
-            }
+            // void CheckNtpClockDrift()
+            // {
+            //     try
+            //     {
+            //         _networkService.CheckNtpDrift();
+            //     }
+            //     catch (Exception)
+            //     {
+            //         // swallow any exception, we are not interested in anything else than valid checks. 
+            //     }
+            // }
         }
     }
 }

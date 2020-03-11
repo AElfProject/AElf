@@ -12,33 +12,28 @@ namespace AElf.OS.Worker
 {
     public class PeerDiscoveryWorker : AsyncPeriodicBackgroundWorkerBase
     {
-        private readonly IPeerDiscoveryService _peerDiscoveryService;
-        private readonly INetworkService _networkService;
-        private readonly IReconnectionService _reconnectionService;
-
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
-            INetworkService networkService, IReconnectionService reconnectionService,
+        public PeerDiscoveryWorker(AbpTimer timer, 
             IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
         {
-            _peerDiscoveryService = peerDiscoveryService;
             Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
-
-            _networkService = networkService;
-            _reconnectionService = reconnectionService;
-
+            
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
         }
 
         protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            await ProcessPeerDiscoveryJob();
+            await ProcessPeerDiscoveryJob(workerContext);
         }
 
-        internal async Task ProcessPeerDiscoveryJob()
+        internal async Task ProcessPeerDiscoveryJob(PeriodicBackgroundWorkerContext workerContext)
         {
-            var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
+            var networkService = workerContext.ServiceProvider.GetRequiredService<INetworkService>();
+            var reconnectionService = workerContext.ServiceProvider.GetRequiredService<IReconnectionService>();
+            var peerDiscoveryService = workerContext.ServiceProvider.GetRequiredService<IPeerDiscoveryService>();
+            
+            var newNodes = await peerDiscoveryService.DiscoverNodesAsync();
 
             if (newNodes == null || newNodes.Nodes.Count <= 0)
             {
@@ -52,7 +47,7 @@ namespace AElf.OS.Worker
             {
                 try
                 {
-                    var reconnectingPeer = _reconnectionService.GetReconnectingPeer(node.Endpoint);
+                    var reconnectingPeer = reconnectionService.GetReconnectingPeer(node.Endpoint);
 
                     if (reconnectingPeer != null)
                     {
@@ -60,13 +55,13 @@ namespace AElf.OS.Worker
                         continue;
                     }
                     
-                    if (_networkService.IsPeerPoolFull())
+                    if (networkService.IsPeerPoolFull())
                     {
                         Logger.LogDebug("Peer pool is full, aborting add.");
                         break;
                     }
                     
-                    await _networkService.AddPeerAsync(node.Endpoint);
+                    await networkService.AddPeerAsync(node.Endpoint);
                 }
                 catch (Exception e)
                 {
