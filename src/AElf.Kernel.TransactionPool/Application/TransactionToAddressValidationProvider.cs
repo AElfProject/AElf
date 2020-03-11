@@ -5,6 +5,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -22,6 +23,8 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _blockchainService = blockchainService;
             _smartContractExecutiveService = smartContractExecutiveService;
+            
+            Logger = NullLogger<TransactionToAddressValidationProvider>.Instance;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -48,6 +51,7 @@ namespace AElf.Kernel.TransactionPool.Application
             }
             catch (SmartContractFindRegistrationException)
             {
+                Logger.LogWarning($"Invalid contract address: {address}");
                 return false;
             }
         }
