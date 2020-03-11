@@ -17,6 +17,7 @@ namespace AElf.OS.Network.Grpc.Helpers
     public static class TlsHelper
     {
         private const int RsaKeyLength = 2048;
+        private const string X509NamePrefix = "CN=";
         
         public static string ObjectToPem(object obj)
         {
@@ -56,8 +57,8 @@ namespace AElf.OS.Network.Grpc.Helpers
         public static KeyCertificatePair GenerateKeyCertificatePair()
         {
             var rsaKeyPair = GenerateRsaKeyPair();
-            var certificate = GenerateCertificate(new X509Name(GrpcConstants.DefaultTlsCommonName),
-                new X509Name(GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+            var certificate = GenerateCertificate(new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName),
+                new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
 
             var keyCertificatePair = new KeyCertificatePair(ObjectToPem(certificate), ObjectToPem(rsaKeyPair.Private));
 
