@@ -12,58 +12,41 @@ service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
     option (aelf.base) = "acs1.proto";
     // Actions
-    rpc SetBlockTransactionLimit (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
     rpc ChangeConfigurationController (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc RentResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateRentedResourceTokens (RentResourceTokensInput) returns (google.protobuf.Empty) {
-    }
-    rpc InitialTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
-    }
-    rpc SetRequiredAcsInContracts (RequiredAcsInContracts) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateTotalResourceTokens (ResourceTokenAmount) returns (google.protobuf.Empty) {
-    }
+
     // Views
-    rpc GetBlockTransactionLimit (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+    rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
     rpc GetConfigurationController (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetRentedResourceTokens (aelf.SInt32Value) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetRemainResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTotalResourceTokens (google.protobuf.Empty) returns (ResourceTokenAmount) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetRequiredAcsInContracts (google.protobuf.Empty) returns (RequiredAcsInContracts) {
-        option (aelf.is_view) = true;
-    }
 }
 
-message ResourceTokenAmount {
-    map<string, sint32> value = 1;
+message SetConfigurationInput {
+    string key = 1;
+    bytes value = 2;
 }
+
+message BlockTransactionLimit
+{
+    int32 value = 1;
+}
+
+// Values
 
 message RequiredAcsInContracts {
     repeated string acs_list = 1;
     bool require_all = 2;
 }
 
-message RentResourceTokensInput {
-    aelf.SInt32Value chain_id = 1;
-    ResourceTokenAmount resource_token_amount = 2;
-}
-
 // Events
-message BlockTransactionLimitChanged {
+
+message ConfigurationSet {
     option (aelf.is_event) = true;
-    int32 old = 1;
-    int32 new = 2;
+    string key = 1;
+    bytes value = 2;
 }

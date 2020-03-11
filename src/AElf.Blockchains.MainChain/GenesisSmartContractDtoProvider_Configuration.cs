@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs0;
 using AElf.Contracts.Configuration;
 using AElf.Kernel;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Node.Application;
+using Google.Protobuf;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -23,10 +24,14 @@ namespace AElf.Blockchains.MainChain
         {
             var configurationContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             configurationContractMethodCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
-                new RequiredAcsInContracts
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                new SetConfigurationInput
                 {
-                    AcsList = {_contractOptions.ContractFeeStrategyAcsList}
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = new RequiredAcsInContracts
+                    {
+                        AcsList = {_contractOptions.ContractFeeStrategyAcsList}
+                    }.ToByteString()
                 });
             return configurationContractMethodCallList;
         }

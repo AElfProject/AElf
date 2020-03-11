@@ -23,13 +23,6 @@ namespace AElf.Kernel.SmartContract
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,STO,READ,NET";
             });
-
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 }

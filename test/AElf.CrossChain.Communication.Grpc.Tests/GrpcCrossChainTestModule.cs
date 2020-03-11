@@ -27,12 +27,6 @@ namespace AElf.CrossChain.Communication.Grpc
 
             Configure<CrossChainConfigOptions>(option => { option.ParentChainId = "AELF"; });
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
-            context.Services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IDeployedContractAddressService>();
-                mockService.Setup(m => m.InitAsync());
-                return mockService.Object;
-            });
         }
     }
 }
