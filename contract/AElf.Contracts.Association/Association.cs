@@ -23,7 +23,7 @@ namespace AElf.Contracts.Association
             {
                 return new ProposalOutput();
             }
-            
+
             var organization = State.Organisations[proposal.OrganizationAddress];
             var readyToRelease = IsReleaseThresholdReached(proposal, organization);
 
@@ -93,6 +93,7 @@ namespace AElf.Contracts.Association
 
             return organizationAddress;
         }
+
         public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
@@ -133,6 +134,13 @@ namespace AElf.Contracts.Association
 
             proposal.Approvals.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Approve)
+            });
             return new Empty();
         }
 
@@ -145,6 +153,13 @@ namespace AElf.Contracts.Association
 
             proposal.Rejections.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Reject)
+            });
             return new Empty();
         }
 
@@ -157,6 +172,13 @@ namespace AElf.Contracts.Association
 
             proposal.Abstentions.Add(Context.Sender);
             State.Proposals[input] = proposal;
+            Context.Fire(new ReceiptCreated
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Abstain)
+            });
             return new Empty();
         }
 
@@ -171,7 +193,7 @@ namespace AElf.Contracts.Association
 
             Context.Fire(new ProposalReleased {ProposalId = input});
             State.Proposals.Remove(input);
-            
+
             return new Empty();
         }
 
@@ -182,6 +204,11 @@ namespace AElf.Contracts.Association
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
@@ -192,6 +219,11 @@ namespace AElf.Contracts.Association
             organization.OrganizationMemberList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationMemberChanged
+            {
+                OrganizationAddress = Context.Sender,
+                OrganizationMemberList = input
+            });
             return new Empty();
         }
 
@@ -202,9 +234,14 @@ namespace AElf.Contracts.Association
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationWhiteListChanged()
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
-        
+
         public override Empty ClearProposal(Hash input)
         {
             // anyone can clear proposal if it is expired

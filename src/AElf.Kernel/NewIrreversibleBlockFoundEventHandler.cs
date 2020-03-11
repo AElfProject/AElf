@@ -18,7 +18,6 @@ namespace AElf.Kernel
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
-        private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
@@ -27,7 +26,6 @@ namespace AElf.Kernel
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
             ITransactionBlockIndexService transactionBlockIndexService, 
-            IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
@@ -35,7 +33,6 @@ namespace AElf.Kernel
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
-            _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
@@ -75,12 +72,12 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
+                        _chainBlockLinkService.CleanCachedChainBlockLinks(irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
-                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(irreversibleBlockHeight);
+                await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
                 
                 // Clean idle executive
                 _smartContractExecutiveService.CleanIdleExecutive();
