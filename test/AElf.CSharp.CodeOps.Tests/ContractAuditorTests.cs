@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -35,7 +36,7 @@ namespace AElf.CSharp.CodeOps
 
         public ContractAuditorFixture()
         {
-            _auditor = new ContractAuditor(null, null);
+            _auditor = new ContractAuditor();
             _requiredAcs = new RequiredAcsDto
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
@@ -45,7 +46,7 @@ namespace AElf.CSharp.CodeOps
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, _requiredAcs, false);
+            _auditor.Audit(code, _requiredAcs);
         }
 
         public void Dispose()
@@ -83,7 +84,7 @@ namespace AElf.CSharp.CodeOps
         [InlineData(typeof(TreasuryContract))]
         public void CheckSystemContracts_AllShouldPass(Type contractType)
         {
-            Should.NotThrow(() => _auditorFixture.Audit(ReadPatchedContractCode(contractType)));
+            _auditorFixture.Audit(ReadPatchedContractCode(contractType));
         }
 
         [Fact]
@@ -97,12 +98,6 @@ namespace AElf.CSharp.CodeOps
         }
 
         #endregion
-
-        [Fact]
-        public void PatchTest()
-        {
-            ContractPatcher.Patch(ReadContractCode(typeof(AEDPoSContract)));
-        }
 
         #region Negative Cases
 

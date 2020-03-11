@@ -146,11 +146,11 @@ namespace AElf.Contract.TestContract
         
         protected void CheckCode(byte[] code)
         {
-            var auditor = new ContractAuditor(null, null);
+            var auditor = new ContractAuditor();
             auditor.Audit(code, new RequiredAcsDto
             {
                 AcsList = new List<string>()
-            }, false);
+            });
         }
         
         private async Task InitialBasicFunctionContract()
