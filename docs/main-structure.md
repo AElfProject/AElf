@@ -6,7 +6,7 @@
         * [Running a node](tutorials/setup/docker.md)
         * [Build and run sources](tutorials/setup/run-node.md)
         * [Running multiple nodes](tutorials/setup/multi-nodes.md)
-    * [Smart contract development](tutorials/developing-smart-contracts/main.md)
+    * [Contract developer](tutorials/developing-smart-contracts/main.md)
         * [Setup Boilerplate](tutorials/developing-smart-contracts/setup.md)
         * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
         * [First contract - test](tutorials/developing-smart-contracts/first-contract-test.md)
@@ -16,7 +16,8 @@
         <!-- * [Smart contract descriptors](tutorials/developing-smart-contracts/token-issue.md) -->
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
-    * [Enterprise development](tutorials/enterprise.md)
+    * [Node API](../docs/web-api-reference/reference.md)
+    * [Join the testnet](../docs/Resources/testnet.md)
     * [Cross-chain](tutorials/cross-chain/main.md)
         * [Request side-chain creation](tutorials/cross-chain/request-new-side-chain.md) 
         * [Running a side chain](tutorials/cross-chain/running-side-chain.md)
@@ -57,6 +58,7 @@
     * [Implementations](architecture/implementations.md)
 * [Contribution](contributions/readme.md)
     * [DevOps](devops/devops.md)
+    * [Enterprise development](tutorials/enterprise.md)
 * [Web api reference](web-api-reference/reference.md)
 * [SDK reference](sdk/js.md)
     * [JS SDK](sdk/javascript/js-sdk.md)
