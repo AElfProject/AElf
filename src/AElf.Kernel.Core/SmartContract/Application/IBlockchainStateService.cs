@@ -89,8 +89,7 @@ namespace AElf.Kernel.SmartContract.Application
                 chainContext.BlockHeight,
                 chainContext.BlockHash));
 
-            var o = SerializationHelper.Deserialize<T>(ret.Value?.ToByteArray());
-            
+            var o = Deserialize(ret.Value);
             
             //if executed is in Store, it will not change when forking
             if(ret.IsInStore)
@@ -101,11 +100,21 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, T> blockExecutedData)
         {
             await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData.ToDictionary
-                (pair => pair.Key, pair => ByteString.CopyFrom(SerializationHelper.Serialize(pair.Value))));
+                (pair => pair.Key, pair => Serialize(pair.Value)));
             foreach (var pair in blockExecutedData)
             {
                 _dictionary.TryRemove(pair.Key, out _);
             }
+        }
+
+        protected virtual T Deserialize(ByteString byteString)
+        {
+            return SerializationHelper.Deserialize<T>(byteString?.ToByteArray());
+        }
+
+        protected virtual ByteString Serialize(T value)
+        {
+            return ByteString.CopyFrom(SerializationHelper.Serialize(value));
         }
     }
 

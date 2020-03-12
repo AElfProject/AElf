@@ -5,6 +5,6 @@ namespace AElf.Kernel.FeeCalculation.Application
 {
     public interface IPrimaryTokenFeeService
     {
-        Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext, IChainContext chainContext);
+        Task<long> CalculateFunction(ITransactionContext transactionContext, IChainContext chainContext);
     }
 }

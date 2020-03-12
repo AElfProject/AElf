@@ -1,14 +1,12 @@
 ﻿using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     internal class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
     {
-        public WriteFeeProvider(ICoefficientsProvider coefficientsProvider,
-            ICalculateFunctionProvider calculateFunctionProvider) : base(
-            coefficientsProvider, calculateFunctionProvider, (int) FeeTypeEnum.Write)
+        public WriteFeeProvider(ICalculateFunctionProvider calculateFunctionProvider) : base(
+            calculateFunctionProvider, (int) FeeTypeEnum.Write)
         {
 
         }
