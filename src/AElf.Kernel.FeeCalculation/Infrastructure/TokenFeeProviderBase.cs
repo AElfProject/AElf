@@ -66,7 +66,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         }
 
         private void UpdatePieceWiseFunction(PieceCalculateFunction pieceCalculateFunction,
-            IEnumerable<int[]> pieceTypeList)
+            List<int[]> pieceTypeList)
         {
             foreach (var pieceCoefficients in pieceTypeList)
             {

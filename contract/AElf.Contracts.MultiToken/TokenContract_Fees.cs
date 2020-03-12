@@ -54,6 +54,10 @@ namespace AElf.Contracts.MultiToken
                     Symbol = tokenToAmount.Key,
                     Amount = tokenToAmount.Value
                 });
+                if (tokenToAmount.Value == 0)
+                {
+                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+                }
             }
 
             return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
@@ -193,6 +197,10 @@ namespace AElf.Contracts.MultiToken
                     Symbol = pair.Key,
                     Amount = pair.Value
                 });
+                if (pair.Value == 0)
+                {
+                    Context.LogDebug(() => $"Maybe incorrect charged resource fee of {pair.Key}: it's 0.");
+                }
             }
 
             return new Empty();

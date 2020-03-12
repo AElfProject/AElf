@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
@@ -8,6 +10,13 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     {
         private List<Func<int, long>> _currentCalculateFunctions;
         private List<int> _latestUpdateFunctionType;
+
+        public ILogger<PieceCalculateFunction> Logger { get; set; }
+
+        public PieceCalculateFunction()
+        {
+            Logger = NullLogger<PieceCalculateFunction>.Instance;
+        }
 
         public bool IsChangedFunctionType(List<int> currentFunctionType)
         {

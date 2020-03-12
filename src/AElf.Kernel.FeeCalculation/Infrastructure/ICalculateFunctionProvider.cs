@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -44,6 +45,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 currentIndex += 3;
             }
 
+            LogNewFunctionCoefficients(parameters);
+
             return cost;
         }
 
@@ -73,6 +76,23 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             }
 
             return (long) (decimalResult * Precision);
+        }
+
+        private void LogNewFunctionCoefficients(params int[] parameters)
+        {
+            var log = "New function:\n";
+            var currentIndex = 1;
+            while (currentIndex < parameters.Length)
+            {
+                var power = parameters[currentIndex];
+                var divisor = parameters[currentIndex + 1];
+                var dividend = parameters[currentIndex + 2];
+                log += $"x^{power} * {divisor} / {dividend} +";
+                currentIndex += 3;
+            }
+
+            log.RemovePostFix("+");
+            Logger.LogInformation(log);
         }
     }
 }

@@ -4,7 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
-    internal class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider, ITransientDependency
+    internal class TrafficFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
     {
         public TrafficFeeProvider(ICoefficientsProvider coefficientsProvider,
             ICalculateFunctionProvider calculateFunctionProvider) : base(
