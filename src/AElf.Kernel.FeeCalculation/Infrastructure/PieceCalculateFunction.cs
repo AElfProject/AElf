@@ -8,8 +8,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public class PieceCalculateFunction
     {
-        private List<Func<int, long>> _currentCalculateFunctions;
-        private List<int> _latestUpdateFunctionType;
+        private readonly List<Func<int, long>> _currentCalculateFunctions = new List<Func<int, long>>();
+        private readonly List<int> _latestUpdateFunctionType = new List<int>();
 
         public ILogger<PieceCalculateFunction> Logger { get; set; }
 
@@ -20,19 +20,22 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public bool IsChangedFunctionType(List<int> currentFunctionType)
         {
-            if (_latestUpdateFunctionType == null || _latestUpdateFunctionType.Count != currentFunctionType.Count)
-                return true;
-            return currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i]).Any();
+            // Change function coefficients if:
+            var result = !_latestUpdateFunctionType.Any() // _latestUpdateFunctionType is empty,
+                         || _latestUpdateFunctionType.Count !=
+                         currentFunctionType.Count // or count isn't match new coefficients
+                         || currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i])
+                             .Any(); // or have any mismatch element.
+            if (result)
+            {
+                Logger.LogInformation("Gonna change function coefficients.");
+            }
+
+            return result;
         }
 
         public void AddFunction(int[] coefficients, Func<int, long> function)
         {
-            if (_currentCalculateFunctions == null)
-            {
-                _currentCalculateFunctions = new List<Func<int, long>>();
-                _latestUpdateFunctionType = new List<int>();
-            }
-
             _latestUpdateFunctionType.AddRange(coefficients);
             _currentCalculateFunctions.Add(function);
         }
