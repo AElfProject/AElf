@@ -17,7 +17,7 @@
         <!-- * [More about state](tutorials/developing-smart-contracts/complex-state.md) -->
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
     * [Node API](../docs/web-api-reference/reference.md)
-    * [Join the testnet](../docs/Resources/testnet.md)
+    * [Join the testnet](../docs/resources/testnet.md)
     * [Cross-chain](tutorials/cross-chain/main.md)
         * [Request side-chain creation](tutorials/cross-chain/request-new-side-chain.md) 
         * [Running a side chain](tutorials/cross-chain/running-side-chain.md)
