@@ -1,27 +1,27 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     /// <summary>
     /// Return true if native token balance of from address is greater than 0.
     /// </summary>
-    internal class TransactionFromAddressBalanceValidationProvider : ITransactionValidationProvider
+    internal class MethodFeeAffordableValidationProvider : ITransactionValidationProvider
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionFeeExemptionService _feeExemptionService;
 
-        public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
+        public ILogger<MethodFeeAffordableValidationProvider> Logger { get; set; }
 
-        public TransactionFromAddressBalanceValidationProvider(IBlockchainService blockchainService,
+        public MethodFeeAffordableValidationProvider(IBlockchainService blockchainService,
             ITokenContractReaderFactory tokenContractReaderFactory,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService feeExemptionService)

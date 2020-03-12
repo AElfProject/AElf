@@ -1,6 +1,6 @@
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Sdk.CSharp
+namespace AElf.CSharp.Core.Extension
 {
     public static class TimestampExtensions
     {

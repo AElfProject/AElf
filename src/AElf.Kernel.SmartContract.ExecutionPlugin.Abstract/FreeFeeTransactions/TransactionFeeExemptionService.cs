@@ -3,7 +3,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions
+namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions
 {
     public class TransactionFeeExemptionService : ITransactionFeeExemptionService, ISingletonDependency
     {

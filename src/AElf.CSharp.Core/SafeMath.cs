@@ -1,4 +1,4 @@
-﻿namespace AElf.Sdk.CSharp
+﻿namespace AElf.CSharp.Core
 {
     public static class SafeMath
     {

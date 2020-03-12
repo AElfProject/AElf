@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -83,7 +82,7 @@ namespace AElf.Kernel.Consensus.Application
                 TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock),
                 _consensusCommand.MiningDueTime);
             _consensusScheduler.CancelCurrentEvent();
-            _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
+            // _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
 
             Logger.LogTrace($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
         }

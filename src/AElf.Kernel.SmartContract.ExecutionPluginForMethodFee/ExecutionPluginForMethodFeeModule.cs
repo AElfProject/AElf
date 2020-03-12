@@ -1,6 +1,7 @@
 ﻿using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -14,6 +15,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
             context.Services.AddTransient<ISystemTransactionRecognizer, ClaimFeeTransactionRecognizer>();
+            context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
+            context.Services.AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
+            context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();

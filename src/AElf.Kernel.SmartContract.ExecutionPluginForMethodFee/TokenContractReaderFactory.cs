@@ -1,7 +1,8 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     //TODO: base class, should not know token
 
