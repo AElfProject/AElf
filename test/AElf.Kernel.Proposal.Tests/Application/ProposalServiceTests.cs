@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Proposal.Application;
 using AElf.Kernel.Proposal.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -13,19 +12,17 @@ namespace AElf.Kernel.Proposal.Tests.Application
     {
         private readonly IProposalService _proposalService;
         private readonly ProposalTestHelper _proposalTestHelper;
-        private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ProposalServiceTests()
         {
             _proposalService = GetRequiredService<IProposalService>();
             _proposalTestHelper = GetRequiredService<ProposalTestHelper>();
-            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
         }
 
         [Fact]
         public void AddNotApprovedProposalTest()
         {
-            var proposalCacheProvider = GetRequiredService<IReadyToApproveProposalCacheProvider>();
+            var proposalCacheProvider = GetRequiredService<IProposalProvider>();
 
             {
                 var proposalId = Hash.FromString("proposal");
@@ -56,23 +53,99 @@ namespace AElf.Kernel.Proposal.Tests.Application
             var proposalId3 = Hash.FromString("proposalId3");
             var proposalId4 = Hash.FromString("proposalId4");
             
-            var proposalCacheProvider = GetRequiredService<IReadyToApproveProposalCacheProvider>();
-            proposalCacheProvider.CacheProposalToApprove(proposalId1, 5);
-
             var notApprovedProposalIdList = new List<Hash>
             {
                 proposalId1, proposalId2, proposalId3, proposalId4
             };
             _proposalTestHelper.AddNotVotedProposalIdList(notApprovedProposalIdList);
             
-            var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
+            var blockHash = Hash.FromString("BlockHash");
+            var blockHeight = 10;
+            
+            var proposalCacheProvider = GetRequiredService<IProposalProvider>();
+            proposalCacheProvider.AddProposal(proposalId1, 5);
+
+            {
+                var queryResultNotApprovedProposalIdList =
+                    await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
+                queryResultNotApprovedProposalIdList.Count.ShouldBe(1);
+                queryResultNotApprovedProposalIdList.ShouldContain(proposalId1);
+            }
+            
+            proposalCacheProvider.AddProposal(proposalId2, 6);
+            {
+                var queryResultNotApprovedProposalIdList =
+                    await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
+                queryResultNotApprovedProposalIdList.Count.ShouldBe(2);
+                queryResultNotApprovedProposalIdList.ShouldContain(proposalId1);
+                queryResultNotApprovedProposalIdList.ShouldContain(proposalId2);
+            }
+        }
+        
+        [Fact]
+        public async Task GetNotApprovedProposalIdListTest_ReturnEmpty()
+        {
+            var proposalId1 = Hash.FromString("proposalId1");
+            var proposalId2 = Hash.FromString("proposalId2");
+            var proposalId3 = Hash.FromString("proposalId3");
+            var proposalId4 = Hash.FromString("proposalId4");
+            
+            var proposalCacheProvider = GetRequiredService<IProposalProvider>();
+            proposalCacheProvider.AddProposal(proposalId1, 5);
+            proposalCacheProvider.AddProposal(proposalId2, 5);
+
+            var notApprovedProposalIdList = new List<Hash>
+            {
+                proposalId3, proposalId4
+            };
+            _proposalTestHelper.AddNotVotedProposalIdList(notApprovedProposalIdList);
+            
             var blockHash = Hash.FromString("BlockHash");
             var blockHeight = 10;
             var queryResultNotApprovedProposalIdList =
                 await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
+            queryResultNotApprovedProposalIdList.ShouldBeEmpty();
+        }
+
+        [Fact]
+        public async Task ClearProposalTest()
+        {
+            var proposalId1 = Hash.FromString("proposalId1");
+            var proposalId2 = Hash.FromString("proposalId2");
+            var proposalId3 = Hash.FromString("proposalId3");
+            var proposalId4 = Hash.FromString("proposalId4");
+            
+            var proposalCacheProvider = GetRequiredService<IProposalProvider>();
+            var blockHeight = 5;
+
+            proposalCacheProvider.AddProposal(proposalId1, blockHeight);
+            proposalCacheProvider.AddProposal(proposalId2, blockHeight);
+            proposalCacheProvider.AddProposal(proposalId3, blockHeight);
+            proposalCacheProvider.AddProposal(proposalId4, blockHeight);
+            
+            var notApprovedProposalIdList = new List<Hash>
+            {
+                proposalId3, proposalId4
+            };
+            _proposalTestHelper.AddNotVotedProposalIdList(notApprovedProposalIdList);
+            var notApprovedPendingProposalIdList = new List<Hash>
+            {
+                proposalId3
+            };
+            _proposalTestHelper.AddNotVotedPendingProposalIdList(notApprovedPendingProposalIdList);
+            
+            var libHash = Hash.FromString("BlockHash");
+            var libHeight = blockHeight;
+            await _proposalService.ClearProposalByLibAsync(libHash, libHeight);
+            var cachedProposalIdList = proposalCacheProvider.GetAllProposals();
+            cachedProposalIdList.Count.ShouldBe(1);
+            cachedProposalIdList.ShouldContain(proposalId3);
+            
+            var blockHash = Hash.FromString("BlockHash");
+            var queryResultNotApprovedProposalIdList =
+                await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
             queryResultNotApprovedProposalIdList.Count.ShouldBe(1);
-            queryResultNotApprovedProposalIdList.ShouldContain(proposalId1);
+            queryResultNotApprovedProposalIdList.ShouldContain(proposalId3);
         }
     }
 }

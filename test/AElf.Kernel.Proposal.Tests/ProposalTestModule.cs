@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.SmartContract.Application;
@@ -28,25 +29,49 @@ namespace AElf.Kernel.Proposal.Tests
 
                 return mockService.Object;
             });
-            
+
             context.Services.AddTransient(provider =>
             {
                 var proposalTestHelper = context.Services.GetServiceLazy<ProposalTestHelper>().Value;
                 var mockService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockService.Setup(m =>
                         m.ExecuteAsync(It.IsAny<ChainContext>(),
-                            It.Is<Transaction>(tx =>
-                                tx.MethodName == nameof(ParliamentContractContainer.ParliamentContractStub
-                                    .GetNotVotedProposals)),
+                            It.IsAny<Transaction>(),
                             It.IsAny<Timestamp>()))
                     .Returns<IChainContext, Transaction, Timestamp>((chainContext, txn, timestamp) =>
                     {
                         var input = ProposalIdList.Parser.ParseFrom(txn.Params);
-                        return Task.FromResult(new TransactionTrace
+                        if (txn.MethodName == nameof(ParliamentContractContainer.ParliamentContractStub
+                            .GetNotVotedProposals))
                         {
-                            ExecutionStatus = ExecutionStatus.Executed,
-                            ReturnValue = proposalTestHelper.GetNotVotedProposalIdList(input).ToByteString()
-                        });
+                            var notApprovedProposalIdList = proposalTestHelper.GetNotVotedProposalIdList(input);
+                            return Task.FromResult(new TransactionTrace
+                            {
+                                ExecutionStatus = ExecutionStatus.Executed,
+                                ReturnValue = new ProposalIdList
+                                {
+                                    ProposalIds = {notApprovedProposalIdList.ProposalIds.Intersect(input.ProposalIds)}
+                                }.ToByteString()
+                            });
+                        }
+
+                        if (txn.MethodName == nameof(ParliamentContractContainer.ParliamentContractStub
+                            .GetNotVotedPendingProposals))
+                        {
+                            var notApprovedPendingProposalIdList =
+                                proposalTestHelper.GetNotVotedPendingProposalIdList(input);
+                            return Task.FromResult(new TransactionTrace
+                            {
+                                ExecutionStatus = ExecutionStatus.Executed,
+                                ReturnValue = new ProposalIdList
+                                {
+                                    ProposalIds =
+                                        {notApprovedPendingProposalIdList.ProposalIds.Intersect(input.ProposalIds)}
+                                }.ToByteString()
+                            });
+                        }
+
+                        return null;
                     });
 
                 return mockService.Object;

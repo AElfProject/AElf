@@ -11,26 +11,26 @@ namespace AElf.Kernel.Proposal.Application
 {
     internal class ProposalService : IProposalService, ITransientDependency
     {
-        private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
+        private readonly IProposalProvider _proposalProvider;
         private readonly IParliamentContractReaderFactory _parliamentContractReaderFactory;
 
         public ILogger<ProposalService> Logger { get; set; }
 
-        public ProposalService(IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider,
+        public ProposalService(IProposalProvider proposalProvider,
             IParliamentContractReaderFactory parliamentContractReaderFactory)
         {
-            _readyToApproveProposalCacheProvider = readyToApproveProposalCacheProvider;
+            _proposalProvider = proposalProvider;
             _parliamentContractReaderFactory = parliamentContractReaderFactory;
         }
 
         public void AddNotApprovedProposal(Hash proposalId, long height)
         {
-            _readyToApproveProposalCacheProvider.CacheProposalToApprove(proposalId, height);
+            _proposalProvider.AddProposal(proposalId, height);
         }
 
         public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Address @from, Hash blockHash, long blockHeight)
         {
-            var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
+            var proposalIdList = _proposalProvider.GetAllProposals();
             var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight, from)
                 .GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
 
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Proposal.Application
 
         public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
         {
-            var proposalIdList = _readyToApproveProposalCacheProvider.GetCachedProposals();
+            var proposalIdList = _proposalProvider.GetAllProposals();
             var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotVotedPendingProposals
                 .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
             if (result == null)
@@ -47,11 +47,11 @@ namespace AElf.Kernel.Proposal.Application
 
             foreach (var proposalId in proposalIdList.Except(result.ProposalIds))
             {
-                if (!_readyToApproveProposalCacheProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
+                if (!_proposalProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
                     h > blockHeight)
                     continue;
                 Logger.LogTrace($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
-                _readyToApproveProposalCacheProvider.RemoveProposalById(proposalId);
+                _proposalProvider.RemoveProposalById(proposalId);
             }
         }
     }

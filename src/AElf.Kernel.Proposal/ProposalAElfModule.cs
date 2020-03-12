@@ -1,5 +1,6 @@
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal.Application;
+using AElf.Kernel.Proposal.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ namespace AElf.Kernel.Proposal
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ProposalApprovalTransactionGenerator>();
             context.Services.AddTransient<ISystemTransactionRecognizer, ProposalTransactionRecognizer>();
+            context.Services.AddSingleton<IProposalProvider, ProposalProvider>();
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
         }
     }

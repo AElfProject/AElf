@@ -10,18 +10,18 @@ namespace AElf.Kernel.CodeCheck.Application
 {
     public class CodeCheckService : ICodeCheckService, ITransientDependency
     {
-        private readonly IRequiredAcsInContractsProvider _requiredAcsInContractsProvider;
+        private readonly ISmartContractRequiredAcsService _smartContractRequiredAcsService;
         private readonly IContractAuditorContainer _contractAuditorContainer;
         private readonly CodeCheckOptions _codeCheckOptions;
 
         public ILogger<CodeCheckService> Logger { get; set; }
 
 
-        public CodeCheckService(IRequiredAcsInContractsProvider requiredAcsInContractsProvider,
+        public CodeCheckService(ISmartContractRequiredAcsService smartContractRequiredAcsService,
             IContractAuditorContainer contractAuditorContainer,
             IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor)
         {
-            _requiredAcsInContractsProvider = requiredAcsInContractsProvider;
+            _smartContractRequiredAcsService = smartContractRequiredAcsService;
             _contractAuditorContainer = contractAuditorContainer;
             _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
         }
@@ -32,7 +32,7 @@ namespace AElf.Kernel.CodeCheck.Application
                 return false;
 
             var requiredAcs =
-                await _requiredAcsInContractsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
+                await _smartContractRequiredAcsService.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
             try
             {
                 // Check contract code
