@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.FeeCalculation.Infrastructure;
@@ -14,6 +16,8 @@ namespace AElf.Kernel.FeeCalculation.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICoefficientsProvider _coefficientsProvider;
+        private readonly IServiceContainer<IPrimaryTokenFeeProvider> _primaryTokenFeeProviders;
+        private readonly IServiceContainer<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
 
         private LogEvent _interestedEvent;
 
@@ -37,10 +41,14 @@ namespace AElf.Kernel.FeeCalculation.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
-            ICoefficientsProvider coefficientsProvider)
+            ICoefficientsProvider coefficientsProvider,
+            IServiceContainer<IPrimaryTokenFeeProvider> primaryTokenFeeProviders,
+            IServiceContainer<IResourceTokenFeeProvider> resourceTokenFeeProviders)
         {
             _smartContractAddressService = smartContractAddressService;
             _coefficientsProvider = coefficientsProvider;
+            _primaryTokenFeeProviders = primaryTokenFeeProviders;
+            _resourceTokenFeeProviders = resourceTokenFeeProviders;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
@@ -49,6 +57,21 @@ namespace AElf.Kernel.FeeCalculation.Application
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
             await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
+            foreach (var feeProvider in _primaryTokenFeeProviders)
+            {
+                feeProvider.UpdatePieceWiseFunction(eventData.AllTypeFeeCoefficients.Value
+                    .Single(x => x.FeeTokenType == (int) FeeTypeEnum.Tx).PieceCoefficientsList.AsEnumerable()
+                    .Select(x => x.Value.ToArray()).ToList());
+            }
+
+            foreach (var feeProvider in _resourceTokenFeeProviders)
+            {
+                feeProvider.UpdatePieceWiseFunction(eventData.AllTypeFeeCoefficients.Value
+                    .Single(x => string.Equals(((FeeTypeEnum) x.FeeTokenType).ToString(), feeProvider.TokenName,
+                        StringComparison.CurrentCultureIgnoreCase))
+                    .PieceCoefficientsList.AsEnumerable()
+                    .Select(x => x.Value.ToArray()).ToList());
+            }
         }
     }
 }
