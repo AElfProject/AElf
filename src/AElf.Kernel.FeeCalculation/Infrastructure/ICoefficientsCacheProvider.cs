@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
@@ -21,10 +23,14 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private readonly ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients>
             _cachedBlockchainExecutedDataService;
 
+        public ILogger<CoefficientsProvider> Logger { get; set; }
+
         public CoefficientsProvider(
             ICachedBlockchainExecutedDataService<AllCalculateFeeCoefficients> cachedBlockchainExecutedDataService)
         {
             _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
+            
+            Logger = NullLogger<CoefficientsProvider>.Instance;
         }
 
         public Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
@@ -36,6 +42,10 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             if (targetTokeData == null) return Task.FromResult(new List<int[]>());
             var coefficientsArray = targetTokeData.PieceCoefficientsList.AsEnumerable()
                 .Select(x =>  x.Value.ToArray()).ToList();
+            foreach (var coefficients in coefficientsArray)
+            {
+                LogNewFunctionCoefficients(coefficients);
+            }
             return Task.FromResult(coefficientsArray);
         }
 
@@ -48,6 +58,23 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         protected override string GetBlockExecutedDataName()
         {
             return BlockExecutedDataName;
+        }
+        
+        private void LogNewFunctionCoefficients(params int[] parameters)
+        {
+            var log = $"New function (Upper bound {parameters[0]}):\n";
+            var currentIndex = 1;
+            while (currentIndex < parameters.Length)
+            {
+                var power = parameters[currentIndex];
+                var divisor = parameters[currentIndex + 1];
+                var dividend = parameters[currentIndex + 2];
+                log += $"{divisor} / {dividend} * x^{power} +";
+                currentIndex += 3;
+            }
+
+            log = log.Substring(0, log.Length - 1);
+            Logger.LogInformation(log);
         }
     }
 }

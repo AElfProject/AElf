@@ -57,6 +57,7 @@ namespace AElf.Kernel.FeeCalculation.Application
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
             await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
+            Logger.LogInformation("Ready to update piece-wise function from processor.");
             foreach (var feeProvider in _primaryTokenFeeProviders)
             {
                 feeProvider.UpdatePieceWiseFunction(eventData.AllTypeFeeCoefficients.Value

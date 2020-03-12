@@ -136,6 +136,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TestContractStub.DummyMethod.SendAsync(new Empty());
         }
 
         [Fact]

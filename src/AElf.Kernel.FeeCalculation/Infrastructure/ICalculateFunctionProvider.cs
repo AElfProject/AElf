@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -80,18 +81,18 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         private void LogNewFunctionCoefficients(params int[] parameters)
         {
-            var log = "New function:\n";
+            var log = $"New function (Upper bound {parameters[0]}):\n";
             var currentIndex = 1;
             while (currentIndex < parameters.Length)
             {
                 var power = parameters[currentIndex];
                 var divisor = parameters[currentIndex + 1];
                 var dividend = parameters[currentIndex + 2];
-                log += $"x^{power} * {divisor} / {dividend} +";
+                log += $"{divisor} / {dividend} * x^{power} +";
                 currentIndex += 3;
             }
 
-            log.RemovePostFix("+");
+            log = log.Substring(0, log.Length - 1);
             Logger.LogInformation(log);
         }
     }

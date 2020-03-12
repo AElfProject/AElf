@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
@@ -11,6 +12,8 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
         private readonly int _tokenType;
         private PieceCalculateFunction _pieceCalculateFunction;
+
+        public ILogger<TokenFeeProviderBase> Logger { get; set; }
 
         protected TokenFeeProviderBase(ICoefficientsProvider coefficientsProvider,
             ICalculateFunctionProvider calculateFunctionProvider, int tokenType)
@@ -30,6 +33,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             var pieceTypeArray = coefficients.SelectMany(a => a).ToList();
             if (_pieceCalculateFunction.IsChangedFunctionType(pieceTypeArray))
             {
+                Logger.LogInformation("Ready to update piece-wise function before calculation.");
                 UpdatePieceWiseFunction(coefficients);
             }
 
@@ -41,12 +45,13 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         public void UpdatePieceWiseFunction(List<int[]> pieceTypeList)
         {
             var pieceCalculateFunction = new PieceCalculateFunction();
-            foreach (var pieceCoefficients in pieceTypeList)
+            foreach (var pieceCoefficients in pieceTypeList.Where(pieceCoefficients =>
+                (pieceCoefficients.Length - 1) % 3 == 0))
             {
-                if ((pieceCoefficients.Length - 1) % 3 == 0)
-                    pieceCalculateFunction.AddFunction(pieceCoefficients,
-                        _calculateFunctionProvider.GetFunction(pieceCoefficients));
+                pieceCalculateFunction.AddFunction(pieceCoefficients,
+                    _calculateFunctionProvider.GetFunction(pieceCoefficients));
             }
+
             _pieceCalculateFunction = pieceCalculateFunction;
         }
 
