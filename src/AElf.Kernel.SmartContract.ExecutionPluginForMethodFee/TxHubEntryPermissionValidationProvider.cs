@@ -1,29 +1,19 @@
-using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract;
-using AElf.Kernel.Token;
-using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    internal class TxHubEntryPermissionValidationProvider : PluginTransactionValidationProviderBase
+    internal class TxHubEntryPermissionValidationProvider : TokenContractPluginTransactionValidationProviderBase
     {
         public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService) : base(
             smartContractAddressService)
         {
+            InvolvedSmartContractMethods = new[]
+                {nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees)};
         }
 
         public override bool ValidateWhileSyncing => false;
-
-        protected override Hash GetInvolvedSystemContractHashName()
-        {
-            return TokenSmartContractAddressNameProvider.Name;
-        }
-
-        protected override List<string> GetInvolvedSmartContractMethods()
-        {
-            return new List<string> {nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees)};
-        }
+        protected override string[] InvolvedSmartContractMethods { get; }
     }
 }

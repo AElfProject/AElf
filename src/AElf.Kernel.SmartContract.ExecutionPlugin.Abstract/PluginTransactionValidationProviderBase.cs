@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
@@ -9,31 +9,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract
 {
     public abstract class PluginTransactionValidationProviderBase : ITransactionValidationProvider
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-
-        protected PluginTransactionValidationProviderBase(ISmartContractAddressService smartContractAddressService)
+        public virtual Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            _smartContractAddressService = smartContractAddressService;
-        }
-
-        public Task<bool> ValidateTransactionAsync(Transaction transaction)
-        {
-            var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(GetInvolvedSystemContractHashName());
-
-            if (!CheckContractAddress(transaction, contractAddress))
-            {
-                return Task.FromResult(true);
-            }
-
-            return Task.FromResult(!CheckContractMethod(transaction, GetInvolvedSmartContractMethods().ToArray()));
+            return !CheckContractAddress(transaction, InvolvedSystemContractAddress)
+                ? Task.FromResult(true)
+                : Task.FromResult(!CheckContractMethod(transaction, InvolvedSmartContractMethods));
         }
 
         public abstract bool ValidateWhileSyncing { get; }
 
-        protected abstract Hash GetInvolvedSystemContractHashName();
+        protected abstract Address InvolvedSystemContractAddress { get; }
 
-        protected abstract List<string> GetInvolvedSmartContractMethods();
+        protected abstract string[] InvolvedSmartContractMethods { get; }
 
         private bool CheckContractAddress(Transaction transaction, Address contractAddress)
         {
@@ -44,5 +31,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract
         {
             return methodNames.Any(methodName => methodName == transaction.MethodName);
         }
+    }
+
+    public abstract class TokenContractPluginTransactionValidationProviderBase : PluginTransactionValidationProviderBase
+    {
+        private readonly ISmartContractAddressService _smartContractAddressService;
+
+        protected TokenContractPluginTransactionValidationProviderBase(
+            ISmartContractAddressService smartContractAddressService)
+        {
+            _smartContractAddressService = smartContractAddressService;
+        }
+
+        protected override Address InvolvedSystemContractAddress =>
+            _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
     }
 }
