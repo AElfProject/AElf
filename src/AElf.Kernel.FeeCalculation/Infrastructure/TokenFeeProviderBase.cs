@@ -44,7 +44,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             var coefficients =
                 await _coefficientsProvider.GetCoefficientByTokenTypeAsync(_tokenType, chainContext);
             // First number of each piece coefficients is its piece type.
-            var pieceTypeArray = coefficients.SelectMany(a => a);
+            var pieceTypeArray = coefficients.SelectMany(a => a).ToList();
 
             Logger.LogInformation("Trying to take PieceCalculationFunction instance from bag.");
 

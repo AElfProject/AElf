@@ -9,9 +9,9 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private List<Func<int, long>> _currentCalculateFunctions;
         private List<int> _latestUpdateFunctionType;
 
-        public bool IsChangedFunctionType(IEnumerable<int> currentFunctionType)
+        public bool IsChangedFunctionType(List<int> currentFunctionType)
         {
-            if (_latestUpdateFunctionType == null)
+            if (_latestUpdateFunctionType == null || _latestUpdateFunctionType.Count != currentFunctionType.Count)
                 return true;
             return currentFunctionType.Where((t, i) => t != _latestUpdateFunctionType[i]).Any();
         }
@@ -28,11 +28,11 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             _currentCalculateFunctions.Add(function);
         }
 
-        public long CalculateFee(IList<int[]> coefficient, int totalCount, int currentCoefficientIndex = 0)
+        public long CalculateFee(IList<int[]> coefficient, int totalCount)
         {
             if (coefficient.Count != _currentCalculateFunctions.Count)
             {
-                return 0;
+                throw new ArgumentOutOfRangeException(nameof(coefficient), "Coefficients count not match.");
             }
 
             var remainCount = totalCount;
