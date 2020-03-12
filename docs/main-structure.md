@@ -2,7 +2,7 @@
 
 * [Tutorials](tutorials/main.md)
     * [Environment setup](tutorials/setup/setup.md)
-    * [Getting started](tutorials/setup/main.md)
+    * [Running a node](tutorials/setup/main.md)
         * [Single node](tutorials/setup/docker.md)
         * [Multi node](tutorials/setup/docker-multi-node.md)
         * [Build and run sources](tutorials/setup/run-node.md)
