@@ -10,7 +10,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
 {
-    public class MockFeeCalculateCoefficientProvider : ICalculateFunctionProvider, ISingletonDependency
+    public class MockCalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
     {
         private enum FeeTypeEnum
         {
@@ -23,7 +23,7 @@ namespace AElf.Contracts.TestKit
 
         private readonly Dictionary<int, List<int[]>> _coefficientsDicCache;
 
-        public MockFeeCalculateCoefficientProvider()
+        public MockCalculateFunctionProvider()
         {
             _coefficientsDicCache = new Dictionary<int, List<int[]>>();
             var txCoefficient = new List<int[]>

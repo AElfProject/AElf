@@ -10,7 +10,7 @@ namespace AElf.Kernel.FeeCalculation.Extensions
         public static Dictionary<string, CalculateFunction> ToCalculateFunctionDictionary(
             this AllCalculateFeeCoefficients allCalculateFeeCoefficients)
         {
-            return allCalculateFeeCoefficients.Value.ToDictionary(c => ((FeeTypeEnum) c.FeeTokenType).ToString(),
+            return allCalculateFeeCoefficients.Value.ToDictionary(c => ((FeeTypeEnum) c.FeeTokenType).ToString().ToUpper(),
                 c => c.ToCalculateFunction());
         }
     }
