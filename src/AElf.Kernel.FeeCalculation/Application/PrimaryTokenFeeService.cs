@@ -13,7 +13,7 @@ namespace AElf.Kernel.FeeCalculation.Application
             _primaryTokenFeeProvider = primaryTokenFeeProvider;
         }
 
-        public async Task<long> CalculateFunction(ITransactionContext transactionContext,
+        public async Task<long> CalculateFunctionAsync(ITransactionContext transactionContext,
             IChainContext chainContext)
         {
             return await _primaryTokenFeeProvider.CalculateFeeAsync(transactionContext, chainContext);

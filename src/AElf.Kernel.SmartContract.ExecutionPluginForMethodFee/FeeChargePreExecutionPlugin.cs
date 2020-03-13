@@ -84,7 +84,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _txFeeService.CalculateFunction(transactionContext, chainContext);
+                var txCost = await _txFeeService.CalculateFunctionAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
