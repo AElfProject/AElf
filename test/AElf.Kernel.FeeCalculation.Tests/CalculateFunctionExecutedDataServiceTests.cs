@@ -107,11 +107,10 @@ namespace AElf.Kernel.FeeCalculation
             return new Dictionary<string, CalculateFunction>
             {
                 {
-                    "TX", new CalculateFunction
+                    "TX", new CalculateFunction(4)
                     {
                         CalculateFeeCoefficients = new CalculateFeeCoefficients
                         {
-                            FeeTokenType = 4,
                             PieceCoefficientsList =
                             {
                                 new CalculateFeePieceCoefficients
@@ -123,11 +122,10 @@ namespace AElf.Kernel.FeeCalculation
                     }
                 },
                 {
-                    "STORAGE", new CalculateFunction
+                    "STORAGE", new CalculateFunction(1)
                     {
                         CalculateFeeCoefficients = new CalculateFeeCoefficients
                         {
-                            FeeTokenType = 1,
                             PieceCoefficientsList =
                             {
                                 new CalculateFeePieceCoefficients
