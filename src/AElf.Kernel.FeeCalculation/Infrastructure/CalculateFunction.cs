@@ -9,12 +9,17 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         private readonly List<Func<int, long>> _currentCalculateFunctions = new List<Func<int, long>>();
         private readonly List<int[]> _currentCalculateCoefficients = new List<int[]>();
 
-        public CalculateFeeCoefficients CalculateFeeCoefficients { get; set; } = new CalculateFeeCoefficients();
+        public CalculateFeeCoefficients CalculateFeeCoefficients { get; set; }
 
         public void AddFunction(int[] coefficients, Func<int, long> function)
         {
             _currentCalculateCoefficients.Add(coefficients);
             _currentCalculateFunctions.Add(function);
+
+            if (CalculateFeeCoefficients == null)
+            {
+                CalculateFeeCoefficients = new CalculateFeeCoefficients();
+            }
 
             CalculateFeeCoefficients.PieceCoefficientsList.Add(new CalculateFeePieceCoefficients
             {

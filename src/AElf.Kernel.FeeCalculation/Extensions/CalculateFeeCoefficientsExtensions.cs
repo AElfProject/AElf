@@ -10,7 +10,13 @@ namespace AElf.Kernel.FeeCalculation.Extensions
         public static CalculateFunction ToCalculateFunction(
             this CalculateFeeCoefficients calculateFeeCoefficients)
         {
-            var pieceCalculateFunction = new CalculateFunction();
+            var pieceCalculateFunction = new CalculateFunction
+            {
+                CalculateFeeCoefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = calculateFeeCoefficients.FeeTokenType
+                }
+            };
             foreach (var pieceCoefficients in calculateFeeCoefficients.PieceCoefficientsList.Where(pc =>
                 (pc.Value.Count - 1) % 3 == 0))
             {
