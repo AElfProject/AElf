@@ -1,13 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract
+namespace AElf.Kernel.SmartContract.Application
 {
-    public abstract class PluginTransactionValidationProviderBase : ITransactionValidationProvider
+    public abstract class TransactionValidationProvideBase : ITransactionValidationProvider
     {
         public virtual Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
@@ -33,17 +31,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract
         }
     }
 
-    public abstract class TokenContractPluginTransactionValidationProviderBase : PluginTransactionValidationProviderBase
-    {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-
-        protected TokenContractPluginTransactionValidationProviderBase(
-            ISmartContractAddressService smartContractAddressService)
-        {
-            _smartContractAddressService = smartContractAddressService;
-        }
-
-        protected override Address InvolvedSystemContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-    }
+    // public abstract class TokenContractPluginTransactionValidationProviderBase : PluginTransactionValidationProviderBase
+    // {
+    //     private readonly ISmartContractAddressService _smartContractAddressService;
+    //
+    //     protected TokenContractPluginTransactionValidationProviderBase(
+    //         ISmartContractAddressService smartContractAddressService)
+    //     {
+    //         _smartContractAddressService = smartContractAddressService;
+    //     }
+    //
+    //     protected override Address InvolvedSystemContractAddress =>
+    //         _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+    // }
 }

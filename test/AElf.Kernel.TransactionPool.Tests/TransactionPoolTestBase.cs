@@ -10,7 +10,7 @@ namespace AElf.Kernel.TransactionPool
     {
     }
 
-    public class TransactionPoolWithValidationTestBase : AElfIntegratedTest<TransactionPoolValidationTestAElfModule>
-    {
-    }
+    // public class TransactionPoolWithValidationTestBase : AElfIntegratedTest<TransactionPoolValidationTestAElfModule>
+    // {
+    // }
 }

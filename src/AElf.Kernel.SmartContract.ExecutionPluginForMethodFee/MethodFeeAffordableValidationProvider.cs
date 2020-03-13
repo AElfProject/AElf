@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;

@@ -22,6 +22,7 @@ namespace AElf.Kernel.FeeCalculation
             services.AddSingleton<IResourceTokenFeeService, ResourceTokenFeeService>();
             services.AddSingleton<IBlockAcceptedLogEventProcessor,
                 TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
+            services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
         }
     }
 }

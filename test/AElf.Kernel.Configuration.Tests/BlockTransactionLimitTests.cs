@@ -7,6 +7,7 @@ using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;

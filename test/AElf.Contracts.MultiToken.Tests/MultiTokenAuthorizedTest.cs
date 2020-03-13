@@ -6,6 +6,7 @@ using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;

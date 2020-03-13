@@ -9,4 +9,8 @@
       <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="FreeFeeTransactions" />
+    </ItemGroup>
+
 </Project>

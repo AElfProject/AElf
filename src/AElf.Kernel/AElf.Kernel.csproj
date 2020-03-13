@@ -16,6 +16,7 @@
         <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />

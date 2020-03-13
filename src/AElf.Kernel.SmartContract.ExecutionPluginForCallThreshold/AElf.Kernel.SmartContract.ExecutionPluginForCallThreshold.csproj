@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPlugin.Abstract\AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>

@@ -1,10 +1,10 @@
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    internal class TxHubEntryPermissionValidationProvider : TokenContractPluginTransactionValidationProviderBase
+    internal class TxHubEntryPermissionValidationProvider : TokenContractTransactionValidationProviderBase
     {
         public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService) : base(
             smartContractAddressService)

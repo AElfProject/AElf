@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions;
+﻿using AElf.Kernel.FeeCalculation.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

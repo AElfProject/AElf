@@ -1,3 +1,4 @@
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;

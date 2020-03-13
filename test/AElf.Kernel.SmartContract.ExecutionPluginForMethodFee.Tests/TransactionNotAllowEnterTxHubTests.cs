@@ -5,17 +5,17 @@ using AElf.Kernel.Token;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class TransactionNotAllowEnterTxHubTests : TransactionPoolWithValidationTestBase
+    public class TransactionNotAllowEnterTxHubTests : ExecutionPluginForMethodFeeTestBase
     {
-        private readonly NotAllowEnterTxHubValidationProvider _validationProvider;
+        private readonly TxHubEntryPermissionValidationProvider _validationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly KernelTestHelper _kernelTestHelper;
 
         public TransactionNotAllowEnterTxHubTests()
         {
-            _validationProvider = GetRequiredService<NotAllowEnterTxHubValidationProvider>();
+            _validationProvider = GetRequiredService<TxHubEntryPermissionValidationProvider>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }

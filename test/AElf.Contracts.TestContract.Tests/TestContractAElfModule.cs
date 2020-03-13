@@ -1,10 +1,8 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
-using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -21,8 +19,6 @@ namespace AElf.Contract.TestContract
 
     [DependsOn(
         typeof(ContractTestModule),
-        typeof(ExecutionPluginForMethodFeeModule),
-        typeof(ExecutionPluginForResourceFeeModule),
         typeof(FeeCalculationModule))]
     public class TestFeesContractAElfModule : ContractTestModule
     {

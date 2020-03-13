@@ -1,7 +1,7 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Infrastructure;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPlugin.Shared.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

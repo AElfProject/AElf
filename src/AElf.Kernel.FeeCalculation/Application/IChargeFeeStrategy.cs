@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions
+namespace AElf.Kernel.FeeCalculation.Application
 {
     public interface IChargeFeeStrategy
     {

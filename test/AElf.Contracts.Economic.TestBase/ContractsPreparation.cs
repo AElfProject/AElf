@@ -16,6 +16,7 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;

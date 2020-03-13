@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel.ChainController.Application;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;

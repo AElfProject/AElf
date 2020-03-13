@@ -1,10 +1,10 @@
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
 {
-    internal class TransactionMethodNameValidationProvider : TokenContractPluginTransactionValidationProviderBase
+    internal class TransactionMethodNameValidationProvider : TokenContractTransactionValidationProviderBase
     {
         public override bool ValidateWhileSyncing => true;
         protected override string[] InvolvedSmartContractMethods { get; }
