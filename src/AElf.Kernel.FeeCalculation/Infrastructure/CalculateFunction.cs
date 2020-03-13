@@ -7,19 +7,23 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     public class CalculateFunction
     {
         private readonly List<Func<int, long>> _currentCalculateFunctions = new List<Func<int, long>>();
-        private readonly List<int[]> _currentCalculateCoefficients = new List<int[]>();
 
+        /// <summary>
+        /// Use this property to cache CalculateFeeCoefficients message.
+        /// </summary>
         public CalculateFeeCoefficients CalculateFeeCoefficients { get; set; }
 
-        public void AddFunction(int[] coefficients, Func<int, long> function)
+        public CalculateFunction(int feeType)
         {
-            _currentCalculateCoefficients.Add(coefficients);
-            _currentCalculateFunctions.Add(function);
-
-            if (CalculateFeeCoefficients == null)
+            CalculateFeeCoefficients = new CalculateFeeCoefficients
             {
-                CalculateFeeCoefficients = new CalculateFeeCoefficients();
-            }
+                FeeTokenType = feeType
+            };
+        }
+
+        public void AddFunction(IEnumerable<int> coefficients, Func<int, long> function)
+        {
+            _currentCalculateFunctions.Add(function);
 
             CalculateFeeCoefficients.PieceCoefficientsList.Add(new CalculateFeePieceCoefficients
             {
@@ -29,9 +33,9 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 
         public long CalculateFee(int totalCount)
         {
-            if (_currentCalculateCoefficients.Count != _currentCalculateFunctions.Count)
+            if (CalculateFeeCoefficients.PieceCoefficientsList.Count != _currentCalculateFunctions.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(_currentCalculateCoefficients),
+                throw new ArgumentOutOfRangeException(nameof(_currentCalculateFunctions),
                     "Coefficients count not match.");
             }
 
@@ -41,7 +45,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             for (var i = 0; i < _currentCalculateFunctions.Count; i++)
             {
                 var function = _currentCalculateFunctions[i];
-                var pieceCoefficient = _currentCalculateCoefficients[i];
+                var pieceCoefficient = CalculateFeeCoefficients.PieceCoefficientsList[i].Value;
                 var pieceUpperBound = pieceCoefficient[0];
                 var interval = pieceUpperBound - pieceStart;
                 pieceStart = pieceUpperBound;
