@@ -62,7 +62,8 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ICachedBlockchainExecutedDataService<T>
     {
         T GetBlockExecutedData(IBlockIndex chainContext, string key);
-        Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, T> blockExecutedData);
+        Task AddBlockExecutedDataAsync(IBlockIndex blockIndex, IDictionary<string, T> blockExecutedData);
+        void CleanChangeHeight(long height);
     }
 
     public class CachedBlockchainExecutedDataService<T> : ICachedBlockchainExecutedDataService<T>
@@ -71,16 +72,16 @@ namespace AElf.Kernel.SmartContract.Application
 
         //TODO: make a store in Infrastructure
         private readonly ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
+        private readonly ConcurrentDictionary<string, long> _changeHeight = new ConcurrentDictionary<string, long>();
 
         public CachedBlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
         {
             _blockchainExecutedDataManager = blockchainExecutedDataManager;
         }
 
-
         public T GetBlockExecutedData(IBlockIndex chainContext, string key)
         {
-            if (_dictionary.TryGetValue(key, out var value))
+            if ( !_changeHeight.TryGetValue(key,out _) && _dictionary.TryGetValue(key, out var value))
             {
                 return value;
             }
@@ -89,21 +90,39 @@ namespace AElf.Kernel.SmartContract.Application
                 chainContext.BlockHeight,
                 chainContext.BlockHash));
 
-            var o = Deserialize(ret.Value);
+            var blockExecutedData = Deserialize(ret.Value);
             
             //if executed is in Store, it will not change when forking
-            if(ret.IsInStore)
-                _dictionary.TryAdd(key, o);
-            return o;
+            if(ret.IsInStore && !_changeHeight.TryGetValue(key, out _))
+                _dictionary[key] = blockExecutedData;
+            return blockExecutedData;
         }
 
-        public async Task AddBlockExecutedDataAsync(Hash blockHash, IDictionary<string, T> blockExecutedData)
+        public async Task AddBlockExecutedDataAsync(IBlockIndex blockIndex, IDictionary<string, T> blockExecutedData)
         {
-            await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(blockHash, blockExecutedData.ToDictionary
+            await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(blockIndex.BlockHash, blockExecutedData.ToDictionary
                 (pair => pair.Key, pair => Serialize(pair.Value)));
             foreach (var pair in blockExecutedData)
             {
+                if (blockIndex.BlockHeight > Constants.GenesisBlockHeight &&
+                    (!_changeHeight.TryGetValue(pair.Key, out var height) || height < blockIndex.BlockHeight))
+                    _changeHeight[pair.Key] = blockIndex.BlockHeight;
                 _dictionary.TryRemove(pair.Key, out _);
+            }
+        }
+
+        public void CleanChangeHeight(long height)
+        {
+            
+            var keys = new List<string>();
+            foreach (var pair in _changeHeight)
+            {
+                if(pair.Value <= height) keys.Add(pair.Key);
+            }
+
+            foreach (var key in keys)
+            {
+                _changeHeight.TryRemove(key, out _);
             }
         }
 

@@ -49,7 +49,11 @@ namespace AElf.Kernel.FeeCalculation
             var functionMap = GenerateFunctionMap();
             functionMapDict.Add(GetBlockExecutedDataKey(), functionMap);
 
-            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(blockStateSet.BlockHash,
+            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(new BlockIndex
+                {
+                    BlockHash = blockStateSet.BlockHash,
+                    BlockHeight = blockStateSet.BlockHeight
+                },
                 functionMapDict);
 
             var newBlockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);

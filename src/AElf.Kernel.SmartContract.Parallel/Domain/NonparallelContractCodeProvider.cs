@@ -11,7 +11,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     {
         Task<NonparallelContractCode> GetNonparallelContractCodeAsync(IChainContext chainContext, Address address);
 
-        Task SetNonparallelContractCodeAsync(Hash blockHash,
+        Task SetNonparallelContractCodeAsync(IBlockIndex blockIndex,
             IDictionary<Address, NonparallelContractCode> nonparallelContractCodes);
     }
 
@@ -37,11 +37,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             return Task.FromResult(nonparallelContractCode);
         }
 
-        public async Task SetNonparallelContractCodeAsync(Hash blockHash, IDictionary<Address, NonparallelContractCode> nonparallelContractCodes)
+        public async Task SetNonparallelContractCodeAsync(IBlockIndex blockIndex,
+            IDictionary<Address, NonparallelContractCode> nonparallelContractCodes)
         {
             var dic = nonparallelContractCodes.ToDictionary(pair => GetBlockExecutedDataKey(pair.Key),
                 pair => pair.Value);
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, dic);
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, dic);
         }
         
         protected override string GetBlockExecutedDataName()

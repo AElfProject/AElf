@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     public interface ITransactionSizeFeeSymbolsProvider
     {
         Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext);
-        Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
+        Task SetTransactionSizeFeeSymbolsAsync(IBlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
     }
 
     public class TransactionSizeFeeSymbolsProvider : BlockExecutedDataProvider, ITransactionSizeFeeSymbolsProvider,
@@ -31,10 +31,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             return Task.FromResult(transactionSizeFeeSymbols);
         }
 
-        public async Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols)
+        public async Task SetTransactionSizeFeeSymbolsAsync(IBlockIndex blockIndex,
+            TransactionSizeFeeSymbols transactionSizeFeeSymbols)
         {
             var key = GetBlockExecutedDataKey();
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key,
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, key,
                 transactionSizeFeeSymbols);
         }
 

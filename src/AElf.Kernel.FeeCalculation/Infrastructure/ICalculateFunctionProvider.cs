@@ -15,7 +15,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// </summary>
     public interface ICalculateFunctionProvider
     {
-        Task AddCalculateFunctions(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients);
+        Task AddCalculateFunctions(IBlockIndex blockIndex, Dictionary<string, CalculateFunction> calculateFunctionDictionary);
         Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext);
     }
 
@@ -33,10 +33,11 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
             Logger = NullLogger<CalculateFunctionProvider>.Instance;
         }
 
-        public async Task AddCalculateFunctions(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
+        public async Task AddCalculateFunctions(IBlockIndex blockIndex,
+            Dictionary<string, CalculateFunction> calculateFunctionDictionary)
         {
-            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(blockHash, GetBlockExecutedDataKey(),
-                allCalculateFeeCoefficients);
+            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(blockIndex, GetBlockExecutedDataKey(),
+                calculateFunctionDictionary);
         }
 
         public Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext)

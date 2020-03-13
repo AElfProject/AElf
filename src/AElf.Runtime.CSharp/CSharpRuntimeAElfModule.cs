@@ -24,12 +24,14 @@ namespace AElf.Runtime.CSharp
                 return new SmartContractRunnerForCategoryZero(
                     option.Value.SdkDir);
             });
+#if DEBUG
             context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryThirty>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
                 return new SmartContractRunnerForCategoryThirty(
                     option.Value.SdkDir);
             });
+#endif
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

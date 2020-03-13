@@ -52,7 +52,11 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _calculateFunctionProvider.AddCalculateFunctions(block.GetHash(), eventData.AllTypeFeeCoefficients);
+            await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
         }
     }
 }

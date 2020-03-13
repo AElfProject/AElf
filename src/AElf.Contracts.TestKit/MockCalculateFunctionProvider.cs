@@ -5,7 +5,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.FeeCalculation.Infrastructure;
-using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
@@ -59,7 +58,8 @@ namespace AElf.Contracts.TestKit
             _coefficientsDicCache[(int) FeeTypeEnum.Traffic] = trafficCoefficient;
         }
 
-        public Task AddCalculateFunctions(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
+        public Task AddCalculateFunctions(IBlockIndex blockIndex,
+            Dictionary<string, CalculateFunction> calculateFunctionDictionary)
         {
             return Task.CompletedTask;
         }

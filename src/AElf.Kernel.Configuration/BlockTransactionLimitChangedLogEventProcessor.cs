@@ -53,7 +53,11 @@ namespace AElf.Kernel.Configuration
             var limit = new Int32Value();
             limit.MergeFrom(configurationSet.Value.ToByteArray());
             if (limit.Value < 0) return;
-            await _blockTransactionLimitProvider.SetLimitAsync(block.GetHash(), limit.Value);
+            await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, limit.Value);
 
             Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
         }
