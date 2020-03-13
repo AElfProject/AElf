@@ -4,13 +4,17 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPlugin.Abstract.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     public class TokenContractChargeFeeStrategy : ChargeFeeStrategyBase
     {
+        public ILogger<TokenContractChargeFeeStrategy> Logger { get; set; }
+
         public TokenContractChargeFeeStrategy(ISmartContractAddressService smartContractAddressService) : base(smartContractAddressService)
         {
+            Logger.LogDebug($"Hi, I am TokenContractChargeFeeStrategy from ExecutionPluginForMethodFee");
         }
 
         public override string MethodName => string.Empty;
