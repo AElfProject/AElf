@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
