@@ -115,6 +115,7 @@ namespace AElf.Kernel.FeeCalculation
                     {
                         CalculateFeeCoefficients = new CalculateFeeCoefficients
                         {
+                            FeeTokenType = 4,
                             PieceCoefficientsList =
                             {
                                 new CalculateFeePieceCoefficients
@@ -130,6 +131,7 @@ namespace AElf.Kernel.FeeCalculation
                     {
                         CalculateFeeCoefficients = new CalculateFeeCoefficients
                         {
+                            FeeTokenType = 1,
                             PieceCoefficientsList =
                             {
                                 new CalculateFeePieceCoefficients
