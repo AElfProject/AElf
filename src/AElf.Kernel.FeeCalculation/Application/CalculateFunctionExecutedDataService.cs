@@ -21,7 +21,8 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
             allCalculateFeeCoefficients.MergeFrom(byteString);
-            return allCalculateFeeCoefficients.Value.ToDictionary(c => ((FeeTypeEnum) c.FeeTokenType).ToString(),
+            return allCalculateFeeCoefficients.Value.ToDictionary(
+                c => ((FeeTypeEnum) c.FeeTokenType).ToString().ToUpper(),
                 c => c.ToCalculateFunction());
         }
 

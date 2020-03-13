@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
@@ -22,6 +23,11 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         public Task<long> CalculateFeeAsync(ITransactionContext transactionContext, IChainContext chainContext)
         {
             var functionDictionary = _calculateFunctionProvider.GetCalculateFunctions(chainContext);
+            if (!functionDictionary.ContainsKey(((FeeTypeEnum) _tokenType).ToString().ToUpper()))
+            {
+                var currentKeys = string.Join(" ", functionDictionary.Keys);
+                throw new InvalidOperationException($"Function not found. Current keys: {currentKeys}");
+            }
             var function = functionDictionary[((FeeTypeEnum) _tokenType).ToString().ToUpper()];
             var count = GetCalculateCount(transactionContext);
             return Task.FromResult(function.CalculateFee(count));
