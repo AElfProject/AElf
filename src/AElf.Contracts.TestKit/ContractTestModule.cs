@@ -150,7 +150,7 @@ namespace AElf.Contracts.TestKit
         typeof(ExecutionPluginForResourceFeeModule),
         typeof(ExecutionPluginForCallThresholdModule),
         typeof(ExecutionPluginForMethodFeeModule))]
-    public class ContractTestModuleWithExecutionPlugin : AbpModule
+    public class ContractTestWithExecutionPluginModule : AbpModule
     {
     }
 

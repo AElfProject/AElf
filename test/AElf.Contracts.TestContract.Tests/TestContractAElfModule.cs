@@ -21,7 +21,7 @@ namespace AElf.Contract.TestContract
 
     [DependsOn(
         typeof(ContractTestModule),
-        typeof(ExecutionPluginForMethodFeeModule),
+        // typeof(ExecutionPluginForMethodFeeModule),
         typeof(ExecutionPluginForResourceFeeModule),
         typeof(FeeCalculationModule))]
     public class TestFeesContractAElfModule : ContractTestModule
