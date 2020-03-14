@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException = false)
+            CancellationToken cancellationToken)
         {
             Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Transactions = groupedTransactions.NonParallelizables,
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 },
-                cancellationToken, throwException);
+                cancellationToken);
 
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     BlockHeader = blockHeader,
                     Transactions = txns,
                     PartialBlockStateSet = updatedPartialBlockStateSet,
-                }, cancellationToken, throwException));
+                }, cancellationToken));
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
@@ -141,12 +141,10 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
 
         private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
-            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
-            bool throwException = false)
+            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken)
         {
             var executionReturnSets =
-                await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
-                    throwException);
+                await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s =>
                     s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));

@@ -314,10 +314,12 @@ namespace AElf.WebApp.Application.Chain.Tests
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<string>("/api/blockChain/executeRawTransaction",
                     parameters);
-            var jObject = JObject.Parse(sendTransactionResponse);
-            jObject["owner"].ShouldBe(accountAddress.GetFormatted());
-            jObject["symbol"].ShouldBe("ELF");
-            jObject.Value<long>("balance").ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
+            var getBalanceOutput =
+                GetBalanceOutput.Parser.ParseFrom(
+                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(sendTransactionResponse)));
+            getBalanceOutput.Owner.ShouldBe(accountAddress);
+            getBalanceOutput.Symbol.ShouldBe("ELF");
+            getBalanceOutput.Balance.ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
         }
 
         [Fact]
