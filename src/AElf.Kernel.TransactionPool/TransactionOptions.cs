@@ -6,5 +6,12 @@ namespace AElf.Kernel.TransactionPool
         /// Transaction pool limit.
         /// </summary>
         public int PoolLimit { get; set; } = 5120;
+
+
+        /// <summary>
+        /// Bp Node can disable this flag to make best performance.
+        /// But common node needs to enable it to prevent transaction flood attack
+        /// </summary>
+        public bool EnableTransactionExecutionTest { get; set; } = true;
     }
 }

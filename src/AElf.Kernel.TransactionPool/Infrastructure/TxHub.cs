@@ -2,11 +2,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -26,6 +29,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionValidationService _transactionValidationService;
+        private readonly ITransactionExecutingService _transactionExecutingService;
 
         private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions =
             new ConcurrentDictionary<Hash, QueuedTransaction>();
@@ -41,6 +45,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ActionBlock<QueuedTransaction> _processTransactionJobs;
 
+
         private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
@@ -48,12 +53,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
             IOptionsSnapshot<TransactionOptions> transactionOptions,
-            ITransactionValidationService transactionValidationService)
+            ITransactionValidationService transactionValidationService,
+            ITransactionExecutingService transactionExecutingService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionValidationService = transactionValidationService;
+            _transactionExecutingService = transactionExecutingService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
             _processTransactionJobs = new ActionBlock<QueuedTransaction>(ProcessTransactionAsync,
@@ -222,6 +229,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
+            if (queuedTransaction == null)
+                return;
             try
             {
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
@@ -251,6 +260,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 if (hasTransaction)
                     return;
 
+                
+                //TODO: make _processTransactionJobs as BufferBlock, and make the test in a parallel execution TPL TransferBlock
+                //    for example, _block.LinkTo(new TransferBlock(TransactionExecutionTest)).LinkTo(DataflowBlock.NullTarget<QueuedTransaction>()).LinkTo(ProcessTransactionAsync)
+                //    https://stackoverflow.com/questions/13599190/tpl-dataflow-how-to-forward-items-to-only-one-specific-target-block-among-many
+                if (_transactionOptions.EnableTransactionExecutionTest)
+                {
+                    var results = await _transactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
+                    {
+                        Transactions = new[] {queuedTransaction.Transaction},
+                        BlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync()
+                    }, CancellationToken.None);
+                }
+
+
                 await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
                 var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                 if (!addSuccess)
@@ -261,6 +284,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
                 UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
+
 
                 if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
                     return;
