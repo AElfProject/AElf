@@ -58,10 +58,7 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForCallThresholdModule),
-        typeof(ExecutionPluginForMethodFeeModule))]
+        typeof(CSharpRuntimeAElfModule))]
     public class ContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -147,6 +144,14 @@ namespace AElf.Contracts.TestKit
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
+    }
+
+    [DependsOn(typeof(ContractTestModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule),
+        typeof(ExecutionPluginForMethodFeeModule))]
+    public class ContractTestModuleWithExecutionPlugin : AbpModule
+    {
     }
 
     public class TestOutputHelperAccessor : ITestOutputHelperAccessor

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Acs1;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPlugin.Shared.FreeFeeTransactions;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
