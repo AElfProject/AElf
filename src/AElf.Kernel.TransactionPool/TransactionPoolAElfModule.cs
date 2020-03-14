@@ -1,5 +1,4 @@
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
@@ -25,13 +24,6 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
-            services.AddSingleton<IBlockAcceptedLogEventHandler, TransactionFeeCalculatorCoefficientUpdatedEventHandle>();
-            services.AddSingleton<IBlockAcceptedLogEventHandler, SymbolListToPayTxFeeUpdatedEventHandler>();
-            services.AddSingleton<ICalculateStorageCostStrategy, StorageCalculateCostStrategy>();
-            services.AddSingleton<ICalculateReadCostStrategy, ReadCalculateCostStrategy>();
-            services.AddSingleton<ICalculateTrafficCostStrategy, TrafficCalculateCostStrategy>();
-            services.AddSingleton<ICalculateWriteCostStrategy, WriteCalculateCostStrategy>();
-            services.AddSingleton<ICalculateTxCostStrategy, TxCalculateCostStrategy>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }

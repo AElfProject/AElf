@@ -26,21 +26,9 @@ namespace AElf.OS.Account.Infrastructure
 
         private readonly List<Account> _unlockedAccounts;
         private readonly KeyStoreService _keyStoreService;
-
-        public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
         
         public ILogger<AElfKeyStore> Logger { get; set; }
-
-        //TODO: move out of this class
-        public enum Errors
-        {
-            None = 0,
-            AccountAlreadyUnlocked = 1,
-            WrongPassword = 2,
-            WrongAccountFormat = 3,
-            AccountFileNotFound = 4
-        }
-
+        
         public AElfKeyStore(INodeEnvironmentService nodeEnvironmentService)
         {
             _nodeEnvironmentService = nodeEnvironmentService;
@@ -49,57 +37,31 @@ namespace AElf.OS.Account.Infrastructure
             
             Logger = NullLogger<AElfKeyStore>.Instance;
         }
-
-        private async Task UnlockAccountAsync(string address, string password, TimeSpan? timeoutToClose)
-        {
-            var keyPair = await ReadKeyPairAsync(address, password);
-            var unlockedAccount = new Account(address) {KeyPair = keyPair};
-
-            if (timeoutToClose.HasValue)
-            {
-                var t = new Timer(LockAccount, unlockedAccount, timeoutToClose.Value, timeoutToClose.Value);
-                unlockedAccount.LockTimer = t;
-            }
-
-            _unlockedAccounts.Add(unlockedAccount);
-        }
-
-        public async Task<Errors> UnlockAccountAsync(string address, string password, bool withTimeout = true)
+        
+        public async Task<AccountError> UnlockAccountAsync(string address, string password)
         {
             try
             {
                 if (_unlockedAccounts.Any(x => x.AccountName == address))
-                    return Errors.AccountAlreadyUnlocked;
+                    return AccountError.AccountAlreadyUnlocked;
 
-                if (withTimeout)
-                {
-                    await UnlockAccountAsync(address, password, DefaultTimeoutToClose);
-                }
-                else
-                {
-                    await UnlockAccountAsync(address, password, null);
-                }
+                var keyPair = await ReadKeyPairAsync(address, password);
+                var unlockedAccount = new Account(address) {KeyPair = keyPair};
+
+                _unlockedAccounts.Add(unlockedAccount);
             }
             catch (InvalidPasswordException ex)
             {
                 Logger.LogError(ex, "Invalid password: ");
-                return Errors.WrongPassword;
+                return AccountError.WrongPassword;
             }
             catch (KeyStoreNotFoundException ex)
             {
                 Logger.LogError(ex, "Could not load account:");
-                return Errors.AccountFileNotFound;
+                return AccountError.AccountFileNotFound;
             }
 
-            return Errors.None;
-        }
-
-        private void LockAccount(object accountObject)
-        {
-            if (!(accountObject is Account unlockedAccount))
-                return;
-            unlockedAccount.Lock();
-            _unlockedAccounts.Remove(unlockedAccount);
+            return AccountError.None;
         }
 
         public ECKeyPair GetAccountKeyPair(string address)

@@ -28,6 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     validationResult.Message =
                         $"Time slot already passed before execution.{validationContext.SenderPubkey}";
+                    validationResult.IsReTrigger = true;
                     return validationResult;
                 }
             }

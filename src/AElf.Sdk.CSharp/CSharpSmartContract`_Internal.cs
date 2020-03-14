@@ -1,5 +1,6 @@
 using System;
 using AElf.Types;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Sdk.CSharp
 {
@@ -27,6 +28,12 @@ namespace AElf.Sdk.CSharp
                 throw new InvalidOperationException();
             Context = new CSharpSmartContractContext(bridgeContext);
             State.Context = Context;
+            OnInitialized();
+        }
+
+        protected virtual void OnInitialized()
+        {
+            
         }
     }
 }

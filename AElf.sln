@@ -104,7 +104,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TestBase", "test\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj", "{6B97F71E-83AE-4FA9-B41D-06FFAC81EDCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "src\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Shared", "src\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Grpc", "src\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
 EndProject
@@ -168,15 +168,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Cha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "test\AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1", "src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj", "{A14864DE-5AE8-45D4-8530-BFC40489A155}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee", "src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj", "{A14864DE-5AE8-45D4-8530-BFC40489A155}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Association", "contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Parliament", "contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj", "{DD0F7490-8BED-4DFD-B717-DC995F4746A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract.csproj", "{DD0F7490-8BED-4DFD-B717-DC995F4746A0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bench", "bench", "{3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}"
 EndProject
@@ -251,21 +251,19 @@ ProjectSection(SolutionItems) = preProject
 	contract\Directory.Build.props = contract\Directory.Build.props
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs5", "src\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj", "{5C8F7663-0E7C-41F9-B6E1-1A3E23B153AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold", "src\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj", "{5C8F7663-0E7C-41F9-B6E1-1A3E23B153AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract.csproj", "{E5A55EB4-23E3-4968-8D15-8E579F07DF79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract.csproj", "{E5A55EB4-23E3-4968-8D15-8E579F07DF79}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.EconomicSystem.Tests", "test\AElf.Contracts.EconomicSystem.Tests\AElf.Contracts.EconomicSystem.Tests.csproj", "{3C559DFF-17FA-4C86-816E-8CF6B09B6F05}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.TransactionFeeCharging", "test\AElf.Contracts.TestContract.TransactionFeeCharging\AElf.Contracts.TestContract.TransactionFeeCharging.csproj", "{E22FFCB1-CC90-42AB-8162-EC904B555AD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.csproj", "{F0159BE3-115F-408B-9D4F-E296F3592C12}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController", "src\AElf.Kernel.BlockTransactionLimitController\AElf.Kernel.BlockTransactionLimitController.csproj", "{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.csproj", "{F0159BE3-115F-408B-9D4F-E296F3592C12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuration", "contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj", "{A9436A00-8763-4C23-BBE0-BFC6C5B49056}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController.Tests", "test\AElf.Kernel.BlockTransactionLimitController.Tests\AElf.Kernel.BlockTransactionLimitController.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration.Tests", "test\AElf.Kernel.Configuration.Tests\AElf.Kernel.Configuration.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Tests", "test\AElf.CrossChain.Communication.Tests\AElf.CrossChain.Communication.Tests.csproj", "{DFD63F70-CC2D-4971-A0A2-28A3865EBA02}"
 EndProject
@@ -273,11 +271,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Economic", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.ResourceSpender", "test\AElf.Contracts.TestContract.ResourceSpender\AElf.Contracts.TestContract.ResourceSpender.csproj", "{778E0253-E1BA-4E72-85AA-F786B5D443C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8", "src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj", "{6B07E07A-D637-45CC-B629-DE303993309C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee", "src\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj", "{6B07E07A-D637-45CC-B629-DE303993309C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.csproj", "{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.csproj", "{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.csproj", "{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.csproj", "{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Economic.TestBase", "test\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj", "{3ACBD44B-6C90-472E-B49E-A8E07B1F60F3}"
 EndProject
@@ -324,6 +322,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenHolder.Tests", "test\AElf.Contracts.TokenHolder.Tests\AElf.Contracts.TokenHolder.Tests.csproj", "{A3425AC9-6CD0-4D39-B82B-5716456F1C70}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.CommitmentScheme", "test\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj", "{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseChain.ContractNames", "src\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj", "{1861D1B6-8895-42A1-97FB-76AD782620D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration", "src\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj", "{836C5CB0-8BED-408C-9800-4285F539B8CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation", "src\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj", "{47997F91-65B1-406B-9DB1-2D0BEBF7F759}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation.Tests", "test\AElf.Kernel.FeeCalculation.Tests\AElf.Kernel.FeeCalculation.Tests.csproj", "{9C88CD17-D2F3-4B07-95FC-D127497064AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenSwapContract", "contract\TokenSwapContract\TokenSwapContract.csproj", "{4CB90644-1E1C-469A-AD17-2AD8602A4518}"
 EndProject
@@ -775,10 +781,6 @@ Global
 		{2968AA64-9848-4932-A571-39F160166FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -939,6 +941,22 @@ Global
 		{2C0E9BED-3C97-4A95-A92F-0562CECD684B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C0E9BED-3C97-4A95-A92F-0562CECD684B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C0E9BED-3C97-4A95-A92F-0562CECD684B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1063,7 +1081,6 @@ Global
 		{A7829691-3FEF-4621-8339-2415AC4AC24C} = {89AC0402-38F7-405C-B244-31C5F13FD364}
 		{8E7DE108-9D03-4DD7-A245-D12E9042915C} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{2968AA64-9848-4932-A571-39F160166FD7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{FF705729-1E79-4736-A1A6-D725B8D6EFA6} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
@@ -1103,6 +1120,10 @@ Global
 		{B40C8ADA-0B89-4023-8A16-4462C968A00E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{A3425AC9-6CD0-4D39-B82B-5716456F1C70} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{1861D1B6-8895-42A1-97FB-76AD782620D3} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
+		{836C5CB0-8BED-408C-9800-4285F539B8CA} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{4CB90644-1E1C-469A-AD17-2AD8602A4518} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{2C0E9BED-3C97-4A95-A92F-0562CECD684B} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection

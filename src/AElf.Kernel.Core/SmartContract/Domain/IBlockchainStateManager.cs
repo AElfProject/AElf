@@ -15,6 +15,30 @@ namespace AElf.Kernel.SmartContract.Domain
     {
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
         Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash);
+    }
+
+    public class BlockchainStateManager : BlockchainStateBaseManager, IBlockchainStateManager
+    {
+        public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
+            INotModifiedCachedStateStore<BlockStateSet> blockStateSets) : base(versionedStates, blockStateSets)
+        {
+        }
+
+        protected override bool TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value)
+        {
+            value = null;
+            return blockStateSet != null && blockStateSet.TryGetState(key, out value);
+        }
+
+        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        {
+            return (await GetAsync(key, blockHeight, blockHash)).Value;
+        }
+    }
+
+
+    public interface IBlockStateSetManger
+    {
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync();
@@ -22,37 +46,76 @@ namespace AElf.Kernel.SmartContract.Domain
         Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
     }
 
-    public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
+
+    public interface IBlockchainExecutedDataManager
     {
-        private readonly IStateStore<VersionedState> _versionedStates;
-        private readonly INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
+        Task<StateReturn> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash);
 
-        private readonly int _chainId;
+        Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache);
+    }
 
-        public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
-            INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
-            IStateStore<ChainStateInfo> chainStateInfoCollection,
-            IOptionsSnapshot<ChainOptions> options)
+
+    public class BlockchainExecutedDataManager : BlockchainStateBaseManager, IBlockchainExecutedDataManager,
+        ITransientDependency
+    {
+        private IBlockStateSetManger _blockStateSetManger;
+
+        public BlockchainExecutedDataManager(IStateStore<VersionedState> versionedStates,
+            INotModifiedCachedStateStore<BlockStateSet> blockStateSets, IBlockStateSetManger blockStateSetManger) :
+            base(versionedStates, blockStateSets)
+        {
+            _blockStateSetManger = blockStateSetManger;
+        }
+
+        protected override bool TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value)
+        {
+            value = null;
+            return blockStateSet != null && blockStateSet.TryGetExecutedCache(key, out value);
+        }
+
+        public async Task<StateReturn> GetExecutedCacheAsync(string key, long blockHeight, Hash blockHash)
+        {
+            return (await GetAsync(key, blockHeight, blockHash));
+        }
+
+        public async Task AddBlockExecutedCacheAsync(Hash blockHash, IDictionary<string, ByteString> blockExecutedCache)
+        {
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
+            if (blockStateSet == null) return;
+            foreach (var keyPair in blockExecutedCache)
+            {
+                blockStateSet.BlockExecutedData[keyPair.Key] = keyPair.Value;
+            }
+
+            await _blockStateSets.SetWithCacheAsync(blockStateSet.BlockHash.ToStorageKey(), blockStateSet);
+        }
+    }
+
+    public class StateReturn
+    {
+        public ByteString Value { get; set; }
+        public bool IsInStore { get; set; }
+    }
+
+    public abstract class BlockchainStateBaseManager
+    {
+        protected readonly IStateStore<VersionedState> _versionedStates;
+        protected readonly INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
+
+        public BlockchainStateBaseManager(IStateStore<VersionedState> versionedStates,
+            INotModifiedCachedStateStore<BlockStateSet> blockStateSets)
         {
             _versionedStates = versionedStates;
             _blockStateSets = blockStateSets;
-            _chainStateInfoCollection = chainStateInfoCollection;
-            _chainId = options.Value.ChainId;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="blockHeight"></param>
-        /// <param name="blockHash">should already in store</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        protected abstract bool
+            TryGetFromBlockStateSet(BlockStateSet blockStateSet, string key, out ByteString value);
+
+        protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
         {
             ByteString value = null;
-
+            var isInStore = false;
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
 
@@ -61,26 +124,31 @@ namespace AElf.Kernel.SmartContract.Domain
                 if (bestChainState.BlockHash == blockHash)
                 {
                     value = bestChainState.Value;
+                    isInStore = true;
                 }
                 else
                 {
                     if (bestChainState.BlockHeight >= blockHeight)
                     {
                         //because we may clear history state
-                        throw new InvalidOperationException($"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
+                        throw new InvalidOperationException(
+                            $"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
                     }
 
                     //find value in block state set
                     var blockStateSet = await FindBlockStateSetWithKeyAsync(key, bestChainState.BlockHeight, blockHash);
-                    blockStateSet?.TryGetValue(key, out value);
+                    
+                    TryGetFromBlockStateSet(blockStateSet, key, out value);
 
-                    if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) || blockStateSet.BlockHeight <= bestChainState.BlockHeight))
+                    if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) ||
+                                          blockStateSet.BlockHeight <= bestChainState.BlockHeight))
                     {
                         //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
                         //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
                         // retry versioned state in case conflict of get state during merging  
                         bestChainState = await _versionedStates.GetAsync(key);
                         value = bestChainState.Value;
+                        isInStore = true;
                     }
                 }
             }
@@ -88,8 +156,9 @@ namespace AElf.Kernel.SmartContract.Domain
             {
                 //best chain state is null, it will find value in block state set
                 var blockStateSet = await FindBlockStateSetWithKeyAsync(key, 0, blockHash);
-                blockStateSet?.TryGetValue(key, out value);
-                
+
+                TryGetFromBlockStateSet(blockStateSet, key, out value);
+
                 if (value == null && blockStateSet == null)
                 {
                     // retry versioned state in case conflict of get state during merging  
@@ -98,17 +167,24 @@ namespace AElf.Kernel.SmartContract.Domain
                 }
             }
 
-            return value;
+
+            return new StateReturn()
+            {
+                Value = value,
+                IsInStore = isInStore
+            };
         }
 
-        private async Task<BlockStateSet> FindBlockStateSetWithKeyAsync(string key, long bestChainHeight, Hash blockHash)
+        private async Task<BlockStateSet> FindBlockStateSetWithKeyAsync(string key, long bestChainHeight,
+            Hash blockHash)
         {
             var blockStateKey = blockHash.ToStorageKey();
             var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
 
             while (blockStateSet != null && blockStateSet.BlockHeight > bestChainHeight)
             {
-                if (blockStateSet.TryGetValue(key, out _)) break;
+                if (
+                    TryGetFromBlockStateSet(blockStateSet, key, out _)) break;
 
                 blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
@@ -124,11 +200,27 @@ namespace AElf.Kernel.SmartContract.Domain
 
             return blockStateSet;
         }
+    }
 
-        public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
+    public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
+    {
+        protected readonly IStateStore<VersionedState> _versionedStates;
+        protected readonly INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
+
+        private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
+        private readonly int _chainId;
+
+
+        public BlockStateSetManger(IStateStore<VersionedState> versionedStates,
+            INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
+            IStateStore<ChainStateInfo> chainStateInfoCollection, IOptionsSnapshot<ChainOptions> options)
         {
-            await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
+            _versionedStates = versionedStates;
+            _blockStateSets = blockStateSets;
+            _chainStateInfoCollection = chainStateInfoCollection;
+            _chainId = options.Value.ChainId;
         }
+
 
         public async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash)
         {
@@ -156,7 +248,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
-                var dic = blockState.Changes.Select(change => new VersionedState()
+                var dic = blockState.Changes.Concat(blockState.BlockExecutedData).Select(change => new VersionedState
                 {
                     Key = change.Key,
                     Value = change.Value,
@@ -188,11 +280,16 @@ namespace AElf.Kernel.SmartContract.Domain
             }
         }
 
-        public async Task<ChainStateInfo> GetChainStateInfoAsync()
+        public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
         {
-            var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
-            return o ?? new ChainStateInfo() {ChainId = _chainId};
+            await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
+
+        protected string GetKey(BlockStateSet blockStateSet)
+        {
+            return blockStateSet.BlockHash.ToStorageKey();
+        }
+
 
         public async Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash)
         {
@@ -204,9 +301,10 @@ namespace AElf.Kernel.SmartContract.Domain
             await _blockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
         }
 
-        private string GetKey(BlockStateSet blockStateSet)
+        public async Task<ChainStateInfo> GetChainStateInfoAsync()
         {
-            return blockStateSet.BlockHash.ToStorageKey();
+            var chainStateInfo = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
+            return chainStateInfo ?? new ChainStateInfo {ChainId = _chainId};
         }
     }
 }

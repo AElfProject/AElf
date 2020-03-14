@@ -102,9 +102,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var getBalanceTransactionTrace =
                 TransactionTraceProvider.GetTransactionTrace(getBalanceTransaction.GetHash());
-            getBalanceTransactionTrace.ReadableReturnValue.ShouldNotBeNull();
-            getBalanceTransactionTrace.ReadableReturnValue.ShouldContain("balance");
-            getBalanceTransactionTrace.ReadableReturnValue.ShouldContain(issueTokenAmount.ToString());
+            getBalanceTransactionTrace.ReturnValue.ShouldNotBeNull();
+            var output = GetBalanceOutput.Parser.ParseFrom(getBalanceTransactionTrace.ReturnValue);
+            output.Balance.ShouldBe(issueTokenAmount);
 
             // Next steps will check whether the AEDPoS process is correct.
             // Now 2 miners produced block during first round, so there should be 2 miners' OutValue isn't null.

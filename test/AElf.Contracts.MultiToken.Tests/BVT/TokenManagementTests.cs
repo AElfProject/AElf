@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
@@ -242,18 +243,33 @@ namespace AElf.Contracts.MultiToken
         
         private async Task CreatePrimaryTokenAsync()
         {
-            await TokenContractStub.RegisterNativeAndResourceTokenInfo.SendAsync(new RegisterNativeAndResourceTokenInfoInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                NativeTokenInfo = new RegisterNativeTokenInfoInput{
-                    Symbol = NativeTokenInfo.Symbol,
-                    TokenName = NativeTokenInfo.TokenName,
-                    TotalSupply = NativeTokenInfo.TotalSupply,
-                    Decimals = NativeTokenInfo.Decimals,
-                    Issuer = NativeTokenInfo.Issuer,
-                    IsBurnable = NativeTokenInfo.IsBurnable
-                },
-                ChainPrimaryToken = PrimaryTokenInfo
+                Symbol = NativeTokenInfo.Symbol,
+                TokenName = NativeTokenInfo.TokenName,
+                TotalSupply = NativeTokenInfo.TotalSupply,
+                Decimals = NativeTokenInfo.Decimals,
+                Issuer = NativeTokenInfo.Issuer,
+                IsBurnable = NativeTokenInfo.IsBurnable
             });
+
+
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Decimals = PrimaryTokenInfo.Decimals,
+                IsBurnable = PrimaryTokenInfo.IsBurnable,
+                Issuer = PrimaryTokenInfo.Issuer,
+                TotalSupply = PrimaryTokenInfo.TotalSupply,
+                Symbol = PrimaryTokenInfo.Symbol,
+                TokenName = PrimaryTokenInfo.TokenName,
+                IssueChainId = PrimaryTokenInfo.IssueChainId
+            });
+
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(
+                new SetPrimaryTokenSymbolInput
+                {
+                    Symbol = PrimaryTokenInfo.Symbol
+                });
         }
 
         private async Task CreateNormalTokenAsync()

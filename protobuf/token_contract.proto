@@ -33,9 +33,7 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
@@ -43,26 +41,34 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-    //be used in kernel
+
+    // acs1
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    }
+
+    // acs5
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    }
+
+    // acs8
     rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (aelf.ConsumedResourceTokens) {
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
-    rpc SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee) returns (google.protobuf.Empty){
-    }
-    rpc UpdateCoefficientFromContract (CoefficientFromContract) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateCoefficientFromSender (CoefficientFromSender) returns (google.protobuf.Empty) {
-    }
+
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetMinimumProfitsDonationPartsPerHundred (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -93,14 +99,14 @@ service TokenContract {
     rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeCoefficientOfContract (aelf.SInt32Value) returns (CalculateFeeCoefficientsOfType) {
+    rpc GetCalculateFeeCoefficientsForContract (aelf.SInt32Value) returns (CalculateFeeCoefficients) {
         option (aelf.is_view) = true;
     }
-    rpc GetCalculateFeeCoefficientOfSender (google.protobuf.Empty) returns (CalculateFeeCoefficientsOfType) {
+    rpc GetCalculateFeeCoefficientsForSender (google.protobuf.Empty) returns (CalculateFeeCoefficients) {
         option (aelf.is_view) = true;
     }
     // referenced by src
-    rpc GetSymbolsToPayTXSizeFee(google.protobuf.Empty) returns (SymbolListToPayTXSizeFee){
+    rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
         option (aelf.is_view) = true;
     }
 }
@@ -141,10 +147,8 @@ message RegisterNativeTokenInfoInput {
     sint32 issue_chain_id = 8;
 }
 
-message RegisterNativeAndResourceTokenInfoInput {
-    RegisterNativeTokenInfoInput native_token_info = 1;
-    TokenInfoList resource_token_list = 2;
-    TokenInfo chain_primary_token = 3;
+message SetPrimaryTokenSymbolInput {
+    string symbol = 1;
 }
 
 message IssueInput {
@@ -203,11 +207,8 @@ message BurnInput {
 }
 
 message ChargeResourceTokenInput {
-    sint64 traffic_cost = 1;
-    sint64 storage_cost = 2;
-    sint64 read_cost = 3;
-    sint64 write_cost = 4;
-    aelf.Address caller = 5;
+    map<string, sint64> cost_dic = 1;
+    aelf.Address caller = 2;
 }
 
 message TransactionFeeBill {
@@ -269,14 +270,14 @@ message IsInWhiteListInput {
     aelf.Address address = 2;
 }
 
-message SymbolToPayTXSizeFee{
+message SymbolToPayTxSizeFee{
     string token_symbol = 1;
     sint32 base_token_weight = 2;
     sint32 added_token_weight = 3;
 }
 
-message SymbolListToPayTXSizeFee{
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 1;
+message SymbolListToPayTxSizeFee{
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 1;
 }
 
 message ChargeTransactionFeesInput {
@@ -284,12 +285,12 @@ message ChargeTransactionFeesInput {
     aelf.Address contract_address = 2;
     sint64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
-    repeated SymbolToPayTXSizeFee symbols_to_pay_tx_size_fee = 5;
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
-    SymbolListToPayTXSizeFee symbol_list_to_pay_tx_size_fee = 1;
+    SymbolListToPayTxSizeFee symbol_list_to_pay_tx_size_fee = 1;
 }
 
 message ReturnTaxInput {
@@ -325,54 +326,20 @@ message CrossChainCreateTokenInput {
     aelf.MerklePath merkle_path = 4;
 }
 
-message InitializeInput {
-    map<string, sint32> resource_amount = 1;
-}
-
-message CoefficientFromSender {
-    sint32 piece_key = 1;
-    bool is_change_piece_key = 2;
-    bool is_liner = 3;
-    LinerCoefficient liner_coefficient = 4;
-    PowerCoefficient power_coefficient = 5;
-    NewPieceKeyCoefficient new_piece_key_coefficient = 6;
-}
-
-message LinerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-}
-
-message PowerCoefficient{
-    sint32 numerator = 1;
-    sint32 denominator = 2;
-    sint32 constant_value = 3;
-    sint32 change_span_base = 4;
-    sint32 weight = 5;
-    sint32 weight_base = 6;
-}
-
-message NewPieceKeyCoefficient{
-    sint32 new_piece_key = 1;
-}
-
-message CoefficientFromContract {
-    FeeTypeEnum fee_type = 1;
-    CoefficientFromSender coefficient = 2;
-}
-message TokenSymbolWithAddress{
-    string token_symbol = 1;
-    aelf.Address from_address = 2;
-}
-
-message TokenStateInAddress{
-    bool value = 1;
-}
-
 message AddTokeWhiteListInput{
     string token_symbol = 1;
     aelf.Address address = 2;
+}
+
+message InitializeInput {
+    map<string, sint32> resource_amount = 1;
+    sint32 minimum_profits_donation_parts_per_hundred = 2;
+
+}
+
+message UpdateCoefficientsInput {
+    repeated sint32 piece_numbers = 1;// To specify pieces gonna update.
+    CalculateFeeCoefficients coefficients = 2;
 }
 
 enum FeeTypeEnum {
@@ -383,20 +350,22 @@ enum FeeTypeEnum {
     TX = 4;
 }
 
-enum CalculateFunctionTypeEnum {
-    LINER = 0;
-    POWER = 1;
+// Coefficients of one single piece.
+// The first char is its type: liner / power.
+// The second char is its piece upper bound.
+message CalculateFeePieceCoefficients {
+    repeated sint32 value = 1;
 }
 
-message CalculateFeeCoefficientsOfType{
-    repeated CalculateFeeCoefficient coefficients= 1;
+// Coefficients of one single type ot token, like READ, WRITE, etc.
+message CalculateFeeCoefficients {
+    sint32 fee_token_type = 1;
+    repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
 }
 
-message CalculateFeeCoefficient {
-    sint32 piece_key = 1;
-    FeeTypeEnum fee_type = 2;
-    CalculateFunctionTypeEnum function_type = 3;
-    map<string, sint32> coefficient_dic = 4;
+// To include coefficients of all tokens.
+message AllCalculateFeeCoefficients {
+    repeated CalculateFeeCoefficients value = 1;
 }
 
 // Events
@@ -444,9 +413,10 @@ message TransactionSizeFeeUnitPriceUpdated {
     sint64 unit_price = 1;
 }
 
-message NoticeUpdateCalculateFeeAlgorithm {
+// The modification of each fee type will fire one event.
+message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
-    CalculateFeeCoefficientsOfType all_coefficient = 1;
+    AllCalculateFeeCoefficients all_type_fee_coefficients = 1;
 }
 
 message RentalCharged {
@@ -460,8 +430,3 @@ message RentalAccountBalanceInsufficient {
     string symbol = 1;
     sint64 amount = 2;
 }
-
-
-
-
-

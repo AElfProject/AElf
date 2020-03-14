@@ -7,16 +7,23 @@
         <Description>Smart contract execution related components.</Description>
     </PropertyGroup>
     <ItemGroup>
-
         <PackageReference Include="QuickGraphCore" Version="1.0.0" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
+        <!--TODO:should not reference code ops and SDK-->
+        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
+        <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForProposal\AElf.Kernel.SmartContract.ExecutionPluginForProposal.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
     </ItemGroup>
 
     <ItemGroup>

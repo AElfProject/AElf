@@ -13,28 +13,27 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService,
-        ISingletonDependency
+    public class LocalParallelTransactionExecutingService : IParallelTransactionExecutingService, ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
-        private readonly ILocalTransactionExecutingService _plainExecutingService;
+        private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionResultService transactionResultService,
-            ILocalTransactionExecutingService plainExecutingService)
+            IPlainTransactionExecutingService planTransactionExecutingService)
         {
             _grouper = grouper;
-            _plainExecutingService = plainExecutingService;
+            _planTransactionExecutingService = planTransactionExecutingService;
             _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException = false)
+            CancellationToken cancellationToken)
         {
             Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
@@ -48,14 +47,14 @@ namespace AElf.Kernel.SmartContract.Parallel
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
 
             var returnSets = new List<ExecutionReturnSet>();
-            var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
+            var nonParallelizableReturnSets = await _planTransactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
                     BlockHeader = blockHeader,
                     Transactions = groupedTransactions.NonParallelizables,
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 },
-                cancellationToken, throwException);
+                cancellationToken);
 
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
@@ -69,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     BlockHeader = blockHeader,
                     Transactions = txns,
                     PartialBlockStateSet = updatedPartialBlockStateSet,
-                }, cancellationToken, throwException));
+                }, cancellationToken));
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
@@ -122,7 +121,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             return returnSets;
         }
 
-        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets, BlockHeader blockHeader)
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictingSets,
+            BlockHeader blockHeader)
         {
             var transactionResults = new List<TransactionResult>();
             foreach (var conflictingSet in conflictingSets)
@@ -141,12 +141,10 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
 
         private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
-            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
-            bool throwException = false)
+            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken)
         {
             var executionReturnSets =
-                await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
-                    throwException);
+                await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s =>
                     s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
@@ -156,11 +154,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 Keys = keys
             };
         }
-        
+
         private class GroupedExecutionReturnSets
         {
             public List<ExecutionReturnSet> ReturnSets { get; set; }
-            
+
             public HashSet<string> Keys { get; set; }
         }
 

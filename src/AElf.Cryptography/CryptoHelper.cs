@@ -109,7 +109,8 @@ namespace AElf.Cryptography
             try
             {
                 Lock.AcquireWriterLock(Timeout.Infinite);
-                if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
+                // Recover id should be greater than or equal to 0 and less than 4
+                if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH || signature.Last() >= 4)
                     return false;
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
@@ -162,17 +163,6 @@ namespace AElf.Cryptography
             {
                 Lock.ReleaseWriterLock();
             }
-        }
-
-        /// <summary>
-        /// Returns a byte array of the specified length, filled with random bytes.
-        /// </summary>
-        internal static byte[] RandomFill(int count)
-        {
-            var rnd = new Random();
-            var random = new byte[count];
-            rnd.NextBytes(random);
-            return random;
         }
     }
 }
