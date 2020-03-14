@@ -42,7 +42,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                     CodeHash = g.First().TransactionResourceInfo.ContractHash
                 });
 
-            await _nonparallelContractCodeProvider.SetNonparallelContractCodeAsync(eventData.BlockHeader.GetHash(), dic);
+            await _nonparallelContractCodeProvider.SetNonparallelContractCodeAsync(new BlockIndex
+            {
+                BlockHash = eventData.BlockHeader.GetHash(),
+                BlockHeight = eventData.BlockHeader.Height
+            }, dic);
 
             _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
         }

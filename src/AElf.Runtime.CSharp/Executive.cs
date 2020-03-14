@@ -186,7 +186,6 @@ namespace AElf.Runtime.CSharp
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                    CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                 }
 
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;

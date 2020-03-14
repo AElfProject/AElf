@@ -32,7 +32,26 @@ namespace AElf.Kernel
                 {
                     o.AddRange(trace.FlattenedLogs);
                 }
-                
+
+                foreach (var trace in PostTraces)
+                {
+                    o.AddRange(trace.FlattenedLogs);
+                }
+
+                return o;
+            }
+        }
+
+        public IEnumerable<LogEvent> PluginLogs
+        {
+            get
+            {
+                var o = new RepeatedField<LogEvent>();
+                foreach (var trace in PreTraces)
+                {
+                    o.AddRange(trace.FlattenedLogs);
+                }
+
                 foreach (var trace in PostTraces)
                 {
                     o.AddRange(trace.FlattenedLogs);
@@ -64,7 +83,7 @@ namespace AElf.Kernel
                     yield return kv;
                 }
             }
-            
+
             foreach (var trace in PostTraces)
             {
                 foreach (var kv in trace.GetFlattenedWrites())
@@ -96,7 +115,7 @@ namespace AElf.Kernel
                     yield return kv;
                 }
             }
-            
+
             foreach (var trace in PostTraces)
             {
                 foreach (var kv in trace.GetFlattenedReads())
@@ -118,7 +137,7 @@ namespace AElf.Kernel
             }
 
             yield return StateSet;
-            
+
             foreach (var trace in InlineTraces)
             {
                 var stateSets = trace.GetStateSets();
@@ -127,7 +146,7 @@ namespace AElf.Kernel
                     yield return stateSet;
                 }
             }
-            
+
             foreach (var trace in PostTraces)
             {
                 var stateSets = trace.GetStateSets();
