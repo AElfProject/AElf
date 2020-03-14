@@ -271,6 +271,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         Transactions = new[] {queuedTransaction.Transaction},
                         BlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync()
                     }, CancellationToken.None);
+
+                    if (results.First().Status != TransactionResultStatus.Mined)
+                        return;
                 }
 
 
