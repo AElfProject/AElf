@@ -74,9 +74,24 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         [Fact]
         public async Task Change_Owner_Address_Authorized()
         {
-            var address1 = SampleAddress.AddressList[0];
-            _testOutputHelper.WriteLine(address1.GetFormatted());
-            var proposalId = await SetTransactionOwnerAddressProposalAsync(address1);
+            var sender = SampleAddress.AddressList[0];
+            _testOutputHelper.WriteLine(sender.GetFormatted());
+            var newOrganization = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    },
+                    ParliamentMemberProposingAllowed = true
+                })).ReturnValue);
+            var proposalId = await SetTransactionOwnerAddressProposalAsync(new AuthorityInfo
+            {
+                ContractAddress = ParliamentAddress,
+                OwnerAddress = newOrganization
+            });
             await ApproveWithMinersAsync(proposalId);
             var transactionResult = await ReleaseProposalAsync(proposalId);
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
@@ -85,9 +100,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
                     new Empty());
-            var address2 = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
-            _testOutputHelper.WriteLine(address2.GetFormatted());
-            Assert.True(address1 == address2);
+            var authorityInfo = AuthorityInfo.Parser.ParseFrom(transactionResult2.ReturnValue);
+            Assert.True(newOrganization == authorityInfo.OwnerAddress);
         }
 
         [Fact]
@@ -96,10 +110,14 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
-                    SampleAddress.AddressList[0]);
+                    new AuthorityInfo
+                    {
+                        ContractAddress = ParliamentAddress,
+                        OwnerAddress = SampleAddress.AddressList[0]
+                    });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to do this.", transactionResult.Error);
+            Assert.Contains("No permission.", transactionResult.Error);
         }
 
         [Fact]

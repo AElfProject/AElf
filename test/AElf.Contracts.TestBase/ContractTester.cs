@@ -724,7 +724,10 @@ namespace AElf.Contracts.TestBase
                 });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize),
-                new Parliament.InitializeInput());
+                new Parliament.InitializeInput
+                {
+                    PrivilegedProposer = SampleAddress.AddressList[0]
+                });
 
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
