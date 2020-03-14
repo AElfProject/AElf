@@ -5,6 +5,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContra
 {
     public class ContractState : AElf.Sdk.CSharp.State.ContractState
     {
-        public MappedState<string,MethodFees> MethodFees { get; set; }
+        public MappedState<string,MethodFees> TransactionFees { get; set; }
     }
 }
