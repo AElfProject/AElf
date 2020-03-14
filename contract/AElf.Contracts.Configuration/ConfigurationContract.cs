@@ -31,6 +31,8 @@ namespace AElf.Contracts.Configuration
         public override Empty ChangeConfigurationController(AuthorityInfo input)
         {
             AssertPerformedByConfigurationController();
+            Assert(input != null, "invalid input");
+            Assert(CheckOrganizationExist(input),"Invalid authority input.");
             State.ConfigurationController.Value = input;
             return new Empty();
         }
