@@ -49,24 +49,37 @@ namespace AElf.Runtime.CSharp
 
             var loadContext = GetLoadContext();
 
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
+            Assembly assembly = LoadAssembly(code, loadContext);
 
             if (assembly == null)
             {
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
+            ContractVersion = assembly.GetName().Version?.ToString();
+
             var executive = new Executive(assembly)
             {
                 ContractHash = reg.CodeHash,
-                IsSystemContract = reg.IsSystemContract
+                IsSystemContract = reg.IsSystemContract,
+                ContractVersion = ContractVersion
             };
+
 
             return await Task.FromResult(executive);
         }
+
+        protected virtual Assembly LoadAssembly(byte[] code, AssemblyLoadContext loadContext)
+        {
+            Assembly assembly;
+            using (Stream stream = new MemoryStream(code))
+            {
+                assembly = loadContext.LoadFromStream(stream);
+            }
+
+            return assembly;
+        }
+
+        public string ContractVersion { get; protected set; }
     }
 }

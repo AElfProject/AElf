@@ -16,97 +16,34 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunnerForCategoryThirty : SmartContractRunnerForCategoryZero
     {
-#if DEBUG
-        private static ConcurrentDictionary<string, Action> _coverageHintActions = new ConcurrentDictionary<string, Action>();
-        public static void WriteCoverageHints()
-        {
-            foreach (var coverageHintAction in _coverageHintActions.Values.ToList())
-            {
-                coverageHintAction();
-            }
-        }
-#endif
         public SmartContractRunnerForCategoryThirty(string sdkDir)
             : base(sdkDir)
         {
             Category = KernelConstants.CodeCoverageRunnerCategory;
         }
 
-        public override async Task<IExecutive> RunAsync(SmartContractRegistration reg)
+        protected override Assembly LoadAssembly(byte[] code, AssemblyLoadContext loadContext)
         {
-            var code = reg.Code.ToByteArray();
+            var assembly = base.LoadAssembly(code, loadContext);
 
-            var loadContext = GetLoadContext();
-
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
+            Assembly assembly2 = null;
+            try
             {
-                assembly = loadContext.LoadFromStream(stream);
-
-                //load by main context, not load in code, directly load in dll
-
-                Assembly assembly2 = null;
-                try
-                {
-                    assembly2 = Assembly.Load(assembly.FullName);
-                }
-                catch (Exception)
-                {
-                    //may cannot find assembly in local
-                }
-
-                if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
-                {
-                    assembly = assembly2;
-                    loadContext.Unload();
-#if DEBUG
-                    var type = assembly.GetTypes()
-                        .FirstOrDefault(t => t.Namespace == "Coverlet.Core.Instrumentation.Tracker");
-                    if (type != null)
-                    {
-                        var action = new Action(() =>
-                        {
-                            try
-                            {
-                                var method = type.GetMethod("UnloadModule", BindingFlags.Public | BindingFlags.Static);
-
-                                method?.Invoke(null, new object[2]);
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-
-                            //manual call unload module at exit
-                            //throw new InvalidOperationException(method.ToString());
-                        });
-
-
-                        //AppDomain.CurrentDomain.ProcessExit += (sender, e) => { action(); };
-                        //AppDomain.CurrentDomain.DomainUnload += (sender, e) => { action(); };
-
-                        //action();
-                        _coverageHintActions.TryAdd(type.Assembly.Location, action);
-                    }
-#endif
-                }
-
-                // else
-                // {
-                //     throw new InvalidCodeException("local code not match.");
-                // }
+                assembly2 = Assembly.Load(assembly.FullName);
+            }
+            catch (Exception)
+            {
+                //may cannot find assembly in local
             }
 
-            if (assembly == null)
+            if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
             {
-                throw new InvalidCodeException("Invalid binary code.");
+                assembly = assembly2;
+                loadContext.Unload();
             }
 
-            var executive = new Executive(assembly);
-
-            executive.ContractHash = reg.CodeHash;
-
-            return await Task.FromResult(executive);
+            return assembly;
         }
+
     }
 }
