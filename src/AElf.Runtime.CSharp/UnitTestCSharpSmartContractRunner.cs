@@ -14,9 +14,9 @@ using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunnerForCategoryThirty : SmartContractRunnerForCategoryZero
+    public class UnitTestCSharpSmartContractRunner : CSharpSmartContractRunner
     {
-        public SmartContractRunnerForCategoryThirty(string sdkDir)
+        public UnitTestCSharpSmartContractRunner(string sdkDir)
             : base(sdkDir)
         {
             Category = KernelConstants.CodeCoverageRunnerCategory;

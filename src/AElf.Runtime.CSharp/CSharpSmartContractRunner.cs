@@ -11,26 +11,16 @@ using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunnerForCategoryZero : ISmartContractRunner
+    public class CSharpSmartContractRunner : ISmartContractRunner
     {
         public int Category { get; protected set; }
         private readonly ISdkStreamManager _sdkStreamManager;
 
-        //TODO: remove
-        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
-            new ConcurrentDictionary<string, MemoryStream>();
-
-        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
-            new ConcurrentDictionary<Hash, Type>();
-
-        private readonly string _sdkDir;
-
-
-        public SmartContractRunnerForCategoryZero(
+        public CSharpSmartContractRunner(
             string sdkDir)
         {
-            _sdkDir = Path.GetFullPath(sdkDir);
-            _sdkStreamManager = new SdkStreamManager(_sdkDir);
+            var sdkDir1 = Path.GetFullPath(sdkDir);
+            _sdkStreamManager = new SdkStreamManager(sdkDir1);
         }
 
         /// <summary>
