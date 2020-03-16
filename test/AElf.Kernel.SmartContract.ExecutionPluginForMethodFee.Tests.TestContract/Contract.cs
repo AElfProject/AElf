@@ -13,13 +13,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContra
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            State.MethodFees[input.MethodName] = input;
+            State.TransactionFees[input.MethodName] = input;
             return new Empty();
         }
 
         public override MethodFees GetMethodFee(StringValue input)
         {
-            return State.MethodFees[input.Value];
+            return State.TransactionFees[input.Value];
         }
     }
 }

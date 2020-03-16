@@ -1,37 +1,29 @@
+using System.Linq;
+
 namespace AElf.Kernel
 {
     public static class TransactionTraceExtensions
     {
         public static bool IsSuccessful(this TransactionTrace txTrace)
         {
-            var successful = txTrace.ExecutionStatus == ExecutionStatus.Executed;
-            if (!successful)
+            if (txTrace.ExecutionStatus != ExecutionStatus.Executed)
             {
                 return false;
             }
 
-            foreach (var trace in txTrace.PreTraces)
+            if (txTrace.PreTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
-            foreach (var trace in txTrace.InlineTraces)
+            if (txTrace.InlineTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
-            foreach (var trace in txTrace.PostTraces)
+            if (txTrace.PostTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;

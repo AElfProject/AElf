@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
 
             var feeCalculationResult =
-                await _resourceTokenFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
+                await _resourceTokenFeeService.CalculateFeeAsync(transactionContext, chainContext);
             chargeResourceTokenInput.CostDic.Add(feeCalculationResult);
 
             var chargeResourceTokenTransaction =

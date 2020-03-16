@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -33,9 +31,9 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
-                        It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-                    .Returns<TransactionExecutingDto, CancellationToken, bool>(
-                        (transactionExecutingDto, cancellationToken, throwException) =>
+                        It.IsAny<CancellationToken>()))
+                    .Returns<TransactionExecutingDto, CancellationToken>(
+                        (transactionExecutingDto, cancellationToken) =>
                         {
                             var returnSets = new List<ExecutionReturnSet>();
 

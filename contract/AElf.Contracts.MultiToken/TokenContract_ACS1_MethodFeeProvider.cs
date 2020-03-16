@@ -26,7 +26,7 @@ namespace AElf.Contracts.MultiToken
 
             if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
-                var methodFees = State.MethodFees[input.Value];
+                var methodFees = State.TransactionFees[input.Value];
                 if (methodFees == null) return new MethodFees();
                 var symbols = GetMethodFeeSymbols();
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
@@ -40,7 +40,7 @@ namespace AElf.Contracts.MultiToken
                 };
             }
 
-            return State.MethodFees[input.Value] ?? new MethodFees();
+            return State.TransactionFees[input.Value] ?? new MethodFees();
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
@@ -60,7 +60,7 @@ namespace AElf.Contracts.MultiToken
             RequiredMethodFeeControllerSet();
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
 
-            State.MethodFees[input.MethodName] = input;
+            State.TransactionFees[input.MethodName] = input;
             return new Empty();
         }
 

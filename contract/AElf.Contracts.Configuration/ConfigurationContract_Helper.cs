@@ -1,41 +1,47 @@
+using Acs1;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationContract
     {
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        private AuthorityInfo GetDefaultConfigurationController()
         {
-            if (state.Value != null)
-                return;
-            state.Value = Context.GetContractAddressByName(contractSystemName);
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
 
-        private Address GetControllerForManageConfiguration()
+        private void AssertPerformedByConfigurationController()
         {
-            if (State.ConfigurationController.Value != null)
-                return State.ConfigurationController.Value;
-            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.ConfigurationController.Value = organizationAddress;
+            if (State.ConfigurationController.Value == null)
+            {
+                var defaultConfigurationController = GetDefaultConfigurationController();
+                State.ConfigurationController.Value = defaultConfigurationController;
+            }
 
-            return State.ConfigurationController.Value;
+            Assert(Context.Sender == State.ConfigurationController.Value.OwnerAddress, "No permission.");
         }
 
-        private void CheckControllerAuthority()
+        private void AssertPerformedByConfigurationControllerOrZeroContract()
         {
-            var controller = GetControllerForManageConfiguration();
-            Assert(controller.Equals(Context.Sender), "Not authorized to do this.");
-        }
+            if (State.ConfigurationController.Value == null)
+            {
+                var defaultConfigurationController = GetDefaultConfigurationController();
+                State.ConfigurationController.Value = defaultConfigurationController;
+            }
 
-        private void CheckSenderIsControllerOrZeroContract()
-        {
-            var controller = GetControllerForManageConfiguration();
             Assert(
-                controller == Context.Sender ||
+                State.ConfigurationController.Value.OwnerAddress == Context.Sender ||
                 Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
         }
     }
