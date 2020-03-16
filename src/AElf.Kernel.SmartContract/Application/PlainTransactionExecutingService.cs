@@ -286,7 +286,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        Depth = 0,
+                        Depth = 0, //TODO: this 0 means it is possible that pre/post txs could have own pre/post txs
                         ChainContext = internalChainContext,
                         Transaction = preTx,
                         CurrentBlockTime = currentBlockTime

@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
@@ -17,6 +18,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             context.Services.AddTransient<ISystemTransactionRecognizer, DonateTransactionRecognizer>();
             context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
+            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
         }
     }
 }

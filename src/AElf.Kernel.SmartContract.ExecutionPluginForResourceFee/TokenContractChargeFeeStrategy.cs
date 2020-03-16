@@ -9,14 +9,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     public class TokenContractChargeFeeStrategy : ChargeFeeStrategyBase
     {
-        public TokenContractChargeFeeStrategy(ISmartContractAddressService smartContractAddressService) : base(smartContractAddressService)
+        public TokenContractChargeFeeStrategy(ISmartContractAddressService smartContractAddressService) : base(
+            smartContractAddressService)
         {
         }
 
         public override string MethodName => string.Empty;
 
         protected override Hash SystemContractHashName => TokenSmartContractAddressNameProvider.Name;
-        
+
         protected override List<string> GetInvolvedSmartContractMethods()
         {
             return new List<string>

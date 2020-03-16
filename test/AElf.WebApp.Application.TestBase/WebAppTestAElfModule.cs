@@ -3,6 +3,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
@@ -85,6 +86,8 @@ namespace AElf.WebApp.Application
                 .AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
+            context.Services.AddTransient<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
+            context.Services.AddTransient<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
             context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }
     }
