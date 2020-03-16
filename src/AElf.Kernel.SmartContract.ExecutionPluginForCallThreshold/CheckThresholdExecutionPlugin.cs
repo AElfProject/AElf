@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
@@ -80,6 +81,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
             {
                 checkThresholdTransaction
             };
+        }
+
+        public bool IsStopExecuting(ByteString txReturnValue)
+        {
+            return false;
         }
     }
 }

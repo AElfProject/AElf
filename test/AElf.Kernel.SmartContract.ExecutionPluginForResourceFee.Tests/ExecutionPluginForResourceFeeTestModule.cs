@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
-            context.Services.AddSingleton<ICoefficientsProvider, MockFeeCalculateCoefficientProvider>();
+            context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         }
     }
 }
