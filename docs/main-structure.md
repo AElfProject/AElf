@@ -13,6 +13,7 @@
         * [First contract - deploy](tutorials/developing-smart-contracts/first-contract-deploy.md)
         * [Execution context](tutorials/developing-smart-contracts/tx-execution-context.md)
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
+        * [Front end](tutorials/developing-smart-contracts/front.md)
     * [Enterprise development](tutorials/enterprise.md)
     * [Cross-chain](tutorials/cross-chain/main.md)
         * [Request side-chain creation](tutorials/cross-chain/request-new-side-chain.md) 
