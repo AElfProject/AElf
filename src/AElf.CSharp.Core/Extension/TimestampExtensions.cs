@@ -1,5 +1,3 @@
-//TODO: Remove this file.
-
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CSharp.Core.Extension
