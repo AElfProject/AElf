@@ -138,7 +138,11 @@ namespace AElf.Kernel.Configuration.Tests
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            await _blockTransactionLimitProvider.SetLimitAsync(chain.BestChainHash, 50);
+            await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            }, 50);
 
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(
                 new ChainContext

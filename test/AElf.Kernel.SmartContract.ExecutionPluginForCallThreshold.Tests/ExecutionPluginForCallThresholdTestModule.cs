@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<IPreExecutionPlugin, MethodCallingThresholdPreExecutionPlugin>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
-            context.Services.AddSingleton<ICoefficientsProvider, MockFeeCalculateCoefficientProvider>();
+            context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         }
     }
 }

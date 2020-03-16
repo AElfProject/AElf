@@ -29,7 +29,7 @@ namespace AElf.Kernel.ChainController
             services.AddSingleton(provider =>
             {
                 var txTokenFeeProvider = new Mock<IPrimaryTokenFeeService>();
-                txTokenFeeProvider.Setup(m => m.CalculateTokenFeeAsync(It.IsAny<ITransactionContext>(), It.IsAny<IChainContext>()))
+                txTokenFeeProvider.Setup(m => m.CalculateFeeAsync(It.IsAny<ITransactionContext>(), It.IsAny<IChainContext>()))
                     .Returns((ITransactionContext x, IChainContext y) => Task.FromResult(100000L));
                 return txTokenFeeProvider.Object;
             });

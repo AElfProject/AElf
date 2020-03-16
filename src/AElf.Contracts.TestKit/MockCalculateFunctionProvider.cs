@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.FeeCalculation.Infrastructure;
-using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
 {
-    public class MockFeeCalculateCoefficientProvider : ICoefficientsProvider, ISingletonDependency
+    public class MockCalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
     {
         private enum FeeTypeEnum
         {
@@ -21,7 +22,7 @@ namespace AElf.Contracts.TestKit
 
         private readonly Dictionary<int, List<int[]>> _coefficientsDicCache;
 
-        public MockFeeCalculateCoefficientProvider()
+        public MockCalculateFunctionProvider()
         {
             _coefficientsDicCache = new Dictionary<int, List<int[]>>();
             var txCoefficient = new List<int[]>
@@ -57,14 +58,30 @@ namespace AElf.Contracts.TestKit
             _coefficientsDicCache[(int) FeeTypeEnum.Traffic] = trafficCoefficient;
         }
 
-        public Task<List<int[]>> GetCoefficientByTokenTypeAsync(int tokenType, IChainContext chainContext)
-        {
-            return Task.FromResult(_coefficientsDicCache[tokenType]);
-        }
-
-        public Task SetAllCoefficientsAsync(Hash blockHash, AllCalculateFeeCoefficients allCalculateFeeCoefficients)
+        public Task AddCalculateFunctions(IBlockIndex blockIndex,
+            Dictionary<string, CalculateFunction> calculateFunctionDictionary)
         {
             return Task.CompletedTask;
+        }
+
+        public Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext)
+        {
+            var allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
+            foreach (var coefficients in _coefficientsDicCache)
+            {
+                allCalculateFeeCoefficients.Value.Add(new CalculateFeeCoefficients
+                {
+                    FeeTokenType = coefficients.Key,
+                    PieceCoefficientsList =
+                    {
+                        coefficients.Value.Select(v => new CalculateFeePieceCoefficients
+                        {
+                            Value = {v}
+                        })
+                    }
+                });
+            }
+            return allCalculateFeeCoefficients.ToCalculateFunctionDictionary();
         }
     }
 }

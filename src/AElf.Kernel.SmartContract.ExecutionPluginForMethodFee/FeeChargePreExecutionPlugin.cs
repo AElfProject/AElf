@@ -7,7 +7,9 @@ using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -81,7 +83,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _txFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
+                var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
@@ -117,6 +119,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
                 throw;
             }
+        }
+
+        public bool IsStopExecuting(ByteString txReturnValue)
+        {
+            return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,

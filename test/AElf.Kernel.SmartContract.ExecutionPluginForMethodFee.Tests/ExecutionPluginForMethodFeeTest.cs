@@ -136,6 +136,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TestContractStub.DummyMethod.SendAsync(new Empty());
         }
 
         [Fact]
@@ -150,7 +151,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var dummy = await TestContractStub.DummyMethod
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
+            dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
 
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -200,18 +201,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
-                    dummyResult.TransactionResult.TransactionFee.Value.Values.ShouldContain(chargedAmount);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Values.ShouldContain(chargedAmount);
                 }
             }
             else
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
+                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
                 }
             }
 
