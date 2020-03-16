@@ -4,9 +4,9 @@
 
 ## CSharpSmartContractContext
 
-### Properties
+## Properties
 
-#### StateProvider
+### StateProvider
 
 ```csharp
 public IStateProvider StateProvider
@@ -14,7 +14,7 @@ public IStateProvider StateProvider
 
 Provides access to the underlying state provider.
 
-#### ChainId
+### ChainId
 
 ```csharp
 public int ChainId
@@ -22,7 +22,7 @@ public int ChainId
 
 The chain id of the chain on which the contract is currently running.
 
-#### TransactionId
+### TransactionId
 
 ```csharp
 public Hash TransactionId
@@ -30,43 +30,43 @@ public Hash TransactionId
 
 The ID of the transaction that's currently executing.
 
-#### Sender
+### Sender
 
 ```csharp
 public Address Sender
 ```
 
-#### Self
+### Self
 
 ```csharp
 public Address Self
 ```
 
-#### Origin
+### Origin
 
 ```csharp
 public Address Origin
 ```
 
-#### CurrentHeight
+### CurrentHeight
 
 ```csharp
 public long CurrentHeight
 ```
 
-#### CurrentBlockTime
+### CurrentBlockTime
 
 ```csharp
 public Timestamp CurrentBlockTime
 ```
 
-#### PreviousBlockHash
+### PreviousBlockHash
 
 ```csharp
 public Hash PreviousBlockHash
 ```
 
-#### Variables
+### Variables
 
 ```csharp
 public ContextVariableDictionary Variables
