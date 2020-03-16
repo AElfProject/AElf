@@ -18,6 +18,6 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public MappedState<long, string, ProtobufMessage> Complex3Info { get; set; }
         public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
         
-        public MappedState<string, MethodFees> MethodFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
     }
 }

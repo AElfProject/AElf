@@ -6,7 +6,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;

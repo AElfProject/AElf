@@ -54,7 +54,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             else
             {
                 State.RewardBalance.Value = State.RewardBalance.Value.Add(result);
-                State.WinerHistory[Context.Sender] = State.WinerHistory[Context.Sender].Add(result);
+                State.WinnerHistory[Context.Sender] = State.WinnerHistory[Context.Sender].Add(result);
             }
             
             return new Empty();
@@ -101,8 +101,8 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
 
         public override Empty IncreaseWinMoney(IncreaseWinMoneyInput input)
         {
-            State.WinerHistory[input.First] = State.WinerHistory[input.First] + 1;
-            State.WinerHistory[input.Second] = State.WinerHistory[input.Second] + 1;
+            State.WinnerHistory[input.First] = State.WinnerHistory[input.First] + 1;
+            State.WinnerHistory[input.Second] = State.WinnerHistory[input.Second] + 1;
             return new Empty();
         }
 
