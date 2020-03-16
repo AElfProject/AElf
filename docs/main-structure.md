@@ -54,6 +54,7 @@
     * [JS SDK](sdk/javascript/js-sdk.md)
     * [dApp SDK](sdk/javascript/dapp-sdk.md)
 * [Contract SDK reference](/sdk/csharp/contract-sdk.md)
+    * [CSharpSmartContractContext](/sdk/csharp/csharp-smart-contract-context.md)
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Association Contract](resources/smart-contract-apis/association.md)
