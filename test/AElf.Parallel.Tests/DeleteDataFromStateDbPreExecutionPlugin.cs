@@ -139,5 +139,10 @@ namespace AElf.Parallel.Tests
             
             return Task.FromResult(transactions.AsEnumerable());
         }
+
+        public bool IsStopExecuting(ByteString txReturnValue)
+        {
+            return false;
+        }
     }
 }

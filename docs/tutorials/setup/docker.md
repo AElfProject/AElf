@@ -57,4 +57,4 @@ http://your-ip:8000/swagger/index.html
 
 The ip should be localhost if you browser is local.
 
-From here you can try out any of the available API commands on the Swagger page.
+From here you can try out any of the available API commands on the Swagger page. You can also have a look at the API reference [**here**](../../web-api-reference/reference.md).

@@ -119,8 +119,8 @@ namespace AElf.WebApp.Application.Chain
 
             try
             {
-                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
-                return response;
+                var response = await CallReadOnlyAsync(transaction);
+                return response?.ToHex();
             }
             catch (Exception e)
             {
@@ -299,19 +299,6 @@ namespace AElf.WebApp.Application.Chain
                 throw new Exception(trace.Error);
 
             return trace.ReturnValue.ToByteArray();
-        }
-
-        private async Task<string> CallReadOnlyReturnReadableValueAsync(Transaction tx)
-        {
-            var chainContext = await GetChainContextAsync();
-
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx,
-                DateTime.UtcNow.ToTimestamp());
-
-            if (!string.IsNullOrEmpty(trace.Error))
-                throw new Exception(trace.Error);
-
-            return trace.ReadableReturnValue;
         }
 
         private async Task<ChainContext> GetChainContextAsync()
