@@ -84,6 +84,7 @@ namespace AElf.WebApp.Application
             context.Services
                 .AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }
     }

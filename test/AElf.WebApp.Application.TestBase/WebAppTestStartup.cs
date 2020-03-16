@@ -13,8 +13,7 @@ namespace AElf.WebApp.Application
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ITxHub, MockTxHub>();
-            services.AddApplication<WebAppTestAElfModule>(options =>
-                options.PlugInSources.AddTypes(typeof(ExecutionPluginForMethodFeeModule)));
+            services.AddApplication<WebAppTestAElfModule>();
             services.Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
 
