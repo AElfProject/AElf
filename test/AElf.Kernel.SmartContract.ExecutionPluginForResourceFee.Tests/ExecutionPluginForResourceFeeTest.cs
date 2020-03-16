@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
@@ -247,12 +248,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             {
                 var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["STORAGE"].ShouldBe(stoAmount);
-                owingSto = txResult.TransactionResult.ConsumedResourceTokens.Owning["STORAGE"];
+                var consumedTokens = txResult.TransactionResult.GetConsumedResourceTokens();
+                consumedTokens["STORAGE"].ShouldBe(stoAmount);
+                owingSto = txResult.TransactionResult.GetOwningResourceTokens()["STORAGE"];
                 owingSto.ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["READ"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["TRAFFIC"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["WRITE"].ShouldBeGreaterThan(0);
+                consumedTokens["READ"].ShouldBeGreaterThan(0);
+                consumedTokens["TRAFFIC"].ShouldBeGreaterThan(0);
+                consumedTokens["WRITE"].ShouldBeGreaterThan(0);
             }
 
             // Mine a block to use plugin to really consume resource tokens.
@@ -295,11 +297,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             {
                 var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
                 txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["STORAGE"].ShouldBe(owingSto + 1);
-                txResult.TransactionResult.ConsumedResourceTokens.Owning["STORAGE"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["READ"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["TRAFFIC"].ShouldBeGreaterThan(0);
-                txResult.TransactionResult.ConsumedResourceTokens.Value["WRITE"].ShouldBeGreaterThan(0);
+                var consumedTokens = txResult.TransactionResult.GetConsumedResourceTokens();
+                consumedTokens["STORAGE"].ShouldBe(owingSto + 1);
+                consumedTokens["READ"].ShouldBeGreaterThan(0);
+                consumedTokens["TRAFFIC"].ShouldBeGreaterThan(0);
+                consumedTokens["WRITE"].ShouldBeGreaterThan(0);
+                
+                txResult.TransactionResult.GetOwningResourceTokens()["STORAGE"].ShouldBeGreaterThan(0);
             }
         }
 
@@ -317,16 +321,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             write.ShouldBeGreaterThan(write1);
             traffic.ShouldBe(traffic1);
 
-            txResult1.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);
-            txResult2.ConsumedResourceTokens.IsFailedToCharge.ShouldBe(false);
-            txResult1.ConsumedResourceTokens.Value["READ"]
-                .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["READ"]);
-            txResult1.ConsumedResourceTokens.Value["WRITE"]
-                .ShouldBeGreaterThan(txResult2.ConsumedResourceTokens.Value["WRITE"]);
-            txResult1.ConsumedResourceTokens.Value["TRAFFIC"]
-                .ShouldBe(txResult2.ConsumedResourceTokens.Value["TRAFFIC"]);
-            txResult1.ConsumedResourceTokens.Value["STORAGE"]
-                .ShouldBe(txResult2.ConsumedResourceTokens.Value["STORAGE"]);
+            var consumedTokens1 = txResult1.GetConsumedResourceTokens();
+            var consumedTokens2 = txResult2.GetConsumedResourceTokens();
+            consumedTokens1["READ"].ShouldBeGreaterThan(consumedTokens2["READ"]);
+            consumedTokens1["WRITE"].ShouldBeGreaterThan(consumedTokens2["WRITE"]);
+            consumedTokens1["TRAFFIC"].ShouldBe(consumedTokens2["TRAFFIC"]);
+            consumedTokens1["STORAGE"].ShouldBe(consumedTokens2["STORAGE"]);
         }
 
         private async Task<(long read, long write, long net, TransactionResult txResult)> GetTransactionResourcesCost(

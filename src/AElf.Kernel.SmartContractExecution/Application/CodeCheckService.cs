@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Contracts.Configuration;
 using AElf.CSharp.CodeOps;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;

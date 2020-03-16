@@ -6,13 +6,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
 {
     public interface IFeeProvider
     {
-        /// <summary>
-        /// 0 - Liner function
-        /// 1 - Power function
-        /// </summary>
-
-        Task<long> CalculateTokenFeeAsync(ITransactionContext transactionContext, IChainContext chainContext);
-        void UpdatePieceWiseFunction(IList<int[]> pieceTypeArray);
+        Task<long> CalculateFeeAsync(ITransactionContext transactionContext, IChainContext chainContext);
     }
 
     public interface IPrimaryTokenFeeProvider : IFeeProvider

@@ -95,14 +95,29 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var defaultOwner = await ConfigurationContractStub.GetConfigurationController.CallAsync(new Empty());
-            defaultOwner.ShouldBe(defaultOrganization);
+            defaultOwner.OwnerAddress.ShouldBe(defaultOrganization);
+            
+            var newOrganization =
+                (await ParliamentContractStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1
+                    },
+                    ParliamentMemberProposingAllowed = true
+                })).Output;
 
             await ExecuteProposalTransaction(Tester, ConfigurationAddress,
                 nameof(ConfigurationContractStub.ChangeConfigurationController),
-                Tester);
-            
+                new AuthorityInfo
+                {
+                    ContractAddress = ParliamentContractAddress,
+                    OwnerAddress = newOrganization
+                });
+
             var newOwner = await ConfigurationContractStub.GetConfigurationController.CallAsync(new Empty());
-            newOwner.ShouldBe(Tester);
+            newOwner.OwnerAddress.ShouldBe(newOrganization);
         }
     }
 }
