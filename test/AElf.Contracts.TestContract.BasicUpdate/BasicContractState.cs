@@ -19,6 +19,6 @@ namespace AElf.Contracts.TestContract.BasicUpdate
         public MappedState<Address, long> WinerHistory { get; set; }   
         public MappedState<Address, long> LoserHistory { get; set; }
         
-        public MappedState<string, MethodFees> MethodFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
     }
 }

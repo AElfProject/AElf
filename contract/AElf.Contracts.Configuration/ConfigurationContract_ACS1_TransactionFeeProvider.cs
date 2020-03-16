@@ -30,6 +30,7 @@ namespace AElf.Contracts.Configuration
             {
                 AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
@@ -54,7 +55,11 @@ namespace AElf.Contracts.Configuration
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
-            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
 
             var defaultAuthority = new AuthorityInfo
             {
