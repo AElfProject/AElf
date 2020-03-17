@@ -14,14 +14,14 @@ service Configuration {
     // Actions
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConfigurationController (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
     rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetConfigurationController (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetConfigurationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

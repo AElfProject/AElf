@@ -14,6 +14,6 @@ namespace AElf.Contracts.TestContract.DApp
         public SingletonState<Address> ProfitReceiver { get; set; }
         public MappedState<Address, Profile> Profiles { get; set; }
         
-        public MappedState<string, MethodFees> MethodFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
     }
 }
