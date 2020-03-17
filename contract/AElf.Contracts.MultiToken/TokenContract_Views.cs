@@ -22,14 +22,20 @@ namespace AElf.Contracts.MultiToken
 
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
-            return new TokenInfoList
+            var tokenInfoList = new TokenInfoList();
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Where(symbol =>
+                State.TokenInfos[symbol] != null))
             {
-                Value =
-                {
-                    Context.Variables.SymbolListToPayTxFee.Select(symbol =>
-                        State.TokenInfos[symbol] ?? new TokenInfo())
-                }
-            };
+                tokenInfoList.Value.Add(State.TokenInfos[symbol]);
+            }
+
+            foreach (var symbol in Context.Variables.SymbolListToPayRental.Where(symbol =>
+                State.TokenInfos[symbol] != null))
+            {
+                tokenInfoList.Value.Add(State.TokenInfos[symbol]);
+            }
+
+            return tokenInfoList;
         }
 
         [View]
@@ -108,14 +114,22 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(SInt32Value input)
         {
-            return State.CalculateCoefficientOfContract[(FeeTypeEnum) input.Value];
+            if (input.Value == (int) FeeTypeEnum.Tx)
+                return null;
+            var targetTokenCoefficient =
+                State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
+                    x.FeeTokenType == input.Value);
+            return targetTokenCoefficient;
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForSender(Empty input)
         {
-            return State.CalculateCoefficientOfSender.Value;
+            var targetTokenCoefficient =
+                State.AllCalculateFeeCoefficients.Value.Value.First(x =>
+                    x.FeeTokenType == (int)FeeTypeEnum.Tx);
+            return targetTokenCoefficient;
         }
 
         public override OwningRental GetOwningRental(Empty input)
@@ -129,6 +143,17 @@ namespace AElf.Contracts.MultiToken
             return owingRental;
         }
 
+        public override OwningRentalUnitValue GetOwningRentalUnitValue(Empty input)
+        {
+            var rentalResourceUnitValue = new OwningRentalUnitValue();
+            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            {
+                rentalResourceUnitValue.ResourceUnitValue[symbol] = State.Rental[symbol];
+            }
+
+            return rentalResourceUnitValue;
+        }
+
         public override ResourceUsage GetResourceUsage(Empty input)
         {
             var usage = new ResourceUsage();
@@ -140,7 +165,7 @@ namespace AElf.Contracts.MultiToken
             return usage;
         }
 
-        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
+        public override SymbolListToPayTxSizeFee GetSymbolsToPayTxSizeFee(Empty input)
         {
             return State.SymbolListToPayTxSizeFee.Value;
         }

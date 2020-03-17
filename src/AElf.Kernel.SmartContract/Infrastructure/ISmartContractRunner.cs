@@ -8,5 +8,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         int Category { get; }
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
+        
+        string ContractVersion { get; }
     }
 }

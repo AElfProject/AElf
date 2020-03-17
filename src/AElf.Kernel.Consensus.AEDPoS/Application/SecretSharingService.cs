@@ -11,6 +11,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {

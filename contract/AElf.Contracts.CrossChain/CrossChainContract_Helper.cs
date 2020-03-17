@@ -98,7 +98,8 @@ namespace AElf.Contracts.CrossChain
                 sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                 sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
+                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
+                sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
                 "Invalid chain creation request.");
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
@@ -171,31 +172,6 @@ namespace AElf.Contracts.CrossChain
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply,
                 IsProfitable = sideChainTokenInfo.IsProfitable
-            });
-        }
-
-        private void InitialResourceUsage(int chainId, MapField<string, int> initialResourceAmount)
-        {
-            if (State.ConfigurationContract.Value == null)
-            {
-                var configurationContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
-                if (configurationContractAddress == null)
-                {
-                    // If Configuration Contract has not deployed, skip following options.
-                    return;
-                }
-
-                State.ConfigurationContract.Value = configurationContractAddress;
-            }
-
-            State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput
-            {
-                ChainId = new SInt32Value {Value = chainId},
-                ResourceTokenAmount = new ResourceTokenAmount
-                {
-                    Value = {initialResourceAmount.ToDictionary(i => i.Key, i => i.Value)}
-                }
             });
         }
 

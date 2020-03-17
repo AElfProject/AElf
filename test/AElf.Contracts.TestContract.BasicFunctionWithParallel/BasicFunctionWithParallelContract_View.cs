@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         {
             return new MoneyOutput
             {
-                Int64Value = State.WinerHistory[address]
+                Int64Value = State.WinnerHistory[address]
             };
         }
 
@@ -52,8 +52,8 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         {
             return new TwoUserMoneyOut
             {
-                FirstInt64Value = State.WinerHistory[input.First],
-                SecondInt64Value = State.WinerHistory[input.Second]
+                FirstInt64Value = State.WinnerHistory[input.First],
+                SecondInt64Value = State.WinnerHistory[input.Second]
             };
         }
 

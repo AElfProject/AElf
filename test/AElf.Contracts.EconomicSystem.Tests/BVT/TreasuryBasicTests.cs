@@ -124,7 +124,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             };
             var createResult = await bpParliamentStub.CreateProposal.SendAsync(proposalToUpdateInterest);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+
+            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
             await bpParliamentStub.Approve.SendAsync(proposalHash);
             await ParliamentContractStub.Release.SendAsync(proposalHash);
             var interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());

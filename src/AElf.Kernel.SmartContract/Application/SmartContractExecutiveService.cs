@@ -36,8 +36,8 @@ namespace AElf.Kernel.SmartContract.Application
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _smartContractRegistrationProvider = smartContractRegistrationProvider;
              _smartContractExecutiveProvider = smartContractExecutiveProvider;
-
-             Logger = new NullLogger<SmartContractExecutiveService>();
+             
+            Logger = NullLogger<SmartContractExecutiveService>.Instance;
         }
 
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
@@ -85,6 +85,11 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             await Task.CompletedTask;
+        }
+
+        public void CleanExecutive(Address address)
+        {
+            _smartContractExecutiveProvider.TryRemove(address, out _);
         }
 
         public void CleanIdleExecutive()

@@ -17,6 +17,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
@@ -63,6 +64,7 @@ namespace AElf.Contracts.TestBase
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<TContractTestAElfModule>());
 
+        //TODO: use a util method
         public byte[] ConsensusContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
 
@@ -690,7 +692,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <returns></returns>
         public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply,
-            out long dividend, out long balanceOfStarter)
+            out long dividend, out long balanceOfStarter, bool addDefaultPrivilegedProposer = false)
         {
             totalSupply = TokenTotalSupply;
             dividend = InitialTreasuryAmount;
@@ -720,34 +722,32 @@ namespace AElf.Contracts.TestBase
                 {
                     IsPrivilegePreserved = true
                 });
+
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var parliamentContractInitializeInput = new Parliament.InitializeInput();
+            if (addDefaultPrivilegedProposer)
+            {
+                parliamentContractInitializeInput.PrivilegedProposer = SampleAddress.AddressList[0];
+            }
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize),
-                new Parliament.InitializeInput());
+                parliamentContractInitializeInput);
 
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.InitialTotalResourceTokens), new ResourceTokenAmount
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                new SetConfigurationInput
                 {
-                    Value =
+                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Value = new RequiredAcsInContracts
                     {
-                        {"CPU", SmartContractTestConstants.ResourceSupply},
-                        {"RAM", SmartContractTestConstants.ResourceSupply},
-                        {"DISK", SmartContractTestConstants.ResourceSupply},
-                        {"NET", SmartContractTestConstants.ResourceSupply},
-                    }
+                        AcsList =
+                        {
+                            Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
+                                .Value.ContractFeeStrategyAcsList
+                        }
+                    }.ToByteString()
                 });
-            configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.SetRequiredAcsInContracts),
-                new RequiredAcsInContracts
-                {
-                    AcsList =
-                    {
-                        Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
-                            .Value.ContractFeeStrategyAcsList
-                    }
-                });
-
 
             return list =>
             {

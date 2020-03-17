@@ -261,11 +261,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.csproj", "{F0159BE3-115F-408B-9D4F-E296F3592C12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController", "src\AElf.Kernel.BlockTransactionLimitController\AElf.Kernel.BlockTransactionLimitController.csproj", "{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuration", "contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj", "{A9436A00-8763-4C23-BBE0-BFC6C5B49056}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController.Tests", "test\AElf.Kernel.BlockTransactionLimitController.Tests\AElf.Kernel.BlockTransactionLimitController.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration.Tests", "test\AElf.Kernel.Configuration.Tests\AElf.Kernel.Configuration.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Tests", "test\AElf.CrossChain.Communication.Tests\AElf.CrossChain.Communication.Tests.csproj", "{DFD63F70-CC2D-4971-A0A2-28A3865EBA02}"
 EndProject
@@ -326,6 +324,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.CommitmentScheme", "test\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj", "{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseChain.ContractNames", "src\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj", "{1861D1B6-8895-42A1-97FB-76AD782620D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Configuration", "src\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj", "{836C5CB0-8BED-408C-9800-4285F539B8CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation", "src\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj", "{47997F91-65B1-406B-9DB1-2D0BEBF7F759}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation.Tests", "test\AElf.Kernel.FeeCalculation.Tests\AElf.Kernel.FeeCalculation.Tests.csproj", "{9C88CD17-D2F3-4B07-95FC-D127497064AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -773,10 +777,6 @@ Global
 		{2968AA64-9848-4932-A571-39F160166FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -933,6 +933,18 @@ Global
 		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1861D1B6-8895-42A1-97FB-76AD782620D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{836C5CB0-8BED-408C-9800-4285F539B8CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1057,7 +1069,6 @@ Global
 		{A7829691-3FEF-4621-8339-2415AC4AC24C} = {89AC0402-38F7-405C-B244-31C5F13FD364}
 		{8E7DE108-9D03-4DD7-A245-D12E9042915C} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{2968AA64-9848-4932-A571-39F160166FD7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
-		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{FF705729-1E79-4736-A1A6-D725B8D6EFA6} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
@@ -1098,5 +1109,8 @@ Global
 		{A3425AC9-6CD0-4D39-B82B-5716456F1C70} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{1861D1B6-8895-42A1-97FB-76AD782620D3} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
+		{836C5CB0-8BED-408C-9800-4285F539B8CA} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{47997F91-65B1-406B-9DB1-2D0BEBF7F759} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{9C88CD17-D2F3-4B07-95FC-D127497064AA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

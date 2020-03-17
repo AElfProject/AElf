@@ -34,6 +34,7 @@ namespace AElf.Runtime.CSharp
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
         public bool IsSystemContract { get; set; }
+        public string ContractVersion { get; set; }
         public Timestamp LastUsedTime { get; set; }
 
         private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
@@ -186,7 +187,6 @@ namespace AElf.Runtime.CSharp
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                    CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                 }
 
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;

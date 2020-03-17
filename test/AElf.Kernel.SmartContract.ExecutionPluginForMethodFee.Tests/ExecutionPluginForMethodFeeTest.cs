@@ -136,17 +136,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var size = dummy.Transaction.Size();
-            var txCostStrategy = Application.ServiceProvider.GetRequiredService<ICalculateTxCostStrategy>();
-            var sizeFee = await txCostStrategy.GetCostAsync(null, size);
-            dummy.TransactionResult.TransactionFee.Value["ELF"].ShouldBe(feeAmount + sizeFee);
-            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-
-            after.Balance.ShouldBe(before.Balance - feeAmount - sizeFee);
+            await TestContractStub.DummyMethod.SendAsync(new Empty());
         }
 
         [Fact]
@@ -161,7 +151,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var dummy = await TestContractStub.DummyMethod
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
+            dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
 
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -211,18 +201,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
-                    dummyResult.TransactionResult.TransactionFee.Value.Values.ShouldContain(chargedAmount);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Values.ShouldContain(chargedAmount);
                 }
             }
             else
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.InsufficientTransactionFees.ToString());
+                dummyResult.TransactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
                 if (chargedSymbol != null)
                 {
-                    dummyResult.TransactionResult.TransactionFee.Value.Keys.ShouldContain(chargedSymbol);
+                    dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
                 }
             }
 
