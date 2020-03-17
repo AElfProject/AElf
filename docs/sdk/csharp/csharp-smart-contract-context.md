@@ -213,6 +213,8 @@ It's sometimes useful to get the address of a system contract. The input is a ha
 public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
 ```
 
+Get the mapping that associates the system contract addresses and their hash.
+
 ### EncryptMessage
 
 ```csharp
