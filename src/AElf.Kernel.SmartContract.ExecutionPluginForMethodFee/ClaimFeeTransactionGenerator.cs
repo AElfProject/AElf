@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     MethodName = nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
                     Params = ByteString.Empty
                 }
             });
