@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
+using AElf.Kernel.CodeCheck;
 using AElf.Kernel.Node.Events;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.CodeCheck
+namespace AElf.Kernel
 {
     public class InitialSyncFinishedEventHandler : ILocalEventHandler<InitialSyncFinishedEvent>, ITransientDependency
     {

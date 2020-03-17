@@ -1,4 +1,5 @@
 using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -10,7 +11,7 @@ namespace AElf.Contracts.Configuration
     {
         public override Empty SetConfiguration(SetConfigurationInput input)
         {
-            CheckSenderIsControllerOrZeroContract();
+            AssertPerformedByConfigurationControllerOrZeroContract();
             Assert(input.Key.Any() && input.Value != null, "Invalid set config input.");
             State.Configurations[input.Key] = new BytesValue {Value = input.Value};
             Context.Fire(new ConfigurationSet
@@ -27,17 +28,18 @@ namespace AElf.Contracts.Configuration
             return value ?? new BytesValue();
         }
 
-        public override Empty ChangeConfigurationController(Address input)
+        public override Empty ChangeConfigurationController(AuthorityInfo input)
         {
-            CheckControllerAuthority();
+            AssertPerformedByConfigurationController();
+            Assert(input != null, "invalid input");
+            Assert(CheckOrganizationExist(input),"Invalid authority input.");
             State.ConfigurationController.Value = input;
             return new Empty();
         }
 
-        public override Address GetConfigurationController(Empty input)
+        public override AuthorityInfo GetConfigurationController(Empty input)
         {
-            var address = GetControllerForManageConfiguration();
-            return address;
+            return State.ConfigurationController.Value ?? GetDefaultConfigurationController();
         }
     }
 }

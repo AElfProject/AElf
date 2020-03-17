@@ -31,7 +31,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
                     out _,
-                    out _balanceOfStarter)));
+                    out _balanceOfStarter, true)));
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);
@@ -119,9 +119,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             return transactionResult;
         }
 
-        internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(Address address)
+        internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(AuthorityInfo authorityInfo)
         {
-            var createProposalInput = address;
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
                     nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
@@ -133,7 +132,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 {
                     ContractMethodName = nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = createProposalInput.ToByteString(),
+                    Params = authorityInfo.ToByteString(),
                     ToAddress = ConfigurationContractAddress,
                     OrganizationAddress = organizationAddress
                 });

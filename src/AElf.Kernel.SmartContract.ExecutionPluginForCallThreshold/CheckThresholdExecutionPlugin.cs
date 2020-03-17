@@ -14,25 +14,19 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
 {
-    public class MethodCallingThresholdPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
+    public class MethodCallingThresholdPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private const string AcsSymbol = "acs5";
 
-        public MethodCallingThresholdPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public MethodCallingThresholdPreExecutionPlugin(IHostSmartContractBridgeContextService contextService):base("acs5")
         {
             _contextService = contextService;
-        }
-
-        private static bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs5(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }
