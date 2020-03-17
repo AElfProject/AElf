@@ -2,10 +2,6 @@
 
 This class represents the transaction execution context in a smart contract. An instance of this class is present in the base class for smart contracts (*Context* property). It provides access to properties and methods useful for implementing the logic in smart contracts. 
 
-
-└── AElf.Kernel.SmartContract.ISmartContractBridgeContext  
-    └── CSharpSmartContractContext
-
 ## Properties
 
 ### StateProvider
