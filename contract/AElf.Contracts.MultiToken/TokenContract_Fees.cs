@@ -19,6 +19,12 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
+            if (IsCrossChainReceiveToken(input) && State.IsTransactionFeeCharged[Context.TransactionId])
+            {
+                State.IsTransactionFeeCharged.Remove(Context.TransactionId);
+                return new BoolValue {Value = true};
+            }
+
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
@@ -60,7 +66,27 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
+            var chargeResult = successToChargeBaseFee && successToChargeSizeFee;
+            if (IsCrossChainReceiveToken(input))
+            {
+                if (chargeResult)
+                {
+                    State.IsTransactionFeeCharged[Context.TransactionId] = true;
+                }
+                else
+                {
+                    return new BoolValue {Value = true};
+                }
+            }
+
+            return new BoolValue {Value = chargeResult};
+        }
+
+        private bool IsCrossChainReceiveToken(ChargeTransactionFeesInput input)
+        {
+            return input.ContractAddress ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName) &&
+                   input.MethodName == nameof(CrossChainReceiveToken);
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -163,7 +189,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
-        
+
             var bill = new TransactionFeeBill();
             foreach (var pair in input.CostDic)
             {
