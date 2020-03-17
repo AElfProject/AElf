@@ -150,7 +150,7 @@ namespace AElf.Contracts.CrossChain
                 Amount = input.Amount,
                 Memo = "Indexing fee recharging."
             });
-            
+
             if (oldBalance < 0)
             {
                 // arrears
@@ -165,7 +165,7 @@ namespace AElf.Contracts.CrossChain
                     });
                 }
             }
-            
+
             sideChainInfo.ArrearsInfo.Clear();
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             State.SideChainInfo[chainId] = sideChainInfo;

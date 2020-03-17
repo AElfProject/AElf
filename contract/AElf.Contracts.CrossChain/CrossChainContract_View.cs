@@ -160,6 +160,7 @@ namespace AElf.Contracts.CrossChain
 
             Assert(sideChainInfo != null && sideChainCreationRequest != null, "Side chain not found.");
 
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var res = new ChainInitializationData
             {
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
@@ -168,7 +169,8 @@ namespace AElf.Contracts.CrossChain
                 CreationTimestamp = sideChainInfo.CreationTimestamp,
                 ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
                 InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount},
-                SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList}
+                SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList},
+                ParentChainTokenContractAddress = State.TokenContract.Value
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[input.Value].Value;
             res.ExtraInformation.Add(consensusInformation);
@@ -179,9 +181,13 @@ namespace AElf.Contracts.CrossChain
             ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
             res.ExtraInformation.Add(resourceTokenInformation);
 
-            ByteString sideChainTokenInformation =
-                GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
-            res.ExtraInformation.Add(sideChainTokenInformation);
+            if (sideChainCreationRequest.IsPrivilegePreserved)
+            {
+                ByteString sideChainTokenInformation =
+                    GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
+                res.ExtraInformation.Add(sideChainTokenInformation);
+            }
+            
             return res;
         }
 

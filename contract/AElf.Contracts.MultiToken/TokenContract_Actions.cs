@@ -169,7 +169,6 @@ namespace AElf.Contracts.MultiToken
             AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
-            Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,

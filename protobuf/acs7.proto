@@ -121,6 +121,7 @@ message ChainInitializationData {
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
     map<string, sint32> initial_resource_amount = 9;
     int32 minimum_profits_donation_parts_per_hundred = 10;
+    aelf.Address parent_chain_token_contract_address = 11;
 }
 
 message SideChainCreationRequest {
