@@ -25,6 +25,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransacti
             // Stop charging fee from system txs and plugin txs.
             return new List<string>
             {
+                // System tx
+                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
+                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+
                 // Pre-plugin tx
                 nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
                 nameof(TokenContractContainer.TokenContractStub.CheckThreshold),

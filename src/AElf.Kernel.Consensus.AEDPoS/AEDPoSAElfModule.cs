@@ -41,9 +41,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
-
-            context.Services.AddSingleton<ISystemTransactionRecognizer, AEDPosSystemTransactionRecognizer>();
-
+            
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
 
             // Our purpose is that other modules won't sense which consensus protocol are using, 

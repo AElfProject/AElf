@@ -13,7 +13,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
-            context.Services.AddTransient<ISystemTransactionRecognizer, ClaimFeeTransactionRecognizer>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
