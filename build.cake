@@ -9,7 +9,7 @@ var distPath     = rootPath + "aelf-node/";
 var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
-
+var apikey=EnvironmentVariable("MYGET_API_KEY");
 Task("Clean")
     .Description("clean up project cache")
     .Does(() =>
@@ -33,7 +33,6 @@ Task("Restore")
 };
     DotNetCoreRestore(solution,restoreSettings);
 });
-
 Task("Build")
     .Description("Compilation project")
     .IsDependentOn("Clean")
@@ -50,7 +49,26 @@ Task("Build")
      
     DotNetCoreBuild(solution, buildSetting);
 });
-
+Task("Build-Release")
+    .Description("Compilation project")
+    .IsDependentOn("Clean")
+    .IsDependentOn("Restore")
+    .Does(() =>
+{
+    var buildSetting = new DotNetCoreBuildSettings{
+        NoRestore = true,
+        Configuration = "Release",
+        ArgumentCustomization = args => {                   
+            return args.Append("/clp:ErrorsOnly")                 
+                       .Append("-v quiet")
+                       .Append("-P:Version=VERSION")
+                       .Append("-P:Authors=AElf")
+                       .Append("-o ./nuget")
+;}      
+    };      
+     
+    DotNetCoreBuild(solution, buildSetting);
+});
 
 Task("Test-with-Codecov")
     .Description("operation test_with_codecov")
@@ -175,7 +193,38 @@ Task("Upload-Coverage-Azure")
 {
     Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
 });
+Task("Publish-Nuget")
+    .IsDependentOn("Build-Release")
+    .Does(() => {
+        var pushSettings = new DotNetCoreNuGetPushSettings 
+        {
+            Source = "https://api.nuget.org/v3/index.json",
+            ApiKey = "$NUGET_API_KEY"
+        };
 
+        var pkgs = GetFiles("./nuget/*.nupkg");
+        foreach(var pkg in pkgs) 
+        {
+                Information($"Publishing \"{pkg}\".");
+                DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+        }
+    });
+Task("Publish-Myget")
+    .IsDependentOn("Build-Release")
+    .Does(() => {
+        var pushSettings = new DotNetCoreNuGetPushSettings 
+        {
+            Source = "https://www.myget.org/F/aelf-project-dev/api/v3/index.json",
+            ApiKey = apikey
+        };
+
+        var pkgs = GetFiles("./nuget/*.nupkg");
+        foreach(var pkg in pkgs) 
+        {
+                Information($"Publishing \"{pkg}\".");
+                DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+        }
+    });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
 
