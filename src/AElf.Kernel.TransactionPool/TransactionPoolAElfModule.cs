@@ -19,7 +19,7 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             // Validate proposed method is allowed.
             services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
-            services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             // Validate sender's balance is not 0.
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 

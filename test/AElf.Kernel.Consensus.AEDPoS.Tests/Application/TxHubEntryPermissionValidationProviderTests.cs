@@ -8,12 +8,12 @@ using Xunit;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests.Application
 {
-    public class NotAllowEnterTxHubValidationProviderTests : AEDPoSTestBase
+    public class TxHubEntryPermissionValidationProviderTests : AEDPoSTestBase
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionValidationProvider _validationProvider;
         private readonly KernelTestHelper _kernelTestHelper;
-        public NotAllowEnterTxHubValidationProviderTests()
+        public TxHubEntryPermissionValidationProviderTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _validationProvider = GetRequiredService<ITransactionValidationProvider>();

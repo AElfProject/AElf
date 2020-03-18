@@ -34,6 +34,7 @@ namespace AElf.Runtime.CSharp
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
         public bool IsSystemContract { get; set; }
+        public string ContractVersion { get; set; }
         public Timestamp LastUsedTime { get; set; }
 
         private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)

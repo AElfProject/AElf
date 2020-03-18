@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly
                 .Location;
             var code = File.ReadAllBytes(testContractFile);
-            var runner = new SmartContractRunnerForCategoryZero(
+            var runner = new CSharpSmartContractRunner(
                 Path.GetDirectoryName(testContractFile)
             );
             var executive = AsyncHelper.RunSync(() => runner.RunAsync(new SmartContractRegistration()
