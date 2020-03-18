@@ -193,22 +193,6 @@ Task("Upload-Coverage-Azure")
 {
     Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
 });
-Task("Publish-Nuget")
-    .IsDependentOn("Build-Release")
-    .Does(() => {
-        var pushSettings = new DotNetCoreNuGetPushSettings 
-        {
-            Source = "https://api.nuget.org/v3/index.json",
-            ApiKey = "$NUGET_API_KEY"
-        };
-
-        var pkgs = GetFiles("./nuget/*.nupkg");
-        foreach(var pkg in pkgs) 
-        {
-                Information($"Publishing \"{pkg}\".");
-                DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
-        }
-    });
 Task("Publish-Myget")
     .IsDependentOn("Build-Release")
     .Does(() => {
