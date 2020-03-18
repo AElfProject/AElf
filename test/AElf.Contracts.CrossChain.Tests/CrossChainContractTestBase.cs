@@ -272,10 +272,13 @@ namespace AElf.Contracts.CrossChain.Tests
             Dictionary<string, int> resourceAmount = null)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
-                resourceAmount ?? GetValidResourceAmount(), new SideChainTokenInitialIssue
+                resourceAmount ?? GetValidResourceAmount(), new[]
                 {
-                    Address = DefaultSender,
-                    Amount = 100
+                    new SideChainTokenInitialIssue
+                    {
+                        Address = DefaultSender,
+                        Amount = 100
+                    }
                 });
             var crossChainContractStub = keyPair == null ? CrossChainContractStub : GetCrossChainContractStub(keyPair);
             var requestSideChainCreation =
@@ -329,7 +332,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            Dictionary<string, int> resourceAmount, params SideChainTokenInitialIssue[] sideChainTokenInitialIssueList)
+            Dictionary<string, int> resourceAmount, SideChainTokenInitialIssue[] sideChainTokenInitialIssueList, bool isPrivilegePreserved = false)
         {
             var res = new SideChainCreationRequest
             {
@@ -341,7 +344,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 SideChainTokenSymbol = "TE",
                 SideChainTokenName = "TEST",
                 SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
-                InitialResourceAmount = {resourceAmount}
+                InitialResourceAmount = {resourceAmount},
+                IsPrivilegePreserved = isPrivilegePreserved
             };
             return res;
         }

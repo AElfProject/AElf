@@ -24,6 +24,11 @@ namespace AElf.Contracts.MultiToken
 
             State.MinimumProfitsDonationPartsPerHundred.Value = input.MinimumProfitsDonationPartsPerHundred;
             State.Initialized.Value = true;
+            foreach (var pair in input.RegisteredOtherTokenContractAddresses)
+            {
+                State.CrossChainTransferWhiteList[pair.Key] = pair.Value;
+            }
+            
             return new Empty();
         }
 
@@ -202,7 +207,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(symbol, amount);
             int issueChainId = GetIssueChainId(symbol);
             Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
+            Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
             var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
             AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
@@ -429,7 +434,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetMinimumProfitsDonationPartsPerHundred(Int32Value input)
         {
             AssertControllerForSideChainRental();
-            Assert(input.Value >=0 && input.Value <= 100, "Invalid value.");
+            Assert(input.Value >= 0 && input.Value <= 100, "Invalid value.");
             State.MinimumProfitsDonationPartsPerHundred.Value = input.Value;
             return new Empty();
         }
@@ -567,7 +572,7 @@ namespace AElf.Contracts.MultiToken
             var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
             var isSystemContractAddress = systemContractAddresses.Contains(sender);
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-            
+
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }

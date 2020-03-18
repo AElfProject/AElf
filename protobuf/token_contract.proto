@@ -334,7 +334,7 @@ message AddTokeWhiteListInput{
 message InitializeInput {
     map<string, sint32> resource_amount = 1;
     sint32 minimum_profits_donation_parts_per_hundred = 2;
-
+    map<int32, aelf.Address> registered_other_token_contract_addresses = 3;
 }
 
 message UpdateCoefficientsInput {

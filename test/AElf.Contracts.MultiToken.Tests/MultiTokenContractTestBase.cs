@@ -27,10 +27,8 @@ using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Mono.Cecil.Cil;
 using Shouldly;
 using Volo.Abp.Threading;
-using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.MultiToken
@@ -210,7 +208,7 @@ namespace AElf.Contracts.MultiToken
                 .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
         }
 
-        protected void StartSideChain(int chainId, long height, string symbol)
+        protected void StartSideChain(int chainId, long height, string symbol, bool registerParentChainTokenContractAddress)
         {
             SideChainTester =
                 new ContractTester<MultiTokenContractCrossChainTestAElfModule>(chainId, SampleECKeyPairs.KeyPairs[0]);
@@ -218,7 +216,8 @@ namespace AElf.Contracts.MultiToken
                 SideChainTester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChainTester.GetSideChainSystemContract(
                         SideChainTester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChainTester.GetCallOwnerAddress(), height)));
+                        SideChainTester.GetCallOwnerAddress(), height,
+                        registerParentChainTokenContractAddress ? TokenContractAddress : null)));
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideCrossChainContractAddress =
                 SideChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
@@ -236,7 +235,7 @@ namespace AElf.Contracts.MultiToken
                 SideChain2Tester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChain2Tester.GetSideChainSystemContract(
                         SideChain2Tester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChain2Tester.GetCallOwnerAddress(), height)));
+                        SideChain2Tester.GetCallOwnerAddress(), height, TokenContractAddress)));
             Side2BasicContractZeroAddress = SideChain2Tester.GetZeroContractAddress();
             Side2CrossChainContractAddress =
                 SideChain2Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);

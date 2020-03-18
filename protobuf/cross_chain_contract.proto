@@ -26,9 +26,6 @@ service CrossChainContract {
     }
     
     // Views
-    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
-        option (aelf.is_view) = true;
-    }
     rpc GetSideChainCreator (aelf.SInt32Value) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
@@ -68,13 +65,6 @@ message InitializeInput {
     int32 parent_chain_id = 1;
     int64 creation_height_on_parent_chain = 2;
     bool is_privilege_preserved = 3;
-}
-
-message VerifyTransactionInput {
-    aelf.Hash transaction_id = 1;
-    aelf.MerklePath path = 2;
-    sint64 parent_chain_height = 3;
-    int32 verified_chain_id = 4;
 }
 
 message IndexedChainHeightDict{

@@ -41,6 +41,7 @@ using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenCont
 using ParliamentContractStub = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
+using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -772,7 +773,7 @@ namespace AElf.Contracts.TestBase
         public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, int mainChainId,
             string symbol,
             out long totalSupply,
-            Address proposer, long parentChainHeightOfCreation = 1)
+            Address proposer, long parentChainHeightOfCreation = 1, Address parentChainTokenContractAddress = null)
         {
             totalSupply = TokenTotalSupply;
             var nativeTokenInfo = new TokenInfo
@@ -820,6 +821,13 @@ namespace AElf.Contracts.TestBase
                     Symbol = symbol
                 });
 
+            if(parentChainTokenContractAddress != null)
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
+                    new InitializeInput
+                    {
+                        RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
+                    });
+            
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new Parliament.InitializeInput

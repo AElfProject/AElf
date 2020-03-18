@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
 using Acs1;
+using Acs7;
 
 namespace AElf.Contracts.MultiToken
 {
