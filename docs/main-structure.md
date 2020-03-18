@@ -11,7 +11,7 @@
         * [First contract - implement](tutorials/developing-smart-contracts/first-contract.md)
         * [First contract - test](tutorials/developing-smart-contracts/first-contract-test.md)
         * [First contract - deploy](tutorials/developing-smart-contracts/first-contract-deploy.md)
-        * [First contract - Front end](tutorials/developing-smart-contracts/front.md)
+        * [First contract - front end](tutorials/developing-smart-contracts/front.md)
         * [Execution context](tutorials/developing-smart-contracts/tx-execution-context.md)
         * [Inline contract calls](tutorials/developing-smart-contracts/internal-contract-call.md)
     * [Enterprise development](tutorials/enterprise.md)

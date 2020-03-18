@@ -45,7 +45,7 @@ and a page will be opened by webpack in your default browser.
 
 The code is straightforward, it uses aelf-sdk + webpack. You can check out more [**here**](https://github.com/AElfProject/aelf-sdk.js).
 
-Warning: be careful, this code is in no way production ready and is for demonstration purposes only.
+**Warning**: be careful, this code is in no way production ready and is for demonstration purposes only.
 
 It demonstrate the following capabilities of the js sdk:
 - getting the chain status.
