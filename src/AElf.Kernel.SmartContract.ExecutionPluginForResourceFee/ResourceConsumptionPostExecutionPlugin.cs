@@ -54,6 +54,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
 
+            // 在这里将ChargeResourceToken里的Context.Sender设置为目标合约。
             var tokenStub = GetTokenContractStub(transactionContext.Transaction.To, tokenContractAddress);
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))

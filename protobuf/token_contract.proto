@@ -39,7 +39,7 @@ service TokenContract {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
+    rpc CrossChainCreateToken (CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
 
     // acs1
