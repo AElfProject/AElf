@@ -9,7 +9,8 @@ var distPath     = rootPath + "aelf-node/";
 var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
-var apikey=EnvironmentVariable("MYGET_API_KEY");
+
+
 Task("Clean")
     .Description("clean up project cache")
     .Does(() =>
@@ -54,14 +55,15 @@ Task("Build-Release")
     .IsDependentOn("Clean")
     .IsDependentOn("Restore")
     .Does(() =>
-{
+{   var versionPrefix = EnvironmentVariable("MYGET_VERSION_PREFIX");
+    var buildVersion = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000 / 86400;
     var buildSetting = new DotNetCoreBuildSettings{
         NoRestore = true,
         Configuration = "Release",
         ArgumentCustomization = args => {                   
             return args.Append("/clp:ErrorsOnly")                 
                        .Append("-v quiet")
-                       .Append("-P:Version=VERSION")
+                       .Append($"-P:Version={versionPrefix}-{buildVersion}")
                        .Append("-P:Authors=AElf")
                        .Append("-o ./nuget")
 ;}      
@@ -196,10 +198,12 @@ Task("Upload-Coverage-Azure")
 Task("Publish-Myget")
     .IsDependentOn("Build-Release")
     .Does(() => {
+        var apiKey = EnvironmentVariable("MYGET_API_KEY");
         var pushSettings = new DotNetCoreNuGetPushSettings 
         {
             Source = "https://www.myget.org/F/aelf-project-dev/api/v3/index.json",
-            ApiKey = apikey
+            ApiKey = apiKey
+
         };
 
         var pkgs = GetFiles("./nuget/*.nupkg");
