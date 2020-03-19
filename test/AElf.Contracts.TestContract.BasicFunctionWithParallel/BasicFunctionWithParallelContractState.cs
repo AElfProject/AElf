@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         public Int64State TotalBetBalance { get; set; }
         public Int64State RewardBalance { get; set; }
         
-        public MappedState<Address, long> WinerHistory { get; set; }   
+        public MappedState<Address, long> WinnerHistory { get; set; }   
         public MappedState<Address, long> LoserHistory { get; set; }
         
         public MappedState<string,string> StringValueMap { get; set; }

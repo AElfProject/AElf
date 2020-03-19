@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContract.Application
             SmartContractRegistration smartContractRegistration)
         {
             var key = GetBlockExecutedDataKey(address);
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key,
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, key,
                 smartContractRegistration);
         }
 

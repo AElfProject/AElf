@@ -1,4 +1,3 @@
-using System;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel

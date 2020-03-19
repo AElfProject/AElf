@@ -23,5 +23,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Timestamp LastUsedTime { get; set; }
 
         bool IsSystemContract { get; }
+        
+        string ContractVersion { get; }
     }
 }
