@@ -9,6 +9,15 @@ namespace AElf.Contracts.TokenHolder
 {
     public partial class TokenHolderContract : TokenHolderContractContainer.TokenHolderContractBase
     {
+        /// <summary>
+        /// 借助本方法，DApp合约可以在Profit合约中创建一个针对代币持有人的分红方案。
+        /// 创建时包括三个输入：
+        /// 1. 利润分配指定的symbol（领取分红以代币持有人使用本合约进行锁仓为前提）
+        /// 2. 代币持有人锁仓的最小分钟数minimum_lock_minutes
+        /// 3. 当分红池额度达到多少时自动分配，可选
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty CreateScheme(CreateTokenHolderProfitSchemeInput input)
         {
             if (State.ProfitContract.Value == null)
@@ -34,6 +43,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// DApp合约自己维护分红方案权重的方法之一。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty AddBeneficiary(AddTokenHolderBeneficiaryInput input)
         {
             var scheme = GetValidScheme(Context.Sender);
@@ -67,6 +81,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// DApp合约自己维护分红方案权重的方法之一。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RemoveBeneficiary(RemoveTokenHolderBeneficiaryInput input)
         {
             var scheme = GetValidScheme(Context.Sender);
@@ -99,6 +118,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// DApp合约为分红方案的分红池增加分红额度。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty ContributeProfits(ContributeProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
@@ -130,6 +154,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// DApp合约释放分红；当前Token合约也可以帮助释放分红。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty DistributeProfits(DistributeProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager, true);
@@ -146,6 +175,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// 指定代币的持有人可以通过此方法为自己增加分红权重。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RegisterForProfits(RegisterForProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
@@ -196,6 +230,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// 代币持有人赎回锁仓代币，放弃权重。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Withdraw(Address input)
         {
             var scheme = GetValidScheme(input);
@@ -232,6 +271,11 @@ namespace AElf.Contracts.TokenHolder
             return new Empty();
         }
 
+        /// <summary>
+        /// 锁仓的代币持有人领取分红。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty ClaimProfits(ClaimProfitsInput input)
         {
             var scheme = GetValidScheme(input.SchemeManager);
