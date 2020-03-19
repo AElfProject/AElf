@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
@@ -12,35 +11,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : SmartContractExecutionPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private readonly ICalculateReadCostStrategy _readCostStrategy;
-        private readonly ICalculateWriteCostStrategy _writeCostStrategy;
-        private readonly ICalculateTrafficCostStrategy _trafficCostStrategy;
-        private readonly ICalculateStorageCostStrategy _storageCostStrategy;
-        
-        private const string AcsSymbol = "acs8";
+        private readonly IResourceTokenFeeService _resourceTokenFeeService;
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            //TODO: change strategy implement
-            ICalculateReadCostStrategy readCostStrategy,
-            ICalculateWriteCostStrategy writeCostStrategy,
-            ICalculateStorageCostStrategy storageCostStrategy,
-            ICalculateTrafficCostStrategy trafficCostStrategy)
+            IResourceTokenFeeService resourceTokenFeeService) : base("acs8")
         {
             _contextService = contextService;
-            _readCostStrategy = readCostStrategy;
-            _writeCostStrategy = writeCostStrategy;
-            _storageCostStrategy = storageCostStrategy;
-            _trafficCostStrategy = trafficCostStrategy;
+            _resourceTokenFeeService = resourceTokenFeeService;
         }
-
-        private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
-        }
-
+        
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
@@ -57,7 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs8(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }
@@ -86,30 +68,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
 
-            // Transaction size related to TRAFFIC Token.
-            var trafficSize = transactionContext.Transaction.Size();
-            // Transaction trace state set writes count related to STORAGE Token.
-            var writesCount = transactionContext.Trace.StateSet.Writes.Count;
-            // Transaction trace state set reads count related to WRITE Token.
-            var readsCount = transactionContext.Trace.StateSet.Reads.Count;
             var chainContext = new ChainContext
             {
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-            var trafficCost = await _trafficCostStrategy.GetCostAsync(chainContext, trafficSize);
-            var readCost = await _readCostStrategy.GetCostAsync(chainContext, readsCount);
-            var storageCost = await _storageCostStrategy.GetCostAsync(chainContext, trafficSize);
-            var writeCost = await _writeCostStrategy.GetCostAsync(chainContext, writesCount);
-            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
-                new ChargeResourceTokenInput
-                {
-                    TrafficCost = trafficCost,
-                    StorageCost = storageCost,
-                    ReadCost = readCost,
-                    WriteCost = writeCost,
-                    Caller = transactionContext.Transaction.From
-                })).Transaction;
+            var chargeResourceTokenInput = new ChargeResourceTokenInput
+            {
+                Caller = transactionContext.Transaction.From
+            };
+
+            var feeCalculationResult =
+                await _resourceTokenFeeService.CalculateFeeAsync(transactionContext, chainContext);
+            chargeResourceTokenInput.CostDic.Add(feeCalculationResult);
+
+            var chargeResourceTokenTransaction =
+                (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
 
             return new List<Transaction>
             {

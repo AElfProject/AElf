@@ -3,9 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Parliament;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
+using AElf.Kernel.Txn.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -178,13 +181,18 @@ namespace AElf.CrossChain.Indexing.Application
             return Task.FromResult(inputForNextMining);
         }
 
-        public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
+        public async Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp)
         {
-            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight)
-                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
+            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, timestamp);
+            return pendingProposal != null && pendingProposal.ToBeReleased && pendingProposal.ExpiredTime > timestamp;
+        }
 
+        public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
+        { 
             var utcNow = TimestampHelper.GetUtcNow();
-            if (pendingProposal == null || pendingProposal.ExpiredTime <= utcNow)
+            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, utcNow);
+
+            if (pendingProposal == null || pendingProposal.ExpiredTime.AddMilliseconds(500) <= utcNow)
             {
                 // propose new cross chain indexing data if pending proposal is null or expired 
                 var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight);
@@ -215,24 +223,6 @@ namespace AElf.CrossChain.Indexing.Application
             Logger.LogInformation("Cross chain extra data generated.");
             return pendingProposal.ProposedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
         }
-
-
-        // public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
-        // {
-        //     if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
-        //         return ByteString.Empty;
-        //
-        //     var txRootHashList = crossChainBlockData.SideChainBlockDataList
-        //         .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
-        //
-        //     var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
-        //     Logger.LogInformation("Cross chain extra data generated.");
-        //     return new CrossChainExtraData
-        //         {
-        //             TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
-        //         }
-        //         .ToByteString();
-        // }
 
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
@@ -279,6 +269,14 @@ namespace AElf.CrossChain.Indexing.Application
                 SideChainBlockDataList = {sideChainBlockData}
             };
             return crossChainBlockData;
+        }
+
+        private async Task<GetPendingCrossChainIndexingProposalOutput> GetPendingCrossChainIndexingProposalAsync(
+            Hash blockHash, long blockHeight, Timestamp timestamp)
+        {
+            var pendingProposal = await _readerFactory.Create(blockHash, blockHeight, timestamp)
+                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
+            return pendingProposal;
         }
     }
 }

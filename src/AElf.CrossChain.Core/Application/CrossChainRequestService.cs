@@ -17,7 +17,8 @@ namespace AElf.CrossChain.Application
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
         public CrossChainRequestService(ICrossChainClientService crossChainClientService,
-            ICrossChainCacheEntityService crossChainCacheEntityService, IBlockCacheEntityProducer blockCacheEntityProducer)
+            ICrossChainCacheEntityService crossChainCacheEntityService,
+            IBlockCacheEntityProducer blockCacheEntityProducer)
         {
             _crossChainClientService = crossChainClientService;
             _crossChainCacheEntityService = crossChainCacheEntityService;
@@ -35,9 +36,10 @@ namespace AElf.CrossChain.Application
                     $"Try to request from chain {chainIdBased58}, from height {chainIdHeightPair.Value}");
                 try
                 {
-                    var client = await _crossChainClientService.GetCrossChainClientAsync(chainIdHeightPair.Key);
-                    await client.RequestCrossChainDataAsync(chainIdHeightPair.Value,
-                        b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
+                    var client = await _crossChainClientService.GetConnectedCrossChainClientAsync(chainIdHeightPair.Key);
+                    if (client != null)
+                        await client.RequestCrossChainDataAsync(chainIdHeightPair.Value,
+                            b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
                 }
                 catch (CrossChainRequestException e)
                 {

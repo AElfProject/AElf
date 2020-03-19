@@ -33,19 +33,18 @@ namespace AElf.WebApp.Application.Chain
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITxHub _txHub;
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         public ILogger<BlockChainAppService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
-            ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager)
+            ITxHub txHub, IBlockStateSetManger blockStateSetManger)
         {
             _blockchainService = blockchainService;
             _txHub = txHub;
-            _blockchainStateManager = blockchainStateManager;
+            _blockStateSetManger = blockStateSetManger;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -123,7 +122,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
+            var blockState = await _blockStateSetManger.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             

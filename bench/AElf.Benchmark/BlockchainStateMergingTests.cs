@@ -25,6 +25,7 @@ namespace AElf.Benchmark
         private ITransactionResultManager _transactionResultManager;
         private IBlockchainStateManager _blockchainStateManager;
         private IBlockchainStateService _blockchainStateService;
+        private IBlockStateSetManger _blockStateSetManger;
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private ITxHub _txHub;
@@ -46,6 +47,7 @@ namespace AElf.Benchmark
             _chainStateInfoCollection = GetRequiredService<IStateStore<ChainStateInfo>>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _chainManager = GetRequiredService<IChainManager>();
@@ -53,6 +55,7 @@ namespace AElf.Benchmark
             _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _txHub = GetRequiredService<ITxHub>();
+            
 
             _blockStateSets = new List<BlockStateSet>();
             _blocks = new List<Block>();
@@ -62,7 +65,7 @@ namespace AElf.Benchmark
             var blockHash = _chain.BestChainHash;
             while (true)
             {
-                var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
+                var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
                 _blockStateSets.Add(blockState);
 
                 var blockHeader = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
@@ -82,7 +85,7 @@ namespace AElf.Benchmark
                 var block = await _osTestHelper.MinedOneBlock();
                 _blocks.Add(block);
 
-                var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                var blockState = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
                 _blockStateSets.Add(blockState);
             }
 
@@ -105,7 +108,7 @@ namespace AElf.Benchmark
             await _chainStateInfoCollection.SetAsync(_chain.Id.ToStorageKey(), _chainStateInfo);
             foreach (var blockStateSet in _blockStateSets)
             {
-                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+                await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
             }
         }
 

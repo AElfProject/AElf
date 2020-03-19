@@ -15,10 +15,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             //invalid setting
             var tokenContractImplStub = GetTokenContractImplTester(InitialCoreDataCenterKeyPairs.Last());
             var txResult =
-                await tokenContractImplStub.UpdateCoefficientFromContract.SendAsync(new CoefficientFromContract());
+                await tokenContractImplStub.UpdateCoefficientsForContract.SendAsync(new UpdateCoefficientsInput());
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 
-            txResult = await tokenContractImplStub.UpdateCoefficientFromSender.SendAsync(new CoefficientFromSender());
+            txResult = await tokenContractImplStub.UpdateCoefficientsForSender.SendAsync(new UpdateCoefficientsInput());
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
     }

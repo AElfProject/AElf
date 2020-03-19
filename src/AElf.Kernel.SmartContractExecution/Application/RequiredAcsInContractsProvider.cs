@@ -19,14 +19,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        
+
         private Address ConfigurationContractAddress => _smartContractAddressService.GetAddressByContractName(
             ConfigurationSmartContractAddressNameProvider.Name);
-        
+
         //TODO: strange way
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
-        public RequiredAcsInContractsProvider(ISmartContractAddressService smartContractAddressService, 
+        public RequiredAcsInContractsProvider(ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -39,22 +39,24 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 From = FromAddress,
                 To = ConfigurationContractAddress,
-                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetRequiredAcsInContracts),
-                Params = new Empty().ToByteString(),
+                MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                Params = new StringValue {Value = RequiredAcsInContractsConfigurationNameProvider.Name}.ToByteString(),
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
             };
 
-            var returned = await _transactionReadOnlyExecutionService.ExecuteAsync<RequiredAcsInContracts>(
+            var returned = await _transactionReadOnlyExecutionService.ExecuteAsync<BytesValue>(
                 new ChainContext
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
                 }, tx, TimestampHelper.GetUtcNow(), false);
 
+            var requiredAcsInContracts = new RequiredAcsInContracts();
+            requiredAcsInContracts.MergeFrom(returned.Value);
             return new RequiredAcsDto
             {
-                AcsList = returned.AcsList.ToList(),
-                RequireAll = returned.RequireAll
+                AcsList = requiredAcsInContracts.AcsList.ToList(),
+                RequireAll = requiredAcsInContracts.RequireAll
             };
         }
     }

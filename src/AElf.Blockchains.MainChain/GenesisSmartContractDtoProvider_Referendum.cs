@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Referendum;
 using AElf.Kernel;
 using AElf.OS.Node.Application;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;

@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 {
     [DependsOn(
         typeof(RxNetSchedulerAElfModule),
-        typeof(ConsensusAElfModule)
+        typeof(CoreConsensusAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSAElfModule : AElfModule
@@ -43,7 +43,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
-            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
 
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.

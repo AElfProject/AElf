@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException)
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -90,12 +90,6 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (!trace.IsSuccessful())
                     {
-#if DEBUG
-                        if (throwException)	
-                        {
-                            Logger.LogError(trace.Error);	
-                        }
-#endif
                         // Do not package this transaction if any of his inline transactions canceled.
                         if (IsTransactionCanceled(trace))
                         {
@@ -130,8 +124,6 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
-                    result.TransactionFee = trace.TransactionFee;
-                    result.ConsumedResourceTokens = trace.ConsumedResourceTokens;
                     transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
@@ -230,7 +222,8 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.Transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+                    singleTxExecutingDto.Transaction.To, executive);
 #if DEBUG
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
@@ -303,13 +296,7 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
-                    if (preTx.MethodName == "ChargeTransactionFees")
-                    {
-                        var txFee = new TransactionFee();
-                        txFee.MergeFrom(preTrace.ReturnValue);
-                        trace.TransactionFee = txFee;
-                    }
-                    
+
                     if (!preTrace.IsSuccessful())
                     {
                         return false;
@@ -320,8 +307,9 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (trace.TransactionFee == null || !trace.TransactionFee.IsFailedToCharge) continue;
+                    if (!plugin.IsStopExecuting(preTrace.ReturnValue)) continue;
 
+                    // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
                     preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
@@ -338,8 +326,10 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
+
             if (!trace.IsSuccessful())
             {
+                // If failed to execute this tx, at least we need to commit pre traces.
                 internalStateCache = new TieredStateCache(txContext.StateCache);
                 foreach (var preTrace in txContext.Trace.PreTraces)
                 {
@@ -369,13 +359,6 @@ namespace AElf.Kernel.SmartContract.Application
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
 
-                    if (postTx.MethodName == "ChargeResourceToken")
-                    {
-                        var consumedResourceTokens = new ConsumedResourceTokens();
-                        consumedResourceTokens.MergeFrom(postTrace.ReturnValue);
-                        trace.ConsumedResourceTokens = consumedResourceTokens;
-                    }
-
                     if (!postTrace.IsSuccessful())
                     {
                         return false;
@@ -390,66 +373,71 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
-            if (trace.ExecutionStatus == ExecutionStatus.Undefined)
+            if (!trace.IsSuccessful())
             {
-                return new TransactionResult
+                if (trace.ExecutionStatus == ExecutionStatus.Undefined)
                 {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
-                    BlockNumber = blockHeight,
-                    Error = ExecutionStatus.Undefined.ToString()
-                };
-            }
-
-            if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
-            {
-                if (trace.TransactionFee != null && trace.TransactionFee.IsFailedToCharge)
-                {
+                    // Cannot find specific contract method.
                     return new TransactionResult
                     {
                         TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        ReturnValue = trace.ReturnValue,
-                        ReadableReturnValue = trace.ReadableReturnValue,
+                        Status = TransactionResultStatus.Unexecutable,
                         BlockNumber = blockHeight,
-                        Logs = {trace.FlattenedLogs},
-                        Error = ExecutionStatus.InsufficientTransactionFees.ToString()
+                        Error = ExecutionStatus.Undefined.ToString()
                     };
                 }
+
+                // Show log events if pre-txs executed successfully.
+                var isContainLogEvents = trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed);
+
+                if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
+                {
+                    if (isContainLogEvents)
+                    {
+                        // All pre-txs succeeded, but one plugin stopped tx execution.
+                        // Need to add log events to tx result, as well as show the error message in this situation.
+                        return new TransactionResult
+                        {
+                            TransactionId = trace.TransactionId,
+                            Status = TransactionResultStatus.Failed,
+                            ReturnValue = trace.ReturnValue,
+                            BlockNumber = blockHeight,
+                            Logs = {trace.FlattenedLogs},
+                            Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
+                        };
+                    }
+
+                    return new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Unexecutable,
+                        BlockNumber = blockHeight,
+                        Error = trace.Error
+                    };
+                }
+
+                // Just failed.
                 return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Unexecutable,
+                    Status = TransactionResultStatus.Failed,
                     BlockNumber = blockHeight,
-                    Error = trace.Error
+                    Error = trace.Error,
+                    Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
                 };
             }
 
-            if (trace.IsSuccessful())
-            {
-                var txRes = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Mined,
-                    ReturnValue = trace.ReturnValue,
-                    ReadableReturnValue = trace.ReadableReturnValue,
-                    BlockNumber = blockHeight,
-                    //StateHash = trace.GetSummarizedStateHash(),
-                    Logs = {trace.FlattenedLogs}
-                };
-
-                txRes.UpdateBloom();
-
-                return txRes;
-            }
-
-            return new TransactionResult
+            // Is successful.
+            var txRes = new TransactionResult
             {
                 TransactionId = trace.TransactionId,
-                Status = TransactionResultStatus.Failed,
+                Status = TransactionResultStatus.Mined,
+                ReturnValue = trace.ReturnValue,
                 BlockNumber = blockHeight,
-                Error = trace.Error
+                Logs = {trace.FlattenedLogs}
             };
+            txRes.UpdateBloom();
+            return txRes;
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)

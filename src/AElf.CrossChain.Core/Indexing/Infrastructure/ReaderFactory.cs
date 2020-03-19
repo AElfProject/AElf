@@ -2,13 +2,13 @@ using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CrossChain.Indexing.Infrastructure
 {
     internal interface IReaderFactory
     {
-        CrossChainContractContainer.CrossChainContractStub Create(IChainContext chainContext);
-        CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight);
+        CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight, Timestamp timestamp = null);
     }
 
     internal class ReaderFactory : IReaderFactory
@@ -22,23 +22,18 @@ namespace AElf.CrossChain.Indexing.Infrastructure
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
         }
-
-        public CrossChainContractContainer.CrossChainContractStub Create(IChainContext chainContext)
+        
+        public CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight, Timestamp timestamp = null)
         {
             return new CrossChainContractContainer.CrossChainContractStub()
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService, _smartContractAddressService,
-                    chainContext)
+                    new ChainContext()
+                    {
+                        BlockHash = blockHash,
+                        BlockHeight = blockHeight
+                    }, timestamp ?? TimestampHelper.GetUtcNow())
             };
-        }
-
-        public CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight)
-        {
-            return Create(new ChainContext()
-            {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            });
         }
     }
 }

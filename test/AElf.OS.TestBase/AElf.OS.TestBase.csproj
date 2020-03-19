@@ -3,6 +3,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.OS</RootNamespace>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />

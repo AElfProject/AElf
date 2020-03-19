@@ -27,8 +27,6 @@ service ACS7 {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
-    rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
-    }
     rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
@@ -122,6 +120,7 @@ message ChainInitializationData {
     string side_chain_token_symbol = 7;
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 8;
     map<string, sint32> initial_resource_amount = 9;
+    int32 minimum_profits_donation_parts_per_hundred = 10;
 }
 
 message SideChainCreationRequest {
@@ -136,6 +135,7 @@ message SideChainCreationRequest {
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
     map<string, sint32> initial_resource_amount = 10; 
     bool is_side_chain_token_profitable = 11;
+    int32 minimum_profits_donation_parts_per_hundred = 12;
 }
 
 message SideChainTokenInitialIssue{

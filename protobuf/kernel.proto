@@ -38,7 +38,7 @@ enum ExecutionStatus {
     //   Contract reasons
     CONTRACT_ERROR = -10;
     EXCEEDED_MAX_CALL_DEPTH = -11;
-    INSUFFICIENT_TRANSACTION_FEES = -12;
+    EXECUTION_STOPPED_BY_PRE_PLUGIN = -12;
 
     // Pre-failed
     PREFAILED = -99;
@@ -61,11 +61,8 @@ message TransactionTrace {
     int64 elapsed = 11;
     ExecutionStatus execution_status = 12;
     TransactionExecutingStateSet state_set = 13;
-    string readable_return_value = 14;
-    TransactionFee transaction_fee = 15;
-    ConsumedResourceTokens consumed_resource_tokens = 16;
-    int32 execution_call_count = 17;
-    int32 execution_branch_count = 18;
+    int32 execution_call_count = 14;
+    int32 execution_branch_count = 15;
 }
 
 message ExecutionReturnSet {
@@ -120,7 +117,7 @@ message BlockStateSet {
     int64 block_height = 3;
     map<string, bytes> changes = 4;
     repeated string deletes = 5;
-    map<string, bytes> block_executed_cache = 6;
+    map<string, bytes> block_executed_data = 6;
 }
 
 enum ChainStateMergingStatus {

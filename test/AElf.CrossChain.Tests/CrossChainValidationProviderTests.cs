@@ -5,10 +5,10 @@ using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Xunit;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.CrossChain
 {
@@ -139,7 +139,7 @@ namespace AElf.CrossChain
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
             var res = await _crossChainBlockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
-            Assert.True(res);
+            Assert.False(res);
         }
         
         [Fact]

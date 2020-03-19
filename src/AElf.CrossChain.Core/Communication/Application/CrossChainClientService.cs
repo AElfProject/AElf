@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Communication.Application
             _crossChainClientProvider = crossChainClientProvider;
         }
 
-        public async Task<ICrossChainClient> GetCrossChainClientAsync(int chainId)
+        public async Task<ICrossChainClient> GetConnectedCrossChainClientAsync(int chainId)
         {
             if (!_crossChainClientProvider.TryGetClient(chainId, out var client))
                 return null;

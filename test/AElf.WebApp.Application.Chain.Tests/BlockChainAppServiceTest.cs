@@ -45,6 +45,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
 
@@ -57,6 +58,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -312,10 +314,12 @@ namespace AElf.WebApp.Application.Chain.Tests
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<string>("/api/blockChain/executeRawTransaction",
                     parameters);
-            var jObject = JObject.Parse(sendTransactionResponse);
-            jObject["owner"].ShouldBe(accountAddress.GetFormatted());
-            jObject["symbol"].ShouldBe("ELF");
-            jObject.Value<long>("balance").ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
+            var getBalanceOutput =
+                GetBalanceOutput.Parser.ParseFrom(
+                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(sendTransactionResponse)));
+            getBalanceOutput.Owner.ShouldBe(accountAddress);
+            getBalanceOutput.Symbol.ShouldBe("ELF");
+            getBalanceOutput.Balance.ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
         }
 
         [Fact]
@@ -944,7 +948,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
             blockState.Changes.ShouldNotBeNull();
 
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             await _blockchainStateService.MergeBlockStateAsync(blockStateSet.BlockHeight,
                 blockStateSet.BlockHash);
 
