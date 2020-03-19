@@ -1,3 +1,3 @@
 # C# contract SDK 
 
-todo intro
+This section provides documentation for the C# SDK used for writing contracts.
