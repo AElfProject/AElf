@@ -15,34 +15,28 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             IDictionary<Address, NonparallelContractCode> nonparallelContractCodes);
     }
 
-    public class NonparallelContractCodeProvider : BlockExecutedDataProvider, INonparallelContractCodeProvider,
+    public class NonparallelContractCodeProvider : BlockExecutedDataBaseProvider<NonparallelContractCode>, INonparallelContractCodeProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(NonparallelContractCode);
 
-        private readonly ICachedBlockchainExecutedDataService<NonparallelContractCode>
-            _cachedBlockchainExecutedDataService;
-
         public NonparallelContractCodeProvider(
-            ICachedBlockchainExecutedDataService<NonparallelContractCode> cachedBlockchainExecutedDataService)
+            ICachedBlockchainExecutedDataService<NonparallelContractCode> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
         {
-            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
 
         public Task<NonparallelContractCode> GetNonparallelContractCodeAsync(IChainContext chainContext, Address address)
         {
-            var key = GetBlockExecutedDataKey(address);
-            var nonparallelContractCode = _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            var nonparallelContractCode = GetBlockExecutedData(chainContext, address);
             return Task.FromResult(nonparallelContractCode);
         }
 
         public async Task SetNonparallelContractCodeAsync(IBlockIndex blockIndex,
             IDictionary<Address, NonparallelContractCode> nonparallelContractCodes)
         {
-            var dic = nonparallelContractCodes.ToDictionary(pair => GetBlockExecutedDataKey(pair.Key),
-                pair => pair.Value);
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, dic);
+            await AddBlockExecutedDataAsync(blockIndex, nonparallelContractCodes);
         }
         
         protected override string GetBlockExecutedDataName()

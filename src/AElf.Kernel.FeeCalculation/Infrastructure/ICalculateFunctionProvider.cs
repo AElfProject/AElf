@@ -19,30 +19,22 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext);
     }
 
-    public class CalculateFunctionProvider : BlockExecutedDataProvider, ICalculateFunctionProvider, ISingletonDependency
+    public class CalculateFunctionProvider : BlockExecutedDataBaseProvider<Dictionary<string, CalculateFunction>>, ICalculateFunctionProvider, ISingletonDependency
     {
-        private readonly ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>
-            _calculateFunctionExecutedDataService;
-
-        public ILogger<CalculateFunctionProvider> Logger { get; set; }
-
         public CalculateFunctionProvider(ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>
-            calculateFunctionExecutedDataService)
+            calculateFunctionExecutedDataService) : base(calculateFunctionExecutedDataService)
         {
-            _calculateFunctionExecutedDataService = calculateFunctionExecutedDataService;
-            Logger = NullLogger<CalculateFunctionProvider>.Instance;
         }
 
         public async Task AddCalculateFunctions(IBlockIndex blockIndex,
             Dictionary<string, CalculateFunction> calculateFunctionDictionary)
         {
-            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(blockIndex, GetBlockExecutedDataKey(),
-                calculateFunctionDictionary);
+            await AddBlockExecutedDataAsync(blockIndex, calculateFunctionDictionary);
         }
 
         public Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext)
         {
-            return _calculateFunctionExecutedDataService.GetBlockExecutedData(chainContext, GetBlockExecutedDataKey());
+            return GetBlockExecutedData(chainContext);
         }
 
         private const string BlockExecutedDataName = nameof(AllCalculateFeeCoefficients);
