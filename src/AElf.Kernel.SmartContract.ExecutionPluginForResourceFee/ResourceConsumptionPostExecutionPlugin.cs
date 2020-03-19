@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
@@ -14,24 +11,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : SmartContractExecutionPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IResourceTokenFeeService _resourceTokenFeeService;
-        private const string AcsSymbol = "acs8";
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            IResourceTokenFeeService resourceTokenFeeService)
+            IResourceTokenFeeService resourceTokenFeeService) : base("acs8")
         {
             _contextService = contextService;
             _resourceTokenFeeService = resourceTokenFeeService;
         }
-
-        private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
-        }
-
+        
         private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
@@ -48,7 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs8(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }
@@ -88,7 +79,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
 
             var feeCalculationResult =
-                await _resourceTokenFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
+                await _resourceTokenFeeService.CalculateFeeAsync(transactionContext, chainContext);
             chargeResourceTokenInput.CostDic.Add(feeCalculationResult);
 
             var chargeResourceTokenTransaction =

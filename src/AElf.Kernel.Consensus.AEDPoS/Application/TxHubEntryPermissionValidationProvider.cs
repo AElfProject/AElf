@@ -7,13 +7,13 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class NotAllowEnterTxHubValidationProvider : ITransactionValidationProvider
+    internal class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public NotAllowEnterTxHubValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
         }

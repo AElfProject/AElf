@@ -9,7 +9,7 @@ namespace AElf.Kernel.Configuration
     public interface IBlockTransactionLimitProvider
     {
         Task<int> GetLimitAsync(IChainContext chainContext);
-        Task SetLimitAsync(Hash blockHash, int limit);
+        Task SetLimitAsync(IBlockIndex blockIndex, int limit);
     }
 
     public class BlockTransactionLimitProvider : BlockExecutedDataProvider, IBlockTransactionLimitProvider,
@@ -34,14 +34,15 @@ namespace AElf.Kernel.Configuration
             return Task.FromResult(limit?.Value ?? 0);
         }
 
-        public async Task SetLimitAsync(Hash blockHash, int limit)
+        public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
         {
             var key = GetBlockExecutedDataKey();
             var blockTransactionLimit = new BlockTransactionLimit
             {
                 Value = limit
             };
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockHash, key, blockTransactionLimit);
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, key,
+                blockTransactionLimit);
         }
 
         protected override string GetBlockExecutedDataName()

@@ -87,6 +87,11 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
+        public void CleanExecutive(Address address)
+        {
+            _smartContractExecutiveProvider.TryRemove(address, out _);
+        }
+
         public void CleanIdleExecutive()
         {
             foreach (var executivePool in _smartContractExecutiveProvider.GetExecutivePools())

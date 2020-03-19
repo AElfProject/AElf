@@ -7,9 +7,9 @@ namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationState : ContractState
     {
-        public SingletonState<Address> ConfigurationController { get; set; }
-        public MappedState<string, MethodFees> TransactionFees { get; set; }
+        public SingletonState<AuthorityInfo> ConfigurationController { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
         public MappedState<string, BytesValue> Configurations { get; set; }
     }
 }

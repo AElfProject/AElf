@@ -18,18 +18,20 @@ namespace AElf.Runtime.CSharp
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryZero>(provider =>
+            context.Services.AddSingleton<ISmartContractRunner, CSharpSmartContractRunner>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryZero(
+                return new CSharpSmartContractRunner(
                     option.Value.SdkDir);
             });
-            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryThirty>(provider =>
+#if DEBUG
+            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryThirty(
+                return new UnitTestCSharpSmartContractRunner(
                     option.Value.SdkDir);
             });
+#endif
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
