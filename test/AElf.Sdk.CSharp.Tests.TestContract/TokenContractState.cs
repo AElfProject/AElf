@@ -26,7 +26,7 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
 
     public class TokenContractState : ContractState
     {
-        public MethodFeesMappedState MethodFees { get; set; }
+        public MethodFeesMappedState TransactionFees { get; set; }
         public BoolState Initialized { get; set; }
         public TokenInfoState TokenInfo { get; set; }
         public BalanceMappedState Balances { get; set; }

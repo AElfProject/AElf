@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -13,7 +14,7 @@ namespace AElf.Kernel.FeeCalculation.Application
     public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ICoefficientsProvider _coefficientsProvider;
+        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
         private LogEvent _interestedEvent;
 
@@ -37,10 +38,10 @@ namespace AElf.Kernel.FeeCalculation.Application
 
         public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
-            ICoefficientsProvider coefficientsProvider)
+            ICalculateFunctionProvider calculateFunctionProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _coefficientsProvider = coefficientsProvider;
+            _calculateFunctionProvider = calculateFunctionProvider;
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
@@ -48,7 +49,11 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var eventData = new CalculateFeeAlgorithmUpdated();
             eventData.MergeFrom(logEvent);
-            await _coefficientsProvider.SetAllCoefficientsAsync(block.GetHash(), eventData.AllTypeFeeCoefficients);
+            await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
         }
     }
 }
