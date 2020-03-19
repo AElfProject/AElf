@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Events;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -176,22 +177,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await SetBestChainAsync(successLinks, chain);
             await _chainManager.SetChainBlockLinkExecutionStatusesAsync(successLinks,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            await PublishBestChainFoundEventAsync(chain, successBlocks);
+            await LocalEventBus.PublishAsync(new BlocksExecutionSucceededEvent
+            {
+                ExecutedBlocks = successBlocks
+            });
 
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 
             return blockLinks;
-        }
-
-        private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
-        {
-            await LocalEventBus.PublishAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks
-            });
         }
     }
 }

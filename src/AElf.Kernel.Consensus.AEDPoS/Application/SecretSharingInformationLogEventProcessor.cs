@@ -6,7 +6,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingInformationLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class SecretSharingInformationLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;

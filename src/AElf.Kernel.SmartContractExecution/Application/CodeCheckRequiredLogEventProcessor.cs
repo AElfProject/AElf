@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class CodeCheckRequiredLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 

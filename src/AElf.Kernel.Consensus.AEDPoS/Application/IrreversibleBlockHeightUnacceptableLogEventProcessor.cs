@@ -10,7 +10,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;

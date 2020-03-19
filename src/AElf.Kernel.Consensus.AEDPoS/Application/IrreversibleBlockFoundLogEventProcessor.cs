@@ -12,7 +12,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockFoundLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;

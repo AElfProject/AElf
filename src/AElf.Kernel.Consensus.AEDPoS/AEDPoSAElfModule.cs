@@ -36,10 +36,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
+            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
+                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
 
             context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
 
