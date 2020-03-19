@@ -5,6 +5,7 @@ namespace AElf.Kernel
         public int ChainId { get; set; }
         public ChainType ChainType { get; set; }
         public NetType NetType { get; set; }
+        public long TestForkBlock4000 { get; set; }
     }
     
     public enum ChainType

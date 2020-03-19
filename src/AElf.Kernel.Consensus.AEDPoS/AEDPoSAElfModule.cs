@@ -30,6 +30,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             // IConsensusExtraDataExtractor is for extracting consensus data from extra data in Block Header.
             context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services.AddTransient<IConsensusExtraDataExtractor, ForkAEDPoSExtraDataExtractor>();
 
             // IBroadcastPrivilegedPubkeyListProvider is just a helper for network module
             // to broadcast blocks to nodes of higher priority.

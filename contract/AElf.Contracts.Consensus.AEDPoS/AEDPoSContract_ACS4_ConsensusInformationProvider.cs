@@ -75,6 +75,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
             var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
+            if(Context.CurrentHeight >= 4000)
+                Assert(!extraData.IsValidate);
+            else
+                Assert(extraData.IsValidate);
             return ValidateBeforeExecution(extraData);
         }
 

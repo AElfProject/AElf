@@ -72,6 +72,7 @@ namespace AElf.Blockchains.BasicBaseChain
                 option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
                 option.ChainType = chainType;
                 option.NetType = netType;
+                option.TestForkBlock4000 = newConfig.GetValue<long>(nameof(option.TestForkBlock4000));
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>

@@ -15,20 +15,20 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IConsensusService _consensusService;
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly IBlockchainService _blockchainService;
-        private readonly IConsensusExtraDataExtractor _consensusExtraDataExtractor;
+        private readonly ITestForkService _testForkService;
         private readonly int _systemTransactionCount;
         public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
         public ConsensusValidationProvider(IConsensusService consensusService,
             IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             IBlockchainService blockchainService,
-            IConsensusExtraDataExtractor consensusExtraDataExtractor,
-            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
+            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators, 
+            ITestForkService testForkService)
         {
             _consensusService = consensusService;
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
             _blockchainService = blockchainService;
-            _consensusExtraDataExtractor = consensusExtraDataExtractor;
+            _testForkService = testForkService;
             _systemTransactionCount = systemTransactionGenerators.Count();
 
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
@@ -45,7 +45,7 @@ namespace AElf.Kernel.Consensus.Application
                 return false;
             }
 
-            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
+            var consensusExtraData = _testForkService.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
                 Logger.LogWarning($"Invalid consensus extra data {block}");
@@ -60,7 +60,7 @@ namespace AElf.Kernel.Consensus.Application
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
+            var consensusExtraData = _testForkService.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
                 Logger.LogWarning($"Invalid consensus extra data {block}");
@@ -97,7 +97,7 @@ namespace AElf.Kernel.Consensus.Application
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
+            var consensusExtraData = _testForkService.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
                 Logger.LogWarning($"Invalid consensus extra data {block}");
