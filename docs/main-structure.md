@@ -50,7 +50,7 @@
 * [Contribution](contributions/readme.md)
     * [DevOps](devops/devops.md)
 * [Web api reference](web-api-reference/reference.md)
-* [SDK reference](sdk/js.md)
+* [Chain SDK reference](sdk/js.md)
     * [JS SDK](sdk/javascript/js-sdk.md)
     * [dApp SDK](sdk/javascript/dapp-sdk.md)
 * [Contract SDK reference](/sdk/csharp/contract-sdk.md)
