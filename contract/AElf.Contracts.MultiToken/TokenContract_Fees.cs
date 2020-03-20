@@ -41,10 +41,6 @@ namespace AElf.Contracts.MultiToken
 
             var successToChargeSizeFee = ChargeSizeFee(input, ref bill);
 
-            // Update the bill.
-            var oldBill = State.ChargedFees[fromAddress];
-            State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
-
             // Update balances.
             foreach (var tokenToAmount in bill.FeesMap)
             {
@@ -190,8 +186,6 @@ namespace AElf.Contracts.MultiToken
 
             foreach (var pair in bill.FeesMap)
             {
-                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
-                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
                 Context.Fire(new ResourceTokenCharged
                 {
                     Symbol = pair.Key,
@@ -352,37 +346,8 @@ namespace AElf.Contracts.MultiToken
         public override Empty ClaimTransactionFees(TransactionFeeBill input)
         {
             Context.LogDebug(() => "Claim transaction fee.");
-            if (State.TreasuryContract.Value == null)
-            {
-                var treasuryContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-                if (treasuryContractAddress == null)
-                {
-                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
-                    return new Empty();
-                }
 
-                State.TreasuryContract.Value = treasuryContractAddress;
-            }
-
-            var transactions = Context.GetPreviousBlockTransactions();
-            Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
-
-            var senders = transactions.Select(t => t.From).ToList();
-            var totalBill = new TransactionFeeBill();
-            foreach (var sender in senders)
-            {
-                var oldBill = State.ChargedFees[sender];
-                if (oldBill != null)
-                {
-                    totalBill += oldBill;
-                }
-
-                // Clear
-                State.ChargedFees[sender] = new TransactionFeeBill();
-            }
-
-            foreach (var bill in totalBill.FeesMap)
+            foreach (var bill in input.FeesMap)
             {
                 var symbol = bill.Key;
                 var amount = bill.Value;
@@ -414,7 +379,7 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            PayTransactionFee(isMainChain);
+            PayTransactionFee(input, isMainChain);
 
             if (!isMainChain)
             {
@@ -424,51 +389,30 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private void PayTransactionFee(bool isMainChain)
+        private void PayTransactionFee(TransactionFeeBill bill, bool isMainChain)
         {
-            var transactions = Context.GetPreviousBlockTransactions();
-
-            Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
-
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
+            foreach (var feeMap in bill.FeesMap)
             {
-                var totalAmount = 0L;
-                foreach (var transaction in transactions)
-                {
-                    var caller = transaction.From;
-                    var contractAddress = transaction.To;
-                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
-                    if (amount > 0)
-                    {
-                        ModifyBalance(contractAddress, symbol, -amount);
-                        Context.LogDebug(() => $"Charged {amount} {symbol} tokens from {contractAddress}");
-                        totalAmount = totalAmount.Add(amount);
-                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
-                    }
-                }
-
-                Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
-
-                if (totalAmount > 0)
+                if (feeMap.Value > 0)
                 {
                     if (isMainChain)
                     {
-                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
+                        Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to dividend pool.");
                         // Main Chain.
-                        ModifyBalance(Context.Self, symbol, totalAmount);
+                        ModifyBalance(Context.Self, feeMap.Key, feeMap.Value);
                         State.TreasuryContract.Donate.Send(new DonateInput
                         {
-                            Symbol = symbol,
-                            Amount = totalAmount
+                            Symbol = feeMap.Key,
+                            Amount = feeMap.Value
                         });
                     }
                     else
                     {
-                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to consensus address account.");
+                        Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to consensus address account.");
                         // Side Chain
                         var consensusContractAddress =
                             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                        ModifyBalance(consensusContractAddress, symbol, totalAmount);
+                        ModifyBalance(consensusContractAddress, feeMap.Key, feeMap.Value);
                     }
                 }
             }
@@ -595,7 +539,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         /// <summary>
-        /// Burn 10%
+        /// Burn 10% of tx fees.
+        /// If Side Chain didn't set FeeReceiver, burn all.
         /// </summary>
         /// <param name="symbol"></param>
         /// <param name="totalAmount"></param>
@@ -616,7 +561,7 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            if (State.TreasuryContract.Value != null)
+            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput

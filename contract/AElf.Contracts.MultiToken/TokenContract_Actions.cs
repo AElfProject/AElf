@@ -24,6 +24,8 @@ namespace AElf.Contracts.MultiToken
 
             State.MinimumProfitsDonationPartsPerHundred.Value = input.MinimumProfitsDonationPartsPerHundred;
             State.Initialized.Value = true;
+            State.TreasuryContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             return new Empty();
         }
 
