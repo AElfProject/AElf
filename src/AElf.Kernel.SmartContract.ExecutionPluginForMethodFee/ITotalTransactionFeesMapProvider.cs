@@ -12,8 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     }
 
     public class TotalTransactionFeesMapProvider : BlockExecutedDataBaseProvider<TotalTransactionFeesMap>,
-        ITotalTransactionFeesMapProvider,
-        ISingletonDependency
+        ITotalTransactionFeesMapProvider, ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TotalTransactionFeesMap);
 
