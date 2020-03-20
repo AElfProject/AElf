@@ -43,7 +43,7 @@ service TokenContract {
     }
 
     // acs1
-    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc ClaimTransactionFees (TransactionFeeBill) returns (google.protobuf.Empty) {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
@@ -57,7 +57,7 @@ service TokenContract {
     }
 
     // acs8
-    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc DonateResourceToken (TransactionFeeBill) returns (google.protobuf.Empty) {
     }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
@@ -212,7 +212,7 @@ message ChargeResourceTokenInput {
 }
 
 message TransactionFeeBill {
-    map<string, sint64> token_to_amount = 1;
+    map<string, sint64> fees_map = 1;
 }
 
 message CheckThresholdInput {

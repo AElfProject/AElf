@@ -28,6 +28,11 @@ message TotalTransactionFeesMap
     map<string, sint64> value = 1;
 }
 
+message TotalResourceTokensMap
+{
+    map<string, sint64> value = 1;
+}
+
 // Events
 
 message TransactionFeeCharged {

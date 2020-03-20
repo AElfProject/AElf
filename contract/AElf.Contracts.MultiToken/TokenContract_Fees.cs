@@ -46,7 +46,7 @@ namespace AElf.Contracts.MultiToken
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
 
             // Update balances.
-            foreach (var tokenToAmount in bill.TokenToAmount)
+            foreach (var tokenToAmount in bill.FeesMap)
             {
                 ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
                 Context.Fire(new TransactionFeeCharged
@@ -89,13 +89,13 @@ namespace AElf.Contracts.MultiToken
                 Context.LogDebug(() => "Failed to charge first sufficient token.");
                 if (symbolToChargeBaseFee != null)
                 {
-                    bill.TokenToAmount.Add(symbolToChargeBaseFee, existingBalance);
+                    bill.FeesMap.Add(symbolToChargeBaseFee, existingBalance);
                 } // If symbol == null, then charge nothing in base fee part.
 
                 return false;
             }
 
-            bill.TokenToAmount.Add(symbolToChargeBaseFee, amountToChargeBaseFee);
+            bill.FeesMap.Add(symbolToChargeBaseFee, amountToChargeBaseFee);
 
             return true;
         }
@@ -105,10 +105,10 @@ namespace AElf.Contracts.MultiToken
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
             var symbolToPayTxFee = input.PrimaryTokenSymbol;
-            if (bill.TokenToAmount.Any())
+            if (bill.FeesMap.Any())
             {
-                symbolChargedForBaseFee = bill.TokenToAmount.First().Key;
-                amountChargedForBaseFee = bill.TokenToAmount.First().Value;
+                symbolChargedForBaseFee = bill.FeesMap.First().Key;
+                amountChargedForBaseFee = bill.FeesMap.First().Value;
             }
 
             var availableBalance = symbolChargedForBaseFee == symbolToPayTxFee
@@ -145,12 +145,12 @@ namespace AElf.Contracts.MultiToken
 
             if (symbolChargedForBaseFee == symbolToPayTxFee)
             {
-                bill.TokenToAmount[symbolToPayTxFee] =
-                    bill.TokenToAmount[symbolToPayTxFee].Add(chargeAmount);
+                bill.FeesMap[symbolToPayTxFee] =
+                    bill.FeesMap[symbolToPayTxFee].Add(chargeAmount);
             }
             else
             {
-                bill.TokenToAmount.Add(symbolToPayTxFee, chargeAmount);
+                bill.FeesMap.Add(symbolToPayTxFee, chargeAmount);
             }
 
             return availableBalance >= txSizeFeeAmount;
@@ -171,7 +171,7 @@ namespace AElf.Contracts.MultiToken
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
                 if (existingBalance < pair.Value)
                 {
-                    bill.TokenToAmount.Add(pair.Key, existingBalance);
+                    bill.FeesMap.Add(pair.Key, existingBalance);
                     var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
                         .Add(pair.Value.Sub(existingBalance));
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
@@ -184,11 +184,11 @@ namespace AElf.Contracts.MultiToken
                 }
                 else
                 {
-                    bill.TokenToAmount.Add(pair.Key, pair.Value);
+                    bill.FeesMap.Add(pair.Key, pair.Value);
                 }
             }
 
-            foreach (var pair in bill.TokenToAmount)
+            foreach (var pair in bill.FeesMap)
             {
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
@@ -349,7 +349,7 @@ namespace AElf.Contracts.MultiToken
             return false;
         }
 
-        public override Empty ClaimTransactionFees(Empty input)
+        public override Empty ClaimTransactionFees(TransactionFeeBill input)
         {
             Context.LogDebug(() => "Claim transaction fee.");
             if (State.TreasuryContract.Value == null)
@@ -382,7 +382,7 @@ namespace AElf.Contracts.MultiToken
                 State.ChargedFees[sender] = new TransactionFeeBill();
             }
 
-            foreach (var bill in totalBill.TokenToAmount)
+            foreach (var bill in totalBill.FeesMap)
             {
                 var symbol = bill.Key;
                 var amount = bill.Value;
@@ -395,7 +395,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty DonateResourceToken(Empty input)
+        public override Empty DonateResourceToken(TransactionFeeBill input)
         {
             Context.LogDebug(() => "Start donate resource token.");
 
