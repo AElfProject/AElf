@@ -419,14 +419,18 @@ namespace AElf.Kernel.SmartContract.Application
                 }
 
                 // Just failed.
-                return new TransactionResult
                 {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Failed,
-                    BlockNumber = blockHeight,
-                    Error = trace.Error,
-                    Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
-                };
+                    var txResult = new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Failed,
+                        BlockNumber = blockHeight,
+                        Error = trace.Error,
+                        Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
+                    };
+                    txResult.UpdateBloom();
+                    return txResult;
+                }
             }
 
             {
