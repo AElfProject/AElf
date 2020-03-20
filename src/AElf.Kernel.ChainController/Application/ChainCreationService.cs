@@ -17,16 +17,19 @@ namespace AElf.Kernel.ChainController.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockExecutionResultProcessingService blockExecutionResultProcessingService)
+            IBlockExecutionResultProcessingService blockExecutionResultProcessingService
+            , IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
             _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
+            _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -50,13 +53,11 @@ namespace AElf.Kernel.ChainController.Application
                 };
 
                 var transactions = genesisTransactions.ToList();
-                    
+
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
                 await _blockchainService.CreateChainAsync(block, transactions);
-                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(new BlockExecutionResult
-                {
-                    ExecutedSuccessBlocks = {block}
-                });
+                var blockExecutionResult = await _blockchainExecutingService.ExecuteBlocksAsync(new[] {block});
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(blockExecutionResult);
 
                 return await _blockchainService.GetChainAsync();
             }
