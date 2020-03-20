@@ -13,35 +13,28 @@ namespace AElf.Kernel.SmartContract.Application
             SmartContractRegistration smartContractRegistration);
     }
 
-    public class SmartContractRegistrationProvider : BlockExecutedDataProvider, ISmartContractRegistrationProvider,
+    public class SmartContractRegistrationProvider : BlockExecutedDataBaseProvider<SmartContractRegistration>, ISmartContractRegistrationProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(SmartContractRegistration);
 
-        private readonly ICachedBlockchainExecutedDataService<SmartContractRegistration>
-            _cachedBlockchainExecutedDataService;
-
         public SmartContractRegistrationProvider(
-            ICachedBlockchainExecutedDataService<SmartContractRegistration> cachedBlockchainExecutedDataService)
+            ICachedBlockchainExecutedDataService<SmartContractRegistration> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
         {
-            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
-        }
 
+        }
 
         public Task<SmartContractRegistration> GetSmartContractRegistrationAsync(IChainContext chainContext, Address address)
         {
-            var key = GetBlockExecutedDataKey(address);
-            var smartContractRegistration =
-                _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            var smartContractRegistration = GetBlockExecutedData(chainContext, address);
             return Task.FromResult(smartContractRegistration);
         }
 
         public async Task SetSmartContractRegistrationAsync(IBlockIndex blockIndex, Address address,
             SmartContractRegistration smartContractRegistration)
         {
-            var key = GetBlockExecutedDataKey(address);
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, key,
-                smartContractRegistration);
+            await AddBlockExecutedDataAsync(blockIndex, address, smartContractRegistration);
         }
 
         protected override string GetBlockExecutedDataName()

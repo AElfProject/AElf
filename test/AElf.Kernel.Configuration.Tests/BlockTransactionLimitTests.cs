@@ -11,9 +11,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Configuration.Tests
@@ -27,12 +29,14 @@ namespace AElf.Kernel.Configuration.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IBlockchainStateService _blockchainStateService;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         public BlockTransactionLimitTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         private async Task DeployContractsAsync()
@@ -137,11 +141,18 @@ namespace AElf.Kernel.Configuration.Tests
         {
             var chain = await _blockchainService.GetChainAsync();
 
+            var blockExecutedDataKey = "BlockExecutedData/BlockTransactionLimit";
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
+            blockStateSet.BlockExecutedData.ShouldNotContainKey(blockExecutedDataKey);
+            
             await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             }, 50);
+            
+            blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
+            blockStateSet.BlockExecutedData.ShouldContainKey(blockExecutedDataKey);
 
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(
                 new ChainContext
@@ -149,7 +160,7 @@ namespace AElf.Kernel.Configuration.Tests
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });
-            Assert.Equal(50, limit);
+            limit.ShouldBe(50);
         }
     }
 }

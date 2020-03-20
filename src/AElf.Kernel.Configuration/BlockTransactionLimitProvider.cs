@@ -12,37 +12,30 @@ namespace AElf.Kernel.Configuration
         Task SetLimitAsync(IBlockIndex blockIndex, int limit);
     }
 
-    public class BlockTransactionLimitProvider : BlockExecutedDataProvider, IBlockTransactionLimitProvider,
+    public class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<BlockTransactionLimit>, IBlockTransactionLimitProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(BlockTransactionLimit);
 
-        private readonly ICachedBlockchainExecutedDataService<BlockTransactionLimit>
-            _cachedBlockchainExecutedDataService;
-
-        public BlockTransactionLimitProvider(ICachedBlockchainExecutedDataService<BlockTransactionLimit>
-                cachedBlockchainExecutedDataService)
+        public BlockTransactionLimitProvider(
+            ICachedBlockchainExecutedDataService<BlockTransactionLimit> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
         {
-            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
-
 
         public Task<int> GetLimitAsync(IChainContext chainContext)
         {
-            var key = GetBlockExecutedDataKey();
-            var limit = _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            var limit = GetBlockExecutedData(chainContext);
             return Task.FromResult(limit?.Value ?? 0);
         }
 
         public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
         {
-            var key = GetBlockExecutedDataKey();
             var blockTransactionLimit = new BlockTransactionLimit
             {
                 Value = limit
             };
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex, key,
-                blockTransactionLimit);
+            await AddBlockExecutedDataAsync(blockIndex, blockTransactionLimit);
         }
 
         protected override string GetBlockExecutedDataName()
