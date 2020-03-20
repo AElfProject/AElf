@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using AElf.Kernel;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -57,6 +59,18 @@ namespace AElf.Launcher
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(builder => { builder.ClearProviders(); })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
+                .ConfigureAppConfiguration((context, builder) =>
+                {
+                    var chainType = context.Configuration.GetValue("ChainType", ChainType.MainChain);
+                    var netType = context.Configuration.GetValue("NetType", NetType.MainNet);
+                    var contentRootPath = context.HostingEnvironment.ContentRootPath;
+                
+                    var configuration = builder.AddConfiguration(context.Configuration)
+                        .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                        .SetBasePath(contentRootPath)
+                        .Build();
+                    context.Configuration = configuration;
+                })
                 .UseAutofac();
     }
 }

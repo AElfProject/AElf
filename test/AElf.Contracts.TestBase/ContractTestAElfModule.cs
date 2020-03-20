@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Blockchains.BasicBaseChain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -8,10 +9,9 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
-using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
-using AElf.Runtime.CSharp;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -20,12 +20,18 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.TestBase
 {
     [DependsOn(
-        typeof(CSharpRuntimeAElfModule),
-        typeof(CoreOSAElfModule),
+        typeof(BasicBaseChainAElfModule),
         typeof(KernelTestAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule
     {
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            var mockService = new Mock<IWebHostEnvironment>();
+            mockService.SetupGet(m => m.ContentRootPath).Returns("");
+            context.Services.AddSingleton(typeof(IWebHostEnvironment), mockService.Object);
+        }
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;

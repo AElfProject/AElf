@@ -19,7 +19,6 @@ using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
@@ -50,26 +49,17 @@ namespace AElf.Blockchains.BasicBaseChain
     {
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
-        public override void PreConfigureServices(ServiceConfigurationContext context)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
-            var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
             var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
             var netType = configuration.GetValue("NetType", NetType.MainNet);
 
-            var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
-                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
-                .SetBasePath(contentRootPath)
-                .Build();
-
-            hostBuilderContext.Configuration = newConfig;
-
-            Configure<EconomicOptions>(newConfig.GetSection("Economic"));
+            Configure<EconomicOptions>(configuration.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
-                option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
+                option.ChainId = ChainHelper.ConvertBase58ToChainId(configuration["ChainId"]);
                 option.ChainType = chainType;
                 option.NetType = netType;
             });
@@ -77,14 +67,15 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
-                    newConfig.GetValue("Economic:Symbol", "ELF");
+                    configuration.GetValue("Economic:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
-                    newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+                    configuration.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
                 options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
-                    newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
+                    configuration.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
-            Configure<ContractOptions>(newConfig.GetSection("Contract"));
+            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
+            Configure<ContractOptions>(configuration.GetSection("Contract"));
             Configure<ContractOptions>(options =>
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
