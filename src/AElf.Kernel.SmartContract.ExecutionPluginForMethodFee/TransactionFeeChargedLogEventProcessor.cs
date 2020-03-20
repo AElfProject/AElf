@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height,
-            });
+            }) ?? new TotalTransactionFeesMap();
 
             if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
             {

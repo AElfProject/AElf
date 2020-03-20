@@ -189,7 +189,8 @@ namespace AElf.Contracts.MultiToken
                 Context.Fire(new ResourceTokenCharged
                 {
                     Symbol = pair.Key,
-                    Amount = pair.Value
+                    Amount = pair.Value,
+                    ContractAddress = Context.Sender
                 });
                 if (pair.Value == 0)
                 {
@@ -343,11 +344,11 @@ namespace AElf.Contracts.MultiToken
             return false;
         }
 
-        public override Empty ClaimTransactionFees(TransactionFeeBill input)
+        public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
             Context.LogDebug(() => "Claim transaction fee.");
 
-            foreach (var bill in input.FeesMap)
+            foreach (var bill in input.Value)
             {
                 var symbol = bill.Key;
                 var amount = bill.Value;
@@ -360,7 +361,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty DonateResourceToken(TransactionFeeBill input)
+        public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
             Context.LogDebug(() => "Start donate resource token.");
 
@@ -389,30 +390,34 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private void PayTransactionFee(TransactionFeeBill bill, bool isMainChain)
+        private void PayTransactionFee(TotalResourceTokensMaps billMaps, bool isMainChain)
         {
-            foreach (var feeMap in bill.FeesMap)
+            foreach (var bill in billMaps.Value)
             {
-                if (feeMap.Value > 0)
+                foreach (var feeMap in bill.TokensMap.Value)
                 {
-                    if (isMainChain)
+                    if (feeMap.Value > 0)
                     {
-                        Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to dividend pool.");
-                        // Main Chain.
-                        ModifyBalance(Context.Self, feeMap.Key, feeMap.Value);
-                        State.TreasuryContract.Donate.Send(new DonateInput
+                        ModifyBalance(bill.ContractAddress, feeMap.Key, -feeMap.Value);
+                        if (isMainChain)
                         {
-                            Symbol = feeMap.Key,
-                            Amount = feeMap.Value
-                        });
-                    }
-                    else
-                    {
-                        Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to consensus address account.");
-                        // Side Chain
-                        var consensusContractAddress =
-                            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                        ModifyBalance(consensusContractAddress, feeMap.Key, feeMap.Value);
+                            Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to dividend pool.");
+                            // Main Chain.
+                            ModifyBalance(Context.Self, feeMap.Key, feeMap.Value);
+                            State.TreasuryContract.Donate.Send(new DonateInput
+                            {
+                                Symbol = feeMap.Key,
+                                Amount = feeMap.Value
+                            });
+                        }
+                        else
+                        {
+                            Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to consensus address account.");
+                            // Side Chain
+                            var consensusContractAddress =
+                                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                            ModifyBalance(consensusContractAddress, feeMap.Key, feeMap.Value);
+                        }
                     }
                 }
             }

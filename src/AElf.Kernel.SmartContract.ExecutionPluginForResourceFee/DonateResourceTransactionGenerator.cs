@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITotalResourceTokensMapProvider _totalResourceTokensMapProvider;
+        private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
         private readonly TransactionPackingOptions _transactionPackingOptions;
 
         public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
@@ -25,10 +25,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 
         public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
             IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
-            ITotalResourceTokensMapProvider totalResourceTokensMapProvider)
+            ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _totalResourceTokensMapProvider = totalResourceTokensMapProvider;
+            _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
@@ -51,26 +51,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return generatedTransactions;
             }
 
-            var totalResourceTokensMap = await _totalResourceTokensMapProvider.GetTotalResourceTokensMapAsync(
+            var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 new ChainContext
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
                 });
-            var bill = new TransactionFeeBill
+            if (totalResourceTokensMaps == null)
             {
-                FeesMap = {totalResourceTokensMap.Value}
-            };
+                // If previous block doesn't contain logEvent named ResourceTokenCharged, won't generate this tx.
+                return new List<Transaction>();
+            }
+
             generatedTransactions.AddRange(new List<Transaction>
             {
                 new Transaction
                 {
                     From = from,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
-                    Params = bill.ToByteString()
+                    Params = totalResourceTokensMaps.ToByteString()
                 }
             });
 

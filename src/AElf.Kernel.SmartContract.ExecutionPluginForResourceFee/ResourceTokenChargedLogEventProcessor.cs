@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -12,7 +13,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     public class ResourceTokenChargedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITotalResourceTokensMapProvider _totalTotalResourceTokensMapProvider;
+        private readonly ITotalResourceTokensMapsProvider _totalTotalResourceTokensMapsProvider;
         private LogEvent _interestedEvent;
         private ILogger<ResourceTokenChargedLogEventProcessor> Logger { get; set; }
 
@@ -33,10 +34,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         }
 
         public ResourceTokenChargedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            ITotalResourceTokensMapProvider totalTotalResourceTokensMapProvider)
+            ITotalResourceTokensMapsProvider totalTotalResourceTokensMapsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _totalTotalResourceTokensMapProvider = totalTotalResourceTokensMapProvider;
+            _totalTotalResourceTokensMapsProvider = totalTotalResourceTokensMapsProvider;
             Logger = NullLogger<ResourceTokenChargedLogEventProcessor>.Instance;
         }
 
@@ -48,26 +49,41 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return;
 
             // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalResourceTokensMap at once.
-            var totalResourceTokensMap = await _totalTotalResourceTokensMapProvider.GetTotalResourceTokensMapAsync(new ChainContext
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-            });
+            var totalResourceTokensMaps =
+                await _totalTotalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
+                    new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height,
+                    }) ?? new TotalResourceTokensMaps();
 
-            if (totalResourceTokensMap.Value.ContainsKey(eventData.Symbol))
+            if (totalResourceTokensMaps.Value.Any() &&
+                totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
             {
-                totalResourceTokensMap.Value[eventData.Symbol] = totalResourceTokensMap.Value[eventData.Symbol] + eventData.Amount;
+                var oldBill = totalResourceTokensMaps.Value.First(b => b.ContractAddress == eventData.ContractAddress);
+                oldBill.TokensMap.Value[eventData.Symbol] += eventData.Amount;
             }
             else
             {
-                totalResourceTokensMap.Value[eventData.Symbol] = eventData.Amount;
+                var contractTotalResourceTokens = new ContractTotalResourceTokens
+                {
+                    ContractAddress = eventData.ContractAddress,
+                    TokensMap = new TotalResourceTokensMap
+                    {
+                        Value =
+                        {
+                            {eventData.Symbol, eventData.Amount}
+                        }
+                    }
+                };
+                totalResourceTokensMaps.Value.Add(contractTotalResourceTokens);
             }
 
-            await _totalTotalResourceTokensMapProvider.SetTotalResourceTokensMapAsync(new BlockIndex
+            await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
-            }, totalResourceTokensMap);
+            }, totalResourceTokensMaps);
         }
     }
 }

@@ -122,10 +122,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {

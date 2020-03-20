@@ -26,16 +26,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransacti
             return new List<string>
             {
                 // System tx
-                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
-                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees),
+                nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
 
                 // Pre-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
-                nameof(TokenContractContainer.TokenContractStub.CheckThreshold),
-                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChargeTransactionFees),
+                nameof(TokenContractImplContainer.TokenContractImplStub.CheckThreshold),
+                nameof(TokenContractImplContainer.TokenContractImplStub.CheckResourceToken),
 
                 // Post-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChargeResourceToken),
             }.Contains(transaction.MethodName);
         }
     }

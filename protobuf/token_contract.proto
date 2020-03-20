@@ -43,7 +43,7 @@ service TokenContract {
     }
 
     // acs1
-    rpc ClaimTransactionFees (TransactionFeeBill) returns (google.protobuf.Empty) {
+    rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
@@ -57,7 +57,7 @@ service TokenContract {
     }
 
     // acs8
-    rpc DonateResourceToken (TransactionFeeBill) returns (google.protobuf.Empty) {
+    rpc DonateResourceToken (TotalResourceTokensMaps) returns (google.protobuf.Empty) {
     }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
@@ -366,6 +366,25 @@ message CalculateFeeCoefficients {
 // To include coefficients of all tokens.
 message AllCalculateFeeCoefficients {
     repeated CalculateFeeCoefficients value = 1;
+}
+
+message TotalTransactionFeesMap
+{
+    map<string, sint64> value = 1;
+}
+
+message TotalResourceTokensMaps {
+    repeated ContractTotalResourceTokens value = 1;
+}
+
+message ContractTotalResourceTokens {
+    aelf.Address contract_address = 1;
+    TotalResourceTokensMap tokens_map = 2;
+}
+
+message TotalResourceTokensMap
+{
+    map<string, sint64> value = 1;
 }
 
 // Events

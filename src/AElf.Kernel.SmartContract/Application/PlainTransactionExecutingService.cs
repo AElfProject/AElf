@@ -412,7 +412,7 @@ namespace AElf.Kernel.SmartContract.Application
                     return new TransactionResult
                     {
                         TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
+                        Status = TransactionResultStatus.Unexecutable,
                         BlockNumber = blockHeight,
                         Error = trace.Error
                     };

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package aelf;
 
+import "aelf/core.proto";
 import "aelf/options.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
@@ -23,16 +24,6 @@ message TransactionSizeFeeSymbol
     sint32 added_token_weight = 3;
 }
 
-message TotalTransactionFeesMap
-{
-    map<string, sint64> value = 1;
-}
-
-message TotalResourceTokensMap
-{
-    map<string, sint64> value = 1;
-}
-
 // Events
 
 message TransactionFeeCharged {
@@ -45,6 +36,7 @@ message ResourceTokenCharged {
     option (aelf.is_event) = true;
     string symbol = 1;
     sint64 amount = 2;
+    aelf.Address contract_address = 3;
 }
 
 message ResourceTokenOwned {
