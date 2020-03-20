@@ -47,4 +47,6 @@ Let's review the fields of the input:
 - **from_chain_id**: the source chain id (the chain that issued the tokens).
 - **parent_chain_height**: the height of the block on the source chain that includes the **CrossChainTransfer** transaction (or more precisely, the block that indexed the transaction).
 - **transfer_transaction_bytes**: the serialized form of the **CrossChainTransfer** transaction.
-- **merkle_path**: the cross-chain merkle path. This you can get from the origin chain's web api with the **GetMerklePathByTransactionIdAsync** method. This takes the **CrossChainTransfer** transaction ID as input.
+- **merkle_path**: the cross-chain merkle path. For this, two cases to consider:
+  - main-chain to side-chain transfer: for this you just need the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input).
+  - side-chain to side-chain or side-chain to main-chain: for this you also need to get the merkle path from the source node (side-chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the cross-chain *CrossChainTransfer* transaction's block height (concat the merkle path nodes). 
