@@ -51,13 +51,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return generatedTransactions;
             }
 
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
-                new ChainContext
-                {
-                    BlockHash = preBlockHash,
-                    BlockHeight = preBlockHeight
-                });
-            if (totalResourceTokensMaps == null)
+                chainContext);
+            if (totalResourceTokensMaps == null || !totalResourceTokensMaps.Value.Any())
             {
                 // If previous block doesn't contain logEvent named ResourceTokenCharged, won't generate this tx.
                 return new List<Transaction>();
@@ -75,6 +76,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     Params = totalResourceTokensMaps.ToByteString()
                 }
             });
+            await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(
+                new BlockIndex(preBlockHash, preBlockHeight), new TotalResourceTokensMaps());
 
             Logger.LogInformation("Donate resource transaction generated.");
             return generatedTransactions;

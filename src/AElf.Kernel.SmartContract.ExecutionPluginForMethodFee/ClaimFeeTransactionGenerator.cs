@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
@@ -49,11 +50,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
             });
-            if (totalTxFeesMap == null)
+            if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any())
             {
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
                 return new List<Transaction>();
             }
+
             var bill = new TransactionFeeBill
             {
                 FeesMap = {totalTxFeesMap.Value}
@@ -70,7 +72,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     Params = bill.ToByteString()
                 }
             });
-
+            await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(
+                new BlockIndex(preBlockHash, preBlockHeight), new TotalTransactionFeesMap());
             Logger.LogInformation("FeeClaim transaction generated.");
             return generatedTransactions;
         }
