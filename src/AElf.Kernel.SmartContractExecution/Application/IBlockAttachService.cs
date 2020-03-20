@@ -23,9 +23,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
-
-        public ILocalEventBus LocalEventBus { get; set; }
-
+        
         public ILogger<BlockAttachService> Logger { get; set; }
 
         public BlockAttachService(IBlockchainService blockchainService,
@@ -38,7 +36,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _chainBlockLinkService = chainBlockLinkService;
             _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
 
-            LocalEventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<BlockAttachService>.Instance;
         }
 
