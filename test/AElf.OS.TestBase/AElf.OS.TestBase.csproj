@@ -35,6 +35,9 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>

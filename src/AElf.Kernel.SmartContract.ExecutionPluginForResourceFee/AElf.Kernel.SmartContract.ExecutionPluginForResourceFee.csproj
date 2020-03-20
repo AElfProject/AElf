@@ -16,12 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf/Proto/transaction_fee.proto</Link>
-        </ContractBase>
-    </ItemGroup>
-
-    <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractStub>

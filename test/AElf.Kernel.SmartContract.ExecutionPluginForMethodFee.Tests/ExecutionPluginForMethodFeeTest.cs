@@ -7,7 +7,6 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
 using AElf.Types;
