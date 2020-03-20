@@ -52,8 +52,6 @@ namespace AElf.Kernel.Blockchain.Application
         Task CleanChainBranchAsync(DiscardedBranch discardedBranch);
 
         Task<Chain> ResetChainToLibAsync(Chain chain);
-        Task<List<Block>> GetNotExecutedBlocksAsync(Hash chainBranchBlockHash);
-        Task SetBlockExecutionStatusAsync(Hash blockHash, bool isExecutedSuccess);
         Task RemoveLongestBranchAsync(Chain chain);
     }
 
@@ -426,24 +424,6 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await GetChainAsync();
             await _chainManager.CleanChainBranchAsync(chain, discardedBranch);
-        }
-
-        public async Task<List<Block>> GetNotExecutedBlocksAsync(Hash chainBranchBlockHash)
-        {
-            var notExecutedChainBlockLinks = await _chainManager.GetNotExecutedBlocks(chainBranchBlockHash);
-            var list = notExecutedChainBlockLinks
-                .Select(async chainBlockLink => await GetBlockByHashAsync(chainBlockLink.BlockHash));
-            
-            return (await Task.WhenAll(list)).ToList();
-        }
-
-        public async Task SetBlockExecutionStatusAsync(Hash blockHash, bool isExecutedSuccess)
-        {
-            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(blockHash);
-            await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
-                isExecutedSuccess
-                    ? ChainBlockLinkExecutionStatus.ExecutionSuccess
-                    : ChainBlockLinkExecutionStatus.ExecutionFailed);
         }
 
         public async Task RemoveLongestBranchAsync(Chain chain)

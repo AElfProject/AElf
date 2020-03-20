@@ -16,17 +16,17 @@ namespace AElf.Kernel.ChainController.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockAttachService _blockAttachService;
+        private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockAttachService blockAttachService)
+            IBlockExecutionResultProcessingService blockExecutionResultProcessingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
-            _blockAttachService = blockAttachService;
+            _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -53,7 +53,10 @@ namespace AElf.Kernel.ChainController.Application
                     
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
                 await _blockchainService.CreateChainAsync(block, transactions);
-                await _blockAttachService.AttachBlockAsync(block);
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(new BlockExecutionResult
+                {
+                    ExecutedSuccessBlocks = {block}
+                });
 
                 return await _blockchainService.GetChainAsync();
             }

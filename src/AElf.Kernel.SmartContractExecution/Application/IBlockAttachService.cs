@@ -21,16 +21,22 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
+        private readonly IChainBlockLinkService _chainBlockLinkService;
+        private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ILogger<BlockAttachService> Logger { get; set; }
 
         public BlockAttachService(IBlockchainService blockchainService,
-            IBlockchainExecutingService blockchainExecutingService)
+            IBlockchainExecutingService blockchainExecutingService,
+            IChainBlockLinkService chainBlockLinkService,
+            IBlockExecutionResultProcessingService blockExecutionResultProcessingService)
         {
             _blockchainService = blockchainService;
             _blockchainExecutingService = blockchainExecutingService;
+            _chainBlockLinkService = chainBlockLinkService;
+            _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
 
             LocalEventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<BlockAttachService>.Instance;
@@ -40,73 +46,32 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            if (chain.BestChainHeight > Constants.GenesisBlockHeight)
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+            if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
-                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-                if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
-                {
-                    Logger.LogDebug($"Try to attach to chain but the status is {status}.");
-                    return;
-                }
+                Logger.LogDebug($"Try to attach to chain but the status is {status}.");
+                return;
             }
 
-            var notExecutedBlocks = await _blockchainService.GetNotExecutedBlocksAsync(chain.LongestChainHash);
+            var notExecutedChainBlockLinks =
+                await _chainBlockLinkService.GetNotExecutedChainBlockLinksAsync(chain.LongestChainHash);
+            var notExecutedBlocks =
+                await _blockchainService.GetBlocksAsync(notExecutedChainBlockLinks.Select(l => l.BlockHash));
 
-            BlockExecutionResult executionResult;
+            var executionResult = new BlockExecutionResult();
             try
             {
                 executionResult = await _blockchainExecutingService.ExecuteBlocksAsync(notExecutedBlocks);
             }
             catch (Exception e)
             {
-                await _blockchainService.RemoveLongestBranchAsync(chain);
                 Logger.LogError(e, "Block execute fails.");
                 throw;
             }
-
-            await ProcessExecutionResultAsync(chain, executionResult);
-        }
-
-        private async Task ProcessExecutionResultAsync(Chain chain, BlockExecutionResult executionResult)
-        {
-            if (executionResult.ExecutedFailedBlocks.Any() ||
-                executionResult.ExecutedSuccessBlocks.Count == 0 ||
-                executionResult.ExecutedSuccessBlocks.Last().Height < chain.BestChainHeight)
+            finally
             {
-                await SetBlockExecutionStatusAsync(executionResult.ExecutedFailedBlocks, false);
-                await _blockchainService.RemoveLongestBranchAsync(chain);
-
-                Logger.LogWarning("No block executed successfully or no block is higher than best chain.");
-                return;
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(executionResult);
             }
-
-            var lastExecutedSuccessBlock = executionResult.ExecutedSuccessBlocks.Last();
-            await _blockchainService.SetBestChainAsync(chain, lastExecutedSuccessBlock.Height,
-                lastExecutedSuccessBlock.GetHash());
-            await SetBlockExecutionStatusAsync(executionResult.ExecutedSuccessBlocks, true);
-            await PublishBestChainFoundEventAsync(chain, executionResult.ExecutedSuccessBlocks);
-            
-            Logger.LogInformation(
-                $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
-            
-        }
-
-        private async Task SetBlockExecutionStatusAsync(IEnumerable<Block> blocks, bool isExecutedSuccess)
-        {
-            foreach (var block in blocks)
-            {
-                await _blockchainService.SetBlockExecutionStatusAsync(block.GetHash(), isExecutedSuccess);
-            }
-        }
-
-        private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
-        {
-            await LocalEventBus.PublishAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks
-            });
         }
     }
 }
