@@ -23,6 +23,11 @@ message TransactionSizeFeeSymbol
     sint32 added_token_weight = 3;
 }
 
+message TotalTransactionFeesMap
+{
+    map<string, sint64> value = 1;
+}
+
 // Events
 
 message TransactionFeeCharged {

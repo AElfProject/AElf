@@ -17,13 +17,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         private readonly TransactionPackingOptions _transactionPackingOptions;
         public ILogger<ClaimFeeTransactionGenerator> Logger { get; set; }
 
         public ClaimFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
+            ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider)
         {
             _smartContractAddressService = smartContractAddressService;
+            _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
