@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
+using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
@@ -36,13 +37,12 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
-
         typeof(RuntimeSetupAElfModule),
         typeof(CrossChainModule),
+        typeof(GrpcCrossChainAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-
         typeof(ParallelExecutionModule),
         typeof(ContractNamesAElfModule)
     )]
