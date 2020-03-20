@@ -2,23 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.FeeCalculation
-{
-    public sealed class CalculateFunctionExecutedDataServiceTests : TransactionFeeTestBase
+namespace AElf.Kernel.FeeCalculation.Infrastructure
+{ 
+    public sealed class CalculateFunctionProviderTests : TransactionFeeTestBase
     {
-        private readonly ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>
-            _calculateFunctionExecutedDataService;
+        private readonly ICalculateFunctionProvider _calculateFunctionProvider;
 
-        public CalculateFunctionExecutedDataServiceTests()
+        public CalculateFunctionProviderTests()
         {
-            _calculateFunctionExecutedDataService =
-                GetRequiredService<ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>>();
+            _calculateFunctionProvider =GetRequiredService<ICalculateFunctionProvider>();
         }
 
         [Fact]
@@ -33,23 +29,21 @@ namespace AElf.Kernel.FeeCalculation
             };
             await BlockStateSetManger.SetBlockStateSetAsync(blockStateSet);
 
-            var functionMapDict = new Dictionary<string, Dictionary<string, CalculateFunction>>();
+            var blockExecutedDataKey = "BlockExecutedData/AllCalculateFeeCoefficients";
+            blockStateSet.BlockExecutedData.ShouldNotContainKey(blockExecutedDataKey);
             var functionMap = GenerateFunctionMap();
-            functionMapDict.Add(GetBlockExecutedDataKey(), functionMap);
-
-            await _calculateFunctionExecutedDataService.AddBlockExecutedDataAsync(new BlockIndex
+            await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
                 {
                     BlockHash = blockStateSet.BlockHash,
                     BlockHeight = blockStateSet.BlockHeight
                 },
-                functionMapDict);
+                functionMap);
 
             var newBlockStateSet = await BlockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
             newBlockStateSet.BlockHash.ShouldBe(blockStateSet.BlockHash);
             newBlockStateSet.BlockHeight.ShouldBe(blockStateSet.BlockHeight);
             newBlockStateSet.BlockExecutedData.Count.ShouldBe(1);
-            newBlockStateSet.BlockExecutedData.Keys.ShouldContain(key =>
-                key.Contains(typeof(AllCalculateFeeCoefficients).Name));
+            newBlockStateSet.BlockExecutedData.ShouldContainKey(blockExecutedDataKey);
 
             blockStateSet = await AddBlockStateSetAsync(blockStateSet);
             CheckBlockExecutedData(blockStateSet, functionMap);
@@ -69,8 +63,7 @@ namespace AElf.Kernel.FeeCalculation
                 BlockHeight = blockStateSet.BlockHeight
             };
             var functionMapFromBlockExecutedData =
-                _calculateFunctionExecutedDataService.GetBlockExecutedData(chainContext,
-                    GetBlockExecutedDataKey());
+                _calculateFunctionProvider.GetCalculateFunctions(chainContext);
             foreach (var key in functionMap.Keys)
             {
                 var fromExecutedData = functionMapFromBlockExecutedData.Values.Single(d =>
@@ -80,5 +73,6 @@ namespace AElf.Kernel.FeeCalculation
                 fromExecutedData.CalculateFeeCoefficients.ShouldBe(actual.CalculateFeeCoefficients);
             }
         }
+        
     }
 }

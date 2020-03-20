@@ -6,7 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public static class BlockchainStateServiceExtensions
+    public static class BlockchainExecutedDataServiceExtensions
     {
         public static async Task<T> GetBlockExecutedDataAsync<T>(
             this IBlockchainExecutedDataService blockchainExecutedDataService,
