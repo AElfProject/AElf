@@ -11,6 +11,7 @@ using AElf.OS.Network.Types;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
@@ -51,7 +52,7 @@ namespace AElf.OS.Network.Application
             return false;
         }
 
-        public async Task<bool> RemovePeerAsync(string address)
+        public async Task<bool> RemovePeerByAddressAsync(string address)
         {
             if (!AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint)) 
                 return false;
@@ -68,20 +69,27 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
-            if (peer == null)
+            if (await RemovePeerAsync(peer, removalTime))
             {
-                Logger.LogWarning($"Could not find peer: {peerPubKey}");
+                Logger.LogWarning($"Remove peer failed: {peerPubKey}");
                 return false;
             }
-            
-            if (blacklistPeer)
+
+            return true;
+        }
+        
+        private async Task<bool> RemovePeerAsync(IPeer peer, long removalTime)
+        {
+            if (peer == null)
             {
-                _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host);
-                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Host} ({peerPubKey})");
+                return false;
             }
+
+            _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host, removalTime);
+            Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Host} ({peer.Info.Pubkey})");
             
             await _networkServer.DisconnectAsync(peer);
 
