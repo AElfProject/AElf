@@ -18,7 +18,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0);
         
         //TODO: should not accept event data
-        Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData);
+        Task AddTransactionsAsync(TransactionsReceivedEvent eventData);
         //TODO: should not accept event data
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
         //TODO: should not accept event data

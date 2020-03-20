@@ -46,7 +46,7 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task HandleTransactionsReceivedTest()
         {
-            await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
             {
                 Transactions = _transactions
             });

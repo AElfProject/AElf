@@ -29,7 +29,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionValidationService _transactionValidationService;
-        private readonly ITransactionExecutingService _transactionExecutingService;
 
         private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions =
             new ConcurrentDictionary<Hash, QueuedTransaction>();
@@ -60,7 +59,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionValidationService = transactionValidationService;
-            _transactionExecutingService = transactionExecutingService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
             _processTransactionJobs = new ActionBlock<QueuedTransaction>(ProcessTransactionAsync,
@@ -202,7 +200,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Event Handler Methods
 
-        public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
+        public async Task AddTransactionsAsync(TransactionsReceivedEvent eventData)
         {
             if (_bestChainHash == Hash.Empty)
                 return;
@@ -264,17 +262,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //TODO: make _processTransactionJobs as BufferBlock, and make the test in a parallel execution TPL TransferBlock
                 //    for example, _block.LinkTo(new TransferBlock(TransactionExecutionTest)).LinkTo(DataflowBlock.NullTarget<QueuedTransaction>()).LinkTo(ProcessTransactionAsync)
                 //    https://stackoverflow.com/questions/13599190/tpl-dataflow-how-to-forward-items-to-only-one-specific-target-block-among-many
-                if (_transactionOptions.EnableTransactionExecutionTest)
-                {
-                    var results = await _transactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
-                    {
-                        Transactions = new[] {queuedTransaction.Transaction},
-                        BlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync()
-                    }, CancellationToken.None);
-
-                    if (results.First().Status != TransactionResultStatus.Mined)
-                        return;
-                }
 
 
                 await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);

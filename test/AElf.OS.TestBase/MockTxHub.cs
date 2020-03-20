@@ -40,7 +40,7 @@ namespace AElf.OS
             return executableTransactionSet;
         }
 
-        public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
+        public async Task AddTransactionsAsync(TransactionsReceivedEvent eventData)
         {
             foreach (var transaction in eventData.Transactions)
             {

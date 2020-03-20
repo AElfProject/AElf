@@ -1,5 +1,6 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,9 @@ namespace AElf.Kernel.TransactionPool
             // Validate sender's balance is not 0.
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 
+            services.AddSingleton<ITransactionValidationProvider, TransactionExecutionValidationProvider>();
+
+            
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));

@@ -28,7 +28,7 @@ namespace AElf.Contracts.Economic.TestBase
         {
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
             var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            await txHub.AddTransactionsAsync(new TransactionsReceivedEvent
             {
                 Transactions = new List<Transaction> {transaction}
             });

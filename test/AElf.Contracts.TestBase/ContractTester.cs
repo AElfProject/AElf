@@ -543,7 +543,7 @@ namespace AElf.Contracts.TestBase
             var txHub = Application.ServiceProvider.GetRequiredService<ITxHub>();
             foreach (var tx in txs)
             {
-                await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {tx}
                 });

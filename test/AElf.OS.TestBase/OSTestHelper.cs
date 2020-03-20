@@ -292,7 +292,7 @@ namespace AElf.OS
                 Transactions = transactions
             };
 
-            await _txHub.HandleTransactionsReceivedAsync(transactionsReceivedEvent);
+            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)

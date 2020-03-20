@@ -5,28 +5,27 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    
-    
     public interface ITransactionPoolService
     {
-        Task AddTransactions(IEnumerable<Transaction> transactions);
+        Task AddTransactionsAsync(IEnumerable<Transaction> transactions);
     }
 
     public class TransactionPoolService : ITransactionPoolService
     {
-        private ITxHub _txHub;
+        private readonly ITxHub _txHub;
+        
+        
 
         public TransactionPoolService(ITxHub txHub)
         {
             _txHub = txHub;
         }
-        
+
         //TODO: put tx validation, 
-        public Task AddTransactions(IEnumerable<Transaction> transactions)
+        public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
-            
-            //_txHub.HandleTransactionsReceivedAsync()
-            throw new System.NotImplementedException();
+            await _txHub.AddTransactionsAsync(
+                new TransactionsReceivedEvent() {Transactions = transactions});
         }
     }
 }
