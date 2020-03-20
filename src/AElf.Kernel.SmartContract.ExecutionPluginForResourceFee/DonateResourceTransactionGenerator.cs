@@ -58,11 +58,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
-            if (totalResourceTokensMaps == null || !totalResourceTokensMaps.Value.Any())
-            {
-                // If previous block doesn't contain logEvent named ResourceTokenCharged, won't generate this tx.
-                return new List<Transaction>();
-            }
 
             generatedTransactions.AddRange(new List<Transaction>
             {
@@ -73,7 +68,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
-                    Params = totalResourceTokensMaps.ToByteString()
+                    Params = totalResourceTokensMaps == null ? ByteString.Empty : totalResourceTokensMaps.ToByteString()
                 }
             });
             await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(

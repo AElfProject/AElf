@@ -61,7 +61,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
             {
                 var oldBill = totalResourceTokensMaps.Value.First(b => b.ContractAddress == eventData.ContractAddress);
-                oldBill.TokensMap.Value[eventData.Symbol] += eventData.Amount;
+                if (oldBill.TokensMap.Value.ContainsKey(eventData.Symbol))
+                {
+                    oldBill.TokensMap.Value[eventData.Symbol] += eventData.Amount;
+                }
+                else
+                {
+                    oldBill.TokensMap.Value.Add(eventData.Symbol, eventData.Amount);
+                }
             }
             else
             {

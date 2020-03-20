@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, DonateResourceTransactionGenerator>();
-            context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ResourceTokenChargedLogEventProcessor>();
+            context.Services.AddTransient<IBlockAcceptedLogEventProcessor, ResourceTokenChargedLogEventProcessor>();
             context.Services.AddSingleton<ITotalResourceTokensMapsProvider, TotalResourceTokensMapsProvider>();
         }
     }
