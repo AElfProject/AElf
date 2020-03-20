@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Acs0;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,6 +13,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         private LogEvent _interestedEvent;
 
@@ -35,11 +36,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
             ISmartContractRegistrationProvider smartContractRegistrationProvider, 
-            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider)
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider, 
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractAddressService = smartContractAddressService;
             _smartContractRegistrationProvider = smartContractRegistrationProvider;
             _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
+            _smartContractExecutiveService = smartContractExecutiveService;
 
             Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
@@ -60,6 +63,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             }, eventData.Address, smartContractRegistration);
+            _smartContractExecutiveService.CleanExecutive(eventData.Address);
             Logger.LogDebug($"Updated contract {eventData}");
         }
     }

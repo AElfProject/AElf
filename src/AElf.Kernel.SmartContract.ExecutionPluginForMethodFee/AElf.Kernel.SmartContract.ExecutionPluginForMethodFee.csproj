@@ -6,17 +6,19 @@
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForMethodFee</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 1 execution plugin.</Description>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\transaction_fee.proto">
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf/Proto/transaction_fee.proto</Link>
-        </CommonMessage>
+        </ContractBase>
     </ItemGroup>
 
     <ItemGroup>

@@ -17,6 +17,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -450,8 +451,8 @@ namespace AElf.OS
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
                 var transactionResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-                long fee = 0;
-                transactionResult.TransactionFee?.Value.TryGetValue("ELF", out fee);
+                var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
+                var fee = relatedLog == null ? 0 : TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).Amount;
                 MockChainTokenAmount += fee + TransferInput.Parser.ParseFrom(transaction.Params).Amount;
                 bestBranchBlockList.Add(block);
             }

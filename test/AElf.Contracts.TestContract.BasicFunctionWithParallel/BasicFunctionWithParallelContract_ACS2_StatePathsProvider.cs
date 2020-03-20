@@ -17,7 +17,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     {
                         Paths =
                         {
-                            GetPath(nameof(BasicFunctionWithParallelContractState.WinerHistory),args.Second.ToString())
+                            GetPath(nameof(BasicFunctionWithParallelContractState.WinnerHistory),args.Second.ToString())
                         }
                     };
                 }
@@ -29,7 +29,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     {
                         Paths =
                         {
-                            GetPath(nameof(BasicFunctionWithParallelContractState.WinerHistory), args.Second.ToString())
+                            GetPath(nameof(BasicFunctionWithParallelContractState.WinnerHistory), args.Second.ToString())
                         }
                     };
                 }

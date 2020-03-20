@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
-using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
@@ -18,16 +17,14 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override TransactionFee ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
-
-            var transactionFee = new TransactionFee();
 
             // Primary token not created yet.
             if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                return transactionFee;
+                return new BoolValue {Value = true};
             }
 
             // Record tx fee bill during current charging process.
@@ -52,11 +49,18 @@ namespace AElf.Contracts.MultiToken
             foreach (var tokenToAmount in bill.TokenToAmount)
             {
                 ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
-                transactionFee.Value[tokenToAmount.Key] = tokenToAmount.Value;
+                Context.Fire(new TransactionFeeCharged
+                {
+                    Symbol = tokenToAmount.Key,
+                    Amount = tokenToAmount.Value
+                });
+                if (tokenToAmount.Value == 0)
+                {
+                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+                }
             }
 
-            transactionFee.IsFailedToCharge = !successToChargeBaseFee || !successToChargeSizeFee;
-            return transactionFee;
+            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -152,26 +156,16 @@ namespace AElf.Contracts.MultiToken
             return availableBalance >= txSizeFeeAmount;
         }
 
-        public override ConsumedResourceTokens ChargeResourceToken(ChargeResourceTokenInput input)
+        public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
-            var consumedResourceTokens = new ConsumedResourceTokens();
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
-                return consumedResourceTokens;
+                return new Empty();
             }
-
-            var symbolToAmount = new Dictionary<string, long>
-            {
-                {"READ", input.ReadCost},
-                {"TRAFFIC", input.TrafficCost},
-                {"STORAGE", input.StorageCost},
-                {"WRITE", input.WriteCost}
-            };
-
+        
             var bill = new TransactionFeeBill();
-
-            foreach (var pair in symbolToAmount)
+            foreach (var pair in input.CostDic)
             {
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
@@ -181,11 +175,12 @@ namespace AElf.Contracts.MultiToken
                     var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
                         .Add(pair.Value.Sub(existingBalance));
                     State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
-
-                    consumedResourceTokens.IsFailedToCharge = true;
-                    consumedResourceTokens.Owning.Add(pair.Key, owningBalance);
-
                     Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                    Context.Fire(new ResourceTokenOwned
+                    {
+                        Symbol = pair.Key,
+                        Amount = owningBalance
+                    });
                 }
                 else
                 {
@@ -197,12 +192,18 @@ namespace AElf.Contracts.MultiToken
             {
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
-                consumedResourceTokens.Value.Add(pair.Key, pair.Value);
+                Context.Fire(new ResourceTokenCharged
+                {
+                    Symbol = pair.Key,
+                    Amount = pair.Value
+                });
+                if (pair.Value == 0)
+                {
+                    Context.LogDebug(() => $"Maybe incorrect charged resource fee of {pair.Key}: it's 0.");
+                }
             }
 
-            Context.LogDebug(() => $"Finished executing ChargeResourceToken.{consumedResourceTokens}");
-
-            return consumedResourceTokens;
+            return new Empty();
         }
 
 
@@ -219,7 +220,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetSymbolsToPayTXSizeFee(SymbolListToPayTXSizeFee input)
+        public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
             Assert(input != null, "invalid input");
@@ -655,7 +656,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTXSizeFee tokenInfo, string baseSymbol,
+        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -665,7 +666,7 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTXSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
@@ -677,7 +678,8 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var createOrganizationInput = GetControllerCreateInputForSideChainRental();
-            var controllerForRental = CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
+            var controllerForRental =
+                CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
             Assert(controllerForRental == Context.Sender, "no permission");
         }
 
@@ -689,6 +691,7 @@ namespace AElf.Contracts.MultiToken
                 State.AssociationContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
+
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }

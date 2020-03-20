@@ -70,6 +70,9 @@ service TokenContractImpl {
     rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
         option (aelf.is_view) = true;
     }
+    rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ProfitReceivingInformation {
@@ -134,6 +137,10 @@ message GetVirtualAddressForLockingInput {
 
 message OwningRental {
     map<string, sint64> resource_amount = 1;
+}
+
+message OwningRentalUnitValue {
+    map<string, sint64> resource_unit_value = 1;
 }
 
 message TransferToContractInput {

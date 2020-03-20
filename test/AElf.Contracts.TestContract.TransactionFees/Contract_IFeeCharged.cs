@@ -9,7 +9,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
         [View]
         public override MethodFees GetMethodFee(StringValue input)
         {
-            var methodFees = State.MethodFees[input.Value];
+            var methodFees = State.TransactionFees[input.Value];
             if (methodFees != null)
                 return methodFees;
 
@@ -26,7 +26,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
 
         public override Empty SetMethodFee(MethodFees input)
         {
-            State.MethodFees[input.MethodName] = input;
+            State.TransactionFees[input.MethodName] = input;
             return new Empty();
         }
     }
