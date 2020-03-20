@@ -22,6 +22,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             return new List<string>
             {
+                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+
                 // Pre-plugin tx
                 nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
 

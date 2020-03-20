@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Proposal;
-using AElf.Kernel.Proposal.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;

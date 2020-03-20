@@ -16,11 +16,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
+    public class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly IPrimaryTokenFeeService _txFeeService;
+        // private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
@@ -29,22 +29,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            IPrimaryTokenFeeService txFeeService, 
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
+            // IPrimaryTokenFeeService txFeeService, 
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider): base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _txFeeService = txFeeService;
+            // _txFeeService = txFeeService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
-
-        private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == "acs1");
-        }
-
+        
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
@@ -65,7 +60,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     return new List<Transaction>();
                 }
 
-                if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
+                if (!IsTargetAcsSymbol(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
                 {
                     return new List<Transaction>();
                 }
@@ -83,12 +78,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
+                // var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
                     ContractAddress = transactionContext.Transaction.To,
-                    TransactionSizeFee = txCost,
+                    TransactionSizeFee = 0,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
                 

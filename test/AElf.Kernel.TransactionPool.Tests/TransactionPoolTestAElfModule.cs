@@ -44,37 +44,4 @@ namespace AElf.Kernel.TransactionPool
             });
         }
     }
-
-    // [DependsOn(
-    //     typeof(TransactionPoolWithChainTestAElfModule)
-    // )]
-    // public class TransactionPoolValidationTestAElfModule : AElfModule
-    // {
-    //     public override void ConfigureServices(ServiceConfigurationContext context)
-    //     {
-    //         var services = context.Services;
-    //
-    //         services.AddSingleton<TransactionFromAddressBalanceValidationProvider>();
-    //         services.AddSingleton(provider =>
-    //         {
-    //             var service = new Mock<IPrimaryTokenSymbolProvider>();
-    //
-    //             return service.Object;
-    //         });
-    //         
-    //         services.AddSingleton(provider =>
-    //         {
-    //             var service = new Mock<ITransactionFeeExemptionService>();
-    //             service.Setup(m => m.IsFree(It.Is<Transaction>(tx => tx.MethodName == "SystemMethod")))
-    //                 .Returns(true);
-    //             service.Setup(m => m.IsFree(It.Is<Transaction>(m => m.MethodName != "SystemMethod")))
-    //                 .Returns(false);
-    //
-    //             return service.Object;
-    //         });
-    //
-    //         services.AddSingleton<TransactionMethodNameValidationProvider>();
-    //         services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
-    //     }
-    // }
 }

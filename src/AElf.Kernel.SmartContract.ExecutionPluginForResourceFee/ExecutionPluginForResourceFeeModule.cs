@@ -15,7 +15,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, DonateResourceTransactionGenerator>();
-            context.Services.AddTransient<ISystemTransactionRecognizer, DonateTransactionRecognizer>();
             context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();

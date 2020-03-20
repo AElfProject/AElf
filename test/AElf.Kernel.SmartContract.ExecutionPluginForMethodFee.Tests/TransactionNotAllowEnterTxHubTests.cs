@@ -9,13 +9,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public class TransactionNotAllowEnterTxHubTests : ExecutionPluginForMethodFeeTestBase
     {
-        private readonly TxHubEntryPermissionValidationProvider _validationProvider;
+        private readonly TxHubEntryPermissionValidationProvider _entryPermissionValidationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly KernelTestHelper _kernelTestHelper;
 
         public TransactionNotAllowEnterTxHubTests()
         {
-            _validationProvider = GetRequiredService<TxHubEntryPermissionValidationProvider>();
+            _entryPermissionValidationProvider = GetRequiredService<TxHubEntryPermissionValidationProvider>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
@@ -24,14 +24,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task ValidateTransaction_Test()
         {
             var tx = _kernelTestHelper.GenerateTransaction();
-            var result =  await _validationProvider.ValidateTransactionAsync(tx);
+            var result =  await _entryPermissionValidationProvider.ValidateTransactionAsync(tx);
             result.ShouldBe(true);
             
             _smartContractAddressService.SetAddress(TokenSmartContractAddressNameProvider.Name,
                 SampleAddress.AddressList.Last());
             tx.To = SampleAddress.AddressList.Last();
             tx.MethodName = "ClaimTransactionFees";
-            result =  await _validationProvider.ValidateTransactionAsync(tx);
+            result =  await _entryPermissionValidationProvider.ValidateTransactionAsync(tx);
             result.ShouldBe(false);
         }
     }

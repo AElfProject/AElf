@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
@@ -8,7 +7,6 @@ using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -50,13 +48,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     MethodName = nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    //TODO: make a Util to get Block Prefix
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
-                    //TODO: new Empty() => Empty.Instance, or a constant
-                    Params = new Empty().ToByteString()
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+                    Params = ByteString.Empty
                 }
             });
-            
+
             Logger.LogInformation("FeeClaim transaction generated.");
             return Task.FromResult(generatedTransactions);
         }
