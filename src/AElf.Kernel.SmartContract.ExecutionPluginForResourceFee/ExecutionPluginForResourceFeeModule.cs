@@ -15,7 +15,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, DonateResourceTransactionGenerator>();
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, ResourceTokenChargedLogEventProcessor>();
-            context.Services.AddSingleton<ITotalResourceTokensMapsProvider, TotalResourceTokensMapsProvider>();
         }
     }
 }

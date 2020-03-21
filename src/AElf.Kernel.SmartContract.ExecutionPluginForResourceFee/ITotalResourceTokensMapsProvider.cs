@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
@@ -11,7 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     }
 
     public class TotalResourceTokensMapsProvider : BlockExecutedDataBaseProvider<TotalResourceTokensMaps>,
-        ITotalResourceTokensMapsProvider
+        ITotalResourceTokensMapsProvider, ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TotalResourceTokensMaps);
 

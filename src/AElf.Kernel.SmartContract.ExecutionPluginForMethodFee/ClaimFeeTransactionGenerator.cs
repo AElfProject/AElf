@@ -56,10 +56,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return new List<Transaction>();
             }
 
-            var bill = new TransactionFeeBill
-            {
-                FeesMap = {totalTxFeesMap.Value}
-            };
             generatedTransactions.AddRange(new List<Transaction>
             {
                 new Transaction
@@ -69,7 +65,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
-                    Params = bill.ToByteString()
+                    Params = totalTxFeesMap.ToByteString()
                 }
             });
             await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(
