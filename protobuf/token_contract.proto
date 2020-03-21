@@ -371,10 +371,14 @@ message AllCalculateFeeCoefficients {
 message TotalTransactionFeesMap
 {
     map<string, sint64> value = 1;
+    aelf.Hash block_hash = 2;
+    sint64 block_height = 3;
 }
 
 message TotalResourceTokensMaps {
     repeated ContractTotalResourceTokens value = 1;
+    aelf.Hash block_hash = 2;
+    sint64 block_height = 3;
 }
 
 message ContractTotalResourceTokens {

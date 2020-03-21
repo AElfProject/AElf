@@ -55,7 +55,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height,
-                    }) ?? new TotalResourceTokensMaps();
+                    }) ?? new TotalResourceTokensMaps
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                };
 
             if (totalResourceTokensMaps.Value.Any() &&
                 totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
