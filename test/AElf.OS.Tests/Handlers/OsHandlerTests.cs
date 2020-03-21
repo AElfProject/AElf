@@ -80,19 +80,13 @@ namespace AElf.OS.Handlers
         public async Task BlockAccepted_HandlerEventAsync_Test()
         {
             await _syncStateService.StartSyncAsync();
-
+            await _syncStateService.UpdateSyncStateAsync();
             var chain = await _blockchainService.GetChainAsync();
             var tx = await _osTestHelper.GenerateTransferTransaction();
             await _blockchainService.AddTransactionsAsync(new[] {tx});
             var block = _osTestHelper.GenerateBlock(chain.LongestChainHash,
                 chain.LongestChainHeight, new[] {tx});
 
-            BlockAcceptedEvent eventData = null;
-            _eventBus.Subscribe<BlockAcceptedEvent>(ed =>
-            {
-                eventData = ed;
-                return Task.CompletedTask;
-            });
             await _blockAcceptedEventHandler.HandleEventAsync(new BlockAcceptedEvent
             {
                 Block = block
