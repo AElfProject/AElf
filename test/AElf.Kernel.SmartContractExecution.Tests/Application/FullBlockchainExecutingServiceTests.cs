@@ -51,13 +51,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             executionResult.ExecutedSuccessBlocks.Count.ShouldBe(blockList.Count());
             for (var i = 0; i < 3; i++)
             {
-                executionResult.ExecutedFailedBlocks[i].GetHash().ShouldBe(blockList[i].GetHash());
+                executionResult.ExecutedSuccessBlocks[i].GetHash().ShouldBe(blockList[i].GetHash());
             }
             executionResult.ExecutedFailedBlocks.Count.ShouldBe(0);
-
-            chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHash.ShouldBe(previousHash);
-            chain.BestChainHeight.ShouldBe(previousHeight);
         }
     }
 }

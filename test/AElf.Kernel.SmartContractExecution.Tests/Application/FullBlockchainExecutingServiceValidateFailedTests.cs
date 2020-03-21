@@ -29,9 +29,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task ExecuteBlocks_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var bestChainHeight = chain.BestChainHeight;
-            var bestChainHash = chain.BestChainHash;
-            
+
             var previousHash = chain.BestChainHash;
             var previousHeight = chain.BestChainHeight;
 
@@ -57,17 +55,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             executionResult.ExecutedSuccessBlocks.Count.ShouldBe(0);
             executionResult.ExecutedFailedBlocks.Count.ShouldBe(1);
             executionResult.ExecutedFailedBlocks[0].GetHash().ShouldBe(blockList[0].GetHash());
-
-
-            chain = await _blockchainService.GetChainAsync();
-            var newBlockLink = await _chainManager.GetChainBlockLinkAsync(blockList.First().GetHash());
-            
-            newBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-            chain.BestChainHash.ShouldBe(bestChainHash);
-            chain.BestChainHeight.ShouldBe(bestChainHeight);
-            chain.LongestChainHash.ShouldBe(bestChainHash);
-            chain.LongestChainHeight.ShouldBe(bestChainHeight);
-            chain.Branches.ShouldNotContainKey(previousHash.ToStorageKey());
         }
     }
 }
