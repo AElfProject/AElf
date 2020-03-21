@@ -689,7 +689,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <returns></returns>
         public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply,
-            out long dividend, out long balanceOfStarter)
+            out long dividend, out long balanceOfStarter, bool addDefaultPrivilegedProposer = false)
         {
             totalSupply = TokenTotalSupply;
             dividend = InitialTreasuryAmount;
@@ -719,9 +719,15 @@ namespace AElf.Contracts.TestBase
                 {
                     IsPrivilegePreserved = true
                 });
+
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var parliamentContractInitializeInput = new Parliament.InitializeInput();
+            if (addDefaultPrivilegedProposer)
+            {
+                parliamentContractInitializeInput.PrivilegedProposer = SampleAddress.AddressList[0];
+            }
             parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize),
-                new Parliament.InitializeInput());
+                parliamentContractInitializeInput);
 
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

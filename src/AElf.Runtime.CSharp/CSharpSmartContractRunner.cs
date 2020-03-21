@@ -11,26 +11,16 @@ using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunnerForCategoryZero : ISmartContractRunner
+    public class CSharpSmartContractRunner : ISmartContractRunner
     {
         public int Category { get; protected set; }
         private readonly ISdkStreamManager _sdkStreamManager;
 
-        //TODO: remove
-        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
-            new ConcurrentDictionary<string, MemoryStream>();
-
-        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
-            new ConcurrentDictionary<Hash, Type>();
-
-        private readonly string _sdkDir;
-
-
-        public SmartContractRunnerForCategoryZero(
+        public CSharpSmartContractRunner(
             string sdkDir)
         {
-            _sdkDir = Path.GetFullPath(sdkDir);
-            _sdkStreamManager = new SdkStreamManager(_sdkDir);
+            var sdkDir1 = Path.GetFullPath(sdkDir);
+            _sdkStreamManager = new SdkStreamManager(sdkDir1);
         }
 
         /// <summary>
@@ -49,24 +39,37 @@ namespace AElf.Runtime.CSharp
 
             var loadContext = GetLoadContext();
 
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
+            Assembly assembly = LoadAssembly(code, loadContext);
 
             if (assembly == null)
             {
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
+            ContractVersion = assembly.GetName().Version?.ToString();
+
             var executive = new Executive(assembly)
             {
                 ContractHash = reg.CodeHash,
-                IsSystemContract = reg.IsSystemContract
+                IsSystemContract = reg.IsSystemContract,
+                ContractVersion = ContractVersion
             };
+
 
             return await Task.FromResult(executive);
         }
+
+        protected virtual Assembly LoadAssembly(byte[] code, AssemblyLoadContext loadContext)
+        {
+            Assembly assembly;
+            using (Stream stream = new MemoryStream(code))
+            {
+                assembly = loadContext.LoadFromStream(stream);
+            }
+
+            return assembly;
+        }
+
+        public string ContractVersion { get; protected set; }
     }
 }

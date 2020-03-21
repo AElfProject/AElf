@@ -512,7 +512,7 @@ namespace AElf.Contracts.Election
             {
                 State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
-            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "No permission.");
         }
 
         private AuthorityInfo GetDefaultVoteWeightInterestController()

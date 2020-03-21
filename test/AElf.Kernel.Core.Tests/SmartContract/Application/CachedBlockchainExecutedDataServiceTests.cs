@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
-using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -58,19 +57,30 @@ namespace AElf.Kernel.SmartContract.Application
                 transactionDic.Add(GetBlockExecutedDataKey<Transaction>(transaction.GetHash()), transaction);
             }
 
-            await _transactionBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockStateSet.BlockHash,
-                transactionDic);
+            await _transactionBlockchainExecutedDataService.AddBlockExecutedDataAsync(new BlockIndex
+            {
+                BlockHash = blockStateSet.BlockHash,
+                BlockHeight = blockStateSet.BlockHeight
+            }, transactionDic);
             
             var transactionResult = new TransactionResult
             {
                 TransactionId = transactionDic.First().Value.GetHash()
             };
             var transactionResultKey = GetBlockExecutedDataKey<TransactionResult>(transactionResult.TransactionId);
-            await _transactionResultBlockchainExecutedDataService.AddBlockExecutedDataAsync(chain.BestChainHash,
+            await _transactionResultBlockchainExecutedDataService.AddBlockExecutedDataAsync(new BlockIndex
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                },
                 transactionResultKey,
                 transactionResult);
             var chainKey = GetBlockExecutedDataKey<Chain>();
-            await _chainBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockStateSet.BlockHash,
+            await _chainBlockchainExecutedDataService.AddBlockExecutedDataAsync(new BlockIndex
+                {
+                    BlockHash = blockStateSet.BlockHash,
+                    BlockHeight = blockStateSet.BlockHeight
+                },
                 chainKey, chain);
 
             var newBlockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);

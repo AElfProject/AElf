@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
@@ -7,34 +8,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     public interface ITransactionSizeFeeSymbolsProvider
     {
         Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext);
-        Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
+        Task SetTransactionSizeFeeSymbolsAsync(IBlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
     }
 
-    public class TransactionSizeFeeSymbolsProvider : BlockExecutedDataProvider, ITransactionSizeFeeSymbolsProvider,
+    public class TransactionSizeFeeSymbolsProvider : BlockExecutedDataBaseProvider<TransactionSizeFeeSymbols>, ITransactionSizeFeeSymbolsProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TransactionSizeFeeSymbols);
 
-        private readonly ICachedBlockchainExecutedDataService<TransactionSizeFeeSymbols> _cachedBlockchainExecutedDataService;
-
-        public TransactionSizeFeeSymbolsProvider(ICachedBlockchainExecutedDataService<TransactionSizeFeeSymbols> cachedBlockchainExecutedDataService)
+        public TransactionSizeFeeSymbolsProvider(
+            ICachedBlockchainExecutedDataService<TransactionSizeFeeSymbols> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
         {
-            _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
         public Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext)
         {
-            var key = GetBlockExecutedDataKey();
-            var transactionSizeFeeSymbols =
-                _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, key);
+            var transactionSizeFeeSymbols = GetBlockExecutedData(chainContext);
             return Task.FromResult(transactionSizeFeeSymbols);
         }
 
-        public async Task SetTransactionSizeFeeSymbolsAsync(BlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols)
+        public async Task SetTransactionSizeFeeSymbolsAsync(IBlockIndex blockIndex,
+            TransactionSizeFeeSymbols transactionSizeFeeSymbols)
         {
-            var key = GetBlockExecutedDataKey();
-            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex.BlockHash, key,
-                transactionSizeFeeSymbols);
+            await AddBlockExecutedDataAsync(blockIndex, transactionSizeFeeSymbols);
         }
 
         protected override string GetBlockExecutedDataName()

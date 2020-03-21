@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
