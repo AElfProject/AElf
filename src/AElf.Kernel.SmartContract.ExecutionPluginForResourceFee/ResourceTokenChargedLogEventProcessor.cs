@@ -48,6 +48,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             if (eventData.Symbol == null || eventData.Amount == 0)
                 return;
 
+            var blockHash = block.GetHash();
+            var blockHeight = block.Height;
             // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalResourceTokensMap at once.
             var totalResourceTokensMaps =
                 await _totalTotalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
@@ -55,11 +57,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height,
-                    }) ?? new TotalResourceTokensMaps
+                    });
+            // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
+            if (totalResourceTokensMaps == null)
+            {
+                totalResourceTokensMaps = new TotalResourceTokensMaps
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
                 };
+            }
+            else if (totalResourceTokensMaps.BlockHash != blockHash || totalResourceTokensMaps.BlockHeight != blockHeight)
+            {
+                totalResourceTokensMaps = new TotalResourceTokensMaps
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                };
+            }
 
             if (totalResourceTokensMaps.Value.Any() &&
                 totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
@@ -92,8 +107,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 
             await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
             }, totalResourceTokensMaps);
         }
     }

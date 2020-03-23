@@ -47,16 +47,32 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (eventData.Symbol == null || eventData.Amount == 0)
                 return;
 
+            var blockHash = block.GetHash();
+            var blockHeight = block.Height;
             // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalTxFeesMap at once.
             var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-            }) ?? new TotalTransactionFeesMap
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            });
+
+            // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
+            if (totalTxFeesMap == null)
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            };
+                totalTxFeesMap = new TotalTransactionFeesMap
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                };
+            }
+            else if (totalTxFeesMap.BlockHash != blockHash || totalTxFeesMap.BlockHeight != blockHeight)
+            {
+                totalTxFeesMap = new TotalTransactionFeesMap
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                };
+            }
 
             if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
             {
@@ -69,8 +85,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
             await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
             }, totalTxFeesMap);
         }
     }
