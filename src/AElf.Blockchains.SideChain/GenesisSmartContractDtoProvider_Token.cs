@@ -3,6 +3,7 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -45,6 +46,9 @@ namespace AElf.Blockchains.SideChain
                     },
                     Creator = chainInitializationData.Creator
                 });
+
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+                new Empty());
             
             if (chainInitializationData.ChainPrimaryTokenInfo != null)
             {

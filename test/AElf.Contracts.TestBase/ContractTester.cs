@@ -42,7 +42,6 @@ using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenCont
 using ParliamentContractStub = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
-using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -823,8 +822,8 @@ namespace AElf.Contracts.TestBase
                 });
 
             if(parentChainTokenContractAddress != null)
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
-                    new InitializeInput
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                    new InitializeFromParentChainInput
                     {
                         RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
                     });

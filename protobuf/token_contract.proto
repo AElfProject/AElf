@@ -39,6 +39,8 @@ service TokenContract {
     }
     rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
     }
+    rpc InitialCoefficients(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
     // acs1
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }

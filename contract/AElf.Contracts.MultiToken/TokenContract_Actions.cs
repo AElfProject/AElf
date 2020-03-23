@@ -18,7 +18,6 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
             State.InitializedFromParentChain.Value = true;
-            InitialCoefficientsAboutCharging();
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
@@ -81,8 +80,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
             var tokenInfo = State.TokenInfos[input.Symbol];
-            Assert(State.TokenInfos[input.Symbol] != null && tokenInfo.IssueChainId == Context.ChainId,
-                "Invalid input.");
+            Assert(State.TokenInfos[input.Symbol] != null, "Invalid input.");
 
             State.ChainPrimaryTokenSymbol.Value = input.Symbol;
             Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.Symbol});

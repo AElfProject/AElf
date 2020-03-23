@@ -19,7 +19,6 @@ using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
-using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 {
@@ -324,21 +323,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await CreateToken(
                 GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
                     .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
-            
+
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.SetSideChainCreator),
-                Params = Creator.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = defaultOrganizationAddress
-            });
-            
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Initialize),
-                Params = new InitializeInput
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain),
+                Params = new InitializeFromParentChainInput()
                 {
                     ResourceAmount =
                     {
@@ -346,7 +336,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                         {"RAM", RamAmount},
                         {"DISK", DiskAmount},
                         {"NET", NetAmount}
-                    }
+                    },
+                    Creator = Creator
                 }.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
