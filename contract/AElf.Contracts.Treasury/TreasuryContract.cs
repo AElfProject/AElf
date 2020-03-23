@@ -125,7 +125,7 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.TreasuryHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
             RequireElectionContractStateSet();
             var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
@@ -222,6 +222,7 @@ namespace AElf.Contracts.Treasury
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
                 Assert(info.Capital > 0, "invalid input");
@@ -235,6 +236,14 @@ namespace AElf.Contracts.Treasury
             input.VoteWeightInterestInfos.Clear();
             input.VoteWeightInterestInfos.AddRange(orderList);
             State.VoteWeightInterestList.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetDistributingSymbolList(SymbolList input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            State.SymbolList.Value = input;
             return new Empty();
         }
 
@@ -307,32 +316,33 @@ namespace AElf.Contracts.Treasury
 
         private void ReleaseTreasurySubProfitItems(long termNumber)
         {
+            var amountsMap = State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.RewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
         }
 
@@ -582,7 +592,7 @@ namespace AElf.Contracts.Treasury
                 return new GetWelfareRewardAmountSampleOutput();
             }
 
-            var totalAmount = releasedInformation.ProfitsAmount;
+            var totalAmount = releasedInformation.AmountsMap;
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);

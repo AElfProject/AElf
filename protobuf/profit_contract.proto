@@ -120,8 +120,7 @@ message ClaimProfitsInput {
 message DistributeProfitsInput {
     aelf.Hash scheme_id = 1;
     sint64 period = 2;
-    sint64 amount = 3;
-    string symbol = 4;
+    map<string, sint64> amounts_map = 3;
 }
 
 message ProfitDetails {
@@ -157,7 +156,7 @@ message RemoveSubSchemeInput {
 
 message DistributedProfitsInfo {
     sint64 total_shares = 1;
-    map<string, sint64> profits_amount = 2;
+    map<string, sint64> amounts_map = 2;
     bool is_released = 3;
 }
 

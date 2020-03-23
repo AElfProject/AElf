@@ -26,6 +26,9 @@ service TreasuryContract {
     }
     rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
+    }
+
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
@@ -40,6 +43,9 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {
         option (aelf.is_view) = true;
     }
 }
@@ -79,6 +85,10 @@ message ReleaseMiningRewardInput {
 
 message MinerReElectionInformation {
     map<string, sint64> continual_appointment_times = 1;
+}
+
+message SymbolList {
+    repeated string value = 1;
 }
 
 // Events

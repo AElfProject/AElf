@@ -138,7 +138,6 @@ namespace AElf.Contracts.TokenHolder
             State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
-                Symbol = input.Symbol ?? scheme.Symbol,
                 Period = scheme.Period
             });
             scheme.Period = scheme.Period.Add(1);
@@ -189,7 +188,6 @@ namespace AElf.Contracts.TokenHolder
                     State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
                     {
                         SchemeId = scheme.SchemeId,
-                        Symbol = threshold.Key,
                         Period = scheme.Period.Add(1)
                     });
                     scheme.Period = scheme.Period.Add(1);

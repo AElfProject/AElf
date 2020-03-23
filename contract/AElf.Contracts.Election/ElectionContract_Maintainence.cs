@@ -83,7 +83,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.AEDPoSContract.Value == Context.Sender, "No permission.");
 
             SavePreviousTermInformation(input);
@@ -114,20 +114,26 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
 
-
+            var symbolList = State.TreasuryContract.GetDistributingSymbolList.Call(new Empty());
+            var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             return new Empty();
