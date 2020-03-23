@@ -38,6 +38,7 @@
     * [Architecture](crosschain/architecture.md)
     * [Crosschain verification](crosschain/crosschain-verification.md)
     * [Creation](crosschain/setup.md)
+    * [Verify](crosschain/verify.md)
     * [Transfer](crosschain/transfer.md)
 * [AElf mainnet/testnet](public-chain/main.md)
     * [Introduction](public-chain/introduction.md)
