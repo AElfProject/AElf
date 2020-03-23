@@ -58,8 +58,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
-            if (totalResourceTokensMaps.BlockHeight != preBlockHeight ||
-                totalResourceTokensMaps.BlockHash != preBlockHash)
+            if (totalResourceTokensMaps != null && (totalResourceTokensMaps.BlockHeight != preBlockHeight ||
+                                                    totalResourceTokensMaps.BlockHash != preBlockHash))
             {
                 return generatedTransactions;
             }
