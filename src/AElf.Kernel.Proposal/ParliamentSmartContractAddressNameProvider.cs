@@ -2,7 +2,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Proposal
 {
     public class ParliamentSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

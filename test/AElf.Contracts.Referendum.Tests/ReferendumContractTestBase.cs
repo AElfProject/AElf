@@ -20,6 +20,7 @@ using Volo.Abp.Threading;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 
 namespace AElf.Contracts.Referendum
 {

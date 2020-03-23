@@ -10,6 +10,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;

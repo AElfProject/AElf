@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Application
 {
     public class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
@@ -23,8 +23,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
                 _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
 
             return Task.FromResult(transaction.To != parliamentContractAddress || transaction.MethodName !=
-                                   nameof(ParliamentContractContainer.ParliamentContractStub
-                                       .ApproveMultiProposals));
+                nameof(ParliamentContractContainer.ParliamentContractStub
+                    .ApproveMultiProposals));
         }
     }
 }
