@@ -1,10 +1,8 @@
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using Microsoft.AspNetCore.Builder;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.Modularity.PlugIns;
 
 namespace AElf.WebApp.Application
 {

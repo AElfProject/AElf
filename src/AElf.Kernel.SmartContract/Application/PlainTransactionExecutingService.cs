@@ -189,10 +189,6 @@ namespace AElf.Kernel.SmartContract.Application
                 #endregion
 
                 await executive.ApplyAsync(txContext);
-                
-                Logger.LogTrace($"Method: {singleTxExecutingDto.Transaction.MethodName}, " +
-                                            $"Call Count: {trace.ExecutionCallCount}, " +
-                                            $"Branch Count: {trace.ExecutionBranchCount}");
 
                 if (txContext.Trace.IsSuccessful())
                     await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
