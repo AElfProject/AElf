@@ -12,6 +12,6 @@ namespace AElf.Kernel.TransactionPool
         /// Bp Node can disable this flag to make best performance.
         /// But common node needs to enable it to prevent transaction flood attack
         /// </summary>
-        public bool EnableTransactionExecutionTest { get; set; } = true;
+        public bool EnableTransactionExecutionValidation { get; set; } = true;
     }
 }

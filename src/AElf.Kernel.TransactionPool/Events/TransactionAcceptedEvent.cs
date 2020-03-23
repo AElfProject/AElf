@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool.Infrastructure
+namespace AElf.Kernel.TransactionPool
 {
     public class TransactionAcceptedEvent
     {

@@ -6,33 +6,49 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
+using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class TransactionExecutionValidationProvider : ITransactionValidationProvider
     {
-        private IPlainTransactionExecutingService _plainTransactionExecutingService;
-        private IBlockchainService _blockchainService;
+        private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly TransactionOptions _transactionOptions;
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public TransactionExecutionValidationProvider(
             IPlainTransactionExecutingService plainTransactionExecutingService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, IOptionsMonitor<TransactionOptions> transactionOptionsMonitor)
         {
             _plainTransactionExecutingService = plainTransactionExecutingService;
             _blockchainService = blockchainService;
+            _transactionOptions = transactionOptionsMonitor.CurrentValue;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
-        
+
         public bool ValidateWhileSyncing { get; } = true;
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
+            if (!_transactionOptions.EnableTransactionExecutionValidation)
+                return true;
+
             var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
             {
                 Transactions = new[] {transaction},
                 BlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
             }, CancellationToken.None);
 
-            return executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined;
+            var executionValidationResult =
+                executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined;
+            if (!executionValidationResult)
+                await LocalEventBus.PublishAsync(new TransactionExecutionValidationFailedEvent
+                {
+                    TransactionId = transaction.GetHash()
+                });
+            return executionValidationResult;
         }
     }
 }
