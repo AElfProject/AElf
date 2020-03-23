@@ -359,7 +359,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 MaximumLockTime = 1080 * 86400,
                 MinimumLockTime = 90 * 86400,
-                PeriodMinutes = EconomicContractsTestConstants.PeriodMinutes,
+                TimeEachTerm = EconomicContractsTestConstants.PeriodMinutes,
                 MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
             });

@@ -13,7 +13,9 @@ namespace AElf.Contracts.Economic
 
         // Resource token related.
         public const long ResourceTokenTotalSupply = 500_000_000_00000000;
+
         public const int ResourceTokenDecimals = 8;
+
         //resource to sell
         public const long ResourceTokenInitialVirtualBalance = 100_000;
 
@@ -23,6 +25,7 @@ namespace AElf.Contracts.Economic
 
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
+        public const string ShareTokenSymbol = "SHARE";
         public const long ElectionTokenTotalSupply = long.MaxValue;
 
         public const int MemoMaxLength = 64;

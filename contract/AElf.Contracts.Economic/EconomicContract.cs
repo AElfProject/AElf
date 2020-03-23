@@ -134,6 +134,20 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
                 }
             });
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = EconomicContractConstants.ShareTokenSymbol,
+                TokenName = "Share Token",
+                TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
+                Decimals = 0,
+                Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                IsBurnable = false,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
+                }
+            });
         }
 
         /// <summary>
