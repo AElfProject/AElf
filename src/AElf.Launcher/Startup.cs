@@ -4,14 +4,12 @@ using System.Linq;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
-using Volo.Abp.Modularity.PlugIns;
 
 namespace AElf.Launcher
 {
@@ -63,7 +61,7 @@ namespace AElf.Launcher
 
         private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
         {
-            services.AddApplication<T>(options => options.PlugInSources.AddTypes(typeof(ExecutionPluginForCallThresholdModule)));
+            services.AddApplication<T>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
