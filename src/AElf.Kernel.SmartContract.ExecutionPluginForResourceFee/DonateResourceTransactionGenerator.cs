@@ -58,10 +58,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
-            if (totalResourceTokensMaps != null && (totalResourceTokensMaps.BlockHeight != preBlockHeight ||
-                                                    totalResourceTokensMaps.BlockHash != preBlockHash))
+            var input = ByteString.Empty;
+            if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
+                totalResourceTokensMaps.BlockHash == preBlockHash)
             {
-                return generatedTransactions;
+                input = totalResourceTokensMaps.ToByteString();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
@@ -73,11 +74,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
-                    Params = totalResourceTokensMaps == null ? ByteString.Empty : totalResourceTokensMaps.ToByteString()
+                    Params = input
                 }
             });
 
-            Logger.LogInformation("Donate resource transaction generated.");
+            Logger.LogInformation("Tx DonateResourceToken generated.");
             return generatedTransactions;
         }
     }

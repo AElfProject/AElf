@@ -53,6 +53,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any() || totalTxFeesMap.BlockHeight != preBlockHeight ||
                 totalTxFeesMap.BlockHash != preBlockHash)
             {
+                Logger.LogInformation(
+                    "Won't generate ClaimTransactionFees because no tx fee charged in previous block.");
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
                 return new List<Transaction>();
             }
@@ -70,7 +72,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 }
             });
 
-            Logger.LogInformation("FeeClaim transaction generated.");
+            Logger.LogInformation("Tx ClaimTransactionFees generated.");
             return generatedTransactions;
         }
     }
