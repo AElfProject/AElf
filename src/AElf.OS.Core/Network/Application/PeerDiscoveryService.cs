@@ -79,7 +79,7 @@ namespace AElf.OS.Network.Application
             // Check that a peer did not send us this node
             var localPubKey = await _accountService.GetPublicKeyAsync();
             var hexPubkey = localPubKey.ToHex();
-            discoveredNodes.RemoveAll(n => n.Key.Equals(hexPubkey));
+            discoveredNodes.Remove(hexPubkey);
             result.Nodes.AddRange(discoveredNodes.Values);
             return result;
         }
