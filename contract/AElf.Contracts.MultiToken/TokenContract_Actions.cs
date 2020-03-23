@@ -14,21 +14,22 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        public override Empty Initialize(InitializeInput input)
+        public override Empty InitializeFromParentChain(InitializeFromParentChainInput input)
         {
-            Assert(!State.Initialized.Value, "MultiToken has been initialized");
+            Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
+            State.InitializedFromParentChain.Value = true;
             InitialCoefficientsAboutCharging();
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
 
-            State.MinimumProfitsDonationPartsPerHundred.Value = input.MinimumProfitsDonationPartsPerHundred;
-            State.Initialized.Value = true;
             foreach (var pair in input.RegisteredOtherTokenContractAddresses)
             {
                 State.CrossChainTransferWhiteList[pair.Key] = pair.Value;
             }
+            
+            SetSideChainCreator(input.Creator);
             
             return new Empty();
         }
@@ -78,8 +79,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
         {
-            Assert(!State.Initialized.Value && State.ChainPrimaryTokenSymbol.Value == null,
-                "Failed to set primary token symbol.");
+            Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
             var tokenInfo = State.TokenInfos[input.Symbol];
             Assert(State.TokenInfos[input.Symbol] != null && tokenInfo.IssueChainId == Context.ChainId,
                 "Invalid input.");

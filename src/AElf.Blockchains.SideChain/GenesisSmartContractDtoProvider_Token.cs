@@ -3,7 +3,6 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
-using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -22,6 +21,31 @@ namespace AElf.Blockchains.SideChain
                 nameof(TokenContractContainer.TokenContractStub.Create),
                 GenerateTokenCreateInput(nativeTokenInfo));
 
+            // resource token
+            foreach (var resourceTokenInfo in resourceTokenList.Value)
+            {
+                tokenInitializationCallList.Add(
+                    nameof(TokenContractContainer.TokenContractStub.Create),
+                    GenerateTokenCreateInput(resourceTokenInfo));
+            }
+            
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                new InitializeFromParentChainInput
+                {
+                    ResourceAmount =
+                    {
+                        chainInitializationData.ResourceTokenInfo.InitialResourceAmount.ToDictionary(
+                            kv => kv.Key.ToUpper(),
+                            kv => kv.Value)
+                    },
+                    RegisteredOtherTokenContractAddresses =
+                    {
+                        [_sideChainInitializationDataProvider.ParentChainId] =
+                            chainInitializationData.ParentChainTokenContractAddress
+                    },
+                    Creator = chainInitializationData.Creator
+                });
+            
             if (chainInitializationData.ChainPrimaryTokenInfo != null)
             {
                 // primary token
@@ -31,12 +55,6 @@ namespace AElf.Blockchains.SideChain
                 tokenInitializationCallList.Add(
                     nameof(TokenContractContainer.TokenContractStub.Create),
                     GenerateTokenCreateInput(chainPrimaryTokenInfo));
-
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                    new SetPrimaryTokenSymbolInput
-                    {
-                        Symbol = chainPrimaryTokenInfo.Symbol
-                    });
 
                 foreach (var issueStuff in chainInitializationData.ChainPrimaryTokenInfo.SideChainTokenInitialIssueList)
                 {
@@ -49,37 +67,22 @@ namespace AElf.Blockchains.SideChain
                             To = issueStuff.Address
                         });
                 }
+                
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                    new SetPrimaryTokenSymbolInput
+                    {
+                        Symbol = chainPrimaryTokenInfo.Symbol
+                    });
             }
-
-            // resource token
-            foreach (var resourceTokenInfo in resourceTokenList.Value)
+            else
             {
-                tokenInitializationCallList.Add(
-                    nameof(TokenContractContainer.TokenContractStub.Create),
-                    GenerateTokenCreateInput(resourceTokenInfo));
+                // set primary token with native token 
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                    new SetPrimaryTokenSymbolInput
+                    {
+                        Symbol = nativeTokenInfo.Symbol
+                    });
             }
-
-
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
-                new InitializeInput
-                {
-                    ResourceAmount =
-                    {
-                        chainInitializationData.ResourceTokenInfo.InitialResourceAmount.ToDictionary(
-                            kv => kv.Key.ToUpper(),
-                            kv => kv.Value)
-                    },
-                    MinimumProfitsDonationPartsPerHundred =
-                        chainInitializationData.MinimumProfitsDonationPartsPerHundred,
-                    RegisteredOtherTokenContractAddresses =
-                    {
-                        [_sideChainInitializationDataProvider.ParentChainId] =
-                            chainInitializationData.ParentChainTokenContractAddress
-                    }
-                });
-
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
-                chainInitializationData.Creator);
 
             return tokenInitializationCallList;
         }

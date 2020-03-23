@@ -119,14 +119,13 @@ message ChainInitializationData {
     int32 chain_id = 1;
     aelf.Address creator = 2;
     google.protobuf.Timestamp creation_timestamp = 3;
-    int64 creation_height_on_parent_chain = 5;
-    bool chain_creator_privilege_preserved = 6;
-    int32 minimum_profits_donation_parts_per_hundred = 7;
-    aelf.Address parent_chain_token_contract_address = 8;
-    ChainInitializationConsensusInfo chain_initialization_consensus_info = 9;
-    bytes native_token_info_data = 10;
-    ResourceTokenInfo resource_token_info = 11;
-    ChainPrimaryTokenInfo chain_primary_token_info = 12;
+    int64 creation_height_on_parent_chain = 4;
+    bool chain_creator_privilege_preserved = 5;
+    aelf.Address parent_chain_token_contract_address = 6;
+    ChainInitializationConsensusInfo chain_initialization_consensus_info = 7;
+    bytes native_token_info_data = 8;
+    ResourceTokenInfo resource_token_info = 9;
+    ChainPrimaryTokenInfo chain_primary_token_info = 10;
 }
 
 message ChainInitializationToken{
