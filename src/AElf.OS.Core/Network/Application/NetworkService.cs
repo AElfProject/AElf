@@ -42,25 +42,31 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        public async Task<bool> AddPeerAsync(string address)
+        public async Task<bool> AddPeerAsync(string address, bool isTrusted = false)
         {
-            if (AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint))
-                return await _networkServer.ConnectAsync(endpoint);
-            
-            Logger.LogWarning($"Could not parse endpoint {address}.");
+            if (!AElfPeerEndpointHelper.TryParse(address, out var endpoint))
+            {
+                Logger.LogWarning($"Could not parse endpoint {address}.");
+                return false;
+            }
 
-            return false;
+            if (isTrusted)
+            {
+                _blackListedPeerProvider.RemoveHostFromBlackLis(endpoint.Host);
+            }
+
+            return await _networkServer.ConnectAsync(endpoint);
         }
 
-        public async Task<bool> RemovePeerByAddressAsync(string address)
+        public async Task<bool> RemovePeerByAddressAsync(string address, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
         {
             if (!AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint)) 
                 return false;
             
             var peer = _peerPool.FindPeerByEndpoint(endpoint);
-            if (peer == null)
+            if (await RemovePeerAsync(peer, removalTime))
             {
-                Logger.LogWarning($"Could not find peer at address {address}");
+                Logger.LogWarning($"Remove peer failed. Peer address: {address}");
                 return false;
             }
 
@@ -69,12 +75,12 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubkey, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
         {
-            var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
+            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
             if (await RemovePeerAsync(peer, removalTime))
             {
-                Logger.LogWarning($"Remove peer failed: {peerPubKey}");
+                Logger.LogWarning($"Remove peer failed. Peer pubkey: {peerPubkey}");
                 return false;
             }
 
