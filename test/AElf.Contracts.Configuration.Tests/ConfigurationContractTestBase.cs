@@ -9,6 +9,7 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Configuration;
+using AElf.Kernel.Proposal;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;

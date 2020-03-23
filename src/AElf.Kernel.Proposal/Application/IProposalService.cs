@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Application
 {
     public interface IProposalService
     {

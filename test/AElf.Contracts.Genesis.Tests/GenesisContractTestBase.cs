@@ -10,6 +10,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;

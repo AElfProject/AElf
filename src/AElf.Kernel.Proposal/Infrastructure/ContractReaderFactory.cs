@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core;
@@ -8,7 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Infrastructure
 {
     //TODO: base class
     internal interface IParliamentContractReaderFactory
