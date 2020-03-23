@@ -18,6 +18,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContract
     {
         private const int DaySec = 86400;
+
         #region Vote
 
         /// <summary>
@@ -491,7 +492,7 @@ namespace AElf.Contracts.Election
                 {
                     State.TokenContract.Issue.Send(new IssueInput
                     {
-                        Symbol = ElectionContractConstants.VoteSymbol,
+                        Symbol = symbol,
                         To = Context.Sender,
                         Amount = amount,
                         Memo = $"Issue {symbol}."

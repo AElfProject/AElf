@@ -54,8 +54,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void InitialProfitSchemeForSideChain(long periodSeconds)
         {
-            State.TokenHolderContract.Value =
+            var tokenHolderContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            // No need to continue if Token Holder Contract didn't deployed.
+            if (tokenHolderContractAddress == null) return;
+
+            State.TokenHolderContract.Value = tokenHolderContractAddress;
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,

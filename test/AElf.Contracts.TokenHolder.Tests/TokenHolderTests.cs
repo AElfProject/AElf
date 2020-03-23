@@ -150,7 +150,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {
@@ -188,7 +188,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {

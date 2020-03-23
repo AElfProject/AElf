@@ -459,16 +459,12 @@ namespace AElf.Contracts.Profit
         private void UpdateDistributedProfits(Dictionary<string, long> profitsMap,
             Address profitsReceivingVirtualAddress, long totalShares)
         {
-            var distributedProfitsInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
+            var distributedProfitsInformation =
+                State.DistributedProfitsMap[profitsReceivingVirtualAddress] ??
+                new DistributedProfitsInfo();
 
-            if (distributedProfitsInformation == null)
-            {
-                distributedProfitsInformation = new DistributedProfitsInfo
-                {
-                    TotalShares = totalShares,
-                    IsReleased = true
-                };
-            }
+            distributedProfitsInformation.TotalShares = totalShares;
+            distributedProfitsInformation.IsReleased = true;
 
             foreach (var profits in profitsMap)
             {
@@ -479,8 +475,7 @@ namespace AElf.Contracts.Profit
                     Owner = profitsReceivingVirtualAddress,
                     Symbol = symbol
                 }).Balance;
-                distributedProfitsInformation.AmountsMap.Add(symbol,
-                    amount.Add(balanceOfVirtualAddressForCurrentPeriod));
+                distributedProfitsInformation.AmountsMap[symbol] = amount.Add(balanceOfVirtualAddressForCurrentPeriod);
             }
 
             State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedProfitsInformation;

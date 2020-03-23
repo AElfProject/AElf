@@ -69,6 +69,11 @@ namespace AElf.Contracts.Treasury
             InitializeVoteWeightInterest();
             State.Initialized.Value = true;
 
+            State.SymbolList.Value = new SymbolList
+            {
+                Value = {Context.Variables.NativeSymbol}
+            };
+
             return new Empty();
         }
 
@@ -637,7 +642,12 @@ namespace AElf.Contracts.Treasury
             }
             return State.VoteWeightInterestController.Value;
         }
-        
+
+        public override SymbolList GetDistributingSymbolList(Empty input)
+        {
+            return State.SymbolList.Value;
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);

@@ -164,6 +164,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ReleaseSideChainDividendsPool()
         {
+            if (State.TokenHolderContract.Value == null) return;
             var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
             var isTimeToRelease =
                 (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
