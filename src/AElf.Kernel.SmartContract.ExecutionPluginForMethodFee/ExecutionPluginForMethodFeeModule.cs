@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
             context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
-            context.Services.AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
+            // context.Services.AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services
