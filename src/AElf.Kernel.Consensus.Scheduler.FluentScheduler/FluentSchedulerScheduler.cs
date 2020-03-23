@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AElf.Kernel.Consensus.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using FluentScheduler;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

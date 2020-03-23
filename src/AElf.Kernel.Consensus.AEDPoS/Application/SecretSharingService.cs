@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel.Account.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
-using AElf.CSharp.Core.Extension;
+using AElf.CSharp.Core;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
