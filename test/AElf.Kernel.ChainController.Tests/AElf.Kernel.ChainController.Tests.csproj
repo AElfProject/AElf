@@ -14,7 +14,6 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
     </ItemGroup>
 </Project>
