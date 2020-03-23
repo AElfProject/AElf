@@ -1,4 +1,5 @@
-﻿namespace AElf.Sdk.CSharp
+﻿//TODO: Remove this file.
+namespace AElf.Sdk.CSharp
 {
     public static class SafeMath
     {

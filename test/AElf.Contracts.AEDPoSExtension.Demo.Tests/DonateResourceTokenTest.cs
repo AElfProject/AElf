@@ -7,6 +7,7 @@ using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
