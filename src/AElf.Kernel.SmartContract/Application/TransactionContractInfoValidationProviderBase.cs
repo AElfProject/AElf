@@ -5,7 +5,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public abstract class TransactionValidationProvideBase : ITransactionValidationProvider
+    public abstract class TransactionContractInfoValidationProviderBase : ITransactionValidationProvider
     {
         public virtual Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
@@ -30,18 +30,4 @@ namespace AElf.Kernel.SmartContract.Application
             return methodNames.Any(methodName => methodName == transaction.MethodName);
         }
     }
-
-    // public abstract class TokenContractPluginTransactionValidationProviderBase : PluginTransactionValidationProviderBase
-    // {
-    //     private readonly ISmartContractAddressService _smartContractAddressService;
-    //
-    //     protected TokenContractPluginTransactionValidationProviderBase(
-    //         ISmartContractAddressService smartContractAddressService)
-    //     {
-    //         _smartContractAddressService = smartContractAddressService;
-    //     }
-    //
-    //     protected override Address InvolvedSystemContractAddress =>
-    //         _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-    // }
 }

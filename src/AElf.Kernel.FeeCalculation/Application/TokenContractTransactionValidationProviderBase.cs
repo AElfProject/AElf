@@ -4,7 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
-    public abstract class TokenContractTransactionValidationProviderBase : TransactionValidationProvideBase
+    public abstract class TokenContractTransactionValidationProviderBase : TransactionContractInfoValidationProviderBase
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
