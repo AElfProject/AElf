@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Application;
@@ -48,6 +51,42 @@ namespace AElf.Kernel.TransactionPool
     }
 
     [DependsOn(
+        typeof(TransactionPoolTestAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule)
+    )]
+    public class TransactionExecutionValidationModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddSingleton<TransactionExecutionValidationProvider>();
+            services.AddSingleton<TransactionMockExecutionHelper>();
+
+            services.AddSingleton(provider =>
+            {
+                var mockService = new Mock<IPlainTransactionExecutingService>();
+
+                mockService.Setup(m =>
+                        m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(), It.IsAny<CancellationToken>()))
+                    .Returns<TransactionExecutingDto, CancellationToken>((transactionExecutingDto, cancellationToken) =>
+                    {
+                        var transactionMockExecutionHelper =
+                            context.Services.GetRequiredServiceLazy<TransactionMockExecutionHelper>().Value;
+                        return Task.FromResult(new List<ExecutionReturnSet>
+                        {
+                            new ExecutionReturnSet
+                            {
+                                Status = transactionMockExecutionHelper.GetTransactionResultStatus()
+                            }
+                        });
+                    });
+
+                return mockService.Object;
+            });
+        }
+    }
+
+    [DependsOn(
         typeof(TransactionPoolWithChainTestAElfModule)
     )]
     public class TransactionPoolValidationTestAElfModule : AElfModule
@@ -63,7 +102,7 @@ namespace AElf.Kernel.TransactionPool
 
                 return service.Object;
             });
-            
+
             services.AddSingleton(provider =>
             {
                 var service = new Mock<ITransactionFeeExemptionService>();
