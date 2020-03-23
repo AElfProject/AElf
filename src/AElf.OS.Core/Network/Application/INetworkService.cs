@@ -10,9 +10,9 @@ namespace AElf.OS.Network.Application
     {
         Task<bool> AddPeerAsync(string address, bool isTrusted = false);
         Task<bool> RemovePeerByAddressAsync(string address,
-            long removalTime = NetworkConstants.DefaultPeerRemovalSeconds);
+            int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);
         Task<bool> RemovePeerByPubkeyAsync(string peerPubkey,
-            long removalTime = NetworkConstants.DefaultPeerRemovalSeconds);
+            int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);
         List<PeerInfo> GetPeers(bool includeFailing = true);
         PeerInfo GetPeerByPubkey(string peerPubkey);
         Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peerPubkey = null);

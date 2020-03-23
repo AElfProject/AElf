@@ -58,13 +58,13 @@ namespace AElf.OS.Network.Application
             return await _networkServer.ConnectAsync(endpoint);
         }
 
-        public async Task<bool> RemovePeerByAddressAsync(string address, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
+        public async Task<bool> RemovePeerByAddressAsync(string address, int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds)
         {
             if (!AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint)) 
                 return false;
             
             var peer = _peerPool.FindPeerByEndpoint(endpoint);
-            if (await RemovePeerAsync(peer, removalTime))
+            if (!await RemovePeerAsync(peer, removalSeconds))
             {
                 Logger.LogWarning($"Remove peer failed. Peer address: {address}");
                 return false;
@@ -75,10 +75,10 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubkey, long removalTime = NetworkConstants.DefaultPeerRemovalSeconds)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubkey, int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            if (await RemovePeerAsync(peer, removalTime))
+            if (!await RemovePeerAsync(peer, removalSeconds))
             {
                 Logger.LogWarning($"Remove peer failed. Peer pubkey: {peerPubkey}");
                 return false;
@@ -87,14 +87,14 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        private async Task<bool> RemovePeerAsync(IPeer peer, long removalTime)
+        private async Task<bool> RemovePeerAsync(IPeer peer, int removalSeconds)
         {
             if (peer == null)
             {
                 return false;
             }
 
-            _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host, removalTime);
+            _blackListedPeerProvider.AddHostToBlackList(peer.RemoteEndpoint.Host, removalSeconds);
             Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Host} ({peer.Info.Pubkey})");
             
             await _networkServer.DisconnectAsync(peer);

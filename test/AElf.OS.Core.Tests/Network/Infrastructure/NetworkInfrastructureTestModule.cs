@@ -18,7 +18,6 @@ namespace AElf.OS.Network
             Configure<NetworkOptions>(o=>
             {
                 o.MaxPeers = 2;
-                o.PeerBlackListLimitSeconds = 1;
             });
 
             var services = context.Services;

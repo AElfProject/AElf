@@ -33,20 +33,33 @@ namespace AElf.OS.Network
         #region Blacklisting
 
         [Fact]
-        public async Task RemovePeerByPubkeyAsync_BlackListTest()
+        public async Task RemovePeerByPubkey_Test()
         {
             var peerPubKey = "blacklistpeer";
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
             //invalid address
-            var result = await _networkService.RemovePeerAsync(peerPubKey);
+            var result = await _networkService.RemovePeerByPubkeyAsync("InvalidPubkey");
             result.ShouldBeFalse();
             
-            await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
-            _blackListProvider.IsIpBlackListed(host).ShouldBeFalse();
+            result = await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
+            result.ShouldBeTrue();
+            _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task RemovePeerByAddress_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
+            var host = endpoint.Host;
+
+            //invalid address
+            var result = await _networkService.RemovePeerByAddressAsync("");
+            result.ShouldBeFalse();
             
-            await _networkService.RemovePeerByPubkeyAsync(peerPubKey, true);
+            result = await _networkService.RemovePeerByAddressAsync("127.0.0.1:5000");
+            result.ShouldBeTrue();
             _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
         }
 
@@ -64,7 +77,7 @@ namespace AElf.OS.Network
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
-            _blackListProvider.AddHostToBlackList(host);
+            _blackListProvider.AddHostToBlackList(host, NetworkConstants.DefaultPeerRemovalSeconds);
             
             (await _networkService.AddPeerAsync(endpoint.ToString())).ShouldBeFalse();
         }

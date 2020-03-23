@@ -13,7 +13,7 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IBlackListedPeerProvider
     {
-        bool AddHostToBlackList(string host, long limitSeconds);
+        bool AddHostToBlackList(string host, int limitSeconds);
         bool IsIpBlackListed(string host);
         bool RemoveHostFromBlackLis(string host);
     }
@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Infrastructure
             _blackListedPeers = new ConcurrentDictionary<string, Timestamp>();
         }
 
-        public bool AddHostToBlackList(string host, long limitSeconds)
+        public bool AddHostToBlackList(string host, int limitSeconds)
         {
             return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow().AddSeconds(limitSeconds));
         }

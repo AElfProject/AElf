@@ -50,7 +50,7 @@ namespace AElf.WebApp.Application.Net
         public async Task<bool> RemovePeerAsync(string address)
         {
             _reconnectionService.CancelReconnection(address);
-            return await _networkService.RemovePeerByAddressAsync(address, long.MaxValue);
+            return await _networkService.RemovePeerByAddressAsync(address, int.MaxValue);
         }
         
         /// <summary>
