@@ -16,7 +16,7 @@ namespace AElf.Contracts.Economic.TestBase
         public const int SupposedMinersCount = 17;
         
         public const int MiningInterval = 4000;
-        public const long TimeEachTerm = 604800;
+        public const long PeriodMinutes = 604800;
         public const long MinerIncreaseInterval = 31536000;
         
         public const string VoteSymbol = "VOTE";

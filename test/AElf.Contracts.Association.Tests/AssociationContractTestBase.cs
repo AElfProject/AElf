@@ -163,7 +163,7 @@ namespace AElf.Contracts.Association
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodMinutes = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
             }

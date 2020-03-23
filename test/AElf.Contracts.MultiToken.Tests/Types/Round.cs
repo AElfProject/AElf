@@ -128,12 +128,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
-        /// <param name="timeEachTerm"></param>
+        /// <param name="PeriodMinutes"></param>
         /// <returns></returns>
         private bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long timeEachTerm)
+            long termNumber, long PeriodMinutes)
         {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(PeriodMinutes) != termNumber - 1;
         }
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)

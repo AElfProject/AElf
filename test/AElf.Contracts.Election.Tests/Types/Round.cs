@@ -215,14 +215,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
-            long termNumber, long timeEachTerm)
+            long termNumber, long PeriodMinutes)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
             var minimumCount = minersCount.Mul(2).Div(3).Add(1);
             var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
                 .Select(m => m.ActualMiningTimes.Last())
                 .Count(actualMiningTimestamp =>
-                    IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
+                    IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, PeriodMinutes));
             return approvalsCount >= minimumCount;
         }
 
@@ -237,12 +237,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
-        /// <param name="timeEachTerm"></param>
+        /// <param name="PeriodMinutes"></param>
         /// <returns></returns>
         private bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long timeEachTerm)
+            long termNumber, long PeriodMinutes)
         {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(PeriodMinutes) != termNumber - 1;
         }
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)

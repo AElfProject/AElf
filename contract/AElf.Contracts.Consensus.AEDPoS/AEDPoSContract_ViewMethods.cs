@@ -525,7 +525,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
             }
 
-            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.PeriodMinutes.Value);
             return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
 

@@ -9,14 +9,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private class MainChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
         {
             private readonly Timestamp _blockchainStartTimestamp;
-            private readonly long _timeEachTerm;
+            private readonly long _PeriodMinutes;
 
             public MainChainConsensusBehaviourProvider(Round currentRound, string pubkey, int maximumBlocksCount,
-                Timestamp currentBlockTime, Timestamp blockchainStartTimestamp, long timeEachTerm) : base(currentRound,
+                Timestamp currentBlockTime, Timestamp blockchainStartTimestamp, long PeriodMinutes) : base(currentRound,
                 pubkey, maximumBlocksCount, currentBlockTime)
             {
                 _blockchainStartTimestamp = blockchainStartTimestamp;
-                _timeEachTerm = timeEachTerm;
+                _PeriodMinutes = PeriodMinutes;
             }
 
             /// <summary>
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>
                 CurrentRound.RoundNumber == 1 || // Return NEXT_ROUND in first round.
                 !CurrentRound.NeedToChangeTerm(_blockchainStartTimestamp,
-                    CurrentRound.TermNumber, _timeEachTerm) || 
+                    CurrentRound.TermNumber, _PeriodMinutes) || 
                 CurrentRound.RealTimeMinersInformation.Keys.Count == 1 // Return NEXT_ROUND for single node.
                     ? AElfConsensusBehaviour.NextRound
                     : AElfConsensusBehaviour.NextTerm;

@@ -359,7 +359,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 MaximumLockTime = 1080 * 86400,
                 MinimumLockTime = 90 * 86400,
-                TimeEachTerm = EconomicContractsTestConstants.TimeEachTerm,
+                PeriodMinutes = EconomicContractsTestConstants.PeriodMinutes,
                 MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
             });
@@ -467,7 +467,7 @@ namespace AElf.Contracts.Economic.TestBase
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodMinutes = 604800L,
                         MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
                     });
                 CheckResult(result.TransactionResult);

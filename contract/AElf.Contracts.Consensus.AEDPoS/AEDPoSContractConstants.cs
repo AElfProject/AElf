@@ -10,5 +10,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int SupposedMinersCount = 17;
         public const int KeepRounds = 40960;
         public const long TolerableMissedTimeSlotsCount = 60 * 24 * 3; // one time slot per minute and last 3 days.
+        public const string SideChainShareProfitsTokenSymbol = "SHARE";
     }
 }

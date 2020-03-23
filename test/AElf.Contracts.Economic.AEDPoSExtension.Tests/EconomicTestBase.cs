@@ -94,7 +94,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 {
                     MinerList = {MissionedECKeyPairs.InitialKeyPairs.Select(p => p.PublicKey.ToHex())},
                     MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                    TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm,
+                    PeriodMinutes = AEDPoSExtensionConstants.PeriodMinutes,
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),

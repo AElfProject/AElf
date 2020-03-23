@@ -21,6 +21,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// 7 days.
         /// </summary>
-        internal const long TimeEachTerm = 120;// 7 * 60 * 60 * 24
+        internal const long PeriodMinutes = 120;// 7 * 60 * 60 * 24
     }
 }
