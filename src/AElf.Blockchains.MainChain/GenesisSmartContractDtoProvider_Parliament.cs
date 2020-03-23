@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs0;
 using AElf.Contracts.Parliament;
-using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
