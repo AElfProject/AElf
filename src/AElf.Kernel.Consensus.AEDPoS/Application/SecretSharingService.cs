@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
-using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
-using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {

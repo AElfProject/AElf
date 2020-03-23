@@ -22,6 +22,8 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;

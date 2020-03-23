@@ -5,6 +5,8 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;

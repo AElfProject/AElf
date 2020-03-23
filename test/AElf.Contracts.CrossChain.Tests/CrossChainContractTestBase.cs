@@ -12,6 +12,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;

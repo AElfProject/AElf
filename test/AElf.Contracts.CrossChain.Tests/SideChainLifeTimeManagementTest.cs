@@ -5,6 +5,7 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;

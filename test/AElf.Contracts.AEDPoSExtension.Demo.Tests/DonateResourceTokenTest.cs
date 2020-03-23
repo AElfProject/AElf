@@ -6,6 +6,7 @@ using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;

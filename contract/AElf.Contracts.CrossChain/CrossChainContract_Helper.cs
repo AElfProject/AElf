@@ -7,6 +7,7 @@ using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;

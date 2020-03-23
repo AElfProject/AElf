@@ -9,6 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using System.Text;
 using Acs1;
 using Acs7;
+using AElf.CSharp.Core;
 
 namespace AElf.Contracts.MultiToken
 {
