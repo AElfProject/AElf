@@ -106,6 +106,7 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
+            // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
@@ -324,8 +325,6 @@ namespace AElf.Contracts.Profit
         {
             Assert(input.Amount >= 0, "Amount must be greater than or equal to 0");
 
-            Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
 
@@ -336,17 +335,29 @@ namespace AElf.Contracts.Profit
 
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
-            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            var profitsMap = new Dictionary<string, long>();
+            if (input.Amount > 0)
             {
-                Owner = scheme.VirtualAddress,
-                Symbol = input.Symbol
-            }).Balance;
-            if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
+                // In this situation, manager only want to distribute one token at this time.
+                Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+                // ReSharper disable once AssignNullToNotNullAttribute
+                profitsMap.Add(input.Symbol, input.Amount);
+            }
+            else
             {
-                // Distribute all from general ledger.
-                Context.LogDebug(() =>
-                    $"Update distributing amount to {balance} because IsReleaseAllBalanceEveryTimeByDefault == true.");
-                input.Amount = balance;
+                if (scheme.IsReleaseAllBalanceEveryTimeByDefault && scheme.ReceivedTokenSymbols.Any())
+                {
+                    // Distribute all from general ledger.
+                    foreach (var symbol in scheme.ReceivedTokenSymbols)
+                    {
+                        var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                        {
+                            Owner = scheme.VirtualAddress,
+                            Symbol = symbol
+                        }).Balance;
+                        profitsMap.Add(symbol, balance);
+                    }
+                }
             }
 
             var totalShares = scheme.TotalShares;
@@ -374,18 +385,13 @@ namespace AElf.Contracts.Profit
 
             if (input.Period < 0 || totalShares <= 0)
             {
-                return BurnProfits(input, scheme, scheme.VirtualAddress, profitsReceivingVirtualAddress);
+                return BurnProfits(input.Period, profitsMap, scheme, profitsReceivingVirtualAddress);
             }
 
             Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
-            var distributedProfitInformation =
-                UpdateDistributedProfits(input, profitsReceivingVirtualAddress, totalShares);
-
-            Context.LogDebug(() =>
-                $"Distributed profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +
-                $"total Shares {distributedProfitInformation.TotalShares}, total amount {distributedProfitInformation.ProfitsAmount} {input.Symbol}s");
-
+            UpdateDistributedProfits(profitsMap, profitsReceivingVirtualAddress, totalShares);
+            
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
 
             scheme.CurrentPeriod = input.Period.Add(1);
@@ -395,95 +401,79 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private Empty BurnProfits(DistributeProfitsInput input, Scheme scheme, Address profitVirtualAddress,
+        /// <summary>
+        /// Just burn balance in general ledger.
+        /// </summary>
+        /// <param name="period"></param>
+        /// <param name="profitsMap"></param>
+        /// <param name="scheme"></param>
+        /// <param name="profitsReceivingVirtualAddress"></param>
+        /// <returns></returns>
+        private Empty BurnProfits(long period, Dictionary<string, long> profitsMap, Scheme scheme,
             Address profitsReceivingVirtualAddress)
         {
             Context.LogDebug(() => "Entered BurnProfits.");
-            scheme.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : scheme.CurrentPeriod;
+            scheme.CurrentPeriod = period > 0 ? period.Add(1) : scheme.CurrentPeriod;
 
-            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            var distributedProfitsInfo = new DistributedProfitsInfo
             {
-                Owner = profitsReceivingVirtualAddress,
-                Symbol = input.Symbol
-            }).Balance;
-
-            // Distribute profits to an address that no one can receive this amount of profits.
-            if (input.Amount.Add(balance) == 0)
-            {
-                State.SchemeInfos[input.SchemeId] = scheme;
-                State.DistributedProfitsMap[profitsReceivingVirtualAddress] = new DistributedProfitsInfo
-                {
-                    IsReleased = true
-                };
-                return new Empty();
-            }
-
-            // Burn this amount of profits.
-            if (input.Amount > 0)
-            {
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = profitVirtualAddress,
-                    To = Context.Self,
-                    Amount = input.Amount,
-                    Symbol = input.Symbol
-                });
-            }
-
-            if (balance > 0)
-            {
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = profitsReceivingVirtualAddress,
-                    To = Context.Self,
-                    Amount = balance,
-                    Symbol = input.Symbol
-                });
-            }
-
-            State.TokenContract.Burn.Send(new BurnInput
-            {
-                Amount = input.Amount.Add(balance),
-                Symbol = input.Symbol
-            });
-            State.SchemeInfos[input.SchemeId] = scheme;
-
-            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = new DistributedProfitsInfo
-            {
-                IsReleased = true,
-                ProfitsAmount = {{input.Symbol, input.Amount.Add(balance).Mul(-1)}}
+                IsReleased = true
             };
+            foreach (var profits in profitsMap)
+            {
+                var symbol = profits.Key;
+                var amount = profits.Value;
+                if (amount > 0)
+                {
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = scheme.VirtualAddress,
+                        To = Context.Self,
+                        Amount = amount,
+                        Symbol = symbol
+                    });
+                    State.TokenContract.Burn.Send(new BurnInput
+                    {
+                        Amount = amount,
+                        Symbol = symbol
+                    });
+                    distributedProfitsInfo.ProfitsAmount.Add(symbol, -amount);
+                }
+            }
+
+            State.SchemeInfos[scheme.SchemeId] = scheme;
+            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedProfitsInfo;
             return new Empty();
         }
 
-        private DistributedProfitsInfo UpdateDistributedProfits(DistributeProfitsInput input,
+        private void UpdateDistributedProfits(Dictionary<string, long> profitsMap,
             Address profitsReceivingVirtualAddress, long totalShares)
         {
-            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
-            {
-                Owner = profitsReceivingVirtualAddress,
-                Symbol = input.Symbol
-            }).Balance;
             var distributedProfitsInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
+
             if (distributedProfitsInformation == null)
             {
                 distributedProfitsInformation = new DistributedProfitsInfo
                 {
                     TotalShares = totalShares,
-                    ProfitsAmount = {{input.Symbol, input.Amount.Add(balance)}},
                     IsReleased = true
                 };
             }
-            else
+
+            foreach (var profits in profitsMap)
             {
-                // This means someone used `DistributeProfits` do donate to the specific account period of current profit scheme.
-                distributedProfitsInformation.TotalShares = totalShares;
-                distributedProfitsInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
-                distributedProfitsInformation.IsReleased = true;
+                var symbol = profits.Key;
+                var amount = profits.Value;
+                var balanceOfVirtualAddressForCurrentPeriod = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Owner = profitsReceivingVirtualAddress,
+                    Symbol = symbol
+                }).Balance;
+                distributedProfitsInformation.ProfitsAmount.Add(symbol,
+                    amount.Add(balanceOfVirtualAddressForCurrentPeriod));
             }
 
             State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedProfitsInformation;
-            return distributedProfitsInformation;
         }
 
         private void PerformDistributeProfits(DistributeProfitsInput input, Scheme scheme, long totalShares,
