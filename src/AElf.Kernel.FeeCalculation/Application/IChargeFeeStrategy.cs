@@ -4,6 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
+    // TODO: Remove this interface after new fee charging solution adopted.
     public interface IChargeFeeStrategy
     {
         Address ContractAddress { get; }
@@ -13,14 +14,14 @@ namespace AElf.Kernel.FeeCalculation.Application
 
     public abstract class ChargeFeeStrategyBase : IChargeFeeStrategy
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
+        protected readonly ISmartContractAddressService SmartContractAddressService;
 
         protected ChargeFeeStrategyBase(ISmartContractAddressService smartContractAddressService)
         {
-            _smartContractAddressService = smartContractAddressService;
+            SmartContractAddressService = smartContractAddressService;
         }
 
-        public Address ContractAddress => _smartContractAddressService.GetAddressByContractName(SystemContractHashName);
+        public abstract Address ContractAddress { get; }
 
         public abstract string MethodName { get; }
 
@@ -28,8 +29,6 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             return GetInvolvedSmartContractMethods().Contains(transaction.MethodName);
         }
-
-        protected abstract Hash SystemContractHashName { get; }
 
         protected abstract List<string> GetInvolvedSmartContractMethods();
     }

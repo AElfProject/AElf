@@ -14,10 +14,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
         {
         }
 
+        public override Address ContractAddress =>
+            SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+        
         public override string MethodName => string.Empty;
-
-        protected override Hash SystemContractHashName => TokenSmartContractAddressNameProvider.Name;
-
+        
         protected override List<string> GetInvolvedSmartContractMethods()
         {
             return new List<string>

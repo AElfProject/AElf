@@ -16,7 +16,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
         public override string MethodName => string.Empty;
 
-        protected override Hash SystemContractHashName => TokenSmartContractAddressNameProvider.Name;
+        public override Address ContractAddress =>
+            SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
         protected override List<string> GetInvolvedSmartContractMethods()
         {
