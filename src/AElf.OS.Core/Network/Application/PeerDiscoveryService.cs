@@ -35,7 +35,8 @@ namespace AElf.OS.Network.Application
                 .Take(NetworkConstants.DefaultDiscoveryPeersToRequestCount)
                 .ToList();
 
-            var discoveredNodes = new NodeList();
+            var result = new NodeList();
+            var discoveredNodes = new Dictionary<string, NodeInfo>();
             
             foreach (var peer in peers)
             {
@@ -51,9 +52,14 @@ namespace AElf.OS.Network.Application
 
                         foreach (var node in nodes.Nodes)
                         {
-                            if (_peerPool.FindPeerByPublicKey(node.Pubkey.ToHex()) != null)
+                            var nodePubkey = node.Pubkey.ToHex();
+                            if (_peerPool.FindPeerByPublicKey(nodePubkey) != null)
                                 continue;
-                            discoveredNodes.Nodes.Add(node);
+
+                            if (!discoveredNodes.ContainsKey(nodePubkey))
+                            {
+                                discoveredNodes.Add(nodePubkey, node);
+                            }
                         }
                     }
                     else
@@ -67,15 +73,15 @@ namespace AElf.OS.Network.Application
                 }
             }
 
-            if (discoveredNodes.Nodes.Count <= 0)
-                return discoveredNodes;
+            if (discoveredNodes.Count <= 0)
+                return result;
             
             // Check that a peer did not send us this node
             var localPubKey = await _accountService.GetPublicKeyAsync();
-            string hexPubkey = localPubKey.ToHex();
-            discoveredNodes.Nodes.RemoveAll(n => n.Pubkey.ToHex().Equals(hexPubkey));
-            
-            return discoveredNodes;
+            var hexPubkey = localPubKey.ToHex();
+            discoveredNodes.RemoveAll(n => n.Key.Equals(hexPubkey));
+            result.Nodes.AddRange(discoveredNodes.Values);
+            return result;
         }
 
         public async Task AddNodeAsync(NodeInfo nodeInfo)
