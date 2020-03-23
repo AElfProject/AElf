@@ -487,7 +487,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeManager = input.ContractAddress,
-                Symbol = input.Symbol
             });
 
             return new Empty();

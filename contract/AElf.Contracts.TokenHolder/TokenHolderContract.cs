@@ -135,11 +135,16 @@ namespace AElf.Contracts.TokenHolder
             var scheme = GetValidScheme(input.SchemeManager, true);
             Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName) ||
                    Context.Sender == input.SchemeManager, "No permission to distribute profits.");
-            State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+            var distributeProfitsInput = new Profit.DistributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
                 Period = scheme.Period
-            });
+            };
+            if (input.AmountsMap != null && input.AmountsMap.Any())
+            {
+                distributeProfitsInput.AmountsMap.Add(input.AmountsMap);
+            }
+            State.ProfitContract.DistributeProfits.Send(distributeProfitsInput);
             scheme.Period = scheme.Period.Add(1);
             State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
             return new Empty();

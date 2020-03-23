@@ -57,7 +57,7 @@ message ContributeProfitsInput {
 
 message DistributeProfitsInput {
     aelf.Address scheme_manager = 1;
-    string symbol = 2;
+    map<string, sint64> amounts_map = 2;
 }
 
 message RegisterForProfitsInput {

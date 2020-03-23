@@ -172,6 +172,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
                 {
+                    SchemeManager = Context.Self
                 });
             }
         }
