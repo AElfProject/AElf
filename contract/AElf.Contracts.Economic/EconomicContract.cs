@@ -25,7 +25,7 @@ namespace AElf.Contracts.Economic
             CreateNativeToken(input);
             CreateTokenConverterToken();
             CreateResourceTokens();
-            CreateElectionToken();
+            CreateElectionTokens();
 
             Context.LogDebug(() => "Finished creating tokens.");
 
@@ -118,36 +118,26 @@ namespace AElf.Contracts.Economic
             }
         }
 
-        private void CreateElectionToken()
+        private void CreateElectionTokens()
         {
-            State.TokenContract.Create.Send(new CreateInput
+            foreach (var symbol in new List<string>
+                {EconomicContractConstants.ElectionTokenSymbol, EconomicContractConstants.ShareTokenSymbol})
             {
-                Symbol = EconomicContractConstants.ElectionTokenSymbol,
-                TokenName = "Election Token",
-                TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
-                Decimals = 0,
-                Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                IsBurnable = false,
-                LockWhiteList =
+                State.TokenContract.Create.Send(new CreateInput
                 {
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
-                }
-            });
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = EconomicContractConstants.ShareTokenSymbol,
-                TokenName = "Share Token",
-                TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
-                Decimals = 0,
-                Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                IsBurnable = false,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
-                }
-            });
+                    Symbol = symbol,
+                    TokenName = $"{symbol} Token",
+                    TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
+                    Decimals = 0,
+                    Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    IsBurnable = false,
+                    LockWhiteList =
+                    {
+                        Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                        Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
+                    }
+                });
+            }
         }
 
         /// <summary>

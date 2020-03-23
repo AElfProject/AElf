@@ -96,7 +96,7 @@ service AEDPoSContract {
 message InitialAElfConsensusContractInput {
     bool is_term_stay_one = 1;
     bool is_side_chain = 2;
-    sint64 period_minutes = 3;
+    sint64 period_seconds = 3;
     sint64 miner_increase_interval = 4;
 }
 

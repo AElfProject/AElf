@@ -23,18 +23,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (State.Initialized.Value) return new Empty();
 
-            State.PeriodMinutes.Value = input.IsSideChain || input.IsTermStayOne
+            State.PeriodSeconds.Value = input.IsTermStayOne
                 ? int.MaxValue
-                : input.PeriodMinutes;
+                : input.PeriodSeconds;
 
             State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
-            Context.LogDebug(() => $"Time each term: {State.PeriodMinutes.Value} seconds.");
+            Context.LogDebug(() => $"There are {State.PeriodSeconds.Value} seconds per period.");
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 State.IsMainChain.Value = false;
-                InitialProfitSchemeForSideChain(input.PeriodMinutes);
+                InitialProfitSchemeForSideChain(input.PeriodSeconds);
                 return new Empty();
             }
 
@@ -52,14 +52,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private void InitialProfitSchemeForSideChain(long periodMinutes)
+        private void InitialProfitSchemeForSideChain(long periodSeconds)
         {
             State.TokenHolderContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodMinutes
+                MinimumLockMinutes = periodSeconds
             });
         }
 

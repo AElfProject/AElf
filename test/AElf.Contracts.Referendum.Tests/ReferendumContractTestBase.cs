@@ -192,7 +192,7 @@ namespace AElf.Contracts.Referendum
             var consensusContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
             {
-                PeriodMinutes = 604800L,
+                PeriodSeconds = 604800L,
                 MinerIncreaseInterval = 31536000
             });
             

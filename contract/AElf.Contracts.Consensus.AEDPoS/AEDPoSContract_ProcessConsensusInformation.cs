@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Contracts.Election;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -149,11 +150,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
+            if (!State.IsMainChain.Value)
+            {
+                ReleaseSideChainDividendsPool();
+            }
+
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
+        }
+
+        private void ReleaseSideChainDividendsPool()
+        {
+            var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
+            var isTimeToRelease =
+                (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                .Div(State.PeriodSeconds.Value) != scheme.Period - 1;
+            if (isTimeToRelease)
+            {
+                State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
+                {
+                });
+            }
         }
 
         private void ProcessNextTerm(Round nextRound)

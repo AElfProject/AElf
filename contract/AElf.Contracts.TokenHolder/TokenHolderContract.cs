@@ -173,26 +173,30 @@ namespace AElf.Contracts.TokenHolder
                     Shares = input.Amount
                 }
             });
-            
+
             // Check auto-distribute threshold.
-            foreach (var threshold in scheme.AutoDistributeThreshold)
+            if (scheme.AutoDistributeThreshold != null && scheme.AutoDistributeThreshold.Any())
             {
-                var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
-                var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                foreach (var threshold in scheme.AutoDistributeThreshold)
                 {
-                    Owner = originScheme.VirtualAddress,
-                    Symbol = threshold.Key
-                }).Balance;
-                if (balance < threshold.Value) continue;
-                State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
-                {
-                    SchemeId = scheme.SchemeId,
-                    Symbol = threshold.Key,
-                    Period = scheme.Period.Add(1)
-                });
-                scheme.Period = scheme.Period.Add(1);
-                State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+                    var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
+                    var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = originScheme.VirtualAddress,
+                        Symbol = threshold.Key
+                    }).Balance;
+                    if (balance < threshold.Value) continue;
+                    State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+                    {
+                        SchemeId = scheme.SchemeId,
+                        Symbol = threshold.Key,
+                        Period = scheme.Period.Add(1)
+                    });
+                    scheme.Period = scheme.Period.Add(1);
+                    State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+                }
             }
+
             return new Empty();
         }
 

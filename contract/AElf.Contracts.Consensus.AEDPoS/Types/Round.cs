@@ -270,20 +270,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="currentTermNumber"></param>
-        /// <param name="PeriodMinutes"></param>
+        /// <param name="PeriodSeconds"></param>
         /// <returns></returns>
-        public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long PeriodMinutes)
+        public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long PeriodSeconds)
         {
             return RealTimeMinersInformation.Values
                        .Where(m => m.ActualMiningTimes.Any())
                        .Select(m => m.ActualMiningTimes.Last())
                        .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp,
-                           t, currentTermNumber, PeriodMinutes))
+                           t, currentTermNumber, PeriodSeconds))
                    >= MinersCountOfConsent;
         }
 
         /// <summary>
-        /// If PeriodMinutes == 7:
+        /// If PeriodSeconds == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
         /// 1, 2, 1 => 0 != 1 - 1 => false
         /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
@@ -293,12 +293,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
-        /// <param name="PeriodMinutes"></param>
+        /// <param name="PeriodSeconds"></param>
         /// <returns></returns>
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long PeriodMinutes)
+            long termNumber, long PeriodSeconds)
         {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(PeriodMinutes) != termNumber - 1;
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(PeriodSeconds) != termNumber - 1;
         }
 
         private static int GetAbsModulus(long longValue, int intValue)

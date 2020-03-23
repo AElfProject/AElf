@@ -137,7 +137,7 @@ namespace AElf.Contracts.MultiToken
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        PeriodMinutes = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
                 CheckResult(result.TransactionResult);

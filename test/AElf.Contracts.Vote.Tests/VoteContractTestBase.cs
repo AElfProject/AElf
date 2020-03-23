@@ -185,7 +185,7 @@ namespace AElf.Contracts.Vote
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    PeriodMinutes = 604800L,
+                    PeriodSeconds = 604800L,
                     MinerIncreaseInterval = 31536000
                 });
 

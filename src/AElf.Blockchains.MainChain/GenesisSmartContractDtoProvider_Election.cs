@@ -33,7 +33,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     MaximumLockTime = _economicOptions.MaximumLockTime,
                     MinimumLockTime = _economicOptions.MinimumLockTime,
-                    TimeEachTerm = _consensusOptions.PeriodMinutes,
+                    TimeEachTerm = _consensusOptions.PeriodSeconds,
                     MinerList = {_consensusOptions.InitialMinerList},
                     MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
                 });

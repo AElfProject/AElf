@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// Seconds.
         /// </summary>
-        public ReadonlyState<long> PeriodMinutes { get; set; }
+        public ReadonlyState<long> PeriodSeconds { get; set; }
 
         public Int64State CurrentRoundNumber { get; set; }
 
