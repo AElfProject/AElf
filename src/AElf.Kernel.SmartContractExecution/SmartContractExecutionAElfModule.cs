@@ -3,7 +3,6 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
-using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +14,6 @@ namespace AElf.Kernel.SmartContractExecution
     [DependsOn(typeof(SmartContractAElfModule),
         typeof(ExecutionPluginForResourceFeeModule),
         typeof(ExecutionPluginForCallThresholdModule),
-        typeof(ExecutionPluginForProposalModule),
         typeof(ExecutionPluginForMethodFeeModule))]
     public class SmartContractExecutionAElfModule : AElfModule
     {
@@ -23,7 +21,6 @@ namespace AElf.Kernel.SmartContractExecution
         {
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, CodeUpdatedLogEventProcessor>();
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
