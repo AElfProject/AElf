@@ -19,28 +19,34 @@ namespace AElf.Contracts.MultiToken
             var primaryTokenSymbol =
                 Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
                     .Value;
+            var methodFeesInfo =  new MethodFees {
+                MethodName = input.Value
+            };
             if (primaryTokenSymbol == string.Empty)
             {
-                return new MethodFees();
+                return methodFeesInfo;
+            }
+
+            if (new List<string>
+            {
+                nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken)
+            }.Contains(input.Value))
+            {
+                return methodFeesInfo;
             }
 
             if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
                 var methodFees = State.TransactionFees[input.Value];
-                if (methodFees == null) return new MethodFees();
+                if (methodFees == null) return methodFeesInfo;
                 var symbols = GetMethodFeeSymbols();
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
-                return new MethodFees
-                {
-                    MethodName = input.Value,
-                    Fees =
-                    {
-                        fees
-                    }
-                };
+                methodFeesInfo.Fees.AddRange(fees);
+                return methodFeesInfo;
             }
 
-            return State.TransactionFees[input.Value] ?? new MethodFees();
+            return State.TransactionFees[input.Value] ?? methodFeesInfo;
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
