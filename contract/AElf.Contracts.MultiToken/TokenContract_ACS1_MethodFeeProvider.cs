@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using Acs1;
 using Acs3;
 using AElf.Sdk.CSharp;
@@ -20,38 +19,35 @@ namespace AElf.Contracts.MultiToken
             var primaryTokenSymbol =
                 Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
                     .Value;
+            var methodFeesInfo =  new MethodFees
+            {
+                MethodName = input.Value
+            };
             if (primaryTokenSymbol == string.Empty)
             {
-                return new MethodFees();
+                return methodFeesInfo;
             }
 
             if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
                 var methodFees = State.TransactionFees[input.Value];
-                if (methodFees == null) return new MethodFees();
+                if (methodFees == null) return methodFeesInfo;
                 var symbols = GetMethodFeeSymbols();
                 var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
-                return new MethodFees
-                {
-                    MethodName = input.Value,
-                    Fees =
-                    {
-                        fees
-                    }
-                };
+                methodFeesInfo.Fees.AddRange(fees);
+                return methodFeesInfo;
             }
             
             if (new List<string>
             {
-                nameof(DonateResourceToken), nameof(ClaimTransactionFees)
+                nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
+                nameof(Create), nameof(Issue)
             }.Contains(input.Value))
             {
-                return new MethodFees
-                {
-                    MethodName = input.Value
-                };
+                return methodFeesInfo;
             }
-
+            
             return State.TransactionFees[input.Value];
         }
 

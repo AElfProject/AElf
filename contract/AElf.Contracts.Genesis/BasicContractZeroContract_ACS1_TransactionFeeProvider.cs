@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -11,6 +12,17 @@ namespace AElf.Contracts.Genesis
 
         public override MethodFees GetMethodFee(StringValue input)
         {
+            if (new List<string>
+            {
+                nameof(DeploySmartContract), nameof(DeploySystemSmartContract)
+            }.Contains(input.Value))
+            {
+                return new MethodFees
+                {
+                    MethodName = input.Value
+                };
+            }
+            
             return State.TransactionFees[input.Value];
         }
 
