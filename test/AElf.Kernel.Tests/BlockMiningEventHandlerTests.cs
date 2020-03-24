@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 

@@ -9,6 +9,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Sdk.CSharp;

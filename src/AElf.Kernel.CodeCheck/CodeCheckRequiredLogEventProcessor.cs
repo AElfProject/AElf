@@ -3,21 +3,19 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Acs0;
 using Acs3;
+using AElf.Kernel.CodeCheck.Application;
+using AElf.Kernel.Proposal.Application;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForProposal;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.CodeCheck
 {
     public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-
         private readonly ICodeCheckService _codeCheckService;
-        //TODO: smart contract executing should know nothing about proposal
-        private readonly IProposalService _proposalService;
-
         private LogEvent _interestedEvent;
+        private readonly IProposalService _proposalService;
 
         public LogEvent InterestedEvent
         {
@@ -38,7 +36,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             ICodeCheckService codeCheckService, IProposalService proposalService)
         {
             _smartContractAddressService = smartContractAddressService;
-
             _codeCheckService = codeCheckService;
             _proposalService = proposalService;
         }
@@ -51,18 +48,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 var eventData = new CodeCheckRequired();
                 eventData.MergeFrom(logEvent);
                 var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray(),
-                    transactionResult.BlockHash, transactionResult.BlockNumber);
+                    transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category);
                 if (!codeCheckResult)
                     return;
 
-                //TODO: smart contract executing should know nothing about proposal
                 var proposalId = ProposalCreated.Parser
                     .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                     .ProposalId;
                 // Cache proposal id to generate system approval transaction later
                 _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
             });
-            
             return Task.CompletedTask;
         }
     }

@@ -23,6 +23,7 @@ using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

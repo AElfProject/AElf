@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using AElf.Kernel.Consensus.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
