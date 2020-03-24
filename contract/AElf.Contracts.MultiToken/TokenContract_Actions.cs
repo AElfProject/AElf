@@ -29,8 +29,6 @@ namespace AElf.Contracts.MultiToken
             }
             
             SetSideChainCreator(input.Creator);
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             return new Empty();
         }
 
