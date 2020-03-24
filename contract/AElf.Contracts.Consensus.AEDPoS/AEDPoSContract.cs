@@ -149,7 +149,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 Hash previousInValue = null;
                 Hash signature = null;
-                
+
                 // Normal situation: previous round information exists and contains this miner.
                 if (previousRound != null && previousRound.RealTimeMinersInformation.ContainsKey(miner.Pubkey))
                 {
@@ -161,6 +161,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
                     }
+
                     // If previousInValue is still null, treat this as abnormal situation.
                     if (previousInValue != null)
                     {
@@ -177,7 +178,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     previousInValue = Hash.FromMessage(miner);
                     signature = previousInValue;
                 }
-                
+
                 // Fill this two fields at last.
                 miner.InValue = previousInValue;
                 miner.Signature = signature;
@@ -237,7 +238,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
+            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental)
+            )
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -286,6 +288,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(input.Value > 1, "Invalid block height.");
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
             return State.RandomHashes[input.Value] ?? Hash.Empty;
+        }
+
+        public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                To = Context.Self
+            });
+
+            State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
+            {
+                SchemeManager = Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
+
+            return new Empty();
         }
     }
 }
