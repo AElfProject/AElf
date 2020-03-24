@@ -4,9 +4,13 @@ using System.Linq;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -35,16 +39,20 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
-
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-
         typeof(ParallelExecutionModule),
-        typeof(ContractNamesAElfModule)
+        typeof(ContractNamesAElfModule),
+
+        //plugin
+        typeof(ExecutionPluginForMethodFeeModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {

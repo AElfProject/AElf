@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -21,7 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly IPrimaryTokenFeeService _txFeeService;
+        // private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
@@ -30,12 +29,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            IPrimaryTokenFeeService txFeeService, 
+            // IPrimaryTokenFeeService txFeeService, 
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider): base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            _txFeeService = txFeeService;
+            // _txFeeService = txFeeService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
@@ -79,12 +78,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
+                // var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
                     ContractAddress = transactionContext.Transaction.To,
-                    TransactionSizeFee = txCost,
+                    TransactionSizeFee = 0,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
                 

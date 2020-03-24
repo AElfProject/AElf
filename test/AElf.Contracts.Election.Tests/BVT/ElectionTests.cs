@@ -14,6 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Election
 {
