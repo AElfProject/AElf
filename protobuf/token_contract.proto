@@ -109,6 +109,9 @@ service TokenContract {
     rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
         option (aelf.is_view) = true;
     }
+    rpc GetLatestTotalResourceTokensMaps (google.protobuf.Empty) returns (TotalResourceTokensMaps){
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {

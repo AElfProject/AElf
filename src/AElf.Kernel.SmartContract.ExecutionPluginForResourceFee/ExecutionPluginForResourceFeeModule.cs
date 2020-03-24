@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.FeeCalculation;
+﻿using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -15,6 +16,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, DonateResourceTransactionGenerator>();
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, ResourceTokenChargedLogEventProcessor>();
+            context.Services.AddSingleton<IBlockExtraDataProvider, TotalResourceTokensMapsExtraDataProvider>();
+            context.Services.AddSingleton<IBlockValidationProvider, DonateResourceTokenValidationProvider>();
         }
     }
 }

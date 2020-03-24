@@ -365,6 +365,8 @@ namespace AElf.Contracts.MultiToken
         {
             Context.LogDebug(() => "Start donate resource token.");
 
+            State.LatestTotalResourceTokensMaps.Value = input;
+
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
@@ -388,6 +390,11 @@ namespace AElf.Contracts.MultiToken
             }
 
             return new Empty();
+        }
+
+        public override TotalResourceTokensMaps GetLatestTotalResourceTokensMaps(Empty input)
+        {
+            return State.LatestTotalResourceTokensMaps.Value;
         }
 
         private void PayTransactionFee(TotalResourceTokensMaps billMaps, bool isMainChain)
