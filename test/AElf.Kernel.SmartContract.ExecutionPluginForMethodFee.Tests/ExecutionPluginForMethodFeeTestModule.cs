@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
@@ -7,8 +6,6 @@ using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Shouldly;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests

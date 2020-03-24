@@ -27,6 +27,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             var amount = 100000;
             
+            await SetMethodFeeWithProposalAsync(new MethodFees
+            {
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 100000
+                    }
+                }
+            }.ToByteString());
+            
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {

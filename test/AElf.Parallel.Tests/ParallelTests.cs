@@ -375,7 +375,6 @@ namespace AElf.Parallel.Tests
 
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBeGreaterThan(0);
-            blockStateSet.BlockExecutedData.Count.ShouldBe(2);
             var blockExecutedData = blockStateSet.BlockExecutedData.First();
             var versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
             versionedState.ShouldBeNull();
