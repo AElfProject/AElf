@@ -188,7 +188,8 @@ namespace AElf.Contracts.Profit
             Context.LogDebug(() =>
                 $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
 
-            Assert(input.EndPeriod >= scheme.CurrentPeriod, $"Invalid end period. End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
+            Assert(input.EndPeriod >= scheme.CurrentPeriod,
+                $"Invalid end period. End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
 
             scheme.TotalShares = scheme.TotalShares.Add(input.BeneficiaryShare.Shares);
 
@@ -695,7 +696,8 @@ namespace AElf.Contracts.Profit
                 var distributedPeriodProfitsVirtualAddress =
                     GetDistributedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                 var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
-                if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0)
+                if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0 ||
+                    !distributedProfitsInformation.AmountsMap.Any())
                 {
                     continue;
                 }
