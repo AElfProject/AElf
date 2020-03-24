@@ -148,6 +148,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             await TestContractStub.DummyMethod.SendAsync(new Empty());
+            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+            before.Balance.ShouldBeGreaterThan(after.Balance);
         }
 
         [Fact]
@@ -273,6 +279,57 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     BlockHeight = chain.BestChainHeight
                 });
             symbols.ShouldBe(transactionSizeFeeSymbols);
+        }
+        
+                
+        [Fact]
+        public async Task Method_Fee_Set_Zero_ChargeFee_Should_Be_Zero()
+        {
+            await DeployContractsAsync();
+            await CreateAndIssueTokenAsync();
+            
+            await SetMethodFee_Successful(0);
+
+            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+
+            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TestContractStub.DummyMethod.SendAsync(new Empty());
+            
+            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+            before.Balance.ShouldBe(after.Balance);
+        }
+        
+        [Fact]
+        public async Task Method_Fee_Not_Set_Zero_ChargeFee()
+        {
+            await DeployContractsAsync();
+            await CreateAndIssueTokenAsync();
+
+            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+
+            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TestContractStub.DummyMethod.SendAsync(new Empty());
+            
+            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+            before.Balance.ShouldBeGreaterThan(after.Balance);
         }
     }
 }

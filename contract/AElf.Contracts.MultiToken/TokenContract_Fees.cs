@@ -34,13 +34,17 @@ namespace AElf.Contracts.MultiToken
             var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
             var successToChargeBaseFee = true;
+            var isChargeSizeFee = true;
             if (methodFees != null && methodFees.Fees.Any())
             {
+                if(IsMethodFeeSetToZero(methodFees))
+                    isChargeSizeFee = false;
                 successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
-
-            var successToChargeSizeFee = ChargeSizeFee(input, ref bill);
-
+            
+            var successToChargeSizeFee = true;
+            if(isChargeSizeFee)
+                successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             // Update balances.
             foreach (var tokenToAmount in bill.FeesMap)
             {
@@ -75,6 +79,11 @@ namespace AElf.Contracts.MultiToken
             }
 
             return dict;
+        }
+
+        private bool IsMethodFeeSetToZero(MethodFees methodFees)
+        {
+            return methodFees.Fees.All(x => x.BasicFee == 0);
         }
 
         private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
