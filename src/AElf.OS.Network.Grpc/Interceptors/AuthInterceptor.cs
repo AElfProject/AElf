@@ -22,23 +22,18 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
+                if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake))
+                    || context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
                 {
                     // a method other than DoHandshake is being called
                     var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-
-                    switch (peer)
+                    if (peer == null)
                     {
-                        case null when context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)):
-                            Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                            return Task.FromResult<TResponse>(null);
-                        // case null:
-                        //     Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                        //     return Task.FromResult<TResponse>(null);
-                        default:
-                            context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
-                            break;
+                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
+                        return Task.FromResult<TResponse>(null);
                     }
+                    
+                    context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
                 }
             }
             catch (Exception e)
