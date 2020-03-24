@@ -11,6 +11,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;

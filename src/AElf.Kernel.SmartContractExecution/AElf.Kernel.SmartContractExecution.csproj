@@ -6,19 +6,12 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Smart contract execution related components.</Description>
     </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="QuickGraphCore" Version="1.0.0" />
-    </ItemGroup>
 
     <PropertyGroup>
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
     </ItemGroup>
@@ -30,15 +23,9 @@
         <ContractMessage Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractMessage>
         <ContractStub Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf\Proto\configuration_contract.proto</Link>
         </ContractStub>
-        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
-        </ContractMessage>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\execution.proto">

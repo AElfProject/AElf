@@ -7,6 +7,7 @@ using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.CodeOps;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;

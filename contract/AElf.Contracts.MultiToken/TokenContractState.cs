@@ -33,7 +33,7 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<Address, string, long> OwningResourceToken { get; set; }
 
-        public BoolState Initialized { get; set; }
+        public BoolState InitializedFromParentChain { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<AuthorityInfo> CrossChainTokenContractRegistrationController { get; set; }

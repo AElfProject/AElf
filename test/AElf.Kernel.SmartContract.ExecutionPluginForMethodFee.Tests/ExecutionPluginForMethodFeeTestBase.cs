@@ -7,6 +7,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;

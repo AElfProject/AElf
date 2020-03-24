@@ -7,6 +7,7 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;

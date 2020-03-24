@@ -5,9 +5,9 @@ using AElf.Kernel.Token;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class TransactionNotAllowEnterTxHubTests : TransactionPoolWithValidationTestBase
+    public class TransactionNotAllowEnterTxHubTests : ExecutionPluginForMethodFeeTestBase
     {
         private readonly TxHubEntryPermissionValidationProvider _entryPermissionValidationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;

@@ -2,19 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using Acs3;
 using Acs7;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.CSharp.Core.Utils;
-using AElf.Kernel;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
@@ -322,7 +317,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task CrossChainCreateToken_WithoutRegister_Test()
         {
-            await GenerateSideChainAsync();
+            await GenerateSideChainAsync(false);
             var createTransaction = await CreateTransactionForTokenCreationAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, true);
             await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
@@ -576,8 +571,7 @@ namespace AElf.Contracts.MultiToken
 
             await MainChainTester.MineAsync(new List<Transaction> {crossChainTransferTransaction});
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
-            Assert.True(txResult.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Invalid transfer target chain.", txResult.Error);
+            Assert.True(txResult.Status == TransactionResultStatus.Mined);
         }
 
         [Fact]
@@ -810,11 +804,11 @@ namespace AElf.Contracts.MultiToken
 
         #region private method
 
-        private async Task<int> GenerateSideChainAsync()
+        private async Task<int> GenerateSideChainAsync(bool registerParentChainTokenContractAddress = true)
         {
             var sideChainId =
                 await InitAndCreateSideChainAsync(sideChainSymbol, _parentChainHeightOfCreation, MainChainId, 100);
-            StartSideChain(sideChainId, _parentChainHeightOfCreation, sideChainSymbol);
+            StartSideChain(sideChainId, _parentChainHeightOfCreation, sideChainSymbol, registerParentChainTokenContractAddress);
             return sideChainId;
         }
 
@@ -938,8 +932,6 @@ namespace AElf.Contracts.MultiToken
             var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
-            var result = await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath, height);
-            Assert.True(result.Status == TransactionResultStatus.Mined);
         }
 
         private async Task RegisterSideChainContractAddressOnSideChainAsync(int sideChainId)

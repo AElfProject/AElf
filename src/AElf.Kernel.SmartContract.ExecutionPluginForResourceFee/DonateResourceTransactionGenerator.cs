@@ -65,6 +65,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 input = totalResourceTokensMaps.ToByteString();
             }
+            else
+            {
+                await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                {
+                    BlockHash = preBlockHash,
+                    BlockHeight = preBlockHeight
+                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+            }
 
             generatedTransactions.AddRange(new List<Transaction>
             {

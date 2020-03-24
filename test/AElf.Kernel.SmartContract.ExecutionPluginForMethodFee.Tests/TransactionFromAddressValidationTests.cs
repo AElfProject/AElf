@@ -2,15 +2,15 @@ using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class TransactionFromAddressValidationTests : TransactionPoolWithValidationTestBase
+    public class TransactionFromAddressValidationTests : ExecutionPluginForMethodFeeTestBase
     {
-        private readonly TransactionFromAddressBalanceValidationProvider _validationProvider;
+        private readonly MethodFeeAffordableValidationProvider _validationProvider;
         private readonly KernelTestHelper _kernelTestHelper;
         public TransactionFromAddressValidationTests()
         {
-            _validationProvider = GetRequiredService<TransactionFromAddressBalanceValidationProvider>();
+            _validationProvider = GetRequiredService<MethodFeeAffordableValidationProvider>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
