@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;

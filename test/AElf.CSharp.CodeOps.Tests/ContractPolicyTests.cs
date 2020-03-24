@@ -11,6 +11,8 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
+using AElf.Kernel.CodeCheck;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
@@ -76,16 +78,16 @@ namespace AElf.CSharp.CodeOps
 
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
-        private ContractAuditor _auditor;
+        private CSharpContractAuditor _auditor;
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
-        private readonly RequiredAcsDto _requiredAcs;
+        private readonly RequiredAcs _requiredAcs;
 
         public ContractPolicyTests()
         {
             _systemContractCode = ReadPatchedContractCode(typeof(BasicContractZero));
             _badContractCode = ReadContractCode(typeof(BadContract));
-            _requiredAcs = new RequiredAcsDto
+            _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
@@ -157,9 +159,9 @@ namespace AElf.CSharp.CodeOps
         {
             _auditor = new ContractAuditor();
 
-            var requireAcs = new RequiredAcsDto();
+            var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs));
+            Should.Throw<CSharpInvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs));
 
             Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
@@ -167,7 +169,7 @@ namespace AElf.CSharp.CodeOps
             Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
             requireAcs.RequireAll = true;
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs));
+            Should.Throw<CSharpInvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs));
         }
 
         [Fact]

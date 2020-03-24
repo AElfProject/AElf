@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Application
 {
     public class ProposalApprovalTransactionGenerator : ISystemTransactionGenerator
     {

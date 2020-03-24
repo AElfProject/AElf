@@ -7,18 +7,20 @@ using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
+using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using Mono.Cecil;
 
 
 namespace AElf.CSharp.CodeOps
 {
-    public class ContractAuditor
+    public class CSharpContractAuditor : IContractAuditor
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
 
         private readonly AcsValidator _acsValidator = new AcsValidator();
 
-        public void Audit(byte[] code, RequiredAcsDto requiredAcs)
+        public void Audit(byte[] code, RequiredAcs requiredAcs)
         {
             var findings = new List<ValidationResult>();
             var asm = Assembly.Load(code);
@@ -30,7 +32,7 @@ namespace AElf.CSharp.CodeOps
 
             // Run module validators
             findings.AddRange(_defaultPolicy.ModuleValidators.SelectMany(v => v.Validate(modDef, cts.Token)));
-            
+
             // Run assembly validators (run after module validators since we invoke BindService method below)
             findings.AddRange(_defaultPolicy.AssemblyValidators.SelectMany(v => v.Validate(asm, cts.Token)));
 
@@ -39,17 +41,34 @@ namespace AElf.CSharp.CodeOps
             {
                 findings.AddRange(ValidateMethodsInType(_defaultPolicy, type, cts.Token));
             }
-            
+
             // Perform ACS validation
             if (requiredAcs != null)
                 findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
 
             if (findings.Count > 0)
             {
-                throw new InvalidCodeException(
+                throw new CSharpInvalidCodeException(
                     $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
                     string.Join("\n", findings), findings);
             }
+        }
+
+        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
+        {
+            var findings = new List<ValidationResult>();
+
+            foreach (var method in type.Methods)
+            {
+                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
+            }
+
+            foreach (var nestedType in type.NestedTypes)
+            {
+                findings.AddRange(ValidateMethodsInType(policy, nestedType));
+            }
+
+            return findings;
         }
 
         private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type, CancellationToken ct)
