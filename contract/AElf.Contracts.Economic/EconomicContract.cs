@@ -130,7 +130,7 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
                     Decimals = 0,
                     Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    IsBurnable = false,
+                    IsBurnable = true,
                     LockWhiteList =
                     {
                         Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
