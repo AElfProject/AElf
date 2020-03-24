@@ -110,6 +110,17 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
 
+            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+                .DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
+                        Name = ConsensusSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
+                    })).Output;
+            AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
+
             //deploy DApp contract
             DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
@@ -136,17 +147,6 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
                 UserKeyPairs.First());
-
-            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
-                .DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
-                        Name = ConsensusSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
-                    })).Output;
-            AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)

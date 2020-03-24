@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Acs9;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.DApp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -93,11 +94,18 @@ namespace AElf.Contracts.TokenHolder
                 balance.Balance.ShouldBe(baseBalance + 9_9000_0000);
             }
 
-            // And Consensus Contract should have 0.1 ELF tokens.
+            // And Side Chain Dividends Pool should have 0.1 ELF tokens.
             {
+                var scheme = await TokenHolderContractStub.GetScheme.CallAsync(ConsensusContractAddress);
+                var virtualAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(new SchemePeriod
+                {
+                    SchemeId = scheme.SchemeId,
+                    Period = 0
+                });
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = ConsensusContractAddress, Symbol = "ELF"
+                    Owner = virtualAddress,
+                    Symbol = "ELF"
                 });
                 balance.Balance.ShouldBe(1000_0000);
             }

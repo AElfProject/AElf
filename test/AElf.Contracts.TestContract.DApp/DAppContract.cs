@@ -18,6 +18,8 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.ConsensusContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
             State.ProfitReceiver.Value = input.ProfitReceiver;
             
@@ -36,6 +38,8 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.ConsensusContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
             State.ProfitReceiver.Value = input.ProfitReceiver;
             

@@ -292,6 +292,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
