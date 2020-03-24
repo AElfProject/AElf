@@ -3,7 +3,7 @@
 
 ## Contents
 
-- [AssemblyUnit](#T-Vsxmd-Units-AssemblyUnit 'Vsxmd.Units.AssemblyUnit')
+- [AssemblyUnit](#T-Vsxmd-Units-AssemblyUnit)
   - [#ctor(element)](#M-Vsxmd-Units-AssemblyUnit-#ctor-System-Xml-Linq-XElement- 'Vsxmd.Units.AssemblyUnit.#ctor(System.Xml.Linq.XElement)')
   - [ToMarkdown()](#M-Vsxmd-Units-AssemblyUnit-ToMarkdown 'Vsxmd.Units.AssemblyUnit.ToMarkdown')
 - [BaseUnit](#T-Vsxmd-Units-BaseUnit 'Vsxmd.Units.BaseUnit')
