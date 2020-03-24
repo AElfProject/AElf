@@ -14,6 +14,10 @@ The following content will walk you through the basics of writing a smart contra
 
 The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" message and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greet message as well as the time of the greeting.
 
+{% hint style="info" %} 
+This tutorial shows you how to develop a smart contract with the C# contract SDK, you can find you more [here](../../sdk/csharp/contract-sdk.md). Boilerplate will automatically add the reference to the SDK. 
+{% endhint %} 
+
 ### Defining the contract
 
 As stated above the first step when writing a smart contract on AElf Boilerplate is to define the methods and types of your contract. AElf defines smart contracts as services that are implemented using gRPC and Protobuf. The definition contains no logic, at build time the proto file is used to generate C# classes that will be used to implement the contracts logic and state.

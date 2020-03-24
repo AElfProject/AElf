@@ -752,6 +752,7 @@ namespace AElf.Contracts.TestBase
                 Amount = balanceOfStarter,
                 To = Address.FromPublicKey(KeyPair.PublicKey)
             });
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             var crossChainContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainContractCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
                 new CrossChain.InitializeInput
