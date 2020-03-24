@@ -11,42 +11,22 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract
     {
         #region Views
-        
+
         public override MethodFees GetMethodFee(StringValue input)
         {
-            var officialTokenContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            var primaryTokenSymbol =
-                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
-                    .Value;
-            var methodFeesInfo =  new MethodFees
-            {
-                MethodName = input.Value
-            };
-            if (primaryTokenSymbol == string.Empty)
-            {
-                return methodFeesInfo;
-            }
-
-            if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
-            {
-                var methodFees = State.TransactionFees[input.Value];
-                if (methodFees == null) return methodFeesInfo;
-                var symbols = GetMethodFeeSymbols();
-                var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
-                methodFeesInfo.Fees.AddRange(fees);
-                return methodFeesInfo;
-            }
-            
             if (new List<string>
             {
                 nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
-                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken)
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
+                nameof(CrossChainReceiveToken)
             }.Contains(input.Value))
             {
-                return methodFeesInfo;
+                return new MethodFees
+                {
+                    MethodName = input.Value
+                };
             }
-            
+
             return State.TransactionFees[input.Value];
         }
 
@@ -64,6 +44,7 @@ namespace AElf.Contracts.MultiToken
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
 
