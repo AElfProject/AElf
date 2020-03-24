@@ -60,13 +60,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var tokenStub = GetTokenContractStub(Address.FromPublicKey((await _accountService.GetPublicKeyAsync())),
                 tokenContractAddress);
             var hashFromState =
-                await tokenStub.GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
+                (await tokenStub.GetLatestTotalResourceTokensMapsHash.SendAsync(new Empty())).Output;
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Header.Height
                 });
+            if (totalResourceTokensMapsFromProvider == null)
+            {
+                return hashFromState == null;
+            }
+
             var hashFromProvider = Hash.FromMessage(totalResourceTokensMapsFromProvider);
             return hashFromProvider == hashFromState;
         }

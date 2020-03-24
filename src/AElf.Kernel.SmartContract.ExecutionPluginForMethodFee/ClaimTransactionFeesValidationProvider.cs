@@ -60,13 +60,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             var tokenStub = GetTokenContractStub(Address.FromPublicKey((await _accountService.GetPublicKeyAsync())),
                 tokenContractAddress);
             var hashFromState =
-                await tokenStub.GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+                (await tokenStub.GetLatestTotalTransactionFeesMapHash.SendAsync(new Empty())).Output;
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Header.Height
                 });
+            if (totalTransactionFeesMapFromProvider == null)
+            {
+                return hashFromState == null;
+            }
             var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
             return hashFromProvider == hashFromState;
         }
