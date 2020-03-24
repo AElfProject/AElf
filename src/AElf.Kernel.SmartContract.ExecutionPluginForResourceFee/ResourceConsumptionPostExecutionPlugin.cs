@@ -7,6 +7,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
@@ -15,12 +17,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IResourceTokenFeeService _resourceTokenFeeService;
+        public ILogger<ResourceConsumptionPostExecutionPlugin> Logger { get; set; }
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IResourceTokenFeeService resourceTokenFeeService) : base("acs8")
         {
             _contextService = contextService;
             _resourceTokenFeeService = resourceTokenFeeService;
+            
+            Logger = NullLogger<ResourceConsumptionPostExecutionPlugin>.Instance;
         }
         
         private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
@@ -84,7 +89,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 
             var chargeResourceTokenTransaction =
                 (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
-
             return new List<Transaction>
             {
                 chargeResourceTokenTransaction

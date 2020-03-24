@@ -26,11 +26,12 @@ namespace AElf.Contracts.MultiToken
             {
                 return methodFeesInfo;
             }
-
+            
             if (new List<string>
             {
                 nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
-                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken)
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
+                nameof(Create), nameof(Issue)
             }.Contains(input.Value))
             {
                 return methodFeesInfo;
@@ -45,8 +46,16 @@ namespace AElf.Contracts.MultiToken
                 methodFeesInfo.Fees.AddRange(fees);
                 return methodFeesInfo;
             }
-
-            return State.TransactionFees[input.Value] ?? methodFeesInfo;
+            
+            if (new List<string>
+            {
+                nameof(DonateResourceToken), nameof(ClaimTransactionFees)
+            }.Contains(input.Value))
+            {
+                return methodFeesInfo;
+            }
+            
+            return State.TransactionFees[input.Value];
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
