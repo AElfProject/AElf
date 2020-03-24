@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractContainer.TokenContractStub
+            var tokenStub = new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {

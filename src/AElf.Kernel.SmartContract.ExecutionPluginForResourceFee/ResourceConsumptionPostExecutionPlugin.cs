@@ -23,10 +23,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             _resourceTokenFeeService = resourceTokenFeeService;
         }
         
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
