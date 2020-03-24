@@ -6,6 +6,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
@@ -15,12 +17,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IAccountService _accountService;
 
+        public ILogger<ClaimTransactionFeesValidationProvider> Logger { get; set; }
+
         public ClaimTransactionFeesValidationProvider(ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider,
             ISmartContractAddressService smartContractAddressService, IAccountService accountService)
         {
             _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
             _smartContractAddressService = smartContractAddressService;
             _accountService = accountService;
+            
+            Logger = NullLogger<ClaimTransactionFeesValidationProvider>.Instance;
         }
 
         /// <summary>
@@ -69,9 +75,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 });
             if (totalTransactionFeesMapFromProvider == null)
             {
+                Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
                 return hashFromState == null;
             }
             var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
+            Logger.LogInformation($"ClaimTransactionFeesValidationProvider: {hashFromProvider == hashFromState}");
             return hashFromProvider == hashFromState;
         }
 

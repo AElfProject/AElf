@@ -6,6 +6,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
@@ -15,12 +17,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IAccountService _accountService;
 
+        public ILogger<DonateResourceTokenValidationProvider> Logger { get; set; }
+
         public DonateResourceTokenValidationProvider(ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider,
             ISmartContractAddressService smartContractAddressService, IAccountService accountService)
         {
             _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
             _smartContractAddressService = smartContractAddressService;
             _accountService = accountService;
+            
+            Logger = NullLogger<DonateResourceTokenValidationProvider>.Instance;
         }
 
         /// <summary>
@@ -69,10 +75,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 });
             if (totalResourceTokensMapsFromProvider == null)
             {
+                Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
                 return hashFromState == null;
             }
 
             var hashFromProvider = Hash.FromMessage(totalResourceTokensMapsFromProvider);
+            Logger.LogInformation($"DonateResourceTokenValidationProvider: {hashFromProvider == hashFromState}");
             return hashFromProvider == hashFromState;
         }
 
