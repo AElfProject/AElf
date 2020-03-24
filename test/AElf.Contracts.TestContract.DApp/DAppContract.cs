@@ -220,7 +220,7 @@ namespace AElf.Contracts.TestContract.DApp
         {
             State.ProfitConfig.Value = new ProfitConfig
             {
-                DonationPartsPerHundred = 10,
+                DonationPartsPerHundred = 1,
                 StakingTokenSymbol = "APP",
                 ProfitsTokenSymbolList = {"ELF"}
             };
