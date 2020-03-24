@@ -1,6 +1,7 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
 
 namespace AElf.Blockchains.SideChain
