@@ -1,13 +1,14 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     //TODO: base class, should not know token
 
     internal interface ITokenContractReaderFactory
     {
-        TokenContractContainer.TokenContractStub Create(IChainContext chainContext);
+        TokenContractImplContainer.TokenContractImplStub Create(IChainContext chainContext);
     }
 
     internal class TokenContractReaderFactory : ITokenContractReaderFactory
@@ -22,9 +23,9 @@ namespace AElf.Kernel.TransactionPool.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public TokenContractContainer.TokenContractStub Create(IChainContext chainContext)
+        public TokenContractImplContainer.TokenContractImplStub Create(IChainContext chainContext)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TokenContractMethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,

@@ -19,6 +19,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />

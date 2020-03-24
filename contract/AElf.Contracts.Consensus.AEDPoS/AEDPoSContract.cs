@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp;
 using AElf.Types;

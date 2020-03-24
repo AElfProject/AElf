@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions
+namespace AElf.Kernel.FeeCalculation.Application
 {
     public interface ITransactionFeeExemptionService
     {

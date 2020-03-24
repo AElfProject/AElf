@@ -1,5 +1,5 @@
 using System.Linq;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
 
 namespace AElf.Contracts.MultiToken
 {

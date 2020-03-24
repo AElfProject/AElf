@@ -5,9 +5,9 @@ using AElf.Kernel.Token;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class TransactionMethodNameValidationTests : TransactionPoolWithValidationTestBase
+    public class TransactionMethodNameValidationTests : ExecutionPluginForMethodFeeTestBase
     {
         private readonly TransactionMethodNameValidationProvider _validationProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
