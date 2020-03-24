@@ -402,7 +402,7 @@ namespace AElf.Kernel.SmartContract.Application
                             Status = TransactionResultStatus.Failed,
                             ReturnValue = trace.ReturnValue,
                             BlockNumber = blockHeight,
-                            Logs = {trace.FlattenedLogs},
+                            Logs = {trace.GetPluginLogs()},
                             Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
                         };
                         txResult.UpdateBloom();
@@ -426,7 +426,7 @@ namespace AElf.Kernel.SmartContract.Application
                         Status = TransactionResultStatus.Failed,
                         BlockNumber = blockHeight,
                         Error = trace.Error,
-                        Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
+                        Logs = {trace.GetPluginLogs()}
                     };
                     txResult.UpdateBloom();
                     return txResult;

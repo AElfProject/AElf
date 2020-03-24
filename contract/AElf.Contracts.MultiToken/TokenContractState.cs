@@ -65,5 +65,8 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
 
         public Int32State MinimumProfitsDonationPartsPerHundred { get; set; }
+
+        public SingletonState<Hash> LatestTotalResourceTokensMapsHash { get; set; }
+        public SingletonState<Hash> LatestTotalTransactionFeesMapHash { get; set; }
     }
 }

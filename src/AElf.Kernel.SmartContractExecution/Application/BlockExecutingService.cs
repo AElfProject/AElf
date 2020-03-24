@@ -106,10 +106,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     blockStateSet.Changes.Remove(delete.Key);
                 }
 
-                if (returnSet.Status == TransactionResultStatus.Mined)
-                {
-                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
-                }
+                bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);

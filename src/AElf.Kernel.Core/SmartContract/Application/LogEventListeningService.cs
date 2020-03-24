@@ -48,11 +48,6 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
 
-                    if (result.Status == TransactionResultStatus.Failed)
-                    {
-                        continue;
-                    }
-
                     if (result.Bloom.Length == 0)
                     {
                         continue;

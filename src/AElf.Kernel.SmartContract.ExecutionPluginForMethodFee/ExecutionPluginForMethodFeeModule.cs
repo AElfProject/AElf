@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Miner.Application;
+﻿using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Modularity;
@@ -18,6 +19,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
+            context.Services.AddSingleton<IBlockValidationProvider, ClaimTransactionFeesValidationProvider>();
+
         }
     }
 }

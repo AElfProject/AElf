@@ -29,12 +29,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
         private readonly IBlockStateSetManger _blockStateSetManger;
+        private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         
         public ExecutionPluginForMethodFeeTest()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionSizeFeeSymbolsProvider = GetRequiredService<ITransactionSizeFeeSymbolsProvider>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _totalTransactionFeesMapProvider = GetRequiredService<ITotalTransactionFeesMapProvider>();
         }
 
         private async Task DeployContractsAsync()
@@ -147,20 +149,38 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            await TestContractStub.DummyMethod.SendAsync(new Empty());
+
+            var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
+            await CheckTransactionFeesMapAsync(transactionFeeDic);
+           
             var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
                 Symbol = "ELF"
             });
-            before.Balance.ShouldBeGreaterThan(after.Balance);
+            after.Balance.ShouldBe(before.Balance - transactionFeeDic[before.Symbol]);
+        }
+
+        private async Task CheckTransactionFeesMapAsync(Dictionary<string, long> transactionFeeDic)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactionFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            });
+            foreach (var transactionFee in transactionFeeDic)
+            {
+                transactionFeesMap.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
+            }
         }
 
         [Fact]
         public async Task ChargeFee_TxFee_FailedTest()
         {
             await DeployContractsAsync();
-            await CreateAndIssueTokenAsync("ELF", 99999);
+            var issueAmount = 99999;
+            await CreateAndIssueTokenAsync("ELF", issueAmount);
 
             var feeAmount = 100000;
             await SetMethodFee_Successful(feeAmount);
@@ -169,13 +189,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             dummy.TransactionResult.Error.ShouldBe(ExecutionStatus.ExecutionStoppedByPrePlugin.ToString());
-
+            var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
+            await CheckTransactionFeesMapAsync(transactionFeeDic);
+            
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
                 Symbol = "ELF"
             })).Balance;
             afterFee.ShouldBe(0);
+            transactionFeeDic["ELF"].ShouldBe(issueAmount);
         }
 
         // TODO: Disable test cases for size fee.
@@ -213,6 +236,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 Symbol = chargedSymbol ?? "ELF"
             })).Balance;
 
+            Dictionary<string,long> transactionFeeDic;
             if (isChargingSuccessful)
             {
                 var dummyResult = await TestContractStub.DummyMethod.SendAsync(new Empty());
@@ -222,6 +246,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
                     dummyResult.TransactionResult.GetChargedTransactionFees().Values.ShouldContain(chargedAmount);
                 }
+
+                transactionFeeDic = dummyResult.TransactionResult.GetChargedTransactionFees();
             }
             else
             {
@@ -232,7 +258,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 {
                     dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
                 }
+                transactionFeeDic = dummyResult.TransactionResult.GetChargedTransactionFees();
             }
+            await CheckTransactionFeesMapAsync(transactionFeeDic);
+            if (chargedSymbol != null)
+                transactionFeeDic[chargedSymbol].ShouldBe(chargedAmount);
 
             var finalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
