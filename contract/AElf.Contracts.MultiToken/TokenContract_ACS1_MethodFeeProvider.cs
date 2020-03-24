@@ -41,8 +41,7 @@ namespace AElf.Contracts.MultiToken
             if (new List<string>
             {
                 nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
-                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
-                nameof(Create), nameof(Issue)
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken)
             }.Contains(input.Value))
             {
                 return methodFeesInfo;
