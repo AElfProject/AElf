@@ -35,6 +35,7 @@ namespace AElf.Contracts.Economic
             SetTreasurySchemeIdsToElectionContract();
 
             InitializeTokenConverterContract();
+            State.TokenContract.InitialCoefficients.Send(new Empty());
             State.Initialized.Value = true;
             return new Empty();
         }
