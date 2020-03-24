@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
@@ -11,7 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     [DependsOn(typeof(ContractTestModule),
         typeof(ExecutionPluginForMethodFeeModule),
-        typeof(TestBaseKernelAElfModule))]
+        typeof(FeeCalculationModule))]
     public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -25,6 +26,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.AddSingleton<MethodFeeAffordableValidationProvider>();
             context.Services.AddSingleton<TransactionMethodNameValidationProvider>();
             context.Services.AddSingleton<TxHubEntryPermissionValidationProvider>();
+            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.RemoveAll(s=>s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
+            context.Services.AddTransient<IBlockAcceptedLogEventProcessor,TransactionFeeChargedLogEventProcessor>();
         }
     }
     

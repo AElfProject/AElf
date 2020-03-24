@@ -862,6 +862,8 @@ namespace AElf.Contracts.TestBase
                     {
                         RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
                     });
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+                new Empty());
             
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
