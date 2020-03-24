@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Acs9;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.DApp;
 using AElf.Types;
@@ -77,9 +78,8 @@ namespace AElf.Contracts.TokenHolder
             }
 
             // Profits receiver claim 10 ELF profits.
-            await receiverTokenStub.ReceiveProfits.SendAsync(new ReceiveProfitsInput
+            await DAppContractStub.TakeContractProfits.SendAsync(new TakeContractProfitsInput
             {
-                ContractAddress = DAppContractAddress,
                 Symbol = "ELF",
                 Amount = 10_0000_0000
             });

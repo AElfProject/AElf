@@ -700,7 +700,6 @@ namespace AElf.Contracts.Profit
                     continue;
                 }
 
-                Context.LogDebug(() => $"Released profit information: {distributedProfitsInformation}");
                 var amount = SafeCalculateProfits(profitDetail.Shares,
                     distributedProfitsInformation.AmountsMap[symbol], distributedProfitsInformation.TotalShares);
 

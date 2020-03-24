@@ -250,7 +250,8 @@ namespace AElf.Contracts.TokenHolder
                 new InitialAElfConsensusContractInput
                 {
                     PeriodSeconds = 604800L,
-                    MinerIncreaseInterval = 31536000
+                    MinerIncreaseInterval = 31536000,
+                    IsSideChain = true
                 });
 
             consensusContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList

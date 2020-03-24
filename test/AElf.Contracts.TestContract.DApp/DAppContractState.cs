@@ -1,4 +1,5 @@
 ﻿using Acs1;
+using Acs9;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp.State;
@@ -15,5 +16,7 @@ namespace AElf.Contracts.TestContract.DApp
         public MappedState<Address, Profile> Profiles { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<ProfitConfig> ProfitConfig { get; set; }
     }
 }

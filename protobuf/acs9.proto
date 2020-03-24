@@ -9,7 +9,7 @@ option (aelf.identity) = "acs9";
 
 service ContractProfitsContract {
     // Actions
-    rpc TakeContractProfits (google.protobuf.Empty) returns (google.protobuf.Empty) { 
+    rpc TakeContractProfits (TakeContractProfitsInput) returns (google.protobuf.Empty) { 
     }
 
     // Views
@@ -19,6 +19,11 @@ service ContractProfitsContract {
     rpc GetProfitsAmount (google.protobuf.Empty) returns (ProfitsMap) {
         option (aelf.is_view) = true;
     }
+}
+
+message TakeContractProfitsInput {
+    string symbol = 1;
+    sint64 amount = 2;
 }
 
 message ProfitConfig { 
