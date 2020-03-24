@@ -225,7 +225,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         }
 
         [Fact]
-        public async Task Consumption_WithoutInsufficientSTO()
+        public async Task Consumption_WithoutInsufficientStorageToken()
         {
             await AdvanceResourceToken(new List<string> {"STORAGE"});
             const long stoAmount = 100; // Not enough.

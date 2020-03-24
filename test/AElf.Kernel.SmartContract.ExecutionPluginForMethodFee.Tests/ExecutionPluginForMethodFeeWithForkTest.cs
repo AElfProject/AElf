@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task ChargeFee_With_Fork_Test()
         {
             var amount = 100000;
-            
+
             await SetMethodFeeWithProposalAsync(new MethodFees
             {
                 MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),

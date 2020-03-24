@@ -600,7 +600,7 @@ namespace AElf.Contracts.MultiToken
             {
                 if (State.FeeReceiver.Value != null)
                 {
-                    Transfer(new TransferInput
+                    Context.SendInline(Context.Self, nameof(Transfer), new TransferInput
                     {
                         To = State.FeeReceiver.Value,
                         Symbol = symbol,
@@ -610,7 +610,7 @@ namespace AElf.Contracts.MultiToken
                 else
                 {
                     // Burn all!
-                    Burn(new BurnInput
+                    Context.SendInline(Context.Self, nameof(Burn), new BurnInput
                     {
                         Symbol = symbol,
                         Amount = transferAmount
