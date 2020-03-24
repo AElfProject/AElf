@@ -19,20 +19,11 @@ namespace AElf.Contracts.MultiToken
             var primaryTokenSymbol =
                 Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
                     .Value;
-            var methodFeesInfo =  new MethodFees {
+            var methodFeesInfo =  new MethodFees
+            {
                 MethodName = input.Value
             };
             if (primaryTokenSymbol == string.Empty)
-            {
-                return methodFeesInfo;
-            }
-            
-            if (new List<string>
-            {
-                nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
-                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
-                nameof(Create), nameof(Issue)
-            }.Contains(input.Value))
             {
                 return methodFeesInfo;
             }
@@ -49,7 +40,9 @@ namespace AElf.Contracts.MultiToken
             
             if (new List<string>
             {
-                nameof(DonateResourceToken), nameof(ClaimTransactionFees)
+                nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
+                nameof(Create), nameof(Issue)
             }.Contains(input.Value))
             {
                 return methodFeesInfo;
