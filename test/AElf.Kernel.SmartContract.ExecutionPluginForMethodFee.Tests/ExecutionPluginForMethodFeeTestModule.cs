@@ -4,6 +4,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -44,6 +45,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
+            context.Services.AddSingleton<ISystemTransactionGenerator,MockTransactionGenerator>();
         }
     }
 }
