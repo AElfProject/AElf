@@ -11,9 +11,7 @@ namespace AElf.OS.Network
         public const int DefaultRequestRetryCount = 1;
         public const int DefaultMaxPeers = 25;
         public const int DefaultMaxPeersPerIpAddress = 0;
-
-        public const int DefaultSessionIdSize = 5;
-
+        
         public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
 
         public const int DefaultInitialSyncOffset = 512;

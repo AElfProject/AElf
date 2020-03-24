@@ -13,22 +13,20 @@ namespace AElf.OS.Network
         
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
-            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2}, ConnectionTime = TimestampHelper.GetUtcNow()});
+            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey, ConnectionTime = TimestampHelper.GetUtcNow()});
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
         {
             AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
             var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), endpoint, info);
-            peer.InboundSessionId = new byte[] {0, 1, 2};
             return peer;
         }
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
             AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
-            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), endpoint, new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
-            peer.InboundSessionId = new byte[] {0, 1, 2};
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), endpoint, new PeerConnectionInfo { Pubkey = pubkey });
             return peer;
         }
         
@@ -53,13 +51,11 @@ namespace AElf.OS.Network
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow(),
-                SessionId = new byte[] { 0, 1, 2},
                 IsInbound = true
             };
 
             AElfPeerEndpointHelper.TryParse(ipAddress, out var endpoint);
             var peer = new GrpcPeer(new GrpcClient(channel, client), endpoint, connectionInfo);
-            peer.InboundSessionId = new byte[] {0, 1, 2};
 
             return peer;
         }

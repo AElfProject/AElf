@@ -37,10 +37,7 @@ namespace AElf.OS.Network
 
             AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
             
-            GrpcPeer peer = new GrpcPeer(grpcClient, endpoint, new PeerConnectionInfo
-            {
-                SessionId = new byte[] { 1,2,3 }
-            });
+            GrpcPeer peer = new GrpcPeer(grpcClient, endpoint, new PeerConnectionInfo());
 
             await peer.DisconnectAsync(false);
 

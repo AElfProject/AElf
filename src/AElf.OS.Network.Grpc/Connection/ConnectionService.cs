@@ -160,7 +160,6 @@ namespace AElf.OS.Network.Grpc.Connection
             currentPeer.SyncState = SyncState.Syncing;
             
             Logger.LogInformation($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
-                              $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {currentPeer.LastKnownLibHeight}" +
                               $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");
 
@@ -249,7 +248,6 @@ namespace AElf.OS.Network.Grpc.Connection
 
                 // send back our handshake
                 var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
-                grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
                 grpcPeer.UpdateLastSentHandshake(replyHandshake);
 
                 Logger.LogDebug($"Sending back handshake to {peerEndpoint}.");
@@ -301,7 +299,6 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             
             Logger.LogInformation($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
-                              $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
                               $" - LIB height {peer.LastKnownLibHeight}" +
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 

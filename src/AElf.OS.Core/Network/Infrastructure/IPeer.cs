@@ -25,8 +25,6 @@ namespace AElf.OS.Network.Infrastructure
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }
         
-        byte[] InboundSessionId { get; }
-
         PeerConnectionInfo Info { get; }
 
         Task PingAsync();

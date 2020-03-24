@@ -52,23 +52,10 @@ namespace AElf.OS.Network.Protocol
             var handshake = new Handshake
             {
                 HandshakeData = handshakeData,
-                SessionId = ByteString.CopyFrom(GenerateRandomToken()),
                 Signature = ByteString.CopyFrom(signature)
             };
 
             return handshake;
-        }
-        
-        public static byte[] GenerateRandomToken()
-        {
-            byte[] sessionId = new byte[NetworkConstants.DefaultSessionIdSize];
-
-            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider()) 
-            { 
-                rg.GetBytes(sessionId);
-            }
-
-            return sessionId;
         }
 
         public async Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake)

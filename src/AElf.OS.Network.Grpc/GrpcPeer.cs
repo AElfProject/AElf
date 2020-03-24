@@ -80,19 +80,6 @@ namespace AElf.OS.Network.Grpc
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
         public SyncState SyncState { get; set; }
-
-        /// <summary>
-        /// Session ID to use when authenticating messages from this peer, announced to the
-        /// remote peer at connection.
-        /// </summary>
-        public byte[] InboundSessionId { get; set; }
-        
-        /// <summary>
-        /// Session ID to use when sending messages to this peer, announced at connection
-        /// from the other peer.
-        /// </summary>
-        public byte[] OutboundSessionId => Info.SessionId;
-
         public DnsEndPoint RemoteEndpoint { get; }
         public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
@@ -173,8 +160,7 @@ namespace AElf.OS.Network.Grpc
             GrpcRequest request = new GrpcRequest {ErrorMessage = "Request nodes failed."};
             Metadata data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString() },
-                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+                { GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString() }
             };
 
             return RequestAsync(() => _client.GetNodesAsync(new NodesRequest {MaxCount = count}, data), request);
@@ -210,8 +196,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, PingTimeout.ToString() },
-                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+                { GrpcConstants.TimeoutMetadataKey, PingTimeout.ToString() }
             };
 
             await RequestAsync(() => _client.PingAsync(new PingRequest(), data), request);
@@ -230,8 +215,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString() },
-                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+                { GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString() }
             };
 
             var blockReply = await RequestAsync(() => _client.RequestBlockAsync(blockRequest, data), request);
@@ -253,8 +237,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() },
-                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+                { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() }
             };
 
             var list = await RequestAsync(() => _client.RequestBlocksAsync(blockRequest, data), request);
@@ -349,7 +332,7 @@ namespace AElf.OS.Network.Grpc
         private async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
         {
             if (_blockStreamCall == null)
-                _blockStreamCall = _client.BlockBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+                _blockStreamCall = _client.BlockBroadcastStream();
 
             try
             {
@@ -371,7 +354,7 @@ namespace AElf.OS.Network.Grpc
         private async Task SendAnnouncementAsync(BlockAnnouncement header)
         {
             if (_announcementStreamCall == null)
-                _announcementStreamCall = _client.AnnouncementBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+                _announcementStreamCall = _client.AnnouncementBroadcastStream();
             
             try
             {
@@ -393,7 +376,7 @@ namespace AElf.OS.Network.Grpc
         private async Task SendTransactionAsync(Transaction transaction)
         {
             if (_transactionStreamCall == null)
-                _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+                _transactionStreamCall = _client.TransactionBroadcastStream();
 
             try
             {
@@ -415,7 +398,7 @@ namespace AElf.OS.Network.Grpc
         public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
         {
             if (_libAnnouncementStreamCall == null)
-                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream();
             
             try
             {
@@ -438,8 +421,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata
             {
-                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()},
-                {GrpcConstants.SessionIdMetadataKey, OutboundSessionId}
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
             };
 
             await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
@@ -607,11 +589,9 @@ namespace AElf.OS.Network.Grpc
 
                 try
                 {
-                    Metadata metadata = new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }};
-                    
                     await RequestAsync(
                         () => _client.DisconnectAsync(new DisconnectReason
-                            {Why = DisconnectReason.Types.Reason.Shutdown}, metadata), request);
+                            {Why = DisconnectReason.Types.Reason.Shutdown}), request);
                 }
                 catch (NetworkException)
                 {

@@ -25,37 +25,20 @@ namespace AElf.OS.Network.Grpc
                 if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
                 {
                     // a method other than DoHandshake is being called
-                
                     var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
-                    if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                    switch (peer)
                     {
-                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                        return Task.FromResult<TResponse>(null);
-                    }
-
-                    // check that the peers session is equal to one announced in the headers
-                    var sessionId = context.GetSessionId();
-                    
-                    if (peer != null && !peer.InboundSessionId.BytesEqual(sessionId))
-                    {
-                        if (peer.InboundSessionId == null)
-                        {
-                            Logger.LogWarning($"Wrong inbound session id {context.Peer}, {context.Method}");
+                        case null when context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)):
+                            Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
                             return Task.FromResult<TResponse>(null);
-                        }
-                        
-                        if (sessionId == null)
-                        {
-                            Logger.LogWarning($"Wrong context session id {context.Peer}, {context.Method}, {peer}");
-                            return Task.FromResult<TResponse>(null);
-                        }
-
-                        Logger.LogWarning($"Unequal session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
-                        return Task.FromResult<TResponse>(null);
+                        // case null:
+                        //     Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
+                        //     return Task.FromResult<TResponse>(null);
+                        default:
+                            context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                            break;
                     }
-                
-                    context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
                 }
             }
             catch (Exception e)
@@ -84,13 +67,7 @@ namespace AElf.OS.Network.Grpc
                     Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
                     return Task.FromResult<TResponse>(null);
                 }
-            
-                if (!peer.InboundSessionId.BytesEqual(context.GetSessionId()))
-                {
-                    Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
-                    return Task.FromResult<TResponse>(null);
-                }
-        
+
                 context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
             }
             catch (Exception e)

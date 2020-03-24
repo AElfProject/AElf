@@ -92,14 +92,12 @@ namespace AElf.OS.Network.Grpc
                 Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
-                SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
                 IsInbound = false,
                 IsSecure = client.IsSecure
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
             
-            peer.InboundSessionId = handshake.SessionId.ToByteArray();
             peer.UpdateLastSentHandshake(handshake);
 
             return peer;
@@ -146,7 +144,6 @@ namespace AElf.OS.Network.Grpc
             {
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
-                SessionId = handshake.SessionId.ToByteArray(),
                 ProtocolVersion = handshake.HandshakeData.Version,
                 IsInbound = true,
                 IsSecure = client.IsSecure
