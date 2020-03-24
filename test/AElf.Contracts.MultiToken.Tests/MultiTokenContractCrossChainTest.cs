@@ -932,8 +932,6 @@ namespace AElf.Contracts.MultiToken
             var height = block.Height > _parentChainHeightOfCreation ? block.Height : _parentChainHeightOfCreation;
             await IndexMainChainTransactionAsync(SideChainTester, SideConsensusAddress, SideCrossChainContractAddress,
                 SideParliamentAddress, height, blockRoot, blockRoot);
-            // var result = await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath, height);
-            // Assert.True(result.Status == TransactionResultStatus.Mined);
         }
 
         private async Task RegisterSideChainContractAddressOnSideChainAsync(int sideChainId)
