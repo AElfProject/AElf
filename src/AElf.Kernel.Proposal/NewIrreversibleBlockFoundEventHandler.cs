@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Proposal.Application;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal
 {
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency

@@ -14,7 +14,6 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<EconomicTestModule>();
-            context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
