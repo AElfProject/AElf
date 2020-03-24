@@ -64,7 +64,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-        
+
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
@@ -157,11 +157,13 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, ECKeyPair keyPair = null, bool withException = false)
+            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, ECKeyPair keyPair = null,
+            bool withException = false, bool isPrivilegeReserved = false)
         {
             await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId, withException);
             await ApproveBalanceAsync(lockedTokenAmount, keyPair);
-            var proposalId = await CreateSideChainProposalAsync(indexingFee, lockedTokenAmount, keyPair);
+            var proposalId =
+                await CreateSideChainProposalAsync(indexingFee, lockedTokenAmount, keyPair, null, isPrivilegeReserved);
             await ApproveWithMinersAsync(proposalId);
 
             var crossChainContractStub = keyPair == null ? CrossChainContractStub : GetCrossChainContractStub(keyPair);
@@ -174,6 +176,22 @@ namespace AElf.Contracts.CrossChain.Tests
             var chainId = sideChainCreatedEvent.ChainId;
 
             return chainId;
+        }
+        
+        internal async Task<TransactionResult> CreateSideChainByDefaultSenderAsync(bool initCrossChainContract, long parentChainHeightOfCreation = 0,
+            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, bool isPrivilegeReserved = false)
+        {
+            if (initCrossChainContract)
+                await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
+            await ApproveBalanceAsync(lockedTokenAmount);
+            var proposalId =
+                await CreateSideChainProposalAsync(indexingFee, lockedTokenAmount, null, null, isPrivilegeReserved);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseTx =
+                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                    {ProposalId = proposalId});
+
+            return releaseTx.TransactionResult;
         }
 
         private async Task InitializeParliamentContractAsync()
@@ -271,7 +289,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
             ECKeyPair keyPair = null,
-            Dictionary<string, int> resourceAmount = null)
+            Dictionary<string, int> resourceAmount = null, bool isPrivilegeReserved = false)
         {
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount,
                 resourceAmount ?? GetValidResourceAmount(), new[]
@@ -281,7 +299,7 @@ namespace AElf.Contracts.CrossChain.Tests
                         Address = DefaultSender,
                         Amount = 100
                     }
-                });
+                }, isPrivilegeReserved);
             var crossChainContractStub = keyPair == null ? CrossChainContractStub : GetCrossChainContractStub(keyPair);
             var requestSideChainCreation =
                 await crossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
@@ -334,7 +352,8 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
-            Dictionary<string, int> resourceAmount, SideChainTokenInitialIssue[] sideChainTokenInitialIssueList, bool isPrivilegePreserved = false)
+            Dictionary<string, int> resourceAmount, SideChainTokenInitialIssue[] sideChainTokenInitialIssueList,
+            bool isPrivilegePreserved = false)
         {
             var res = new SideChainCreationRequest
             {
