@@ -1,31 +1,32 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class DonateResourceTokenValidationProvider : IBlockValidationProvider
+    internal class DonateResourceTokenValidationProvider : IBlockValidationProvider
     {
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IAccountService _accountService;
+        private readonly ITokenReaderFactory _tokenReaderFactory;
 
         public ILogger<DonateResourceTokenValidationProvider> Logger { get; set; }
 
         public DonateResourceTokenValidationProvider(ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider,
-            ISmartContractAddressService smartContractAddressService, IAccountService accountService)
+            ISmartContractAddressService smartContractAddressService, ITokenReaderFactory tokenReaderFactory)
         {
             _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
             _smartContractAddressService = smartContractAddressService;
-            _accountService = accountService;
-            
+            _tokenReaderFactory = tokenReaderFactory;
+
             Logger = NullLogger<DonateResourceTokenValidationProvider>.Instance;
         }
 
@@ -63,10 +64,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return true;
             }
 
-            var tokenStub = GetTokenContractStub(Address.FromPublicKey((await _accountService.GetPublicKeyAsync())),
-                tokenContractAddress);
-            var hashFromState =
-                (await tokenStub.GetLatestTotalResourceTokensMapsHash.SendAsync(new Empty())).Output;
+            var hashFromState = await _tokenReaderFactory.Create(block.GetHash(), block.Header.Height)
+                .GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
@@ -76,25 +75,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             if (totalResourceTokensMapsFromProvider == null)
             {
                 Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
-                return hashFromState == null;
+                return hashFromState.Value.IsEmpty || hashFromState ==
+                       Hash.FromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
 
             var hashFromProvider = Hash.FromMessage(totalResourceTokensMapsFromProvider);
-            Logger.LogInformation($"DonateResourceTokenValidationProvider: {hashFromProvider == hashFromState}");
-            return hashFromProvider == hashFromState;
-        }
-
-        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
-            Address contractAddress)
-        {
-            return new TokenContractImplContainer.TokenContractImplStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = sender,
-                    ContractAddress = contractAddress
-                }
-            };
+            return hashFromProvider.Value.Equals(hashFromState.Value);
         }
     }
 }

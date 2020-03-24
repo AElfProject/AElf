@@ -36,6 +36,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
+            if (preBlockHeight == 1) return generatedTransactions;
             if (!_transactionPackingOptions.IsTransactionPackable)
                 return generatedTransactions;
 

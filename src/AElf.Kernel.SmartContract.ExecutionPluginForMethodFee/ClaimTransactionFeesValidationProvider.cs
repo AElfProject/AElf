@@ -1,31 +1,32 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class ClaimTransactionFeesValidationProvider : IBlockValidationProvider
+    internal class ClaimTransactionFeesValidationProvider : IBlockValidationProvider
     {
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IAccountService _accountService;
+        private readonly ITokenReaderFactory _tokenReaderFactory;
 
         public ILogger<ClaimTransactionFeesValidationProvider> Logger { get; set; }
 
         public ClaimTransactionFeesValidationProvider(ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider,
-            ISmartContractAddressService smartContractAddressService, IAccountService accountService)
+            ISmartContractAddressService smartContractAddressService, ITokenReaderFactory tokenReaderFactory)
         {
             _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
             _smartContractAddressService = smartContractAddressService;
-            _accountService = accountService;
-            
+            _tokenReaderFactory = tokenReaderFactory;
+
             Logger = NullLogger<ClaimTransactionFeesValidationProvider>.Instance;
         }
 
@@ -63,10 +64,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return true;
             }
 
-            var tokenStub = GetTokenContractStub(Address.FromPublicKey((await _accountService.GetPublicKeyAsync())),
-                tokenContractAddress);
-            var hashFromState =
-                (await tokenStub.GetLatestTotalTransactionFeesMapHash.SendAsync(new Empty())).Output;
+            var hashFromState = await _tokenReaderFactory.Create(block.GetHash(), block.Header.Height)
+                .GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
@@ -76,24 +75,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (totalTransactionFeesMapFromProvider == null)
             {
                 Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
-                return hashFromState == null;
+                return hashFromState.Value.IsEmpty;
             }
-            var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
-            Logger.LogInformation($"ClaimTransactionFeesValidationProvider: {hashFromProvider == hashFromState}");
-            return hashFromProvider == hashFromState;
-        }
 
-        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
-            Address contractAddress)
-        {
-            return new TokenContractImplContainer.TokenContractImplStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = sender,
-                    ContractAddress = contractAddress
-                }
-            };
+            var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
+            return hashFromProvider.Value.Equals(hashFromState.Value);
         }
     }
 }

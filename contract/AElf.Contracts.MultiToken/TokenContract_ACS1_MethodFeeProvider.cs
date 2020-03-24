@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using Acs1;
 using Acs3;
 using AElf.Sdk.CSharp;
@@ -39,8 +40,19 @@ namespace AElf.Contracts.MultiToken
                     }
                 };
             }
+            
+            if (new List<string>
+            {
+                nameof(DonateResourceToken), nameof(ClaimTransactionFees)
+            }.Contains(input.Value))
+            {
+                return new MethodFees
+                {
+                    MethodName = input.Value
+                };
+            }
 
-            return State.TransactionFees[input.Value] ?? new MethodFees();
+            return State.TransactionFees[input.Value];
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
