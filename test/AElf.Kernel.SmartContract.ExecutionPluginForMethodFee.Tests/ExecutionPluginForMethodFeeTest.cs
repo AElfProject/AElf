@@ -172,12 +172,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             afterFee.ShouldBe(0);
         }
 
-        [Theory]
-        [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20260010, true)]
-        [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
-        [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
-        [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
-        [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
+        // TODO: Disable test cases for size fee.
+        // [Theory]
+        // [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20260010, true)]
+        // [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
+        // [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
+        // [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
+        // [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
         public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2,
             long fee3,
             string chargedSymbol, long chargedAmount, bool isChargingSuccessful)

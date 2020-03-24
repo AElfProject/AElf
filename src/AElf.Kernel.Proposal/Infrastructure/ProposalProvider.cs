@@ -2,21 +2,20 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForProposal
+namespace AElf.Kernel.Proposal.Infrastructure
 {
-    public class ReadyToApproveProposalCacheProvider : IReadyToApproveProposalCacheProvider, ISingletonDependency
+    public class ProposalProvider : IProposalProvider
     {
         private readonly ConcurrentDictionary<Hash, long> _proposalsToApprove = new ConcurrentDictionary<Hash, long>();
         
-        public void CacheProposalToApprove(Hash proposalId, long height)
+        public void AddProposal(Hash proposalId, long height)
         {
             // keep the higher block index 
             _proposalsToApprove.AddOrUpdate(proposalId, height, (hash, h) => h >= height ? h : height);
         }
 
-        public List<Hash> GetCachedProposals()
+        public List<Hash> GetAllProposals()
         {
             return _proposalsToApprove.Keys.ToList();
         }
