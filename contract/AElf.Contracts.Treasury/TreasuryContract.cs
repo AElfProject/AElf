@@ -163,8 +163,7 @@ namespace AElf.Contracts.Treasury
             var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
-            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
-            if (needToConvert)
+            if (Context.Sender != Context.Self)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
@@ -174,7 +173,11 @@ namespace AElf.Contracts.Treasury
                     Amount = input.Amount,
                     Memo = "Donate to treasury.",
                 });
+            }
 
+            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
+            if (needToConvert)
+            {
                 ConvertToNativeToken(input.Symbol, input.Amount);
             }
             else
