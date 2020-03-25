@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
-            if (!State.IsMainChain.Value)
+            if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
             {
                 ReleaseSideChainDividendsPool();
             }
