@@ -169,7 +169,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
             var isTimeToRelease =
                 (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(State.PeriodSeconds.Value) != scheme.Period - 1;
+                .Div(State.PeriodSeconds.Value) > scheme.Period - 1;
+            Context.LogDebug(() => "ReleaseSideChainDividendsPool Information:\n" +
+                                   $"CurrentBlockTime: {Context.CurrentBlockTime}\n" +
+                                   $"BlockChainStartTime: {State.BlockchainStartTimestamp.Value}\n" +
+                                   $"PeriodSeconds: {State.PeriodSeconds.Value}\n" +
+                                   $"Scheme Period: {scheme.Period}");
             if (isTimeToRelease)
             {
                 Context.LogDebug(() => "Ready to release side chain dividends pool.");
