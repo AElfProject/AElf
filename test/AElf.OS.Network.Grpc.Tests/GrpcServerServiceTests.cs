@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;

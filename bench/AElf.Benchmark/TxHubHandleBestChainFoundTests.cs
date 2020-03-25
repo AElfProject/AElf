@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;

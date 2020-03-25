@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;

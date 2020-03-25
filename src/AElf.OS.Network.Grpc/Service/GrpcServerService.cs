@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
