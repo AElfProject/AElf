@@ -306,10 +306,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ChangeCrossChainIndexingController(AuthorityInfo input)
         {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
-            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            Assert(
-                input.ContractAddress == State.ParliamentContract.Value &&
-                ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
+            Assert(ValidateAuthorityInfoExists(input), "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
             return new Empty();
         }
