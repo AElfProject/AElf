@@ -19,6 +19,8 @@ namespace AElf.CSharp.CodeOps
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
 
         private readonly AcsValidator _acsValidator = new AcsValidator();
+        
+        public int Category { get; } = 0;
 
         public void Audit(byte[] code, RequiredAcs requiredAcs)
         {
@@ -52,23 +54,6 @@ namespace AElf.CSharp.CodeOps
                     $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
                     string.Join("\n", findings), findings);
             }
-        }
-
-        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type)
-        {
-            var findings = new List<ValidationResult>();
-
-            foreach (var method in type.Methods)
-            {
-                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
-            }
-
-            foreach (var nestedType in type.NestedTypes)
-            {
-                findings.AddRange(ValidateMethodsInType(policy, nestedType));
-            }
-
-            return findings;
         }
 
         private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type, CancellationToken ct)

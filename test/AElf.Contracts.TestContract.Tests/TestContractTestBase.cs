@@ -147,7 +147,7 @@ namespace AElf.Contract.TestContract
         
         protected void CheckCode(byte[] code)
         {
-            var auditor = new ContractAuditor();
+            var auditor = new CSharpContractAuditor();
             auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()

@@ -157,7 +157,7 @@ namespace AElf.CSharp.CodeOps
         [Fact]
         public void ContractAuditor_AcsRequired_Test()
         {
-            _auditor = new ContractAuditor();
+            _auditor = new CSharpContractAuditor();
 
             var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};

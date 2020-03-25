@@ -38,7 +38,7 @@ namespace AElf.CSharp.CodeOps
 
         public ContractAuditorFixture()
         {
-            _auditor = new ContractAuditor();
+            _auditor = new CSharpContractAuditor();
             _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
