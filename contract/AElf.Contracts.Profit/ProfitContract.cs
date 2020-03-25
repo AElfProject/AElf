@@ -559,6 +559,7 @@ namespace AElf.Contracts.Profit
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
 
+            Context.LogDebug(() => $"Contributed scheme: {scheme}");
             // ReSharper disable once PossibleNullReferenceException
             var virtualAddress = scheme.VirtualAddress;
 
