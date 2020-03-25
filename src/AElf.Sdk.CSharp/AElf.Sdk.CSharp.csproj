@@ -8,7 +8,7 @@
         <LangVersion>latest</LangVersion>
         <Description>Types for the C# smart contract SDK.</Description>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <DocumentationFile>test_doc</DocumentationFile>
+        <DocumentationFile>aelf-csharp-sdk-doc</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
