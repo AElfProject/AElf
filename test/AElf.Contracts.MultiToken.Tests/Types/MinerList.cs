@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;

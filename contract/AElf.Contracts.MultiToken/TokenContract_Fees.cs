@@ -3,6 +3,7 @@ using System.Linq;
 using Acs1;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -578,7 +579,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetSideChainCreator(Address input)
+        private void SetSideChainCreator(Address input)
         {
             Assert(State.SideChainCreator.Value == null, "Creator already set.");
             if (State.ParliamentContract.Value == null)
@@ -591,7 +592,6 @@ namespace AElf.Contracts.MultiToken
                    Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
                 "No permission.");
             State.SideChainCreator.Value = input;
-            return new Empty();
         }
 
         /// <summary>

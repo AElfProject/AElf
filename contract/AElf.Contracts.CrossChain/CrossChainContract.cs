@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs7;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -150,7 +151,7 @@ namespace AElf.Contracts.CrossChain
                 Amount = input.Amount,
                 Memo = "Indexing fee recharging."
             });
-            
+
             if (oldBalance < 0)
             {
                 // arrears
@@ -165,7 +166,7 @@ namespace AElf.Contracts.CrossChain
                     });
                 }
             }
-            
+
             sideChainInfo.ArrearsInfo.Clear();
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             State.SideChainInfo[chainId] = sideChainInfo;

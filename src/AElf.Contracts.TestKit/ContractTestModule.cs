@@ -5,11 +5,14 @@ using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
@@ -55,8 +58,7 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule)
-    )]
+        typeof(CSharpRuntimeAElfModule))]
     public class ContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -142,6 +144,14 @@ namespace AElf.Contracts.TestKit
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
+    }
+
+    [DependsOn(typeof(ContractTestModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule),
+        typeof(ExecutionPluginForMethodFeeModule))]
+    public class ContractTestWithExecutionPluginModule : AbpModule
+    {
     }
 
     public class TestOutputHelperAccessor : ITestOutputHelperAccessor

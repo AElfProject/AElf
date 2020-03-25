@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;

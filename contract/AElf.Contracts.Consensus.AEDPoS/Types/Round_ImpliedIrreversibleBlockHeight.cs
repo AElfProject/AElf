@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 
 // ReSharper disable once CheckNamespace
