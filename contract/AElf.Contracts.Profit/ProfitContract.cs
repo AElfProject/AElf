@@ -509,14 +509,14 @@ namespace AElf.Contracts.Profit
         {
             Context.LogDebug(() => $"Sub schemes count: {scheme.SubSchemes.Count}");
             var remainAmount = totalAmount;
-            foreach (var subScheme in scheme.SubSchemes)
+            foreach (var subSchemeShares in scheme.SubSchemes)
             {
-                Context.LogDebug(() => $"Releasing {subScheme.SchemeId}");
+                Context.LogDebug(() => $"Releasing {subSchemeShares.SchemeId}");
 
                 // General ledger of this sub profit scheme.
-                var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
+                var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeShares.SchemeId);
 
-                var distributeAmount = SafeCalculateProfits(subScheme.Shares, totalAmount, totalShares);
+                var distributeAmount = SafeCalculateProfits(subSchemeShares.Shares, totalAmount, totalShares);
                 if (distributeAmount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -538,6 +538,14 @@ namespace AElf.Contracts.Profit
                 }
 
                 State.ProfitDetailsMap[scheme.SchemeId][subItemVirtualAddress] = subItemDetail;
+                
+                // Update sub scheme.
+                var subScheme = State.SchemeInfos[subSchemeShares.SchemeId];
+                if (!subScheme.ReceivedTokenSymbols.Contains(symbol))
+                {
+                    subScheme.ReceivedTokenSymbols.Add(symbol);
+                    State.SchemeInfos[subSchemeShares.SchemeId] = subScheme;
+                }
             }
 
             return remainAmount;

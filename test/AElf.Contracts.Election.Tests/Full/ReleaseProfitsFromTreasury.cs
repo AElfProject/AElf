@@ -398,6 +398,7 @@ namespace AElf.Contracts.Election
                 var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Value;
                 profitAmount.ShouldBeGreaterThan(0);
 
