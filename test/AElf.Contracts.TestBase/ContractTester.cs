@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -771,20 +770,6 @@ namespace AElf.Contracts.TestBase
 
             var configurationContractCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            configurationContractCallList.Add(
-                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
-                new SetConfigurationInput
-                {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
-                    Value = new RequiredAcsInContracts
-                    {
-                        AcsList =
-                        {
-                            Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ContractOptions>>()
-                                .Value.ContractFeeStrategyAcsList
-                        }
-                    }.ToByteString()
-                });
 
             return list =>
             {
