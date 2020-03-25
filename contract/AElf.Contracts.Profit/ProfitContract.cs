@@ -723,12 +723,12 @@ namespace AElf.Contracts.Profit
                     var distributedProfitsInformation =
                         State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
                     if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0 ||
-                        !distributedProfitsInformation.AmountsMap.Any())
+                        !distributedProfitsInformation.AmountsMap.Any() ||
+                        !distributedProfitsInformation.AmountsMap.ContainsKey(symbol))
                     {
                         continue;
                     }
 
-                    Assert(distributedProfitsInformation.AmountsMap.ContainsKey(symbol), $"Symbol {symbol} not support.");
                     var amount = SafeCalculateProfits(profitDetail.Shares,
                         distributedProfitsInformation.AmountsMap[symbol], distributedProfitsInformation.TotalShares);
 
