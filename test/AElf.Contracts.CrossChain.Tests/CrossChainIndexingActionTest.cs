@@ -3,12 +3,10 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -1038,7 +1036,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var fakeHash2 = Hash.FromString("fake2");
 
             var rawBytes = txId.ToByteArray()
-                .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString()))
+                .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString()))
                 .ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
 

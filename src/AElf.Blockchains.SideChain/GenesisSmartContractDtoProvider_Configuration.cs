@@ -14,15 +14,6 @@ namespace AElf.Blockchains.SideChain
         {
             var configurationContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            var requiredAcsInContracts = new RequiredAcsInContracts();
-            if (!chainInitializationData.ChainCreatorPrivilegePreserved)
-                requiredAcsInContracts.AcsList.AddRange(_contractOptions.ContractFeeStrategyAcsList);
-            configurationContractMethodCallList.Add(nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
-                new SetConfigurationInput
-                {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
-                    Value = requiredAcsInContracts.ToByteString()
-                });
             return configurationContractMethodCallList;
         }
     }

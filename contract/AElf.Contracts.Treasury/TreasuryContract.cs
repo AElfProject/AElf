@@ -163,32 +163,48 @@ namespace AElf.Contracts.Treasury
             var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (Context.Sender != Context.Self)
             {
-                From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = "Donate to treasury.",
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = "Donate to treasury.",
+                });
+            }
+
+            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
+            if (needToConvert)
+            {
+                ConvertToNativeToken(input.Symbol, input.Amount);
+            }
+            else
+            {
+                State.TokenContract.Approve.Send(new ApproveInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Spender = State.ProfitContract.Value
+                });
+
+                State.ProfitContract.ContributeProfits.Send(new ContributeProfitsInput
+                {
+                    SchemeId = State.TreasuryHash.Value,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount
+                });
+            }
 
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
+                To = State.TreasuryVirtualAddress.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
-
-            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
-            {
-                ConvertToNativeToken(input.Symbol, input.Amount);
-            }
 
             return new Empty();
         }
