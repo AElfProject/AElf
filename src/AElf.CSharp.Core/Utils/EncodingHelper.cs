@@ -4,7 +4,7 @@ namespace AElf.CSharp.Core.Utils
 {
     public class EncodingHelper
     {
-        public static byte[] GetBytesFromUtf8String(string str)
+        public static byte[] EncodeUtf8(string str)
         {
             return Encoding.UTF8.GetBytes(str);
         }
