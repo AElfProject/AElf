@@ -516,6 +516,12 @@ namespace AElf.Contracts.Profit
                 // General ledger of this sub profit scheme.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeShares.SchemeId);
 
+                if (State.TokenContract.Value == null)
+                {
+                    State.TokenContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                }
+
                 var distributeAmount = SafeCalculateProfits(subSchemeShares.Shares, totalAmount, totalShares);
                 if (distributeAmount != 0)
                 {
@@ -558,13 +564,17 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-
-            Context.LogDebug(() => $"Contributed scheme: {scheme}");
+            
             // ReSharper disable once PossibleNullReferenceException
             var virtualAddress = scheme.VirtualAddress;
 
             if (input.Period == 0)
             {
+                if (State.TokenContract.Value == null)
+                {
+                    State.TokenContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                }
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
@@ -729,6 +739,11 @@ namespace AElf.Contracts.Profit
                             $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                         if (distributedProfitsInformation.IsReleased && amount > 0)
                         {
+                            if (State.TokenContract.Value == null)
+                            {
+                                State.TokenContract.Value =
+                                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                            }
                             State.TokenContract.TransferFrom.Send(new TransferFromInput
                             {
                                 From = distributedPeriodProfitsVirtualAddress,
