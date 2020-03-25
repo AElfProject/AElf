@@ -51,7 +51,10 @@ service ProfitContract {
     rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
         option (aelf.is_view) = true;
     }
-    rpc GetProfitAmount (ClaimProfitsInput) returns (aelf.SInt64Value) {
+    rpc GetProfitAmount (GetProfitAmountInput) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
         option (aelf.is_view) = true;
     }
 }
@@ -113,8 +116,7 @@ message BeneficiaryShare {
 
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
-    string symbol = 2;
-    aelf.Address beneficiary = 3;
+    aelf.Address beneficiary = 2;
 }
 
 message DistributeProfitsInput {
@@ -181,6 +183,16 @@ message GetProfitDetailsInput {
 message ResetManagerInput {
     aelf.Hash scheme_id = 1;
     aelf.Address new_manager = 2;
+}
+
+message GetProfitAmountInput {
+    aelf.Hash scheme_id = 1;
+    string symbol = 2;
+    aelf.Address beneficiary = 3;
+}
+
+message ReceivedProfitsMap {
+    map<string, sint64> value = 1;
 }
 
 // Events

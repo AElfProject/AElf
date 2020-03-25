@@ -638,8 +638,6 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ClaimProfits(ClaimProfitsInput input)
         {
-            Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
             var beneficiary = input.Beneficiary ?? Context.Sender;
@@ -647,8 +645,7 @@ namespace AElf.Contracts.Profit
             Assert(profitDetails != null, "Profit details not found.");
 
             Context.LogDebug(
-                () =>
-                    $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()} for {beneficiary}.");
+                () => $"{Context.Sender} is trying to profit from {input.SchemeId.ToHex()} for {beneficiary}.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -673,7 +670,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress, beneficiary);
+                ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, false);
             }
 
             State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
@@ -681,58 +678,69 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private long ProfitAllPeriods(Scheme scheme, string symbol, ProfitDetail profitDetail,
-            Address profitVirtualAddress, Address beneficiary, bool isView = false)
+        private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail,
+            Address profitVirtualAddress, Address beneficiary, bool isView = false, string targetSymbol = null)
         {
-            var totalAmount = 0L;
+            var profitsMap = new Dictionary<string, long>();
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
-            for (var period = profitDetail.LastProfitPeriod;
-                period <= (profitDetail.EndPeriod == long.MaxValue
-                    ? Math.Min(scheme.CurrentPeriod - 1,
-                        profitDetail.LastProfitPeriod.Add(ProfitContractConstants
-                            .MaximumProfitReceivingPeriodCountOfOneTime))
-                    : Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod));
-                period++)
+
+            var symbols = targetSymbol == null ? scheme.ReceivedTokenSymbols.ToList() : new List<string> {targetSymbol};
+
+            foreach (var symbol in symbols)
             {
-                var periodToPrint = period;
-                var detailToPrint = profitDetail;
-                var distributedPeriodProfitsVirtualAddress =
-                    GetDistributedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
-                var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
-                if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0 ||
-                    !distributedProfitsInformation.AmountsMap.Any())
+                var totalAmount = 0L;
+                for (var period = profitDetail.LastProfitPeriod;
+                    period <= (profitDetail.EndPeriod == long.MaxValue
+                        ? Math.Min(scheme.CurrentPeriod - 1,
+                            profitDetail.LastProfitPeriod.Add(ProfitContractConstants
+                                .MaximumProfitReceivingPeriodCountOfOneTime))
+                        : Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod));
+                    period++)
                 {
-                    continue;
-                }
-
-                var amount = SafeCalculateProfits(profitDetail.Shares,
-                    distributedProfitsInformation.AmountsMap[symbol], distributedProfitsInformation.TotalShares);
-
-                if (!isView)
-                {
-                    Context.LogDebug(() =>
-                        $"{beneficiary} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
-                        $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
-                    if (distributedProfitsInformation.IsReleased && amount > 0)
+                    var periodToPrint = period;
+                    var detailToPrint = profitDetail;
+                    var distributedPeriodProfitsVirtualAddress =
+                        GetDistributedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                    var distributedProfitsInformation =
+                        State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
+                    if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0 ||
+                        !distributedProfitsInformation.AmountsMap.Any())
                     {
-                        State.TokenContract.TransferFrom.Send(new TransferFromInput
-                        {
-                            From = distributedPeriodProfitsVirtualAddress,
-                            To = beneficiary,
-                            Symbol = symbol,
-                            Amount = amount
-                        });
+                        continue;
                     }
 
-                    lastProfitPeriod = period + 1;
+                    Assert(distributedProfitsInformation.AmountsMap.ContainsKey(symbol), $"Symbol {symbol} not support.");
+                    var amount = SafeCalculateProfits(profitDetail.Shares,
+                        distributedProfitsInformation.AmountsMap[symbol], distributedProfitsInformation.TotalShares);
+
+                    if (!isView)
+                    {
+                        Context.LogDebug(() =>
+                            $"{beneficiary} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
+                            $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
+                        if (distributedProfitsInformation.IsReleased && amount > 0)
+                        {
+                            State.TokenContract.TransferFrom.Send(new TransferFromInput
+                            {
+                                From = distributedPeriodProfitsVirtualAddress,
+                                To = beneficiary,
+                                Symbol = symbol,
+                                Amount = amount
+                            });
+                        }
+
+                        lastProfitPeriod = period + 1;
+                    }
+
+                    totalAmount = totalAmount.Add(amount);
                 }
 
-                totalAmount = totalAmount.Add(amount);
+                profitsMap.Add(symbol, totalAmount);
             }
 
             profitDetail.LastProfitPeriod = lastProfitPeriod;
 
-            return totalAmount;
+            return profitsMap;
         }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)

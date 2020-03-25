@@ -113,7 +113,6 @@ namespace AElf.Contracts.TokenHolder
             {
                 Beneficiary = UserAddresses[0],
                 SchemeManager = DAppContractAddress,
-                Symbol = "ELF"
             });
 
             // Profits should be 1 ELF.

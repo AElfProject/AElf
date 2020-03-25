@@ -70,7 +70,6 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 s.ClaimProfits.GetTransaction(new ClaimProfitsInput
                 {
                     SchemeId = schemeId,
-                    Symbol = EconomicTestConstants.TokenSymbol
                 })).ToList());
         }
 

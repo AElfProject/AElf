@@ -518,7 +518,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
@@ -591,7 +590,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
@@ -899,7 +897,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -963,7 +960,6 @@ namespace AElf.Contracts.Profit
             await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 1.
@@ -979,7 +975,6 @@ namespace AElf.Contracts.Profit
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 2.
@@ -1055,7 +1050,6 @@ namespace AElf.Contracts.Profit
             await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 1.
@@ -1071,7 +1065,6 @@ namespace AElf.Contracts.Profit
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 2.
@@ -1093,7 +1086,6 @@ namespace AElf.Contracts.Profit
             var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -1125,7 +1117,6 @@ namespace AElf.Contracts.Profit
             var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -1174,7 +1165,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             {
@@ -1206,7 +1196,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             {
