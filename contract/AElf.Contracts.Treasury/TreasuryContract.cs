@@ -179,6 +179,13 @@ namespace AElf.Contracts.Treasury
             }
             else
             {
+                State.TokenContract.Approve.Send(new ApproveInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Spender = State.ProfitContract.Value
+                });
+
                 State.ProfitContract.ContributeProfits.Send(new ContributeProfitsInput
                 {
                     SchemeId = State.TreasuryHash.Value,
