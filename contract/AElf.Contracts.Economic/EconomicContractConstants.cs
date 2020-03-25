@@ -29,5 +29,8 @@ namespace AElf.Contracts.Economic
         public const long ElectionTokenTotalSupply = long.MaxValue;
 
         public const int MemoMaxLength = 64;
+        
+        public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
+        public const string PayRentalSymbolListName = "SymbolListToPayRental";
     }
 }

@@ -140,7 +140,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     DefaultKeyPair);
 
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
+                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,

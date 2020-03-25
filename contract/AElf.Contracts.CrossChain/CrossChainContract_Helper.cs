@@ -4,7 +4,6 @@ using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -13,7 +12,6 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -123,7 +121,7 @@ namespace AElf.Contracts.CrossChain
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
         {
             var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            foreach (var resourceTokenSymbol in GetPayRentalSymbolList())
             {
                 Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
                     "Invalid side chain resource token request.");
@@ -759,6 +757,11 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
+        }
+        
+        protected List<string> GetPayRentalSymbolList()
+        {
+            return Context.Variables[PayRentalSymbolListName].Split(',').ToList();
         }
     }
 }

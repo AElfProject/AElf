@@ -208,7 +208,7 @@ namespace AElf.Contracts.MultiToken
             ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
             AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
+                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
         protected void StartSideChain(int chainId, long height, string symbol, bool registerParentChainTokenContractAddress)

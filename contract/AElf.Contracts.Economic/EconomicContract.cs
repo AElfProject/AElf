@@ -6,7 +6,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
@@ -89,8 +88,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
-                .SymbolListToPayRental))
+            foreach (var resourceTokenSymbol in GetPayTxFeeSymbolList().Union(GetPayRentalSymbolList()))
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -243,8 +241,7 @@ namespace AElf.Contracts.Economic
                     RelatedSymbol = Context.Variables.NativeSymbol
                 }
             };
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
-                .SymbolListToPayRental))
+            foreach (var resourceTokenSymbol in GetPayTxFeeSymbolList().Union(GetPayRentalSymbolList()))
             {
                 var resourceTokenConnector = new Connector
                 {
@@ -281,6 +278,15 @@ namespace AElf.Contracts.Economic
         private void AssertValidMemo(string memo)
         {
             Assert(Encoding.UTF8.GetByteCount(memo) <= EconomicContractConstants.MemoMaxLength, "Invalid memo size.");
+        }
+        
+        private List<string> GetPayTxFeeSymbolList()
+        {
+            return Context.Variables[EconomicContractConstants.PayTxFeeSymbolListName].Split(',').ToList();   
+        }
+        protected List<string> GetPayRentalSymbolList()
+        {
+            return Context.Variables[EconomicContractConstants.PayRentalSymbolListName].Split(',').ToList();
         }
     }
 }
