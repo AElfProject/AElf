@@ -187,9 +187,9 @@ namespace AElf.Contracts.MultiToken
         public override AuthorityInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            Assert(State.SideRentalController.Value != null,
+            Assert(State.SideChainRentalController.Value != null,
                 "controller does not initialize, call InitializeAuthorizedController first");
-            return State.SideRentalController.Value;
+            return State.SideChainRentalController.Value;
         }
 
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)

@@ -32,10 +32,10 @@ namespace AElf.Contracts.MultiToken
                 State.DeveloperFeeController.Value = developerController;
             }
             
-            if (State.SideChainCreator.Value == null || State.SideRentalController.Value != null) return new Empty();
+            if (State.SideChainCreator.Value == null || State.SideChainRentalController.Value != null) return new Empty();
             var sideChainRentalController = GetDefaultSideChainRentalController(defaultParliamentController);
             CreateAssociationControllerForSideChainRental(State.SideChainCreator.Value, defaultParliamentController.OwnerAddress);
-            State.SideRentalController.Value = sideChainRentalController;
+            State.SideChainRentalController.Value = sideChainRentalController;
             return new Empty();
         }
 
@@ -51,7 +51,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertControllerForSideChainRental();
             Assert(CheckOrganizationExist(input), "new controller does not exist");
-            State.SideRentalController.Value = input;
+            State.SideChainRentalController.Value = input;
             return new Empty();
         }
 
@@ -389,8 +389,8 @@ namespace AElf.Contracts.MultiToken
         
         private void AssertControllerForSideChainRental()
         {
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            Assert(State.SideChainCreator.Value == Context.Sender, "no permission");
+            Assert(State.SideChainRentalController.Value != null, "side chain creator dose not exist");
+            Assert(State.SideChainRentalController.Value.OwnerAddress == Context.Sender, "no permission");
         }
 
         #endregion
