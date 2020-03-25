@@ -43,7 +43,7 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<UserFeeController> UserFeeController { get; set; }
         public SingletonState<DeveloperFeeController> DeveloperFeeController { get; set; }
         public SingletonState<AuthorityInfo> SymbolToPayTxFeeController { get; set; }
-        public SingletonState<AuthorityInfo> SideRentalParliamentController { get; set; }
+        public SingletonState<AuthorityInfo> SideRentalController { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
