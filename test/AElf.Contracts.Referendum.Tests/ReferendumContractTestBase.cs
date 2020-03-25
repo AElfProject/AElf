@@ -72,7 +72,7 @@ namespace AElf.Contracts.Referendum
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumContract).Assembly.Location)),
                     Name = ReferendumSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateReferendumInitializationCallList()
+                    // TransactionMethodCallList = GenerateReferendumInitializationCallList()
                 })).Output;
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             
@@ -124,14 +124,6 @@ namespace AElf.Contracts.Referendum
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateReferendumInitializationCallList()
-        {
-            var referendumContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumContractCallList.Add(nameof(ReferendumContract.Initialize), new Empty());
-            return referendumContractCallList;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList

@@ -66,14 +66,6 @@ namespace AElf.Contracts.Referendum
 
         #endregion
 
-        public override Empty Initialize(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
-            AddTokenWhitList();
-            return new Empty();
-        }
-
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
