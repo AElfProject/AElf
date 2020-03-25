@@ -23,8 +23,6 @@ namespace AElf.Contracts.TokenHolder
             var userTokenHolderStub =
                 GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
-            var receiverTokenStub =
-                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[1]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());
 
@@ -136,6 +134,8 @@ namespace AElf.Contracts.TokenHolder
                 Owner = UserAddresses[0]
             });
             resultBalance.Balance.ShouldBe(beforeBalance.Balance + 57_00000000);
+
+            var finalScheme = await userTokenHolderStub.GetScheme.CallAsync(DAppContractAddress);
         }
 
         private async Task<long> GetFirstUserBalance(string symbol)

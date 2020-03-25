@@ -425,7 +425,7 @@ namespace AElf.Contracts.Profit
             Address profitsReceivingVirtualAddress)
         {
             Context.LogDebug(() => "Entered BurnProfits.");
-            scheme.CurrentPeriod = period > 0 ? period.Add(1) : scheme.CurrentPeriod;
+            scheme.CurrentPeriod = period.Add(1);
 
             var distributedProfitsInfo = new DistributedProfitsInfo
             {

@@ -258,7 +258,7 @@ namespace AElf.Contracts.TokenHolder
 
         public override TokenHolderProfitScheme GetScheme(Address input)
         {
-            return State.TokenHolderProfitSchemes[input] ?? new TokenHolderProfitScheme();
+            return State.TokenHolderProfitSchemes[input];
         }
 
         private TokenHolderProfitScheme GetValidScheme(Address manager, bool updateSchemePeriod = false)
