@@ -7,12 +7,21 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
         <Description>Types for the C# smart contract SDK.</Description>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DocumentationFile>test_doc</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Vsxmd" Version="1.4.5">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
     </ItemGroup>
 
 </Project>
