@@ -678,7 +678,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, false);
+                ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary);
             }
 
             State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
