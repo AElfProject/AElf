@@ -621,7 +621,7 @@ GET /api/blockChain/transactionResult
 |**200**|Success|[TransactionResultDto](#transactionresultdto)|
 
 {% hint style="info" %} 
-The transaction result DTO object returned contains the transaction that contains the parameter values used for the call. Currently, the node will decode the **params** byte array into JSON. This behavior may change in the future; one possibility is that the node will return the byte array as a base64 encoded string if it can't decode it.
+The transaction result DTO object returned contains the transaction that contains the parameter values used for the call. The node will return the byte array as a base64 encoded string if it can't decode it.
 {% endhint %} 
 
 #### Produces
@@ -1116,7 +1116,6 @@ GET /api/net/peers
 |**Bloom**  <br>*optional*|string|
 |**Error**  <br>*optional*|string|
 |**Logs**  <br>*optional*|< [LogEventDto](#logeventdto) > array|
-|**ReadableReturnValue**  <br>*optional*|string|
 |**ReturnValue**  <br>*optional*|string|
 |**Status**  <br>*optional*|string|
 |**Transaction**  <br>*optional*|[TransactionDto](#transactiondto)|

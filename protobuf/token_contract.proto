@@ -10,10 +10,6 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
-    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -41,7 +37,10 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-
+    rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitialCoefficients(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
     // acs1
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -331,10 +330,10 @@ message AddTokeWhiteListInput{
     aelf.Address address = 2;
 }
 
-message InitializeInput {
+message InitializeFromParentChainInput {
     map<string, sint32> resource_amount = 1;
-    sint32 minimum_profits_donation_parts_per_hundred = 2;
-
+    map<int32, aelf.Address> registered_other_token_contract_addresses = 2;
+    aelf.Address creator = 3;
 }
 
 message UpdateCoefficientsInput {

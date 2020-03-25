@@ -1,10 +1,7 @@
-using System;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Miner.Application;
-using AElf.CSharp.Core.Extension;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel

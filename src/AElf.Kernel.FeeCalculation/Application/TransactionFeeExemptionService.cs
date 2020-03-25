@@ -3,9 +3,9 @@ using System.Linq;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions
+namespace AElf.Kernel.FeeCalculation.Application
 {
-    public class TransactionFeeExemptionService : ITransactionFeeExemptionService, ISingletonDependency
+    public class TransactionFeeExemptionService : ITransactionFeeExemptionService
     {
         private readonly IEnumerable<IChargeFeeStrategy> _chargeFeeStrategies;
 

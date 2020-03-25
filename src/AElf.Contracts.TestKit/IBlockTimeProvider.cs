@@ -1,7 +1,6 @@
-using System;
 using System.Diagnostics;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestKit

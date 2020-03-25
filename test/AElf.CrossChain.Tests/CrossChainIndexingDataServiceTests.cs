@@ -5,6 +5,7 @@ using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Indexing.Application;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
