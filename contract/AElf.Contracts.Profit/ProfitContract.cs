@@ -688,7 +688,9 @@ namespace AElf.Contracts.Profit
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
             for (var period = profitDetail.LastProfitPeriod;
                 period <= (profitDetail.EndPeriod == long.MaxValue
-                    ? scheme.CurrentPeriod - 1
+                    ? Math.Min(scheme.CurrentPeriod - 1,
+                        profitDetail.LastProfitPeriod.Add(ProfitContractConstants
+                            .MaximumProfitReceivingPeriodCountOfOneTime))
                     : Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod));
                 period++)
             {
