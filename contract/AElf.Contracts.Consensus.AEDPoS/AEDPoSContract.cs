@@ -306,6 +306,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 To = Context.Self
             });
 
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Spender = State.TokenHolderContract.Value
+            });
+
             State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
             {
                 SchemeManager = Context.Self,
