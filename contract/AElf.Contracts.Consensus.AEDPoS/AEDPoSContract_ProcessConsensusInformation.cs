@@ -80,6 +80,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
+            if (!State.IsMainChain.Value)
+            {
+                ReleaseSideChainDividendsPool();
+            }
+
             // Clear cache.
             _processingBlockMinerPubkey = null;
         }
@@ -151,11 +156,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            if (!State.IsMainChain.Value)
-            {
-                ReleaseSideChainDividendsPool();
-            }
-
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
@@ -172,6 +172,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .Div(State.PeriodSeconds.Value) != scheme.Period - 1;
             if (isTimeToRelease)
             {
+                Context.LogDebug(() => "Ready to release side chain dividends pool.");
                 State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
                 {
                     SchemeManager = Context.Self
