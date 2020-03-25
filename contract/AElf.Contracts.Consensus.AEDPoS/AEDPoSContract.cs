@@ -32,10 +32,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"There are {State.PeriodSeconds.Value} seconds per period.");
 
+            if (input.IsSideChain)
+            {
+                InitialProfitSchemeForSideChain(input.PeriodSeconds);
+            }
+
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 State.IsMainChain.Value = false;
-                InitialProfitSchemeForSideChain(input.PeriodSeconds);
                 return new Empty();
             }
 
@@ -58,7 +62,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var tokenHolderContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             // No need to continue if Token Holder Contract didn't deployed.
-            if (tokenHolderContractAddress == null) return;
+            if (tokenHolderContractAddress == null)
+            {
+                Context.LogDebug(() => "Token Holder Contract not found, so won't initial side chain dividends pool.");
+                return;
+            }
 
             State.TokenHolderContract.Value = tokenHolderContractAddress;
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
@@ -66,6 +74,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
                 MinimumLockMinutes = periodSeconds
             });
+
+            Context.LogDebug(() => "Side chain dividends pool created.");
         }
 
         #endregion
@@ -319,6 +329,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
+
+            Context.LogDebug(() => $"Contributed {input.Amount} {input.Symbol}s to side chain dividends pool.");
 
             return new Empty();
         }

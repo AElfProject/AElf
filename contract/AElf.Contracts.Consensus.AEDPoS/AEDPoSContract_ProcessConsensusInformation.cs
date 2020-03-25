@@ -80,6 +80,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
+            if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
+            {
+                ReleaseSideChainDividendsPool();
+            }
+
             // Clear cache.
             _processingBlockMinerPubkey = null;
         }
@@ -151,11 +156,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            if (!State.IsMainChain.Value)
-            {
-                ReleaseSideChainDividendsPool();
-            }
-
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
@@ -169,9 +169,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
             var isTimeToRelease =
                 (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(State.PeriodSeconds.Value) != scheme.Period - 1;
+                .Div(State.PeriodSeconds.Value) > scheme.Period - 1;
+            Context.LogDebug(() => "ReleaseSideChainDividendsPool Information:\n" +
+                                   $"CurrentBlockTime: {Context.CurrentBlockTime}\n" +
+                                   $"BlockChainStartTime: {State.BlockchainStartTimestamp.Value}\n" +
+                                   $"PeriodSeconds: {State.PeriodSeconds.Value}\n" +
+                                   $"Scheme Period: {scheme.Period}");
             if (isTimeToRelease)
             {
+                Context.LogDebug(() => "Ready to release side chain dividends pool.");
                 State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
                 {
                     SchemeManager = Context.Self

@@ -250,15 +250,28 @@ namespace AElf.Contracts.TokenHolder
             State.ProfitContract.ClaimProfits.Send(new Profit.ClaimProfitsInput
             {
                 SchemeId = scheme.SchemeId,
-                Beneficiary = beneficiary,
-                Symbol = input.Symbol
+                Beneficiary = beneficiary
             });
             return new Empty();
         }
 
         public override TokenHolderProfitScheme GetScheme(Address input)
         {
-            return State.TokenHolderProfitSchemes[input] ?? new TokenHolderProfitScheme();
+            return State.TokenHolderProfitSchemes[input];
+        }
+
+        public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)
+        {
+            var scheme = State.TokenHolderProfitSchemes[input.SchemeManager];
+            var profitsMap = State.ProfitContract.GetProfitsMap.Call(new Profit.ClaimProfitsInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = input.Beneficiary ?? Context.Sender
+            });
+            return new ReceivedProfitsMap
+            {
+                Value = {profitsMap.Value}
+            };
         }
 
         private TokenHolderProfitScheme GetValidScheme(Address manager, bool updateSchemePeriod = false)

@@ -70,7 +70,6 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 s.ClaimProfits.GetTransaction(new ClaimProfitsInput
                 {
                     SchemeId = schemeId,
-                    Symbol = EconomicTestConstants.TokenSymbol
                 })).ToList());
         }
 
@@ -84,7 +83,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         internal async Task CheckBalancesAsync(IEnumerable<ECKeyPair> keyPairs, long shouldIncrease,
             Dictionary<ECKeyPair, long> balancesBefore = null)
         {
-            const long tolerance = 10;
+            const long tolerance = 20;
             balancesBefore ??= new Dictionary<ECKeyPair, long>();
             foreach (var keyPair in keyPairs)
             {

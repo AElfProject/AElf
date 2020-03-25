@@ -395,17 +395,16 @@ namespace AElf.Contracts.Election
                 })).Balance;
 
                 var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
-                var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
-                    Symbol = "ELF"
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Value;
                 profitAmount.ShouldBeGreaterThan(0);
 
                 var profitResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                 {
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
-                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
                 var txSize = profitResult.Transaction.Size();
                 profitResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -434,7 +433,7 @@ namespace AElf.Contracts.Election
                     var profitTester = GetProfitContractTester(miner);
 
                     //basic Shares - 40%
-                    var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                         Symbol = "ELF"
@@ -442,7 +441,7 @@ namespace AElf.Contracts.Election
                     basicMinerRewardAmount.ShouldBeGreaterThan(0);
 
                     //vote Shares - 10%
-                    var votesWeightRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var votesWeightRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
                         Symbol = "ELF"
@@ -450,7 +449,7 @@ namespace AElf.Contracts.Election
                     votesWeightRewardAmount.ShouldBeGreaterThan(0);
 
                     //re-election Shares - 10%
-                    var reElectionBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var reElectionBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
                         Symbol = "ELF"
@@ -458,7 +457,7 @@ namespace AElf.Contracts.Election
                     reElectionBalance.ShouldBeGreaterThan(0);
 
                     //backup Shares - 20%
-                    var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                         Symbol = "ELF"
@@ -469,7 +468,6 @@ namespace AElf.Contracts.Election
                     var profitBasicResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -477,7 +475,6 @@ namespace AElf.Contracts.Election
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -485,7 +482,6 @@ namespace AElf.Contracts.Election
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var reElectionSize = reElectionResult.Transaction.Size();
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -493,7 +489,6 @@ namespace AElf.Contracts.Election
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -525,7 +520,7 @@ namespace AElf.Contracts.Election
                     var profitTester = GetProfitContractTester(miner);
 
                     //basic Shares - 40%
-                    var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                         Symbol = "ELF"
@@ -533,7 +528,7 @@ namespace AElf.Contracts.Election
                     basicMinerRewardAmount.ShouldBeGreaterThan(0);
 
                     //vote Shares - 10%
-                    var votesWeightRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var votesWeightRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
                         Symbol = "ELF"
@@ -541,7 +536,7 @@ namespace AElf.Contracts.Election
                     votesWeightRewardAmount.ShouldBeGreaterThan(0);
 
                     //re-election Shares - 10%
-                    var reElectionBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var reElectionBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
                         Symbol = "ELF"
@@ -549,7 +544,7 @@ namespace AElf.Contracts.Election
                     reElectionBalance.ShouldBeGreaterThan(0);
 
                     //backup Shares - 20%
-                    var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                    var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                         Symbol = "ELF"
@@ -560,7 +555,6 @@ namespace AElf.Contracts.Election
                     var profitBasicResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -581,7 +575,6 @@ namespace AElf.Contracts.Election
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -600,7 +593,6 @@ namespace AElf.Contracts.Election
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var reElectionSize = reElectionResult.Transaction.Size();
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -619,7 +611,6 @@ namespace AElf.Contracts.Election
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -674,7 +665,7 @@ namespace AElf.Contracts.Election
                     break;
             }
 
-            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
+            return (await stub.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
                 SchemeId = ProfitItemsIds[type],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
