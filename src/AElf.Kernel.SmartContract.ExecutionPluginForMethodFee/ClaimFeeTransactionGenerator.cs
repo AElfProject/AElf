@@ -5,11 +5,9 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
@@ -17,24 +15,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
         public ILogger<ClaimFeeTransactionGenerator> Logger { get; set; }
 
         public ClaimFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight,
             Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (!_transactionPackingOptions.IsTransactionPackable)
-                return generatedTransactions;
 
             if (preBlockHeight < Constants.GenesisBlockHeight)
                 return generatedTransactions;

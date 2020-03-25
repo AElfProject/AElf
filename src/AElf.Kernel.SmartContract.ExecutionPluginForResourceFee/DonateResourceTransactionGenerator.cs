@@ -18,18 +18,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
 
         public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
 
 
         public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight,
@@ -37,8 +34,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             var generatedTransactions = new List<Transaction>();
             if (preBlockHeight == 1) return generatedTransactions;
-            if (!_transactionPackingOptions.IsTransactionPackable)
-                return generatedTransactions;
 
             if (preBlockHeight < Constants.GenesisBlockHeight)
                 return generatedTransactions;
