@@ -3,8 +3,8 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
@@ -40,10 +40,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
-
-            context.Services.AddSingleton<IChargeFeeStrategy, ConsensusContractChargeFeeStrategy>();
-
-            context.Services.AddSingleton<ITransactionValidationProvider, NotAllowEnterTxHubValidationProvider>();
+            
+            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
 
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.

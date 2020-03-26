@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;

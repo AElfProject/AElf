@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,7 +16,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
+    public class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
@@ -31,7 +30,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             IPrimaryTokenFeeService txFeeService, 
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider): base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
@@ -40,12 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
-
-        private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == "acs1");
-        }
-
+        
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
@@ -61,12 +55,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 context.TransactionContext = transactionContext;
                 var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
 
-                if (context.CurrentHeight < Constants.GenesisBlockHeight + 1 || tokenContractAddress == null)
+                if (context.CurrentHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
                 {
                     return new List<Transaction>();
                 }
 
-                if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
+                if (!IsTargetAcsSymbol(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
                 {
                     return new List<Transaction>();
                 }
@@ -127,10 +121,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {

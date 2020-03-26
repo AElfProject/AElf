@@ -4,6 +4,7 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,17 +14,21 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        public override Empty Initialize(InitializeInput input)
+        public override Empty InitializeFromParentChain(InitializeFromParentChainInput input)
         {
-            Assert(!State.Initialized.Value, "MultiToken has been initialized");
-            InitialCoefficientsAboutCharging();
+            Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
+            State.InitializedFromParentChain.Value = true;
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
 
-            State.MinimumProfitsDonationPartsPerHundred.Value = input.MinimumProfitsDonationPartsPerHundred;
-            State.Initialized.Value = true;
+            foreach (var pair in input.RegisteredOtherTokenContractAddresses)
+            {
+                State.CrossChainTransferWhiteList[pair.Key] = pair.Value;
+            }
+            
+            SetSideChainCreator(input.Creator);
             return new Empty();
         }
 
@@ -72,11 +77,9 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
         {
-            Assert(!State.Initialized.Value && State.ChainPrimaryTokenSymbol.Value == null,
-                "Failed to set primary token symbol.");
+            Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
             var tokenInfo = State.TokenInfos[input.Symbol];
-            Assert(State.TokenInfos[input.Symbol] != null && tokenInfo.IssueChainId == Context.ChainId,
-                "Invalid input.");
+            Assert(State.TokenInfos[input.Symbol] != null, "Invalid input.");
 
             State.ChainPrimaryTokenSymbol.Value = input.Symbol;
             Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.Symbol});
@@ -169,7 +172,6 @@ namespace AElf.Contracts.MultiToken
             AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
-            Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
@@ -203,7 +205,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(symbol, amount);
             int issueChainId = GetIssueChainId(symbol);
             Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
+            Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
             var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
             AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
@@ -225,7 +227,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Lock(LockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
             Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
             if (allowance >= input.Amount)
@@ -241,7 +243,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Unlock(UnlockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
             Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
@@ -430,7 +432,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetMinimumProfitsDonationPartsPerHundred(Int32Value input)
         {
             AssertControllerForSideChainRental();
-            Assert(input.Value >=0 && input.Value <= 100, "Invalid value.");
+            Assert(input.Value >= 0 && input.Value <= 100, "Invalid value.");
             State.MinimumProfitsDonationPartsPerHundred.Value = input.Value;
             return new Empty();
         }
@@ -441,7 +443,8 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(
-                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                !Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
+                    .Union(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
                     .Contains(input.Symbol), "Invalid token symbol.");
             var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
             Assert(input.Amount <= contractBalance, "Invalid profit amount.");
@@ -487,7 +490,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeManager = input.ContractAddress,
-                Symbol = input.Symbol
             });
 
             return new Empty();
@@ -525,7 +527,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
@@ -568,7 +570,7 @@ namespace AElf.Contracts.MultiToken
             var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
             var isSystemContractAddress = systemContractAddresses.Contains(sender);
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-            
+
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }

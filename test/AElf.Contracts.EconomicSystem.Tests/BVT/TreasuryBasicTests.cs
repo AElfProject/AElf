@@ -6,6 +6,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -31,14 +32,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             treasuryProfit.Manager.ShouldBe(TreasuryContractAddress);
             treasuryProfit.SubSchemes.Count.ShouldBe(3);
             treasuryProfit.IsReleaseAllBalanceEveryTimeByDefault.ShouldBe(true);
-
-            // Token Converter Contract created AETC token.
-            var tokenInformation = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
-            {
-                Symbol = EconomicSystemTestConstants.ConverterTokenSymbol
-            });
-            tokenInformation.Issuer.ShouldBe(TokenConverterContractAddress);
-            tokenInformation.TotalSupply.ShouldBe(EconomicSystemTestConstants.TotalSupply);
         }
 
         [Fact]

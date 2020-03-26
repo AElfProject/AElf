@@ -3,12 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Parliament;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Txn.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -51,7 +50,7 @@ namespace AElf.CrossChain.Indexing.Application
                 var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
                 var sideChainId = sideChainIndexingInformation.ChainId;
                 var sideChainHeightInLibValue = await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight)
-                    .GetSideChainHeight.CallAsync(new SInt32Value {Value = sideChainId});
+                    .GetSideChainHeight.CallAsync(new Int32Value {Value = sideChainId});
 
                 long toBeIndexedCount;
                 long targetHeight;
@@ -72,7 +71,7 @@ namespace AElf.CrossChain.Indexing.Application
                 else
                 {
                     toBeIndexedCount = 1;
-                    targetHeight = Constants.GenesisBlockHeight;
+                    targetHeight = AElfConstants.GenesisBlockHeight;
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
@@ -85,7 +84,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     var sideChainBlockData =
                         _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainIndexingInformation.ChainId,
-                            targetHeight, targetHeight == Constants.GenesisBlockHeight);
+                            targetHeight, targetHeight == AElfConstants.GenesisBlockHeight);
                     if (sideChainBlockData == null || sideChainBlockData.Height != targetHeight)
                     {
                         // no more available side chain block info
@@ -160,14 +159,14 @@ namespace AElf.CrossChain.Indexing.Application
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
-                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
+                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new Int64Value {Value = blockHeight});
             return crossChainBlockData;
         }
 
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var indexedSideChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
-                .GetIndexedSideChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
+                .GetIndexedSideChainBlockDataByHeight.CallAsync(new Int64Value {Value = blockHeight});
             return indexedSideChainBlockData;
         }
 

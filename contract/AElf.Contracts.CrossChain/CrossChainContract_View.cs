@@ -12,7 +12,7 @@ namespace AElf.Contracts.CrossChain
 
     public partial class CrossChainContract
     {
-        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
+        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(Int64Value input)
         {
             var crossChainBlockData = new CrossChainBlockData();
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
@@ -25,13 +25,13 @@ namespace AElf.Contracts.CrossChain
             return crossChainBlockData;
         }
 
-        public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(SInt64Value input)
+        public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(Int64Value input)
         {
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
             return indexedSideChainBlockData ?? new IndexedSideChainBlockData();
         }
 
-        public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(SInt64Value input)
+        public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(Int64Value input)
         {
             var boundParentChainHeight = State.ChildHeightToParentChainHeight[input.Value];
             Assert(boundParentChainHeight != 0);
@@ -61,43 +61,43 @@ namespace AElf.Contracts.CrossChain
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
 
-        public override GetChainStatusOutput GetChainStatus(SInt32Value input)
+        public override GetChainStatusOutput GetChainStatus(Int32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain not found.");
             return new GetChainStatusOutput {Status = info.SideChainStatus};
         }
 
-        public override SInt64Value GetSideChainHeight(SInt32Value input)
+        public override Int64Value GetSideChainHeight(Int32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain not found.");
             var height = State.CurrentSideChainHeight[input.Value];
-            return new SInt64Value() {Value = height};
+            return new Int64Value() {Value = height};
         }
 
-        public override SInt64Value GetParentChainHeight(Empty input)
+        public override Int64Value GetParentChainHeight(Empty input)
         {
             var parentChainHeight = State.CurrentParentChainHeight.Value;
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = parentChainHeight
             };
         }
 
-        public override SInt32Value GetParentChainId(Empty input)
+        public override Int32Value GetParentChainId(Empty input)
         {
             var parentChainId = State.ParentChainId.Value;
             Assert(parentChainId != 0);
-            return new SInt32Value() {Value = parentChainId};
+            return new Int32Value() {Value = parentChainId};
         }
 
-        public override SInt64Value GetSideChainBalance(SInt32Value input)
+        public override Int64Value GetSideChainBalance(Int32Value input)
         {
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Side chain not found.");
-            return new SInt64Value {Value = State.IndexingBalance[chainId]};
+            return new Int64Value {Value = State.IndexingBalance[chainId]};
         }
 
         public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
@@ -124,7 +124,7 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = GetParentChainHeight(new Empty()).Value;
-            Assert(parentChainHeight > Constants.GenesisBlockHeight, "Invalid parent chain height");
+            Assert(parentChainHeight > AElfConstants.GenesisBlockHeight, "Invalid parent chain height");
             dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
             return dict;
         }
@@ -146,20 +146,21 @@ namespace AElf.Contracts.CrossChain
             return sideChainIndexingInformationList;
         }
 
-        public override Address GetSideChainCreator(SInt32Value input)
+        public override Address GetSideChainCreator(Int32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain not found.");
             return info.Proposer;
         }
 
-        public override ChainInitializationData GetChainInitializationData(SInt32Value input)
+        public override ChainInitializationData GetChainInitializationData(Int32Value input)
         {
             var sideChainInfo = State.SideChainInfo[input.Value];
             var sideChainCreationRequest = State.AcceptedSideChainCreationRequest[input.Value];
 
             Assert(sideChainInfo != null && sideChainCreationRequest != null, "Side chain not found.");
 
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var res = new ChainInitializationData
             {
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
@@ -167,21 +168,33 @@ namespace AElf.Contracts.CrossChain
                 Creator = sideChainInfo.Proposer,
                 CreationTimestamp = sideChainInfo.CreationTimestamp,
                 ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
-                InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount},
-                SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList}
+                ParentChainTokenContractAddress = State.TokenContract.Value
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[input.Value].Value;
-            res.ExtraInformation.Add(consensusInformation);
+            res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
+                {InitialMinerListData = consensusInformation};
 
             ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
-            res.ExtraInformation.Add(nativeTokenInformation);
+            res.NativeTokenInfoData = nativeTokenInformation;
 
             ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
-            res.ExtraInformation.Add(resourceTokenInformation);
+            res.ResourceTokenInfo = new ResourceTokenInfo
+            {
+                ResourceTokenListData = resourceTokenInformation,
+                InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount}
+            };
+            
+            if (sideChainCreationRequest.IsPrivilegePreserved)
+            {
+                ByteString sideChainTokenInformation =
+                    GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
+                res.ChainPrimaryTokenInfo = new ChainPrimaryTokenInfo
+                {
+                    ChainPrimaryTokenData = sideChainTokenInformation,
+                    SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList},
+                };
+            }
 
-            ByteString sideChainTokenInformation =
-                GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
-            res.ExtraInformation.Add(sideChainTokenInformation);
             return res;
         }
 
@@ -206,11 +219,11 @@ namespace AElf.Contracts.CrossChain
             return res;
         }
 
-        public override SInt64Value GetSideChainIndexingFeePrice(SInt32Value input)
+        public override Int64Value GetSideChainIndexingFeePrice(Int32Value input)
         {
             var sideChainInfo = State.SideChainInfo[input.Value];
             Assert(sideChainInfo != null, "Side chain not found.");
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = sideChainInfo.IndexingPrice
             };
@@ -226,7 +239,7 @@ namespace AElf.Contracts.CrossChain
             return GetSideChainLifetimeController();
         }
 
-        public override GetSideChainIndexingFeeControllerOutput GetSideChainIndexingFeeController(SInt32Value input)
+        public override GetSideChainIndexingFeeControllerOutput GetSideChainIndexingFeeController(Int32Value input)
         {
             var sideChainInfo = State.SideChainInfo[input.Value];
             var proposer = sideChainInfo.Proposer;
