@@ -23,6 +23,10 @@ namespace AElf.Kernel.SmartContract
         {
             if (_stringArrayDictionary.TryGetValue(key, out var stringArray))
                 return stringArray;
+            if (!ContainsKey(key))
+            {
+                return new List<string>();
+            }
             stringArray = this[key].Split(',').ToArray();
             _stringArrayDictionary[key] = stringArray;
             return stringArray;
