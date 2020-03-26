@@ -79,7 +79,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             }
 
             var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
-            return hashFromProvider.Value.Equals(hashFromState.Value);
+            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            if (!result)
+            {
+                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+            }
+
+            return result;
         }
     }
 }

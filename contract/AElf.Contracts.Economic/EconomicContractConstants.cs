@@ -22,7 +22,8 @@ namespace AElf.Contracts.Economic
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
         public const string ShareTokenSymbol = "SHARE";
-        public const long ElectionTokenTotalSupply = long.MaxValue;
+        public const long ElectionTokenTotalSupply = 1_000_000_000_00000000;
+        public const int ElectionTokenDecimals = 8;
 
         public const int MemoMaxLength = 64;
         

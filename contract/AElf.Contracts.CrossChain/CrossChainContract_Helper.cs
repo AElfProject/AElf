@@ -60,6 +60,8 @@ namespace AElf.Contracts.CrossChain
 
         private void ChargeSideChainIndexingFee(Address lockAddress, long amount, int chainId)
         {
+            if (amount <= 0)
+                return;
             TransferFrom(new TransferFromInput
             {
                 From = lockAddress,
