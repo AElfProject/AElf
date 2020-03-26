@@ -35,6 +35,9 @@ service AEDPoSContract {
 
     rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
     }
+    
+    rpc ContributeToSideChainDividendsPool (ContributeToSideChainDividendsPoolInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -96,7 +99,7 @@ service AEDPoSContract {
 message InitialAElfConsensusContractInput {
     bool is_term_stay_one = 1;
     bool is_side_chain = 2;
-    sint64 time_each_term = 3;
+    sint64 period_seconds = 3;
     sint64 miner_increase_interval = 4;
 }
 
@@ -242,6 +245,11 @@ message HashList {
 message LatestPubkeyToTinyBlocksCount {
     string pubkey = 1;
     sint64 blocks_count = 2;
+}
+
+message ContributeToSideChainDividendsPoolInput {
+    string symbol = 1;
+    sint64 amount = 2;
 }
 
 // Events

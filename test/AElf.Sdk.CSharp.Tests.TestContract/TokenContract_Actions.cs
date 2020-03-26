@@ -1,4 +1,5 @@
 using System;
+using AElf.CSharp.Core;
 using AElf.Types;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
@@ -66,12 +67,12 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
 
         public ulong GetMethodFee(string methodName)
         {
-            return State.MethodFees[methodName];
+            return State.TransactionFees[methodName];
         }
 
         public void SetMethodFee(string methodName, ulong fee)
         {
-            State.MethodFees[methodName] = fee;
+            State.TransactionFees[methodName] = fee;
         }
     }
 }

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Election;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -525,7 +526,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
             }
 
-            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.PeriodSeconds.Value);
             return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
 

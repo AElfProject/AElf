@@ -11,36 +11,23 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract
     {
         #region Views
-        
+
         public override MethodFees GetMethodFee(StringValue input)
         {
-            var officialTokenContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            var primaryTokenSymbol =
-                Context.Call<StringValue>(officialTokenContractAddress, nameof(GetPrimaryTokenSymbol), new Empty())
-                    .Value;
-            if (primaryTokenSymbol == string.Empty)
+            if (new List<string>
             {
-                return new MethodFees();
-            }
-
-            if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
+                nameof(ClaimTransactionFees), nameof(DonateResourceToken), nameof(ChargeTransactionFees),
+                nameof(CheckThreshold), nameof(CheckResourceToken), nameof(ChargeResourceToken),
+                nameof(CrossChainReceiveToken)
+            }.Contains(input.Value))
             {
-                var methodFees = State.MethodFees[input.Value];
-                if (methodFees == null) return new MethodFees();
-                var symbols = GetMethodFeeSymbols();
-                var fees = methodFees.Fees.Where(f => symbols.Contains(f.Symbol));
                 return new MethodFees
                 {
-                    MethodName = input.Value,
-                    Fees =
-                    {
-                        fees
-                    }
+                    MethodName = input.Value
                 };
             }
 
-            return State.MethodFees[input.Value] ?? new MethodFees();
+            return State.TransactionFees[input.Value];
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
@@ -57,10 +44,11 @@ namespace AElf.Contracts.MultiToken
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
 
-            State.MethodFees[input.MethodName] = input;
+            State.TransactionFees[input.MethodName] = input;
             return new Empty();
         }
 

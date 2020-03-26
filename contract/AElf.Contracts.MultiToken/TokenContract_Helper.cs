@@ -8,6 +8,8 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
 using Acs1;
+using Acs7;
+using AElf.CSharp.Core;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -71,10 +73,13 @@ namespace AElf.Contracts.MultiToken
             return State.Balances[address][symbol];
         }
 
-        private void AssertLockAddress(string symbol)
+        private void AssertSystemContractOrLockWhiteListAddress(string symbol)
         {
             var symbolState = State.LockWhiteLists[symbol];
-            Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
+            var isInWhiteList = symbolState != null && symbolState[Context.Sender];
+            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
+            var isSystemContractAddress = systemContractAddresses.Contains(Context.Sender);
+            Assert(isInWhiteList || isSystemContractAddress, "No Permission.");
         }
 
         private Address ExtractTokenContractAddress(ByteString bytes)

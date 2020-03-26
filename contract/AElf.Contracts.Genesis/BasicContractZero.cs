@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs1;
 using Acs3;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Genesis
 {
@@ -125,7 +126,8 @@ namespace AElf.Contracts.Genesis
                     {
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(DeploySmartContract),
-                        ProposedContractInputHash = proposedContractInputHash
+                        ProposedContractInputHash = proposedContractInputHash,
+                        Category = input.Category
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -166,10 +168,11 @@ namespace AElf.Contracts.Genesis
                     {
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(UpdateSmartContract),
-                        ProposedContractInputHash = proposedContractInputHash
+                        ProposedContractInputHash = proposedContractInputHash,
+                        Category = info.Category
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod),
                 },
                 OriginProposer = Context.Sender
             };
@@ -220,7 +223,8 @@ namespace AElf.Contracts.Genesis
             Context.Fire(new CodeCheckRequired
             {
                 Code = ExtractCodeFromContractCodeCheckInput(input),
-                ProposedContractInputHash = proposedContractInputHash
+                ProposedContractInputHash = proposedContractInputHash,
+                Category = input.Category
             });
 
             return proposedContractInputHash;

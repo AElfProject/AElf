@@ -4,15 +4,14 @@ using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -36,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, MerklePath path)
         {
             var txResultStatusRawBytes =
-                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
+                EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
             var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
             return path.ComputeRootWithLeafNode(hash);
         }
@@ -93,14 +92,7 @@ namespace AElf.Contracts.CrossChain
             var proposedRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
             Assert(proposedRequest == null || Context.CurrentBlockTime >= proposedRequest.ExpiredTime,
                 "Request side chain creation failed.");
-            Assert(
-                sideChainCreationRequest.LockedTokenAmount > 0 &&
-                sideChainCreationRequest.IndexingPrice >= 0 &&
-                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
-                sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
-                "Invalid chain creation request.");
+
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
             {
@@ -109,8 +101,20 @@ namespace AElf.Contracts.CrossChain
                 Symbol = Context.Variables.NativeSymbol
             }).Allowance;
             Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
-            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
-                sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+            if (sideChainCreationRequest.IsPrivilegePreserved)
+            {
+                Assert(
+                    sideChainCreationRequest.LockedTokenAmount > 0 &&
+                    sideChainCreationRequest.IndexingPrice >= 0 &&
+                    sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
+                    sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
+                    "Invalid chain creation request.");
+                AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
+                    sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+            }
+
             AssertValidResourceTokenAmount(sideChainCreationRequest);
         }
 
@@ -152,6 +156,10 @@ namespace AElf.Contracts.CrossChain
         private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, int chainId,
             Address creator)
         {
+            if (!sideChainCreationRequest.IsPrivilegePreserved)
+                return;
+            
+            // new token needed only for exclusive side chain
             var sideChainTokenInfo = new SideChainTokenInfo
             {
                 TokenName = sideChainCreationRequest.SideChainTokenName,

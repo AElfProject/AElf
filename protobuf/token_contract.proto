@@ -10,10 +10,6 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetSideChainCreator (aelf.Address) returns (google.protobuf.Empty) {
-    }
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -41,9 +37,12 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-
+    rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitialCoefficients(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
     // acs1
-    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
@@ -57,7 +56,7 @@ service TokenContract {
     }
 
     // acs8
-    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc DonateResourceToken (TotalResourceTokensMaps) returns (google.protobuf.Empty) {
     }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
@@ -107,6 +106,12 @@ service TokenContract {
     }
     // referenced by src
     rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
+        option (aelf.is_view) = true;
+    }
+    rpc GetLatestTotalTransactionFeesMapHash (google.protobuf.Empty) returns (aelf.Hash){
+        option (aelf.is_view) = true;
+    }
+    rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
 }
@@ -212,7 +217,7 @@ message ChargeResourceTokenInput {
 }
 
 message TransactionFeeBill {
-    map<string, sint64> token_to_amount = 1;
+    map<string, sint64> fees_map = 1;
 }
 
 message CheckThresholdInput {
@@ -331,10 +336,10 @@ message AddTokeWhiteListInput{
     aelf.Address address = 2;
 }
 
-message InitializeInput {
+message InitializeFromParentChainInput {
     map<string, sint32> resource_amount = 1;
-    sint32 minimum_profits_donation_parts_per_hundred = 2;
-
+    map<int32, aelf.Address> registered_other_token_contract_addresses = 2;
+    aelf.Address creator = 3;
 }
 
 message UpdateCoefficientsInput {
@@ -366,6 +371,29 @@ message CalculateFeeCoefficients {
 // To include coefficients of all tokens.
 message AllCalculateFeeCoefficients {
     repeated CalculateFeeCoefficients value = 1;
+}
+
+message TotalTransactionFeesMap
+{
+    map<string, sint64> value = 1;
+    aelf.Hash block_hash = 2;
+    sint64 block_height = 3;
+}
+
+message TotalResourceTokensMaps {
+    repeated ContractTotalResourceTokens value = 1;
+    aelf.Hash block_hash = 2;
+    sint64 block_height = 3;
+}
+
+message ContractTotalResourceTokens {
+    aelf.Address contract_address = 1;
+    TotalResourceTokensMap tokens_map = 2;
+}
+
+message TotalResourceTokensMap
+{
+    map<string, sint64> value = 1;
 }
 
 // Events

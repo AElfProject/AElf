@@ -29,7 +29,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).Balance);
             await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
             await CheckBalancesAsync(firstSevenCoreDataCenters,
-                distributedAmount / 5 / 7 , balancesBefore);
+                distributedAmount / 20 / 7 , balancesBefore);
         }
 
         [IgnoreOnCIFact]
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 20 / 7;
                 var subsidyInformation = distributionInformationOfSecondTerm[SchemeType.BackupSubsidy];
                 var subsidyInSecondTerm = subsidyInformation.Amount / subsidyInformation.TotalShares;
                 await CheckBalancesAsync(firstSevenCoreDataCenters,
@@ -131,7 +131,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 20 / 7;
                 var subsidyInSecondTerm =
                     subsidyInformationOfSecondTerm.Amount / subsidyInformationOfSecondTerm.TotalShares;
                 var subsidyInThirdTerm =

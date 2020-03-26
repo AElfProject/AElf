@@ -16,6 +16,7 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -359,7 +360,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 MaximumLockTime = 1080 * 86400,
                 MinimumLockTime = 90 * 86400,
-                TimeEachTerm = EconomicContractsTestConstants.TimeEachTerm,
+                TimeEachTerm = EconomicContractsTestConstants.PeriodSeconds,
                 MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
             });
@@ -467,7 +468,7 @@ namespace AElf.Contracts.Economic.TestBase
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
                     });
                 CheckResult(result.TransactionResult);

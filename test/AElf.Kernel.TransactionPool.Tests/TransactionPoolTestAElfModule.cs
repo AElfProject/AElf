@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
@@ -44,39 +42,6 @@ namespace AElf.Kernel.TransactionPool
 
                 return mockService.Object;
             });
-        }
-    }
-
-    [DependsOn(
-        typeof(TransactionPoolWithChainTestAElfModule)
-    )]
-    public class TransactionPoolValidationTestAElfModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-
-            services.AddSingleton<TransactionFromAddressBalanceValidationProvider>();
-            services.AddSingleton(provider =>
-            {
-                var service = new Mock<IPrimaryTokenSymbolProvider>();
-
-                return service.Object;
-            });
-            
-            services.AddSingleton(provider =>
-            {
-                var service = new Mock<ITransactionFeeExemptionService>();
-                service.Setup(m => m.IsFree(It.Is<Transaction>(tx => tx.MethodName == "SystemMethod")))
-                    .Returns(true);
-                service.Setup(m => m.IsFree(It.Is<Transaction>(m => m.MethodName != "SystemMethod")))
-                    .Returns(false);
-
-                return service.Object;
-            });
-
-            services.AddSingleton<TransactionMethodNameValidationProvider>();
-            services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
         }
     }
 }
