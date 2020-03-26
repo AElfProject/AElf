@@ -57,7 +57,7 @@
 * [Contract SDK reference](/sdk/contract-sdk.md)
     * [C# reference](/sdk/csharp/main.md)
       * [AElf.SDK.CSharp](/sdk/csharp/contract-sdk.md)
-      * [AElf.CSharp.core](/sdk/csharp/core-sdk.md)
+      * [AElf.CSharp.Core](/sdk/csharp/core-sdk.md)
 * [Resources](resources/resources.md)
     * [Smart Contract APIs](resources/smart-contract-apis/index.md)
       * [Association Contract](resources/smart-contract-apis/association.md)
