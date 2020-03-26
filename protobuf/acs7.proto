@@ -155,10 +155,9 @@ message SideChainCreationRequest {
     sint64 side_chain_token_total_supply = 6;
     sint32 side_chain_token_decimals = 7;
     bool is_side_chain_token_burnable = 8;
-    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
-    map<string, sint32> initial_resource_amount = 10; 
-    bool is_side_chain_token_profitable = 11;
-    int32 minimum_profits_donation_parts_per_hundred = 12;
+    bool is_side_chain_token_profitable = 9;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
+    map<string, sint32> initial_resource_amount = 11;
 }
 
 message SideChainTokenInitialIssue{

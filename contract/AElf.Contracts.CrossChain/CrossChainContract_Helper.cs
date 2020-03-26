@@ -108,14 +108,12 @@ namespace AElf.Contracts.CrossChain
                     sideChainCreationRequest.IndexingPrice >= 0 &&
                     sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                     sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
-                    sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                     "Invalid chain creation request.");
                 AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
                     sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+                AssertValidResourceTokenAmount(sideChainCreationRequest);
             }
-
-            AssertValidResourceTokenAmount(sideChainCreationRequest);
         }
 
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
@@ -158,7 +156,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (!sideChainCreationRequest.IsPrivilegePreserved)
                 return;
-            
+
             // new token needed only for exclusive side chain
             var sideChainTokenInfo = new SideChainTokenInfo
             {

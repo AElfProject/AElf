@@ -173,7 +173,7 @@ namespace AElf.Contracts.CrossChain.Tests
                                 Address = DefaultSender,
                                 Amount = 100
                             }
-                        });
+                        }, true);
                     var requestSideChainCreation =
                         await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(
                             createProposalInput);
@@ -196,7 +196,7 @@ namespace AElf.Contracts.CrossChain.Tests
                                 Address = DefaultSender,
                                 Amount = 100
                             }
-                        });
+                        }, true);
                     var requestSideChainCreation =
                         await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(
                             createProposalInput);
