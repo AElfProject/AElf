@@ -85,9 +85,9 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
                     newConfig.GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
+                options.ContextVariables["SymbolListToPayTxFee"] =
                     newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
+                options.ContextVariables["SymbolListToPayRental"] =
                     newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 

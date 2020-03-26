@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
@@ -168,6 +169,15 @@ namespace AElf.Contracts.MultiToken
             if (State.CrossChainTokenContractRegistrationController.Value == null)
                 State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
             Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
+        }
+
+        private List<string> GetPayTxFeeSymbolList()
+        {
+            return Context.Variables[TokenContractConstants.PayTxFeeSymbolListName].Split(',').ToList();   
+        }
+        protected List<string> GetPayRentalSymbolList()
+        {
+            return Context.Variables[TokenContractConstants.PayRentalSymbolListName].Split(',').ToList();
         }
     }
 }

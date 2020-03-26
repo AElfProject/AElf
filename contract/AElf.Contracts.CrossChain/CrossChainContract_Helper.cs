@@ -121,7 +121,7 @@ namespace AElf.Contracts.CrossChain
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
         {
             var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            foreach (var resourceTokenSymbol in GetPayRentalSymbolList())
             {
                 Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
                     "Invalid side chain resource token request.");
@@ -757,6 +757,11 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
+        }
+        
+        protected List<string> GetPayRentalSymbolList()
+        {
+            return Context.Variables[PayRentalSymbolListName].Split(',').ToList();
         }
     }
 }

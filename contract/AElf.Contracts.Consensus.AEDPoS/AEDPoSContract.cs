@@ -248,7 +248,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in GetPayTxFeeSymbolList().Union(GetPayRentalSymbolList())
             )
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput

@@ -216,7 +216,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee)
+            foreach (var symbol in GetPayTxFeeSymbolList())
             {
                 var balance = GetBalance(Context.Sender, symbol);
                 var owningBalance = State.OwningResourceToken[Context.Sender][symbol];
@@ -466,7 +466,7 @@ namespace AElf.Contracts.MultiToken
             // Update LastPayRentTime if it is ready to charge rental.
             State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
 
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in GetPayRentalSymbolList())
             {
                 var donates = 0L;
 
@@ -528,7 +528,7 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSideChainRental();
             foreach (var pair in input.Rental)
             {
-                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(GetPayRentalSymbolList().Contains(pair.Key), "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.Rental[pair.Key] = pair.Value;
             }
@@ -541,7 +541,7 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSideChainRental();
             foreach (var pair in input.ResourceAmount)
             {
-                Assert(Context.Variables.SymbolListToPayRental.Contains(pair.Key), "Invalid symbol.");
+                Assert(GetPayRentalSymbolList().Contains(pair.Key), "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
