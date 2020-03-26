@@ -51,7 +51,7 @@ service ProfitContract {
     rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
         option (aelf.is_view) = true;
     }
-    rpc GetProfitAmount (GetProfitAmountInput) returns (aelf.SInt64Value) {
+    rpc GetProfitAmount (GetProfitAmountInput) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
@@ -60,37 +60,37 @@ service ProfitContract {
 }
 
 message CreateSchemeInput {
-    sint64 profit_receiving_due_period_count = 1;
+    int64 profit_receiving_due_period_count = 1;
     bool is_release_all_balance_every_time_by_default = 2;
-    sint32 delay_distribute_period_count = 3;
+    int32 delay_distribute_period_count = 3;
     aelf.Address manager = 4;
     bool can_remove_beneficiary_directly = 5;
 }
 
 message Scheme {
     aelf.Address virtual_address = 1;
-    sint64 total_shares = 2;
+    int64 total_shares = 2;
     aelf.Address manager = 3;
-    sint64 current_period = 4;
+    int64 current_period = 4;
     repeated SchemeBeneficiaryShare sub_schemes = 5;
     bool can_remove_beneficiary_directly = 6;
-    sint64 profit_receiving_due_period_count = 7;
+    int64 profit_receiving_due_period_count = 7;
     bool is_release_all_balance_every_time_by_default = 8;
     aelf.Hash scheme_id = 9;
-    sint32 delay_distribute_period_count = 10;
-    map<sint64, sint64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
+    int32 delay_distribute_period_count = 10;
+    map<int64, int64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
     repeated string received_token_symbols = 12;
 }
 
 message SchemeBeneficiaryShare {
     aelf.Hash scheme_id = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 
 message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
     BeneficiaryShare beneficiary_share = 2;
-    sint64 end_period = 3;
+    int64 end_period = 3;
 }
 
 message RemoveBeneficiaryInput {
@@ -101,7 +101,7 @@ message RemoveBeneficiaryInput {
 message AddBeneficiariesInput {
     aelf.Hash scheme_id = 1;
     repeated BeneficiaryShare beneficiary_shares = 2;
-    sint64 end_period = 3;
+    int64 end_period = 3;
 }
 
 message RemoveBeneficiariesInput {
@@ -111,7 +111,7 @@ message RemoveBeneficiariesInput {
 
 message BeneficiaryShare {
     aelf.Address beneficiary = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 
 message ClaimProfitsInput {
@@ -121,8 +121,8 @@ message ClaimProfitsInput {
 
 message DistributeProfitsInput {
     aelf.Hash scheme_id = 1;
-    sint64 period = 2;
-    map<string, sint64> amounts_map = 3;
+    int64 period = 2;
+    map<string, int64> amounts_map = 3;
 }
 
 message ProfitDetails {
@@ -130,24 +130,24 @@ message ProfitDetails {
 }
 
 message ProfitDetail {
-    sint64 start_period = 1;
-    sint64 end_period = 2;
-    sint64 shares = 3;
-    sint64 last_profit_period = 4;
+    int64 start_period = 1;
+    int64 end_period = 2;
+    int64 shares = 3;
+    int64 last_profit_period = 4;
     bool is_weight_removed = 5;
 }
 
 message ContributeProfitsInput {
     aelf.Hash scheme_id = 1;
-    sint64 amount = 2;
-    sint64 period = 3;
+    int64 amount = 2;
+    int64 period = 3;
     string symbol = 4;
 }
 
 message AddSubSchemeInput {
     aelf.Hash scheme_id = 1;
     aelf.Hash sub_scheme_id = 2;
-    sint64 sub_scheme_shares = 3;
+    int64 sub_scheme_shares = 3;
 }
 
 message RemoveSubSchemeInput {
@@ -157,7 +157,7 @@ message RemoveSubSchemeInput {
 }
 
 message DistributedProfitsInfo {
-    sint64 total_shares = 1;
+    int64 total_shares = 1;
     map<string, sint64> amounts_map = 2;
     bool is_released = 3;
 }
@@ -172,7 +172,7 @@ message GetManagingSchemeIdsInput {
 
 message SchemePeriod {
     aelf.Hash scheme_id = 1;
-    sint64 period = 2;
+    int64 period = 2;
 }
 
 message GetProfitDetailsInput {
@@ -192,7 +192,7 @@ message GetProfitAmountInput {
 }
 
 message ReceivedProfitsMap {
-    map<string, sint64> value = 1;
+    map<string, int64> value = 1;
 }
 
 // Events
@@ -200,7 +200,7 @@ message SchemeCreated {
     option (aelf.is_event) = true;
     aelf.Address virtual_address = 1;
     aelf.Address manager = 2;
-    sint64 profit_receiving_due_period_count = 3;
+    int64 profit_receiving_due_period_count = 3;
     bool is_release_all_balance_every_time_by_default = 4;
     aelf.Hash scheme_id = 5;
 }

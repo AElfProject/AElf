@@ -287,7 +287,7 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideCrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetBoundParentChainHeightAndMerklePathByHeight), new SInt64Value
+                    .GetBoundParentChainHeightAndMerklePathByHeight), new Int64Value
                 {
                     Value = height
                 });
@@ -300,12 +300,12 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await MainChainTester.CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetSideChainHeight), new SInt32Value
+                    .GetSideChainHeight), new Int32Value
                 {
                     Value = chainId
                 });
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 
@@ -316,7 +316,7 @@ namespace AElf.Contracts.MultiToken
                 nameof(CrossChainContractContainer.CrossChainContractStub
                     .GetParentChainHeight), new Empty());
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 

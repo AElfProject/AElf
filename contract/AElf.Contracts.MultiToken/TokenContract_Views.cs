@@ -114,7 +114,7 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(SInt32Value input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(Int32Value input)
         {
             if (input.Value == (int) FeeTypeEnum.Tx)
                 return null;

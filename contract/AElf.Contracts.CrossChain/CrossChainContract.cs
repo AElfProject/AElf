@@ -76,7 +76,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt32Value CreateSideChain(CreateSideChainInput input)
+        public override Int32Value CreateSideChain(CreateSideChainInput input)
         {
             // side chain creation should be triggered by organization address.
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
@@ -124,7 +124,7 @@ namespace AElf.Contracts.CrossChain
                 ChainId = chainId,
                 Creator = input.Proposer
             });
-            return new SInt32Value {Value = chainId};
+            return new Int32Value {Value = chainId};
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt64Value DisposeSideChain(SInt32Value input)
+        public override Int32Value DisposeSideChain(Int32Value input)
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
@@ -194,7 +194,7 @@ namespace AElf.Contracts.CrossChain
             {
                 ChainId = chainId
             });
-            return new SInt64Value {Value = chainId};
+            return new Int32Value {Value = chainId};
         }
 
         public override Empty AdjustIndexingFeePrice(AdjustIndexingFeeInput input)

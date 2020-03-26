@@ -23,15 +23,15 @@ service ContractProfitsContract {
 
 message TakeContractProfitsInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message ProfitConfig { 
-    sint32 donation_parts_per_hundred = 1; 
+    int32 donation_parts_per_hundred = 1; 
     repeated string profits_token_symbol_list = 2; 
     string staking_token_symbol = 3;
 }
 
 message ProfitsMap {
-    map<string, sint64> value = 1;
+    map<string, int64> value = 1;
 }

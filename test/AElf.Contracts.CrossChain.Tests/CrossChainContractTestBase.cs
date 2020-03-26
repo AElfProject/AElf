@@ -398,7 +398,7 @@ namespace AElf.Contracts.CrossChain.Tests
             return true;
         }
 
-        internal async Task<Hash> DisposeSideChainProposalAsync(SInt32Value chainId)
+        internal async Task<Hash> DisposeSideChainProposalAsync(Int32Value chainId)
         {
             var disposalInput = chainId;
             var organizationAddress =

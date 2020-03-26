@@ -105,7 +105,7 @@ namespace AElf.Contracts.Election
                 // Basic reward.
                 {
                     var previousTermInformation =
-                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 1}).Result;
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 1}).Result;
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
                     releasedInformation.IsReleased.ShouldBeTrue();
@@ -208,7 +208,7 @@ namespace AElf.Contracts.Election
                 // Basic reward.
                 {
                     var previousTermInformation =
-                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2}).Result;
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 2}).Result;
                     var totalProducedBlocks =
                         previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                     var releasedInformation =
@@ -316,7 +316,7 @@ namespace AElf.Contracts.Election
                 // Basic reward.
                 {
                     var previousTermInformation =
-                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                        AEDPoSContractStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3}).Result;
                     var totalProducedBlocks =
                         previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                     var releasedInformation =
