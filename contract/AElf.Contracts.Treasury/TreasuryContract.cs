@@ -134,7 +134,7 @@ namespace AElf.Contracts.Treasury
                 AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
             RequireElectionContractStateSet();
-            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = input.TermNumber
             });
@@ -388,7 +388,7 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation)
         {
-            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
@@ -629,9 +629,9 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override SInt64Value GetCurrentTreasuryBalance(Empty input)
+        public override Int64Value GetCurrentTreasuryBalance(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {

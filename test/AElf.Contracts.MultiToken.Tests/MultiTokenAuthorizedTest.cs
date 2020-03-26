@@ -187,7 +187,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -228,7 +228,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -270,7 +270,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -313,7 +313,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -387,7 +387,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = feeType
                 });

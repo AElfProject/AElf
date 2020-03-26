@@ -248,8 +248,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental)
-            )
+            foreach (var symbol in Context.Variables.GetStringArray(AEDPoSContractConstants.PayTxFeeSymbolListName)
+                .Union(Context.Variables.GetStringArray(AEDPoSContractConstants.PayRentalSymbolListName)))
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -277,7 +277,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #region SetMaximumMinersCount
 
-        public override Empty SetMaximumMinersCount(SInt32Value input)
+        public override Empty SetMaximumMinersCount(Int32Value input)
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -293,7 +293,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #endregion
 
-        public override Hash GetRandomHash(SInt64Value input)
+        public override Hash GetRandomHash(Int64Value input)
         {
             Assert(input.Value > 1, "Invalid block height.");
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");

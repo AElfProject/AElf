@@ -195,7 +195,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(distributedAmount / 10);
                     var totalShares = distributedInformation.TotalShares;
                     var previousTermInformation =
-                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2}).Result;
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 2}).Result;
                     totalShares.ShouldBe(
                         previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 
@@ -339,7 +339,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(distributedAmount / 10);
                     var totalShares = distributedInformation.TotalShares;
                     var previousTermInformation =
-                        ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3}).Result;
+                        ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3}).Result;
                     totalShares.ShouldBe(
                         previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
 

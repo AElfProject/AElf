@@ -30,10 +30,10 @@ service AEDPoSContract {
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
     
-    rpc SetMaximumMinersCount (aelf.SInt32Value) returns (google.protobuf.Empty) {
+    rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
 
-    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
+    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
     }
     
     rpc ContributeToSideChainDividendsPool (ContributeToSideChainDividendsPoolInput) returns (google.protobuf.Empty) {
@@ -49,10 +49,10 @@ service AEDPoSContract {
     rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
-    rpc GetRoundInformation (aelf.SInt64Value) returns (Round) {
+    rpc GetRoundInformation (google.protobuf.Int64Value) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
@@ -61,10 +61,10 @@ service AEDPoSContract {
     rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerList (GetMinerListInput) returns (MinerList) {
@@ -73,7 +73,7 @@ service AEDPoSContract {
     rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
@@ -85,13 +85,13 @@ service AEDPoSContract {
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetNextElectCountDown (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetPreviousTermInformation (aelf.SInt64Value) returns (Round) {
+    rpc GetPreviousTermInformation (google.protobuf.Int64Value) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetRandomHash (aelf.SInt64Value) returns (aelf.Hash) {
+    rpc GetRandomHash (google.protobuf.Int64Value) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
 }
@@ -99,24 +99,24 @@ service AEDPoSContract {
 message InitialAElfConsensusContractInput {
     bool is_term_stay_one = 1;
     bool is_side_chain = 2;
-    sint64 period_seconds = 3;
-    sint64 miner_increase_interval = 4;
+    int64 period_seconds = 3;
+    int64 miner_increase_interval = 4;
 }
 
 // Just used as parameter of consensus contract method.
 message UpdateValueInput {
     aelf.Hash out_value = 1; // Calculated from current in value.
     aelf.Hash signature = 2; // Calculated from current in value and signatures of previous round.
-    sint64 round_id = 3; // To ensure the values to update will be apply to correct round by comparing round id.
+    int64 round_id = 3; // To ensure the values to update will be apply to correct round by comparing round id.
     aelf.Hash previous_in_value = 4; // Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp actual_mining_time = 5;
-    sint32 supposed_order_of_next_round = 6;
+    int32 supposed_order_of_next_round = 6;
     map<string, int32> tune_order_information = 7;
     map<string, bytes> encrypted_pieces = 8; // For others to recover his in value of current round.
     map<string, bytes> decrypted_pieces = 9;
-    sint64 produced_blocks = 10;
+    int64 produced_blocks = 10;
     map<string, aelf.Hash> miners_previous_in_values = 11;
-    sint64 implied_irreversible_block_height = 12;
+    int64 implied_irreversible_block_height = 12;
 }
 
 // The miners public key list for each term.
@@ -130,7 +130,7 @@ message PubkeyList {
 
 // To query first round number of each term.
 message TermNumberLookUp {
-    map<sint64, sint64> map = 1;// Term number -> Round number.
+    map<int64, int64> map = 1;// Term number -> Round number.
 }
 
 // All the candidates.
@@ -140,37 +140,37 @@ message Candidates {
 
 // The information of a round.
 message Round {
-    sint64 round_number = 1;
+    int64 round_number = 1;
     map<string, MinerInRound> real_time_miners_information = 2;
-    sint64 main_chain_miners_round_number = 3;
-    sint64 blockchain_age = 4;
+    int64 main_chain_miners_round_number = 3;
+    int64 blockchain_age = 4;
     string extra_block_producer_of_previous_round = 5;
-    sint64 term_number = 6;
-    sint64 confirmed_irreversible_block_height = 7;
-    sint64 confirmed_irreversible_block_round_number = 8;
+    int64 term_number = 6;
+    int64 confirmed_irreversible_block_height = 7;
+    int64 confirmed_irreversible_block_round_number = 8;
     bool is_miner_list_just_changed = 9;
-    sint64 round_id_for_validation = 10;
+    int64 round_id_for_validation = 10;
 }
 
 // The information of a miner in a specific round.
 message MinerInRound {
-    sint32 order = 1;
+    int32 order = 1;
     bool is_extra_block_producer = 2;
     aelf.Hash in_value = 3;
     aelf.Hash out_value = 4;
     aelf.Hash signature = 5;
     google.protobuf.Timestamp expected_mining_time = 6;
-    sint64 produced_blocks = 7;
-    sint64 missed_time_slots = 8;
+    int64 produced_blocks = 7;
+    int64 missed_time_slots = 8;
     string pubkey = 9;
     aelf.Hash previous_in_value = 10;
-    sint32 supposed_order_of_next_round = 11;
-    sint32 final_order_of_next_round = 12;
+    int32 supposed_order_of_next_round = 11;
+    int32 final_order_of_next_round = 12;
     repeated google.protobuf.Timestamp actual_mining_times = 13;// Miners must fill actual mining time when they do the mining.
     map<string, bytes> encrypted_pieces = 14;
     map<string, bytes> decrypted_pieces = 15;
-    sint32 produced_tiny_blocks = 16;
-    sint64 implied_irreversible_block_height = 17;
+    int64 produced_tiny_blocks = 16;
+    int64 implied_irreversible_block_height = 17;
 }
 
 message AElfConsensusHeaderInformation {
@@ -181,8 +181,8 @@ message AElfConsensusHeaderInformation {
 
 message AElfConsensusHint {
     AElfConsensusBehaviour behaviour = 1;
-    sint64 round_id = 2;
-    sint64 previous_round_id = 3;
+    int64 round_id = 2;
+    int64 previous_round_id = 3;
 }
 
 enum AElfConsensusBehaviour {
@@ -204,24 +204,24 @@ message AElfConsensusTriggerInformation {
 }
 
 message TermInfo {
-    sint64 term_number = 1;
-    sint64 round_number = 2;
+    int64 term_number = 1;
+    int64 round_number = 2;
 }
 
 message MinerListWithRoundNumber {
     MinerList miner_list = 1;
-    sint64 round_number = 2;
+    int64 round_number = 2;
 }
 
 message TinyBlockInput {
-    sint64 round_id = 1;
+    int64 round_id = 1;
     google.protobuf.Timestamp actual_mining_time = 2;
-    sint64 produced_blocks = 3;
+    int64 produced_blocks = 3;
 }
 
 message VoteMinersCountInput {
-    sint32 miners_count = 1;
-    sint64 amount = 2;
+    int32 miners_count = 1;
+    int64 amount = 2;
 }
 
 message ConsensusInformation {
@@ -229,13 +229,13 @@ message ConsensusInformation {
 }
 
 message GetMinerListInput {
-    sint64 term_number = 1;
+    int64 term_number = 1;
 }
 
 message RandomNumberRequestInformation {
-    sint64 target_round_number = 1;// The random hash is likely generated during this round.
-    sint64 order = 2;
-    sint64 expected_block_height = 3;
+    int64 target_round_number = 1;// The random hash is likely generated during this round.
+    int64 order = 2;
+    int64 expected_block_height = 3;
 }
 
 message HashList {
@@ -244,23 +244,23 @@ message HashList {
 
 message LatestPubkeyToTinyBlocksCount {
     string pubkey = 1;
-    sint64 blocks_count = 2;
+    int64 blocks_count = 2;
 }
 
 message ContributeToSideChainDividendsPoolInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
+    int64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
 }
 
 message IrreversibleBlockHeightUnacceptable {
     option (aelf.is_event) = true;
-    sint64 distance_to_irreversible_block_height = 1;
+    int64 distance_to_irreversible_block_height = 1;
 }
 
 message MiningInformationUpdated {
@@ -268,19 +268,19 @@ message MiningInformationUpdated {
     string pubkey = 1 [(aelf.is_indexed) = true];
     google.protobuf.Timestamp mining_time = 2 [(aelf.is_indexed) = true];
     string behaviour = 3 [(aelf.is_indexed) = true];
-    sint64 block_height = 4 [(aelf.is_indexed) = true];
+    int64 block_height = 4 [(aelf.is_indexed) = true];
     aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
 }
 
 message SecretSharingInformation {
     option (aelf.is_event) = true;
     Round previous_round = 1 [(aelf.is_indexed) = true];
-    sint64 current_round_id = 2;
-    sint64 previous_round_id = 3;
+    int64 current_round_id = 2;
+    int64 previous_round_id = 3;
 }
 
 message MiningRewardGenerated {
     option (aelf.is_event) = true;
-    sint64 term_number = 1 [(aelf.is_indexed) = true];
-    sint64 amount = 2;
+    int64 term_number = 1 [(aelf.is_indexed) = true];
+    int64 amount = 2;
 }
