@@ -9,6 +9,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Tokenswap;
@@ -71,11 +72,11 @@ namespace TokenSwapContract.Tests
 
         protected void CheckCode(byte[] code)
         {
-            var auditor = new ContractAuditor(null, null);
-            auditor.Audit(code, new RequiredAcsDto
+            var auditor = new CSharpContractAuditor(null, null);
+            auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()
-            }, false);
+            });
         }
 
         protected async Task CreateAndApproveTokenAsync(string tokenName, string symbol, int decimals, long totalSupply,
