@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -45,10 +46,9 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
-        private readonly ISmartContractCodeHistoryProvider _smartContractCodeHistoryProvider;
-        private readonly ISmartContractCodeHistoryManager _smartContractCodeHistoryManager;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -59,8 +59,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
-            _smartContractCodeHistoryProvider = GetRequiredService<ISmartContractCodeHistoryProvider>();
-            _smartContractCodeHistoryManager = GetRequiredService<ISmartContractCodeHistoryManager>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -134,18 +133,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionResult = await _osTestHelper.GetTransactionResultsAsync(deployTransaction.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
-            var smartContractCode = new SmartContractCode
-            {
-                BlockHash = deployBlock.GetHash(),
-                BlockHeight = deployBlock.Height,
-                CodeHash = Hash.FromRawBytes(VoteContractCode)
-            };
-            var smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
-            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            var smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
-            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(1);
-            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
             var transaction = new Transaction
             {
                 From = accountAddress,
@@ -204,27 +191,15 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters);
 
             sendTransactionResponse.TransactionId.ShouldBe(updateTransaction.GetHash().ToHex());
-            var updateBlock = await _osTestHelper.MinedOneBlock();
+            await _osTestHelper.MinedOneBlock();
             transactionResult = await _osTestHelper.GetTransactionResultsAsync(updateTransaction.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
                 $"/api/blockChain/transactionResult?transactionId={transaction.GetHash().ToHex()}");
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-            response.Transaction.Params.ShouldBe(GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
-            var updateSmartContractCode = new SmartContractCode
-            {
-                BlockHash = updateBlock.GetHash(),
-                BlockHeight = updateBlock.Height,
-                CodeHash = Hash.FromRawBytes(ConfigurationContractCode)
-            };
-            smartContractCodeHistoryInCache = _smartContractCodeHistoryProvider.GetSmartContractCodeHistory(address);
-            smartContractCodeHistoryInCache.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInCache.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInCache.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInDb = await _smartContractCodeHistoryManager.GetSmartContractCodeHistoryAsync(address);
-            smartContractCodeHistoryInDb.Codes.Count.ShouldBe(2);
-            smartContractCodeHistoryInDb.Codes[0].Equals(smartContractCode).ShouldBeTrue();
-            smartContractCodeHistoryInDb.Codes[1].Equals(updateSmartContractCode).ShouldBeTrue();
+            response.Transaction.Params.ShouldBe(transaction.Params.ToBase64());
+            response.Transaction.Params.ShouldNotBe(
+                GetVotingResultInput.Parser.ParseFrom(transaction.Params).ToString());
         }
 
         [Fact]
@@ -340,10 +315,12 @@ namespace AElf.WebApp.Application.Chain.Tests
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<string>("/api/blockChain/executeRawTransaction",
                     parameters);
-            var jObject = JObject.Parse(sendTransactionResponse);
-            jObject["owner"].ShouldBe(accountAddress.GetFormatted());
-            jObject["symbol"].ShouldBe("ELF");
-            jObject.Value<long>("balance").ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
+            var getBalanceOutput =
+                GetBalanceOutput.Parser.ParseFrom(
+                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(sendTransactionResponse)));
+            getBalanceOutput.Owner.ShouldBe(accountAddress);
+            getBalanceOutput.Symbol.ShouldBe("ELF");
+            getBalanceOutput.Balance.ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
         }
 
         [Fact]
@@ -972,7 +949,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
             blockState.Changes.ShouldNotBeNull();
 
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             await _blockchainStateService.MergeBlockStateAsync(blockStateSet.BlockHeight,
                 blockStateSet.BlockHash);
 
@@ -1147,6 +1124,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 .Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            OutputHelper.WriteLine(contractAddress.ToString()); //2J9wWhuyz7Drkmtu9DTegM9rLmamjekmRkCAWz5YYPjm7akfbH
             var parameters = new Dictionary<string, string>
             {
                 {"From", "juYfvugva4PZSEz1w9J8VkAhgrbevEmqTLSATwc9i1XHZJvE1"},
@@ -1163,7 +1141,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             response.RawTransaction.ShouldBe(
-                "0a220a20616c59d43bab19018baeb0f422f65358011156ef76994d13ac8f77217c2e618312220a20aaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355d70e18e4152204190db8ba2a085472616e7366657232320a220a20858490f959fcdde05798e021819eae4cd462ea45bda2028d44eea3ea81b43d451203454c4618c801220474657374");
+                "0a220a20616c59d43bab19018baeb0f422f65358011156ef76994d13ac8f77217c2e618312220a20aaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355d70e18e4152204190db8ba2a085472616e7366657232310a220a20858490f959fcdde05798e021819eae4cd462ea45bda2028d44eea3ea81b43d451203454c461864220474657374");
         }
 
         [Fact]

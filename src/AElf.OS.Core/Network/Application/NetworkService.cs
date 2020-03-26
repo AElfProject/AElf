@@ -145,14 +145,14 @@ namespace AElf.OS.Network.Application
 
                     if (ex != null)
                     {
-                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        Logger.LogInformation(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
                         await HandleNetworkException(peer, ex);
                     }
                 });
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                Logger.LogInformation(ex, $"Could not enqueue block to {peer} - status {peer.ConnectionStatus}.");
             }
         }
         
@@ -162,7 +162,7 @@ namespace AElf.OS.Network.Application
             return broadcastList.IsNullOrEmpty() ? null : broadcastList[0];
         }
 
-        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             var blockHash = blockHeader.GetHash();
 
@@ -172,8 +172,7 @@ namespace AElf.OS.Network.Application
             var blockAnnouncement = new BlockAnnouncement
             {
                 BlockHash = blockHash,
-                BlockHeight = blockHeader.Height,
-                HasFork = hasFork
+                BlockHeight = blockHeader.Height
             };
 
             foreach (var peer in _peerPool.GetPeers())
@@ -188,14 +187,17 @@ namespace AElf.OS.Network.Application
                         peer.TryAddKnownBlock(blockHash);
                         if (ex != null)
                         {
-                            Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
+                            Logger.LogInformation(ex, $"Could not broadcast announcement to {peer} " +
+                                                      $"- status {peer.ConnectionStatus}.");
+
                             await HandleNetworkException(peer, ex);
                         }
                     });
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
+                    Logger.LogInformation(ex, $"Could not enqueue announcement to {peer} " +
+                                              $"- status {peer.ConnectionStatus}.");
                 }
             }
             
@@ -217,14 +219,17 @@ namespace AElf.OS.Network.Application
                         peer.TryAddKnownTransaction(txHash);
                         if (ex != null)
                         {
-                            Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
+                            Logger.LogInformation(ex, $"Could not broadcast transaction to {peer} " +
+                                                      $"- status {peer.ConnectionStatus}.");
+
                             await HandleNetworkException(peer, ex);
                         }
                     });
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
+                    Logger.LogInformation(ex, $"Could not enqueue transaction to {peer} - " +
+                                              $"status {peer.ConnectionStatus}.");
                 }
             }
             
@@ -247,35 +252,38 @@ namespace AElf.OS.Network.Application
                     {
                         if (ex != null)
                         {
-                            Logger.LogError(ex, $"Error while broadcasting lib announcement to {peer}.");
+                            Logger.LogInformation(ex, $"Could not broadcast lib announcement to {peer} " +
+                                                      $"- status {peer.ConnectionStatus}.");
                             await HandleNetworkException(peer, ex);
                         }
                     });
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogError(ex, $"Error while broadcasting lib announcement to {peer}.");
+                    Logger.LogInformation(ex, $"Could not enqueue lib announcement to {peer} " +
+                                              $"- status {peer.ConnectionStatus}.");
                 }
             }
             
             return Task.CompletedTask;
         }
 
-        public async Task SendHealthChecksAsync()
+        public async Task CheckPeersHealthAsync()
         {
-            foreach (var peer in _peerPool.GetPeers())
+            foreach (var peer in _peerPool.GetPeers(true))
             {
                 Logger.LogDebug($"Health checking: {peer}");
                 
                 try
                 {
-                    await peer.CheckHealthAsync();
+                    await peer.PingAsync();
                 }
                 catch (NetworkException ex)
                 {
-                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable)
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable 
+                        || ex.ExceptionType == NetworkExceptionType.PeerUnstable)
                     {
-                        Logger.LogError(ex, $"Removing unhealthy peer {peer}.");
+                        Logger.LogInformation(ex, $"Removing unhealthy peer {peer}.");
                         await _networkServer.TrySchedulePeerReconnectionAsync(peer);
                     }
                 }
@@ -297,10 +305,12 @@ namespace AElf.OS.Network.Application
 
             var response = await Request(peer, p => p.GetBlocksAsync(previousBlock, count));
 
-            if (response.Success && response.Payload != null &&
-                (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning(
-                    $"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
+            if (response.Success && response.Payload != null
+                                 && (response.Payload.Count == 0 || response.Payload.Count != count))
+            {
+                Logger.LogInformation($"Requested blocks from {peer} - count miss match, " +
+                                  $"asked for {count} but got {response.Payload.Count} (from {previousBlock})");
+            }
 
             return response;
         }
@@ -330,7 +340,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while requesting block(s) from {peer.RemoteEndpoint}.");
+                Logger.LogInformation(ex, $"Could not request block(s) from {peer.RemoteEndpoint}.");
                 
                 if (ex.ExceptionType == NetworkExceptionType.HandlerException)
                     return new Response<T>(default(T));
@@ -345,12 +355,12 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                Logger.LogError(exception, $"Removing unrecoverable {peer}.");
+                Logger.LogInformation(exception, $"Removing unrecoverable {peer}.");
                 await _networkServer.TrySchedulePeerReconnectionAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
+                Logger.LogInformation(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }

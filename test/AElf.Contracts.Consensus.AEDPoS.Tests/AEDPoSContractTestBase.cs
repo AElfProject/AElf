@@ -10,6 +10,8 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Blockchain.Application;
@@ -40,14 +42,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             _ = ConsensusContractAddress;
             _ = ReferendumContractAddress;
             _ = TokenHolderContractAddress;
+            _ = AssociationContractAddress;
         }
         protected void InitializeContracts()
         {
             DeployAllContracts();
-
+            
+            AsyncHelper.RunSync(InitializeParliamentContract);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
             AsyncHelper.RunSync(InitializeElection);
-            AsyncHelper.RunSync(InitializeParliamentContract);
             AsyncHelper.RunSync(InitializeEconomicContract);
             AsyncHelper.RunSync(InitializeToken);
             AsyncHelper.RunSync(InitializeAElfConsensus);

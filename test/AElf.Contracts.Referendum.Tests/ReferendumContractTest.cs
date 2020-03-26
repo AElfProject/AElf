@@ -5,6 +5,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -30,6 +31,9 @@ namespace AElf.Contracts.Referendum
                 var organization =
                     await ReferendumContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
                 organization.ShouldBe(new Organization());
+
+                var result = await ReferendumContractStub.ValidateOrganizationExist.CallAsync(DefaultSender);
+                result.Value.ShouldBeFalse();
             }
 
             var minimalApproveThreshold = 5000;
@@ -199,6 +203,27 @@ namespace AElf.Contracts.Referendum
                 var transactionResult1 = await ReferendumContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
+                var transactionResult2 = await ReferendumContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            {
+                //"Proposal with invalid url."
+                var createProposalInput = new CreateProposalInput
+                {
+                    ToAddress = SampleAddress.AddressList[0],
+                    Params = ByteString.CopyFromUtf8("Test"),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    OrganizationAddress = organizationAddress,
+                    ContractMethodName = "Test",
+                    ProposalDescriptionUrl = "test.com"
+                };
+                var transactionResult =
+                    await ReferendumContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+
+                createProposalInput.ProposalDescriptionUrl = "https://test.com/test%abcd%&wxyz";
                 var transactionResult2 = await ReferendumContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
@@ -431,6 +456,12 @@ namespace AElf.Contracts.Referendum
             reclaimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var balance2 = await GetBalanceAsync("ELF", Address.FromPublicKey(keyPair.PublicKey));
             balance2.ShouldBe(balance1);
+            
+            //delete expired proposal
+            var clearResult = await ReferendumContractStub.ClearProposal.SendAsync(proposalId);
+            clearResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -676,7 +707,7 @@ namespace AElf.Contracts.Referendum
                 var result = await referendumContractStub.Release.SendWithExceptionAsync(changeProposalId);
                 result.TransactionResult.Error.ShouldContain("Invalid organization.");
             }
-            
+
             {
                 var proposalReleaseThresholdInput = new ProposalReleaseThreshold
                 {
@@ -709,9 +740,10 @@ namespace AElf.Contracts.Referendum
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
 
+            var whiteAddress = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[3].PublicKey);
             var proposerWhiteList = new ProposerWhiteList
             {
-                Proposers = {Address.FromPublicKey(SampleECKeyPairs.KeyPairs[3].PublicKey)}
+                Proposers = {whiteAddress}
             };
 
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -728,8 +760,17 @@ namespace AElf.Contracts.Referendum
             var releaseResult = await ReferendumContractStub.Release.SendAsync(changeProposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
+            //verify whiteList
+            var verifyResult = await ReferendumContractStub.ValidateProposerInWhiteList.CallAsync(
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = whiteAddress
+                });
+            verifyResult.Value.ShouldBeTrue();
+            
             var timeStamp = TimestampHelper.GetUtcNow();
-            var createInput = new CreateInput()
+            var createInput = new CreateInput
             {
                 Symbol = "NEW",
                 Decimals = 2,
@@ -752,6 +793,45 @@ namespace AElf.Contracts.Referendum
             result.TransactionResult.Error.ShouldContain("Unauthorized to propose.");
         }
 
+        [Fact]
+        public async Task SetMethodFee_Test()
+        {
+            var inputFee = new MethodFees
+            {
+                MethodName = nameof(ReferendumContractStub.CreateProposal),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 5000_0000L
+                    }
+                }
+            };
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var result = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = ReferendumContractAddress,
+                Params = inputFee.ToByteString(),
+                ContractMethodName = nameof(ReferendumContractStub.SetMethodFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = result.Output;
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+
+            var feeResult = await ReferendumContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(ReferendumContractStub.CreateProposal)
+            });
+            feeResult.Fees.First().ShouldBe(new MethodFee
+            {
+                Symbol = "ELF",
+                BasicFee = 5000_0000L
+            });
+        }
+        
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
@@ -887,24 +967,53 @@ namespace AElf.Contracts.Referendum
         private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var referendumContractStub = GetReferendumContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult = await referendumContractStub.Approve.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReferendumReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReferendumReceiptCreated))
+                ?.NonIndexed);
+            ValidateReferendumReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(referendumContractStub.Approve));
         }
 
         private async Task RejectAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var referendumContractStub = GetReferendumContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult = await referendumContractStub.Reject.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReferendumReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReferendumReceiptCreated))
+                ?.NonIndexed);
+            ValidateReferendumReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(referendumContractStub.Reject));
         }
 
         private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var referendumContractStub = GetReferendumContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult = await referendumContractStub.Abstain.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+            var receiptCreated = ReferendumReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReferendumReceiptCreated))
+                ?.NonIndexed);
+            ValidateReferendumReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(referendumContractStub.Abstain));}
 
+        private void ValidateReferendumReceiptCreated(ReferendumReceiptCreated referendumReceiptCreated, Address sender, Hash proposalId,
+            Timestamp blockTime, string receiptType)
+        {
+            referendumReceiptCreated.Address.ShouldBe(sender);
+            referendumReceiptCreated.ProposalId.ShouldBe(proposalId);
+            referendumReceiptCreated.Time.ShouldBe(blockTime);
+            referendumReceiptCreated.ReceiptType.ShouldBe(receiptType);
+        }
+        
         private async Task ApproveAllowanceAsync(ECKeyPair keyPair, long amount, string symbol = "ELF")
         {
             await GetTokenContractTester(keyPair).Approve.SendAsync(new ApproveInput

@@ -1,9 +1,10 @@
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 
 namespace AElf.Contracts.TestContract.TransactionFees
 {
@@ -27,7 +28,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
         {
             State.Acs8Contract.CpuConsumingMethod.Send(new Empty());
             
-            State.Acs8Contract.NetConsumingMethod.Send(new NetConsumingMethodInput
+            State.Acs8Contract.TrafficConsumingMethod.Send(new TrafficConsumingMethodInput
             {
                 Blob = input.NetPackage
             });
@@ -46,7 +47,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
 
         public override Empty MessNetStoConsuming(NetBytesInput input)
         {
-            State.Acs8Contract.NetConsumingMethod.Send(new NetConsumingMethodInput
+            State.Acs8Contract.TrafficConsumingMethod.Send(new TrafficConsumingMethodInput
             {
                 Blob = input.NetPackage
             });
@@ -77,7 +78,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
 
         public override Empty FailNetStoConsuming(NetBytesInput input)
         {
-            State.Acs8Contract.NetConsumingMethod.Send(new NetConsumingMethodInput
+            State.Acs8Contract.TrafficConsumingMethod.Send(new TrafficConsumingMethodInput
             {
                 Blob = input.NetPackage
             });

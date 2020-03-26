@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -140,6 +142,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.Rounds[round.RoundNumber] = round;
 
             return true;
+        }
+
+        private void EnsureTransactionOnlyExecutedOnceInOneBlock()
+        {
+            Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
+            State.LatestExecutedHeight.Value = Context.CurrentHeight;
         }
     }
 }

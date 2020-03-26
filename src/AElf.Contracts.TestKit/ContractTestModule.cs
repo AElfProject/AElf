@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using AElf.Cryptography;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
@@ -7,15 +5,17 @@ using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs1.FreeFeeTransactions;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.OS.Network.Application;
@@ -58,8 +58,7 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule)
-    )]
+        typeof(CSharpRuntimeAElfModule))]
     public class ContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -69,8 +68,8 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,READ,STORAGE,TRAFFIC";
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK,NET";
+                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC";
+                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
@@ -110,11 +109,11 @@ namespace AElf.Contracts.TestKit
 
             context.Services.AddTransient<IAccount, Account>();
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
-            context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
+            context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<ITxHub, MockTxHub>();
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
-            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
+            context.Services.Replace(ServiceDescriptor
+                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
         }
 
@@ -145,6 +144,14 @@ namespace AElf.Contracts.TestKit
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
+    }
+
+    [DependsOn(typeof(ContractTestModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule),
+        typeof(ExecutionPluginForMethodFeeModule))]
+    public class ContractTestWithExecutionPluginModule : AbpModule
+    {
     }
 
     public class TestOutputHelperAccessor : ITestOutputHelperAccessor

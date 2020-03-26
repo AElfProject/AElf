@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;

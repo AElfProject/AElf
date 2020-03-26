@@ -1,5 +1,7 @@
+using System;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -36,7 +38,7 @@ namespace AElf.Contracts.Referendum
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
 
-        private void LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress)
+        private ReferendumReceiptCreated LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress)
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
@@ -56,6 +58,15 @@ namespace AElf.Contracts.Referendum
                 Amount = amount,
                 LockId = lockId,
                 TokenSymbol = symbol
+            };
+            
+            return new ReferendumReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = proposalId,
+                Amount = amount,
+                Symbol = symbol,
+                Time = Context.CurrentBlockTime
             };
         }
 
@@ -87,14 +98,25 @@ namespace AElf.Contracts.Referendum
                    proposalReleaseThreshold.MaximalAbstentionThreshold >= 0 &&
                    proposalReleaseThreshold.MaximalRejectionThreshold >= 0;
         }
-
+        
         private bool Validate(ProposalInfo proposal)
         {
             var validDestinationAddress = proposal.ToAddress != null;
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
             var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime && hasOrganizationAddress;
+            var validDescriptionUrl = ValidateDescriptionUrlScheme(proposal.ProposalDescriptionUrl);
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime &&
+                   hasOrganizationAddress && validDescriptionUrl;
+        }
+
+        private bool ValidateDescriptionUrlScheme(string uriString)
+        {
+            if (string.IsNullOrEmpty(uriString))
+                return true;
+            bool result = Uri.TryCreate(uriString, UriKind.Absolute, out var uriResult)
+                          && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            return result;
         }
 
         private ProposalInfo GetValidProposal(Hash proposalId)
@@ -130,7 +152,8 @@ namespace AElf.Contracts.Referendum
                 ExpiredTime = input.ExpiredTime,
                 Params = input.Params,
                 OrganizationAddress = input.OrganizationAddress,
-                Proposer = Context.Sender
+                Proposer = Context.Sender,
+                ProposalDescriptionUrl = input.ProposalDescriptionUrl
             };
             Assert(Validate(proposal), "Invalid proposal.");
             State.Proposals[proposalId] = proposal;
@@ -156,21 +179,6 @@ namespace AElf.Contracts.Referendum
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
-        }
-
-        private void AddTokenWhitList()
-        {
-            RequireTokenContractStateSet();
-            State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-            {
-                TokenSymbol = Context.Variables.NativeSymbol, Address = Context.Self
-            });
-            var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
-            if (!string.IsNullOrEmpty(primaryTokenSymbol) && Context.Variables.NativeSymbol != primaryTokenSymbol)
-                State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = primaryTokenSymbol, Address = Context.Self
-                });
         }
     }
 }

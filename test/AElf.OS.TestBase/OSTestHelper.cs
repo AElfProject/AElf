@@ -25,6 +25,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -414,6 +415,8 @@ namespace AElf.OS
                 Issuer =  ownAddress,
                 IsBurnable = true
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
@@ -421,6 +424,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,
@@ -448,8 +452,8 @@ namespace AElf.OS
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
                 var transactionResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-                long fee = 0;
-                transactionResult.TransactionFee?.Value.TryGetValue("ELF", out fee);
+                var relatedLog = transactionResult.Logs.FirstOrDefault(l => l.Name == nameof(TransactionFeeCharged));
+                var fee = relatedLog == null ? 0 : TransactionFeeCharged.Parser.ParseFrom(relatedLog.NonIndexed).Amount;
                 MockChainTokenAmount += fee + TransferInput.Parser.ParseFrom(transaction.Params).Amount;
                 bestBranchBlockList.Add(block);
             }

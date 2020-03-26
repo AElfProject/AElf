@@ -31,13 +31,26 @@ namespace AElf
         /// <returns></returns>
         public static Hash Xor(Hash h1, Hash h2)
         {
-            var newBytes = new byte[TypeConsts.HashByteArrayLength];
+            var newBytes = new byte[AElfConstants.HashByteArrayLength];
             for (var i = 0; i < newBytes.Length; i++)
             {
                 newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
 
             return Hash.FromRawBytes(newBytes);
+        }
+
+        public static Hash ConcatAndCompute(Hash hash1, Hash hash2)
+        {
+            var bytes = ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray());
+            return Hash.FromRawBytes(bytes);
+        }
+        
+        public static Hash ConcatAndCompute(Hash hash1, Hash hash2, Hash hash3)
+        {
+            var bytes = ByteArrayHelper.ConcatArrays(
+                ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray()), hash3.ToByteArray());
+            return Hash.FromRawBytes(bytes);
         }
     }
 }

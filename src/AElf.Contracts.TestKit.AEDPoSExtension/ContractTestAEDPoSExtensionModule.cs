@@ -28,7 +28,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     }
 
     [DependsOn(
-        typeof(ContractTestModule)
+        typeof(ContractTestWithExecutionPluginModule)
     )]
     public class ContractTestAEDPoSExtensionModule : ContractTestModule
     {
@@ -46,7 +46,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
-            context.Services.AddSingleton<IInlineTransactionValidationProvider, InlineTransferFromValidationProvider>();
 
             context.Services.RemoveAll<IPreExecutionPlugin>();
 

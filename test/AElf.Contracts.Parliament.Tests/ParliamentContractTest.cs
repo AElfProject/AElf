@@ -1,11 +1,11 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using Acs1;
 using Acs3;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -104,12 +104,11 @@ namespace AElf.Contracts.Parliament
             var minimalVoteThreshold = 8000;
             var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
-            var transferInput = new TransferInput()
+            var transferInput = new TransferInput
             {
                 Symbol = "ELF",
                 Amount = 100,
-                To = Tester,
-                Memo = "Transfer"
+                To = Tester
             };
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var getProposal = await ParliamentContractStub.GetProposal.SendAsync(proposalId);
@@ -119,7 +118,37 @@ namespace AElf.Contracts.Parliament
             getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+            
+            var transferParam = TransferInput.Parser.ParseFrom(getProposal.Output.Params);
+            transferParam.Symbol.ShouldBe(transferInput.Symbol);
+            transferParam.Amount.ShouldBe(transferInput.Amount);
+            transferParam.To.ShouldBe(transferInput.To);
+        }
+
+        [Fact]
+        public async Task ApproveMultiProposals_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var proposalId1 = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            var proposalId2 = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var transactionResult =
+                await ParliamentContractStub.ApproveMultiProposals.SendAsync(new ProposalIdList
+                {
+                    ProposalIds = {proposalId1, proposalId2}
+                });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposal1 = await ParliamentContractStub.GetProposal.CallAsync(proposalId1);
+            proposal1.ApprovalCount.ShouldBe(1);
+            var proposal2 = await ParliamentContractStub.GetProposal.CallAsync(proposalId1);
+            proposal2.ApprovalCount.ShouldBe(1);
         }
 
         [Fact]
@@ -295,6 +324,18 @@ namespace AElf.Contracts.Parliament
 
                 var transactionResult2 = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            // invalid proposal description url
+            {
+                createProposalInput.ProposalDescriptionUrl = "www.abc.com";
+                var transactionResult =
+                    await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+                
+                createProposalInput.ProposalDescriptionUrl = "http://www.abc.com";
+                var transactionResult1 = await ParliamentContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
@@ -753,7 +794,7 @@ namespace AElf.Contracts.Parliament
                 Symbol = "ELF",
                 Amount = 100,
                 To = Tester,
-                Memo = "Transfer"
+                Memo = Guid.NewGuid().ToString() //In order to generate different proposal
             };
             var createProposalInput = new CreateProposalInput
             {
@@ -808,26 +849,56 @@ namespace AElf.Contracts.Parliament
 
         private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId)
         {
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var parliamentContractStub = GetParliamentContractTester(reviewer);
             var transactionResult =
                 await parliamentContractStub.Approve.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Approve));
         }
 
         private async Task RejectionAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var parliamentContractStub = GetParliamentContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult =
                 await parliamentContractStub.Reject.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Reject));
         }
 
         private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var parliamentContractStub = GetParliamentContractTester(reviewer);
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
             var transactionResult =
                 await parliamentContractStub.Abstain.SendAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(parliamentContractStub.Abstain));
+        }
+        
+        private void ValidateReceiptCreated(ReceiptCreated receiptCreated, Address sender, Hash proposalId,
+            Timestamp blockTime, string receiptType)
+        {
+            receiptCreated.Address.ShouldBe(sender);
+            receiptCreated.ProposalId.ShouldBe(proposalId);
+            receiptCreated.Time.ShouldBe(blockTime);
+            receiptCreated.ReceiptType.ShouldBe(receiptType);
         }
 
         private async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,

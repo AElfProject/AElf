@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -268,13 +269,18 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
-            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
-            Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
+            AssertOption(votingItem, input.Option);
             Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
+        }
+
+        private void AssertOption(VotingItem votingItem, string option)
+        {
+            Assert(option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
+            Assert(!votingItem.Options.Contains(option), "Option already exists.");
         }
 
         /// <summary>
@@ -299,10 +305,11 @@ namespace AElf.Contracts.Vote
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             foreach (var option in input.Options)
             {
-                Assert(!votingItem.Options.Contains(option), "Option already exists.");
+                AssertOption(votingItem, option);
             }
-
             votingItem.Options.AddRange(input.Options);
+            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
+                $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
         }

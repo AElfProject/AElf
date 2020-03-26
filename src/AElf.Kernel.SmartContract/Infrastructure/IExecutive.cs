@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -23,5 +23,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Timestamp LastUsedTime { get; set; }
 
         bool IsSystemContract { get; }
+        
+        string ContractVersion { get; }
     }
 }

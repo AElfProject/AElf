@@ -1,17 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.Consensus.Scheduler.FluentScheduler</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Scheduler implementation for AEDPos using FluentScheduler.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+      <PackageReference Include="FluentScheduler" Version="5.3.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="FluentScheduler" Version="5.3.0" />
+      <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj" />
     </ItemGroup>
 
 </Project>

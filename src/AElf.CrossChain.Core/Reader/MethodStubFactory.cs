@@ -16,17 +16,21 @@ namespace AElf.CrossChain
         private Address CrossChainContractMethodAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
+        private Timestamp CurrentBlockTime { get; }
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IChainContext _chainContext;
 
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
+            ISmartContractAddressService smartContractAddressService, IChainContext chainContext,
+            Timestamp currentBlockTime)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
             _chainContext = chainContext;
+            CurrentBlockTime = currentBlockTime;
         }
 
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
@@ -49,7 +53,8 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, TimestampHelper.GetUtcNow());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
+                        CurrentBlockTime);
 
                 if (trace.IsSuccessful())
                 {

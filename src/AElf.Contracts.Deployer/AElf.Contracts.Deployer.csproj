@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <PackageId>AElf.Contracts.Deployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputType>Exe</OutputType>
+        <Description>Smart contract deployer.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>TRACE;UNIT_TEST</DefineConstants>
@@ -17,10 +19,13 @@
       <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
       <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    </ItemGroup>
 
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
         <ItemGroup>
-            <PatcherDlls Include="$(TargetDir)\*"/>
+            <PatcherDlls Include="$(TargetDir)\*" />
         </ItemGroup>
         <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
         <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />

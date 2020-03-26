@@ -1,35 +1,21 @@
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
+using Google.Protobuf;
 
 namespace AElf.CrossChain.Indexing.Infrastructure
 {
-    internal class TransactionInputForBlockMiningDataProvider : ITransactionInputForBlockMiningDataProvider, ISingletonDependency
+    public interface ITransactionInputForBlockMiningDataProvider
     {
-        private readonly Dictionary<Hash, CrossChainTransactionInput> _indexedCrossChainBlockData =
-            new Dictionary<Hash, CrossChainTransactionInput>();
+        void AddTransactionInputForBlockMining(Hash blockHash, CrossChainTransactionInput crossChainTransactionInput);
+        
+        CrossChainTransactionInput GetTransactionInputForBlockMining(Hash blockHash);
 
-        public void AddTransactionInputForBlockMining(Hash blockHash, CrossChainTransactionInput crossChainTransactionInput)
-        {
-            _indexedCrossChainBlockData[blockHash] = crossChainTransactionInput;
-        }
-
-        public CrossChainTransactionInput GetTransactionInputForBlockMining(Hash blockHash)
-        {
-            return _indexedCrossChainBlockData.TryGetValue(blockHash, out var crossChainBlockData)
-                ? crossChainBlockData
-                : null;
-        }
-
-        public void ClearExpiredTransactionInput(long blockHeight)
-        {
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < blockHeight)
-                .Select(kv => kv.Key).ToList();
-            foreach (var hash in toRemoveList)
-            {
-                _indexedCrossChainBlockData.Remove(hash);
-            }
-        }
+        void ClearExpiredTransactionInput(long blockHeight);
+    }
+    
+    public class CrossChainTransactionInput
+    {
+        public long PreviousBlockHeight { get; set; }
+        public string MethodName { get; set; }
+        public ByteString Value { get; set; }
     }
 }

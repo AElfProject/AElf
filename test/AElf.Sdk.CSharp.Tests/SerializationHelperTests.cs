@@ -111,7 +111,7 @@ namespace AElf.Sdk.CSharp.Tests
             var header = new BlockHeader
             {
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
-                Height = Constants.GenesisBlockHeight,
+                Height = AElfConstants.GenesisBlockHeight,
                 Bloom = ByteString.CopyFromUtf8("bloom"),
                 PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                 MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),

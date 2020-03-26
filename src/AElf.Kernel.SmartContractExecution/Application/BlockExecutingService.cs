@@ -17,15 +17,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
-        private readonly ILocalParallelTransactionExecutingService _executingService;
+        private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
-        public BlockExecutingService(ILocalParallelTransactionExecutingService executingService,
+        public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService)
         {
-            _executingService = executingService;
+            _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             EventBus = NullLocalEventBus.Instance;
         }
@@ -45,9 +45,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
             var nonCancellableReturnSets =
-                await _executingService.ExecuteAsync(
+                await _transactionExecutingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
-                    CancellationToken.None, true);
+                    CancellationToken.None);
             Logger.LogTrace("Executed non-cancellable txs");
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
@@ -55,14 +55,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
-                cancellableReturnSets = await _executingService.ExecuteAsync(
+                cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
                     new TransactionExecutingDto
                     {
                         BlockHeader = blockHeader,
                         Transactions = cancellable,
                         PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
                     },
-                    cancellationToken, false);
+                    cancellationToken);
                 returnSetCollection.AddRange(cancellableReturnSets);
                 Logger.LogTrace("Executed cancellable txs");
             }
@@ -106,10 +106,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     blockStateSet.Changes.Remove(delete.Key);
                 }
 
-                if (returnSet.Status == TransactionResultStatus.Mined)
-                {
-                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
-                }
+                bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);

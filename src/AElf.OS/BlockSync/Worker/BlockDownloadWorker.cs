@@ -1,19 +1,16 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
-using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
-
-[assembly: InternalsVisibleTo("AElf.OS.Tests")]
 
 namespace AElf.OS.BlockSync.Worker
 {

@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 
 namespace AElf.CrossChain.Communication.Grpc

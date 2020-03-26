@@ -3,11 +3,13 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel
 {
@@ -18,16 +20,15 @@ namespace AElf.Kernel
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
-        private readonly IForkCacheService _forkCacheService;
         private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
             ITransactionBlockIndexService transactionBlockIndexService, 
-            IForkCacheService forkCacheService,
             IChainBlockLinkService chainBlockLinkService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
@@ -35,10 +36,10 @@ namespace AElf.Kernel
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
-            _forkCacheService = forkCacheService;
             _chainBlockLinkService = chainBlockLinkService;
             _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -75,12 +76,16 @@ namespace AElf.Kernel
                             await _blockchainService.CleanChainBranchAsync(discardedBranch);
                         }
 
-                        await _forkCacheService.MergeAndCleanForkCacheAsync(irreversibleBlockHash, irreversibleBlockHeight);
+                        await LocalEventBus.PublishAsync(new CleanBlockExecutedDataChangeHeightEventData
+                        {
+                            IrreversibleBlockHeight = irreversibleBlockHeight
+                        });
+                        _chainBlockLinkService.CleanCachedChainBlockLinks(irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
-                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(irreversibleBlockHeight);
+                await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
                 
                 // Clean idle executive
                 _smartContractExecutiveService.CleanIdleExecutive();

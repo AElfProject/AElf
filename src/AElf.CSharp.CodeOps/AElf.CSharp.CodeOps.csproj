@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Smart contract code operations like auditing, patching and validating.</Description>
     </PropertyGroup>
 
     <ItemGroup>
@@ -10,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 

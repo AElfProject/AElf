@@ -2,10 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
@@ -16,7 +19,6 @@ using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
-using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
 
 namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 {
@@ -201,7 +203,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var createNewParliamentRet = await parliamentStub.CreateOrganization.SendAsync(newParliament);
             var newParliamentAddress = new Address();
             newParliamentAddress.MergeFrom(createNewParliamentRet.TransactionResult.ReturnValue);
-            
+            var authority = new Acs1.AuthorityInfo
+            {
+                ContractAddress = ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
+                OwnerAddress = newParliamentAddress
+            };
             var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             var parliamentOrgAddress = defaultOrganizationAddress;
             var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
@@ -230,8 +236,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetControllerForSideChainParliament),
-                Params = newParliamentAddress.ToByteString(),
+                // ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainParliamentController),
+                Params = authority.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress
             };
@@ -278,7 +285,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRentedResources),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRentedResources),
                 Params = updateParam.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress
@@ -312,12 +319,16 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+            
+            await CreateToken(
+                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
 
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Initialize),
-                Params = new InitializeInput
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain),
+                Params = new InitializeFromParentChainInput()
                 {
                     ResourceAmount =
                     {
@@ -325,20 +336,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                         {"RAM", RamAmount},
                         {"DISK", DiskAmount},
                         {"NET", NetAmount}
-                    }
+                    },
+                    Creator = Creator
                 }.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
             });
-
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
-                Params = Creator.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = defaultOrganizationAddress
-            });
+            
             var updateRentalInput = new UpdateRentalInput
             {
                 Rental =
@@ -349,10 +353,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"NET", Rental},
                 }
             };
-            await CreateToken(
-                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
-                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
-            await TokenStub.InitializeAuthorizedController.SendAsync(new Empty());
             var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
             var parliamentOrgAddress = defaultOrganizationAddress;
             var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
@@ -374,11 +374,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     MaximalAbstentionThreshold = 0
                 }
             };
-            var associationAddress = await AssociationStub.CalculateOrganizationAddress.CallAsync(createOrganizationInput2);
+            var associationAddressRet = await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2);
+            var associationAddress = new Address();
+            associationAddress.MergeFrom(associationAddressRet.TransactionResult.ReturnValue);
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.UpdateRental),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental),
                 Params = updateRentalInput.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress

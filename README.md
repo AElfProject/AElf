@@ -1,15 +1,16 @@
 # AElf - A Decentralized Cloud Computing Blockchain Network 
 
-[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf)
-[![Build status](https://ci.appveyor.com/api/projects/status/wnehtmk2up4l5w5j/branch/dev?svg=true)](https://ci.appveyor.com/project/AElfProject/aelf/branch/dev)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed/aelfproject/aelf.svg)](https://app.gitkraken.com/glo/board/XKsOZJarBgAPseno)
-[![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
 [![lisence](https://img.shields.io/github/license/AElfProject/AElf.svg)](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
 [![Nuget](https://img.shields.io/nuget/v/AElf.OS.svg)](https://www.nuget.org/packages?q=aelf)
 [![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project-dev/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project-dev)
-
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Gitter](https://badges.gitter.im/aelfproject/community.svg)](https://gitter.im/aelfproject/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+BRANCH | TRAVIS CI | AZURE PIPELINES | TESTS | CODE COVERAGE
+-------|-----------|-----------------|-------|--------------
+MASTER |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=master)](https://travis-ci.org/AElfProject/AElf) | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
+DEV    |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf) | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
 
 Welcome to AElf's official GitHub repo ! 
 
@@ -18,37 +19,34 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [Documentation](https://docs.aelf.io/v/dev/)
+    * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
+    * [Running a node](https://docs.aelf.io/v/dev/main/main/docker)
+    * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
+    * [Web Api](https://docs.aelf.io/v/dev/reference)
+    * [Testnet](https://docs.aelf.io/v/dev/resources/testnet)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
+
+This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
+ecosystem:
+
+TOOL/LIBRARY | description
+-------------|-------------
+[aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | Javascript development kit for interacting with an AElf node, useful for dApp developers. 
+[aelf-command](https://github.com/AElfProject/aelf-command) | CLI tool for interacting with an AElf node and wallet.
+[aelf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | framework for smart contract and dApp development.
 
 ## Getting Started
 
 ### This repository
 
-This repo is where you will find the code that can use to run an AElf node and the command line tool used to interact with it. It also contains a **tests** folder that centralizes all the unit tests.
+This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
 
-If you're looking for the js sdk, follow this [link](https://github.com/AElfProject/aelf-sdk.js).
+### Documentation
 
-### Prerequisites
-
-Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
-Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider, Visual Studio and Visual Studio Code. Strictly speaking, if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
-Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
-
-Note that, if you intend to develop AElf itself you will have to install protobuf/gRPC.
-
-### Build
-
-```bash
-sh scripts/build.sh
-```
-
-### Run the tests
-
-Our tests are in the **test** folder, in order to run you only have to execute the following script:
-
-```bash
-sh scripts/test.sh
-```
+We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
+these two guides will get you started:  
+* [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)  
+* [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)  
 
 ## Contributing
 

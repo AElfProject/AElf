@@ -7,21 +7,21 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContractState
     {
-        internal MappedState<string, MethodFees> MethodFees { get; set; }
+        internal MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<Timestamp> LastPayRentTime { get; set; }
 
         public SingletonState<Address> SideChainCreator { get; set; }
 
-        public MappedState<FeeTypeEnum, CalculateFeeCoefficientsOfType> CalculateCoefficientOfContract { get; set; }
-        public SingletonState<CalculateFeeCoefficientsOfType> CalculateCoefficientOfSender { get; set; }
-        public SingletonState<SymbolListToPayTXSizeFee> SymbolListToPayTxSizeFee { get; set; }
+        public SingletonState<AllCalculateFeeCoefficients> AllCalculateFeeCoefficients { get; set; }
+        public SingletonState<SymbolListToPayTxSizeFee> SymbolListToPayTxSizeFee { get; set; }
 
         /// <summary>
-        /// Symbol -> Amount
+        /// Symbol -> Amount (TBD)
         /// (CPU: core)
         /// (RAM: GiB)
         /// (DISK: GiB)
+        /// (NET: MB)
         /// </summary>
         public MappedState<string, int> ResourceAmount { get; set; }
 

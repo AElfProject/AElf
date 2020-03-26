@@ -50,8 +50,6 @@ namespace AElf.Contracts.Profit.BVT
             var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
 
             scheme.Manager.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
-            scheme.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
-                .ShouldBe(contributeAmount);
 
             var schemeAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
                 new SchemePeriod
@@ -108,7 +106,7 @@ namespace AElf.Contracts.Profit.BVT
                 });
                 distributedInformation.IsReleased.ShouldBeTrue();
                 distributedInformation.TotalShares.ShouldBe(0);
-                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(-contributeAmountEachTime);
             }
 
@@ -123,7 +121,7 @@ namespace AElf.Contracts.Profit.BVT
                 });
                 distributedInformation.IsReleased.ShouldBeTrue();
                 distributedInformation.TotalShares.ShouldBe(periodToTotalShares[1]);
-                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
 
@@ -137,7 +135,7 @@ namespace AElf.Contracts.Profit.BVT
                     SchemeId = schemeId
                 });
                 distributedInformation.TotalShares.ShouldBe(periodToTotalShares[2]);
-                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
 
@@ -151,7 +149,7 @@ namespace AElf.Contracts.Profit.BVT
                     SchemeId = schemeId
                 });
                 distributedInformation.TotalShares.ShouldBe(periodToTotalShares[3]);
-                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
 
@@ -165,7 +163,7 @@ namespace AElf.Contracts.Profit.BVT
                     SchemeId = schemeId
                 });
                 distributedInformation.TotalShares.ShouldBe(periodToTotalShares[3]);
-                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
         }
@@ -184,7 +182,6 @@ namespace AElf.Contracts.Profit.BVT
             {
                 SchemeId = schemeId,
                 Period = period,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
         }
 

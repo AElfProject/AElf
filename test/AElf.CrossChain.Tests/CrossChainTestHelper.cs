@@ -5,6 +5,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CrossChain
 {
@@ -60,7 +61,7 @@ namespace AElf.CrossChain
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
                 if (parentChainId != 0)
-                    return new SInt32Value {Value = parentChainId}.ToByteArray();
+                    return new Int32Value {Value = parentChainId}.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return null;
             }
@@ -69,17 +70,17 @@ namespace AElf.CrossChain
             {
                 return _parentChainIdHeight.Count == 0
                     ? null
-                    : new SInt64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
+                    : new Int64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
             }
 
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainHeight))
             {
-                int sideChainId = SInt32Value.Parser.ParseFrom(transaction.Params).Value;
+                int sideChainId = Int32Value.Parser.ParseFrom(transaction.Params).Value;
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
                 if (exist)
-                    return new SInt64Value{Value = sideChainHeight}.ToByteArray();
+                    return new Int64Value{Value = sideChainHeight}.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new SInt64Value().ToByteArray();
+                return new Int64Value().ToByteArray();
             }
 
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetAllChainsIdAndHeight))
@@ -99,7 +100,7 @@ namespace AElf.CrossChain
             
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight))
             {
-                long height = SInt64Value.Parser.ParseFrom(transaction.Params).Value;
+                long height = Int64Value.Parser.ParseFrom(transaction.Params).Value;
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
                     return crossChainBlockData.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
@@ -114,8 +115,7 @@ namespace AElf.CrossChain
                     sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
                     {
                         ChainId = kv.Key,
-                        IndexedHeight = kv.Value,
-                        ToBeIndexedCount = long.MaxValue
+                        IndexedHeight = kv.Value
                     });
                 }
                 

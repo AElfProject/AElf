@@ -7,7 +7,6 @@ using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -42,7 +41,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ActionBlock<QueuedTransaction> _processTransactionJobs;
 
-        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -227,7 +226,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
-                    Logger.LogWarning("Tx pool is full.");
                     return;
                 }
 
@@ -278,7 +276,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Process transaction failed.");
-                throw;
             }
         }
 
@@ -323,10 +320,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
         {
-            CleanTransactions(eventData.Transactions);
-
+            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 

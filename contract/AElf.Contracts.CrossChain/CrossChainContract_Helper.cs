@@ -4,16 +4,14 @@ using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -37,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, MerklePath path)
         {
             var txResultStatusRawBytes =
-                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
+                EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
             var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
             return path.ComputeRootWithLeafNode(hash);
         }
@@ -62,6 +60,8 @@ namespace AElf.Contracts.CrossChain
 
         private void ChargeSideChainIndexingFee(Address lockAddress, long amount, int chainId)
         {
+            if (amount <= 0)
+                return;
             TransferFrom(new TransferFromInput
             {
                 From = lockAddress,
@@ -77,7 +77,7 @@ namespace AElf.Contracts.CrossChain
             // unlock token
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
-            if (balance <= 0) 
+            if (balance <= 0)
                 return;
             Transfer(new TransferInput
             {
@@ -91,13 +91,10 @@ namespace AElf.Contracts.CrossChain
         public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
-            Assert(
-                sideChainCreationRequest.LockedTokenAmount > 0 &&
-                sideChainCreationRequest.IndexingPrice >= 0 &&
-                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
-                "Invalid chain creation request.");
+            var proposedRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
+            Assert(proposedRequest == null || Context.CurrentBlockTime >= proposedRequest.ExpiredTime,
+                "Request side chain creation failed.");
+
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
             {
@@ -106,15 +103,25 @@ namespace AElf.Contracts.CrossChain
                 Symbol = Context.Variables.NativeSymbol
             }).Allowance;
             Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
-            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
-                sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
-            AssertValidResourceTokenAmount(sideChainCreationRequest);
+            if (sideChainCreationRequest.IsPrivilegePreserved)
+            {
+                Assert(
+                    sideChainCreationRequest.LockedTokenAmount > 0 &&
+                    sideChainCreationRequest.IndexingPrice >= 0 &&
+                    sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
+                    "Invalid chain creation request.");
+                AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
+                    sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+                AssertValidResourceTokenAmount(sideChainCreationRequest);
+            }
         }
 
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
         {
             var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            foreach (var resourceTokenSymbol in Context.Variables.GetStringArray(PayRentalSymbolListName))
             {
                 Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
                     "Invalid side chain resource token request.");
@@ -146,8 +153,22 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
-        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId, Address creator)
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, int chainId,
+            Address creator)
         {
+            if (!sideChainCreationRequest.IsPrivilegePreserved)
+                return;
+
+            // new token needed only for exclusive side chain
+            var sideChainTokenInfo = new SideChainTokenInfo
+            {
+                TokenName = sideChainCreationRequest.SideChainTokenName,
+                Symbol = sideChainCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
+                Decimals = sideChainCreationRequest.SideChainTokenDecimals,
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
+                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
+            };
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -159,31 +180,6 @@ namespace AElf.Contracts.CrossChain
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply,
                 IsProfitable = sideChainTokenInfo.IsProfitable
-            });
-        }
-
-        private void InitialResourceUsage(int chainId, MapField<string, int> initialResourceAmount)
-        {
-            if (State.ConfigurationContract.Value == null)
-            {
-                var configurationContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
-                if (configurationContractAddress == null)
-                {
-                    // If Configuration Contract has not deployed, skip following options.
-                    return;
-                }
-
-                State.ConfigurationContract.Value = configurationContractAddress;
-            }
-
-            State.ConfigurationContract.RentResourceTokens.Send(new RentResourceTokensInput
-            {
-                ChainId = new SInt32Value {Value = chainId},
-                ResourceTokenAmount = new ResourceTokenAmount
-                {
-                    Value = {initialResourceAmount.ToDictionary(i => i.Key, i => i.Value)}
-                }
             });
         }
 
@@ -307,7 +303,6 @@ namespace AElf.Contracts.CrossChain
                 out var pendingCrossChainIndexingProposal);
             Assert(
                 pendingProposalExists &&
-                pendingCrossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.ToBeReleased &&
                 pendingCrossChainIndexingProposal.ProposedCrossChainBlockData.Equals(recordCrossChainDataInput
                     .ProposedCrossChainData) &&
                 pendingCrossChainIndexingProposal.Proposer == recordCrossChainDataInput.Proposer,
@@ -315,13 +310,15 @@ namespace AElf.Contracts.CrossChain
             State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
         }
 
-        private void AssertIsCrossChainBlockDataAlreadyProposed(CrossChainIndexingProposal crossChainIndexingProposal)
+        private void AssertIsCrossChainBlockDataAlreadyProposed()
         {
+            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Proposed,
+                out var proposedCrossChainIndexingProposal);
             Assert(
-                crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.Proposed &&
-                crossChainIndexingProposal.Proposer != null &&
-                crossChainIndexingProposal.ProposedCrossChainBlockData != null &&
-                crossChainIndexingProposal.ProposalId == null,
+                pendingProposalExists &&
+                proposedCrossChainIndexingProposal.Proposer != null &&
+                proposedCrossChainIndexingProposal.ProposedCrossChainBlockData != null &&
+                proposedCrossChainIndexingProposal.ProposalId == null,
                 "Incorrect cross chain indexing proposal status.");
         }
 
@@ -330,7 +327,7 @@ namespace AElf.Contracts.CrossChain
             return ChainHelper.GetChainId(serialNumber + Context.ChainId);
         }
 
-        private void ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
+        private SideChainCreationRequestState ProposeNewSideChain(SideChainCreationRequest request, Address proposer)
         {
             var sideChainLifeTimeController = GetSideChainLifetimeController();
             var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -351,6 +348,13 @@ namespace AElf.Contracts.CrossChain
             Context.SendInline(sideChainLifeTimeController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                     .CreateProposalBySystemContract), proposalCreationInput);
+            var sideChainCreationRequest = new SideChainCreationRequestState()
+            {
+                SideChainCreationRequest = request,
+                ExpiredTime = proposalCreationInput.ProposalInput.ExpiredTime,
+                Proposer = proposer
+            };
+            return sideChainCreationRequest;
         }
 
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
@@ -400,7 +404,13 @@ namespace AElf.Contracts.CrossChain
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
             var proposal = GetCrossChainIndexingProposal(proposalId);
-            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
+            if (!proposal.ToBeReleased)
+            {
+                SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
+                Assert(State.ConsensusContract.GetCurrentRoundInformation.Call(new Empty()).IsMinerListJustChanged,
+                    "Not approved cross chain indexing proposal.");
+            }
+
             var crossChainIndexingController = GetCrossChainIndexingController();
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
@@ -457,14 +467,14 @@ namespace AElf.Contracts.CrossChain
             State.BannedMinerHeight[address] = Context.CurrentHeight;
         }
 
-        private void ClearExpiredCrossChainIndexingProposalIfExists()
+        private void ClearCrossChainIndexingProposalIfExpired()
         {
             var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
             if (crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.NonProposed)
                 return;
 
             var isExpired = CheckProposalExpired(crossChainIndexingProposal.ProposalId);
-            Assert(isExpired, "Unable to clear cross chain indexing proposal which is not expired.");
+            Assert(isExpired, "Unable to clear cross chain indexing proposal not expired.");
             //            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
             ResetCrossChainIndexingProposal();
         }
@@ -473,7 +483,7 @@ namespace AElf.Contracts.CrossChain
         {
             var isExpired = CheckProposalExpired(proposalId);
             if (isExpired)
-                State.ProposedSideChainCreationRequest.Remove(proposer);
+                State.ProposedSideChainCreationRequestState.Remove(proposer);
             return isExpired;
         }
 
@@ -486,29 +496,30 @@ namespace AElf.Contracts.CrossChain
         private void CreateInitialOrganizationForInitialControllerAddress()
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            State.ParliamentContract.CreateOrganizationBySystemContract.Send(new Parliament.CreateOrganizationBySystemContractInput
-            {
-                OrganizationCreationInput = new Parliament.CreateOrganizationInput
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(
+                new Parliament.CreateOrganizationBySystemContractInput
                 {
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    OrganizationCreationInput = new Parliament.CreateOrganizationInput
                     {
-                        MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
-                        MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
-                        MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
-                        MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
+                        ProposalReleaseThreshold = new ProposalReleaseThreshold
+                        {
+                            MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
+                            MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
+                            MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
+                            MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
+                        },
+                        ProposerAuthorityRequired = false,
+                        ParliamentMemberProposingAllowed = true
                     },
-                    ProposerAuthorityRequired = false,
-                    ParliamentMemberProposingAllowed = true
-                },
-                OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
-            });
+                    OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+                });
         }
 
         private Association.CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
             Address sideChainCreator)
         {
             var proposers = new List<Address> {sideChainCreator, GetSideChainLifetimeController().OwnerAddress};
-            var createOrganizationInput = new Association.CreateOrganizationInput
+            var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
@@ -579,7 +590,7 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : Constants.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : AElfConstants.GenesisBlockHeight;
                 // indexing fee
                 // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 // var lockedToken = State.IndexingBalance[chainId];
@@ -590,9 +601,6 @@ namespace AElf.Contracts.CrossChain
                         return false;
                     target++;
                 }
-
-                // if (indexingPrice.Mul(group.Count()) > lockedToken)
-                //     return false;
             }
 
             return true;
@@ -689,7 +697,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     var target = currentSideChainHeight != 0
                         ? currentSideChainHeight + 1
-                        : Constants.GenesisBlockHeight;
+                        : AElfConstants.GenesisBlockHeight;
                     var sideChainHeight = sideChainBlockData.Height;
                     if (target != sideChainHeight)
                         break;
@@ -717,9 +725,6 @@ namespace AElf.Contracts.CrossChain
                     indexedSideChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
                 }
 
-                Context.LogDebug(() =>
-                    $"## [ {State.CurrentSideChainHeight[chainId]} - {currentSideChainHeight} ] from side chain {chainId} indexed by {proposer}, index blocks {currentSideChainHeight - State.CurrentSideChainHeight[chainId] + 1} ");
-
                 if (arrearsAmount > 0)
                 {
                     if (sideChainInfo.ArrearsInfo.TryGetValue(formattedProposerAddress, out var amount))
@@ -746,6 +751,12 @@ namespace AElf.Contracts.CrossChain
             }
 
             return indexedSideChainBlockData;
+        }
+
+        private void EnsureTransactionOnlyExecutedOnceInOneBlock()
+        {
+            Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
+            State.LatestExecutedHeight.Value = Context.CurrentHeight;
         }
     }
 }

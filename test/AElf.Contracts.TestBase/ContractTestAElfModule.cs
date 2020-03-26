@@ -54,15 +54,8 @@ namespace AElf.Contracts.TestBase
 
                 return mockService.Object;
             });
-
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            
-            Configure<ContractOptions>(options =>
-            {
-                options.ContractFeeStrategyAcsList = new List<string>{"acs1"};
-            });
         }
     }
 }

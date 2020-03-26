@@ -19,20 +19,5 @@ namespace AElf.Kernel.TransactionPool.Application
         /// <param name="transaction"></param>
         /// <returns></returns>
         Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction);
-
-        /// <summary>
-        /// Prevent txs of special kind from entering tx hub (too much).
-        /// This validation needs states cached.
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash);
-
-        /// <summary>
-        /// Command to clear constrained tx validation provider.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        void ClearConstrainedTransactionValidationProvider(Hash blockHash);
     }
 }

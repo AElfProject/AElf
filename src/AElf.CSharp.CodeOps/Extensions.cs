@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -42,6 +43,78 @@ namespace AElf.CSharp.CodeOps
             return instruction.OpCode + operandStr;
         }
 
+        public static IEnumerable<FieldDefinition> GetStaticFields(this TypeDefinition type)
+        {
+            // Get static fields from type
+            var fields = type.Fields.Where(f => 
+                f.IsPublic && 
+                f.IsStatic && 
+                !(f.IsInitOnly || f.HasConstant)
+                ).ToList();
+
+            // Get static fields from nested types 
+            fields.AddRange(type.NestedTypes.SelectMany(GetStaticFields));
+
+            return fields;
+        }
+
+        public static IEnumerable<FieldDefinition> GetAllFields(this TypeDefinition type, Func<FieldDefinition, bool> condition)
+        {
+            var fields = type.Fields.Where(condition).ToList();
+
+            if (type.BaseType is TypeDefinition baseType)
+            {
+                fields.AddRange(baseType.GetAllFields(condition));
+            }
+
+            return fields;
+        }
+
+        private static GenericInstanceType FindGenericInstanceType(TypeDefinition type)
+        {
+            while (true)
+            {
+                switch (type.BaseType)
+                {
+                    case null:
+                        return null;
+                    case GenericInstanceType genericInstanceType:
+                        return genericInstanceType;
+                    default:
+                        type = type.BaseType.Resolve();
+                        continue;
+                }
+            }
+        }
+
+        public static bool IsContractImplementation(this TypeDefinition type)
+        {
+            var baseGenericInstanceType = FindGenericInstanceType(type);
+
+            if (baseGenericInstanceType == null)
+                return false;
+
+            var elementType = baseGenericInstanceType.ElementType.Resolve();
+
+            var baseType = GetBaseType(elementType);
+            
+            return baseType.Interfaces.Any(i => i.InterfaceType.FullName == typeof(ISmartContract).FullName);
+        }
+        
+        public static bool IsStateImplementation(this TypeDefinition type)
+        {
+            return GetBaseType(type).FullName == typeof(StateBase).FullName;
+        }
+
+        private static TypeDefinition GetBaseType(this TypeDefinition type)
+        {
+            while (true)
+            {
+                if (type.BaseType == null || type.BaseType.FullName == typeof(object).FullName) return type;
+                type = type.BaseType.Resolve();
+            }
+        }
+
         public static bool HasSameParameters(this MethodDefinition sourceMethod, MethodDefinition targetMethod)
         {
             // Don't mind if injected type method has more parameters since we check the body to be the same
@@ -60,44 +133,6 @@ namespace AElf.CSharp.CodeOps
                            tp.Name == sp.Name && tp.FieldType.FullName == sp.FieldType.FullName) != null);
         }
 
-        public static void RemoveCoverLetInjectedInstructions(this MethodDefinition method)
-        {
-            if (!method.IsMethodCoverletInjected())
-                return;
-
-            var methodInstructions = method.Body.Instructions.ToList();
-            var il = method.Body.GetILProcessor();
-            il.Body.SimplifyMacros();
-
-            // Update branching instructions if they are pointing to coverlet injected code
-            foreach (var instruction in methodInstructions)
-            {
-                // Skip if not a branching instruction
-                if (!Constants.JumpingOpCodes.Contains(instruction.OpCode)) continue;
-                
-                var targetInstruction = (Instruction) instruction.Operand;
-
-                if (targetInstruction.Next == null) continue; // Probably end of method body
-                
-                if (targetInstruction.Next.IsCoverletInjectedInstruction())
-                {
-                    // Point to next
-                    il.Replace(instruction, 
-                        il.Create(instruction.OpCode, GetNextNonCoverletInstruction(targetInstruction.Next)));
-                }
-            }
-
-            foreach (var instruction in methodInstructions
-                .Where(instruction => instruction.IsCoverletInjectedInstruction()))
-            {
-                // Remove coverlet injected instructions
-                il.Remove(instruction.Previous);
-                il.Remove(instruction);
-            }
-            
-            il.Body.OptimizeMacros();
-        }
-        
         private static void PrintBody(this MethodDefinition method)
         {
             foreach (var instruction in method.Body.Instructions)

@@ -6,6 +6,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -70,7 +71,7 @@ namespace AElf.Contracts.Association
                 getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
             }
         }
-        
+
         [Fact]
         public async Task Create_OrganizationOnMultiChains_Test()
         {
@@ -391,6 +392,20 @@ namespace AElf.Contracts.Association
                     await associationContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+
+            // "Proposal with invalid url"
+            {
+                var anotherAssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
+                createProposalInput.ProposalDescriptionUrl = "test.com";
+                var transactionResult =
+                    await anotherAssociationContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+
+                createProposalInput.ProposalDescriptionUrl = "https://test.com/test%abcd%&wxyz";
+                var transactionResult2 =
+                    await associationContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
@@ -431,6 +446,13 @@ namespace AElf.Contracts.Association
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
             var error = await AssociationContractStub.Approve.CallWithExceptionAsync(proposalId);
             error.Value.ShouldContain("Invalid proposal.");
+
+            //Clear expire proposal
+            var result = await AssociationContractStub.ClearProposal.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var queryProposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
+            queryProposal.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -794,6 +816,15 @@ namespace AElf.Contracts.Association
             var result = await associationContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Unauthorized to propose.");
+
+            //Verify association proposal
+            var verifyResult = await associationContractStub.ValidateProposerInWhiteList.CallAsync(
+                new ValidateProposerInWhiteListInput
+                {
+                    OrganizationAddress = organizationAddress,
+                    Proposer = Reviewer2
+                });
+            verifyResult.Value.ShouldBeTrue();
         }
 
         [Fact]
@@ -847,19 +878,58 @@ namespace AElf.Contracts.Association
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await AssociationContractStub.ChangeMethodFeeController.SendWithExceptionAsync(new AuthorityInfo
-            {
-                OwnerAddress = organizationAddress,
-                ContractAddress = ParliamentContractAddress
-            });
+            var result = await AssociationContractStub.ChangeMethodFeeController.SendWithExceptionAsync(
+                new AuthorityInfo
+                {
+                    OwnerAddress = organizationAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
-        
+
+        [Fact]
+        public async Task SetMethodFee_Test()
+        {
+            var input = new MethodFees
+            {
+                MethodName = nameof(AssociationContractStub.CreateOrganization),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 5000_0000L
+                    }
+                }
+            };
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposal = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = nameof(AssociationContractStub.SetMethodFee),
+                ToAddress = AssociationContractAddress,
+                Params = input.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = proposal.Output;
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+
+            //Query result
+            var transactionFee = await AssociationContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(AssociationContractStub.CreateOrganization)
+            });
+            var feeItem = transactionFee.Fees.First();
+            feeItem.Symbol.ShouldBe("ELF");
+            feeItem.BasicFee.ShouldBe(5000_0000L);
+        }
+
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
         {
-            var transferInput = new TransferInput()
+            var transferInput = new TransferInput
             {
                 Symbol = "ELF",
                 Amount = 100,
@@ -956,28 +1026,56 @@ namespace AElf.Contracts.Association
         private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var associationContractStub = GetAssociationContractTester(reviewer);
-
-            var transactionResult1 =
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
+            var transactionResult =
                 await associationContractStub.Approve.SendAsync(proposalId);
-            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(associationContractStub.Approve));
         }
 
         private async Task RejectAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var associationContractStub = GetAssociationContractTester(reviewer);
-
-            var transactionResult1 =
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
+            var transactionResult =
                 await associationContractStub.Reject.SendAsync(proposalId);
-            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(associationContractStub.Reject));
         }
 
         private async Task AbstainAsync(ECKeyPair reviewer, Hash proposalId)
         {
             var associationContractStub = GetAssociationContractTester(reviewer);
 
-            var transactionResult1 =
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
+            var transactionResult =
                 await associationContractStub.Abstain.SendAsync(proposalId);
-            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiptCreated = ReceiptCreated.Parser.ParseFrom(transactionResult.TransactionResult.Logs
+                .FirstOrDefault(l => l.Name == nameof(ReceiptCreated))
+                ?.NonIndexed);
+            ValidateReceiptCreated(receiptCreated, Address.FromPublicKey(reviewer.PublicKey), proposalId, utcNow,
+                nameof(associationContractStub.Abstain));
+        }
+
+        private void ValidateReceiptCreated(ReceiptCreated receiptCreated, Address sender, Hash proposalId,
+            Timestamp blockTime, string receiptType)
+        {
+            receiptCreated.Address.ShouldBe(sender);
+            receiptCreated.ProposalId.ShouldBe(proposalId);
+            receiptCreated.Time.ShouldBe(blockTime);
+            receiptCreated.ReceiptType.ShouldBe(receiptType);
         }
 
         protected async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,
@@ -991,7 +1089,7 @@ namespace AElf.Contracts.Association
                 Params = input.ToByteString(),
                 ToAddress = contractAddress
             };
-            
+
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             var proposalId = createResult.Output;
             return proposalId;

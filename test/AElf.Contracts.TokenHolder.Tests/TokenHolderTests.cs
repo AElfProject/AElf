@@ -5,6 +5,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -150,7 +151,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {
@@ -167,7 +168,6 @@ namespace AElf.Contracts.TokenHolder
             await userProfitStub.ClaimProfits.SendAsync(new Profit.ClaimProfitsInput
             {
                 SchemeId = tokenHolderProfitScheme.SchemeId,
-                Symbol = "ELF"
             });
             
             {
@@ -188,7 +188,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {
@@ -205,7 +205,6 @@ namespace AElf.Contracts.TokenHolder
             await userTokenHolderStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
             });
             
             {

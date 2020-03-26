@@ -1,6 +1,7 @@
 using System.Linq;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -65,14 +66,6 @@ namespace AElf.Contracts.Referendum
 
         #endregion
 
-        public override Empty Initialize(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
-            AddTokenWhitList();
-            return new Empty();
-        }
-
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
@@ -90,11 +83,15 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(organization), "Invalid organization data.");
 
+            if (State.Organisations[organizationAddress] != null) 
+                return organizationAddress;
+            
             State.Organisations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
             });
+
             return organizationAddress;
         }
         
@@ -138,7 +135,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Approve);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -150,7 +149,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Reject);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -162,7 +163,9 @@ namespace AElf.Contracts.Referendum
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            referendumReceiptCreated.ReceiptType = nameof(Abstain);
+            Context.Fire(referendumReceiptCreated);
             return new Empty();
         }
 
@@ -170,7 +173,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = State.Proposals[input];
             Assert(proposal == null ||
-                   Context.CurrentBlockTime > proposal.ExpiredTime, "Unable to reclaim at this time.");
+                   Context.CurrentBlockTime >= proposal.ExpiredTime, "Unable to reclaim at this time.");
             UnlockToken(input, Context.Sender);
             return new Empty();
         }
@@ -182,6 +185,11 @@ namespace AElf.Contracts.Referendum
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
@@ -192,6 +200,11 @@ namespace AElf.Contracts.Referendum
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationWhiteListChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
 
@@ -199,7 +212,7 @@ namespace AElf.Contracts.Referendum
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime >= proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }

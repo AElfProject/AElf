@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -42,23 +41,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader,
             ISmartContractAddressNameProvider smartContractAddressNameProvider)
         {
-            var t = new Transaction()
+            var transaction = new Transaction()
             {
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName), 
                 Params = smartContractAddressNameProvider.ContractName.ToByteString()
             };
-
-            var transactionResult =
-                (await _transactionExecutingService.ExecuteAsync(
-                    new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    TimestampHelper.GetUtcNow()));
-
-            if (!transactionResult.IsSuccessful())
-                throw new InvalidOperationException();
-
-            var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
+            var address = await _transactionExecutingService.ExecuteAsync<Address>(
+                new ChainContext {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, transaction,
+                TimestampHelper.GetUtcNow(), true);
 
             if (!address.Value.IsEmpty)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);

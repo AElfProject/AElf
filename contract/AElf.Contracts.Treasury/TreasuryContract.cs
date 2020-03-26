@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -14,7 +16,7 @@ namespace AElf.Contracts.Treasury
 {
     // ReSharper disable InconsistentNaming
     /// <summary>
-    /// The Treasury is the largest profit item in AElf main chain.
+    /// The Treasury is the largest profit scheme in AElf main chain.
     /// Actually the Treasury is our Dividends Pool.
     /// Income of the Treasury is mining rewards
     /// (AEDPoS Contract will:
@@ -22,12 +24,12 @@ namespace AElf.Contracts.Treasury
     /// the amount of ELF should be based on blocks produced during last term. 1,000,000 * 1250000 ELF,
     /// then release the Treasury;
     /// 2. Release Treasury)
-    /// 3 sub profit items:
+    /// 3 sub profit schemes:
     /// (Mining Reward for Miners) - 3
     /// (Subsidy for Candidates / Backups) - 1
     /// (Welfare for Electors / Voters / Citizens) - 1
     ///
-    /// 3 sub profit items for Mining Rewards:
+    /// 3 sub profit schemes for Mining Rewards:
     /// (Basic Rewards) - 4
     /// (Miner's Votes Shares) - 1
     /// (Re-Election Rewards) - 1
@@ -46,7 +48,7 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
-            // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
+            // Create profit schemes: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {
@@ -65,7 +67,13 @@ namespace AElf.Contracts.Treasury
                 });
             }
 
+            InitializeVoteWeightInterest();
             State.Initialized.Value = true;
+
+            State.SymbolList.Value = new SymbolList
+            {
+                Value = {Context.Variables.NativeSymbol}
+            };
 
             return new Empty();
         }
@@ -115,7 +123,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Release(ReleaseInput input)
         {
-            MaybeLoadAEDPoSContractAddress();
+            RequireAEDPoSContractStateSet();
             Assert(
                 Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
@@ -123,10 +131,10 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.TreasuryHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
-            MaybeLoadElectionContractAddress();
-            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            RequireElectionContractStateSet();
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = input.TermNumber
             });
@@ -152,35 +160,51 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var connector = State.TokenConverterContract.GetConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol = connector.RelatedSymbol != string.Empty;
+            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
+            var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (Context.Sender != Context.Self)
             {
-                From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = "Donate to treasury.",
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = "Donate to treasury.",
+                });
+            }
+
+            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
+            if (needToConvert)
+            {
+                ConvertToNativeToken(input.Symbol, input.Amount);
+            }
+            else
+            {
+                State.TokenContract.Approve.Send(new ApproveInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Spender = State.ProfitContract.Value
+                });
+
+                State.ProfitContract.ContributeProfits.Send(new ContributeProfitsInput
+                {
+                    SchemeId = State.TreasuryHash.Value,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount
+                });
+            }
 
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
-                To = isNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
+                To = State.TreasuryVirtualAddress.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
-
-            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
-            {
-                ConvertToNativeToken(input.Symbol, input.Amount);
-            }
 
             return new Empty();
         }
@@ -205,6 +229,43 @@ namespace AElf.Contracts.Treasury
                 Amount = balance
             });
 
+            return new Empty();
+        }
+        
+        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
+            State.VoteWeightInterestController.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            // ReSharper disable once PossibleNullReferenceException
+            foreach (var info in input.VoteWeightInterestInfos)
+            {
+                Assert(info.Capital > 0, "invalid input");
+                Assert(info.Day > 0, "invalid input");
+                Assert(info.Interest > 0, "invalid input");
+            }
+
+            Assert(input.VoteWeightInterestInfos.GroupBy(x => x.Day).Count() == input.VoteWeightInterestInfos.Count,
+                "repeat day input");
+            var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
+            input.VoteWeightInterestInfos.Clear();
+            input.VoteWeightInterestInfos.AddRange(orderList);
+            State.VoteWeightInterestList.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetDistributingSymbolList(SymbolList input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            State.SymbolList.Value = input;
             return new Empty();
         }
 
@@ -277,36 +338,37 @@ namespace AElf.Contracts.Treasury
 
         private void ReleaseTreasurySubProfitItems(long termNumber)
         {
+            var amountsMap = State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.RewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
         }
 
-        private void MaybeLoadAEDPoSContractAddress()
+        private void RequireAEDPoSContractStateSet()
         {
             if (State.AEDPoSContract.Value == null)
             {
@@ -315,7 +377,7 @@ namespace AElf.Contracts.Treasury
             }
         }
 
-        private void MaybeLoadElectionContractAddress()
+        private void RequireElectionContractStateSet()
         {
             if (State.ElectionContract.Value == null)
             {
@@ -326,7 +388,7 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation)
         {
-            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
@@ -507,7 +569,30 @@ namespace AElf.Contracts.Treasury
                 State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddBeneficiaries);
             }
         }
+        
+        private void AssertPerformedByVoteWeightInterestController()
+        {
+            if (State.VoteWeightInterestController.Value == null)
+            {
+                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
+            }
+            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+        }
 
+        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
+        }
         #endregion
 
         public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(
@@ -529,7 +614,7 @@ namespace AElf.Contracts.Treasury
                 return new GetWelfareRewardAmountSampleOutput();
             }
 
-            var totalAmount = releasedInformation.ProfitsAmount;
+            var totalAmount = releasedInformation.AmountsMap;
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);
@@ -544,9 +629,9 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override SInt64Value GetCurrentTreasuryBalance(Empty input)
+        public override Int64Value GetCurrentTreasuryBalance(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -560,34 +645,40 @@ namespace AElf.Contracts.Treasury
         {
             return State.TreasuryHash.Value ?? Hash.Empty;
         }
-
-        private const int DaySec = 86400;
-
-        private readonly Dictionary<int, decimal> _interestMap = new Dictionary<int, decimal>
+        
+        public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
-            {1.Mul(365).Mul(DaySec), 1.001m}, // compound interest
-            {2.Mul(365).Mul(DaySec), 1.0015m},
-            {3.Mul(365).Mul(DaySec), 1.002m}
-        };
+            return State.VoteWeightInterestList.Value;
+        }
+        
+        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
+        {
+            if (State.VoteWeightInterestController.Value == null)
+            {
+                return GetDefaultVoteWeightInterestController();
+            }
+            return State.VoteWeightInterestController.Value;
+        }
 
-        private const decimal DefaultInterest = 1.0022m; // if lockTime > 3 years, use this interest
-        private const int Scale = 10000;
+        public override SymbolList GetDistributingSymbolList(Empty input)
+        {
+            return State.SymbolList.Value;
+        }
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            long calculated = 1;
+            var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
 
-            foreach (var instMap in _interestMap) // calculate with different interest according to lockTime
+            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
-                if (lockTime > instMap.Key)
+                if (lockDays > instMap.Day)
                     continue;
-                calculated = calculated.Mul((long) (Pow(instMap.Value, (uint) lockTime.Div(DaySec)) * Scale));
-                break;
+                var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
+                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
             }
-
-            if (calculated == 1) // lockTime > 3 years
-                calculated = calculated.Mul((long) (Pow(DefaultInterest, (uint) lockTime.Div(DaySec)) * Scale));
-            return votesAmount.Mul(calculated).Add(votesAmount.Div(2)); // weight = lockTime + voteAmount 
+            var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
+            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
+            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
         }
 
         private static decimal Pow(decimal x, uint y)
@@ -597,7 +688,7 @@ namespace AElf.Contracts.Treasury
             decimal a = 1m;
             if (y == 0)
                 return a;
-            var e = new BitArray(BitConverter.GetBytes(y));
+            var e = new BitArray(y.ToBytes(false));
             var t = e.Count;
             for (var i = t - 1; i >= 0; --i)
             {
@@ -609,6 +700,32 @@ namespace AElf.Contracts.Treasury
             }
 
             return a;
+        }
+        
+        private void InitializeVoteWeightInterest()
+        {
+            if (State.VoteWeightInterestList.Value != null)
+                return;
+            var voteWeightSetting = new VoteWeightInterestList();
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 365,
+                Interest = 1,
+                Capital = 1000
+            });
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 730,
+                Interest = 15,
+                Capital = 10000
+            });
+            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            {
+                Day = 1095,
+                Interest = 2,
+                Capital = 1000
+            });
+            State.VoteWeightInterestList.Value = voteWeightSetting;
         }
     }
 }

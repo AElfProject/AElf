@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs0;
-using AElf.Contracts.Referendum;
-using AElf.Kernel;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.OS.Node.Application;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -14,21 +11,10 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Referendum")).Value,
+                GetContractCodeByName("AElf.Contracts.Referendum"),
                 ReferendumSmartContractAddressNameProvider.Name,
-                GenerateReferendumInitializationCallList());
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
             return l;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateReferendumInitializationCallList()
-        {
-            var referendumInitializationCallList =
-                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumInitializationCallList.Add(
-                nameof(ReferendumContractContainer.ReferendumContractStub.Initialize),
-                new Empty());
-            return referendumInitializationCallList;
         }
     }
 }

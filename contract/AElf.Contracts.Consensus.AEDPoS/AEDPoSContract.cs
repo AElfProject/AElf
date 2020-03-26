@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
+using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -22,13 +24,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (State.Initialized.Value) return new Empty();
 
-            State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
+            State.PeriodSeconds.Value = input.IsTermStayOne
                 ? int.MaxValue
-                : input.TimeEachTerm;
+                : input.PeriodSeconds;
 
             State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
-            Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
+            Context.LogDebug(() => $"There are {State.PeriodSeconds.Value} seconds per period.");
+
+            if (input.IsSideChain)
+            {
+                InitialProfitSchemeForSideChain(input.PeriodSeconds);
+            }
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
@@ -48,6 +55,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MaximumMinersCount.Value = int.MaxValue;
 
             return new Empty();
+        }
+
+        private void InitialProfitSchemeForSideChain(long periodSeconds)
+        {
+            var tokenHolderContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            // No need to continue if Token Holder Contract didn't deployed.
+            if (tokenHolderContractAddress == null)
+            {
+                Context.LogDebug(() => "Token Holder Contract not found, so won't initial side chain dividends pool.");
+                return;
+            }
+
+            State.TokenHolderContract.Value = tokenHolderContractAddress;
+            State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
+            {
+                Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
+                MinimumLockMinutes = periodSeconds
+            });
+
+            Context.LogDebug(() => "Side chain dividends pool created.");
         }
 
         #endregion
@@ -110,8 +138,66 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty NextRound(Round input)
         {
+            SupplyCurrentRoundInformation();
             ProcessConsensusInformation(input);
             return new Empty();
+        }
+
+        /// <summary>
+        /// To fill up with InValue and Signature if some miners didn't mined during current round.
+        /// </summary>
+        private void SupplyCurrentRoundInformation()
+        {
+            var currentRound = GetCurrentRoundInformation(new Empty());
+            Context.LogDebug(() => $"Before supply:\n{currentRound.ToString(Context.RecoverPublicKey().ToHex())}");
+            var notMinedMiners = currentRound.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
+            if (!notMinedMiners.Any()) return;
+            TryToGetPreviousRoundInformation(out var previousRound);
+            foreach (var miner in notMinedMiners)
+            {
+                Context.LogDebug(() => $"Miner pubkey {miner.Pubkey}");
+
+                Hash previousInValue = null;
+                Hash signature = null;
+
+                // Normal situation: previous round information exists and contains this miner.
+                if (previousRound != null && previousRound.RealTimeMinersInformation.ContainsKey(miner.Pubkey))
+                {
+                    // Check this miner's:
+                    // 1. PreviousInValue in current round; (means previous in value recovered by other miners)
+                    // 2. InValue in previous round; (means this miner hasn't produce blocks for a while)
+                    previousInValue = currentRound.RealTimeMinersInformation[miner.Pubkey].PreviousInValue;
+                    if (previousInValue == null)
+                    {
+                        previousInValue = previousRound.RealTimeMinersInformation[miner.Pubkey].InValue;
+                    }
+
+                    // If previousInValue is still null, treat this as abnormal situation.
+                    if (previousInValue != null)
+                    {
+                        Context.LogDebug(() => $"Previous round: {previousRound.ToString(miner.Pubkey)}");
+                        signature = previousRound.CalculateSignature(previousInValue);
+                    }
+                }
+
+                if (previousInValue == null)
+                {
+                    // Handle abnormal situation.
+
+                    // The fake in value shall only use once during one term.
+                    previousInValue = Hash.FromMessage(miner);
+                    signature = previousInValue;
+                }
+
+                // Fill this two fields at last.
+                miner.InValue = previousInValue;
+                miner.Signature = signature;
+
+                currentRound.RealTimeMinersInformation[miner.Pubkey] = miner;
+            }
+
+            TryToUpdateRoundInformation(currentRound);
+            Context.LogDebug(() => $"After supply:\n{currentRound.ToString(Context.RecoverPublicKey().ToHex())}");
         }
 
         #endregion
@@ -162,7 +248,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables.SymbolListToPayRental))
+            foreach (var symbol in Context.Variables.GetStringArray(AEDPoSContractConstants.PayTxFeeSymbolListName)
+                .Union(Context.Variables.GetStringArray(AEDPoSContractConstants.PayRentalSymbolListName)))
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -190,7 +277,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #region SetMaximumMinersCount
 
-        public override Empty SetMaximumMinersCount(SInt32Value input)
+        public override Empty SetMaximumMinersCount(Int32Value input)
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -205,5 +292,47 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #endregion
+
+        public override Hash GetRandomHash(Int64Value input)
+        {
+            Assert(input.Value > 1, "Invalid block height.");
+            Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
+            return State.RandomHashes[input.Value] ?? Hash.Empty;
+        }
+
+        public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                To = Context.Self
+            });
+
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Spender = State.TokenHolderContract.Value
+            });
+
+            State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
+            {
+                SchemeManager = Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
+
+            Context.LogDebug(() => $"Contributed {input.Amount} {input.Symbol}s to side chain dividends pool.");
+
+            return new Empty();
+        }
     }
 }

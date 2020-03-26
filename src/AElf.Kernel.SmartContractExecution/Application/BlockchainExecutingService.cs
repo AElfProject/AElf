@@ -14,25 +14,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
     {
+        //TODO: should only use IBlockchainService
         private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly ITransactionResultService _transactionResultService;
         public ILocalEventBus LocalEventBus { get; set; }
 
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
-            IBlockExecutingService blockExecutingService, IBlockchainStateManager blockchainStateManager,
-            ITransactionResultService transactionResultService)
+            IBlockExecutingService blockExecutingService,
+            ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger)
         {
             _chainManager = chainManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
-            _blockchainStateManager = blockchainStateManager;
             _transactionResultService = transactionResultService;
+            _blockStateSetManger = blockStateSetManger;
 
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -43,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var blockHash = block.GetHash();
 
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
+            var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
             if (blockState != null)
                 return true;
 
@@ -54,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (blockHashWithoutCache != blockHash)
             {
-                blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
+                blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHashWithoutCache);
                 Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
                 Logger.LogWarning(
                     $"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
@@ -111,6 +112,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {
+            //TODO: split the logic of getting blocks to execute, and the logic of executing blocks, and the logic of mark blocks executed
+            //only keep the logic of executing blocks here
+
             if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
                 Logger.LogDebug( $"Try to attach to chain but the status is {status}.");

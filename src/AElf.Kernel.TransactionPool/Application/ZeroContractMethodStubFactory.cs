@@ -2,14 +2,13 @@ using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
+    //TODO: base class
     public class ZeroContractMethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;

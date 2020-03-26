@@ -5,7 +5,7 @@ namespace AElf.Kernel
     /// <summary>
     /// a running chain context
     /// </summary>
-    public interface IChainContext
+    public interface IChainContext : IBlockIndex
     {
         long BlockHeight { get; set; }
         Hash BlockHash { get; set; }

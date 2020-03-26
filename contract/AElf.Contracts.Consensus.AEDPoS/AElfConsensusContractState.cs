@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// Seconds.
         /// </summary>
-        public ReadonlyState<long> TimeEachTerm { get; set; }
+        public ReadonlyState<long> PeriodSeconds { get; set; }
 
         public Int64State CurrentRoundNumber { get; set; }
 
@@ -55,5 +55,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        public MappedState<long, Hash> RandomHashes { get; set; }
+
+        public SingletonState<long> LatestExecutedHeight { get; set; }
     }
 }

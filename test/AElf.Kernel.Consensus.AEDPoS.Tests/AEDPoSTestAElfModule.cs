@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
@@ -101,8 +102,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(o => o.GetAddressByContractName(It.IsAny<Hash>()))
+                var consensusHash = ConsensusSmartContractAddressNameProvider.Name;
+                mockService.Setup(o => o.GetAddressByContractName(It.Is<Hash>(hash => hash != consensusHash)))
                     .Returns(SampleAddress.AddressList[0]);
+                mockService.Setup(o =>
+                        o.GetAddressByContractName(It.Is<Hash>(hash => hash == consensusHash)))
+                    .Returns(SampleAddress.AddressList[1]);
 
                 return mockService.Object;
             });
@@ -110,14 +115,16 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IBlockExtraDataService>();
-                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.Is<BlockHeader>(o => o != null)))
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus",
+                        It.Is<BlockHeader>(o => o != null)))
                     .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
                     {
                         Behaviour = AElfConsensusBehaviour.UpdateValue,
                         SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
                         Round = new Round()
                     }.ToByteArray()));
-                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.Is<BlockHeader>(o => o == null)))
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus",
+                        It.Is<BlockHeader>(o => o == null)))
                     .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
                     {
                         Behaviour = AElfConsensusBehaviour.Nothing,
@@ -188,11 +195,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
                 return mockService.Object;
             });
-
-            context.Services
-                .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
-                >();
-            //context.Services.AddSingleton<NotAllowEnterTxHubValidationProvider>();
         }
     }
 }

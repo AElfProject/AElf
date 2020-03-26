@@ -49,7 +49,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     var height = await _readerFactory.Create(blockHash, blockHeight).GetSideChainHeight
                         .CallAsync(
-                            new SInt32Value()
+                            new Int32Value()
                             {
                                 Value = sideChainBlockData.ChainId
                             });
@@ -74,17 +74,11 @@ namespace AElf.CrossChain.Indexing.Application
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                 {
                     Logger.LogWarning(
-                        $"Side chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
+                        $"Incorrect side chain data. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                     return false;
                 }
 
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
-            }
-
-            foreach (var chainIdHeight in sideChainValidatedHeightDict)
-            {
-                Logger.LogDebug(
-                    $"Validated height {chainIdHeight.Value} from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} ");
             }
 
             return true;
@@ -113,14 +107,14 @@ namespace AElf.CrossChain.Indexing.Application
                 if (parentChainBlockData == null)
                 {
                     Logger.LogWarning(
-                        $"Parent chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
+                        $"Parent chain data not found. Parent chain height: {targetHeight}.");
                     return false;
                 }
 
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
                 {
                     Logger.LogWarning(
-                        $"Incorrect parent chain data. ChainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
+                        $"Incorrect parent chain data. Parent chain height: {targetHeight}.");
                     return false;
                 }
 

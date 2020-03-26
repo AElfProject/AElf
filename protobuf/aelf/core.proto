@@ -23,7 +23,6 @@ message ScopedStatePath {
     StatePath path = 2;
 }
 
-
 enum TransactionResultStatus {
     NOT_EXISTED = 0;
     PENDING = 1;
@@ -43,22 +42,7 @@ message TransactionResult {
     Hash block_hash = 7;
     int32 index = 8;
     Hash state_hash = 9;
-    // Merkle proof path for this transaction
     string error = 10;
-    string readable_return_value = 11;
-    TransactionFee transaction_fee = 12;
-    ConsumedResourceTokens consumed_resource_tokens = 13;
-}
-
-message TransactionFee {
-    map<string, sint64> value = 1;// symbol -> amount
-    bool is_failed_to_charge = 2;
-}
-
-message ConsumedResourceTokens {
-    map<string, sint64> value = 1;// symbol -> amount
-    map<string, sint64> owning = 2;// symbol -> amount
-    bool is_failed_to_charge = 3;
 }
 
 message LogEvent {
@@ -69,7 +53,7 @@ message LogEvent {
 }
 
 message SmartContractRegistration {
-    int32 category = 1;
+    sint32 category = 1;
     bytes code = 2;
     Hash code_hash = 3;
     bool is_system_contract = 4;

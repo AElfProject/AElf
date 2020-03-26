@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -53,6 +54,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 }
 
                 var newInValue = await GenerateInValueAsync(secretSharingInformation);
+                Logger.LogInformation(
+                    $"Add in value {newInValue} for round id {secretSharingInformation.CurrentRoundId}");
                 _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
                 if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)

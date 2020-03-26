@@ -3,7 +3,7 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
-using InitializeInput = AElf.Contracts.MultiToken.InitializeInput;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -12,55 +12,98 @@ namespace AElf.Blockchains.SideChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(
             ChainInitializationData chainInitializationData)
         {
-            var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[1]);
-            var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
-            var chainPrimaryTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[3]);
+            var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.NativeTokenInfoData);
+            var resourceTokenList =
+                TokenInfoList.Parser.ParseFrom(chainInitializationData.ResourceTokenInfo.ResourceTokenListData);
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+
+            // native token
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
-                new RegisterNativeAndResourceTokenInfoInput
-                {
-                    NativeTokenInfo =
-                        new RegisterNativeTokenInfoInput
-                        {
-                            Decimals = nativeTokenInfo.Decimals,
-                            IssueChainId = nativeTokenInfo.IssueChainId,
-                            Issuer = nativeTokenInfo.Issuer,
-                            IsBurnable = nativeTokenInfo.IsBurnable,
-                            Symbol = nativeTokenInfo.Symbol,
-                            TokenName = nativeTokenInfo.TokenName,
-                            TotalSupply = nativeTokenInfo.TotalSupply,
-                            IsProfitable = nativeTokenInfo.IsProfitable
-                        },
-                    ResourceTokenList = resourceTokenList,
-                    ChainPrimaryToken = chainPrimaryTokenInfo
-                });
+                nameof(TokenContractContainer.TokenContractStub.Create),
+                GenerateTokenCreateInput(nativeTokenInfo));
 
-            foreach (var issueStuff in chainInitializationData.SideChainTokenInitialIssueList)
+            // resource token
+            foreach (var resourceTokenInfo in resourceTokenList.Value)
             {
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
-                {
-                    Symbol = chainPrimaryTokenInfo.Symbol,
-                    Amount = issueStuff.Amount,
-                    Memo = "Initial issue",
-                    To = issueStuff.Address
-                });
+                tokenInitializationCallList.Add(
+                    nameof(TokenContractContainer.TokenContractStub.Create),
+                    GenerateTokenCreateInput(resourceTokenInfo));
             }
-
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize),
-                new InitializeInput
+            
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                new InitializeFromParentChainInput
                 {
                     ResourceAmount =
                     {
-                        chainInitializationData.InitialResourceAmount.ToDictionary(kv => kv.Key.ToUpper(),
+                        chainInitializationData.ResourceTokenInfo.InitialResourceAmount.ToDictionary(
+                            kv => kv.Key.ToUpper(),
                             kv => kv.Value)
-                    }
+                    },
+                    RegisteredOtherTokenContractAddresses =
+                    {
+                        [_sideChainInitializationDataProvider.ParentChainId] =
+                            chainInitializationData.ParentChainTokenContractAddress
+                    },
+                    Creator = chainInitializationData.Creator
                 });
 
-            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetSideChainCreator),
-                chainInitializationData.Creator);
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+                new Empty());
+            
+            if (chainInitializationData.ChainPrimaryTokenInfo != null)
+            {
+                // primary token
+                var chainPrimaryTokenInfo =
+                    TokenInfo.Parser.ParseFrom(chainInitializationData.ChainPrimaryTokenInfo.ChainPrimaryTokenData);
+
+                tokenInitializationCallList.Add(
+                    nameof(TokenContractContainer.TokenContractStub.Create),
+                    GenerateTokenCreateInput(chainPrimaryTokenInfo));
+
+                foreach (var issueStuff in chainInitializationData.ChainPrimaryTokenInfo.SideChainTokenInitialIssueList)
+                {
+                    tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue),
+                        new IssueInput
+                        {
+                            Symbol = chainPrimaryTokenInfo.Symbol,
+                            Amount = issueStuff.Amount,
+                            Memo = "Initial issue",
+                            To = issueStuff.Address
+                        });
+                }
+                
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                    new SetPrimaryTokenSymbolInput
+                    {
+                        Symbol = chainPrimaryTokenInfo.Symbol
+                    });
+            }
+            else
+            {
+                // set primary token with native token 
+                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                    new SetPrimaryTokenSymbolInput
+                    {
+                        Symbol = nativeTokenInfo.Symbol
+                    });
+            }
 
             return tokenInitializationCallList;
+        }
+
+        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)
+        {
+            return new CreateInput
+            {
+                Decimals = tokenInfo.Decimals,
+                IssueChainId = tokenInfo.IssueChainId,
+                Issuer = tokenInfo.Issuer,
+                IsBurnable = tokenInfo.IsBurnable,
+                Symbol = tokenInfo.Symbol,
+                TokenName = tokenInfo.TokenName,
+                TotalSupply = tokenInfo.TotalSupply,
+                IsProfitable = tokenInfo.IsProfitable
+            };
         }
     }
 }

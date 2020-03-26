@@ -19,7 +19,7 @@ namespace AElf.Contracts.TestBase
         private readonly Dictionary<Hash, Transaction> _allTransactions =
             new Dictionary<Hash, Transaction>();
 
-        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public MockTxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
@@ -68,9 +68,9 @@ namespace AElf.Contracts.TestBase
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
         {
-            CleanTransactions(eventData.Transactions);
+            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 

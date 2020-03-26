@@ -1,14 +1,13 @@
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.CrossChain
 {
@@ -30,10 +29,13 @@ namespace AElf.CrossChain
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            // nothing to validate before execution for cross chain
-            return Task.FromResult(true);
+            var extraData = ExtractCrossChainExtraData(block.Header);
+            if (!extraData.IsNullOrEmpty())
+                return await _crossChainIndexingDataService.CheckExtraDataIsNeededAsync(block.Header.PreviousBlockHash,
+                    block.Header.Height - 1, block.Header.Time); 
+            return true;
         }
 
         public Task<bool> ValidateBeforeAttachAsync(IBlock block)
@@ -43,7 +45,7 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Header.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
                 return true;
 
             try
@@ -95,7 +97,7 @@ namespace AElf.CrossChain
         {
             var crossChainContractAddress =
                 _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            return new SideChainBlockDataIndexedEvent().ToLogEvent(crossChainContractAddress).GetBloom()
+            return new SideChainBlockDataIndexed().ToLogEvent(crossChainContractAddress).GetBloom()
                 .IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
         }
     }

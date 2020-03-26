@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Referendum;
@@ -19,6 +20,7 @@ using Volo.Abp.Threading;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 
 namespace AElf.Contracts.Referendum
 {
@@ -70,7 +72,7 @@ namespace AElf.Contracts.Referendum
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumContract).Assembly.Location)),
                     Name = ReferendumSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateReferendumInitializationCallList()
+                    // TransactionMethodCallList = GenerateReferendumInitializationCallList()
                 })).Output;
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             
@@ -122,14 +124,6 @@ namespace AElf.Contracts.Referendum
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateReferendumInitializationCallList()
-        {
-            var referendumContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumContractCallList.Add(nameof(ReferendumContract.Initialize), new Empty());
-            return referendumContractCallList;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
@@ -191,7 +185,7 @@ namespace AElf.Contracts.Referendum
             var consensusContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
             {
-                TimeEachTerm = 604800L,
+                PeriodSeconds = 604800L,
                 MinerIncreaseInterval = 31536000
             });
             

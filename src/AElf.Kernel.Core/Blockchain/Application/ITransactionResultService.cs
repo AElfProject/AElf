@@ -38,15 +38,15 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader)
         {
-            var disambiguatingHash = blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
-            await _transactionResultManager.AddTransactionResultAsync(transactionResult, disambiguatingHash);
+            await _transactionResultManager.AddTransactionResultAsync(transactionResult,
+                blockHeader.GetDisambiguatingHash());
         }
 
         public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
             BlockHeader blockHeader)
         {
-            var disambiguatingHash = blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
-            await _transactionResultManager.AddTransactionResultsAsync(transactionResults, disambiguatingHash);
+            await _transactionResultManager.AddTransactionResultsAsync(transactionResults,
+                blockHeader.GetDisambiguatingHash());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
@@ -112,7 +112,7 @@ namespace AElf.Kernel.Blockchain.Application
                 await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
             }
 
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(transactionIds, blockIndex);
+            await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
         }
     }
 }

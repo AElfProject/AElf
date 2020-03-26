@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Contracts.Election;
+using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -18,6 +20,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="callerMethodName"></param>
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string callerMethodName = null)
         {
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
+
             Context.LogDebug(() => $"Processing {callerMethodName}");
 
             /* Privilege check. */
@@ -66,13 +70,44 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
             }
 
+            var latestSignature = GetLatestSignature(currentRound);
+            var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)];
+            var randomHash = previousRandomHash == null
+                ? latestSignature
+                : HashHelper.Xor(previousRandomHash, latestSignature);
+
+            State.RandomHashes[Context.CurrentHeight] = randomHash;
+
+            Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
+
+            if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
+            {
+                ReleaseSideChainDividendsPool();
+            }
+
             // Clear cache.
             _processingBlockMinerPubkey = null;
-            
-            if (!IsCurrentMiner(Address.FromPublicKey(Context.RecoverPublicKey())).Value)
+        }
+
+        /// <summary>
+        /// Get latest updated signature.
+        /// A signature is for generating a random hash.
+        /// </summary>
+        /// <param name="currentRound"></param>
+        /// <returns></returns>
+        private Hash GetLatestSignature(Round currentRound)
+        {
+            var latestSignature = currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                .LastOrDefault(m => m.Signature != null)?.Signature;
+            if (latestSignature != null) return latestSignature;
+            if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                Context.LogDebug(() => "[CURRENTMINER]IS NOT CURRENT MINER.");
+                latestSignature = previousRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                    .LastOrDefault(m => m.Signature != null)
+                    ?.Signature;
             }
+
+            return latestSignature;
         }
 
         private void ProcessNextRound(Round nextRound)
@@ -126,6 +161,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
+        }
+
+        private void ReleaseSideChainDividendsPool()
+        {
+            if (State.TokenHolderContract.Value == null) return;
+            var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
+            var isTimeToRelease =
+                (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                .Div(State.PeriodSeconds.Value) > scheme.Period - 1;
+            Context.LogDebug(() => "ReleaseSideChainDividendsPool Information:\n" +
+                                   $"CurrentBlockTime: {Context.CurrentBlockTime}\n" +
+                                   $"BlockChainStartTime: {State.BlockchainStartTimestamp.Value}\n" +
+                                   $"PeriodSeconds: {State.PeriodSeconds.Value}\n" +
+                                   $"Scheme Period: {scheme.Period}");
+            if (isTimeToRelease)
+            {
+                Context.LogDebug(() => "Ready to release side chain dividends pool.");
+                State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
+                {
+                    SchemeManager = Context.Self
+                });
+            }
         }
 
         private void ProcessNextTerm(Round nextRound)

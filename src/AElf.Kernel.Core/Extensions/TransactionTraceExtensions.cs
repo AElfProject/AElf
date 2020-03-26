@@ -1,40 +1,53 @@
+using System.Collections.Generic;
+using System.Linq;
+using AElf.Types;
+using Google.Protobuf.Collections;
+
 namespace AElf.Kernel
 {
     public static class TransactionTraceExtensions
     {
         public static bool IsSuccessful(this TransactionTrace txTrace)
         {
-            var successful = txTrace.ExecutionStatus == ExecutionStatus.Executed;
-            if (!successful)
+            if (txTrace.ExecutionStatus != ExecutionStatus.Executed)
             {
                 return false;
             }
 
-            foreach (var trace in txTrace.PreTraces)
+            if (txTrace.PreTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
-            foreach (var trace in txTrace.InlineTraces)
+            if (txTrace.InlineTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
-            foreach (var trace in txTrace.PostTraces)
+            if (txTrace.PostTraces.Any(trace => !trace.IsSuccessful()))
             {
-                if (!trace.IsSuccessful())
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;
+        }
+        
+        public static IEnumerable<LogEvent> GetPluginLogs(this TransactionTrace txTrace)
+        {
+            var logEvents = new RepeatedField<LogEvent>();
+            foreach (var preTrace in txTrace.PreTraces)
+            {
+                if (preTrace.IsSuccessful())
+                    logEvents.AddRange(preTrace.FlattenedLogs);
+            }
+
+            foreach (var postTrace in txTrace.PostTraces)
+            {
+                if (postTrace.IsSuccessful())
+                    logEvents.AddRange(postTrace.FlattenedLogs);
+            }
+
+            return logEvents;
         }
 
         public static void SurfaceUpError(this TransactionTrace txTrace)

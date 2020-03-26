@@ -122,7 +122,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return Task.FromResult(false);
             }
 
-            if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
+            if (block.Header.Height != AElfConstants.GenesisBlockHeight && !block.VerifySignature())
             {
                 Logger.LogWarning("Block verify signature failed.");
                 return Task.FromResult(false);
@@ -134,7 +134,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return Task.FromResult(false);
             }
 
-            if (block.Header.Height != Constants.GenesisBlockHeight &&
+            if (block.Header.Height != AElfConstants.GenesisBlockHeight &&
                 block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() >
                 KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
@@ -156,14 +156,13 @@ namespace AElf.Kernel.Blockchain.Application
             // Verify that the transaction has been packaged in the current branch
             foreach (var transactionId in block.TransactionIds)
             {
-                var blockIndex =
-                    await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(transactionId,
+                var blockIndexExists =
+                    await _transactionBlockIndexService.ValidateTransactionBlockIndexExistsInBranchAsync(transactionId,
                         block.Header.PreviousBlockHash);
-                if (blockIndex != null)
-                {
-                    Logger.LogWarning($"Transaction: {transactionId} repackaged.");
-                    return false;
-                }
+                if (!blockIndexExists) 
+                    continue;
+                Logger.LogWarning($"Transaction: {transactionId} repackaged.");
+                return false;
             }
 
             return true;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,6 +13,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -45,7 +47,7 @@ namespace AElf.Contracts.TokenHolder
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
-        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; set; }
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
 
@@ -108,6 +110,17 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
 
+            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+                .DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
+                        Name = ConsensusSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
+                    })).Output;
+            AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
+
             //deploy DApp contract
             DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
@@ -134,17 +147,6 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
                 UserKeyPairs.First());
-
-            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
-                .DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
-                        Name = ConsensusSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
-                    })).Output;
-            AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -152,9 +154,9 @@ namespace AElf.Contracts.TokenHolder
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
 
-        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
         {
-            return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
+            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
 
         internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
@@ -205,7 +207,8 @@ namespace AElf.Contracts.TokenHolder
                     TokenHolderContractAddress
                 }
             });
-
+            tokenContractCallList.Add(nameof(TokenContract.SetPrimaryTokenSymbol),
+                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = TokenHolderContractTestConstants.NativeTokenSymbol,
@@ -246,8 +249,9 @@ namespace AElf.Contracts.TokenHolder
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    TimeEachTerm = 604800L,
-                    MinerIncreaseInterval = 31536000
+                    PeriodSeconds = 604800L,
+                    MinerIncreaseInterval = 31536000,
+                    IsSideChain = true
                 });
 
             consensusContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList

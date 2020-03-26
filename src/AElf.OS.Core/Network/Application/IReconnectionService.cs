@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -42,11 +42,15 @@ namespace AElf.OS.Network.Application
 
         public bool SchedulePeerForReconnection(string endpoint)
         {
-            var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod + 1000);
+            var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod);
                 
             Logger.LogDebug($"Scheduling {endpoint} for reconnection at {nextTry}.");
 
-            var reconnectingPeer = new ReconnectingPeer {Endpoint = endpoint, NextAttempt = nextTry};
+            var reconnectingPeer = new ReconnectingPeer {
+                Endpoint = endpoint, 
+                NextAttempt = nextTry, 
+                DisconnectionTime = TimestampHelper.GetUtcNow() 
+            };
 
             if (!_reconnectionStateProvider.AddReconnectingPeer(endpoint, reconnectingPeer))
             {

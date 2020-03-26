@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -83,7 +84,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.AEDPoSContract.Value == Context.Sender, "No permission.");
 
             SavePreviousTermInformation(input);
@@ -114,20 +115,26 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
 
-
+            var symbolList = State.TreasuryContract.GetDistributingSymbolList.Call(new Empty());
+            var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             return new Empty();
@@ -194,6 +201,9 @@ namespace AElf.Contracts.Election
             {
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
+                if (State.ProfitContract.Value == null)
+                    State.ProfitContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,

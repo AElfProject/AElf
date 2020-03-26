@@ -55,8 +55,7 @@ namespace AElf.Benchmark
         [IterationCleanup]
         public async Task IterationCleanup()
         {
-            await _txHub.HandleUnexecutableTransactionsFoundAsync(new UnexecutableTransactionsFoundEvent
-                (null, _transactions.Select(t => t.GetHash()).ToList()));
+            await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
 
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {

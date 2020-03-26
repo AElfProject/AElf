@@ -29,7 +29,7 @@ namespace AElf.OS.Handlers
                 if (_syncStateService.SyncState == SyncState.Finished)
                 {
                     // if sync is finished we announce the block
-                    _networkService.BroadcastAnnounceAsync(eventData.Block.Header, eventData.HasFork);
+                    _networkService.BroadcastAnnounceAsync(eventData.Block.Header);
                 }
                 else if (_syncStateService.SyncState == SyncState.Syncing)
                 {

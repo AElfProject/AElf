@@ -11,8 +11,6 @@ service ReferendumContract {
     option (aelf.base) = "acs3.proto";
     option (aelf.base) = "acs1.proto";
     // Actions
-    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
@@ -58,9 +56,20 @@ message ProposalInfo {
     int64 approval_count = 8;
     int64 rejection_count = 9;
     int64 abstention_count = 10;
+    string proposal_description_url = 11;
 }
 
 message CreateOrganizationBySystemContractInput {
     CreateOrganizationInput organization_creation_input = 1;
     string organization_address_feedback_method = 2;
+}
+
+message ReferendumReceiptCreated {
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+    aelf.Address address = 2;
+    string symbol = 3;
+    int64 amount = 4;
+    string receipt_type = 5;
+    google.protobuf.Timestamp time = 6;
 }

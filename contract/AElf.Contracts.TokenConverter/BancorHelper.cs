@@ -1,11 +1,28 @@
 using System;
 using System.Collections;
+using System.Collections.ObjectModel;
+using System.Linq;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class BancorHelper
+    public static class BancorHelper
     {
+        static BancorHelper()
+        {
+            Fact = Array.AsReadOnly(Enumerable.Range(0, 20).Select(x => DynFact(x)).ToArray());
+        }
+
+        private static long DynFact(long number)
+        {
+            var fact = number == 0 ? 1 : number;
+            for (var i = number - 1; i >= 1; i--)
+            {
+                fact *= i;
+            }
+            return fact;
+        }
+
         /// <summary>
         /// Get token return:
         ///    Return = (1 - (fromConnectorBalance / (fromConnectorBalance + paidAmount)) ^(fromConnectorWeight/toConnectorWeight))*toConnectorBalance
@@ -93,33 +110,9 @@ namespace AElf.Contracts.TokenConverter
 
         #region Exponential Helpers
 
-        static readonly uint _LOOPS = 20; // Max = 20
+        private const int _LOOPS = 20; // Max = 20
 
-        private static long[] Fact =
-        {
-            1L,
-            1L * 2,
-            1L * 2 * 3,
-            1L * 2 * 3 * 4,
-            1L * 2 * 3 * 4 * 5,
-            1L * 2 * 3 * 4 * 5 * 6,
-            1L * 2 * 3 * 4 * 5 * 6 * 7,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19,
-            1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20,
-            //14197454024290336768L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21,        // NOTE: Overflow during compilation
-            //17196083355034583040L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21 * 22    // NOTE: Overflow during compilation
-        };
+        private static readonly ReadOnlyCollection<long> Fact;
 
         // http://www.daimi.au.dk/~ivan/FastExpproject.pdf
         // Left to Right Binary Exponentiation
@@ -129,7 +122,7 @@ namespace AElf.Contracts.TokenConverter
                 return x;
 
             decimal A = 1m;
-            BitArray e = new BitArray(BitConverter.GetBytes(y));
+            BitArray e = new BitArray(y.ToBytes(false));
             int t = e.Count;
 
             for (int i = t - 1; i >= 0; --i)
@@ -176,13 +169,13 @@ namespace AElf.Contracts.TokenConverter
             exp(y) = 1 + y + y^2/2 + x^3/3! + y^4/4! + y^5/5! + ...
             */
 
-            uint iteration = _LOOPS;
+            int iteration = _LOOPS;
             decimal result = 1;
             while (iteration > 0)
             {
                 //uint fatorial = Factorial(iteration);
                 var fatorial = Fact[iteration - 1];
-                result += (Pow(y, iteration) / fatorial);
+                result += (Pow(y, (uint) iteration) / fatorial);
                 iteration--;
             }
 

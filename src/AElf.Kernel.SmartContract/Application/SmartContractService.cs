@@ -7,24 +7,20 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public class SmartContractService : ISmartContractService, ITransientDependency
     {
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        private readonly ISmartContractAddressService _smartContractAddressService;
-
-        public SmartContractService(
-            ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractAddressService smartContractAddressService)
+        public SmartContractService(ISmartContractAddressService smartContractAddressService, 
+            ISmartContractRunnerContainer smartContractRunnerContainer)
         {
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             _smartContractAddressService = smartContractAddressService;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
         }
 
         /// <inheritdoc/>
         public Task DeployContractAsync(ContractDto contractDto)
         {
-            // get runner
-            var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
-
+            CheckRunner(contractDto.SmartContractRegistration.Category);
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
             return Task.CompletedTask;
@@ -32,9 +28,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public Task UpdateContractAsync(ContractDto contractDto)
         {
-            // get runner
-            var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
             return Task.CompletedTask;
+        }
+
+        private void CheckRunner(int category)
+        {
+            _smartContractRunnerContainer.GetRunner(category);
         }
 
     }

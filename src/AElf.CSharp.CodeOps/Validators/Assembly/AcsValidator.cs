@@ -2,18 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
-    public class RequiredAcsDto
-    {
-        public bool RequireAll;
-        public List<string> AcsList;
-    }
-
     public class AcsValidator
     {
-        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcsDto requiredAcs)
+        public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcs requiredAcs)
         {
             if (requiredAcs.AcsList.Count == 0)
                 return Enumerable.Empty<ValidationResult>(); // No ACS required
@@ -62,7 +57,7 @@ namespace AElf.CSharp.CodeOps.Validators.Assembly
             var binder = new DescriptorOnlyServiceBinder();
             serviceDefinition.BindService(binder);
             return binder.GetDescriptors()
-                .Select(service => service.File.GetIndentity());
+                .Select(service => service.File.GetIdentity());
         }
     }
 

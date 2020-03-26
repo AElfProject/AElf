@@ -14,24 +14,20 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IAccountService _accountService;
         public ILogger<ConsensusValidationFailedEventHandler> Logger { get; set; }
 
         public ConsensusValidationFailedEventHandler(IConsensusService consensusService,
-            IBlockchainService blockchainService, IAccountService accountService)
+            IBlockchainService blockchainService)
         {
             _consensusService = consensusService;
             _blockchainService = blockchainService;
-            _accountService = accountService;
 
             Logger = NullLogger<ConsensusValidationFailedEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(ConsensusValidationFailedEventData eventData)
         {
-            var pubkey = await _accountService.GetPublicKeyAsync();
-            var allowReTriggerMessage = $"Time slot already passed before execution.{pubkey.ToHex()}";
-            if (eventData.ValidationResultMessage == allowReTriggerMessage)
+            if (eventData.IsReTrigger)
             {
                 Logger.LogTrace($"Re-trigger consensus because validation failed.");
                 var chain = await _blockchainService.GetChainAsync();

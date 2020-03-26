@@ -1,6 +1,7 @@
 using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,6 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public override Empty NextTerm(Round input)
         {
+            SupplyCurrentRoundInformation();
             ProcessConsensusInformation(input);
             return new Empty();
         }

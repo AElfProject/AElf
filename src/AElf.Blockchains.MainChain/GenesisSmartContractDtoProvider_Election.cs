@@ -17,7 +17,7 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Election")).Value,
+                GetContractCodeByName("AElf.Contracts.Election"),
                 ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
             return l;
         }
@@ -33,7 +33,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     MaximumLockTime = _economicOptions.MaximumLockTime,
                     MinimumLockTime = _economicOptions.MinimumLockTime,
-                    TimeEachTerm = _consensusOptions.TimeEachTerm,
+                    TimeEachTerm = _consensusOptions.PeriodSeconds,
                     MinerList = {_consensusOptions.InitialMinerList},
                     MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
                 });

@@ -25,15 +25,12 @@ service ACS0 {
     }
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
     }
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
-    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
-
     // Views
-    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
+    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
@@ -54,18 +51,15 @@ service ACS0 {
     rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
-        option (aelf.is_view) = true;
-    }
 }
 
 // Messages
 
 message ContractInfo
 {
-    uint64 serial_number = 1;
+    int64 serial_number = 1;
     aelf.Address author = 2;
-    int32 category = 3;
+    sint32 category = 3;
     aelf.Hash code_hash = 4;
     bool is_system_contract = 5;
     int32 version = 6;
@@ -98,10 +92,9 @@ message ContractUpdateInput {
 message ContractCodeCheckInput{
     bytes contract_input = 1;
     bool is_contract_deployment = 2;
-}
-
-message InitializeInput{
-    bool contract_deployment_authority_required = 1;
+    string code_check_release_method = 3;
+    aelf.Hash proposed_contract_input_hash = 4;
+    sint32 category = 5;
 }
 
 // Events
@@ -125,6 +118,7 @@ message CodeCheckRequired
     option (aelf.is_event) = true;
     bytes code = 1;
     aelf.Hash proposed_contract_input_hash = 2;
+    sint32 category = 3;
 }
 
 message CodeUpdated

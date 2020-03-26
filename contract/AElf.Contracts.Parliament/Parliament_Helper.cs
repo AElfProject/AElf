@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs3;
@@ -12,7 +13,7 @@ namespace AElf.Contracts.Parliament
     {
         private List<Address> GetCurrentMinerList()
         {
-            MaybeLoadConsensusContractAddress();
+            RequireConsensusContractStateSet();
             var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
             var members = miner.Pubkeys.Select(publicKey =>
                 Address.FromPublicKey(publicKey.ToByteArray())).ToList();
@@ -101,7 +102,7 @@ namespace AElf.Contracts.Parliament
             return isVoteThresholdReached;
         }
 
-        private void MaybeLoadConsensusContractAddress()
+        private void RequireConsensusContractStateSet()
         {
             if (State.ConsensusContract.Value != null)
                 return;
@@ -141,9 +142,20 @@ namespace AElf.Contracts.Parliament
             var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
             var validExpiredTime = CheckProposalNotExpired(proposal);
             var hasOrganizationAddress = proposal.OrganizationAddress != null;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime && hasOrganizationAddress;
+            var validDescriptionUrl = ValidateDescriptionUrlScheme(proposal.ProposalDescriptionUrl);
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime &&
+                   hasOrganizationAddress && validDescriptionUrl;
         }
-
+        
+        private bool ValidateDescriptionUrlScheme(string uriString)
+        {
+            if (string.IsNullOrEmpty(uriString))
+                return true;
+            bool result = Uri.TryCreate(uriString, UriKind.Absolute, out var uriResult)
+                          && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            return result;
+        }
+        
         private bool CheckProposalNotExpired(ProposalInfo proposal)
         {
             return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
@@ -159,10 +171,10 @@ namespace AElf.Contracts.Parliament
 
         private void AssertProposalNotYetVotedBySender(ProposalInfo proposal)
         {
-            Assert(!CheckSenderAlreadyVoted(proposal, Context.Sender), "Already approved.");
+            Assert(!CheckProposalAlreadyVotedBy(proposal, Context.Sender), "Already approved.");
         }
 
-        private bool CheckSenderAlreadyVoted(ProposalInfo proposal, Address address)
+        private bool CheckProposalAlreadyVotedBy(ProposalInfo proposal, Address address)
         {
             return proposal.Approvals.Contains(address) || proposal.Rejections.Contains(address) ||
                    proposal.Abstentions.Contains(address);
@@ -181,7 +193,7 @@ namespace AElf.Contracts.Parliament
 
         private void AssertCurrentMiner()
         {
-            MaybeLoadConsensusContractAddress();
+            RequireConsensusContractStateSet();
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
             Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
             Assert(isCurrentMiner, "No permission.");
@@ -199,7 +211,8 @@ namespace AElf.Contracts.Parliament
                 ToAddress = input.ToAddress,
                 OrganizationAddress = input.OrganizationAddress,
                 ProposalId = proposalId,
-                Proposer = Context.Sender
+                Proposer = Context.Sender,
+                ProposalDescriptionUrl = input.ProposalDescriptionUrl
             };
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
@@ -222,11 +235,10 @@ namespace AElf.Contracts.Parliament
                 ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
             };
             Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] == null)
-            {
-                State.Organisations[organizationAddress] = organization;
-            }
-
+            if (State.Organisations[organizationAddress] != null) 
+                return organizationAddress;
+            
+            State.Organisations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress

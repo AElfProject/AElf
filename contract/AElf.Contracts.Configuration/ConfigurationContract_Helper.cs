@@ -1,37 +1,12 @@
+using Acs1;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationContract
     {
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
-        {
-            if (state.Value != null)
-                return;
-            state.Value = Context.GetContractAddressByName(contractSystemName);
-        }
-
-        private Address GetOwnerAddress()
-        {
-            if (State.Owner.Value != null)
-                return State.Owner.Value;
-            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            var organizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            State.Owner.Value = organizationAddress;
-
-            return State.Owner.Value;
-        }
-
-        private void CheckOwnerAuthority()
-        {
-            var owner = GetOwnerAddress();
-            Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
-        }
-
-        private void CheckSenderIsParliamentOrZeroContract()
+        private AuthorityInfo GetDefaultConfigurationController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -39,16 +14,35 @@ namespace AElf.Contracts.Configuration
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
-            Assert(
-                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()) == Context.Sender ||
-                Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
         }
 
-        private void CheckSenderIsCrossChainContract()
+        private void AssertPerformedByConfigurationController()
         {
+            if (State.ConfigurationController.Value == null)
+            {
+                var defaultConfigurationController = GetDefaultConfigurationController();
+                State.ConfigurationController.Value = defaultConfigurationController;
+            }
+
+            Assert(Context.Sender == State.ConfigurationController.Value.OwnerAddress, "No permission.");
+        }
+
+        private void AssertPerformedByConfigurationControllerOrZeroContract()
+        {
+            if (State.ConfigurationController.Value == null)
+            {
+                var defaultConfigurationController = GetDefaultConfigurationController();
+                State.ConfigurationController.Value = defaultConfigurationController;
+            }
+
             Assert(
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
-                "Only cross chain contract can call this method.");
+                State.ConfigurationController.Value.OwnerAddress == Context.Sender ||
+                Context.GetZeroSmartContractAddress() == Context.Sender, "No permission.");
         }
     }
 }

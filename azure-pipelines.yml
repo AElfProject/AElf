@@ -1,60 +1,102 @@
-variables:
-  CI_TEST: true
-
 jobs:
 # All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
+  timeoutInMinutes: 120
   pool:
-    vmImage: windows-2019
+    vmImage: windows-latest
+  variables:
+    CI_TEST: true
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
     inputs:
-      version: '3.1.100'
-  - script: choco install protoc --version 3.6.0 -y
+      version: 3.1.102
+  - script: choco install protoc --version=3.11.4 -y
+    displayName: 'Install protobuf'
   - script: choco install unzip
+    displayName: 'Install unzip'
   - task: BatchScript@1
+    displayName: 'Download AElf build tools'
     inputs:
       filename: 'scripts/download_binary.bat'
-  - powershell: dotnet tool install --global Cake.Tool
-  - powershell: dotnet tool restore
-  - powershell: dotnet cake ./build.cake --target=build
-  - powershell: dotnet cake ./build.cake --target=test
+  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=3 --n=1
+    displayName: 'Build and Test'
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
+  
+  - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+    displayName: ReportGenerator
+    inputs:
+      reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+      reporttypes: 'Cobertura'
+      assemblyfilters: '-xunit*'
+  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+    displayName: 'Upload data to Codecov'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
   pool:
-    vmImage: ubuntu-16.04
+    vmImage: ubuntu-latest
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
     inputs:
-      version: '3.1.100'
+      version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: dotnet tool install --global Cake.Tool
-    displayName: 'Install "Cake.Tool" .NET Core global tool'
-  - script: export PATH="$PATH:$HOME/.dotnet/tools"
-  - script: export PATH="$HOME/.dotnet:$PATH"
-  - script: dotnet tool restore
-  - script: dotnet tool install --global coverlet.console
-  - script: dotnet cake ./build.cake --target=build
-  - script: dotnet cake ./build.cake --target=test
+  - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=2
+    displayName: 'Build and Test'
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
+  
+  - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+    displayName: ReportGenerator
+    inputs:
+      reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+      reporttypes: 'Cobertura'
+      assemblyfilters: '-xunit*'
+  - script: bash build.sh -target=Upload-Coverage-Azure
+    displayName: 'Upload data to Codecov'
+
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
+  timeoutInMinutes: 120
   pool:
-    vmImage: macos-10.13
+    vmImage: macos-latest
+  variables:
+    CI_TEST: true
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
     inputs:
-      version: '3.1.100' 
+      version: 3.1.102
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: dotnet tool install --global Cake.Tool
-    displayName: 'Install "Cake.Tool" .NET Core global tool'
-  - script: export PATH="$PATH:$HOME/.dotnet/tools"
-  - script: export PATH="$HOME/.dotnet:$PATH"
-  - script: dotnet tool restore
-  - script: dotnet tool install --global coverlet.console
-  - script: dotnet cake ./build.cake --target=build
-  - script: dotnet cake ./build.cake --target=test
+  - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=3
+    displayName: 'Build and Test'
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
+  
+  - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+    displayName: ReportGenerator
+    inputs:
+      reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+      reporttypes: 'Cobertura'
+      assemblyfilters: '-xunit*'
+  - script: bash build.sh -target=Upload-Coverage-Azure
+    displayName: 'Upload data to Codecov'

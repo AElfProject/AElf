@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -29,22 +32,26 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
+        typeof(KernelAElfModule),
         typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
-
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-
         typeof(ParallelExecutionModule),
-        typeof(BlockTransactionLimitControllerModule)
+        typeof(ContractNamesAElfModule),
+
+        //plugin
+        typeof(ExecutionPluginForMethodFeeModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
@@ -53,48 +60,41 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
             var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
-            var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
-            var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+            var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
+            var netType = configuration.GetValue("NetType", NetType.MainNet);
 
             var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
-                .SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
+                .SetBasePath(contentRootPath)
                 .Build();
 
             hostBuilderContext.Configuration = newConfig;
-        }
 
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var configuration = context.Services.GetConfiguration();
-            Configure<EconomicOptions>(configuration.GetSection("Economic"));
+            Configure<EconomicOptions>(newConfig.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
-                option.ChainId =
-                    ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
-                option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
-                option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+                option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
+                option.ChainType = chainType;
+                option.NetType = netType;
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
-                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = context.Services
-                    .GetConfiguration()
-                    .GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = context.Services
-                    .GetConfiguration().GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
+                    newConfig.GetValue("Economic:Symbol", "ELF");
+                options.ContextVariables["SymbolListToPayTxFee"] =
+                    newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+                options.ContextVariables["SymbolListToPayRental"] =
+                    newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
-            Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(newConfig.GetSection("Contract"));
             Configure<ContractOptions>(options =>
             {
-                options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
-                    "genesis");
-                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
+                options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
             });
         }
 

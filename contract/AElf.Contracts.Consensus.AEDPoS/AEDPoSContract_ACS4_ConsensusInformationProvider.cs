@@ -25,12 +25,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
+            if (currentRound.RealTimeMinersInformation.Count != 1 &&
+                currentRound.RoundNumber > 2 &&
+                State.LatestPubkeyToTinyBlocksCount.Value != null &&
+                State.LatestPubkeyToTinyBlocksCount.Value.Pubkey == _processingBlockMinerPubkey &&
+                State.LatestPubkeyToTinyBlocksCount.Value.BlocksCount < 0)
+                return GetConsensusCommand(AElfConsensusBehaviour.NextRound, currentRound, _processingBlockMinerPubkey,
+                    Context.CurrentBlockTime);
+
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
             var behaviour = IsMainChain
                 ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                         GetMaximumBlocksCount(),
-                        Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
+                        Context.CurrentBlockTime, blockchainStartTimestamp, State.PeriodSeconds.Value)
                     .GetConsensusBehaviour()
                 : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                     GetMaximumBlocksCount(),
@@ -55,7 +63,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
             Assert(triggerInformation.Pubkey.Any(),
-                "Data to request consensus information should contain public key.");
+                "Data to request consensus information should contain pubkey.");
 
             var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();

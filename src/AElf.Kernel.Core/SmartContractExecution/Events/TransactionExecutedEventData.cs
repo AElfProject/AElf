@@ -1,5 +1,3 @@
-using AElf.Types;
-
 namespace AElf.Kernel.SmartContractExecution.Events
 {
     public class TransactionExecutedEventData

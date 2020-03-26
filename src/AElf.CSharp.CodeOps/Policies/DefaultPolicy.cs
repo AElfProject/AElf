@@ -11,6 +11,7 @@ using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
+using AElf.Kernel.SmartContract;
 using Mono.Cecil;
 
 using AElf.Types;
@@ -51,6 +52,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
                 ;
         }
 
@@ -59,6 +61,8 @@ namespace AElf.CSharp.CodeOps.Policies
             Whitelist
                 // Selectively allowed types and members
                 .Namespace("System", Permission.Denied, type => type
+                    .Type(typeof(Array), Permission.Denied, member => member
+                        .Member(nameof(Array.AsReadOnly), Permission.Allowed))
                     .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
@@ -68,6 +72,11 @@ namespace AElf.CSharp.CodeOps.Policies
                         .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
                     .Type(typeof(BitConverter), Permission.Denied, member => member
                         .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
+                    .Type(typeof(Uri), Permission.Denied, member => member
+                        .Member(nameof(Uri.TryCreate), Permission.Allowed)
+                        .Member(nameof(Uri.Scheme), Permission.Allowed)
+                        .Member(nameof(Uri.UriSchemeHttp), Permission.Allowed)
+                        .Member(nameof(Uri.UriSchemeHttps), Permission.Allowed))
                     .Type(typeof(NotImplementedException),
                         Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(NotSupportedException), Permission.Allowed) // Required for protobuf generated code
@@ -118,6 +127,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Linq", Permission.Allowed)
                 .Namespace("System.Collections", Permission.Allowed)
                 .Namespace("System.Collections.Generic", Permission.Allowed)
+                .Namespace("System.Collections.ObjectModel", Permission.Allowed)
                 ;
         }
 
@@ -150,6 +160,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
                 new GetHashCodeValidator(),
+                new DescriptorAccessValidator(), 
             });
         }
 
@@ -157,7 +168,9 @@ namespace AElf.CSharp.CodeOps.Policies
         {
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
-                new ObserverProxyValidator()
+                new ObserverProxyValidator(), 
+                new ContractStructureValidator(), 
+                new ResetFieldsValidator()
             });
         }
 

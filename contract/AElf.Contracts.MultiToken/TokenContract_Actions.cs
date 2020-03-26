@@ -4,6 +4,7 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,6 +14,24 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        public override Empty InitializeFromParentChain(InitializeFromParentChainInput input)
+        {
+            Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
+            State.InitializedFromParentChain.Value = true;
+            foreach (var pair in input.ResourceAmount)
+            {
+                State.ResourceAmount[pair.Key] = pair.Value;
+            }
+
+            foreach (var pair in input.RegisteredOtherTokenContractAddresses)
+            {
+                State.CrossChainTransferWhiteList[pair.Key] = pair.Value;
+            }
+            
+            SetSideChainCreator(input.Creator);
+            return new Empty();
+        }
+
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -51,40 +70,19 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput input)
+        /// <summary>
+        /// Set primary token symbol.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
         {
-            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
-            State.NativeTokenSymbol.Value = input.NativeTokenInfo.Symbol;
+            Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(State.TokenInfos[input.Symbol] != null, "Invalid input.");
 
-            var nativeTokenInfo = new TokenInfo
-            {
-                Symbol = input.NativeTokenInfo.Symbol,
-                TokenName = input.NativeTokenInfo.TokenName,
-                TotalSupply = input.NativeTokenInfo.TotalSupply,
-                Issuer = input.NativeTokenInfo.Issuer,
-                Decimals = input.NativeTokenInfo.Decimals,
-                IsBurnable = true,
-                IssueChainId = input.NativeTokenInfo.IssueChainId,
-                IsProfitable = input.NativeTokenInfo.IsProfitable
-            };
-
-            RegisterTokenInfo(nativeTokenInfo);
-
-            Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
-            State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
-            RegisterTokenInfo(input.ChainPrimaryToken);
-
-            if (input.ResourceTokenList?.Value != null)
-            {
-                foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
-                {
-                    resourceTokenInfo.Supply = 0;
-                    RegisterTokenInfo(resourceTokenInfo);
-                }
-            }
-
-            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.ChainPrimaryToken.Symbol});
-
+            State.ChainPrimaryTokenSymbol.Value = input.Symbol;
+            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.Symbol});
             return new Empty();
         }
 
@@ -104,7 +102,7 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
-            State.Balances[input.To][input.Symbol] = State.Balances[input.To][input.Symbol].Add(input.Amount);
+            ModifyBalance(input.To, input.Symbol, input.Amount);
             return new Empty();
         }
 
@@ -146,8 +144,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
         {
-            var owner = GetOwnerAddress();
-            Assert(Context.Sender == owner, "No permission.");
+            CheckCrossChainTokenContractRegistrationControllerAuthority();
 
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
@@ -175,7 +172,6 @@ namespace AElf.Contracts.MultiToken
             AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
-            Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
@@ -195,7 +191,7 @@ namespace AElf.Contracts.MultiToken
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
             var transferTransactionId = transferTransaction.GetHash();
 
-            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
+            Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
                 "Token already claimed.");
 
             var crossChainTransferInput =
@@ -209,7 +205,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = AssertValidToken(symbol, amount);
             int issueChainId = GetIssueChainId(symbol);
             Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
+            Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
             var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
             AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
@@ -219,12 +215,11 @@ namespace AElf.Contracts.MultiToken
 
             CrossChainVerify(transferTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = input;
+            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = true;
             tokenInfo.Supply = tokenInfo.Supply.Add(amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;
-            var balanceOfReceiver = State.Balances[receivingAddress][symbol];
-            State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
+            ModifyBalance(receivingAddress, symbol, amount);
             return new Empty();
         }
 
@@ -232,7 +227,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Lock(LockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
             if (allowance >= input.Amount)
                 State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -247,7 +243,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Unlock(UnlockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
+            Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
@@ -362,10 +359,7 @@ namespace AElf.Contracts.MultiToken
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
-            var existingBalance = State.Balances[Context.Sender][input.Symbol];
-            Assert(existingBalance >= input.Amount,
-                $"Burner doesn't own enough balance. Exiting balance: {existingBalance}");
-            State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
+            ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
@@ -383,7 +377,7 @@ namespace AElf.Contracts.MultiToken
             var meetBalanceSymbolList = new List<string>();
             foreach (var symbolToThreshold in input.SymbolToThreshold)
             {
-                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value)
+                if (GetBalance(input.Sender, symbolToThreshold.Key) < symbolToThreshold.Value)
                     continue;
                 meetBalanceSymbolList.Add(symbolToThreshold.Key);
             }
@@ -426,10 +420,20 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
-            Assert(0 <= input.DonationPartsPerHundred && input.DonationPartsPerHundred <= 100,
+            Assert(
+                State.MinimumProfitsDonationPartsPerHundred.Value <= input.DonationPartsPerHundred &&
+                input.DonationPartsPerHundred <= 100,
                 "Invalid donation ratio.");
 
             State.ProfitReceivingInfos[input.ContractAddress] = input;
+            return new Empty();
+        }
+
+        public override Empty SetMinimumProfitsDonationPartsPerHundred(Int32Value input)
+        {
+            AssertControllerForSideChainRental();
+            Assert(input.Value >= 0 && input.Value <= 100, "Invalid value.");
+            State.MinimumProfitsDonationPartsPerHundred.Value = input.Value;
             return new Empty();
         }
 
@@ -439,19 +443,20 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(
-                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                !Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
+                    .Union(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
                     .Contains(input.Symbol), "Invalid token symbol.");
-            Assert(input.Amount <= State.Balances[input.ContractAddress][input.Symbol], "Invalid profit amount.");
-            var profits = input.Amount == 0 ? State.Balances[input.ContractAddress][input.Symbol] : input.Amount;
-            State.Balances[input.ContractAddress][input.Symbol] =
-                State.Balances[input.ContractAddress][input.Symbol].Sub(profits);
+            var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
+            Assert(input.Amount <= contractBalance, "Invalid profit amount.");
+            var profits = input.Amount == 0 ? contractBalance : input.Amount;
+            ModifyBalance(input.ContractAddress, input.Symbol, -profits);
             var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
 
             if (State.TreasuryContract.Value != null)
             {
                 // Main Chain.
                 // Increase balance of Token Contract then distribute donates.
-                State.Balances[Context.Self][input.Symbol] = State.Balances[Context.Self][input.Symbol].Add(donates);
+                ModifyBalance(Context.Self, input.Symbol, donates);
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = input.Symbol,
@@ -463,14 +468,11 @@ namespace AElf.Contracts.MultiToken
                 // Side Chain.
                 var consensusContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                State.Balances[consensusContractAddress][input.Symbol] =
-                    State.Balances[consensusContractAddress][input.Symbol].Add(donates);
+                ModifyBalance(consensusContractAddress, input.Symbol, donates);
             }
 
             var actualProfits = profits.Sub(donates);
-            State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol] =
-                State.Balances[profitReceivingInformation.ProfitReceiverAddress][input.Symbol]
-                    .Add(actualProfits);
+            ModifyBalance(profitReceivingInformation.ProfitReceiverAddress, input.Symbol, actualProfits);
 
             if (State.TokenHolderContract.Value == null)
             {
@@ -488,7 +490,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeManager = input.ContractAddress,
-                Symbol = input.Symbol
             });
 
             return new Empty();
@@ -526,15 +527,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
                     .Add(input.Amount);
-            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
-                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Add(input.Amount);
-            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
-                State.Balances[Context.Sender][input.ResourceTokenSymbol].Sub(input.Amount);
+            DoTransfer(Context.Sender, input.ContractAddress, input.ResourceTokenSymbol, input.Amount);
             return new Empty();
         }
 
@@ -543,10 +541,7 @@ namespace AElf.Contracts.MultiToken
             var advancedAmount =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
             Assert(advancedAmount >= input.Amount, "Can't take back that more.");
-            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
-                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Sub(input.Amount);
-            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
-                State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
+            DoTransfer(input.ContractAddress, Context.Sender, input.ResourceTokenSymbol, input.Amount);
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 advancedAmount.Sub(input.Amount);
             return new Empty();
@@ -575,7 +570,7 @@ namespace AElf.Contracts.MultiToken
             var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
             var isSystemContractAddress = systemContractAddresses.Contains(sender);
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-            
+
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }

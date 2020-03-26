@@ -66,9 +66,9 @@ namespace AElf.Contracts.Parliament
             return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
         }
         
-        public override GetProposerWhiteListContextOutput GetProposerWhiteListContext(Empty input)
+        public override ProposerWhiteList GetProposerWhiteList(Empty input)
         {
-            var res = new GetProposerWhiteListContextOutput();
+            var res = new ProposerWhiteList();
             var whitelist = State.ProposerWhiteList.Value;
             res.Proposers.AddRange(whitelist.Proposers);
             return res;
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Parliament
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
+                if (proposal == null || !Validate(proposal) || CheckProposalAlreadyVotedBy(proposal, Context.Sender))
                     continue;
                 result.ProposalIds.Add(proposalId);
             }
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Parliament
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !Validate(proposal) || CheckSenderAlreadyVoted(proposal, Context.Sender))
+                if (proposal == null || !Validate(proposal) || CheckProposalAlreadyVotedBy(proposal, Context.Sender))
                     continue;
                 var organization = State.Organisations[proposal.OrganizationAddress];
                 if (organization == null || !IsProposalStillPending(proposal, organization, currentParliament))
@@ -190,7 +190,13 @@ namespace AElf.Contracts.Parliament
 
             proposal.Approvals.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Approve)
+            });
             return new Empty();
         }
 
@@ -201,7 +207,13 @@ namespace AElf.Contracts.Parliament
             AssertProposalNotYetVotedBySender(proposal);
             proposal.Rejections.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Reject)
+            });
             return new Empty();
         }
 
@@ -212,7 +224,13 @@ namespace AElf.Contracts.Parliament
             AssertProposalNotYetVotedBySender(proposal);
             proposal.Abstentions.Add(Context.Sender);
             State.Proposals[input] = proposal;
-
+            Context.Fire(new ReceiptCreated()
+            {
+                Address = Context.Sender,
+                ProposalId = input,
+                Time = Context.CurrentBlockTime,
+                ReceiptType = nameof(Abstain)
+            });
             return new Empty();
         }
 
@@ -237,13 +255,28 @@ namespace AElf.Contracts.Parliament
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
             State.Organisations[Context.Sender] = organization;
+            Context.Fire(new OrganizationThresholdChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerReleaseThreshold = input
+            });
             return new Empty();
         }
 
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
-            Assert(State.DefaultOrganizationAddress.Value == Context.Sender, "No permission.");
+            var defaultOrganizationAddress = State.DefaultOrganizationAddress.Value;
+            Assert(defaultOrganizationAddress == Context.Sender, "No permission.");
+            var organization = State.Organisations[defaultOrganizationAddress];
+            Assert(
+                input.Proposers.Count > 0 || !organization.ProposerAuthorityRequired ||
+                organization.ParliamentMemberProposingAllowed, "White list can't be empty.");
             State.ProposerWhiteList.Value = input;
+            Context.Fire(new OrganizationWhiteListChanged
+            {
+                OrganizationAddress = Context.Sender,
+                ProposerWhiteList = input
+            });
             return new Empty();
         }
 
@@ -251,7 +284,7 @@ namespace AElf.Contracts.Parliament
         {
             // anyone can clear proposal if it is expired
             var proposal = State.Proposals[input];
-            Assert(proposal != null && Context.CurrentBlockTime > proposal.ExpiredTime, "Proposal clear failed");
+            Assert(proposal != null && Context.CurrentBlockTime >= proposal.ExpiredTime, "Proposal clear failed");
             State.Proposals.Remove(input);
             return new Empty();
         }

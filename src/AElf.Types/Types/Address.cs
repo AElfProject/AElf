@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Google.Protobuf;
-
-[assembly: InternalsVisibleTo("AElf.Kernel.Core.Tests")]
-[assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
-[assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
 namespace AElf.Types
 {
@@ -22,7 +17,7 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
@@ -42,7 +37,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Address
@@ -112,7 +107,7 @@ namespace AElf.Types
             if (_formattedAddress != null)
                 return _formattedAddress;
 
-            if (Value.Length != TypeConsts.AddressHashLength)
+            if (Value.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid address", nameof(Value));
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
@@ -140,7 +135,7 @@ namespace AElf.Types
             }
 
             var address = AddressHelper.Base58StringToAddress(arr[1]);
-            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
+            var chainId = Base58CheckEncoding.Decode(arr[2]).ToInt32(false);
 
             return new ChainAddress(address, chainId);
         }
@@ -150,7 +145,7 @@ namespace AElf.Types
         public string GetFormatted(string addressPrefix, int chainId)
         {
             if (_formatted != null) return _formatted;
-            var addressSuffix = Base58CheckEncoding.Encode(chainId.DumpByteArray());
+            var addressSuffix = Base58CheckEncoding.Encode(chainId.ToBytes(false));
             _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
             return _formatted;
         }

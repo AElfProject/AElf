@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
@@ -14,7 +15,7 @@ namespace AElf.Contracts.Association
             Assert(organization != null, "No registered organization.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
-        
+
         private void AssertIsAuthorizedOrganizationMember(Organization organization, Address member)
         {
             Assert(organization.OrganizationMemberList.Contains(member),
@@ -30,7 +31,7 @@ namespace AElf.Contracts.Association
             var isAbstained = IsProposalAbstained(proposal, organization);
             return !isAbstained && CheckEnoughVoteAndApprovals(proposal, organization);
         }
-        
+
         private bool IsProposalRejected(ProposalInfo proposal, Organization organization)
         {
             var rejectionMemberCount =
@@ -62,7 +63,8 @@ namespace AElf.Contracts.Association
         {
             if (organization.ProposerWhiteList.Empty() || organization.OrganizationMemberList.Empty())
                 return false;
-            
+            if (organization.OrganizationAddress == null || organization.OrganizationHash == null)
+                return false;
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             var organizationMemberCount = organization.OrganizationMemberList.Count();
             return proposalReleaseThreshold.MinimalVoteThreshold <= organizationMemberCount &&
@@ -78,12 +80,24 @@ namespace AElf.Contracts.Association
 
         private bool Validate(ProposalInfo proposal)
         {
-            var validDestinationAddress = proposal.ToAddress != null;
-            var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
-            var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
-            return validDestinationAddress && validDestinationMethodName && validExpiredTime;
+            if (proposal.ToAddress == null || string.IsNullOrWhiteSpace(proposal.ContractMethodName) ||
+                !ValidateDescriptionUrlScheme(proposal.ProposalDescriptionUrl))
+            {
+                return false;
+            }
+
+            return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
         }
 
+        private bool ValidateDescriptionUrlScheme(string uriString)
+        {
+            if (string.IsNullOrEmpty(uriString))
+                return true;
+            bool result = Uri.TryCreate(uriString, UriKind.Absolute, out var uriResult)
+                          && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            return result;
+        }
+        
         private ProposalInfo GetValidProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
@@ -91,11 +105,13 @@ namespace AElf.Contracts.Association
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
         }
-   
-        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(CreateOrganizationInput createOrganizationInput)
+
+        private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
+            CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = Hash.FromMessage(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress =
+                Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
@@ -110,7 +126,7 @@ namespace AElf.Contracts.Association
 
             Assert(!isAlreadyVoted, "Sender already voted.");
         }
-        
+
         private Hash CreateNewProposal(CreateProposalInput input)
         {
             Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
@@ -123,7 +139,8 @@ namespace AElf.Contracts.Association
                 ToAddress = input.ToAddress,
                 OrganizationAddress = input.OrganizationAddress,
                 ProposalId = proposalId,
-                Proposer = Context.Sender
+                Proposer = Context.Sender,
+                ProposalDescriptionUrl = input.ProposalDescriptionUrl
             };
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");

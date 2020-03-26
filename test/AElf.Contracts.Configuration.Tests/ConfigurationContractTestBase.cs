@@ -7,7 +7,10 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Configuration;
+using AElf.Kernel.Proposal;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -28,8 +31,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
-                    out _,
-                    out _balanceOfStarter)));
+                    out _, out _balanceOfStarter, true)));
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);
@@ -49,9 +51,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 : await Tester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
         }
 
-        internal Int32Value SetBlockTransactionLimitRequest(int amount)
+        internal SetConfigurationInput SetBlockTransactionLimitRequest(int amount)
         {
-            return new Int32Value {Value = amount};
+            return new SetConfigurationInput
+            {
+                Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                Value = new Int32Value{Value = amount}.ToByteString()
+            };
         }
 
         internal async Task<Hash> SetBlockTransactionLimitProposalAsync(int amount)
@@ -59,7 +65,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var createProposalInput = SetBlockTransactionLimitRequest(amount);
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
             var proposalId =
-                await CreateProposalAsync(organizationAddress, createProposalInput, "SetBlockTransactionLimit");
+                await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
             return proposalId;
         }
 
@@ -113,9 +119,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             return transactionResult;
         }
 
-        internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(Address address)
+        internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(AuthorityInfo authorityInfo)
         {
-            var createProposalInput = address;
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
                     nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
@@ -125,9 +130,9 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
                 new CreateProposalInput
                 {
-                    ContractMethodName = "ChangeOwnerAddress",
+                    ContractMethodName = nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = createProposalInput.ToByteString(),
+                    Params = authorityInfo.ToByteString(),
                     ToAddress = ConfigurationContractAddress,
                     OrganizationAddress = organizationAddress
                 });

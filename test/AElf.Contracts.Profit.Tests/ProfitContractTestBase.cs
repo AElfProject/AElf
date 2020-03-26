@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -11,6 +12,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -153,7 +155,7 @@ namespace AElf.Contracts.Profit
                 }
             });
 
-            // For creating `Treasury` profit item.
+            // For creating `Treasury` profit scheme.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
@@ -202,7 +204,7 @@ namespace AElf.Contracts.Profit
             var consensusContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
             {
-                TimeEachTerm = 604800L,
+                PeriodSeconds = 604800L,
                 MinerIncreaseInterval = 31536000
             });
             

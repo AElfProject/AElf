@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
@@ -48,6 +50,16 @@ namespace AElf.Blockchains.SideChain
                 return genesisSmartContractDtoList;
             }
 
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("Profit")).Value,
+                ProfitSmartContractAddressNameProvider.Name
+            );
+
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("TokenHolder")).Value,
+                TokenHolderSmartContractAddressNameProvider.Name
+            );
+
             // chainInitializationData cannot be null if it is first time side chain startup. 
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value,
@@ -84,16 +96,6 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
                 ConfigurationSmartContractAddressNameProvider.Name,
                 GenerateConfigurationInitializationCallList(chainInitializationData));
-            
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Profit")).Value,
-                ProfitSmartContractAddressNameProvider.Name
-            );
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("TokenHolder")).Value,
-                TokenHolderSmartContractAddressNameProvider.Name
-            );
 
             return genesisSmartContractDtoList;
         }

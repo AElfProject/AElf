@@ -11,7 +11,6 @@ import "kernel.proto";
 message BlockAnnouncement {
     aelf.Hash block_hash = 1;
     int64 block_height = 2;
-    bool has_fork = 3;
 }
 
 message BlockWithTransactions {

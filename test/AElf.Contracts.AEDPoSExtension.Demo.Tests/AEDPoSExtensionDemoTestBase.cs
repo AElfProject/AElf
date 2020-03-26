@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
@@ -13,6 +14,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -28,8 +30,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
-        internal TokenContractContainer.TokenContractStub TokenStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(
+        internal TokenContractImplContainer.TokenContractImplStub TokenStub =>
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
         

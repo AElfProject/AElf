@@ -30,7 +30,7 @@ namespace AElf.Contracts.MultiToken
             TokenContractAddress =
                 await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultKeyPair);
             TokenContractStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
             await TokenContractStub.Create.SendAsync(new CreateInput
@@ -41,6 +41,10 @@ namespace AElf.Contracts.MultiToken
                 TokenName = "elf token",
                 TotalSupply = _totalSupply,
                 Issuer = DefaultAddress
+            });
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+            {
+                Symbol = DefaultSymbol,
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
@@ -64,7 +68,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     From = DefaultAddress,
                     To = TokenContractAddress,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                     Params = new TransferInput
                     {
                         Amount = transferAmountInSystemTxn,

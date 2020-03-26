@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -81,8 +82,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var signature = firstPlaceInfo.Signature;
-            var sigNum = BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+            var sigNum = signature.ToByteArray().ToInt64(true);
             var blockProducerCount = RealTimeMinersInformation.Count;
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;

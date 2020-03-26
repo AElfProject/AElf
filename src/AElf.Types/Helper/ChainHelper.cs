@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AElf
 {
@@ -13,20 +14,18 @@ namespace AElf
             if (validNUmber < 195112)
                 validNUmber += 195112;
 
-            var validNUmberBytes = BitConverter.GetBytes(validNUmber);
+            var validNUmberBytes = validNUmber.ToBytes().Skip(1).ToArray();
 
             // Use BigInteger(BigEndian) format (bytes size = 3)
-            var integerBytes = new byte[4];
-            for (var i = 0; i < 3; i++)
-                integerBytes[2 - i] = validNUmberBytes[i];
+            Array.Resize(ref validNUmberBytes, 4);
 
-            return BitConverter.ToInt32(integerBytes, 0);
+            return validNUmberBytes.ToInt32(false);
         }
 
         public static string ConvertChainIdToBase58(int chainId)
         {
             // Default chain id is 4 base58 chars, bytes size is 3
-            var bytes = BitConverter.GetBytes(chainId);
+            var bytes = chainId.ToBytes(false);
             Array.Resize(ref bytes, 3);
             return bytes.ToPlainBase58();
         }
@@ -38,7 +37,7 @@ namespace AElf
             if (bytes.Length < 4)
                 Array.Resize(ref bytes, 4);
 
-            return BitConverter.ToInt32(bytes, 0);
+            return bytes.ToInt32(false);
         }
     }
 }

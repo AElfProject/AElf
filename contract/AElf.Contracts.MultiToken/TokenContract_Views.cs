@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Acs1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -21,14 +22,20 @@ namespace AElf.Contracts.MultiToken
 
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
-            return new TokenInfoList
+            var tokenInfoList = new TokenInfoList();
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Where(symbol =>
+                State.TokenInfos[symbol] != null))
             {
-                Value =
-                {
-                    Context.Variables.SymbolListToPayTxFee.Select(symbol =>
-                        State.TokenInfos[symbol] ?? new TokenInfo())
-                }
-            };
+                tokenInfoList.Value.Add(State.TokenInfos[symbol]);
+            }
+
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Where(symbol =>
+                State.TokenInfos[symbol] != null))
+            {
+                tokenInfoList.Value.Add(State.TokenInfos[symbol]);
+            }
+
+            return tokenInfoList;
         }
 
         [View]
@@ -38,7 +45,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
-                Balance = State.Balances[input.Owner][input.Symbol]
+                Balance = GetBalance(input.Owner, input.Symbol)
             };
         }
 
@@ -76,7 +83,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Address = input.Address,
                 LockId = input.LockId,
-                Amount = State.Balances[virtualAddress][input.Symbol]
+                Amount = GetBalance(virtualAddress, input.Symbol)
             };
         }
 
@@ -96,32 +103,39 @@ namespace AElf.Contracts.MultiToken
 
         public override StringValue GetPrimaryTokenSymbol(Empty input)
         {
-            if (string.IsNullOrWhiteSpace(_primaryTokenSymbol))
+            if (string.IsNullOrWhiteSpace(_primaryTokenSymbol) && State.ChainPrimaryTokenSymbol.Value != null)
             {
-                _primaryTokenSymbol = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ??
-                                      string.Empty;
+                _primaryTokenSymbol = State.ChainPrimaryTokenSymbol.Value;
             }
 
             return new StringValue
             {
-                Value = _primaryTokenSymbol
+                Value = _primaryTokenSymbol ?? string.Empty
             };
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfContract(SInt32Value input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(Int32Value input)
         {
-            return State.CalculateCoefficientOfContract[(FeeTypeEnum) input.Value];
+            if (input.Value == (int) FeeTypeEnum.Tx)
+                return null;
+            var targetTokenCoefficient =
+                State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
+                    x.FeeTokenType == input.Value);
+            return targetTokenCoefficient;
         }
 
-        public override CalculateFeeCoefficientsOfType GetCalculateFeeCoefficientOfSender(Empty input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForSender(Empty input)
         {
-            return State.CalculateCoefficientOfSender.Value;
+            var targetTokenCoefficient =
+                State.AllCalculateFeeCoefficients.Value.Value.First(x =>
+                    x.FeeTokenType == (int)FeeTypeEnum.Tx);
+            return targetTokenCoefficient;
         }
 
         public override OwningRental GetOwningRental(Empty input)
         {
             var owingRental = new OwningRental();
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 owingRental.ResourceAmount[symbol] = State.OwningRental[symbol];
             }
@@ -129,10 +143,21 @@ namespace AElf.Contracts.MultiToken
             return owingRental;
         }
 
+        public override OwningRentalUnitValue GetOwningRentalUnitValue(Empty input)
+        {
+            var rentalResourceUnitValue = new OwningRentalUnitValue();
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
+            {
+                rentalResourceUnitValue.ResourceUnitValue[symbol] = State.Rental[symbol];
+            }
+
+            return rentalResourceUnitValue;
+        }
+
         public override ResourceUsage GetResourceUsage(Empty input)
         {
             var usage = new ResourceUsage();
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 usage.Value.Add(symbol, State.ResourceAmount[symbol]);
             }
@@ -140,32 +165,43 @@ namespace AElf.Contracts.MultiToken
             return usage;
         }
 
-        public override SymbolListToPayTXSizeFee GetSymbolsToPayTXSizeFee(Empty input)
+        public override SymbolListToPayTxSizeFee GetSymbolsToPayTxSizeFee(Empty input)
         {
             return State.SymbolListToPayTxSizeFee.Value;
         }
         
-        public override ControllerForUserFee GetUserFeeController(Empty input)
+        public override UserFeeController GetUserFeeController(Empty input)
         {
-            return State.ControllerForUserFee.Value;
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.UserFeeController.Value;
         }
         
-        public override ControllerForDeveloperFee GetDeveloperFeeController(Empty input)
+        public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
-            return State.ControllerForDeveloperFee.Value;
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerInfoForUpdateSideChainRental GetControllerInfoForUpdateSideChainRental(Empty input)
+        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
             var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
             var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerInfoForUpdateSideChainRental
+            var controllerInfo = new ControllerCreateInfo
             {
                 Controller = controllerAddress,
                 OrganizationCreationInputBytes = organization.ToByteString()
             };
             return controllerInfo;
+        }
+
+        public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
+        {
+            if(State.SymbolToPayTxFeeController.Value == null)
+                return GetDefaultSymbolToPayTxFeeController();
+            return State.SymbolToPayTxFeeController.Value;
         }
     }
 }

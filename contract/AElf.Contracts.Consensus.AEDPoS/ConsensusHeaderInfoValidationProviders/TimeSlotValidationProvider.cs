@@ -1,5 +1,6 @@
 using System.Linq;
 using Acs4;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 
 // ReSharper disable once CheckNamespace
@@ -28,6 +29,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     validationResult.Message =
                         $"Time slot already passed before execution.{validationContext.SenderPubkey}";
+                    validationResult.IsReTrigger = true;
                     return validationResult;
                 }
             }

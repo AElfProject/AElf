@@ -5,6 +5,7 @@ using Acs2;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Economic.TestBase;
@@ -21,15 +22,16 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Mono.Cecil.Cil;
 using Shouldly;
 using Volo.Abp.Threading;
-using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.MultiToken
@@ -40,7 +42,7 @@ namespace AElf.Contracts.MultiToken
         protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;
         protected long BobCoinTotalAmount => 1_000_000_000_0000L;
         protected Address TokenContractAddress { get; set; }
-        internal TokenContractContainer.TokenContractStub TokenContractStub;
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
         protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultAddress => Address.FromPublicKey(DefaultKeyPair.PublicKey);
         protected ECKeyPair User1KeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
@@ -63,6 +65,7 @@ namespace AElf.Contracts.MultiToken
         public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
         public byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
+        public byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
         protected Address TokenConverterContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
@@ -71,7 +74,7 @@ namespace AElf.Contracts.MultiToken
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
 
-        internal new ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
             return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
@@ -105,7 +108,7 @@ namespace AElf.Contracts.MultiToken
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
-        protected readonly Address Address = SampleAddress.AddressList[0];
+        protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
 
         protected const string SymbolForTest = "ELF";
 
@@ -135,7 +138,7 @@ namespace AElf.Contracts.MultiToken
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
                 CheckResult(result.TransactionResult);
@@ -205,10 +208,10 @@ namespace AElf.Contracts.MultiToken
             ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
             AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
+                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
-        protected void StartSideChain(int chainId, long height, string symbol)
+        protected void StartSideChain(int chainId, long height, string symbol, bool registerParentChainTokenContractAddress)
         {
             SideChainTester =
                 new ContractTester<MultiTokenContractCrossChainTestAElfModule>(chainId, SampleECKeyPairs.KeyPairs[0]);
@@ -216,7 +219,8 @@ namespace AElf.Contracts.MultiToken
                 SideChainTester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChainTester.GetSideChainSystemContract(
                         SideChainTester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChainTester.GetCallOwnerAddress(), height)));
+                        SideChainTester.GetCallOwnerAddress(), height,
+                        registerParentChainTokenContractAddress ? TokenContractAddress : null)));
             SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
             SideCrossChainContractAddress =
                 SideChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
@@ -234,7 +238,7 @@ namespace AElf.Contracts.MultiToken
                 SideChain2Tester.InitialCustomizedChainAsync(chainId,
                     configureSmartContract: SideChain2Tester.GetSideChainSystemContract(
                         SideChain2Tester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChain2Tester.GetCallOwnerAddress(), height)));
+                        SideChain2Tester.GetCallOwnerAddress(), height, TokenContractAddress)));
             Side2BasicContractZeroAddress = SideChain2Tester.GetZeroContractAddress();
             Side2CrossChainContractAddress =
                 SideChain2Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
@@ -283,7 +287,7 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideCrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetBoundParentChainHeightAndMerklePathByHeight), new SInt64Value
+                    .GetBoundParentChainHeightAndMerklePathByHeight), new Int64Value
                 {
                     Value = height
                 });
@@ -296,12 +300,12 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await MainChainTester.CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetSideChainHeight), new SInt32Value
+                    .GetSideChainHeight), new Int32Value
                 {
                     Value = chainId
                 });
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 
@@ -312,7 +316,7 @@ namespace AElf.Contracts.MultiToken
                 nameof(CrossChainContractContainer.CrossChainContractStub
                     .GetParentChainHeight), new Empty());
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 
@@ -462,7 +466,7 @@ namespace AElf.Contracts.MultiToken
             var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
 
             var approveResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
+                nameof(TokenContractImplContainer.TokenContractImplStub.Approve), new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
                     Symbol = "ELF",
@@ -470,7 +474,7 @@ namespace AElf.Contracts.MultiToken
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
             await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetAllowance),
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetAllowance),
                 new GetAllowanceInput
                 {
                     Symbol = "ELF",

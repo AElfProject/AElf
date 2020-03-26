@@ -11,7 +11,7 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
-        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, TypeConsts.HashByteArrayLength)
+        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
+            if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
@@ -50,7 +50,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentException"></exception>
         public static Hash FromByteArray(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
+            if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Hash
@@ -121,7 +121,7 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToHex()
         {
-            if (Value.Length != TypeConsts.HashByteArrayLength)
+            if (Value.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(Value));
 
             return Value.ToHex();
@@ -129,8 +129,7 @@ namespace AElf.Types
 
         public Int64 ToInt64()
         {
-            return BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? Value.Reverse().ToArray() : Value.ToArray(), 0);
+            return ToByteArray().ToInt64(true);
         }
 
         public static bool operator ==(Hash h1, Hash h2)

@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
         <PackageId>AElf.Runtime.CSharp.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Core elements of C# smart contracts.</Description>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,10 +14,6 @@
       <PackageReference Include="Hyperion" Version="0.9.10" />
       <PackageReference Include="Unofficial.CoreRT.ILVerify" Version="0.0.1" />
 
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     
 </Project>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Acs4;
-using Google.Protobuf.WellKnownTypes;
+using AElf.CSharp.Core;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -18,6 +19,37 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!TryToGetCurrentRoundInformation(out var baseRound))
             {
                 return new ValidationResult {Success = false, Message = "Failed to get current round information."};
+            }
+
+            // Skip the certain initial miner during first several rounds. (When other nodes haven't produce blocks yet.)
+            if (baseRound.RealTimeMinersInformation.Count != 1 &&
+                Context.CurrentHeight < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(3))
+            {
+                string producedMiner = null;
+                var result = true;
+                for (var i = baseRound.RoundNumber; i > 0; i--)
+                {
+                    var producedMiners = State.Rounds[i].RealTimeMinersInformation.Values
+                        .Where(m => m.ActualMiningTimes.Any()).ToList();
+                    if (producedMiners.Count != 1)
+                    {
+                        result = false;
+                        break;
+                    }
+                    if (producedMiner == null)
+                    {
+                        producedMiner = producedMiners.Single().Pubkey;
+                    }
+                    else if (producedMiner != producedMiners.Single().Pubkey)
+                    {
+                        result = false;
+                    }
+                }
+
+                if (result)
+                {
+                    return new ValidationResult {Success = true};
+                }
             }
 
             if (extraData.Behaviour == AElfConsensusBehaviour.UpdateValue)

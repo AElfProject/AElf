@@ -3,7 +3,6 @@ syntax = "proto3";
 package acs6;
 import "aelf/options.proto";
 import "aelf/core.proto";
-import "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs6";
 
@@ -20,7 +19,7 @@ service RandomNumberProviderContract {
 }
 
 message RandomNumberOrder {
-    sint64 block_height = 1;// Orderer is possible to get a random number after this height.
+    int64 block_height = 1;// Orderer is possible to get a random number after this height.
     aelf.Hash token_hash = 2;// Token to get the random number.
 }
 
@@ -30,7 +29,7 @@ message RandomNumberRequestHandled {
     option (aelf.is_event) = true;
     aelf.Address requester = 1;
     aelf.Hash token_hash = 2;
-    sint64 block_height = 3;
+    int64 block_height = 3;
 }
 
 message RandomNumberGenerated {

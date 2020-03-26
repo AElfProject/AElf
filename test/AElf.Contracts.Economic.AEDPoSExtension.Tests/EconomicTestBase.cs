@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -12,6 +13,7 @@ using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -70,7 +72,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 EconomicSmartContractAddressNameProvider.Name,
-                TokenHolderSmartContractAddressNameProvider.Name
+                TokenHolderSmartContractAddressNameProvider.Name,
+                AssociationSmartContractAddressNameProvider.Name,
+                ReferendumSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitialEconomicSystem);
@@ -81,6 +85,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // Profit distribution schemes related to Treasury must be created before initialization of Economic System.
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
+                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 TreasuryStub.InitialTreasuryContract.GetTransaction(new Empty()),
                 TreasuryStub.InitialMiningRewardProfitItem.GetTransaction(new Empty())
             });
@@ -90,11 +95,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 {
                     MinerList = {MissionedECKeyPairs.InitialKeyPairs.Select(p => p.PublicKey.ToHex())},
                     MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                    TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm,
+                    TimeEachTerm = AEDPoSExtensionConstants.PeriodSeconds,
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
-                ParliamentContractStub.Initialize.GetTransaction(new InitializeInput()),
                 EconomicStub.InitialEconomicSystem.GetTransaction(new InitialEconomicSystemInput
                 {
                     IsNativeTokenBurnable = true,
