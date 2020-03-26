@@ -11,6 +11,10 @@
         <DocumentationFile>aelf-csharp-sdk-doc</DocumentationFile>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>CS1591, CS1573, CS1572</NoWarn>
+    </PropertyGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
