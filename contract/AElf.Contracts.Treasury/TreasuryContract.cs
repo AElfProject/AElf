@@ -238,6 +238,14 @@ namespace AElf.Contracts.Treasury
             State.VoteWeightInterestList.Value = input;
             return new Empty();
         }
+        
+        public override Empty SetAmountAndTimeProportionOfVoteWeight(AmountAndTimeProportion input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
+            State.AmountAndTimeProportion.Value = input;
+            return new Empty();
+        }
 
         private void ConvertToNativeToken(string symbol, long amount)
         {
@@ -628,21 +636,28 @@ namespace AElf.Contracts.Treasury
             }
             return State.VoteWeightInterestController.Value;
         }
+
+        public override AmountAndTimeProportion GetAmountAndTimeProportionOfVoteWeight(Empty input)
+        {
+            return State.AmountAndTimeProportion.Value ?? GetDefaultAmountAndTimeProportion();
+        }
         
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
-
+            var timeAndAmountProportion = GetAmountAndTimeProportion();
             foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
                 if (lockDays > instMap.Day)
                     continue;
                 var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
+                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount
+                    .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
             }
             var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
             var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
+            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount
+                .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
         }
 
         private static decimal Pow(decimal x, uint y)
@@ -665,7 +680,20 @@ namespace AElf.Contracts.Treasury
 
             return a;
         }
-        
+
+        private AmountAndTimeProportion GetAmountAndTimeProportion()
+        {
+            return State.AmountAndTimeProportion.Value ??
+                   (State.AmountAndTimeProportion.Value = GetDefaultAmountAndTimeProportion());
+        }
+        private AmountAndTimeProportion GetDefaultAmountAndTimeProportion()
+        {
+            return new AmountAndTimeProportion
+            {
+                TimeProportion = 2,
+                AmountProportion = 1
+            };
+        }
         private void InitializeVoteWeightInterest()
         {
             if (State.VoteWeightInterestList.Value != null)

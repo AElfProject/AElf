@@ -299,6 +299,11 @@ namespace AElf.Contracts.Election
             return State.VoteWeightInterestController.Value;
         }
         
+        public override AmountAndTimeProportion GetAmountAndTimeProportionOfVoteWeight(Empty input)
+        {
+            return State.AmountAndTimeProportion.Value ?? GetDefaultAmountAndTimeProportion();
+        }
+        
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];
