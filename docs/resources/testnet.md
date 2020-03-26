@@ -179,11 +179,11 @@ aelf-command get-blk-height -e http://127.0.0.1:8000
 
 ## Run side-chains
 
-This section explains how to set up a sidechain node, you will have to repeat these steps for all side chains, essentially following these steps for each side-chain (currently five):
+This section explains how to set up a side-chain node, you will have to repeat these steps for all side chains (currently only one is running):
 
 1. Fetch the appsettings and the docker run script. 
 2. Download and restore the snapshot data with the URLs provided below (steps are the same as in A - Setup the database). 
-3. Run the sidechain node. 
+3. Run the side-chain node. 
 
 Running a side chain is very much like running a mainchain node, only configuration will change. Here you can find the instructions for sidechain1:
 ```bash
@@ -207,33 +207,20 @@ In order for a sidechain to connect to a mainchain node you need to modify the c
 },
 ```
 
-Here you can find the snapshot data for each sidechain, optionally you can specify the date, but we recommend you get the latest:
+Here you can find the snapshot data for the only current side-chain running, optionally you can specify the date, but we recommend you get the latest:
 
 ```
 >> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain1-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain2-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain3-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain4-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain5-db.sh
 ```
 
-Here you can find the list of templates folders (appsettings and docker run script) for each side-chain:
+Here you can find the list of templates folders (appsettings and docker run script) for the side-chain:
 ```
 wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain1.zip
-wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain2.zip
-wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain3.zip
-wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain4.zip
-wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain5.zip
-
 ```
 
 Each side chain has its own P2P network, you can find here some bootnodes that are available:
 ```
-sidechain1 bootnode → ["13.211.28.67:6800", "18.229.184.199:6800"]
-sidechain2 bootnode → ["13.236.40.223:6800", "18.229.191.226:6800"]
-sidechain3 bootnode → ["13.239.50.175:6800", "18.229.195.182:6800"]
-sidechain4 bootnode → ["13.55.199.121:6800", "18.229.233.20:6800"]
-sidechain5 bootnode → ["3.104.42.91:6800", "52.67.206.106:6800"]
+sidechain1 bootnode → ["testnet-sidechain1-1.aelf.io:6800", "testnet-sidechain1-2.aelf.io:6800"]
 ```
 
 ```json
