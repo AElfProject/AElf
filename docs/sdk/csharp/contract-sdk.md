@@ -41,6 +41,15 @@
 - [Int64State](#T-AElf-Sdk-CSharp-State-Int64State 'AElf.Sdk.CSharp.State.Int64State')
 - [MappedState\`2](#T-AElf-Sdk-CSharp-State-MappedState`2 'AElf.Sdk.CSharp.State.MappedState`2')
 - [SingletonState\`1](#T-AElf-Sdk-CSharp-State-SingletonState`1 'AElf.Sdk.CSharp.State.SingletonState`1')
+- [SmartContractBridgeContextExtensions](#T-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions')
+  - [Call\`\`1(address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [Call\`\`1(address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [ConvertToByteString(message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertToByteString-Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.ConvertToByteString(Google.Protobuf.IMessage)')
+  - [Fire\`\`1(eventData)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Fire``1-AElf-Sdk-CSharp-CSharpSmartContractContext,``0- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Fire``1(AElf.Sdk.CSharp.CSharpSmartContractContext,``0)')
+  - [SendInline(toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendVirtualInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendVirtualInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
 - [SmartContractConstants](#T-AElf-Sdk-CSharp-SmartContractConstants 'AElf.Sdk.CSharp.SmartContractConstants')
 - [StringState](#T-AElf-Sdk-CSharp-State-StringState 'AElf.Sdk.CSharp.State.StringState')
 - [UInt32State](#T-AElf-Sdk-CSharp-State-UInt32State 'AElf.Sdk.CSharp.State.UInt32State')
@@ -536,6 +545,167 @@ AElf.Sdk.CSharp.State
 ##### Summary
 
 Represents single values of a given type, for use in smart contract state.
+
+<a name='T-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions'></a>
+## SmartContractBridgeContextExtensions `type`
+
+##### Namespace
+
+AElf.Sdk.CSharp
+
+##### Summary
+
+Extension methods that help with the interactions with the smart contract execution context.
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### Call\`\`1(address,methodName,message) `method`
+
+##### Summary
+
+Calls a method on another contract.
+
+##### Returns
+
+The return value of the call.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| address | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the address of the contract you're seeking to interact with |
+| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to call |
+| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+
+##### Generic Types
+
+| Name | Description |
+| ---- | ----------- |
+| T | The return type of the call |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### Call\`\`1(address,methodName,message) `method`
+
+##### Summary
+
+Calls a method on another contract.
+
+##### Returns
+
+the result of the call.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| address | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the address of the contract you're seeking to interact with |
+| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to call |
+| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the protobuf message that will be the input to the call. |
+
+##### Generic Types
+
+| Name | Description |
+| ---- | ----------- |
+| T | the type of the return message. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertToByteString-Google-Protobuf-IMessage-'></a>
+### ConvertToByteString(message) `method`
+
+##### Summary
+
+Serializes a protobuf message to a protobuf ByteString.
+
+##### Returns
+
+ByteString.Empty if the message is null
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | the message to serialize. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Fire``1-AElf-Sdk-CSharp-CSharpSmartContractContext,``0-'></a>
+### Fire\`\`1(eventData) `method`
+
+##### Summary
+
+Logs an event during the execution of a transaction. The event type is defined in the AElf.CSharp.core
+project.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| eventData | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the event to log |
+
+##### Generic Types
+
+| Name | Description |
+| ---- | ----------- |
+| T | the type of the event |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### SendInline(toAddress,methodName,message) `method`
+
+##### Summary
+
+Sends an inline transaction to another contract.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| toAddress | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the address of the contract you're seeking to interact with. |
+| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
+| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### SendInline(fromVirtualAddress,toAddress,methodName,message) `method`
+
+##### Summary
+
+Sends a virtual inline transaction to another contract.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fromVirtualAddress | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the virtual address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to invoke. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### SendVirtualInline(fromVirtualAddress,toAddress,methodName,message) `method`
+
+##### Summary
+
+Sends a virtual inline transaction to another contract.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fromVirtualAddress | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the virtual address to use as sender. |
+| toAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the address of the contract you're seeking to interact with. |
+| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
+| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### SendVirtualInline(fromVirtualAddress,toAddress,methodName,message) `method`
+
+##### Summary
+
+Sends a virtual inline transaction to another contract.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fromVirtualAddress | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the virtual address to use as sender. |
+| toAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the address of the contract you're seeking to interact with. |
+| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
+| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
 
 <a name='T-AElf-Sdk-CSharp-SmartContractConstants'></a>
 ## SmartContractConstants `type`
