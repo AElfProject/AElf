@@ -23,9 +23,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         {
             return new List<string>
             {
-                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees),
                 // Pre-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChargeTransactionFees),
             };
         }
     }

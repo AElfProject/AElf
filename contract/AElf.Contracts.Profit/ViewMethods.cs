@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
 {
@@ -53,7 +55,7 @@ namespace AElf.Contracts.Profit
             return Address.FromPublicKey(period.ToString().ComputeHash().Concat(profitId.Value).ToArray());
         }
 
-        public override SInt64Value GetProfitAmount(ClaimProfitsInput input)
+        public override Int64Value GetProfitAmount(GetProfitAmountInput input)
         {
             var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Scheme not found.");
@@ -62,7 +64,7 @@ namespace AElf.Contracts.Profit
 
             if (profitDetails == null)
             {
-                return new SInt64Value {Value = 0};
+                return new Int64Value {Value = 0};
             }
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
@@ -84,11 +86,51 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                amount = amount.Add(
-                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, beneficiary, true));
+                var profitsDict = ProfitAllPeriods(profitItem, profitDetail, profitVirtualAddress, beneficiary, true,
+                    input.Symbol);
+                amount = amount.Add(profitsDict[input.Symbol]);
             }
 
-            return new SInt64Value {Value = amount};
+            return new Int64Value {Value = amount};
+        }
+
+        public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)
+        {
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Scheme not found.");
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
+
+            if (profitDetails == null)
+            {
+                return new ReceivedProfitsMap();
+            }
+
+            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
+
+            // ReSharper disable once PossibleNullReferenceException
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod < scheme.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+            ).ToList();
+
+            var profitsDict = new Dictionary<string, long>();
+            for (var i = 0;
+                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i++)
+            {
+                var profitDetail = availableDetails[i];
+                if (profitDetail.LastProfitPeriod == 0)
+                {
+                    profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
+                }
+
+                profitsDict = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+            }
+
+            return new ReceivedProfitsMap
+            {
+                Value = {profitsDict}
+            };
         }
     }
 }

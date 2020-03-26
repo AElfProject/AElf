@@ -10,7 +10,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             smartContractAddressService)
         {
             InvolvedSmartContractMethods = new[]
-                {nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees)};
+                {nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees)};
         }
 
         public override bool ValidateWhileSyncing => false;

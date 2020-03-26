@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
     internal interface ITokenContractReaderFactory
     {
-        TokenContractContainer.TokenContractStub Create(IChainContext chainContext);
+        TokenContractImplContainer.TokenContractImplStub Create(IChainContext chainContext);
     }
 
     internal class TokenContractReaderFactory : ITokenContractReaderFactory
@@ -23,9 +23,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public TokenContractContainer.TokenContractStub Create(IChainContext chainContext)
+        public TokenContractImplContainer.TokenContractImplStub Create(IChainContext chainContext)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TokenContractMethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,

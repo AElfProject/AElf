@@ -9,5 +9,7 @@ namespace AElf.Contracts.CrossChain
         private const int DefaultMaximalAbstentionThreshold = 1000;
         private const int DefaultMaximalRejectionThreshold = 1000;
         private const int DefaultMinimalVoteThresholdThreshold = 6667;
+        
+        private const string PayRentalSymbolListName = "SymbolListToPayRental";
     }
 }

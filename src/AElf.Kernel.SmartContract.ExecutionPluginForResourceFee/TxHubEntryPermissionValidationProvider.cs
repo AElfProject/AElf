@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService) : base(
             smartContractAddressService)
         {
-            InvolvedSmartContractMethods = new[] {nameof(TokenContractContainer.TokenContractStub.DonateResourceToken)};
+            InvolvedSmartContractMethods = new[] {nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken)};
         }
     }
 }

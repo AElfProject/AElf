@@ -15,6 +15,6 @@ service ResourceConsumptionContract {
 
 message BuyResourceTokenInput {
     string symbol = 1;
-    sint64 amount = 2;
-    sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
+    int64 amount = 2;
+    int64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
 }
