@@ -48,10 +48,10 @@ namespace AElf.OS.Network.Infrastructure
 
         private void CleanCache(ConcurrentQueue<Timestamp> queue)
         {
-            while (!queue.IsEmpty && queue.TryPeek(out var timestamp))
+            while (!queue.IsEmpty
+                   && queue.TryPeek(out var timestamp)
+                   && timestamp.AddMilliseconds(QueuedTimeout) < TimestampHelper.GetUtcNow())
             {
-                if (timestamp.AddMilliseconds(QueuedTimeout) > TimestampHelper.GetUtcNow())
-                    break;
                 queue.TryDequeue(out _);
             }
         }
