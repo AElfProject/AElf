@@ -6,7 +6,7 @@ using AElf.Types;
 using Moq;
 using Xunit;
 
-namespace AElf.OS.Network.Service
+namespace AElf.OS.Network.Application
 {
     public class NetworkServicePropagationTest : NetworkServicePropagationTestBase
     {

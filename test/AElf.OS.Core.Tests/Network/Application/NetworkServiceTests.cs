@@ -3,14 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Application
 {
     public class NetworkServiceTests : OSCoreNetworkServiceTestBase
     {
