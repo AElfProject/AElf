@@ -17,7 +17,7 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
@@ -37,7 +37,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Address
@@ -107,7 +107,7 @@ namespace AElf.Types
             if (_formattedAddress != null)
                 return _formattedAddress;
 
-            if (Value.Length != TypeConsts.AddressHashLength)
+            if (Value.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid address", nameof(Value));
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());

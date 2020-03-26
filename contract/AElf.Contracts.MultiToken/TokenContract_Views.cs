@@ -23,13 +23,13 @@ namespace AElf.Contracts.MultiToken
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
             var tokenInfoList = new TokenInfoList();
-            foreach (var symbol in GetPayTxFeeSymbolList().Where(symbol =>
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Where(symbol =>
                 State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
             }
 
-            foreach (var symbol in GetPayRentalSymbolList().Where(symbol =>
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Where(symbol =>
                 State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
@@ -135,7 +135,7 @@ namespace AElf.Contracts.MultiToken
         public override OwningRental GetOwningRental(Empty input)
         {
             var owingRental = new OwningRental();
-            foreach (var symbol in GetPayRentalSymbolList())
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 owingRental.ResourceAmount[symbol] = State.OwningRental[symbol];
             }
@@ -146,7 +146,7 @@ namespace AElf.Contracts.MultiToken
         public override OwningRentalUnitValue GetOwningRentalUnitValue(Empty input)
         {
             var rentalResourceUnitValue = new OwningRentalUnitValue();
-            foreach (var symbol in GetPayRentalSymbolList())
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 rentalResourceUnitValue.ResourceUnitValue[symbol] = State.Rental[symbol];
             }
@@ -157,7 +157,7 @@ namespace AElf.Contracts.MultiToken
         public override ResourceUsage GetResourceUsage(Empty input)
         {
             var usage = new ResourceUsage();
-            foreach (var symbol in GetPayRentalSymbolList())
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 usage.Value.Add(symbol, State.ResourceAmount[symbol]);
             }

@@ -24,7 +24,7 @@ namespace AElf.Contracts.CrossChain
             };
 
             CreateInitialOrganizationForInitialControllerAddress();
-            if (Context.CurrentHeight != Constants.GenesisBlockHeight)
+            if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
                 return new Empty();
 
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();

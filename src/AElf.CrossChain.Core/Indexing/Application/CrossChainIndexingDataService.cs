@@ -71,7 +71,7 @@ namespace AElf.CrossChain.Indexing.Application
                 else
                 {
                     toBeIndexedCount = 1;
-                    targetHeight = Constants.GenesisBlockHeight;
+                    targetHeight = AElfConstants.GenesisBlockHeight;
                     Logger.LogTrace(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
@@ -84,7 +84,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     var sideChainBlockData =
                         _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainIndexingInformation.ChainId,
-                            targetHeight, targetHeight == Constants.GenesisBlockHeight);
+                            targetHeight, targetHeight == AElfConstants.GenesisBlockHeight);
                     if (sideChainBlockData == null || sideChainBlockData.Height != targetHeight)
                     {
                         // no more available side chain block info

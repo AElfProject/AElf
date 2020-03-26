@@ -282,7 +282,7 @@ namespace AElf.Kernel.Blockchain.Application
                         });
                 }
 
-                if (blockHeight == Constants.GenesisBlockHeight)
+                if (blockHeight == AElfConstants.GenesisBlockHeight)
                     break;
 
                 blockHash = block.Header.PreviousBlockHash;
@@ -302,7 +302,7 @@ namespace AElf.Kernel.Blockchain.Application
                     Assert.NotNull(blockIndex);
                 }
 
-                if (blockHeight == Constants.GenesisBlockHeight || blockHeight <=
+                if (blockHeight == AElfConstants.GenesisBlockHeight || blockHeight <=
                     chain.LastIrreversibleBlockHeight - KernelConstants.ReferenceBlockValidPeriod)
                     break;
 

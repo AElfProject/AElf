@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace AElf.Kernel.SmartContract
 {
@@ -15,5 +16,16 @@ namespace AElf.Kernel.SmartContract
         public string NativeSymbol => this[nameof(NativeSymbol)];
     
         public const string NativeSymbolName = nameof(NativeSymbol);
+        
+        private readonly Dictionary<string,string[]> _stringArrayDictionary = new Dictionary<string, string[]>();
+        
+        public IEnumerable<string> GetStringArray(string key)
+        {
+            if (_stringArrayDictionary.TryGetValue(key, out var stringArray))
+                return stringArray;
+            stringArray = this[key].Split(',').ToArray();
+            _stringArrayDictionary[key] = stringArray;
+            return stringArray;
+        }
     }
 }

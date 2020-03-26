@@ -149,15 +149,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
         }
-        
-        private List<string> GetPayTxFeeSymbolList()
-        {
-            return Context.Variables[AEDPoSContractConstants.PayTxFeeSymbolListName].Split(',').ToList();   
-        }
-        protected List<string> GetPayRentalSymbolList()
-        {
-            return Context.Variables[AEDPoSContractConstants.PayRentalSymbolListName].Split(',').ToList();
-        }
-
     }
 }
