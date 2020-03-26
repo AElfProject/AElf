@@ -27,6 +27,22 @@ namespace AElf.Contracts.MultiToken
                 };
             }
 
+            if (input.Value == nameof(Create))
+            {
+                return new MethodFees
+                {
+                    MethodName = input.Value,
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = Context.Variables.NativeSymbol,
+                            BasicFee = 10000_00000000
+                        }
+                    }
+                };
+            }
+
             return State.TransactionFees[input.Value];
         }
 

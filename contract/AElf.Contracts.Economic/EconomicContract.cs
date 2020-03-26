@@ -22,7 +22,6 @@ namespace AElf.Contracts.Economic
 
             Context.LogDebug(() => "Will create tokens.");
             CreateNativeToken(input);
-            CreateTokenConverterToken();
             CreateResourceTokens();
             CreateElectionTokens();
 
@@ -63,25 +62,6 @@ namespace AElf.Contracts.Economic
 
             State.TokenContract.SetPrimaryTokenSymbol.Send(new SetPrimaryTokenSymbolInput
                 {Symbol = input.NativeTokenSymbol});
-        }
-
-        private void CreateTokenConverterToken()
-        {
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
-                TokenName = "AElf Token Converter Token",
-                TotalSupply = EconomicContractConstants.TokenConverterTokenTotalSupply,
-                Decimals = EconomicContractConstants.TokenConverterTokenDecimals,
-                Issuer = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                IsBurnable = true,
-                IsProfitable = true,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
-                }
-            });
         }
 
         private void CreateResourceTokens()
@@ -233,15 +213,6 @@ namespace AElf.Contracts.Economic
                     Weight = "0.5",
                     VirtualBalance = EconomicContractConstants.NativeTokenConnectorInitialVirtualBalance
                 },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.5",
-                    VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance,
-                    RelatedSymbol = Context.Variables.NativeSymbol
-                }
             };
             foreach (var resourceTokenSymbol in Context.Variables
                 .GetStringArray(EconomicContractConstants.PayTxFeeSymbolListName)
