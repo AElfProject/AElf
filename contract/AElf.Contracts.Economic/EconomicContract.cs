@@ -6,7 +6,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
@@ -23,7 +22,6 @@ namespace AElf.Contracts.Economic
 
             Context.LogDebug(() => "Will create tokens.");
             CreateNativeToken(input);
-            CreateTokenConverterToken();
             CreateResourceTokens();
             CreateElectionTokens();
 
@@ -66,31 +64,13 @@ namespace AElf.Contracts.Economic
                 {Symbol = input.NativeTokenSymbol});
         }
 
-        private void CreateTokenConverterToken()
-        {
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
-                TokenName = "AElf Token Converter Token",
-                TotalSupply = EconomicContractConstants.TokenConverterTokenTotalSupply,
-                Decimals = EconomicContractConstants.TokenConverterTokenDecimals,
-                Issuer = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                IsBurnable = true,
-                IsProfitable = true,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
-                }
-            });
-        }
-
         private void CreateResourceTokens()
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
-                .SymbolListToPayRental))
+            foreach (var resourceTokenSymbol in Context.Variables
+                .GetStringArray(EconomicContractConstants.PayTxFeeSymbolListName)
+                .Union(Context.Variables.GetStringArray(EconomicContractConstants.PayRentalSymbolListName)))
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -233,18 +213,10 @@ namespace AElf.Contracts.Economic
                     Weight = "0.5",
                     VirtualBalance = EconomicContractConstants.NativeTokenConnectorInitialVirtualBalance
                 },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.5",
-                    VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance,
-                    RelatedSymbol = Context.Variables.NativeSymbol
-                }
             };
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayTxFee.Union(Context.Variables
-                .SymbolListToPayRental))
+            foreach (var resourceTokenSymbol in Context.Variables
+                .GetStringArray(EconomicContractConstants.PayTxFeeSymbolListName)
+                .Union(Context.Variables.GetStringArray(EconomicContractConstants.PayRentalSymbolListName)))
             {
                 var resourceTokenConnector = new Connector
                 {

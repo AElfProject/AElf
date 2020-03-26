@@ -22,11 +22,11 @@ service ACS7 {
     }
     rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){
     }
-    rpc CreateSideChain (CreateSideChainInput) returns (aelf.SInt32Value) {
+    rpc CreateSideChain (CreateSideChainInput) returns (google.protobuf.Int32Value) {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
-    rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
+    rpc DisposeSideChain (google.protobuf.Int32Value) returns (google.protobuf.Int32Value) {
     }
     rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
     }
@@ -43,16 +43,16 @@ service ACS7 {
     rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
-    rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
+    rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData) {
         option (aelf.is_view) = true;
     }
-    rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
+    rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {
         option (aelf.is_view) = true;
     }
-    rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
+    rpc GetBoundParentChainHeightAndMerklePathByHeight (google.protobuf.Int64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
-    rpc GetChainInitializationData (aelf.SInt32Value) returns (ChainInitializationData) {
+    rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData) {
         option (aelf.is_view) = true;
     }
 }
@@ -66,7 +66,7 @@ message SideChainBlockData {
 
 message RechargeInput {
     int32 chain_id = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message IndexedSideChainBlockDataResult {
@@ -134,7 +134,7 @@ message ChainInitializationToken{
 
 message ResourceTokenInfo{
     bytes resource_token_list_data = 1;
-    map<string, sint32> initial_resource_amount = 2;
+    map<string, int32> initial_resource_amount = 2;
 }
 
 message ChainPrimaryTokenInfo{
@@ -152,12 +152,12 @@ message SideChainCreationRequest {
     bool is_privilege_preserved = 3;
     string side_chain_token_symbol = 4;
     string side_chain_token_name = 5;
-    sint64 side_chain_token_total_supply = 6;
-    sint32 side_chain_token_decimals = 7;
+    int64 side_chain_token_total_supply = 6;
+    int32 side_chain_token_decimals = 7;
     bool is_side_chain_token_burnable = 8;
     bool is_side_chain_token_profitable = 9;
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
-    map<string, sint32> initial_resource_amount = 11;
+    map<string, int32> initial_resource_amount = 11;
 }
 
 message SideChainTokenInitialIssue{
@@ -168,8 +168,8 @@ message SideChainTokenInitialIssue{
 message SideChainTokenInfo {
     string symbol = 1;
     string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
+    int64 total_supply = 3;
+    int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     bool is_profitable = 7;
@@ -215,6 +215,6 @@ message SideChainBlockDataIndexed{
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
     aelf.MerklePath path = 2;
-    sint64 parent_chain_height = 3;
+    int64 parent_chain_height = 3;
     int32 verified_chain_id = 4;
 }

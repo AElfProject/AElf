@@ -30,7 +30,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultSerialNumber = await DefaultTester.CurrentContractSerialNumber.CallAsync(new Empty());
-            resultSerialNumber.Value.ShouldNotBe(0UL);
+            resultSerialNumber.Value.ShouldNotBe(0);
 
             {
                 var resultInfo = await DefaultTester.GetContractInfo.CallAsync(contractAddress);

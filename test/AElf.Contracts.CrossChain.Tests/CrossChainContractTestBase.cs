@@ -140,7 +140,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     DefaultKeyPair);
 
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
+                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
@@ -398,7 +398,7 @@ namespace AElf.Contracts.CrossChain.Tests
             return true;
         }
 
-        internal async Task<Hash> DisposeSideChainProposalAsync(SInt32Value chainId)
+        internal async Task<Hash> DisposeSideChainProposalAsync(Int32Value chainId)
         {
             var disposalInput = chainId;
             var organizationAddress =

@@ -119,7 +119,7 @@ namespace AElf.Contracts.CrossChain
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
         {
             var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            foreach (var resourceTokenSymbol in Context.Variables.GetStringArray(PayRentalSymbolListName))
             {
                 Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
                     "Invalid side chain resource token request.");
@@ -588,7 +588,7 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : Constants.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : AElfConstants.GenesisBlockHeight;
                 // indexing fee
                 // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 // var lockedToken = State.IndexingBalance[chainId];
@@ -695,7 +695,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     var target = currentSideChainHeight != 0
                         ? currentSideChainHeight + 1
-                        : Constants.GenesisBlockHeight;
+                        : AElfConstants.GenesisBlockHeight;
                     var sideChainHeight = sideChainBlockData.Height;
                     if (target != sideChainHeight)
                         break;

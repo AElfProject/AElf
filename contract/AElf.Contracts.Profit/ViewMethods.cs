@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
 {
@@ -54,7 +55,7 @@ namespace AElf.Contracts.Profit
             return Address.FromPublicKey(period.ToString().ComputeHash().Concat(profitId.Value).ToArray());
         }
 
-        public override SInt64Value GetProfitAmount(GetProfitAmountInput input)
+        public override Int64Value GetProfitAmount(GetProfitAmountInput input)
         {
             var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Scheme not found.");
@@ -63,7 +64,7 @@ namespace AElf.Contracts.Profit
 
             if (profitDetails == null)
             {
-                return new SInt64Value {Value = 0};
+                return new Int64Value {Value = 0};
             }
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
@@ -90,7 +91,7 @@ namespace AElf.Contracts.Profit
                 amount = amount.Add(profitsDict[input.Symbol]);
             }
 
-            return new SInt64Value {Value = amount};
+            return new Int64Value {Value = amount};
         }
 
         public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)

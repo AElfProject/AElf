@@ -443,7 +443,8 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(
-                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                !Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
+                    .Union(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
                     .Contains(input.Symbol), "Invalid token symbol.");
             var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
             Assert(input.Amount <= contractBalance, "Invalid profit amount.");
@@ -526,7 +527,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
