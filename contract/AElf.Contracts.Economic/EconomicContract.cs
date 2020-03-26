@@ -108,7 +108,7 @@ namespace AElf.Contracts.Economic
                     Symbol = symbol,
                     TokenName = $"{symbol} Token",
                     TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
-                    Decimals = 0,
+                    Decimals = EconomicContractConstants.ElectionTokenDecimals,
                     Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                     IsBurnable = true,
                     LockWhiteList =
