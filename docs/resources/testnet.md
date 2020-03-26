@@ -111,8 +111,8 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 ```json
 "Network": {
     "BootNodes": [
-        "3.25.10.185:6800",
-        "18.228.140.143:6800"
+        "testnet-mainchain-1.aelf.io:6800",
+        "testnet-mainchain-2.aelf.io:6800"
     ],
     "ListeningPort": 6800,
     "NetAllowed": "",
