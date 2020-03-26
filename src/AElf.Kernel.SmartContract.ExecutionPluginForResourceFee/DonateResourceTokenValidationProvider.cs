@@ -80,7 +80,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             }
 
             var hashFromProvider = Hash.FromMessage(totalResourceTokensMapsFromProvider);
-            return hashFromProvider.Value.Equals(hashFromState.Value);
+            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            if (!result)
+            {
+                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+            }
+
+            return result;
         }
     }
 }
