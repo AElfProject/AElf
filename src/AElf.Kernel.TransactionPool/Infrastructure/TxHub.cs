@@ -42,8 +42,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ActionBlock<QueuedTransaction> _processTransactionJobs;
 
-
-        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }

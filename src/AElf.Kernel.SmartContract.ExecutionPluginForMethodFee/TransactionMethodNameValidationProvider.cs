@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public TransactionMethodNameValidationProvider(ISmartContractAddressService smartContractAddressService) : base(smartContractAddressService)
         {
             InvolvedSmartContractMethods = new[]
-                {nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees)};
+                {nameof(TokenContractImplContainer.TokenContractImplStub.ChargeTransactionFees)};
         }
     }
 }

@@ -21,7 +21,7 @@
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
+            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>

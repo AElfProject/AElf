@@ -20,7 +20,7 @@ namespace AElf.Contracts.TestBase
         private readonly Dictionary<Hash, Transaction> _allTransactions =
             new Dictionary<Hash, Transaction>();
 
-        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public MockTxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)

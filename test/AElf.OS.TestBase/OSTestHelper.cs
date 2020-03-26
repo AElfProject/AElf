@@ -26,6 +26,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -424,6 +425,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,

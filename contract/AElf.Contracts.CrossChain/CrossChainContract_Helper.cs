@@ -4,7 +4,6 @@ using Acs1;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -13,7 +12,6 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -37,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, MerklePath path)
         {
             var txResultStatusRawBytes =
-                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
+                EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
             var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
             return path.ComputeRootWithLeafNode(hash);
         }
@@ -110,20 +108,18 @@ namespace AElf.Contracts.CrossChain
                     sideChainCreationRequest.IndexingPrice >= 0 &&
                     sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
                     sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0) &&
-                    sideChainCreationRequest.MinimumProfitsDonationPartsPerHundred >= 0,
+                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                     "Invalid chain creation request.");
                 AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
                     sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
+                AssertValidResourceTokenAmount(sideChainCreationRequest);
             }
-
-            AssertValidResourceTokenAmount(sideChainCreationRequest);
         }
 
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
         {
             var resourceTokenMap = sideChainCreationRequest.InitialResourceAmount;
-            foreach (var resourceTokenSymbol in Context.Variables.SymbolListToPayRental)
+            foreach (var resourceTokenSymbol in Context.Variables.GetStringArray(PayRentalSymbolListName))
             {
                 Assert(resourceTokenMap.ContainsKey(resourceTokenSymbol) && resourceTokenMap[resourceTokenSymbol] > 0,
                     "Invalid side chain resource token request.");
@@ -160,7 +156,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (!sideChainCreationRequest.IsPrivilegePreserved)
                 return;
-            
+
             // new token needed only for exclusive side chain
             var sideChainTokenInfo = new SideChainTokenInfo
             {
@@ -592,7 +588,7 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : Constants.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : AElfConstants.GenesisBlockHeight;
                 // indexing fee
                 // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 // var lockedToken = State.IndexingBalance[chainId];
@@ -699,7 +695,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     var target = currentSideChainHeight != 0
                         ? currentSideChainHeight + 1
-                        : Constants.GenesisBlockHeight;
+                        : AElfConstants.GenesisBlockHeight;
                     var sideChainHeight = sideChainBlockData.Height;
                     if (target != sideChainHeight)
                         break;

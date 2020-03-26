@@ -30,7 +30,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
-            if (blockHeader.Height == Constants.GenesisBlockHeight)
+            if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                 return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {

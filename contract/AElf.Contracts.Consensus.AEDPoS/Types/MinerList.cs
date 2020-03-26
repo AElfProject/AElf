@@ -43,6 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             round.RoundNumber = currentRoundNumber.Add(1);
             round.TermNumber = currentTermNumber.Add(1);
+            round.IsMinerListJustChanged = true;
 
             return round;
         }

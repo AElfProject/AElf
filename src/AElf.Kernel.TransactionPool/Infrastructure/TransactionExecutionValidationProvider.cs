@@ -28,7 +28,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public bool ValidateWhileSyncing { get; } = true;
+        public bool ValidateWhileSyncing { get; } = false;
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
