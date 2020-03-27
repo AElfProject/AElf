@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     MethodName = nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
                     Params = new Empty().ToByteString()
                 }
             });

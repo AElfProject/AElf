@@ -131,7 +131,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private ByteString GetPrefixByHash(Hash hash)
         {
-            return hash == null ? null : ByteString.CopyFrom(hash.ToByteArray().Take(4).ToArray());
+            return hash == null ? null : BlockHelper.GetRefBlockPrefix(hash);
         }
 
         private async Task<ByteString> GetPrefixByHeightAsync(long height, Hash bestChainHash)

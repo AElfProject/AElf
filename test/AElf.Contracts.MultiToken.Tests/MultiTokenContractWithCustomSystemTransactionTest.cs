@@ -77,7 +77,7 @@ namespace AElf.Contracts.MultiToken
                         To = SampleAddress.AddressList[0]
                     }.ToByteString(),
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray())
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash)
                 };
             var result = await TokenContractStub.GetBalance.SendAsync(new GetBalanceInput
             {
