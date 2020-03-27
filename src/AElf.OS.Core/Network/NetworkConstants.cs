@@ -42,5 +42,8 @@ namespace AElf.OS.Network
         public const int DefaultPeerPort = 6800;
 
         public const int DefaultNtpDriftThreshold = 1_000;
+
+        public const int DefaultInvalidDataTimeout = 10_000;
+        public const int DefaultInvalidDataLimit = 50;
     }
 }

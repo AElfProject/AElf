@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Modularity;
+using AElf.OS.Network;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;

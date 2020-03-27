@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Application
             var txId = Hash.FromString("TxPeer3");
             bool isInBlackList;
 
-            for (var i = 0; i < 50; i++)
+            for (var i = 0; i < 5; i++)
             {
                 await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId);
                 isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer3.RemoteEndpoint.Host);
@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Application
             bool isInBlackList;
 
             var txId = Hash.FromString("TxPeer1");
-            for (var i = 0; i < 49; i++)
+            for (var i = 0; i < 4; i++)
             {
                 await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId);
                 isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer1.RemoteEndpoint.Host);

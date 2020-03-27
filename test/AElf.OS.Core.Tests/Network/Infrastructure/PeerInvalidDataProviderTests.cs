@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using Shouldly;
@@ -19,7 +20,7 @@ namespace AElf.OS.Network
         {
             var host = "127.0.0.1";
             bool markResult;
-            for (var i = 0; i < 50; i++)
+            for (var i = 0; i < 5; i++)
             {
                 markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
                 markResult.ShouldBeTrue();
@@ -32,6 +33,29 @@ namespace AElf.OS.Network
             markResult.ShouldBeTrue();
 
             _peerInvalidDataProvider.TryRemoveInvalidData(host);
+            
+            markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
+            markResult.ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task MarkInvalidData_Timeout_Test()
+        {
+            var host = "127.0.0.1";
+            bool markResult;
+            for (var i = 0; i < 5; i++)
+            {
+                markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
+                markResult.ShouldBeTrue();
+            }
+            
+            markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
+            markResult.ShouldBeFalse();
+            
+            markResult =_peerInvalidDataProvider.TryMarkInvalidData("192.168.1.1");
+            markResult.ShouldBeTrue();
+
+            await Task.Delay(1500);
             
             markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
             markResult.ShouldBeTrue();

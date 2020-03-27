@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Infrastructure
@@ -14,10 +15,10 @@ namespace AElf.OS.Network.Infrastructure
 
     public class PeerInvalidDataProvider : IPeerInvalidDataProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<string, ConcurrentQueue<Timestamp>> _invalidDataCache;
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
-        private const int QueuedLimit = 50;
-        private const int QueuedTimeout = 10_000;
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<Timestamp>> _invalidDataCache;
 
         public PeerInvalidDataProvider()
         {
@@ -33,7 +34,7 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             CleanCache(queue);
-            if (queue.Count >= QueuedLimit)
+            if (queue.Count >= NetworkOptions.InvalidDataLimit)
                 return false;
 
             queue.Enqueue(TimestampHelper.GetUtcNow());
@@ -50,7 +51,7 @@ namespace AElf.OS.Network.Infrastructure
         {
             while (!queue.IsEmpty
                    && queue.TryPeek(out var timestamp)
-                   && timestamp.AddMilliseconds(QueuedTimeout) < TimestampHelper.GetUtcNow())
+                   && timestamp.AddMilliseconds(NetworkOptions.InvalidDataTimeout) < TimestampHelper.GetUtcNow())
             {
                 queue.TryDequeue(out _);
             }
