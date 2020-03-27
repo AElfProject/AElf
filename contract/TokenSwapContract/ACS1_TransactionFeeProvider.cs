@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -11,17 +12,18 @@ namespace TokenSwapContract
 
         public override MethodFees GetMethodFee(StringValue input)
         {
-            var tokenAmounts = State.TransactionFees[input.Value];
-            if (tokenAmounts != null)
-                return tokenAmounts;
-
-            return new MethodFees
+            if (new List<string>
             {
-                Fees =
+                nameof(SwapToken)
+            }.Contains(input.Value))
+            {
+                return new MethodFees
                 {
-                    new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 1_00000000}
-                }
-            };
+                    MethodName = input.Value
+                };
+            }
+
+            return State.TransactionFees[input.Value];
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)
