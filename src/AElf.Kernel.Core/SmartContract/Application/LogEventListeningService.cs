@@ -33,68 +33,63 @@ namespace AElf.Kernel.SmartContract.Application
             Logger.LogTrace("Apply log event processor.");
             foreach (var block in blocks)
             {
-                var logEventsMap =
-                    _logEventProcessors.ToDictionary(p => p,
-                        p => new Dictionary<TransactionResult, ConcurrentBag<LogEvent>>());
-                var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
-                if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
+                foreach (var processor in _logEventProcessors)
                 {
-                    // No interested event in the block
-                    continue;
-                }
-
-                var txResults =
-                    await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
-                        block.GetHash());
-                if (txResults == null || !txResults.Any()) continue;
-
-                foreach (var result in txResults.AsParallel())
-                {
-                    if (result.Bloom.Length == 0) continue;
-                    result.BlockHash = block.GetHash();
-                    var resultBloom = new Bloom(result.Bloom.ToByteArray());
-
-                    foreach (var processor in _logEventProcessors)
+                    var logEventsMap = new Dictionary<TransactionResult, ConcurrentBag<LogEvent>>();
+                    var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
+                    if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                     {
-                        var interestedEvent = processor.InterestedEvent;
-                        var interestedBloom = Blooms[interestedEvent];
-                        if (!interestedBloom.IsIn(resultBloom))
-                        {
-                            // Interested bloom is not found in the transaction result
-                            continue;
-                        }
+                        // No interested event in the block
+                        continue;
+                    }
 
-                        // Interested bloom is found in the transaction result,
-                        // find the log that yields the bloom and apply the processor
-                        foreach (var log in result.Logs)
+                    var txResults =
+                        await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
+                            block.GetHash());
+                    if (txResults == null || !txResults.Any()) continue;
+
+                    foreach (var result in txResults.AsParallel())
+                    {
+                        if (result.Bloom.Length == 0) continue;
+                        result.BlockHash = block.GetHash();
+                        var resultBloom = new Bloom(result.Bloom.ToByteArray());
+
                         {
-                            if (log.Address == interestedEvent.Address && log.Name == interestedEvent.Name)
+                            var interestedEvent = processor.InterestedEvent;
+                            var interestedBloom = Blooms[interestedEvent];
+                            if (!interestedBloom.IsIn(resultBloom))
                             {
-                                var logEventsDict = logEventsMap[processor];
-                                if (!logEventsDict.ContainsKey(result))
+                                // Interested bloom is not found in the transaction result
+                                continue;
+                            }
+
+                            // Interested bloom is found in the transaction result,
+                            // find the log that yields the bloom and apply the processor
+                            foreach (var log in result.Logs)
+                            {
+                                if (log.Address == interestedEvent.Address && log.Name == interestedEvent.Name)
                                 {
-                                    logEventsDict[result] = new ConcurrentBag<LogEvent>
+                                    if (logEventsMap.ContainsKey(result))
                                     {
-                                        log
-                                    };
-                                }
-                                else
-                                {
-                                    logEventsDict[result].Add(log);
+                                        logEventsMap[result].Add(log);
+                                    }
+                                    else
+                                    {
+                                        logEventsMap[result] = new ConcurrentBag<LogEvent>
+                                        {
+                                            log
+                                        };
+                                    }
                                 }
                             }
                         }
                     }
+
+                    await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value.ToList()));
                 }
 
-                foreach (var map in logEventsMap)
-                {
-                    await map.Key.ProcessAsync(block,
-                        logEventsMap[map.Key].ToDictionary(m => m.Key, m => m.Value.ToList()));
-                }
+                Logger.LogTrace("Finish apply log event processor.");
             }
-
-            Logger.LogTrace("Finish apply log event processor.");
         }
     }
 }
