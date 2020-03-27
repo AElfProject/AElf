@@ -66,8 +66,7 @@ namespace AElf.Contracts.Treasury
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
                 });
             }
-
-            InitializeVoteWeightInterest();
+            
             State.Initialized.Value = true;
 
             State.SymbolList.Value = new SymbolList
@@ -656,7 +655,7 @@ namespace AElf.Contracts.Treasury
         
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
-            return State.VoteWeightInterestList.Value;
+            return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
         }
         
         public override AuthorityInfo GetVoteWeightInterestController(Empty input)
@@ -682,6 +681,8 @@ namespace AElf.Contracts.Treasury
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
             var timeAndAmountProportion = GetAmountAndTimeProportion();
+            if (State.VoteWeightInterestList.Value == null)
+                State.VoteWeightInterestList.Value = GetDefaultVoteWeightInterest();
             foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
                 if (lockDays > instMap.Day)
@@ -730,30 +731,33 @@ namespace AElf.Contracts.Treasury
                 AmountProportion = 1
             };
         }
-        private void InitializeVoteWeightInterest()
+
+        private VoteWeightInterestList GetDefaultVoteWeightInterest()
         {
-            if (State.VoteWeightInterestList.Value != null)
-                return;
-            var voteWeightSetting = new VoteWeightInterestList();
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            return new VoteWeightInterestList
             {
-                Day = 365,
-                Interest = 1,
-                Capital = 1000
-            });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 730,
-                Interest = 15,
-                Capital = 10000
-            });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 1095,
-                Interest = 2,
-                Capital = 1000
-            });
-            State.VoteWeightInterestList.Value = voteWeightSetting;
+                VoteWeightInterestInfos =
+                {
+                    new VoteWeightInterest
+                    {
+                        Day = 365,
+                        Interest = 1,
+                        Capital = 1000
+                    },
+                    new VoteWeightInterest
+                    {
+                        Day = 730,
+                        Interest = 15,
+                        Capital = 10000
+                    },
+                    new VoteWeightInterest
+                    {
+                        Day = 1095,
+                        Interest = 2,
+                        Capital = 1000
+                    }
+                }
+            };
         }
     }
 }

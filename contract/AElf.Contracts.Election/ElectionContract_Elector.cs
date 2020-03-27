@@ -171,6 +171,8 @@ namespace AElf.Contracts.Election
         {
             var lockDays = lockTime.Div(DaySec);
             var timeAndAmountProportion = GetAmountAndTimeProportion();
+            if (State.VoteWeightInterestList.Value == null)
+                State.VoteWeightInterestList.Value = GetDefaultVoteWeightInterest();
             foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
             {
                 if (lockDays > instMap.Day)
@@ -366,30 +368,32 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private void InitializeVoteWeightInterest()
+        private VoteWeightInterestList GetDefaultVoteWeightInterest()
         {
-            if (State.VoteWeightInterestList.Value != null)
-                return;
-            var voteWeightSetting = new VoteWeightInterestList();
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
+            return new VoteWeightInterestList
             {
-                Day = 365,
-                Interest = 1,
-                Capital = 1000
-            });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 730,
-                Interest = 15,
-                Capital = 10000
-            });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 1095,
-                Interest = 2,
-                Capital = 1000
-            });
-            State.VoteWeightInterestList.Value = voteWeightSetting;
+                VoteWeightInterestInfos =
+                {
+                    new VoteWeightInterest
+                    {
+                        Day = 365,
+                        Interest = 1,
+                        Capital = 1000
+                    },
+                    new VoteWeightInterest
+                    {
+                        Day = 730,
+                        Interest = 15,
+                        Capital = 10000
+                    },
+                    new VoteWeightInterest
+                    {
+                        Day = 1095,
+                        Interest = 2,
+                        Capital = 1000
+                    }
+                }
+            };
         }
         
         private AmountAndTimeProportion GetAmountAndTimeProportion()

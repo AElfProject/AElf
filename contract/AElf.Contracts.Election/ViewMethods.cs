@@ -289,7 +289,7 @@ namespace AElf.Contracts.Election
         
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
-            return State.VoteWeightInterestList.Value;
+            return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
         }
         
         public override AuthorityInfo GetVoteWeightInterestController(Empty input)
