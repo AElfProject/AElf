@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -34,9 +35,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task ProcessAsync(Block block, TransactionResult result, LogEvent logEvent)
+        public Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            _secretSharingService.AddSharingInformationAsync(logEvent);
+            foreach (var logEvents in logEventsMap.Values)
+            {
+                foreach (var logEvent in logEvents)
+                {
+                    _secretSharingService.AddSharingInformationAsync(logEvent);
+                }
+            }
+
             return Task.CompletedTask;
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -43,23 +44,29 @@ namespace AElf.Kernel.Configuration
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var configurationSet = new ConfigurationSet();
-            configurationSet.MergeFrom(logEvent);
-
-            if (configurationSet.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
-
-            var limit = new Int32Value();
-            limit.MergeFrom(configurationSet.Value.ToByteArray());
-            if (limit.Value < 0) return;
-            await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
+            foreach (var logEvents in logEventsMap.Values)
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, limit.Value);
+                foreach (var logEvent in logEvents)
+                {
+                    var configurationSet = new ConfigurationSet();
+                    configurationSet.MergeFrom(logEvent);
 
-            Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
+                    if (configurationSet.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
+
+                    var limit = new Int32Value();
+                    limit.MergeFrom(configurationSet.Value.ToByteArray());
+                    if (limit.Value < 0) return;
+                    await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, limit.Value);
+
+                    Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
+                }
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -31,7 +32,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return _interestedEvent;
             }
         }
-        
+
         public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
@@ -40,29 +41,35 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new ExtraTokenListModified();
-            eventData.MergeFrom(logEvent);
-            if (eventData.SymbolListToPayTxSizeFee == null)
-                return;
-            
-            var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
-            foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
+            foreach (var logEvents in logEventsMap.Values)
             {
-                transactionSizeFeeSymbols.TransactionSizeFeeSymbolList.Add(new TransactionSizeFeeSymbol
+                foreach (var logEvent in logEvents)
                 {
-                    TokenSymbol = symbolToPayTxSizeFee.TokenSymbol,
-                    AddedTokenWeight = symbolToPayTxSizeFee.AddedTokenWeight,
-                    BaseTokenWeight = symbolToPayTxSizeFee.BaseTokenWeight
-                });
-            }
+                    var eventData = new ExtraTokenListModified();
+                    eventData.MergeFrom(logEvent);
+                    if (eventData.SymbolListToPayTxSizeFee == null)
+                        return;
 
-            await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, transactionSizeFeeSymbols);
+                    var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
+                    foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
+                    {
+                        transactionSizeFeeSymbols.TransactionSizeFeeSymbolList.Add(new TransactionSizeFeeSymbol
+                        {
+                            TokenSymbol = symbolToPayTxSizeFee.TokenSymbol,
+                            AddedTokenWeight = symbolToPayTxSizeFee.AddedTokenWeight,
+                            BaseTokenWeight = symbolToPayTxSizeFee.BaseTokenWeight
+                        });
+                    }
+
+                    await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(new BlockIndex
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, transactionSizeFeeSymbols);
+                }
+            }
         }
     }
 }

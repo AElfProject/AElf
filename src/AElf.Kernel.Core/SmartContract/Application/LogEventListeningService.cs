@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +33,9 @@ namespace AElf.Kernel.SmartContract.Application
             Logger.LogTrace("Apply log event processor.");
             foreach (var block in blocks)
             {
+                var logEventsMap =
+                    _logEventProcessors.ToDictionary(p => p,
+                        p => new Dictionary<TransactionResult, ConcurrentBag<LogEvent>>());
                 var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
                 if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                 {
@@ -39,20 +43,14 @@ namespace AElf.Kernel.SmartContract.Application
                     continue;
                 }
 
-                foreach (var transactionId in block.Body.TransactionIds)
+                var txResults =
+                    await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
+                        block.GetHash());
+                if (txResults == null || !txResults.Any()) continue;
+
+                foreach (var result in txResults.AsParallel())
                 {
-                    var result =
-                        await _transactionResultQueryService.GetTransactionResultAsync(transactionId, block.GetHash());
-                    if (result == null)
-                    {
-                        continue;
-                    }
-
-                    if (result.Bloom.Length == 0)
-                    {
-                        continue;
-                    }
-
+                    if (result.Bloom.Length == 0) continue;
                     result.BlockHash = block.GetHash();
                     var resultBloom = new Bloom(result.Bloom.ToByteArray());
 
@@ -70,11 +68,29 @@ namespace AElf.Kernel.SmartContract.Application
                         // find the log that yields the bloom and apply the processor
                         foreach (var log in result.Logs)
                         {
-                            if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
-                                continue;
-                            await processor.ProcessAsync(block, result, log);
+                            if (log.Address == interestedEvent.Address && log.Name == interestedEvent.Name)
+                            {
+                                var logEventsDict = logEventsMap[processor];
+                                if (!logEventsDict.ContainsKey(result))
+                                {
+                                    logEventsDict[result] = new ConcurrentBag<LogEvent>
+                                    {
+                                        log
+                                    };
+                                }
+                                else
+                                {
+                                    logEventsDict[result].Add(log);
+                                }
+                            }
                         }
                     }
+                }
+
+                foreach (var map in logEventsMap)
+                {
+                    await map.Key.ProcessAsync(block,
+                        logEventsMap[map.Key].ToDictionary(m => m.Key, m => m.Value.ToList()));
                 }
             }
 

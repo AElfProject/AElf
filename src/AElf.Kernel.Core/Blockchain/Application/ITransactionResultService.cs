@@ -11,6 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
+        Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionIds, Hash blockHash);
     }
 
     public interface ITransactionResultService : ITransactionResultQueryService
@@ -74,6 +75,22 @@ namespace AElf.Kernel.Blockchain.Application
                 header.GetPreMiningHash());
 
             return txResult;
+        }
+
+        public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionId,
+            Hash blockHash)
+        {
+            var txResults = await _transactionResultManager.GetTransactionResultsAsync(transactionId, blockHash);
+            if (txResults != null)
+            {
+                return txResults;
+            }
+
+            var header = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
+            txResults = await _transactionResultManager.GetTransactionResultsAsync(transactionId,
+                header.GetPreMiningHash());
+
+            return txResults;
         }
 
         public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,

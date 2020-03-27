@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.CSharp.Core.Extension;
@@ -34,9 +35,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
 
-        public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
-            ISmartContractRegistrationProvider smartContractRegistrationProvider, 
-            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider, 
+        public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
+            ISmartContractRegistrationProvider smartContractRegistrationProvider,
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -47,24 +48,31 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new CodeUpdated();
-            eventData.MergeFrom(logEvent);
-
-            var smartContractRegistration =
-                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                }, eventData.Address);
-            await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            foreach (var logEvents in logEventsMap.Values)
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, eventData.Address, smartContractRegistration);
-            _smartContractExecutiveService.CleanExecutive(eventData.Address);
-            Logger.LogDebug($"Updated contract {eventData}");
+                foreach (var logEvent in logEvents)
+                {
+                    var eventData = new CodeUpdated();
+                    eventData.MergeFrom(logEvent);
+
+                    var smartContractRegistration =
+                        await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(
+                            new ChainContext
+                            {
+                                BlockHash = block.GetHash(),
+                                BlockHeight = block.Height
+                            }, eventData.Address);
+                    await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, eventData.Address, smartContractRegistration);
+                    _smartContractExecutiveService.CleanExecutive(eventData.Address);
+                    Logger.LogDebug($"Updated contract {eventData}");
+                }
+            }
         }
     }
 }

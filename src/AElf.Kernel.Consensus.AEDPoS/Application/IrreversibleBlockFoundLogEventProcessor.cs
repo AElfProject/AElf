@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
@@ -47,11 +48,18 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task ProcessAsync(Block block, TransactionResult result, LogEvent log)
+        public Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var irreversibleBlockFound = new IrreversibleBlockFound();
-            irreversibleBlockFound.MergeFrom(log);
-            var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
+            foreach (var logEvents in logEventsMap.Values)
+            {
+                foreach (var logEvent in logEvents)
+                {
+                    var irreversibleBlockFound = new IrreversibleBlockFound();
+                    irreversibleBlockFound.MergeFrom(logEvent);
+                    var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
+                }
+            }
+
             return Task.CompletedTask;
         }
 

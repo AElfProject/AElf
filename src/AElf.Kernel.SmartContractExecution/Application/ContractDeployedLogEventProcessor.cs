@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.SmartContract.Application;
@@ -33,10 +34,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return _interestedEvent;
             }
         }
-        
+
         public ContractDeployedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ISmartContractRegistrationProvider smartContractRegistrationProvider,
-            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider, 
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -47,26 +48,33 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<ContractDeployedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new ContractDeployed();
-            eventData.MergeFrom(logEvent);
-
-            var smartContractRegistration =
-                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                }, eventData.Address);
-
-            await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            foreach (var logEvents in logEventsMap.Values)
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, eventData.Address, smartContractRegistration);
-            if (block.Height > AElfConstants.GenesisBlockHeight)
-                _smartContractExecutiveService.CleanExecutive(eventData.Address);
-            Logger.LogDebug($"Deployed contract {eventData}");
+                foreach (var logEvent in logEvents)
+                {
+                    var eventData = new ContractDeployed();
+                    eventData.MergeFrom(logEvent);
+
+                    var smartContractRegistration =
+                        await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(
+                            new ChainContext
+                            {
+                                BlockHash = block.GetHash(),
+                                BlockHeight = block.Height
+                            }, eventData.Address);
+
+                    await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, eventData.Address, smartContractRegistration);
+                    if (block.Height > AElfConstants.GenesisBlockHeight)
+                        _smartContractExecutiveService.CleanExecutive(eventData.Address);
+                    Logger.LogDebug($"Deployed contract {eventData}");
+                }
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -42,19 +43,25 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var distanceToLib = new IrreversibleBlockHeightUnacceptable();
-            distanceToLib.MergeFrom(logEvent);
+            foreach (var logEvents in logEventsMap.Values)
+            {
+                foreach (var logEvent in logEvents)
+                {
+                    var distanceToLib = new IrreversibleBlockHeightUnacceptable();
+                    distanceToLib.MergeFrom(logEvent);
 
-            if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
-            {
-                Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionPackingOptions.IsTransactionPackable = false;
-            }
-            else
-            {
-                _transactionPackingOptions.IsTransactionPackable = true;
+                    if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
+                    {
+                        Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
+                        _transactionPackingOptions.IsTransactionPackable = false;
+                    }
+                    else
+                    {
+                        _transactionPackingOptions.IsTransactionPackable = true;
+                    }
+                }
             }
 
             await Task.CompletedTask;

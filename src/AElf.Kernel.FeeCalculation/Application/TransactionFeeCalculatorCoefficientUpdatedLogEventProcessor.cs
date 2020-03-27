@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -45,15 +46,21 @@ namespace AElf.Kernel.FeeCalculation.Application
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new CalculateFeeAlgorithmUpdated();
-            eventData.MergeFrom(logEvent);
-            await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
+            foreach (var logEvents in logEventsMap.Values)
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
+                foreach (var logEvent in logEvents)
+                {
+                    var eventData = new CalculateFeeAlgorithmUpdated();
+                    eventData.MergeFrom(logEvent);
+                    await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
+                }
+            }
         }
     }
 }
