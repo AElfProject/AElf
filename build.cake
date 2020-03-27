@@ -195,7 +195,7 @@ Task("Upload-Coverage-Azure")
 {
     Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
 });
-Task("Publish-Myget")
+Task("Publish-MyGet")
     .IsDependentOn("Build-Release")
     .Does(() => {
         var apiKey = EnvironmentVariable("MYGET_API_KEY");
