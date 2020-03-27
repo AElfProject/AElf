@@ -19,7 +19,7 @@ namespace AElf.OS.Network
         {
             var host = "127.0.0.1";
             bool markResult;
-            for (var i = 0; i < 51; i++)
+            for (var i = 0; i < 50; i++)
             {
                 markResult =_peerInvalidDataProvider.TryMarkInvalidData(host);
                 markResult.ShouldBeTrue();

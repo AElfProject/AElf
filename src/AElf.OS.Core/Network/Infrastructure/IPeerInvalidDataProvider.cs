@@ -33,7 +33,7 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             CleanCache(queue);
-            if (queue.Count > QueuedLimit)
+            if (queue.Count >= QueuedLimit)
                 return false;
 
             queue.Enqueue(TimestampHelper.GetUtcNow());
