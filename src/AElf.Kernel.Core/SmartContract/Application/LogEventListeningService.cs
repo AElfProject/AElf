@@ -33,6 +33,12 @@ namespace AElf.Kernel.SmartContract.Application
             Logger.LogTrace("Apply log event processor.");
             foreach (var block in blocks)
             {
+                var txResults =
+                    await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
+                        block.GetHash());
+
+                if (txResults == null || !txResults.Any()) continue;
+
                 foreach (var processor in _logEventProcessors)
                 {
                     var logEventsMap = new Dictionary<TransactionResult, ConcurrentBag<LogEvent>>();
@@ -42,11 +48,6 @@ namespace AElf.Kernel.SmartContract.Application
                         // No interested event in the block
                         continue;
                     }
-
-                    var txResults =
-                        await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
-                            block.GetHash());
-                    if (txResults == null || !txResults.Any()) continue;
 
                     foreach (var result in txResults.AsParallel())
                     {
