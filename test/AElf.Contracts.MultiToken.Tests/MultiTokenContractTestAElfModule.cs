@@ -36,8 +36,8 @@ namespace AElf.Contracts.MultiToken
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,READ,STORAGE,TRAFFIC,";
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK,NET";
+                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC,";
+                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
             });
         }
     }

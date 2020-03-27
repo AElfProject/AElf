@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Acs7;
-using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {

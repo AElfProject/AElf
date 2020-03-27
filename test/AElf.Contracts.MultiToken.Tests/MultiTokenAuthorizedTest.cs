@@ -6,8 +6,8 @@ using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -27,9 +27,6 @@ namespace AElf.Contracts.MultiToken
 
         private async Task InitializeTokenContract()
         {
-            var initResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.Initialize), new InitializeInput());
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var initControllerResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.InitializeAuthorizedController), new Empty());
             initControllerResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -190,7 +187,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -231,7 +228,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -273,7 +270,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -316,7 +313,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = (int) feeType
                 });
@@ -390,7 +387,7 @@ namespace AElf.Contracts.MultiToken
 
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new SInt32Value
+                new Int32Value
                 {
                     Value = feeType
                 });
@@ -847,8 +844,6 @@ namespace AElf.Contracts.MultiToken
             var symbol = new StringValue();
             symbol.MergeFrom(primaryTokenRet.ReturnValue);
 
-            await MainChainTester.ExecuteContractWithMiningAsync(ReferendumAddress,
-                nameof(ReferendumContractContainer.ReferendumContractStub.Initialize), new Empty());
             var issueResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.Issue), new IssueInput
                 {

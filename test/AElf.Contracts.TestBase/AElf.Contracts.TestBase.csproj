@@ -34,6 +34,7 @@
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />

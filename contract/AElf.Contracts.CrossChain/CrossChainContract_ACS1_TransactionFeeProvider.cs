@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
@@ -13,6 +14,16 @@ namespace AElf.Contracts.CrossChain
 
         public override MethodFees GetMethodFee(StringValue input)
         {
+            if (new List<string>
+            {
+                nameof(ProposeCrossChainIndexing), nameof(ReleaseCrossChainIndexing)
+            }.Contains(input.Value))
+            {
+                return new MethodFees
+                {
+                    MethodName = input.Value
+                };
+            }
             return State.TransactionFees[input.Value];
         }
 

@@ -28,7 +28,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     }
 
     [DependsOn(
-        typeof(ContractTestModule)
+        typeof(ContractTestWithExecutionPluginModule)
     )]
     public class ContractTestAEDPoSExtensionModule : ContractTestModule
     {

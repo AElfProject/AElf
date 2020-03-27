@@ -22,7 +22,7 @@ namespace AElf.CrossChain.Application
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == Constants.GenesisBlockHeight)
+            if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                 return ByteString.Empty;
 
             if (!_transactionPackingOptions.IsTransactionPackable)

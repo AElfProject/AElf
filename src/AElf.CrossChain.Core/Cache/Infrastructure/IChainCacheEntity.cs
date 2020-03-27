@@ -70,7 +70,7 @@ namespace AElf.CrossChain.Cache.Infrastructure
 
         private bool ValidateBlockCacheEntity(ICrossChainBlockEntity crossChainBlockEntity)
         {
-            return crossChainBlockEntity.Height >= Constants.GenesisBlockHeight && 
+            return crossChainBlockEntity.Height >= AElfConstants.GenesisBlockHeight && 
                    crossChainBlockEntity.ChainId == _chainId &&
                    crossChainBlockEntity.TransactionStatusMerkleTreeRoot != null;
         }

@@ -25,6 +25,25 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
+        public void Combine_Test()
+        {
+            var bloom = new Bloom();
+            var byteString = ByteString.CopyFrom(new Bloom().Data);
+            bloom.Combine(new[] {new Bloom(byteString.ToByteArray())});
+            bloom.Data.Length.ShouldBe(0);
+            var newBloom = new Bloom();
+            newBloom.AddValue(new StringValue()
+            {
+                Value = "ELF"
+            });
+            bloom.Combine(new[]
+            {
+                newBloom
+            });
+            bloom.Data.Length.ShouldBe(256);
+        }
+
+        [Fact]
         public void AddHashAddValue_Test()
         {
             var empty = BytesValue.Parser.ParseFrom(ByteString.Empty);

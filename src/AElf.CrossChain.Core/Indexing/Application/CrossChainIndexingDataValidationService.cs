@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     var height = await _readerFactory.Create(blockHash, blockHeight).GetSideChainHeight
                         .CallAsync(
-                            new SInt32Value()
+                            new Int32Value()
                             {
                                 Value = sideChainBlockData.ChainId
                             });

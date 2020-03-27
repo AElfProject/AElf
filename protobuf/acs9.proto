@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package acs9;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs9";
+
+service ContractProfitsContract {
+    // Actions
+    rpc TakeContractProfits (TakeContractProfitsInput) returns (google.protobuf.Empty) { 
+    }
+
+    // Views
+    rpc GetProfitConfig (google.protobuf.Empty) returns (ProfitConfig) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitsAmount (google.protobuf.Empty) returns (ProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message TakeContractProfitsInput {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message ProfitConfig { 
+    int32 donation_parts_per_hundred = 1; 
+    repeated string profits_token_symbol_list = 2; 
+    string staking_token_symbol = 3;
+}
+
+message ProfitsMap {
+    map<string, int64> value = 1;
+}

@@ -66,7 +66,7 @@ namespace AElf.Contracts.Election
             }
 
             var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
-            var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+            var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"

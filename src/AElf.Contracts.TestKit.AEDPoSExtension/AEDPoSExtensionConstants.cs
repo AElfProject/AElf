@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         public const int MiningInterval = 4000;
         public const int TinyBlocksNumber = 8;
         public const int ActualMiningInterval = MiningInterval / TinyBlocksNumber;
-        public const int TimeEachTerm = 120;
+        public const int PeriodSeconds = 120;
         public const int MinerIncreaseInterval = 240;
     }
 }
