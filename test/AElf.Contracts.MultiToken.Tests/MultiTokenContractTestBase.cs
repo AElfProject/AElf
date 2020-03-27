@@ -138,7 +138,7 @@ namespace AElf.Contracts.MultiToken
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
                 CheckResult(result.TransactionResult);
@@ -208,7 +208,7 @@ namespace AElf.Contracts.MultiToken
             ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
             AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables[ContextVariableDictionary.PayRentalSymbolList].Split(",").ToList();
+                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
         protected void StartSideChain(int chainId, long height, string symbol, bool registerParentChainTokenContractAddress)
@@ -287,7 +287,7 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideCrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetBoundParentChainHeightAndMerklePathByHeight), new SInt64Value
+                    .GetBoundParentChainHeightAndMerklePathByHeight), new Int64Value
                 {
                     Value = height
                 });
@@ -300,12 +300,12 @@ namespace AElf.Contracts.MultiToken
         {
             var result = await MainChainTester.CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetSideChainHeight), new SInt32Value
+                    .GetSideChainHeight), new Int32Value
                 {
                     Value = chainId
                 });
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 
@@ -316,7 +316,7 @@ namespace AElf.Contracts.MultiToken
                 nameof(CrossChainContractContainer.CrossChainContractStub
                     .GetParentChainHeight), new Empty());
 
-            var height = SInt64Value.Parser.ParseFrom(result);
+            var height = Int64Value.Parser.ParseFrom(result);
             return height.Value;
         }
 

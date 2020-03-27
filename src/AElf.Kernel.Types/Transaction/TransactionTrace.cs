@@ -42,25 +42,6 @@ namespace AElf.Kernel
             }
         }
 
-        public IEnumerable<LogEvent> PluginLogs
-        {
-            get
-            {
-                var o = new RepeatedField<LogEvent>();
-                foreach (var trace in PreTraces)
-                {
-                    o.AddRange(trace.FlattenedLogs);
-                }
-
-                foreach (var trace in PostTraces)
-                {
-                    o.AddRange(trace.FlattenedLogs);
-                }
-
-                return o;
-            }
-        }
-
         public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrites()
         {
             foreach (var trace in PreTraces)

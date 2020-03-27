@@ -148,7 +148,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     new InitialAElfConsensusContractInput
                     {
                         MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                        TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm
+                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds
                     });
                 if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
                 {

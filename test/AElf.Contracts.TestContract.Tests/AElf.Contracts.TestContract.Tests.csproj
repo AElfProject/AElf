@@ -79,6 +79,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf/Proto/stub/acs0.proto</Link>
         </ContractStub>

@@ -3,6 +3,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
@@ -28,7 +29,8 @@ namespace AElf.WebApp.Application
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(WebWebAppAElfModule),
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(FeeCalculationModule)
     )]
     public class WebAppTestAElfModule : AElfModule
     {

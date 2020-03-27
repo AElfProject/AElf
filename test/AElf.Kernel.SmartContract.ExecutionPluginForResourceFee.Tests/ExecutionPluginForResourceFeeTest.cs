@@ -225,7 +225,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         }
 
         [Fact]
-        public async Task Consumption_WithoutInsufficientSTO()
+        public async Task Consumption_WithoutInsufficientStorageToken()
         {
             await AdvanceResourceToken(new List<string> {"STORAGE"});
             const long stoAmount = 100; // Not enough.
@@ -302,7 +302,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 consumedTokens["READ"].ShouldBeGreaterThan(0);
                 consumedTokens["TRAFFIC"].ShouldBeGreaterThan(0);
                 consumedTokens["WRITE"].ShouldBeGreaterThan(0);
-                
+
                 txResult.TransactionResult.GetOwningResourceTokens()["STORAGE"].ShouldBeGreaterThan(0);
             }
         }
@@ -312,9 +312,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             await AdvanceResourceToken();
 
-            var (read, write, traffic, txResult1) =
+            var (read, write, traffic, storage, txResult1) =
                 await GetTransactionResourcesCost(TestContractStub.CpuConsumingMethod.SendAsync);
-            var (read1, write1, traffic1, txResult2) =
+            var (read1, write1, traffic1, storage2, txResult2) =
                 await GetTransactionResourcesCost(TestContractStub.FewConsumingMethod.SendAsync);
 
             read.ShouldBeGreaterThan(read1);
@@ -329,8 +329,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             consumedTokens1["STORAGE"].ShouldBe(consumedTokens2["STORAGE"]);
         }
 
-        private async Task<(long read, long write, long net, TransactionResult txResult)> GetTransactionResourcesCost(
-            Func<Empty, Task<IExecutionResult<Empty>>> action)
+        private async Task<(long read, long write, long traffic, long storage, TransactionResult txResult)>
+            GetTransactionResourcesCost(
+                Func<Empty, Task<IExecutionResult<Empty>>> action)
         {
             var beforeRead = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -342,10 +343,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 Owner = TestContractAddress,
                 Symbol = "WRITE"
             })).Balance;
-            var beforeNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var beforeTraffic = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
                 Symbol = "TRAFFIC"
+            })).Balance;
+            var beforeStorage = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "STORAGE"
             })).Balance;
 
             var txResult = (await action(new Empty())).TransactionResult;
@@ -362,13 +368,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 Owner = TestContractAddress,
                 Symbol = "WRITE"
             })).Balance;
-            var afterNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var afterTraffic = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
                 Symbol = "TRAFFIC"
             })).Balance;
+            var afterStorage = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "STORAGE"
+            })).Balance;
 
-            return (beforeRead - afterRead, beforeWrite - afterWrite, beforeNet - afterNet, txResult);
+            return (beforeRead - afterRead, beforeWrite - afterWrite, beforeTraffic - afterTraffic,
+                beforeStorage - afterStorage, txResult);
         }
     }
 }

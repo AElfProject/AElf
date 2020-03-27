@@ -29,7 +29,6 @@ namespace AElf.Contracts.MultiToken
             }
             
             SetSideChainCreator(input.Creator);
-            
             return new Empty();
         }
 
@@ -228,7 +227,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Lock(LockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
             Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
             var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
             if (allowance >= input.Amount)
@@ -244,7 +243,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Unlock(UnlockInput input)
         {
-            AssertLockAddress(input.Symbol);
+            AssertSystemContractOrLockWhiteListAddress(input.Symbol);
             Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
@@ -444,7 +443,8 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(
-                !Context.Variables.SymbolListToPayRental.Union(Context.Variables.SymbolListToPayTxFee)
+                !Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
+                    .Union(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
                     .Contains(input.Symbol), "Invalid token symbol.");
             var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
             Assert(input.Amount <= contractBalance, "Invalid profit amount.");
@@ -490,7 +490,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeManager = input.ContractAddress,
-                Symbol = input.Symbol
             });
 
             return new Empty();
@@ -528,7 +527,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.SymbolListToPayTxFee.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]

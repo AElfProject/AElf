@@ -23,13 +23,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             return new List<string>
             {
-                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
 
                 // Pre-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.CheckResourceToken),
 
                 // Post-plugin tx
-                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChargeResourceToken),
             };
         }
     }
