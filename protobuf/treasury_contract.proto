@@ -28,8 +28,10 @@ service TreasuryContract {
     }
     rpc SetAmountAndTimeProportionOfVoteWeight (AmountAndTimeProportion) returns (google.protobuf.Empty) {
     }
+    rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
+    }
     // View
-    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -47,31 +49,34 @@ service TreasuryContract {
     rpc GetAmountAndTimeProportionOfVoteWeight (google.protobuf.Empty) returns (AmountAndTimeProportion) {
         option (aelf.is_view) = true;
     }
+    rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message DonateInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message ReleaseInput {
-    sint64 term_number = 1;
+    int64 term_number = 1;
 }
 
 message RegisterInput {
     string token_symbol = 1;
     string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
+    int64 total_supply = 3;
+    int32 decimals = 4;
     string connector_weight = 5;
 }
 
 message GetWelfareRewardAmountSampleInput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 
 message GetWelfareRewardAmountSampleOutput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 
 message DonateAllInput {
@@ -79,11 +84,15 @@ message DonateAllInput {
 }
 
 message ReleaseMiningRewardInput {
-    sint64 mined_blocks_count = 1;
+    int64 mined_blocks_count = 1;
 }
 
 message MinerReElectionInformation {
-    map<string, sint64> continual_appointment_times = 1;
+    map<string, int64> continual_appointment_times = 1;
+}
+
+message SymbolList {
+    repeated string value = 1;
 }
 
 // Events
@@ -93,14 +102,14 @@ message DonationReceived {
     aelf.Address from = 1 [(aelf.is_indexed) = true];
     aelf.Address to = 2 [(aelf.is_indexed) = true];
     string symbol = 3 [(aelf.is_indexed) = true];
-    sint64 amount = 4 [(aelf.is_indexed) = true];
+    int64 amount = 4 [(aelf.is_indexed) = true];
     string memo = 5;
 }
 
 message VoteWeightInterest{
-    sint32 day = 1;
-    sint32 interest = 2;
-    sint32 capital = 3;
+    int32 day = 1;
+    int32 interest = 2;
+    int32 capital = 3;
 }
 
 message VoteWeightInterestList {

@@ -62,20 +62,6 @@ namespace AElf.Contracts.MultiToken
                     }
                 })).TransactionResult;
                 CheckResult(result);
-                await TokenContractStub.Create.SendAsync(new CreateInput
-                {
-                    Symbol = "AETC",
-                    TokenName = "AElf Token Converter Token",
-                    TotalSupply = 500_000L,
-                    Decimals = 2,
-                    Issuer = DefaultAddress,
-                    IsBurnable = true,
-                    LockWhiteList =
-                    {
-                        ProfitContractAddress,
-                        TreasuryContractAddress
-                    }
-                });
             }
 
             {

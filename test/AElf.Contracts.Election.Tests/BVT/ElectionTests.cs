@@ -379,7 +379,6 @@ namespace AElf.Contracts.Election
             var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
-                Symbol = "ELF"
             });
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

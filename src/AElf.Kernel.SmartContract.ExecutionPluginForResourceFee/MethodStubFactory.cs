@@ -1,19 +1,37 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.DependencyInjection;
 
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     //TODO: base class
-    public class MethodStubFactory : IMethodStubFactory
+    public class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
-        private readonly IHostSmartContractBridgeContext _context;
+        private Address TokenContractMethodAddress =>
+            _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
-        public MethodStubFactory(IHostSmartContractBridgeContext context)
+        private Timestamp CurrentBlockTime { get; }
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IChainContext _chainContext;
+
+        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
+        public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            ISmartContractAddressService smartContractAddressService, IChainContext chainContext,
+            Timestamp currentBlockTime)
         {
-            _context = context;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _smartContractAddressService = smartContractAddressService;
+            _chainContext = chainContext;
+            CurrentBlockTime = currentBlockTime;
         }
 
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
@@ -24,12 +42,27 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 throw new NotSupportedException();
             }
 
-            var context = _context;
-
-            Task<TOutput> CallAsync(TInput input)
+            async Task<TOutput> CallAsync(TInput input)
             {
-                return Task.FromResult(_context.Call<TOutput>(context.Self, method.Name,
-                    input.ToByteString()));
+                var chainContext = _chainContext;
+                var transaction = new Transaction()
+                {
+                    From = FromAddress,
+                    To = TokenContractMethodAddress,
+                    MethodName = method.Name,
+                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
+                };
+
+                var trace =
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
+                        CurrentBlockTime);
+
+                if (trace.IsSuccessful())
+                {
+                    return method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray());
+                }
+
+                return default;
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);

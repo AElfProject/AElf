@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
+using Acs9;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.DApp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -21,8 +23,6 @@ namespace AElf.Contracts.TokenHolder
             var userTokenHolderStub =
                 GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
-            var receiverTokenStub =
-                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[1]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());
 
@@ -77,9 +77,8 @@ namespace AElf.Contracts.TokenHolder
             }
 
             // Profits receiver claim 10 ELF profits.
-            await receiverTokenStub.ReceiveProfits.SendAsync(new ReceiveProfitsInput
+            await DAppContractStub.TakeContractProfits.SendAsync(new TakeContractProfitsInput
             {
-                ContractAddress = DAppContractAddress,
                 Symbol = "ELF",
                 Amount = 10_0000_0000
             });
@@ -93,11 +92,18 @@ namespace AElf.Contracts.TokenHolder
                 balance.Balance.ShouldBe(baseBalance + 9_9000_0000);
             }
 
-            // And Consensus Contract should have 0.1 ELF tokens.
+            // And Side Chain Dividends Pool should have 0.1 ELF tokens.
             {
+                var scheme = await TokenHolderContractStub.GetScheme.CallAsync(ConsensusContractAddress);
+                var virtualAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(new SchemePeriod
+                {
+                    SchemeId = scheme.SchemeId,
+                    Period = 0
+                });
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = ConsensusContractAddress, Symbol = "ELF"
+                    Owner = virtualAddress,
+                    Symbol = "ELF"
                 });
                 balance.Balance.ShouldBe(1000_0000);
             }
@@ -107,7 +113,6 @@ namespace AElf.Contracts.TokenHolder
             {
                 Beneficiary = UserAddresses[0],
                 SchemeManager = DAppContractAddress,
-                Symbol = "ELF"
             });
 
             // Profits should be 1 ELF.
@@ -128,6 +133,8 @@ namespace AElf.Contracts.TokenHolder
                 Owner = UserAddresses[0]
             });
             resultBalance.Balance.ShouldBe(beforeBalance.Balance + 57_00000000);
+
+            var finalScheme = await userTokenHolderStub.GetScheme.CallAsync(DAppContractAddress);
         }
 
         private async Task<long> GetFirstUserBalance(string symbol)

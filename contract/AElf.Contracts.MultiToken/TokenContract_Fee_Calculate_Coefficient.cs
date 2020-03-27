@@ -294,14 +294,23 @@ namespace AElf.Contracts.MultiToken
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Interval (1000000, ∞): x / 800 + x^2 / 10000
+                        // Interval (1000000, ∞): x / 80
+                        Value =
+                        {
+                            5000000,
+                            1, 1, 80,
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (1000000, ∞): x / 80 + x^2 / 100000
                         Value =
                         {
                             int.MaxValue,
-                            1, 1, 800, 
-                            2, 1, 10000
+                            1, 1, 80, 
+                            2, 1, 100000
                         }
-                    }
+                    },
                 }
             };
         }

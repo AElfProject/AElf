@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Treasury;
 
 namespace AElf.Contracts.Election
 {
@@ -14,5 +15,6 @@ namespace AElf.Contracts.Election
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState AEDPoSContract { get; set; }
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
+        internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
     }
 }

@@ -13,9 +13,9 @@ namespace AElf.Contracts.Genesis
     {
         #region Views
 
-        public override UInt64Value CurrentContractSerialNumber(Empty input)
+        public override Int64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new Int64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)

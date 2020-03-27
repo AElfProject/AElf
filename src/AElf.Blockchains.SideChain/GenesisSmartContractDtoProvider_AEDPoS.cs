@@ -27,7 +27,8 @@ namespace AElf.Blockchains.SideChain
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    IsSideChain = true
+                    IsSideChain = true,
+                    PeriodSeconds = _consensusOptions.PeriodSeconds
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp));

@@ -15,6 +15,9 @@
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractBase>
+         <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+             <Link>Protobuf/Proto/transaction_fee.proto</Link>
+         </ContractBase>
     </ItemGroup>
 
 </Project>

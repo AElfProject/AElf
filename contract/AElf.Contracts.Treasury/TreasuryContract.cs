@@ -70,6 +70,11 @@ namespace AElf.Contracts.Treasury
             InitializeVoteWeightInterest();
             State.Initialized.Value = true;
 
+            State.SymbolList.Value = new SymbolList
+            {
+                Value = {Context.Variables.NativeSymbol}
+            };
+
             return new Empty();
         }
 
@@ -126,10 +131,10 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.TreasuryHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
             RequireElectionContractStateSet();
-            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = input.TermNumber
             });
@@ -158,32 +163,48 @@ namespace AElf.Contracts.Treasury
             var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (Context.Sender != Context.Self)
             {
-                From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = "Donate to treasury.",
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = "Donate to treasury.",
+                });
+            }
+
+            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
+            if (needToConvert)
+            {
+                ConvertToNativeToken(input.Symbol, input.Amount);
+            }
+            else
+            {
+                State.TokenContract.Approve.Send(new ApproveInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Spender = State.ProfitContract.Value
+                });
+
+                State.ProfitContract.ContributeProfits.Send(new ContributeProfitsInput
+                {
+                    SchemeId = State.TreasuryHash.Value,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount
+                });
+            }
 
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
+                To = State.TreasuryVirtualAddress.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
-
-            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
-            {
-                ConvertToNativeToken(input.Symbol, input.Amount);
-            }
 
             return new Empty();
         }
@@ -223,6 +244,7 @@ namespace AElf.Contracts.Treasury
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
                 Assert(info.Capital > 0, "invalid input");
@@ -244,6 +266,14 @@ namespace AElf.Contracts.Treasury
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
             State.AmountAndTimeProportion.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetDistributingSymbolList(SymbolList input)
+        {
+            AssertPerformedByVoteWeightInterestController();
+            Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            State.SymbolList.Value = input;
             return new Empty();
         }
 
@@ -316,32 +346,33 @@ namespace AElf.Contracts.Treasury
 
         private void ReleaseTreasurySubProfitItems(long termNumber)
         {
+            var amountsMap = State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.RewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
         }
 
@@ -365,7 +396,7 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation)
         {
-            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
@@ -591,7 +622,7 @@ namespace AElf.Contracts.Treasury
                 return new GetWelfareRewardAmountSampleOutput();
             }
 
-            var totalAmount = releasedInformation.ProfitsAmount;
+            var totalAmount = releasedInformation.AmountsMap;
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);
@@ -606,9 +637,9 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override SInt64Value GetCurrentTreasuryBalance(Empty input)
+        public override Int64Value GetCurrentTreasuryBalance(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -636,12 +667,17 @@ namespace AElf.Contracts.Treasury
             }
             return State.VoteWeightInterestController.Value;
         }
-
+        
         public override AmountAndTimeProportion GetAmountAndTimeProportionOfVoteWeight(Empty input)
         {
             return State.AmountAndTimeProportion.Value ?? GetDefaultAmountAndTimeProportion();
         }
         
+        public override SymbolList GetDistributingSymbolList(Empty input)
+        {
+            return State.SymbolList.Value;
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);

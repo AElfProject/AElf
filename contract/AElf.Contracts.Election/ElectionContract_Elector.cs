@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.MultiToken;
@@ -18,6 +19,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContract
     {
         private const int DaySec = 86400;
+
         #region Vote
 
         /// <summary>
@@ -42,15 +44,10 @@ namespace AElf.Contracts.Election
 
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
-            CallTokenContractLock(input.Amount);
-
-            CallTokenContractIssue(input.Amount);
-
+            LockTokensOfVoter(input.Amount);
+            IssueOrTransferTokensToVoter(input.Amount);
             CallVoteContractVote(input.Amount, input.CandidatePubkey);
-
-            var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
-
-            CallProfitContractAddBeneficiary(votesWeight, lockSeconds);
+            AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -313,10 +310,10 @@ namespace AElf.Contracts.Election
                 candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
-            CallTokenContractUnlock(input, votingRecord.Amount);
-            CallTokenContractTransferFrom(votingRecord.Amount);
-            CallVoteContractWithdraw(input);
-            CallProfitContractRemoveBeneficiary();
+            UnlockTokensOfVoter(input, votingRecord.Amount);
+            RetrieveTokensFromVoter(votingRecord.Amount);
+            WithdrawTokensOfVoter(input);
+            RemoveBeneficiaryOfVoter();
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
@@ -335,6 +332,7 @@ namespace AElf.Contracts.Election
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
                 Assert(info.Capital > 0, "invalid input");
@@ -421,7 +419,7 @@ namespace AElf.Contracts.Election
             return elfAmount;
         }
 
-        private void CallTokenContractUnlock(Hash input, long amount)
+        private void UnlockTokensOfVoter(Hash input, long amount)
         {
             State.TokenContract.Unlock.Send(new UnlockInput
             {
@@ -433,19 +431,23 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void CallTokenContractTransferFrom(long amount)
+        private void RetrieveTokensFromVoter(long amount)
         {
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            foreach (var symbol in new List<string>
+                {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
             {
-                From = Context.Sender,
-                To = Context.Self,
-                Amount = amount,
-                Symbol = ElectionContractConstants.VoteSymbol,
-                Memo = "Return VOTE tokens."
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Amount = amount,
+                    Symbol = symbol,
+                    Memo = $"Return {symbol} tokens."
+                });
+            }
         }
 
-        private void CallVoteContractWithdraw(Hash input)
+        private void WithdrawTokensOfVoter(Hash input)
         {
             State.VoteContract.Withdraw.Send(new WithdrawInput
             {
@@ -453,7 +455,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void CallProfitContractRemoveBeneficiary()
+        private void RemoveBeneficiaryOfVoter()
         {
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
@@ -477,7 +479,7 @@ namespace AElf.Contracts.Election
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
         }
 
-        private void CallTokenContractLock(long amount)
+        private void LockTokensOfVoter(long amount)
         {
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -493,15 +495,36 @@ namespace AElf.Contracts.Election
         /// Issue VOTE tokens to this voter.
         /// </summary>
         /// <param name="amount"></param>
-        private void CallTokenContractIssue(long amount)
+        private void IssueOrTransferTokensToVoter(long amount)
         {
-            State.TokenContract.Issue.Send(new IssueInput
+            foreach (var symbol in new List<string>
+                {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
             {
-                Symbol = ElectionContractConstants.VoteSymbol,
-                To = Context.Sender,
-                Amount = amount,
-                Memo = "Issue VOTEs."
-            });
+                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+                {
+                    Symbol = symbol
+                });
+                if (tokenInfo.TotalSupply.Sub(tokenInfo.Supply) <= amount) // Which means remain tokens not enough.
+                {
+                    State.TokenContract.Transfer.Send(new TransferInput
+                    {
+                        Symbol = symbol,
+                        To = Context.Sender,
+                        Amount = amount,
+                        Memo = $"Transfer {symbol}."
+                    });
+                }
+                else
+                {
+                    State.TokenContract.Issue.Send(new IssueInput
+                    {
+                        Symbol = symbol,
+                        To = Context.Sender,
+                        Amount = amount,
+                        Memo = $"Issue {symbol}."
+                    });
+                }
+            }
         }
 
         private void CallVoteContractVote(long amount, string candidatePubkey)
@@ -516,7 +539,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void CallProfitContractAddBeneficiary(long votesWeight, long lockSeconds)
+        private void AddBeneficiaryToVoter(long votesWeight, long lockSeconds)
         {
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {

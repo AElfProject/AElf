@@ -20,13 +20,13 @@ service ThresholdSettingContract {
 }
 
 message MethodCallingThreshold {
-    map<string, sint64> symbol_to_amount = 1;// The order matters.
+    map<string, int64> symbol_to_amount = 1;// The order matters.
     ThresholdCheckType threshold_check_type = 2;
 }
 
 message SetMethodCallingThresholdInput {
     string method = 1;
-    map<string, sint64> symbol_to_amount = 2;// The order matters.
+    map<string, int64> symbol_to_amount = 2;// The order matters.
     ThresholdCheckType threshold_check_type = 3;
 }
 
