@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.CrossChain.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;

@@ -62,7 +62,7 @@ namespace AElf.CrossChain.Application
             foreach (var chainId in chainIdList)
             {
                 var neededChainHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
-                if (neededChainHeight < Constants.GenesisBlockHeight)
+                if (neededChainHeight < AElfConstants.GenesisBlockHeight)
                     continue;
                 dict.Add(chainId, neededChainHeight);
             }

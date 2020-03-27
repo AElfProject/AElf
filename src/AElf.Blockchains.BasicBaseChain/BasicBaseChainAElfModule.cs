@@ -4,6 +4,7 @@ using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;

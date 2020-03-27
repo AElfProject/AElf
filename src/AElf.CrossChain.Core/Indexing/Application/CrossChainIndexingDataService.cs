@@ -233,7 +233,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
-                .CallAsync(new SInt32Value
+                .CallAsync(new Int32Value
                 {
                     Value = chainId
                 });

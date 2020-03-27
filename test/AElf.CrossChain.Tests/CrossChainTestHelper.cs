@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using Acs7;
+using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
     public class CrossChainTestHelper
     {
-        
         private readonly Dictionary<Hash, CrossChainTransactionInput> _fakeCrossChainBlockData =
             new Dictionary<Hash, CrossChainTransactionInput>();
 
@@ -43,12 +42,12 @@ namespace AElf.CrossChain
                 ? crossChainExtraData
                 : null;
         }
-        
+
         public void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
         {
             _fakeIndexedCrossChainBlockData.Add(height, crossChainBlockData);
         }
-        
+
         public CrossChainBlockData GetIndexedCrossChainExtraData(long height)
         {
             return _fakeIndexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData)
@@ -60,7 +59,7 @@ namespace AElf.CrossChain
         {
             _chainIdHeight.Add(chainId, libHeight);
         }
-        
+
         public SideChainIdAndHeightDict GetAllIndexedCrossChainExtraData()
         {
             var sideChainIdAndHeightDict = new SideChainIdAndHeightDict

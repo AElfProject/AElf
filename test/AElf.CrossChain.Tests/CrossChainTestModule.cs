@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Application;
 using AElf.CrossChain.Indexing.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
@@ -23,6 +24,14 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<CrossChainTestHelper>();
+            context.Services.AddTransient(provider =>
+            {
+                var mockCrossChainRequestService = new Mock<ICrossChainRequestService>();
+                mockCrossChainRequestService.Setup(mock => mock.RequestCrossChainDataFromOtherChainsAsync())
+                    .Returns(Task.CompletedTask);
+                return mockCrossChainRequestService.Object;
+            });
+            
             context.Services.AddTransient(provider =>
             {
                 var mockCrossChainIndexingDataService = new Mock<ICrossChainIndexingDataService>();
