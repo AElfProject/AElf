@@ -53,34 +53,29 @@ namespace AElf.Kernel.SmartContract.Application
                         if (result.Bloom.Length == 0) continue;
                         result.BlockHash = block.GetHash();
                         var resultBloom = new Bloom(result.Bloom.ToByteArray());
-
+                        var interestedEvent = processor.InterestedEvent;
+                        var interestedBloom = Blooms[interestedEvent];
+                        if (!interestedBloom.IsIn(resultBloom))
                         {
-                            var interestedEvent = processor.InterestedEvent;
-                            var interestedBloom = Blooms[interestedEvent];
-                            if (!interestedBloom.IsIn(resultBloom))
-                            {
-                                // Interested bloom is not found in the transaction result
-                                continue;
-                            }
+                            // Interested bloom is not found in the transaction result
+                            continue;
+                        }
 
-                            // Interested bloom is found in the transaction result,
-                            // find the log that yields the bloom and apply the processor
-                            foreach (var log in result.Logs)
+                        // Interested bloom is found in the transaction result,
+                        // find the log that yields the bloom and apply the processor
+                        foreach (var log in result.Logs)
+                        {
+                            if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name) continue;
+                            if (logEventsMap.ContainsKey(result))
                             {
-                                if (log.Address == interestedEvent.Address && log.Name == interestedEvent.Name)
+                                logEventsMap[result].Add(log);
+                            }
+                            else
+                            {
+                                logEventsMap[result] = new ConcurrentBag<LogEvent>
                                 {
-                                    if (logEventsMap.ContainsKey(result))
-                                    {
-                                        logEventsMap[result].Add(log);
-                                    }
-                                    else
-                                    {
-                                        logEventsMap[result] = new ConcurrentBag<LogEvent>
-                                        {
-                                            log
-                                        };
-                                    }
-                                }
+                                    log
+                                };
                             }
                         }
                     }
