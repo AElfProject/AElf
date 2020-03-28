@@ -14,11 +14,20 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
+
+    public class ExecutedBlock
+    {
+        public Block Block { get; set; }
+        public IDictionary<Hash,TransactionResult> TransactionResultMap { get; set; }
+        
+        public IDictionary<Hash,Transaction> TransactionMap { get; set; }
+    }
+    
     public interface IBlockExecutingService
     {
-        Task<Block> ExecuteBlockAsync(BlockHeader blockHeader, IEnumerable<Transaction> nonCancellableTransactions);
+        Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader, IEnumerable<Transaction> nonCancellableTransactions);
 
-        Task<Block> ExecuteBlockAsync(BlockHeader blockHeader, IEnumerable<Transaction> nonCancellableTransactions,
+        Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader, IEnumerable<Transaction> nonCancellableTransactions,
             IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken);
     }
 }

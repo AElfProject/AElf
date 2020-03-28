@@ -31,8 +31,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 SystemTransactions.Concat(CancellableTransactions));
 
             await OsTestHelper.BroadcastTransactions(SystemTransactions.Concat(CancellableTransactions));
-            var block = await BlockExecutingService.ExecuteBlockAsync(Block.Header,
-                SystemTransactions, CancellableTransactions, CancellationToken.None);
+            var block = (await BlockExecutingService.ExecuteBlockAsync(Block.Header,
+                SystemTransactions, CancellableTransactions, CancellationToken.None)).Block;
             block.TransactionIds.Count().ShouldBeGreaterThan(10);
         }
 

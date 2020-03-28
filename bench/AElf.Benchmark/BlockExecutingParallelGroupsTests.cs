@@ -74,8 +74,8 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header,
-                _systemTransactions, _cancellableTransactions, CancellationToken.None);
+            _block = (await _blockExecutingService.ExecuteBlockAsync(_block.Header,
+                _systemTransactions, _cancellableTransactions, CancellationToken.None)).Block;
         }
 
         [IterationCleanup]

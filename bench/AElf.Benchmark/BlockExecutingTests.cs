@@ -51,7 +51,7 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+            _block = (await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions)).Block;
         }
 
         [IterationCleanup]

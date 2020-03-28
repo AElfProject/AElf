@@ -62,7 +62,8 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient(p =>
             {
                 var mockService = new Mock<IBlockExecutingService>();
-                mockService.Setup(m => m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                mockService.Setup(m =>
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         var block = new Block
@@ -71,7 +72,7 @@ namespace AElf.Kernel.SmartContractExecution
                             Body = new BlockBody()
                         };
                         block.Body.AddTransactions(transactions.Select(x => x.GetHash()));
-                        return Task.FromResult(block);
+                        return Task.FromResult(new ExecutedBlock(){Block = block});
                     });
                 return mockService.Object;
             });
@@ -124,8 +125,7 @@ namespace AElf.Kernel.SmartContractExecution
                                 {Header = new BlockHeader {Time = TimestampHelper.GetUtcNow()}};
                         }
 
-                        return Task.FromResult(result);
-
+                        return Task.FromResult(new ExecutedBlock() {Block = result});
                     });
 
                 return mockService.Object;
@@ -146,7 +146,8 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockProvider = new Mock<IBlockValidationService>();
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
+                    .Returns<IBlock>(
+                        (block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

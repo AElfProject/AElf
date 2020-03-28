@@ -49,7 +49,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return true;
 
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
-            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            var executedBlock = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
 
@@ -117,7 +117,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
-                Logger.LogDebug( $"Try to attach to chain but the status is {status}.");
+                Logger.LogDebug($"Try to attach to chain but the status is {status}.");
                 return null;
             }
 
@@ -144,7 +144,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     successBlocks.Add(linkedBlock);
                     Logger.LogInformation(
                         $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
-                    
+
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent {Block = linkedBlock});
                 }
             }

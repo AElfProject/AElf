@@ -55,7 +55,7 @@ namespace AElf.Kernel.ChainController.Application
                 var transactions = genesisTransactions.ToList();
                     
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
-                var chain = await _blockchainService.CreateChainAsync(block, transactions);
+                var chain = await _blockchainService.CreateChainAsync(block.Block, transactions);
                 
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
 

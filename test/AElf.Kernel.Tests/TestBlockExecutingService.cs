@@ -10,22 +10,22 @@ namespace AElf.Kernel
 {
     public class TestBlockExecutingService : IBlockExecutingService
     {
-        public Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
+        public Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
             var block = GenerateBlock(blockHeader, nonCancellableTransactions.Select(p => p.GetHash()));
 
-            return Task.FromResult(block);
+            return Task.FromResult(new ExecutedBlock(){Block = block});
         }
 
-        public Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
+        public Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions,
             IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken)
         {
             var block = GenerateBlock(blockHeader, nonCancellableTransactions.Concat(cancellableTransactions)
                 .Select(p => p.GetHash()));
 
-            return Task.FromResult(block);
+            return Task.FromResult(new ExecutedBlock(){Block = block});
         }
 
         private Block GenerateBlock(BlockHeader blockHeader, IEnumerable<Hash> transactionIds)
