@@ -242,8 +242,8 @@ namespace AElf.Kernel.Blockchain.Application
                 resultWithPostMiningHash.ShouldBeNull();
             }
 
-            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block11.Header,
-                block11.Body.TransactionIds.ToList());
+            //await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block11.Header,
+            //    block11.Body.TransactionIds.ToList());
 
             // After LIB, transaction result is re-saved with PostMiningHash (normal BlockHash)
             {

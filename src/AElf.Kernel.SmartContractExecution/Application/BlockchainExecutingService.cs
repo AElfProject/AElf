@@ -93,8 +93,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return false;
             }
 
-            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-                block.Body.TransactionIds.ToList());
+            //await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+            //    block.Body.TransactionIds.ToList());
 
             return true;
         }

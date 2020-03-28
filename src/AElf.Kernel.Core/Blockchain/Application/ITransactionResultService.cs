@@ -15,10 +15,9 @@ namespace AElf.Kernel.Blockchain.Application
 
     public interface ITransactionResultService : ITransactionResultQueryService
     {
-        Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader);
         Task AddTransactionResultsAsync(IList<TransactionResult> transactionResult, BlockHeader blockHeader);
 
-        Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
+        //Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
     }
 
 
@@ -34,12 +33,6 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionResultManager = transactionResultManager;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
-        }
-
-        public async Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader)
-        {
-            await _transactionResultManager.AddTransactionResultAsync(transactionResult,
-                blockHeader.GetDisambiguatingHash());
         }
 
         public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
@@ -76,43 +69,43 @@ namespace AElf.Kernel.Blockchain.Application
             return txResult;
         }
 
-        public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
-            List<Hash> transactionIds)
-        {
-            var preMiningHash = blockHeader.GetPreMiningHash();
-            var blockIndex = new BlockIndex
-            {
-                BlockHash = blockHeader.GetHash(),
-                BlockHeight = blockHeader.Height
-            };
-
-            if (transactionIds.Count == 0)
-            {
-                // This will only happen during test environment
-                return;
-            }
-
-            var firstTransaction = transactionIds.First();
-            var withBlockHash = await _transactionResultManager.HasTransactionResultAsync(
-                firstTransaction, blockHeader.GetHash());
-            var withPreMiningHash = await _transactionResultManager.HasTransactionResultAsync(
-                firstTransaction, preMiningHash);
-
-            if (!withBlockHash)
-            {
-                // TransactionResult is not saved with real BlockHash
-                // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
-                var result = await _transactionResultManager.GetTransactionResultsAsync(transactionIds, preMiningHash);
-                await _transactionResultManager.AddTransactionResultsAsync(result, blockIndex.BlockHash);
-            }
-
-            // Add TransactionBlockIndex
-            if (withPreMiningHash)
-            {
-                await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
-            }
-
-            await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
-        }
+        // public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
+        //     List<Hash> transactionIds)
+        // {
+        //     var preMiningHash = blockHeader.GetPreMiningHash();
+        //     var blockIndex = new BlockIndex
+        //     {
+        //         BlockHash = blockHeader.GetHash(),
+        //         BlockHeight = blockHeader.Height
+        //     };
+        //
+        //     if (transactionIds.Count == 0)
+        //     {
+        //         // This will only happen during test environment
+        //         return;
+        //     }
+        //
+        //     var firstTransaction = transactionIds.First();
+        //     var withBlockHash = await _transactionResultManager.HasTransactionResultAsync(
+        //         firstTransaction, blockHeader.GetHash());
+        //     var withPreMiningHash = await _transactionResultManager.HasTransactionResultAsync(
+        //         firstTransaction, preMiningHash);
+        //
+        //     if (!withBlockHash)
+        //     {
+        //         // TransactionResult is not saved with real BlockHash
+        //         // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
+        //         var result = await _transactionResultManager.GetTransactionResultsAsync(transactionIds, preMiningHash);
+        //         await _transactionResultManager.AddTransactionResultsAsync(result, blockIndex.BlockHash);
+        //     }
+        //
+        //     // Add TransactionBlockIndex
+        //     if (withPreMiningHash)
+        //     {
+        //         await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
+        //     }
+        //
+        //     await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
+        // }
     }
 }

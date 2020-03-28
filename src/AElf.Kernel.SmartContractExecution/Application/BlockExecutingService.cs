@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -19,14 +20,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionResultService _transactionResultService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
-            IBlockchainStateService blockchainStateService)
+            IBlockchainStateService blockchainStateService,
+            ITransactionResultService transactionResultService)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
+            _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -79,10 +83,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection);
+
+            //save all transaction results
+            await _transactionResultService.AddTransactionResultsAsync(
+                returnSetCollection.ToList()
+                    .Select(p => p.TransactionResult).ToList(), blockHeader);
+
             return block;
         }
 
-        protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
+        protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
+            List<Transaction> transactions,
             ReturnSetCollection returnSetCollection)
         {
             Logger.LogTrace("Start block field filling after execution.");
