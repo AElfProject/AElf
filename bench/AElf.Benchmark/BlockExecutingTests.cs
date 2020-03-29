@@ -61,7 +61,7 @@ namespace AElf.Benchmark
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetPreMiningHash());
+                _block.Header.GetDisambiguatingHash());
         }
     }
 }

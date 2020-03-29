@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -86,7 +87,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var blockHash = block.GetHash();
             //save all transaction results
-
+            
             var results = returnSetCollection.ToList()
                 .Select(p =>
                 {

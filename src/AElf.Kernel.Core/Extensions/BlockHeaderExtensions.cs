@@ -11,13 +11,6 @@ namespace AElf.Kernel
             return blockHeader.MerkleTreeRootOfTransactions != null;
         }
 
-        public static Hash GetPreMiningHash(this BlockHeader blockHeader)
-        {
-            if(!blockHeader.IsMined())
-                throw new InvalidOperationException("GetPreMiningHash: should only get mined block's PreMiningHash");
-            return blockHeader.GetHash();
-        }
-
         public static Hash GetDisambiguatingHash(this BlockHeader blockHeader)
         {
             if(!blockHeader.IsMined())

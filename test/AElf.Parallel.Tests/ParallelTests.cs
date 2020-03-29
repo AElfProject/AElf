@@ -557,7 +557,7 @@ namespace AElf.Parallel.Tests
                 var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetHash());
                 if(result != null) transactionResults.Add(result);
                 result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    blockHeader.GetPreMiningHash());
+                    blockHeader.GetDisambiguatingHash());
                 if(result!=null) transactionResults.Add(result);
             }
 

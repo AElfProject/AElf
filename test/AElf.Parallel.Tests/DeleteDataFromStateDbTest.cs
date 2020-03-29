@@ -3004,7 +3004,7 @@ namespace AElf.Parallel.Tests
                 blockHeader.GetHash());
             if (transactionResult != null) return transactionResult;
             return await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                blockHeader.GetPreMiningHash());
+                blockHeader.GetDisambiguatingHash());
         }
 
         private async Task<List<TransactionResult>> GetTransactionResultsAsync(List<Hash> transactionIds,BlockHeader blockHeader)
@@ -3016,7 +3016,7 @@ namespace AElf.Parallel.Tests
                     blockHeader.GetHash());
                 if (transactionResult != null) transactionResults.Add(transactionResult);
                 transactionResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    blockHeader.GetPreMiningHash());
+                    blockHeader.GetDisambiguatingHash());
                 if(transactionResult != null) transactionResults.Add(transactionResult);
             }
 

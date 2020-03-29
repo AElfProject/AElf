@@ -108,7 +108,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     TransactionId = result.TransactionId,
                     Status = result.Status,
-                    Bloom = result.Bloom
+                    Bloom = result.Bloom,
+                    TransactionResult = result
                 };
                 returnSets.Add(returnSet);
             }
@@ -129,6 +130,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Error = "Parallel conflict",
                 };
                 conflictingSet.Status = result.Status;
+                conflictingSet.TransactionResult = result;
                 transactionResults.Add(result);
             }
 

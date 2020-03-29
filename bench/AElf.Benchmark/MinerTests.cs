@@ -73,7 +73,7 @@ namespace AElf.Benchmark
             await _transactionManager.RemoveTransactionsAsync(transactionIds);
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetPreMiningHash());
+                _block.Header.GetDisambiguatingHash());
 
             await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
 

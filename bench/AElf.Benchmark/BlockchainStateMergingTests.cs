@@ -126,7 +126,7 @@ namespace AElf.Benchmark
                 await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
                     block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetDisambiguatingHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
