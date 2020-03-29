@@ -515,8 +515,8 @@ namespace AElf.Contracts.TestBase
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var block = (await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue))).Block;
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
@@ -546,8 +546,8 @@ namespace AElf.Contracts.TestBase
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            var block = await minerService.MineAsync(preBlockHash, preBlockHeight,
-                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var block = (await minerService.MineAsync(preBlockHash, preBlockHeight,
+                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue))).Block;
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);

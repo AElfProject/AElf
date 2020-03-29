@@ -304,8 +304,8 @@ namespace AElf.OS
                 previousBlockHeight = chain.BestChainHeight;
             }
 
-            var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
+            var block = (await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000))).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);

@@ -372,14 +372,14 @@ namespace AElf.Contract.TestContract
         {
             var transactionList = new List<Transaction>();
             if (transaction != null) transactionList.Add(transaction);
-            var block = await _miningService.MineAsync(
+            var block = (await _miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
                 },
                 transactionList,
-                DateTime.UtcNow.ToTimestamp());
+                DateTime.UtcNow.ToTimestamp())).Block;
 
             if (transaction != null)
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});

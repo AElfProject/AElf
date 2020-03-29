@@ -20,8 +20,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             Block = OsTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, PrepareTransactions);
             //await BlockExecutingService.ExecuteBlockAsync(Block.Header, PrepareTransactions);
             await OsTestHelper.BroadcastTransactions(PrepareTransactions);
-            Block = await MinerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
+            Block = (await MinerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
             await BlockchainService.AddBlockAsync(Block);
             await BlockAttachService.AttachBlockAsync(Block);
 

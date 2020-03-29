@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContractExecution
                             Body = new BlockBody()
                         };
                         block.Body.AddTransactions(transactions.Select(x => x.GetHash()));
-                        return Task.FromResult(new ExecutedBlock(){Block = block});
+                        return Task.FromResult(new BlockExecutedSet(){Block = block});
                     });
                 return mockService.Object;
             });
@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContractExecution
                                 {Header = new BlockHeader {Time = TimestampHelper.GetUtcNow()}};
                         }
 
-                        return Task.FromResult(new ExecutedBlock() {Block = result});
+                        return Task.FromResult(new BlockExecutedSet() {Block = result});
                     });
 
                 return mockService.Object;

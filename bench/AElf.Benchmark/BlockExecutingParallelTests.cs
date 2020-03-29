@@ -59,8 +59,8 @@ namespace AElf.Benchmark
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _prepareTransactions);
             await _blockExecutingService.ExecuteBlockAsync(_block.Header, _prepareTransactions);
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
-            _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
+            _block = (await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
 
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
             _cancellableTransactions = _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs);

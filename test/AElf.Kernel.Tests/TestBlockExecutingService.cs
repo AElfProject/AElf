@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -10,22 +11,22 @@ namespace AElf.Kernel
 {
     public class TestBlockExecutingService : IBlockExecutingService
     {
-        public Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
+        public Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
             var block = GenerateBlock(blockHeader, nonCancellableTransactions.Select(p => p.GetHash()));
 
-            return Task.FromResult(new ExecutedBlock(){Block = block});
+            return Task.FromResult(new BlockExecutedSet(){Block = block});
         }
 
-        public Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
+        public Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions,
             IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken)
         {
             var block = GenerateBlock(blockHeader, nonCancellableTransactions.Concat(cancellableTransactions)
                 .Select(p => p.GetHash()));
 
-            return Task.FromResult(new ExecutedBlock(){Block = block});
+            return Task.FromResult(new BlockExecutedSet(){Block = block});
         }
 
         private Block GenerateBlock(BlockHeader blockHeader, IEnumerable<Hash> transactionIds)

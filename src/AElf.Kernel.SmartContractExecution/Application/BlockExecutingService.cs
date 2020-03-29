@@ -34,14 +34,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             EventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
+        public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
 
-        public async Task<ExecutedBlock> ExecuteBlockAsync(BlockHeader blockHeader,
+        public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
@@ -89,7 +89,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSetCollection.ToList()
                     .Select(p => p.TransactionResult).ToList(), blockHeader);
 
-            return new ExecutedBlock()
+            return new BlockExecutedSet()
             {
                 Block = block,
                 TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),

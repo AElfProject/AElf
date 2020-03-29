@@ -23,11 +23,12 @@ namespace AElf.Contracts.TestKit
             _serviceProvider = serviceProvider;
         }
 
-        public async Task ExecuteAsync(Transaction transaction)
+        public async Task<TransactionResult> ExecuteAsync(Transaction transaction)
         {
             var transactionResult = await ExecuteTransactionAsync(transaction);
             if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
                 throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult?.Error}");
+            return transactionResult;
         }
 
         public async Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
@@ -48,9 +49,8 @@ namespace AElf.Contracts.TestKit
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var transactionResultService = _serviceProvider.GetRequiredService<ITransactionResultService>();
-
-            var block = await miningService.MineAsync(
+            
+            var BlockExecutedSet = await miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
@@ -59,11 +59,13 @@ namespace AElf.Contracts.TestKit
                 new List<Transaction> {transaction},
                 blockTimeProvider.GetBlockTime());
 
+            var block = BlockExecutedSet.Block;
+
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
-            return await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+            return BlockExecutedSet.TransactionResultMap[transaction.GetHash()];
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
