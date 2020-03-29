@@ -70,9 +70,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendWithExceptionAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
-                var transactionResult =
-                    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                var transactionResult =await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
                 if (transactionResult == null)
                 {
                     return new ExecutionResult<TOutput> {Transaction = transaction};

@@ -114,16 +114,16 @@ namespace AElf.Kernel.Miner.Application
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
                     var pending = transactions;
-                    var BlockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
+                    var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
 
-                    block = BlockExecutedSet.Block;
+                    block = blockExecutedSet.Block;
                     await SignBlockAsync(block);
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
                                           $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
-                    return BlockExecutedSet;
+                    return blockExecutedSet;
                 }
             }
             catch (Exception e)

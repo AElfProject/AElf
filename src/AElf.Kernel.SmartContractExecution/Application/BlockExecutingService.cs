@@ -84,10 +84,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     .ToList();
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection);
 
+            var blockHash = block.GetHash();
             //save all transaction results
-            await _transactionResultService.AddTransactionResultsAsync(
-                returnSetCollection.ToList()
-                    .Select(p => p.TransactionResult).ToList(), blockHeader);
+
+            var results = returnSetCollection.ToList()
+                .Select(p =>
+                {
+                    p.TransactionResult.BlockHash = blockHash;
+                    return p.TransactionResult;
+                }).ToList();
+
+            await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
 
             return new BlockExecutedSet()
             {

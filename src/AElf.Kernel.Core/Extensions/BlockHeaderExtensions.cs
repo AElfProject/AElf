@@ -1,3 +1,4 @@
+using System;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -12,16 +13,17 @@ namespace AElf.Kernel
 
         public static Hash GetPreMiningHash(this BlockHeader blockHeader)
         {
-            return Hash.FromRawBytes(new BlockHeader()
-            {
-                PreviousBlockHash = blockHeader.PreviousBlockHash,
-                Height = blockHeader.Height
-            }.ToByteArray());
+            if(!blockHeader.IsMined())
+                throw new InvalidOperationException("GetPreMiningHash: should only get mined block's PreMiningHash");
+            return blockHeader.GetHash();
         }
 
         public static Hash GetDisambiguatingHash(this BlockHeader blockHeader)
         {
-            return blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
+            if(!blockHeader.IsMined())
+                throw new InvalidOperationException("GetDisambiguatingHash: should only get mined block's DisambiguatingHash");
+
+            return blockHeader.GetHash();
         }
     }
 }
