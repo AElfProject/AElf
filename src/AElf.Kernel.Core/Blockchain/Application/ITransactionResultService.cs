@@ -17,7 +17,7 @@ namespace AElf.Kernel.Blockchain.Application
     {
         Task AddTransactionResultsAsync(IList<TransactionResult> transactionResult, BlockHeader blockHeader);
 
-        //Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
+        Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
     }
 
 
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Blockchain.Application
             return txResult;
         }
 
-        private async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
+        public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
             List<Hash> transactionIds)
         {
             var blockIndex = new BlockIndex

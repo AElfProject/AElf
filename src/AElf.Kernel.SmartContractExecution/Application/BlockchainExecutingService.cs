@@ -49,16 +49,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return true;
 
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
-            var BlockExecutedSet = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
+            var blockExecutedSet = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
 
-            var blockHashWithoutCache = BlockExecutedSet.GetHashWithoutCache();
+            var blockHashWithoutCache = blockExecutedSet.GetHashWithoutCache();
 
             if (blockHashWithoutCache != blockHash)
             {
                 blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHashWithoutCache);
                 Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
                 Logger.LogWarning(
-                    $"Block execution failed. Block header: {BlockExecutedSet.Header}, Block body: {BlockExecutedSet.Body}");
+                    $"Block execution failed. Block header: {blockExecutedSet.Header}, Block body: {blockExecutedSet.Body}");
 
                 return false;
             }
@@ -93,8 +93,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return false;
             }
 
-            //await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-            //    block.Body.TransactionIds.ToList());
+            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+                block.Body.TransactionIds.ToList());
 
             return true;
         }

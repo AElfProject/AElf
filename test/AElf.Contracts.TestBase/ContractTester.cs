@@ -590,8 +590,8 @@ namespace AElf.Contracts.TestBase
             IMessage input, Timestamp blockTime = null)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
-            await MineAsync(new List<Transaction> {tx}, blockTime);
-            var result = await GetTransactionResultAsync(tx.GetHash());
+            var blockExecutedSet = await MineAsync(new List<Transaction> {tx}, blockTime);
+            var result = blockExecutedSet.TransactionResultMap[tx.GetHash()];
 
             return result;
         }
