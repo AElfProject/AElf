@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
