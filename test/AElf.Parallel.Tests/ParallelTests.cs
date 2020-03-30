@@ -554,11 +554,8 @@ namespace AElf.Parallel.Tests
             var transactionResults = new List<TransactionResult>();
             foreach (var transactionId in transactionIds)
             {
-                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetHash());
+                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetDisambiguatingHash());
                 if(result != null) transactionResults.Add(result);
-                result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    blockHeader.GetDisambiguatingHash());
-                if(result!=null) transactionResults.Add(result);
             }
 
             return transactionResults;
