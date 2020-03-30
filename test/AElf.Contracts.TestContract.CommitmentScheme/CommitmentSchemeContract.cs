@@ -38,7 +38,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
         private Hash GetNextInValueOfSlot(RequestSlot requestSlot)
         {
             RequireAEDPoSContractStateSet();
-            var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var round = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber
             });
@@ -49,7 +49,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
                     ?.PreviousInValue;
             }
 
-            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber.Add(1)
             });

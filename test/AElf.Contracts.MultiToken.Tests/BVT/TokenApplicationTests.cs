@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -430,7 +429,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
 
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            lockResult.Error.ShouldContain("Not in white list");
+            lockResult.Error.ShouldContain("No Permission.");
         }
 
         [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]

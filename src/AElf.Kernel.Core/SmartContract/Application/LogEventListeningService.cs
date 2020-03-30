@@ -13,9 +13,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private Dictionary<LogEvent, Bloom> _blooms;
 
-        private Dictionary<LogEvent, Bloom> Blooms =>
-            _blooms ??
-            (_blooms = _logEventProcessors.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
+        private Dictionary<LogEvent, Bloom> Blooms => _blooms ??= _logEventProcessors.Select(h => h.InterestedEvent)
+            .ToDictionary(e => e, e => e.GetBloom());
 
         private readonly List<T> _logEventProcessors;
 
@@ -45,11 +44,6 @@ namespace AElf.Kernel.SmartContract.Application
                     var result =
                         await _transactionResultQueryService.GetTransactionResultAsync(transactionId, block.GetHash());
                     if (result == null)
-                    {
-                        continue;
-                    }
-
-                    if (result.Status == TransactionResultStatus.Failed)
                     {
                         continue;
                     }

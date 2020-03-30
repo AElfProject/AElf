@@ -33,7 +33,7 @@ message SetConfigurationInput {
 
 message BlockTransactionLimit
 {
-    int32 value = 1;
+    sint32 value = 1;
 }
 
 // Values

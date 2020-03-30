@@ -507,24 +507,6 @@ namespace AElf.Contracts.MultiToken
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
-            {
-                var isInWhiteListBeforeInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
-                    new IsInWhiteListInput
-                    {
-                        Address = ReferendumContractAddress,
-                        Symbol = NativeTokenInfo.Symbol
-                    });
-                isInWhiteListBeforeInitialization.Value.ShouldBeFalse();
-
-                await ReferendumContractStub.Initialize.SendAsync(new Empty());
-                var isInWhiteListAfterInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
-                    new IsInWhiteListInput
-                    {
-                        Address = ReferendumContractAddress,
-                        Symbol = NativeTokenInfo.Symbol
-                    });
-                isInWhiteListAfterInitialization.Value.ShouldBeTrue();
-            }
         }
         
         [Fact]
@@ -546,24 +528,6 @@ namespace AElf.Contracts.MultiToken
                     Address = TokenContractAddress
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
-            {
-                var isInWhiteListBeforeInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
-                    new IsInWhiteListInput
-                    {
-                        Address = ReferendumContractAddress,
-                        Symbol = PrimaryTokenInfo.Symbol
-                    });
-                isInWhiteListBeforeInitialization.Value.ShouldBeFalse();
-
-                await ReferendumContractStub.Initialize.SendAsync(new Empty());
-                var isInWhiteListAfterInitialization = await TokenContractStub.IsInWhiteList.CallAsync(
-                    new IsInWhiteListInput
-                    {
-                        Address = ReferendumContractAddress,
-                        Symbol = PrimaryTokenInfo.Symbol
-                    });
-                isInWhiteListAfterInitialization.Value.ShouldBeTrue();
             }
         }
 
