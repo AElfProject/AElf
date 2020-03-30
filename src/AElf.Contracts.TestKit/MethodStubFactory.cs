@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -50,9 +51,10 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                await _testTransactionExecutor.ExecuteAsync(transaction);
-                var transactionResult =
-                    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                var transactionResult = await _testTransactionExecutor.ExecuteAsync(transaction);
+                //var transactionResult =
+                //    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                
                 if (transactionResult == null)
                 {
                     return new ExecutionResult<TOutput> {Transaction = transaction};
@@ -68,9 +70,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendWithExceptionAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
-                var transactionResult =
-                    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                var transactionResult =await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
                 if (transactionResult == null)
                 {
                     return new ExecutionResult<TOutput> {Transaction = transaction};
@@ -101,7 +101,8 @@ namespace AElf.Contracts.TestKit
                 CallWithExceptionAsync);
         }
 
-        private Transaction GetTransactionWithoutSignature<TInput, TOutput>(TInput input, Method<TInput, TOutput> method)
+        private Transaction GetTransactionWithoutSignature<TInput, TOutput>(TInput input,
+            Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
             var transaction = new Transaction
