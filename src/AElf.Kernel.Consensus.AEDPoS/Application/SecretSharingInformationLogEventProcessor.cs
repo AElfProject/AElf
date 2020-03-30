@@ -7,7 +7,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingInformationLogEventProcessor : IBestChainFoundLogEventProcessor
+    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;
@@ -22,7 +22,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _secretSharingService = secretSharingService;
         }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -35,17 +35,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
-            {
-                foreach (var logEvent in logEvents)
-                {
-                    _secretSharingService.AddSharingInformationAsync(logEvent);
-                }
-            }
-
-            return Task.CompletedTask;
+            var secretSharingInformation = new SecretSharingInformation();
+            secretSharingInformation.MergeFrom(logEvent);
+            await _secretSharingService.AddSharingInformationAsync(secretSharingInformation);
         }
     }
 }

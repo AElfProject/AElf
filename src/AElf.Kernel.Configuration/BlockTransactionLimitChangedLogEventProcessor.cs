@@ -11,13 +11,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Configuration
 {
-    public class BlockTransactionLimitChangedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class BlockTransactionLimitChangedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -44,29 +44,23 @@ namespace AElf.Kernel.Configuration
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
+            var configurationSet = new ConfigurationSet();
+            configurationSet.MergeFrom(logEvent);
+
+            if (configurationSet.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
+
+            var limit = new Int32Value();
+            limit.MergeFrom(configurationSet.Value.ToByteArray());
+            if (limit.Value < 0) return;
+            await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
             {
-                foreach (var logEvent in logEvents)
-                {
-                    var configurationSet = new ConfigurationSet();
-                    configurationSet.MergeFrom(logEvent);
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, limit.Value);
 
-                    if (configurationSet.Key != BlockTransactionLimitConfigurationNameProvider.Name) return;
-
-                    var limit = new Int32Value();
-                    limit.MergeFrom(configurationSet.Value.ToByteArray());
-                    if (limit.Value < 0) return;
-                    await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
-                    {
-                        BlockHash = block.GetHash(),
-                        BlockHeight = block.Height
-                    }, limit.Value);
-
-                    Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
-                }
-            }
+            Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
         }
     }
 }

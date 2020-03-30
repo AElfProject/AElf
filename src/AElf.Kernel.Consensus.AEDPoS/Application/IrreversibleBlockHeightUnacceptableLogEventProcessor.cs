@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -11,13 +10,14 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
+        IBestChainFoundLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -43,28 +43,22 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
-            {
-                foreach (var logEvent in logEvents)
-                {
-                    var distanceToLib = new IrreversibleBlockHeightUnacceptable();
-                    distanceToLib.MergeFrom(logEvent);
+            var distanceToLib = new IrreversibleBlockHeightUnacceptable();
+            distanceToLib.MergeFrom(logEvent);
 
-                    if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
-                    {
-                        Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                        _transactionPackingOptions.IsTransactionPackable = false;
-                    }
-                    else
-                    {
-                        _transactionPackingOptions.IsTransactionPackable = true;
-                    }
-                }
+            if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
+            {
+                Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
+                _transactionPackingOptions.IsTransactionPackable = false;
+            }
+            else
+            {
+                _transactionPackingOptions.IsTransactionPackable = true;
             }
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }

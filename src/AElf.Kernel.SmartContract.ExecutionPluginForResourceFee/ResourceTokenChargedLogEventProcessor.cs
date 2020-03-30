@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
@@ -11,14 +10,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceTokenChargedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class ResourceTokenChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalResourceTokensMapsProvider _totalTotalResourceTokensMapsProvider;
         private LogEvent _interestedEvent;
         private ILogger<ResourceTokenChargedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -42,83 +41,77 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Logger = NullLogger<ResourceTokenChargedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
+            var eventData = new ResourceTokenCharged();
+            eventData.MergeFrom(logEvent);
+            if (eventData.Symbol == null || eventData.Amount == 0)
+                return;
+
+            var blockHash = block.GetHash();
+            var blockHeight = block.Height;
+            // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalResourceTokensMap at once.
+            var totalResourceTokensMaps =
+                await _totalTotalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
+                    new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height,
+                    });
+            // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
+            if (totalResourceTokensMaps == null)
             {
-                foreach (var logEvent in logEvents)
+                totalResourceTokensMaps = new TotalResourceTokensMaps
                 {
-                    var eventData = new ResourceTokenCharged();
-                    eventData.MergeFrom(logEvent);
-                    if (eventData.Symbol == null || eventData.Amount == 0)
-                        return;
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                };
+            }
+            else if (totalResourceTokensMaps.BlockHash != blockHash ||
+                     totalResourceTokensMaps.BlockHeight != blockHeight)
+            {
+                totalResourceTokensMaps = new TotalResourceTokensMaps
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                };
+            }
 
-                    var blockHash = block.GetHash();
-                    var blockHeight = block.Height;
-                    // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalResourceTokensMap at once.
-                    var totalResourceTokensMaps =
-                        await _totalTotalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
-                            new ChainContext
-                            {
-                                BlockHash = block.GetHash(),
-                                BlockHeight = block.Height,
-                            });
-                    // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
-                    if (totalResourceTokensMaps == null)
-                    {
-                        totalResourceTokensMaps = new TotalResourceTokensMaps
-                        {
-                            BlockHash = blockHash,
-                            BlockHeight = blockHeight
-                        };
-                    }
-                    else if (totalResourceTokensMaps.BlockHash != blockHash ||
-                             totalResourceTokensMaps.BlockHeight != blockHeight)
-                    {
-                        totalResourceTokensMaps = new TotalResourceTokensMaps
-                        {
-                            BlockHash = blockHash,
-                            BlockHeight = blockHeight
-                        };
-                    }
-
-                    if (totalResourceTokensMaps.Value.Any() &&
-                        totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
-                    {
-                        var oldBill =
-                            totalResourceTokensMaps.Value.First(b => b.ContractAddress == eventData.ContractAddress);
-                        if (oldBill.TokensMap.Value.ContainsKey(eventData.Symbol))
-                        {
-                            oldBill.TokensMap.Value[eventData.Symbol] += eventData.Amount;
-                        }
-                        else
-                        {
-                            oldBill.TokensMap.Value.Add(eventData.Symbol, eventData.Amount);
-                        }
-                    }
-                    else
-                    {
-                        var contractTotalResourceTokens = new ContractTotalResourceTokens
-                        {
-                            ContractAddress = eventData.ContractAddress,
-                            TokensMap = new TotalResourceTokensMap
-                            {
-                                Value =
-                                {
-                                    {eventData.Symbol, eventData.Amount}
-                                }
-                            }
-                        };
-                        totalResourceTokensMaps.Value.Add(contractTotalResourceTokens);
-                    }
-
-                    await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight
-                    }, totalResourceTokensMaps);
+            if (totalResourceTokensMaps.Value.Any() &&
+                totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
+            {
+                var oldBill =
+                    totalResourceTokensMaps.Value.First(b => b.ContractAddress == eventData.ContractAddress);
+                if (oldBill.TokensMap.Value.ContainsKey(eventData.Symbol))
+                {
+                    oldBill.TokensMap.Value[eventData.Symbol] += eventData.Amount;
+                }
+                else
+                {
+                    oldBill.TokensMap.Value.Add(eventData.Symbol, eventData.Amount);
                 }
             }
+            else
+            {
+                var contractTotalResourceTokens = new ContractTotalResourceTokens
+                {
+                    ContractAddress = eventData.ContractAddress,
+                    TokensMap = new TotalResourceTokensMap
+                    {
+                        Value =
+                        {
+                            {eventData.Symbol, eventData.Amount}
+                        }
+                    }
+                };
+                totalResourceTokensMaps.Value.Add(contractTotalResourceTokens);
+            }
+
+            await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            }, totalResourceTokensMaps);
         }
     }
 }

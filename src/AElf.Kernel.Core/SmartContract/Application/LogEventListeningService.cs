@@ -37,7 +37,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 foreach (var processor in _logEventProcessors)
                 {
-                    var logEventsMap = new Dictionary<TransactionResult, ConcurrentBag<LogEvent>>();
+                    var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
                     var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
                     if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                     {
@@ -45,7 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
 
-                    foreach (var result in txResults.AsParallel())
+                    foreach (var result in txResults)
                     {
                         if (result.Bloom.Length == 0) continue;
                         result.BlockHash = block.GetHash();
@@ -69,7 +69,7 @@ namespace AElf.Kernel.SmartContract.Application
                             }
                             else
                             {
-                                logEventsMap[result] = new ConcurrentBag<LogEvent>
+                                logEventsMap[result] = new List<LogEvent>()
                                 {
                                     log
                                 };
@@ -77,7 +77,7 @@ namespace AElf.Kernel.SmartContract.Application
                         }
                     }
 
-                    await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value.ToList()));
+                    await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value));
                 }
 
                 Logger.LogTrace("Finish apply log event processor.");

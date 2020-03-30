@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -12,7 +11,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
-    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorBase,
+        IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICalculateFunctionProvider _calculateFunctionProvider;
@@ -21,7 +21,7 @@ namespace AElf.Kernel.FeeCalculation.Application
 
         private ILogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -46,21 +46,15 @@ namespace AElf.Kernel.FeeCalculation.Application
             Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
+            var eventData = new CalculateFeeAlgorithmUpdated();
+            eventData.MergeFrom(logEvent);
+            await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
             {
-                foreach (var logEvent in logEvents)
-                {
-                    var eventData = new CalculateFeeAlgorithmUpdated();
-                    eventData.MergeFrom(logEvent);
-                    await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
-                    {
-                        BlockHash = block.GetHash(),
-                        BlockHeight = block.Height
-                    }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
-                }
-            }
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
         }
     }
 }

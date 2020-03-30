@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class CodeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<CodeUpdatedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -48,31 +48,25 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            foreach (var logEvents in logEventsMap.Values)
-            {
-                foreach (var logEvent in logEvents)
-                {
-                    var eventData = new CodeUpdated();
-                    eventData.MergeFrom(logEvent);
+            var eventData = new CodeUpdated();
+            eventData.MergeFrom(logEvent);
 
-                    var smartContractRegistration =
-                        await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(
-                            new ChainContext
-                            {
-                                BlockHash = block.GetHash(),
-                                BlockHeight = block.Height
-                            }, eventData.Address);
-                    await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            var smartContractRegistration =
+                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(
+                    new ChainContext
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height
-                    }, eventData.Address, smartContractRegistration);
-                    _smartContractExecutiveService.CleanExecutive(eventData.Address);
-                    Logger.LogDebug($"Updated contract {eventData}");
-                }
-            }
+                    }, eventData.Address);
+            await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, eventData.Address, smartContractRegistration);
+            _smartContractExecutiveService.CleanExecutive(eventData.Address);
+            Logger.LogDebug($"Updated contract {eventData}");
         }
     }
 }

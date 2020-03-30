@@ -56,6 +56,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 {
                     var irreversibleBlockFound = new IrreversibleBlockFound();
                     irreversibleBlockFound.MergeFrom(logEvent);
+                    // TODO: Double check whether this method still need to execute sync.
                     var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
                 }
             }
