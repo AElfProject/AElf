@@ -2,9 +2,9 @@
 
 JS library for dApps's communication with iOS Android or other applications implementing the protocol for aelf-bridge.
 
-At the time of writing (2019.12), aelf iOS, Android wallet has implemented this protocol.
+At the time of writing (2019.12), aelf [iOS wallet](https://github.com/AElfProject/aelf-wallet-ios), [Android wallet](https://github.com/AElfProject/aelf-wallet-android) had implemented this protocol.
 
-[Github aelf-bridge](https://github.com/AElfProject/aelf-bridge)
+[git repository: aelf-bridge](https://github.com/AElfProject/aelf-bridge)
 
 [Protocol zh-CN](https://github.com/AElfProject/aelf-bridge/blob/master/PROTOCOL.zh-CN.md)
 
@@ -48,7 +48,7 @@ bridgeInstance.connect().then(isConnected => {
 })
 ```
 
-## 3. How it workd & DevTools
+## 3. How it works & DevTools
 
 ### 3.1.1 How it works
 
