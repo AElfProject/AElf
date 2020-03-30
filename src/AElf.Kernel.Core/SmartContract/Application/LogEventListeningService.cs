@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +11,6 @@ namespace AElf.Kernel.SmartContract.Application
     public class LogEventListeningService<T> : ILogEventListeningService<T>
         where T : ILogEventProcessor
     {
-        private readonly ITransactionResultQueryService _transactionResultQueryService;
         private Dictionary<LogEvent, Bloom> _blooms;
 
         private Dictionary<LogEvent, Bloom> Blooms => _blooms ??= _logEventProcessors.Select(h => h.InterestedEvent)
@@ -21,23 +20,20 @@ namespace AElf.Kernel.SmartContract.Application
 
         public ILogger<LogEventListeningService<T>> Logger { get; set; }
 
-        public LogEventListeningService(ITransactionResultQueryService transactionResultQueryService,
-            IServiceContainer<T> logEventProcessors)
+        public LogEventListeningService(IServiceContainer<T> logEventProcessors)
         {
-            _transactionResultQueryService = transactionResultQueryService;
             _logEventProcessors = logEventProcessors.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public async Task ProcessAsync(IEnumerable<Block> blocks)
+        public async Task ProcessAsync(List<BlockExecutedSet> blockExecutedSets)
         {
             Logger.LogTrace("Apply log event processor.");
-            foreach (var block in blocks)
+            foreach (var executedSet in blockExecutedSets)
             {
-                var txResults =
-                    await _transactionResultQueryService.GetTransactionResultsAsync(block.Body.TransactionIds,
-                        block.GetHash());
+                var block = executedSet.Block;
+                var txResults = executedSet.TransactionResultMap.Values;
 
-                if (txResults == null || !txResults.Any()) continue;
+                if (!txResults.Any()) continue;
 
                 foreach (var processor in _logEventProcessors)
                 {
