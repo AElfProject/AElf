@@ -72,9 +72,9 @@ namespace AElf.OS.Network
         /// </summary>
         public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
 
-        public int InvalidDataTimeout { get; set; } = NetworkConstants.DefaultInvalidDataTimeout;
+        public int PeerInvalidTransactionTimeout { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionTimeout;
 
-        public int InvalidDataLimit { get; set; } = NetworkConstants.DefaultInvalidDataLimit;
+        public int PeerInvalidTransactionLimit { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionLimit;
     }
     
     [Flags]

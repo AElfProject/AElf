@@ -22,7 +22,7 @@ namespace AElf.OS
         
     }
 
-    public class InvalidDataTestBase : AElfIntegratedTest<InvalidDataTestModule>
+    public class PeerInvalidTransactionTestBase : AElfIntegratedTest<PeerInvalidTransactionTestModule>
     {
         
     }

@@ -62,8 +62,8 @@ namespace AElf.OS
             
             Configure<NetworkOptions>(o=>
             {
-                o.InvalidDataLimit = 5;
-                o.InvalidDataTimeout = 1000;
+                o.PeerInvalidTransactionLimit = 5;
+                o.PeerInvalidTransactionTimeout = 1000;
             });
         }
     }

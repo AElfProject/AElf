@@ -43,7 +43,7 @@ namespace AElf.OS.Network
 
         public const int DefaultNtpDriftThreshold = 1_000;
 
-        public const int DefaultInvalidDataTimeout = 10_000;
-        public const int DefaultInvalidDataLimit = 50;
+        public const int DefaultPeerInvalidTransactionTimeout = 10_000;
+        public const int DefaultPeerInvalidTransactionLimit = 50;
     }
 }

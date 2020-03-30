@@ -7,21 +7,21 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
-    public class InvalidDataProcessingService : IInvalidDataProcessingService, ITransientDependency
+    public class PeerInvalidTransactionProcessingService : IPeerInvalidTransactionProcessingService, ITransientDependency
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
-        private readonly IPeerInvalidDataProvider _peerInvalidDataProvider;
+        private readonly IPeerInvalidTransactionProvider _peerInvalidTransactionProvider;
 
-        public InvalidDataProcessingService(INetworkService networkService, IPeerPool peerPool,
-            IPeerInvalidDataProvider peerInvalidDataProvider)
+        public PeerInvalidTransactionProcessingService(INetworkService networkService, IPeerPool peerPool,
+            IPeerInvalidTransactionProvider peerInvalidTransactionProvider)
         {
             _networkService = networkService;
             _peerPool = peerPool;
-            _peerInvalidDataProvider = peerInvalidDataProvider;
+            _peerInvalidTransactionProvider = peerInvalidTransactionProvider;
         }
 
-        public async Task ProcessInvalidTransactionAsync(Hash transactionId)
+        public async Task ProcessPeerInvalidTransactionAsync(Hash transactionId)
         {
             var knowsTransactionPeers = _peerPool.GetPeers().Where(p => p.KnowsTransaction(transactionId)).ToList();
             var toRemovePeerPubkey = new List<string>();
@@ -29,13 +29,13 @@ namespace AElf.OS.Network.Application
             foreach (var knowsTransactionPeer in knowsTransactionPeers)
             {
                 var host = knowsTransactionPeer.RemoteEndpoint.Host;
-                if (_peerInvalidDataProvider.TryMarkInvalidData(host))
+                if (_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host))
                     continue;
 
                 var peers = _peerPool.GetPeersByHost(host);
                 toRemovePeerPubkey.AddRange(peers.Select(p => p.Info.Pubkey));
 
-                _peerInvalidDataProvider.TryRemoveInvalidData(host);
+                _peerInvalidTransactionProvider.TryRemoveInvalidRecord(host);
             }
 
             foreach (var pubkey in toRemovePeerPubkey)

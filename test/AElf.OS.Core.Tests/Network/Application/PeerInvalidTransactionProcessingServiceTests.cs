@@ -6,23 +6,23 @@ using Xunit;
 
 namespace AElf.OS.Network.Application
 {
-    public class InvalidDataProcessingServiceTests : InvalidDataTestBase
+    public class PeerPeerInvalidTransactionProcessingServiceTests : PeerInvalidTransactionTestBase
     {
-        private readonly IInvalidDataProcessingService _invalidDataProcessingService;
+        private readonly IPeerInvalidTransactionProcessingService _peerInvalidTransactionProcessingService;
         private readonly IBlackListedPeerProvider _blackListedPeerProvider;
-        private readonly IPeerInvalidDataProvider _peerInvalidDataProvider;
+        private readonly IPeerInvalidTransactionProvider _peerInvalidTransactionProvider;
         private readonly IPeerPool _peerPool;
 
-        public InvalidDataProcessingServiceTests()
+        public PeerPeerInvalidTransactionProcessingServiceTests()
         {
-            _invalidDataProcessingService = GetRequiredService<IInvalidDataProcessingService>();
+            _peerInvalidTransactionProcessingService = GetRequiredService<IPeerInvalidTransactionProcessingService>();
             _blackListedPeerProvider = GetRequiredService<IBlackListedPeerProvider>();
-            _peerInvalidDataProvider = GetRequiredService<IPeerInvalidDataProvider>();
+            _peerInvalidTransactionProvider = GetRequiredService<IPeerInvalidTransactionProvider>();
             _peerPool = GetRequiredService<IPeerPool>();
         }
 
         [Fact]
-        public async Task ProcessInvalidTransaction_Test()
+        public async Task ProcessPeerInvalidTransaction_Test()
         {
             var peer1 = _peerPool.FindPeerByPublicKey("Peer1");
             var peer3 = _peerPool.FindPeerByPublicKey("Peer3");
@@ -32,12 +32,12 @@ namespace AElf.OS.Network.Application
 
             for (var i = 0; i < 5; i++)
             {
-                await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId);
+                await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId);
                 isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer3.RemoteEndpoint.Host);
                 isInBlackList.ShouldBeFalse();
             }
 
-            await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId);
+            await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId);
             isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer3.RemoteEndpoint.Host);
             isInBlackList.ShouldBeTrue();
 
@@ -46,7 +46,7 @@ namespace AElf.OS.Network.Application
         }
 
         [Fact]
-        public async Task ProcessInvalidTransaction_MultiplePorts_Test()
+        public async Task ProcessPeerInvalidTransaction_MultiplePorts_Test()
         {
             var peer1 = _peerPool.FindPeerByPublicKey("Peer1");
             var peer2 = _peerPool.FindPeerByPublicKey("Peer2");
@@ -57,17 +57,17 @@ namespace AElf.OS.Network.Application
             var txId = Hash.FromString("TxPeer1");
             for (var i = 0; i < 4; i++)
             {
-                await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId);
+                await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId);
                 isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer1.RemoteEndpoint.Host);
                 isInBlackList.ShouldBeFalse();
             }
 
             var txId2 = Hash.FromString("TxPeer2");
-            await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId2);
+            await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId2);
             isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer2.RemoteEndpoint.Host);
             isInBlackList.ShouldBeFalse();
 
-            await _invalidDataProcessingService.ProcessInvalidTransactionAsync(txId2);
+            await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId2);
             isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer1.RemoteEndpoint.Host);
             isInBlackList.ShouldBeTrue();
             isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer2.RemoteEndpoint.Host);
