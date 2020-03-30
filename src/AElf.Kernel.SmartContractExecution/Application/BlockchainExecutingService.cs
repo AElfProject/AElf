@@ -78,11 +78,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var set = new BlockExecutedSet()
             {
                 Block = block,
-                TransactionMap =
-                    (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
-                    .ToDictionary(p => p.GetHash(), p => p),
+                TransactionMap = new Dictionary<Hash,Transaction>(),
+                    
                 TransactionResultMap = new Dictionary<Hash, TransactionResult>()
             };
+            if (block.TransactionIds.Any())
+            {
+                set.TransactionMap = (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
+                    .ToDictionary(p => p.GetHash(), p => p);
+            }
+            
             foreach (var transactionId in block.TransactionIds)
             {
                 if ((set.TransactionResultMap[transactionId] =
