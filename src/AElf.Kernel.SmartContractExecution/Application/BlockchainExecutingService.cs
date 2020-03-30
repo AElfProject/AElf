@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -41,6 +42,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
+
         private async Task<BlockExecutedSet> ExecuteBlockAsync(Block block)
         {
             var blockHash = block.GetHash();
@@ -48,8 +50,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
             if (blockState != null)
             {
-                Logger.LogWarning($"Block already executed. block hash: {blockHash}");
-                return null;
+                Logger.LogInformation($"Block already executed. block hash: {blockHash}");
+                return await GetExecuteBlockSetAsync(block, blockHash);
             }
 
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
@@ -69,6 +71,32 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             return blockExecutedSet;
+        }
+
+        private async Task<BlockExecutedSet> GetExecuteBlockSetAsync(Block block, Hash blockHash)
+        {
+            var set = new BlockExecutedSet()
+            {
+                Block = block,
+                TransactionMap =
+                    (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
+                    .ToDictionary(p => p.GetHash(), p => p),
+                TransactionResultMap = new Dictionary<Hash, TransactionResult>()
+            };
+            foreach (var transactionId in block.TransactionIds)
+            {
+                if ((set.TransactionResultMap[transactionId] =
+                        await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
+                    == null)
+                {
+                    Logger.LogWarning(
+                        $"fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
+
+                    return null;
+                }
+            }
+
+            return set;
         }
 
         /// <summary>
@@ -184,7 +212,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await SetBestChainAsync(successLinks, chain);
             await _chainManager.SetChainBlockLinkExecutionStatusesAsync(successLinks,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            
+
             await LocalEventBus.PublishAsync(new BestChainFoundEventData
             {
                 BlockHash = chain.BestChainHash,
@@ -197,6 +225,5 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             return blockLinks;
         }
-
     }
 }
