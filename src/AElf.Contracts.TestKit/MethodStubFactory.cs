@@ -52,8 +52,6 @@ namespace AElf.Contracts.TestKit
             {
                 var transaction = GetTransaction(input);
                 var transactionResult = await _testTransactionExecutor.ExecuteAsync(transaction);
-                //var transactionResult =
-                //    await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
                 
                 if (transactionResult == null)
                 {

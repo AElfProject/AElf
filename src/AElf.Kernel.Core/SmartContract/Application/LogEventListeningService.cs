@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Application
                             }
                             else
                             {
-                                logEventsMap[result] = new List<LogEvent>()
+                                logEventsMap[result] = new List<LogEvent>
                                 {
                                     log
                                 };

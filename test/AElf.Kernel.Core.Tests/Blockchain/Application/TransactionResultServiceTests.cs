@@ -80,48 +80,6 @@ namespace AElf.Kernel.Blockchain.Application
             return (block, results);
         }
 
-        private Transaction GetDummyTransactionWithMethodNameAsId(string id)
-        {
-            return new Transaction()
-            {
-                From = SampleAddress.AddressList[0],
-                To = SampleAddress.AddressList[1],
-                MethodName = id
-            };
-        }
-
-        //TODO: remove it, no pre mining now
-        /*[Fact]
-        public async Task Add_TransactionResult_With_PreMiningHash()
-        {
-            var tx = _kernelTestHelper.GenerateTransaction();
-            var (block, results) =
-                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx});
-
-            var result = results.First();
-            await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
-
-            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried.ShouldBe(null);
-            var queried2 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash(), block.GetHash());
-            queried2.ShouldBe(result);
-
-            var blockIndex = new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            };
-
-            // Add TransactionResult after completing and adding block
-            await _transactionResultService.AddTransactionResultsAsync(results, block.Header);
-
-            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {tx.GetHash()},
-                blockIndex);
-
-            var queried3 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried3.ShouldBe(result);
-        }*/
-
         [Fact]
         public async Task Add_TransactionResult_With_BlockHash()
         {

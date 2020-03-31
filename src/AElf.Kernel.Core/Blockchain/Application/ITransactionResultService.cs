@@ -40,9 +40,6 @@ namespace AElf.Kernel.Blockchain.Application
         {
             await _transactionResultManager.AddTransactionResultsAsync(transactionResults,
                 blockHeader.GetDisambiguatingHash());
-
-            //await ProcessTransactionResultAfterExecutionAsync(blockHeader,
-            //    transactionResults.Select(p => p.TransactionId).ToList());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
