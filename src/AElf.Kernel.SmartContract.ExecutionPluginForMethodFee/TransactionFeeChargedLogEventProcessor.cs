@@ -69,11 +69,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 }
             }
 
-            await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
+            if (totalTxFeesMap.Value.Any())
             {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            }, totalTxFeesMap);
+                await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }, totalTxFeesMap);
+            }
         }
     }
 }

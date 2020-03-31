@@ -90,11 +90,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 }
             }
 
-            await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+            if (totalResourceTokensMaps.Value.Any())
             {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            }, totalResourceTokensMaps);
+                await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }, totalResourceTokensMaps);
+            }
         }
     }
 }
