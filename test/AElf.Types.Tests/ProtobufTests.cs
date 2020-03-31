@@ -1,12 +1,22 @@
+using System;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.Types.Tests
 {
     public class ProtobufTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public ProtobufTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void TestDescriptor()
         {

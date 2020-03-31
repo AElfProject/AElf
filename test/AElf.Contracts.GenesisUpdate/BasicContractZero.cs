@@ -11,9 +11,9 @@ namespace AElf.Contracts.GenesisUpdate
     {
         #region Views
 
-        public override UInt64Value CurrentContractSerialNumber(Empty input)
+        public override Int64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new Int64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)
@@ -253,13 +253,13 @@ namespace AElf.Contracts.GenesisUpdate
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        public static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
         }
 
-        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        public static Address BuildContractAddress(int chainId, long serialNumber)
         {
             return BuildContractAddress(chainId.ToHash(), serialNumber);
         }

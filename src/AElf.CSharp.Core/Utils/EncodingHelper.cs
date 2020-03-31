@@ -10,9 +10,9 @@ namespace AElf.CSharp.Core.Utils
         /// <summary>
         /// Serializes a UTF-8 string to a byte array.
         /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static byte[] GetBytesFromUtf8String(string str)
+        /// <param name="str">the string to serialize.</param>
+        /// <returns>the serialized string.</returns>
+        public static byte[] EncodeUtf8(string str)
         {
             return Encoding.UTF8.GetBytes(str);
         }

@@ -2,6 +2,10 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <PackageId>AElf.Kernel.Proposal</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Module that contains parliament proposal services and processors.</Description>
     </PropertyGroup>
 
     <ItemGroup>

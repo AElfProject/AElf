@@ -151,7 +151,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {
@@ -168,7 +168,6 @@ namespace AElf.Contracts.TokenHolder
             await userProfitStub.ClaimProfits.SendAsync(new Profit.ClaimProfitsInput
             {
                 SchemeId = tokenHolderProfitScheme.SchemeId,
-                Symbol = "ELF"
             });
             
             {
@@ -189,7 +188,7 @@ namespace AElf.Contracts.TokenHolder
             await TokenHolderContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
+                AmountsMap = {{"ELF", 0L}}
             });
 
             {
@@ -206,7 +205,6 @@ namespace AElf.Contracts.TokenHolder
             await userTokenHolderStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeManager = Starter,
-                Symbol = "ELF"
             });
             
             {

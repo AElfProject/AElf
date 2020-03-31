@@ -51,7 +51,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             };
 
             // Skip this validation at the very beginning of current chain.
-            if (chain.LastIrreversibleBlockHeight == Constants.GenesisBlockHeight)
+            if (chain.LastIrreversibleBlockHeight == AElfConstants.GenesisBlockHeight)
             {
                 return true;
             }

@@ -114,7 +114,7 @@ namespace AElf.Kernel.SmartContractExecution
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;
-                        if (blockHeader.Height == Constants.GenesisBlockHeight)
+                        if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                         {
                             result = new Block {Header = blockHeader};
                         }
@@ -146,7 +146,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockProvider = new Mock<IBlockValidationService>();
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
+                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

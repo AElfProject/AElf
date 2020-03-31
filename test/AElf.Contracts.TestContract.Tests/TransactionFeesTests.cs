@@ -22,7 +22,6 @@ namespace AElf.Contract.TestContract
 {
     public class TransactionFeesTests : TestFeesContractTestBase
     {
-        private const long DefaultFee = 1_00000000L;
         private readonly ITestOutputHelper _testOutputHelper;
         public TransactionFeesTests(ITestOutputHelper testOutputHelper)
         {

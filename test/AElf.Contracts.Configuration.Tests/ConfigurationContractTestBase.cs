@@ -31,8 +31,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
-                    out _,
-                    out _balanceOfStarter, true)));
+                    out _, out _balanceOfStarter, true)));
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);
