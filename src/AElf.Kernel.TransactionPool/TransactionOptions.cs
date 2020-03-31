@@ -7,6 +7,7 @@ namespace AElf.Kernel.TransactionPool
         /// </summary>
         public int PoolLimit { get; set; } = 5120;
 
+        public int PoolParallelismDegree { get; set; } = 5;
 
         /// <summary>
         /// Bp Node can disable this flag to make best performance.
