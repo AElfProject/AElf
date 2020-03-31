@@ -8,7 +8,7 @@
   - [AddMethod\`\`2(method,handler)](#M-AElf-CSharp-Core-ServerServiceDefinition-Builder-AddMethod``2-AElf-CSharp-Core-Method{``0,``1},AElf-CSharp-Core-UnaryServerMethod{``0,``1}- 'AElf.CSharp.Core.ServerServiceDefinition.Builder.AddMethod``2(AElf.CSharp.Core.Method{``0,``1},AElf.CSharp.Core.UnaryServerMethod{``0,``1})')
   - [Build()](#M-AElf-CSharp-Core-ServerServiceDefinition-Builder-Build 'AElf.CSharp.Core.ServerServiceDefinition.Builder.Build')
 - [EncodingHelper](#T-AElf-CSharp-Core-Utils-EncodingHelper 'AElf.CSharp.Core.Utils.EncodingHelper')
-  - [GetBytesFromUtf8String(str)](#M-AElf-CSharp-Core-Utils-EncodingHelper-GetBytesFromUtf8String-System-String- 'AElf.CSharp.Core.Utils.EncodingHelper.GetBytesFromUtf8String(System.String)')
+  - [EncodeUtf8(str)](#M-AElf-CSharp-Core-Utils-EncodingHelper-EncodeUtf8-System-String- 'AElf.CSharp.Core.Utils.EncodingHelper.EncodeUtf8(System.String)')
 - [IMethod](#T-AElf-CSharp-Core-IMethod 'AElf.CSharp.Core.IMethod')
   - [FullName](#P-AElf-CSharp-Core-IMethod-FullName 'AElf.CSharp.Core.IMethod.FullName')
   - [Name](#P-AElf-CSharp-Core-IMethod-Name 'AElf.CSharp.Core.IMethod.Name')
@@ -125,8 +125,8 @@ AElf.CSharp.Core.Utils
 
 Helper class for serializing strings.
 
-<a name='M-AElf-CSharp-Core-Utils-EncodingHelper-GetBytesFromUtf8String-System-String-'></a>
-### GetBytesFromUtf8String(str) `method`
+<a name='M-AElf-CSharp-Core-Utils-EncodingHelper-EncodeUtf8-System-String-'></a>
+### EncodeUtf8(str) `method`
 
 ##### Summary
 
@@ -134,7 +134,7 @@ Serializes a UTF-8 string to a byte array.
 
 ##### Returns
 
-
+the serialized string.
 
 ##### Parameters
 
