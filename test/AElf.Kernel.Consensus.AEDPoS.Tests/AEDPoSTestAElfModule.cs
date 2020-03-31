@@ -168,31 +168,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
                 return mockService.Object;
             });
-
-            context.Services.AddTransient(provider =>
-            {
-                var encryptDic = new Dictionary<string, byte[]>
-                {
-                    {"bp1", Hash.FromString("encrypt info").Value.ToByteArray()}
-                };
-
-                var decryptDic = new Dictionary<string, byte[]>
-                {
-                    {"bp2", Hash.FromString("decrypt info").Value.ToByteArray()}
-                };
-
-                var inValuesDic = new Dictionary<string, Hash> {{"bp3", Hash.FromString("in values")}};
-
-                var mockService = new Mock<ISecretSharingService>();
-                mockService.Setup(m => m.GetEncryptedPieces(It.IsAny<long>()))
-                    .Returns(encryptDic);
-                mockService.Setup(m => m.GetDecryptedPieces(It.IsAny<long>()))
-                    .Returns(decryptDic);
-                mockService.Setup(m => m.GetRevealedInValues(It.IsAny<long>()))
-                    .Returns(inValuesDic);
-
-                return mockService.Object;
-            });
         }
     }
 }
