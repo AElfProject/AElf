@@ -139,7 +139,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
 
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var orderedReturnSets = returnSetCollection.ToList().AsParallel()
+            var orderedReturnSets = returnSetCollection.ToList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
                 CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);

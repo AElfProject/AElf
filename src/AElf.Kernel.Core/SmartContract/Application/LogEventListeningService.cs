@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 var block = executedSet.Block;
                 // Should make sure tx results' order are same as tx ids in block body.
-                var txResults = executedSet.TransactionResultMap.Values.AsParallel()
+                var txResults = executedSet.TransactionResultMap.Values
                     .OrderBy(d => block.Body.TransactionIds.IndexOf(d.TransactionId)).ToList();
 
                 if (!txResults.Any()) continue;
