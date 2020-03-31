@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,24 +30,26 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var executedSet in blockExecutedSets)
             {
                 var block = executedSet.Block;
-                var txResults = executedSet.TransactionResultMap.Values;
+                // Should make sure tx results' order are same as tx ids in block body.
+                var txResults = executedSet.TransactionResultMap.Values.AsParallel()
+                    .OrderBy(d => block.Body.TransactionIds.IndexOf(d.TransactionId)).ToList();
 
                 if (!txResults.Any()) continue;
+
+                var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
+                if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
+                {
+                    // No interested event in the block
+                    continue;
+                }
 
                 foreach (var processor in _logEventProcessors)
                 {
                     var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
-                    var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
-                    if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
-                    {
-                        // No interested event in the block
-                        continue;
-                    }
 
                     foreach (var result in txResults)
                     {
                         if (result.Bloom.Length == 0) continue;
-                        result.BlockHash = block.GetHash();
                         var resultBloom = new Bloom(result.Bloom.ToByteArray());
                         var interestedEvent = processor.InterestedEvent;
                         var interestedBloom = Blooms[interestedEvent];

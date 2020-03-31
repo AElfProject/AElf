@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -9,14 +11,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class TransactionFeeChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
+    public class TransactionFeeChargedLogEventProcessor : IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         private LogEvent _interestedEvent;
         private ILogger<TransactionFeeChargedLogEventProcessor> Logger { get; set; }
 
-        public override LogEvent InterestedEvent
+        public LogEvent InterestedEvent
         {
             get
             {
@@ -40,49 +42,31 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger = NullLogger<TransactionFeeChargedLogEventProcessor>.Instance;
         }
 
-        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new TransactionFeeCharged();
-            eventData.MergeFrom(logEvent);
-            if (eventData.Symbol == null || eventData.Amount == 0)
-                return;
-
             var blockHash = block.GetHash();
             var blockHeight = block.Height;
-            // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalTxFeesMap at once.
-            var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(
-                new ChainContext
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                });
+            var totalTxFeesMap = new TotalTransactionFeesMap
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            };
 
-            // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
-            if (totalTxFeesMap == null)
+            foreach (var logEvent in logEventsMap.Values.SelectMany(logEvents => logEvents))
             {
-                totalTxFeesMap = new TotalTransactionFeesMap
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                };
-            }
-            else if (totalTxFeesMap.BlockHash != blockHash || totalTxFeesMap.BlockHeight != blockHeight)
-            {
-                totalTxFeesMap = new TotalTransactionFeesMap
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                };
-            }
+                var eventData = new TransactionFeeCharged();
+                eventData.MergeFrom(logEvent);
+                if (eventData.Symbol == null || eventData.Amount == 0)
+                    continue;
 
-            if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
-            {
-                totalTxFeesMap.Value[eventData.Symbol] =
-                    totalTxFeesMap.Value[eventData.Symbol] + eventData.Amount;
-            }
-            else
-            {
-                totalTxFeesMap.Value[eventData.Symbol] = eventData.Amount;
+                if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
+                {
+                    totalTxFeesMap.Value[eventData.Symbol] += eventData.Amount;
+                }
+                else
+                {
+                    totalTxFeesMap.Value[eventData.Symbol] = eventData.Amount;
+                }
             }
 
             await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
