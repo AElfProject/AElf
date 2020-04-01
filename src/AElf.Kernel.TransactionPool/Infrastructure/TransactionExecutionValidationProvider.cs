@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,19 +36,26 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (!_transactionOptions.EnableTransactionExecutionValidation)
                 return true;
 
+            var bestChainBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
             {
                 Transactions = new[] {transaction},
-                BlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                BlockHeader = new BlockHeader
+                {
+                    PreviousBlockHash = bestChainBlock.GetHash(),
+                    Height = bestChainBlock.Height + 1
+                }
             }, CancellationToken.None);
 
             var executionValidationResult =
                 executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined;
             if (!executionValidationResult)
+            {
                 await LocalEventBus.PublishAsync(new TransactionExecutionValidationFailedEvent
                 {
                     TransactionId = transaction.GetHash()
                 });
+            }
             return executionValidationResult;
         }
     }
