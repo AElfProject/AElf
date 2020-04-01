@@ -220,7 +220,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
             await LocalEventBus.PublishAsync(new BlocksExecutionSucceededEvent
             {
-                ExecutedBlocks = successBlocks
+                BlockExecutedSets = successBlockExecutedSets
             });
 
             Logger.LogInformation(
