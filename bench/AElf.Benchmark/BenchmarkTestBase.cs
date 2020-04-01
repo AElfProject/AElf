@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -25,7 +24,7 @@ namespace AElf.Benchmark
     {
     }
 
-    public class MiningBenchmarkTestBase : AElfIntegratedTest<MiningBenchmarkAElfModule>
+    public class MiningWithTransactionsBenchmarkBase : AElfIntegratedTest<MiningBenchmarkAElfModule>
     {
         private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IAccountService _accountService;
@@ -33,7 +32,7 @@ namespace AElf.Benchmark
         private readonly ISmartContractAddressService _smartContractAddressService;
         protected readonly ITxHub TxHub;
 
-        public MiningBenchmarkTestBase()
+        public MiningWithTransactionsBenchmarkBase()
         {
             _osBlockchainNodeContextService = GetRequiredService<IOsBlockchainNodeContextService>();
             _accountService = GetRequiredService<IAccountService>();
@@ -67,26 +66,15 @@ namespace AElf.Benchmark
         }
 
         public readonly long TokenTotalSupply = 100_000_000_000_000_000L;
-
+        private readonly string _nativeSymbol = "ELF";
 
         private async Task StartNodeAsync()
         {
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ZeroSmartContract = typeof(BasicContractZero),
-                ChainId = ChainHelper.ConvertBase58ToChainId("AELF")
-            };
-
-            dto.SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
-            // var consensusCode = Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
-            // dto.InitializationSmartContracts.AddGenesisSmartContract(consensusCode,
-            //     ConsensusSmartContractAddressNameProvider.Name);
-
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
-                Symbol = "ELF",
+                Symbol = _nativeSymbol,
                 TokenName = "ELF_Token",
                 TotalSupply = TokenTotalSupply,
                 Decimals = 8,
@@ -94,31 +82,37 @@ namespace AElf.Benchmark
                 IsBurnable = true
             });
             callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
+                new SetPrimaryTokenSymbolInput {Symbol = _nativeSymbol});
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
-                Symbol = "ELF",
+                Symbol = _nativeSymbol,
                 Amount = TokenTotalSupply,
                 To = ownAddress,
                 Memo = "Issue"
             });
 
             var tokenContractCode = Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ZeroSmartContract = typeof(BasicContractZero),
+                ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
+                SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory
+            };
             dto.InitializationSmartContracts.AddGenesisSmartContract(tokenContractCode,
                 TokenSmartContractAddressNameProvider.Name, callList);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
         }
 
-        public async Task<List<Transaction>> GenerateTransferTransaction(int txCount)
+        public async Task<List<Transaction>> GenerateTransferTransactionsAsync(int txCount)
         {
             var txList = new List<Transaction>();
             while (txCount-- > 0)
-                txList.Add(await GenerateTransferTransaction());
+                txList.Add(await GenerateTransferTransactionAsync());
             return txList;
         }
 
-        public async Task<Transaction> GenerateTransferTransaction()
+        public async Task<Transaction> GenerateTransferTransactionAsync()
         {
             var chain = await BlockchainService.GetChainAsync();
             var tokenContractAddress =
@@ -126,7 +120,7 @@ namespace AElf.Benchmark
             var getBalanceInput = new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey),
-                Symbol = "ELF"
+                Symbol = _nativeSymbol
             };
             var transaction = new Transaction
             {
