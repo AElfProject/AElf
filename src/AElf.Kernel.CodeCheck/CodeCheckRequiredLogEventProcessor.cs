@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -40,24 +41,33 @@ namespace AElf.Kernel.CodeCheck
             _proposalService = proposalService;
         }
 
-        public Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            // a new task for time-consuming code check job 
-            Task.Run(async () =>
+            foreach (var events in logEventsMap)
             {
-                var eventData = new CodeCheckRequired();
-                eventData.MergeFrom(logEvent);
-                var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(eventData.Code.ToByteArray(),
-                    transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category);
-                if (!codeCheckResult)
-                    return;
+                var transactionResult = events.Key;
+                foreach (var logEvent in events.Value)
+                {
+                    // a new task for time-consuming code check job 
+                    Task.Run(async () =>
+                    {
+                        var eventData = new CodeCheckRequired();
+                        eventData.MergeFrom(logEvent);
+                        var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
+                            eventData.Code.ToByteArray(),
+                            transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category);
+                        if (!codeCheckResult)
+                            return;
 
-                var proposalId = ProposalCreated.Parser
-                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                    .ProposalId;
-                // Cache proposal id to generate system approval transaction later
-                _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
-            });
+                        var proposalId = ProposalCreated.Parser
+                            .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                            .ProposalId;
+                        // Cache proposal id to generate system approval transaction later
+                        _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
+                    });
+                }
+            }
+
             return Task.CompletedTask;
         }
     }
