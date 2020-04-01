@@ -41,7 +41,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 ExecutedSuccessBlocks = {block, block2}
             };
-            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(executionResult);
+            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(block2.Height);
@@ -56,9 +56,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         [Fact]
         public async Task Process_Empty_BlockExecutionResult()
         {
-            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(new BlockExecutionResult());
-
             var chain = await _blockchainService.GetChainAsync();
+            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, new BlockExecutionResult());
+
+            chain = await _blockchainService.GetChainAsync();
             chain.LongestChainHash.ShouldBe(chain.BestChainHash);
             chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
         }
@@ -72,7 +73,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executionResult = new BlockExecutionResult();
             executionResult.ExecutedFailedBlocks.Add(_kernelTestHelper.LongestBranchBlockList.Last());
 
-            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(executionResult);
+            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
 
             chain = await _blockchainService.GetChainAsync();
             chain.LongestChainHash.ShouldBe(chain.BestChainHash);

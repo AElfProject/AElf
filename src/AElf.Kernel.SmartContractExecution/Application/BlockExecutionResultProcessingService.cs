@@ -28,10 +28,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<BlockExecutionResultProcessingService>.Instance;
         }
 
-        public async Task ProcessBlockExecutionResultAsync(BlockExecutionResult blockExecutionResult)
+        public async Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult)
         {
-            var chain = await _blockchainService.GetChainAsync();
-
             if (blockExecutionResult.ExecutedFailedBlocks.Any() ||
                 blockExecutionResult.ExecutedSuccessBlocks.Count == 0 ||
                 blockExecutionResult.ExecutedSuccessBlocks.Last().Height < chain.BestChainHeight)

@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(executionResult);
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
             }
         }
     }

@@ -55,9 +55,9 @@ namespace AElf.Kernel.ChainController.Application
                 var transactions = genesisTransactions.ToList();
 
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
-                await _blockchainService.CreateChainAsync(block, transactions);
+                var chain = await _blockchainService.CreateChainAsync(block, transactions);
                 var blockExecutionResult = await _blockchainExecutingService.ExecuteBlocksAsync(new[] {block});
-                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(blockExecutionResult);
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, blockExecutionResult);
 
                 return await _blockchainService.GetChainAsync();
             }
