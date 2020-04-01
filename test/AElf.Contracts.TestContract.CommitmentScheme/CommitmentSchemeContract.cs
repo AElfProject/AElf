@@ -1,5 +1,6 @@
 using System.Linq;
 using Acs6;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -37,7 +38,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
         private Hash GetNextInValueOfSlot(RequestSlot requestSlot)
         {
             RequireAEDPoSContractStateSet();
-            var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var round = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber
             });
@@ -48,7 +49,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
                     ?.PreviousInValue;
             }
 
-            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber.Add(1)
             });

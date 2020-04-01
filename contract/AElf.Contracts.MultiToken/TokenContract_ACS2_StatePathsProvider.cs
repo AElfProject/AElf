@@ -20,7 +20,6 @@ namespace AElf.Contracts.MultiToken
                         {
                             GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
                             GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
-                            GetPath(nameof(TokenContractState.ChargedFees), txn.From.ToString())
                         }
                     };
 
@@ -40,7 +39,6 @@ namespace AElf.Contracts.MultiToken
                             GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
                             GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
                             GetPath(nameof(TokenContractState.LockWhiteLists), args.Symbol, txn.From.ToString()),
-                            GetPath(nameof(TokenContractState.ChargedFees), txn.From.ToString())
                         }
                     };
                     AddPathForTransactionFee(resourceInfo, txn.From);

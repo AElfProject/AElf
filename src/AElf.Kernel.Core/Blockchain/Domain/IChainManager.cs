@@ -80,29 +80,29 @@ namespace AElf.Kernel.Blockchain.Domain
             chain = new Chain()
             {
                 Id = ChainId,
-                LongestChainHeight = Constants.GenesisBlockHeight,
+                LongestChainHeight = AElfConstants.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
-                BestChainHeight = Constants.GenesisBlockHeight,
+                BestChainHeight = AElfConstants.GenesisBlockHeight,
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 LastIrreversibleBlockHash = genesisBlock,
-                LastIrreversibleBlockHeight = Constants.GenesisBlockHeight,
+                LastIrreversibleBlockHeight = AElfConstants.GenesisBlockHeight,
                 Branches =
                 {
-                    {genesisBlock.ToStorageKey(), Constants.GenesisBlockHeight}
+                    {genesisBlock.ToStorageKey(), AElfConstants.GenesisBlockHeight}
                 }
             };
 
             await SetChainBlockLinkAsync(new ChainBlockLink()
             {
                 BlockHash = genesisBlock,
-                Height = Constants.GenesisBlockHeight,
+                Height = AElfConstants.GenesisBlockHeight,
                 PreviousBlockHash = Hash.Empty,
                 IsLinked = true,
                 IsIrreversibleBlock = true
             });
 
-            await SetChainBlockIndexAsync(Constants.GenesisBlockHeight, genesisBlock);
+            await SetChainBlockIndexAsync(AElfConstants.GenesisBlockHeight, genesisBlock);
 
             await _chains.SetAsync(ChainId.ToStorageKey(), chain);
 

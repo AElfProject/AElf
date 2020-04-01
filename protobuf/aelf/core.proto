@@ -53,7 +53,7 @@ message LogEvent {
 }
 
 message SmartContractRegistration {
-    int32 category = 1;
+    sint32 category = 1;
     bytes code = 2;
     Hash code_hash = 3;
     bool is_system_contract = 4;

@@ -19,8 +19,7 @@ namespace AElf.Kernel.FeeCalculation
             services.AddSingleton<IResourceTokenFeeProvider, StorageFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, TrafficFeeProvider>();
             services.AddSingleton<IResourceTokenFeeProvider, WriteFeeProvider>();
-            // TODO: disable fee calculation before new charging solution adopted 
-            // services.AddSingleton<IPrimaryTokenFeeService, PrimaryTokenFeeService>();
+            services.AddSingleton<IPrimaryTokenFeeService, PrimaryTokenFeeService>();
             services.AddSingleton<IResourceTokenFeeService, ResourceTokenFeeService>();
             services
                 .AddSingleton<IBlockAcceptedLogEventProcessor,
@@ -28,6 +27,7 @@ namespace AElf.Kernel.FeeCalculation
             services
                 .AddSingleton<ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>,
                     CalculateFunctionExecutedDataService>();
+            services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
         }
     }
 }

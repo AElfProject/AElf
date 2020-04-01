@@ -1,4 +1,5 @@
 using Acs4;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 
 // ReSharper disable once CheckNamespace

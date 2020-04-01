@@ -1,4 +1,6 @@
 using System.Linq;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -41,6 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             round.RoundNumber = currentRoundNumber.Add(1);
             round.TermNumber = currentTermNumber.Add(1);
+            round.IsMinerListJustChanged = true;
 
             return round;
         }

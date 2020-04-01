@@ -1,54 +1,41 @@
 # aelf-bridge
 
-AElf bridge is a javascript framework that's part of AElf's eco-system. You can find the sources on 
-[**Github**](https://github.com/AElfProject/aelf-bridge). Follow this guide to learn more about how to configure and use it.
+JS library for dApps's communication with iOS Android or other applications implementing the protocol for aelf-bridge.
 
-## Introduction
+At the time of writing (2019.12), aelf [iOS wallet](https://github.com/AElfProject/aelf-wallet-ios), [Android wallet](https://github.com/AElfProject/aelf-wallet-android) had implemented this protocol.
 
-Since dApps are not allowed to store any wallet information, the wallet application stores AElf wallet information and can communicate directly with the AElf chain. In order to protect wallet information and provide dApps with the ability to interact with the chain, aelf-bridge can be used for interacting with the wallet.
+[git repository: aelf-bridge](https://github.com/AElfProject/aelf-bridge)
+
+[Protocol zh-CN](https://github.com/AElfProject/aelf-bridge/blob/master/PROTOCOL.zh-CN.md)
+
+## 1. Why do we need this SDK
+
+- DApps are not suppose to store any wallet information.
+- The wallet application stores AElf wallet information and can communicate directly with the AElf chain.
+
+In order to protect wallet information and provide dApps with the ability to interact with the chain,
+aelf-bridge can be used for interacting with the wallet.
 
 The wallet App described here includes a mobile (iOS/Android) native app, desktop app and more.
 
-## Installation
+## 2. Adding aelf-bridge.js
 
-AElf-bridge is part of the AElf ecosystem. Since dApps are mostly web applications, we provide a `JavaScript` SDK available using `Npm` or `yarn` as a version management tool or directly with the script tag.
+First you need to get aelf-bridge.js into your project. This can be done using the following methods:
 
-### Using version management tools
+npm: `npm install aelf-bridge`
 
-```bash
-npm i aelf-bridge
-// or
-yarn add aelf-bridge
-```
+pure js: `link dist/aelf-bridge.js`
 
-### Using the script tag
+After that you need to create a aelf-bridge instance and connect.
 
-```html
-<script src="https://unpkg.com/aelf-bridge@latest/dist/aelf-bridge.js"></script>
-```
-
-## Usage
-
-### Introduction
-
-The communications between a dApp and the chain need to go through some wallet software. This wallet software could be any client that has implemented the AElf bridge protocol. at the time of writing (2019.12), AElf mobile wallet App has implemented this protocol.
-
-Since dApps are mostly web applications and web applications can communicate with clients in many ways, this SDK supports two of them:
-
-* postMessage: a dApp will run in a container (`iframe` or mobile Apps' `webview`), and the container needs to overwrite `window.postMessage` method in the dApp, so the dApp and the container can communicate with each other by overwritten `postMessage`.  
-* WebSocket(Socket.io): use traditional B/S architecture, communicate by `WebSocket`. SDK uses `Socket.io` to support `WebSocket` communication, and this requires servers need to support `Socket.io` too.
-
-Developers can choose one of them depending on requirements, in the process of development, we provide two ways to support data mock and debugging:
-
-* [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo): this demo uses `iframe` to overwrite `dapp.html`'s `postMessage` to simulate communication with mobile App.
-* [aelf-command dapp-server](https://github.com/AElfProject/aelf-command): `aelf-command` provides a simple `socket.io` server to support the communication method `socket.io` in `aelf-bridge`, developers can change the communication way to `SOCKET.IO`, and give the URI given by running `aelf-command dapp-server` as an option when initializing `aelf-bridge` instance. Therefore developers can inspect the communications in the Network tab of browser.
-
-### Initialization
-
-```javascript
+```js
+// <!-- use quickly in browser -->
+// <script src="https://unpkg.com/aelf-bridge@latest/dist/aelf-bridge.js"></script>
+// Use import
 import AElfBridge from 'aelf-bridge';
 
-// Initialize the bridge instance, you can pass options during initialization to specify the behavior, see below for explanation
+// Initialize the bridge instance
+// you can pass options during initialization to specify the behavior, see below for explanation
 const bridgeInstance = new AElfBridge();
 // init with options
 const bridgeInstance = new AElfBridge({
@@ -61,11 +48,41 @@ bridgeInstance.connect().then(isConnected => {
 })
 ```
 
-#### Options
+## 3. How it works & DevTools
+
+### 3.1.1 How it works
+
+DApps are mostly web application which can communicate with clients in many ways.
+
+`aelf-bridge` supports two of them:
+
+- postMessage: a dApp will run in a container (`iframe` or mobile Apps' `webview`),
+and the container needs to overwrite `window.postMessage` method in the dApp,
+so the dApp and the container can communicate with each other by overwritten `postMessage`.  
+- WebSocket(Socket.io): use traditional B/S architecture, communicate by `WebSocket`.
+SDK uses `Socket.io` to support `WebSocket` communication, and this requires servers need to support `Socket.io` too.
+
+### 3.1.2 Demo & DevTools for you
+
+Developers can choose one of them depending on requirements, in the process of development,
+we provide two ways to support data mock and debugging:
+
+- [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo):
+this demo uses `iframe` to overwrite `dapp.html`'s `postMessage` to simulate communication with mobile App.
+- [aelf-command dapp-server](https://github.com/AElfProject/aelf-command):
+`aelf-command` provides a simple `socket.io` server to support the communication method `socket.io` in `aelf-bridge`,
+developers can change the communication way to `SOCKET.IO`,
+and give the URI given by running `aelf-command dapp-server` as an option when initializing `aelf-bridge` instance.
+Therefore developers can inspect the communications in the Network tab of browser.
+
+## 4. Usage
+
+### 4.1 Options
 
 The options can be passed as follows:
 
 ```javascript
+// const bridgeInstance = new AElfBridge(defaultOptions);
 const defaultOptions = {
   proxyType: String, // The default is `POST_MESSAGE`. Currently, we support the `POST_MESSAGE` and `SOCKET.IO` proxy types are provided. The `Websocket` mechanism will be provided in the future. Valid values ​​are available via `AElfBridge.getProxies()`.
   channelType: String, // The default is `SIGN`, it is the serialization of the request and response, that is, Dapp exchanges the public and private keys with the client and the private key is used to verify the signature information, thereby verifying whether the information has been tampered with. Another method of symmetric encryption is provided. The parameter value is `ENCRYPT`, and the shared public key is used for symmetric encryption. The valid value of the parameter is obtained by `AElfBridge.getChannels()`.
@@ -83,7 +100,7 @@ const defaultOptions = {
 }
 ```
 
-### Get wallet account information
+### 4.2 Get wallet account information
 
 `bridgeInstance.account()`
 
@@ -123,7 +140,7 @@ res = {
 }
 ```
 
-### Call contract method (read-only and send transaction)
+### 4.3 Call contract method (read-only and send transaction)
 
 * Send transaction `bridgeInstance.invoke(params)`
 * Contract read-only method `bridgeInstance.invokeRead(params)`
@@ -178,7 +195,7 @@ bridge.invokeRead({
 }).then(setResult).catch(setResult);
 ```
 
-### Calling the chain API
+### 4.4 Calling the chain API
 
 API for interacting with the node. The API available methods can be viewed by `{chain address}/swagger/index.html`, to get the currently supported APIs you can call `AElfBridge.getChainApis()`.
 
@@ -210,7 +227,7 @@ bridgeInstance.api({
 }).then(console.log).catch(console.log)
 ```
 
-### disconnect
+### 4.5 disconnect
 
 Used to disconnect from the client and clearing the public key information, etc.
 

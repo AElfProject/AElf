@@ -7,6 +7,7 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;
@@ -30,8 +31,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
-                    out _,
-                    out _balanceOfStarter, true)));
+                    out _, out _balanceOfStarter, true)));
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
@@ -8,6 +7,9 @@ using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -30,23 +32,26 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
+        typeof(KernelAElfModule),
         typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
-
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-
         typeof(ParallelExecutionModule),
-        typeof(ContractNamesAElfModule)
+        typeof(ContractNamesAElfModule),
+
+        //plugin
+        typeof(ExecutionPluginForMethodFeeModule),
+        typeof(ExecutionPluginForResourceFeeModule),
+        typeof(ExecutionPluginForCallThresholdModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
@@ -80,9 +85,9 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
                     newConfig.GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
+                options.ContextVariables["SymbolListToPayTxFee"] =
                     newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
+                options.ContextVariables["SymbolListToPayRental"] =
                     newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
@@ -90,7 +95,6 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ContractOptions>(options =>
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
-                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
 
