@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool.Infrastructure;
