@@ -8,6 +8,6 @@ namespace AElf.Kernel.Blockchain.Events
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }
         
-        public List<Block> ExecutedBlocks { get; set; }
+        public List<BlockExecutedSet> BlockExecutedSets { get; set; }
     }
 }

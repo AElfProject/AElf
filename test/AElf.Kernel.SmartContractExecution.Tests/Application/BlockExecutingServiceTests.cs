@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var txs = BuildTransactions(5);
             var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
 
-            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
+            var block = (await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs)).Block;
             var allTxIds = txs.Select(x => x.GetHash()).ToList();
 
             block.Body.TransactionsCount.ShouldBe(txs.Count);
@@ -50,8 +50,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var cancelToken = new CancellationTokenSource();
             cancelToken.Cancel();
 
-            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
-                cancellableTxs, cancelToken.Token);
+            var block = (await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
+                cancellableTxs, cancelToken.Token)).Block;
 
             var allTxIds = nonCancellableTxs.Select(x => x.GetHash()).ToList();
             allTxIds.Add(cancellableTxs[0].GetHash());

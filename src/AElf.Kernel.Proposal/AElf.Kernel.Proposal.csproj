@@ -11,10 +11,6 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Volo.Abp.Core" Version="1.1.2" />
-    </ItemGroup>
     
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs1.proto">

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -6,7 +7,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingInformationLogEventProcessor : IBestChainFoundLogEventProcessor
+    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBestChainFoundLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;
@@ -21,7 +22,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _secretSharingService = secretSharingService;
         }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -34,10 +35,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task ProcessAsync(Block block, TransactionResult result, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            _secretSharingService.AddSharingInformationAsync(logEvent);
-            return Task.CompletedTask;
+            var secretSharingInformation = new SecretSharingInformation();
+            secretSharingInformation.MergeFrom(logEvent);
+            await _secretSharingService.AddSharingInformationAsync(secretSharingInformation);
         }
     }
 }
