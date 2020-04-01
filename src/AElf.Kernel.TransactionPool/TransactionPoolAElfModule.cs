@@ -1,5 +1,4 @@
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
@@ -16,9 +15,6 @@ namespace AElf.Kernel.TransactionPool
             var services = context.Services;
             // Validate signature and tx size.
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
-            // Validate existence of target contract.
-            // services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
-
             services.AddSingleton<ITransactionValidationProvider, TransactionExecutionValidationProvider>();
 
             
