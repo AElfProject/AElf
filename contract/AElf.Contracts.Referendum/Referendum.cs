@@ -1,6 +1,7 @@
 using System.Linq;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -64,14 +65,6 @@ namespace AElf.Contracts.Referendum
         }
 
         #endregion
-
-        public override Empty Initialize(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
-            AddTokenWhitList();
-            return new Empty();
-        }
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {

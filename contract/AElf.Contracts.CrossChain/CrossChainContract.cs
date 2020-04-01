@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs7;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -23,7 +24,7 @@ namespace AElf.Contracts.CrossChain
             };
 
             CreateInitialOrganizationForInitialControllerAddress();
-            if (Context.CurrentHeight != Constants.GenesisBlockHeight)
+            if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
                 return new Empty();
 
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
@@ -75,7 +76,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt32Value CreateSideChain(CreateSideChainInput input)
+        public override Int32Value CreateSideChain(CreateSideChainInput input)
         {
             // side chain creation should be triggered by organization address.
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
@@ -123,7 +124,7 @@ namespace AElf.Contracts.CrossChain
                 ChainId = chainId,
                 Creator = input.Proposer
             });
-            return new SInt32Value {Value = chainId};
+            return new Int32Value {Value = chainId};
         }
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace AElf.Contracts.CrossChain
                 Amount = input.Amount,
                 Memo = "Indexing fee recharging."
             });
-            
+
             if (oldBalance < 0)
             {
                 // arrears
@@ -165,7 +166,7 @@ namespace AElf.Contracts.CrossChain
                     });
                 }
             }
-            
+
             sideChainInfo.ArrearsInfo.Clear();
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             State.SideChainInfo[chainId] = sideChainInfo;
@@ -177,7 +178,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt64Value DisposeSideChain(SInt32Value input)
+        public override Int32Value DisposeSideChain(Int32Value input)
         {
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
 
@@ -193,7 +194,7 @@ namespace AElf.Contracts.CrossChain
             {
                 ChainId = chainId
             });
-            return new SInt64Value {Value = chainId};
+            return new Int32Value {Value = chainId};
         }
 
         public override Empty AdjustIndexingFeePrice(AdjustIndexingFeeInput input)

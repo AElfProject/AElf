@@ -1,5 +1,6 @@
 using System;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;

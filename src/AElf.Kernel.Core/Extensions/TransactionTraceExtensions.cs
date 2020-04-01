@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
+using AElf.Types;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
@@ -27,6 +30,24 @@ namespace AElf.Kernel
             }
 
             return true;
+        }
+        
+        public static IEnumerable<LogEvent> GetPluginLogs(this TransactionTrace txTrace)
+        {
+            var logEvents = new RepeatedField<LogEvent>();
+            foreach (var preTrace in txTrace.PreTraces)
+            {
+                if (preTrace.IsSuccessful())
+                    logEvents.AddRange(preTrace.FlattenedLogs);
+            }
+
+            foreach (var postTrace in txTrace.PostTraces)
+            {
+                if (postTrace.IsSuccessful())
+                    logEvents.AddRange(postTrace.FlattenedLogs);
+            }
+
+            return logEvents;
         }
 
         public static void SurfaceUpError(this TransactionTrace txTrace)

@@ -1,6 +1,7 @@
 using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

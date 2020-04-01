@@ -14,6 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Election
 {
@@ -378,7 +379,6 @@ namespace AElf.Contracts.Election
             var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
-                Symbol = "ELF"
             });
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

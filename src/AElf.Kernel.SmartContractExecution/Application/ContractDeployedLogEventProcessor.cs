@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             }, eventData.Address, smartContractRegistration);
-            if (block.Height > Constants.GenesisBlockHeight)
+            if (block.Height > AElfConstants.GenesisBlockHeight)
                 _smartContractExecutiveService.CleanExecutive(eventData.Address);
             Logger.LogDebug($"Deployed contract {eventData}");
         }

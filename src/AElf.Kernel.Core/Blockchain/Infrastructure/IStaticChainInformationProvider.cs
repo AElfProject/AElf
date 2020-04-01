@@ -9,7 +9,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         int ChainId { get; }
         Address ZeroSmartContractAddress { get; }
 
-        Address GetSystemContractAddressInGenesisBlock(ulong i);
+        Address GetSystemContractAddressInGenesisBlock(long i);
         
         Address GetZeroSmartContractAddress(int chainId);
     }
@@ -19,7 +19,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public int ChainId { get; }
         public Address ZeroSmartContractAddress { get; }
 
-        public Address GetSystemContractAddressInGenesisBlock(ulong i)
+        public Address GetSystemContractAddressInGenesisBlock(long i)
         {
             return BuildContractAddress(ChainId, i);
         }
@@ -41,13 +41,13 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         /// <param name="chainId"></param>
         /// <param name="serialNumber"></param>
         /// <returns></returns>
-        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        public static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
         }
 
-        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        public static Address BuildContractAddress(int chainId, long serialNumber)
         {
             return BuildContractAddress(chainId.ToHash(), serialNumber);
         }

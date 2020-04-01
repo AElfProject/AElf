@@ -17,7 +17,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -26,6 +25,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -424,6 +424,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,

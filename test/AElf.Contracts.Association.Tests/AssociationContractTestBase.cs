@@ -10,6 +10,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -163,7 +164,7 @@ namespace AElf.Contracts.Association
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
             }

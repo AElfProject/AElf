@@ -1,7 +1,30 @@
 # aelf-sdk.js - AELF JavaScript API
 
-For dApp developers we have a javascript sdk to help interact with the node's web API. Of course, you need to run an AELF node to use the sdk.
+## Introduction
+
+aelf-sdk.js for aelf is like web.js for ethereum.
+
+aelf-sdk.js is a collection of libraries which allow you to interact with a local or remote aelf node, using a HTTP connection.
+
+The following documentation will guide you through installing and running aelf-sdk.js, as well as providing a API reference documentation with examples.
+
 If you need more information you can check out the repo : [aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js)
+
+## Adding aelf-sdk.js
+
+First you need to get aelf-sdk.js into your project. This can be done using the following methods:
+
+npm: `npm install aelf-sdk`
+
+pure js: `link dist/aelf.umd.js`
+
+After that you need to create a aelf instance and set a provider.
+
+```js
+// in brower use: <script src="https://unpkg.com/aelf-sdk@lastest/dist/aelf.umd.js"></script>
+// in node.js use: const AElf = require('aelf-sdk');
+const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
+```
 
 ## Examples
 
