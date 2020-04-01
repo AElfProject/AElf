@@ -7,7 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     //TODO: base class, should not know token
     public class TokenContractMethodStubFactory : IMethodStubFactory, ITransientDependency

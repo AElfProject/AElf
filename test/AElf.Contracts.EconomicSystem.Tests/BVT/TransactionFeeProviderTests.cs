@@ -171,12 +171,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             await ExecuteProposalTransaction(Tester, ConsensusContractAddress, MethodName, new MethodFees
             {
-                MethodName = nameof(AEDPoSContractStub.UpdateValue),
+                MethodName = nameof(AEDPoSContractStub.SetMaximumMinersCount),
                 Fees = { TokenAmount}
             });
             var result = await AedPoSContractImplStub.GetMethodFee.CallAsync(new StringValue
             {
-                Value = nameof(AEDPoSContractStub.UpdateValue)
+                Value = nameof(AEDPoSContractStub.SetMaximumMinersCount)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }

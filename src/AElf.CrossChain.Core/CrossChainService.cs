@@ -52,7 +52,7 @@ namespace AElf.CrossChain
             foreach (var chainId in chainIdList)
             {
                 var neededChainHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
-                if (neededChainHeight < Constants.GenesisBlockHeight)
+                if (neededChainHeight < AElfConstants.GenesisBlockHeight)
                     continue;
                 dict.Add(chainId, neededChainHeight);
             }
@@ -69,7 +69,7 @@ namespace AElf.CrossChain
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
-                .CallAsync(new SInt32Value
+                .CallAsync(new Int32Value
                 {
                     Value = chainId
                 });
@@ -78,7 +78,7 @@ namespace AElf.CrossChain
         public async Task UpdateWithLibAsync(Hash blockHash, long blockHeight)
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored
-                || blockHeight <= Constants.GenesisBlockHeight)
+                || blockHeight <= AElfConstants.GenesisBlockHeight)
                 return;
 
             var chainIdHeightPairs = await GetAllChainIdHeightPairsAsync(blockHash, blockHeight);

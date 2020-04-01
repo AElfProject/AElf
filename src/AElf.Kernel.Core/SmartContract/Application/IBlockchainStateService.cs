@@ -104,7 +104,7 @@ namespace AElf.Kernel.SmartContract.Application
                 (pair => pair.Key, pair => Serialize(pair.Value)));
             foreach (var pair in blockExecutedData)
             {
-                if (blockIndex.BlockHeight > Constants.GenesisBlockHeight &&
+                if (blockIndex.BlockHeight > AElfConstants.GenesisBlockHeight &&
                     (!_changeHeight.TryGetValue(pair.Key, out var height) || height < blockIndex.BlockHeight))
                     _changeHeight[pair.Key] = blockIndex.BlockHeight;
                 _dictionary.TryRemove(pair.Key, out _);
@@ -155,7 +155,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? Constants.GenesisBlockHeight
+                ? AElfConstants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
             var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
             if (mergeCount < 0)

@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs1;
 using Acs3;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Genesis
 {
@@ -12,9 +13,9 @@ namespace AElf.Contracts.Genesis
     {
         #region Views
 
-        public override UInt64Value CurrentContractSerialNumber(Empty input)
+        public override Int64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new Int64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)

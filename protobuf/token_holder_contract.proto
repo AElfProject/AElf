@@ -31,50 +31,56 @@ service TokenHolderContract {
     rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateTokenHolderProfitSchemeInput {
     string symbol = 1;
-    sint64 minimum_lock_minutes = 2;
-    map<string, sint64> auto_distribute_threshold = 3;
+    int64 minimum_lock_minutes = 2;
+    map<string, int64> auto_distribute_threshold = 3;
 }
 
 message AddTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 
 message RemoveTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message ContributeProfitsInput {
     aelf.Address scheme_manager = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
     string symbol = 3;
 }
 
 message DistributeProfitsInput {
     aelf.Address scheme_manager = 1;
-    string symbol = 2;
+    map<string, int64> amounts_map = 2;
 }
 
 message RegisterForProfitsInput {
     aelf.Address scheme_manager = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message ClaimProfitsInput {
     aelf.Address scheme_manager = 1;
     aelf.Address beneficiary = 2;
-    string symbol = 3;
 }
 
 message TokenHolderProfitScheme {
     string symbol = 1;
     aelf.Hash scheme_id = 2;
-    sint64 period = 3;
-    sint64 minimum_lock_minutes = 4;
-    map<string, sint64> auto_distribute_threshold = 5;
+    int64 period = 3;
+    int64 minimum_lock_minutes = 4;
+    map<string, int64> auto_distribute_threshold = 5;
+}
+
+message ReceivedProfitsMap {
+    map<string, int64> value = 1;
 }

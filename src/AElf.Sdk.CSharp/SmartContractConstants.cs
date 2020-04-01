@@ -2,6 +2,9 @@ using AElf.Types;
 
 namespace AElf.Sdk.CSharp
 {
+    /// <summary>
+    /// Static class containing the hashes built from the names of the contracts.
+    /// </summary>
     public static class SmartContractConstants
     {
         public static readonly Hash ElectionContractSystemName = Hash.FromString("AElf.ContractNames.Election");

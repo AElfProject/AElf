@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Acs9;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -16,12 +18,17 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.ConsensusContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
             State.ProfitReceiver.Value = input.ProfitReceiver;
             
             CreateToken(input.ProfitReceiver,true);
+            // To test TokenHolder Contract.
             CreateTokenHolderProfitScheme();
-            SetProfitReceivingInformation(input.ProfitReceiver);
+            // To test ACS9 workflow.
+            SetProfitConfig();
+            State.ProfitReceiver.Value = input.ProfitReceiver;
             return new Empty();
         }
 
@@ -31,19 +38,27 @@ namespace AElf.Contracts.TestContract.DApp
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.ConsensusContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
             State.ProfitReceiver.Value = input.ProfitReceiver;
             
             CreateToken(input.ProfitReceiver);
             CreateTokenHolderProfitScheme();
-            SetProfitReceivingInformation(input.ProfitReceiver);
+            SetProfitConfig();
+            State.ProfitReceiver.Value = input.ProfitReceiver;
             return new Empty();
         }
 
+        /// <summary>
+        /// When user sign up, give him 10 APP tokens, then initialize his profile.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty SignUp(Empty input)
         {
             Assert(State.Profiles[Context.Sender] == null, "Already registered.");
-            State.Profiles[Context.Sender] = new Profile
+            var profile = new Profile
             {
                 UserAddress = Context.Sender
             };
@@ -55,7 +70,6 @@ namespace AElf.Contracts.TestContract.DApp
             });
 
             // Update profile.
-            var profile = State.Profiles[Context.Sender];
             profile.Records.Add(new Record
             {
                 Type = RecordType.SignUp,
@@ -69,10 +83,10 @@ namespace AElf.Contracts.TestContract.DApp
 
         public override Empty Deposit(DepositInput input)
         {
-            // (All) DApp Contract can't use TransferFrom method directly.
+            // User Address -> DApp Contract.
             State.TokenContract.TransferToContract.Send(new TransferToContractInput
             {
-                Symbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value,
+                Symbol = "ELF",
                 Amount = input.Amount
             });
 
@@ -207,14 +221,14 @@ namespace AElf.Contracts.TestContract.DApp
             });
         }
 
-        private void SetProfitReceivingInformation(Address receiver)
+        private void SetProfitConfig()
         {
-            State.TokenContract.SetProfitReceivingInformation.Send(new ProfitReceivingInformation
+            State.ProfitConfig.Value = new ProfitConfig
             {
-                ContractAddress = Context.Self,
                 DonationPartsPerHundred = 1,
-                ProfitReceiverAddress = receiver
-            });
+                StakingTokenSymbol = "APP",
+                ProfitsTokenSymbolList = {"ELF"}
+            };
         }
     }
 }

@@ -1,11 +1,9 @@
 using AElf.Contracts.TestKit;
-using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
-using TokenContractChargeFeeStrategy = AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TokenContractChargeFeeStrategy;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
 {

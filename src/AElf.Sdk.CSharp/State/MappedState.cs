@@ -14,6 +14,11 @@ namespace AElf.Sdk.CSharp.State
         }
     }
 
+    /// <summary>
+    /// Key-value pair data structure used for representing state in contracts.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <typeparam name="TEntity">The type of the value.</typeparam>
     public class MappedState<TKey, TEntity> : MappedStateBase
     {
         internal class ValuePair
