@@ -17,7 +17,7 @@ namespace AElf.Kernel.TransactionPool
             // Validate signature and tx size.
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
             // Validate existence of target contract.
-            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            // services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
 
             services.AddSingleton<ITransactionValidationProvider, TransactionExecutionValidationProvider>();
 
