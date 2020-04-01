@@ -10,13 +10,14 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
+        IBestChainFoundLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        protected override Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var distanceToLib = new IrreversibleBlockHeightUnacceptable();
             distanceToLib.MergeFrom(logEvent);
@@ -57,7 +58,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _transactionPackingOptions.IsTransactionPackable = true;
             }
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }

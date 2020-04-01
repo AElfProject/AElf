@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -40,54 +42,41 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger = NullLogger<TransactionFeeChargedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
-            var eventData = new TransactionFeeCharged();
-            eventData.MergeFrom(logEvent);
-            if (eventData.Symbol == null || eventData.Amount == 0)
-                return;
-
             var blockHash = block.GetHash();
             var blockHeight = block.Height;
-            // TODO: Get -> Modify -> Set is slow, consider collect all logEvents then generate the totalTxFeesMap at once.
-            var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
+            var totalTxFeesMap = new TotalTransactionFeesMap
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight
-            });
+            };
 
-            // Initial totalTxFeesMap if necessary (either never initialized or not initialized for current block link)
-            if (totalTxFeesMap == null)
+            foreach (var logEvent in logEventsMap.Values.SelectMany(logEvents => logEvents))
             {
-                totalTxFeesMap = new TotalTransactionFeesMap
+                var eventData = new TransactionFeeCharged();
+                eventData.MergeFrom(logEvent);
+                if (eventData.Symbol == null || eventData.Amount == 0)
+                    continue;
+
+                if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
+                {
+                    totalTxFeesMap.Value[eventData.Symbol] += eventData.Amount;
+                }
+                else
+                {
+                    totalTxFeesMap.Value[eventData.Symbol] = eventData.Amount;
+                }
+            }
+
+            if (totalTxFeesMap.Value.Any())
+            {
+                await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
-                };
+                }, totalTxFeesMap);
             }
-            else if (totalTxFeesMap.BlockHash != blockHash || totalTxFeesMap.BlockHeight != blockHeight)
-            {
-                totalTxFeesMap = new TotalTransactionFeesMap
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                };
-            }
-
-            if (totalTxFeesMap.Value.ContainsKey(eventData.Symbol))
-            {
-                totalTxFeesMap.Value[eventData.Symbol] = totalTxFeesMap.Value[eventData.Symbol] + eventData.Amount;
-            }
-            else
-            {
-                totalTxFeesMap.Value[eventData.Symbol] = eventData.Amount;
-            }
-
-            await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
-            {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            }, totalTxFeesMap);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _logEventListeningService.ProcessAsync(eventData.BlockExecutedSets.Select(p => p.Block).ToList());
+            await _logEventListeningService.ProcessAsync(eventData.BlockExecutedSets);
         }
     }
 }
