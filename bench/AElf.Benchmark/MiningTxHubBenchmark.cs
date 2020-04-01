@@ -12,12 +12,12 @@ using BenchmarkDotNet.Attributes;
 namespace AElf.Benchmark
 {
     [MarkdownExporterAttribute.GitHub]
-    public class MiningTxhubBenchmark : MiningWithTransactionsBenchmarkBase
+    public class MiningTxHubBenchmark : MiningWithTransactionsBenchmarkBase
     {
         private readonly IMinerService _minerService;
         private readonly ITransactionManager _transactionManager;
 
-        public MiningTxhubBenchmark()
+        public MiningTxHubBenchmark()
         {
             _minerService = GetRequiredService<IMinerService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
@@ -43,7 +43,7 @@ namespace AElf.Benchmark
         }
 
         [Benchmark]
-        public async Task MineWithTxhubAsync()
+        public async Task MineWithTxHubAsync()
         {
             var txCount = 0;
             var preBlockHash = _chain.BestChainHash;
@@ -51,14 +51,14 @@ namespace AElf.Benchmark
 
             while (txCount < TransactionCount)
             {
-                var block = await _minerService.MineAsync(preBlockHash, preBlockHeight,
+                var blockExecutedSet = await _minerService.MineAsync(preBlockHash, preBlockHeight,
                     TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
-                txCount += block.TransactionIds.Count();
-                _transactionIdList.AddRange(block.TransactionIds.ToList());
+                txCount += blockExecutedSet.TransactionIds.Count();
+                _transactionIdList.AddRange(blockExecutedSet.TransactionIds.ToList());
                 await BlockchainService.SetBestChainAsync(_chain, preBlockHeight, preBlockHash);
                 await TxHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    Block = block
+                    BlockExecutedSet = blockExecutedSet
                 });
                 await TxHub.HandleBestChainFoundAsync(new BestChainFoundEventData
                 {
