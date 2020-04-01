@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
@@ -96,7 +97,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    Block = newBlock
+                    BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
                 });
 
                 TransactionPoolSizeShouldBe(0);
@@ -177,7 +178,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                     await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                     {
-                        Block = newBlock
+                        BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
                     });
 
                     chain = await _blockchainService.GetChainAsync();

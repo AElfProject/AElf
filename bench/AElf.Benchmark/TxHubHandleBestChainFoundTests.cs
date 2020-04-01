@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
@@ -82,7 +83,7 @@ namespace AElf.Benchmark
         {
             await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
             {
-                Block = _block
+                BlockExecutedSet = new BlockExecutedSet() {Block = _block}
             });
 
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
