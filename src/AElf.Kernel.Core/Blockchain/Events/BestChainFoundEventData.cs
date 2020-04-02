@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using AElf.Types;
 
 namespace AElf.Kernel.Blockchain.Events
@@ -7,7 +6,5 @@ namespace AElf.Kernel.Blockchain.Events
     {
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }
-        
-        public List<BlockExecutedSet> BlockExecutedSets { get; set; }
     }
 }

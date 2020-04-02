@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -7,7 +6,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBestChainFoundLogEventProcessor
+    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;

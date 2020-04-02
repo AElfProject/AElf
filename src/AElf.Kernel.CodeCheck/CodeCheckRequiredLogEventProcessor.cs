@@ -11,7 +11,7 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.CodeCheck
 {
-    public class CodeCheckRequiredLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class CodeCheckRequiredLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICodeCheckService _codeCheckService;

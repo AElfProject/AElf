@@ -13,12 +13,10 @@ namespace AElf.Kernel.SmartContract.Application
 
     public interface IBlockAcceptedLogEventProcessor : ILogEventProcessor
     {
-
     }
 
-    public interface IBestChainFoundLogEventProcessor : ILogEventProcessor
+    public interface IBlocksExecutionSucceededLogEventProcessor : ILogEventProcessor
     {
-
     }
 
     public abstract class LogEventProcessorBase : ILogEventProcessor
