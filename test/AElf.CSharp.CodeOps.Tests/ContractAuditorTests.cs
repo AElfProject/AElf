@@ -47,7 +47,7 @@ namespace AElf.CSharp.CodeOps
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, _requiredAcs, false);
+            _auditor.Audit(code, _requiredAcs, true);
         }
 
         public void Dispose()
