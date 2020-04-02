@@ -243,7 +243,7 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip = "Skip due to need very long task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var contractCode = ContractPatcher.Patch(ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll")));
+            var contractCode = ContractPatcher.Patch(ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll")), true);
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory,

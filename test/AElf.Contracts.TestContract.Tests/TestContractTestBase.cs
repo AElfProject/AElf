@@ -148,10 +148,7 @@ namespace AElf.Contract.TestContract
         protected void CheckCode(byte[] code)
         {
             var auditor = new CSharpContractAuditor();
-            auditor.Audit(code, new RequiredAcs
-            {
-                AcsList = new List<string>()
-            });
+            auditor.Audit(code, new RequiredAcs { AcsList = new List<string>() }, false);
         }
         
         private async Task InitialBasicFunctionContract()

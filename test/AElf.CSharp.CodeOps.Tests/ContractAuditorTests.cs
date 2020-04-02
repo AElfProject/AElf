@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -21,8 +20,6 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
-using AElf.Kernel.CodeCheck;
-using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using Microsoft.Extensions.Options;
@@ -50,7 +47,7 @@ namespace AElf.CSharp.CodeOps
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, _requiredAcs);
+            _auditor.Audit(code, _requiredAcs, false);
         }
 
         public void Dispose()
@@ -105,7 +102,7 @@ namespace AElf.CSharp.CodeOps
         public void ContractPatcher_Test()
         {
             var code = ReadContractCode(typeof(TokenContract));
-            var updateCode = ContractPatcher.Patch(code);
+            var updateCode = ContractPatcher.Patch(code, false);
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(() => _auditor.Audit(updateCode));
             exception.ShouldBeNull();
@@ -278,7 +275,7 @@ namespace AElf.CSharp.CodeOps
                 .ShouldNotBeNull();
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
-            Should.NotThrow(() => _auditor.Audit(ContractPatcher.Patch(contractCode)));
+            Should.NotThrow(() => _auditor.Audit(ContractPatcher.Patch(contractCode, false)));
         }
 
         #endregion

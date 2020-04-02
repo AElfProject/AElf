@@ -161,15 +161,15 @@ namespace AElf.CSharp.CodeOps
 
             var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};
-            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs, false));
 
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
 
             requireAcs.AcsList.Add("acs8");
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
 
             requireAcs.RequireAll = true;
-            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
         }
 
         [Fact]
