@@ -16,6 +16,9 @@ namespace AElf.Contracts.Deployer
             [Option('w', "overwrite", Default = false, HelpText = "Overwrite contract's DLL instead of saving with .patched extension.")]
             public bool Overwrite { get; set; }
             
+            [Option('t', "treatsystem", Default = false, HelpText = "Treat as system contract when patching.")]
+            public bool IsSystemContract { get; set; }
+            
             [Option('p', "path", Required = true, HelpText = "The path of the contract's DLL.")]
             public string ContractDllPath { get; set; }
         }
@@ -53,14 +56,14 @@ namespace AElf.Contracts.Deployer
                 Console.WriteLine($"[CONTRACT-PATCHER] Saving as {saveAsPath}");
             }
             
-            var patchedCode = ContractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath));
+            var patchedCode = ContractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath), o.IsSystemContract);
 
             if (!o.SkipAudit)
             {
                 try
                 {
                     var auditor = new CSharpContractAuditor();
-                    auditor.Audit(patchedCode, null);
+                    auditor.Audit(patchedCode, null, o.IsSystemContract);
                 }
                 catch (CSharpCodeCheckException ex)
                 {

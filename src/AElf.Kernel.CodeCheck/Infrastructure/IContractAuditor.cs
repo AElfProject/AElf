@@ -5,6 +5,6 @@ namespace AElf.Kernel.CodeCheck.Infrastructure
 {
     public interface IContractAuditor : ISmartContractCategoryProvider
     {
-        void Audit(byte[] code, RequiredAcs requiredAcs);
+        void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract);
     }
 }

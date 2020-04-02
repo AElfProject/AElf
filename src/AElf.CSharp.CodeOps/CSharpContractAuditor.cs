@@ -17,6 +17,8 @@ namespace AElf.CSharp.CodeOps
     public class CSharpContractAuditor : IContractAuditor
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
+        readonly AbstractPolicy _systemPolicy = new SystemPolicy();
+
 
         private readonly AcsValidator _acsValidator = new AcsValidator();
 
@@ -24,27 +26,28 @@ namespace AElf.CSharp.CodeOps
 
         public IOptionsMonitor<CSharpCodeOpsOptions> CodeOpsOptionsMonitor { get; set; }
 
-        public void Audit(byte[] code, RequiredAcs requiredAcs)
+        public void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract)
         {
             var findings = new List<ValidationResult>();
+            var policy = isSystemContract ? _systemPolicy : _defaultPolicy;
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var cts = new CancellationTokenSource(CodeOpsOptionsMonitor?.CurrentValue.AuditTimeoutDuration ??
                                                   Constants.DefaultAuditTimeoutDuration);
 
             // Check against whitelist
-            findings.AddRange(_defaultPolicy.Whitelist.Validate(modDef, cts.Token));
+            findings.AddRange(policy.Whitelist.Validate(modDef, cts.Token));
 
             // Run module validators
-            findings.AddRange(_defaultPolicy.ModuleValidators.SelectMany(v => v.Validate(modDef, cts.Token)));
+            findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef, cts.Token)));
 
             // Run assembly validators (run after module validators since we invoke BindService method below)
-            findings.AddRange(_defaultPolicy.AssemblyValidators.SelectMany(v => v.Validate(asm, cts.Token)));
+            findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm, cts.Token)));
 
             // Run method validators
             foreach (var type in modDef.Types)
             {
-                findings.AddRange(ValidateMethodsInType(_defaultPolicy, type, cts.Token));
+                findings.AddRange(ValidateMethodsInType(policy, type, cts.Token));
             }
 
             // Perform ACS validation

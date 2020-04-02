@@ -13,12 +13,16 @@ namespace AElf.CSharp.CodeOps
             new MethodCallReplacer()
         };
 
-        public static byte[] Patch(byte[] code)
+        public static byte[] Patch(byte[] code, bool isSystemContract)
         {
             var assemblyDef = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
 
             foreach (var modulePatcher in ModulePatchers)
             {
+                // Do not inject system contracts with ExecutionObserverInjector
+                if (isSystemContract && modulePatcher is ExecutionObserverInjector)
+                    continue;
+                
                 modulePatcher.Patch(assemblyDef.MainModule);
             }
             
