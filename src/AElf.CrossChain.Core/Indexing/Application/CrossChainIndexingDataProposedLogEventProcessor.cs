@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
-    public class CrossChainIndexingDataProposedLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class CrossChainIndexingDataProposedLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
     {
         public LogEvent InterestedEvent => GetInterestedEvent();
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
