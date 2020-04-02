@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executionResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAsync(blockList);
             
-            executionResult.ExecutedSuccessBlocks.Count.ShouldBe(0);
+            executionResult.SuccessBlockExecutedSets.Count.ShouldBe(0);
             executionResult.ExecutedFailedBlocks.Count.ShouldBe(1);
             executionResult.ExecutedFailedBlocks[0].GetHash().ShouldBe(blockList[0].GetHash());
         }

@@ -18,11 +18,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             context.Services.AddTransient<ISystemTransactionGenerator, DonateResourceTransactionGenerator>();
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, ResourceTokenChargedLogEventProcessor>();
-            // TODO: Need to optimize.
-            //context.Services.AddSingleton<IBlockValidationProvider, DonateResourceTokenValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
+            context.Services.AddSingleton<IBlockValidationProvider, DonateResourceTokenValidationProvider>();
         }
     }
 }

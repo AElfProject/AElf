@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContractExecution.Events;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -31,10 +33,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult)
         {
             if (blockExecutionResult.ExecutedFailedBlocks.Any() ||
-                blockExecutionResult.ExecutedSuccessBlocks.Count == 0 ||
-                blockExecutionResult.ExecutedSuccessBlocks.Last().Height < chain.BestChainHeight)
+                blockExecutionResult.SuccessBlockExecutedSets.Count == 0 ||
+                blockExecutionResult.SuccessBlockExecutedSets.Last().Height < chain.BestChainHeight)
             {
-                await SetBlockExecutionStatusAsync(blockExecutionResult.ExecutedFailedBlocks,
+                await SetBlockExecutionStatusAsync(blockExecutionResult.ExecutedFailedBlocks.Select(b => b.GetHash()),
                     ChainBlockLinkExecutionStatus.ExecutionFailed);
                 await _blockchainService.RemoveLongestBranchAsync(chain);
 
@@ -42,33 +44,27 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return;
             }
 
-            var lastExecutedSuccessBlock = blockExecutionResult.ExecutedSuccessBlocks.Last();
+            var lastExecutedSuccessBlock = blockExecutionResult.SuccessBlockExecutedSets.Last();
             await _blockchainService.SetBestChainAsync(chain, lastExecutedSuccessBlock.Height,
                 lastExecutedSuccessBlock.GetHash());
-            await SetBlockExecutionStatusAsync(blockExecutionResult.ExecutedSuccessBlocks,
+            await SetBlockExecutionStatusAsync(blockExecutionResult.SuccessBlockExecutedSets.Select(b => b.GetHash()),
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            await PublishBestChainFoundEventAsync(chain, blockExecutionResult.ExecutedSuccessBlocks);
+            await LocalEventBus.PublishAsync(new BlocksExecutionSucceededEvent
+            {
+                BlockExecutedSets = blockExecutionResult.SuccessBlockExecutedSets
+            });
 
             Logger.LogInformation(
                 $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
         }
 
-        private async Task SetBlockExecutionStatusAsync(IEnumerable<Block> blocks, ChainBlockLinkExecutionStatus status)
+        private async Task SetBlockExecutionStatusAsync(IEnumerable<Hash> blockHashes,
+            ChainBlockLinkExecutionStatus status)
         {
-            foreach (var block in blocks)
+            foreach (var blockHash in blockHashes)
             {
-                await _chainBlockLinkService.SetChainBlockLinkExecutionStatusAsync(block.GetHash(), status);
+                await _chainBlockLinkService.SetChainBlockLinkExecutionStatusAsync(blockHash, status);
             }
-        }
-
-        private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
-        {
-            await LocalEventBus.PublishAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks
-            });
         }
     }
 }

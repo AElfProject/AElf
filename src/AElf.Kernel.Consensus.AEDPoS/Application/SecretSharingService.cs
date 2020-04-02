@@ -15,7 +15,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingService : ISecretSharingService, ISingletonDependency
+    internal class SecretSharingService : ISecretSharingService, ISingletonDependency
     {
         private readonly Dictionary<long, Dictionary<string, byte[]>> _encryptedPieces =
             new Dictionary<long, Dictionary<string, byte[]>>();
@@ -39,14 +39,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<SecretSharingService>.Instance;
         }
 
-        public async Task AddSharingInformationAsync(LogEvent logEvent)
+        public async Task AddSharingInformationAsync(SecretSharingInformation secretSharingInformation)
         {
             try
             {
                 var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
-
-                var secretSharingInformation = new SecretSharingInformation();
-                secretSharingInformation.MergeFrom(logEvent);
 
                 if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey))
                 {

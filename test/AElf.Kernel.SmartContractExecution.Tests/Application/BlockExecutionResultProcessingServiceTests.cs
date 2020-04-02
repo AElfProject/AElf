@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using Shouldly;
@@ -39,7 +40,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var executionResult = new BlockExecutionResult
             {
-                ExecutedSuccessBlocks = {block, block2}
+                SuccessBlockExecutedSets = {new BlockExecutedSet {Block = block}, new BlockExecutedSet {Block = block2}}
             };
             await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
             

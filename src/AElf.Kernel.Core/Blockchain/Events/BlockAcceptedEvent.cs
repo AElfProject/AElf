@@ -2,6 +2,8 @@ namespace AElf.Kernel.Blockchain.Events
 {
     public class BlockAcceptedEvent
     {
-        public Block Block { get; set; }
+        public BlockExecutedSet BlockExecutedSet { get; set; }
+
+        public Block Block => BlockExecutedSet.Block;
     }
 }

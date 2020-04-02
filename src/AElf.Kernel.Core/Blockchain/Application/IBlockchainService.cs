@@ -277,6 +277,11 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
         {
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
+            await LocalEventBus.PublishAsync(new BestChainFoundEventData
+            {
+                BlockHash = bestChainHash,
+                BlockHeight = bestChainHeight
+            });
         }
 
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,

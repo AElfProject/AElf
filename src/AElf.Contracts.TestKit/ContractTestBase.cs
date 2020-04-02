@@ -8,12 +8,16 @@ using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.Threading;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace AElf.Contracts.TestKit
@@ -44,6 +48,20 @@ namespace AElf.Contracts.TestKit
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
 
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+
+        public ContractTestBase()
+        {
+            var blockchainService = Application.ServiceProvider.GetService<IBlockchainService>();
+            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+            var block = AsyncHelper.RunSync(()=>blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash));
+            var transactionResultManager = Application.ServiceProvider.GetService<ITransactionResultManager>();
+            var transactionResults = AsyncHelper.RunSync(() =>
+                transactionResultManager.GetTransactionResultsAsync(block.Body.TransactionIds, block.GetHash()));
+            foreach (var transactionResult in transactionResults)
+            {
+                Assert.True(transactionResult.Status == TransactionResultStatus.Mined, transactionResult.Error);
+            }
+        }
 
         protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash name, ECKeyPair senderKey)
         {

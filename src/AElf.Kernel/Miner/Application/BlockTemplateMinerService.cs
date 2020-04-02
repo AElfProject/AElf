@@ -26,7 +26,8 @@ namespace AElf.Kernel.Miner.Application
             Timestamp blockTime, Duration blockExecutionTime)
         {
             _blockCache =
-                await _minerService.MineAsync(previousBlockHash, previousBlockHeight, blockTime, blockExecutionTime);
+                (await _minerService.MineAsync(previousBlockHash, previousBlockHeight, blockTime, blockExecutionTime))
+                .Block;
 
             _blockCache.Header.Signature = ByteString.Empty;
 

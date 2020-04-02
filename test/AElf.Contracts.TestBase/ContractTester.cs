@@ -14,6 +14,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
@@ -23,6 +24,7 @@ using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -507,38 +509,28 @@ namespace AElf.Contracts.TestBase
         /// <param name="txs"></param>
         /// <param name="blockTime"></param>
         /// <returns></returns>
-        public async Task<Block> MineAsync(List<Transaction> txs, Timestamp blockTime = null)
+        public async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime = null)
         {
-            await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
-            var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
-
-            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
-
-            await blockchainService.AddBlockAsync(block);
-            await blockAttachService.AttachBlockAsync(block);
-
-            return block;
+            return await MineAsync(txs, blockTime, preBlock.GetHash(), preBlock.Height);
         }
 
         /// <summary>
         /// Mine a block with only system txs.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineEmptyBlockAsync()
+        public async Task<BlockExecutedSet> MineEmptyBlockAsync()
         {
             return await MineAsync(new List<Transaction> { });
         }
 
-        public async Task<Block> MineEmptyBlockAsync(Hash preBlockHash, long preBlockHeight)
+        public async Task<BlockExecutedSet> MineEmptyBlockAsync(Hash preBlockHash, long preBlockHeight)
         {
             return await MineAsync(new List<Transaction> { }, null, preBlockHash, preBlockHeight);
         }
         
-        private async Task<Block> MineAsync(List<Transaction> txs, Timestamp blockTime, Hash preBlockHash,
+        private async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime, Hash preBlockHash,
             long preBlockHeight)
         {
             await AddTransactionsAsync(txs);
@@ -546,13 +538,15 @@ namespace AElf.Contracts.TestBase
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            var block = await minerService.MineAsync(preBlockHash, preBlockHeight,
+            var executedBlockSet = await minerService.MineAsync(preBlockHash, preBlockHeight,
                 blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            
+            var block = executedBlockSet.Block;
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
-            return block;
+            return executedBlockSet;
         }
 
         /// <summary>
@@ -597,8 +591,8 @@ namespace AElf.Contracts.TestBase
             IMessage input, Timestamp blockTime = null)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
-            await MineAsync(new List<Transaction> {tx}, blockTime);
-            var result = await GetTransactionResultAsync(tx.GetHash());
+            var blockExecutedSet = await MineAsync(new List<Transaction> {tx}, blockTime);
+            var result = blockExecutedSet.TransactionResultMap[tx.GetHash()];
 
             return result;
         }
@@ -610,7 +604,7 @@ namespace AElf.Contracts.TestBase
         /// <param name="methodName"></param>
         /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
+        public async Task<(BlockExecutedSet, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
             string methodName, IMessage input)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);

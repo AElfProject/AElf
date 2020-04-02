@@ -33,26 +33,6 @@ namespace AElf.Kernel.Blockchain.Application
             _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
-        private async Task AddTransactionResultsWithPreMiningAsync(Block block, IEnumerable<TransactionResult> results)
-        {
-            var merkleRoot = block.Header.MerkleTreeRootOfTransactions;
-            // Set block to pre mining
-            block.Header.MerkleTreeRootOfTransactions = null;
-
-            // // TransactionResults are added during execution
-            // Add TransactionResult before completing and adding block
-            await _transactionResultService.AddTransactionResultsAsync(results.ToList(), block.Header);
-
-            // Set block back to post mining
-            block.Header.MerkleTreeRootOfTransactions = merkleRoot;
-
-            // Add block to chain
-            var chain = await _blockchainService.GetChainAsync();
-            await _blockchainService.AddBlockAsync(block);
-            await _blockchainService.AttachBlockToChainAsync(chain, block);
-            await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
-        }
-
         private async Task AddTransactionResultsWithPostMiningAsync(Block block, IEnumerable<TransactionResult> results)
         {
             // Add block to chain
@@ -98,47 +78,6 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             return (block, results);
-        }
-
-        private Transaction GetDummyTransactionWithMethodNameAsId(string id)
-        {
-            return new Transaction()
-            {
-                From = SampleAddress.AddressList[0],
-                To = SampleAddress.AddressList[1],
-                MethodName = id
-            };
-        }
-
-        [Fact]
-        public async Task Add_TransactionResult_With_PreMiningHash()
-        {
-            var tx = _kernelTestHelper.GenerateTransaction();
-            var (block, results) =
-                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx});
-
-            var result = results.First();
-            await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
-
-            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried.ShouldBe(null);
-            var queried2 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash(), block.GetHash());
-            queried2.ShouldBe(result);
-
-            var blockIndex = new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            };
-
-            // Add TransactionResult after completing and adding block
-            await _transactionResultService.AddTransactionResultsAsync(results, block.Header);
-
-            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {tx.GetHash()},
-                blockIndex);
-
-            var queried3 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried3.ShouldBe(result);
         }
 
         [Fact]
@@ -209,7 +148,7 @@ namespace AElf.Kernel.Blockchain.Application
                 GetNextBlockWithTransactionAndResults(block11.Header, new[] {tx2});
 
             // Add block 1
-            await AddTransactionResultsWithPreMiningAsync(block11, new[] {results11.First()});
+            await AddTransactionResultsWithPostMiningAsync(block11, new[] {results11.First()});
 
             // Add block 2
             await AddTransactionResultsWithPostMiningAsync(block12, new[] {results12.First()});
@@ -230,16 +169,16 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionResultService.GetTransactionResultAsync(tx2.GetHash(), block12.GetHash());
                 queried3.ShouldBe(results12.First());
                 // PreMiningHash
-                var resultWithPreMiningHash =
-                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
-                        block11.Header.GetPreMiningHash());
-                resultWithPreMiningHash.ShouldBe(results11.First());
+                // var resultWithPreMiningHash =
+                //     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                //         block11.Header.GetDisambiguatingHash());
+                // resultWithPreMiningHash.ShouldBe(results11.First());
 
                 // PostMiningHash
                 var resultWithPostMiningHash =
                     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
                         block11.Header.GetHash());
-                resultWithPostMiningHash.ShouldBeNull();
+                //resultWithPostMiningHash.ShouldBeNull();
             }
 
             await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block11.Header,
@@ -254,10 +193,10 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionResultService.GetTransactionResultAsync(tx2.GetHash(), block12.GetHash());
                 queried2.ShouldBe(results12.First());
                 // PreMiningHash
-                var resultWithPreMiningHash =
-                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
-                        block11.Header.GetPreMiningHash());
-                resultWithPreMiningHash.ShouldBeNull();
+                // var resultWithPreMiningHash =
+                //     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                //         block11.Header.GetDisambiguatingHash());
+                // resultWithPreMiningHash.ShouldBeNull();
 
                 // PostMiningHash
                 var resultWithPostMiningHash =

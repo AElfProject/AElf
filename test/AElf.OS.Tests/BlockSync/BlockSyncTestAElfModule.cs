@@ -21,7 +21,7 @@ namespace AElf.OS.BlockSync
     [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
     public class BlockSyncTestAElfModule : AElfModule
     {
-        private readonly Dictionary<Hash,Block> _peerBlockList = new Dictionary<Hash,Block>();
+        private readonly Dictionary<Hash, Block> _peerBlockList = new Dictionary<Hash, Block>();
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -88,12 +88,12 @@ namespace AElf.OS.BlockSync
             var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
             var previousBlockHash = chain.BestChainHash;
             var height = chain.BestChainHeight;
-            
+
             foreach (var block in osTestHelper.BestBranchBlockList)
             {
-                _peerBlockList.Add(block.Header.PreviousBlockHash,block);
+                _peerBlockList.Add(block.Header.PreviousBlockHash, block);
             }
-            
+
             var bestBranchHeight = height;
 
             for (var i = bestBranchHeight; i < bestBranchHeight + 20; i++)
@@ -101,12 +101,14 @@ namespace AElf.OS.BlockSync
                 var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 
                 // no choice need to execute the block to finalize it.
-                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));
+                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(),
+                        new List<Transaction>(), CancellationToken.None))
+                    .Block;
 
                 previousBlockHash = newBlock.GetHash();
                 height++;
-                        
-                _peerBlockList.Add(newBlock.Header.PreviousBlockHash,newBlock);
+
+                _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
             }
         }
     }

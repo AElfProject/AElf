@@ -48,10 +48,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executionResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAsync(blockList);
 
-            executionResult.ExecutedSuccessBlocks.Count.ShouldBe(blockList.Count());
+            executionResult.SuccessBlockExecutedSets.Count.ShouldBe(blockList.Count());
             for (var i = 0; i < 3; i++)
             {
-                executionResult.ExecutedSuccessBlocks[i].GetHash().ShouldBe(blockList[i].GetHash());
+                executionResult.SuccessBlockExecutedSets[i].GetHash().ShouldBe(blockList[i].GetHash());
             }
             executionResult.ExecutedFailedBlocks.Count.ShouldBe(0);
         }

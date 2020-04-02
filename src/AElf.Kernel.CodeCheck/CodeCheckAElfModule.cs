@@ -11,7 +11,7 @@ namespace AElf.Kernel.CodeCheck
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
             context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
         }
     }
