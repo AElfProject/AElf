@@ -106,7 +106,7 @@ namespace AElf.CSharp.CodeOps
         [Fact]
         public void CheckBadContract_ForFindings()
         {
-            var findings = Should.Throw<CSharpInvalidCodeException>(
+            var findings = Should.Throw<CSharpCodeCheckException>(
                     () => _auditorFixture.Audit(ReadContractCode(typeof(BadContract))))
                 .Findings;
 
@@ -239,7 +239,7 @@ namespace AElf.CSharp.CodeOps
             var tamperedContract = new MemoryStream();
             module.Write(tamperedContract);
 
-            var findings = Should.Throw<CSharpInvalidCodeException>(
+            var findings = Should.Throw<CSharpCodeCheckException>(
                     () => _auditorFixture.Audit(tamperedContract.ToArray()))
                 .Findings;
 
@@ -258,7 +258,7 @@ namespace AElf.CSharp.CodeOps
             // that iterates an array with foreach loop.
             var contractCode = ReadContractCode(typeof(TransactionFeesContract));
 
-            var findings = Should.Throw<CSharpInvalidCodeException>(
+            var findings = Should.Throw<CSharpCodeCheckException>(
                     () => _auditorFixture.Audit(contractCode))
                 .Findings;
 

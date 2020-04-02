@@ -1,31 +1,30 @@
-using System;
 using System.Collections.Generic;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.Kernel.CodeCheck;
 
 namespace AElf.CSharp.CodeOps
 {
-    public class CSharpInvalidCodeException : InvalidCodeException
+    public class CSharpCodeCheckException : InvalidCodeException
     {
         public List<ValidationResult> Findings { get; }
 
-        public CSharpInvalidCodeException() : base()
+        public CSharpCodeCheckException()
         {
         }
 
-        public CSharpInvalidCodeException(string message) : base(message)
+        public CSharpCodeCheckException(string message) : base(message)
         {
         }
 
-        public CSharpInvalidCodeException(string message, List<ValidationResult> findings) : base(message)
+        public CSharpCodeCheckException(string message, List<ValidationResult> findings) : base(message)
         {
             Findings = findings;
         }
     }
     
-    public class ContractAuditTimeoutException : Exception
+    public class ContractAuditTimeoutException : CSharpCodeCheckException
     {
-        public ContractAuditTimeoutException() : base()
+        public ContractAuditTimeoutException()
         {
         }
 
@@ -34,9 +33,9 @@ namespace AElf.CSharp.CodeOps
         }
     }
     
-    public class MaxInheritanceExceededException : Exception
+    public class MaxInheritanceExceededException : CSharpCodeCheckException
     {
-        public MaxInheritanceExceededException() : base()
+        public MaxInheritanceExceededException()
         {
         }
 

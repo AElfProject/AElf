@@ -62,7 +62,7 @@ namespace AElf.Contracts.Deployer
                     var auditor = new CSharpContractAuditor();
                     auditor.Audit(patchedCode, null);
                 }
-                catch (CSharpInvalidCodeException ex)
+                catch (CSharpCodeCheckException ex)
                 {
                     foreach (var finding in ex.Findings)
                     {

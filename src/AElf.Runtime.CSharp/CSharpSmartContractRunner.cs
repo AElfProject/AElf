@@ -42,7 +42,7 @@ namespace AElf.Runtime.CSharp
 
             if (assembly == null)
             {
-                throw new CSharpInvalidCodeException("Invalid binary code.");
+                throw new CSharpCodeCheckException("Invalid binary code.");
             }
 
             ContractVersion = assembly.GetName().Version?.ToString();
