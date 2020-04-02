@@ -72,7 +72,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return output;
             }
 
-            // TODO: It does not make sense to compare _bestChainHash with chain, especially when it comes to parallel block execution. Branch hash through interface params should be used, but not chain. 
+            // TODO: It does not make sense to compare _bestChainHash with chain, especially when it comes to parallel block execution. Branch hash through interface params should be used instead. 
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {

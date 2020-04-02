@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
@@ -13,7 +12,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase, IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
