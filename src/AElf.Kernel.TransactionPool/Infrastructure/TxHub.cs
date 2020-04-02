@@ -206,13 +206,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             var bufferBlock = new BufferBlock<QueuedTransaction>(executionDataFlowBlockOptions);
             var acceptableVerificationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
-                queuedTransaction => ProcessQueuedTransactionAsync(queuedTransaction, VerifyTransactionAcceptableAsync),
+                async queuedTransaction =>
+                    await ProcessQueuedTransactionAsync(queuedTransaction, VerifyTransactionAcceptableAsync),
                 executionDataFlowBlockOptions);
             var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
-                queuedTransaction => ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
+                async queuedTransaction =>
+                    await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
                 executionDataFlowBlockOptions);
             var acceptActionBlock = new ActionBlock<QueuedTransaction>(
-                queuedTransaction => ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
+                async queuedTransaction =>
+                    await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                 executionDataFlowBlockOptions);
 
             bufferBlock.LinkTo(acceptableVerificationTransformBlock, linkOptions);
@@ -311,7 +314,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Unacceptable transaction {queuedTransaction.TransactionId}.");
+                Logger.LogError(e,
+                    $"Unacceptable transaction {queuedTransaction.TransactionId}. Func: {func?.Method.Name}");
+                Console.WriteLine($"Unacceptable transaction {queuedTransaction.TransactionId}.");
                 return null;
             }
         }
