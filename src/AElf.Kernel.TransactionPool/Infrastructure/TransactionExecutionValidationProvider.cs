@@ -43,7 +43,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 BlockHeader = new BlockHeader
                 {
                     PreviousBlockHash = bestChainBlock.GetHash(),
-                    Height = bestChainBlock.Height + 1
+                    Height = bestChainBlock.Height + 1,
+                    Time = TimestampHelper.GetUtcNow(),
                 }
             }, CancellationToken.None);
 
@@ -56,6 +57,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     TransactionId = transaction.GetHash()
                 });
             }
+
             return executionValidationResult;
         }
     }

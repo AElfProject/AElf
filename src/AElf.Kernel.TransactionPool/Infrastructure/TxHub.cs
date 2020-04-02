@@ -230,52 +230,76 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private Task<QueuedTransaction> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
-            if (_allTransactions.Count > _transactionOptions.PoolLimit ||
-                _allTransactions.ContainsKey(queuedTransaction.TransactionId) ||
-                !queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
-                return null;
+            try
+            {
+                if (_allTransactions.Count > _transactionOptions.PoolLimit ||
+                    _allTransactions.ContainsKey(queuedTransaction.TransactionId) ||
+                    !queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
+                    return null;
 
-            return Task.FromResult(queuedTransaction);
+                return Task.FromResult(queuedTransaction);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Unacceptable transaction {queuedTransaction.TransactionId}.");
+                return null;
+            }
         }
 
         private async Task<QueuedTransaction> ValidateTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            var validationResult =
-                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
-                    .Transaction);
-            if (validationResult)
-                return queuedTransaction;
-            Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
-            return null;
+            try
+            {
+                var validationResult =
+                    await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
+                        .Transaction);
+                if (validationResult)
+                    return queuedTransaction;
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Unacceptable transaction {queuedTransaction.TransactionId}.");
+                return null;
+            }
         }
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
-            if (hasTransaction)
-                return null;
-
-            await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
-            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (!addSuccess)
+            try
             {
-                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
-                return null;
-            }
+                var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+                if (hasTransaction)
+                    return null;
 
-            var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
-            queuedTransaction.RefBlockStatus =
-                CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
-
-            if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
-            {
-                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
+                await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+                var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                if (!addSuccess)
                 {
-                    Transaction = queuedTransaction.Transaction
-                });
-            }
+                    Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
+                    return null;
+                }
 
-            return queuedTransaction;
+                var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
+                queuedTransaction.RefBlockStatus =
+                    CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
+
+                if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+                {
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
+                    {
+                        Transaction = queuedTransaction.Transaction
+                    });
+                }
+
+                return queuedTransaction;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Unacceptable transaction {queuedTransaction.TransactionId}.");
+                return null;
+            }
         }
 
         private async Task<QueuedTransaction> ProcessQueuedTransactionAsync(QueuedTransaction queuedTransaction,
