@@ -117,7 +117,10 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             {
                 // Skip first instruction in ResetFields method, this is supposed to be CallCount call
                 // and validation of this is handled in ObserverProxyValidator
-                if (instruction.Offset == 0) 
+                if (instruction.Offset == 0 && 
+                    instruction.OpCode == OpCodes.Call && 
+                    instruction.Operand is MethodReference methodRef && 
+                    methodRef.Name == nameof(ExecutionObserverProxy.CallCount)) 
                     continue;
                 
                 // If ret, assume end of the method and exit the loop
