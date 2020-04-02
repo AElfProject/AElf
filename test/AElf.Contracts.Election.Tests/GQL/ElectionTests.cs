@@ -107,7 +107,7 @@ namespace AElf.Contracts.Election
                     Symbol = "ELF"
                 })).Balance;
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance/100000000 + 10);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance + 10);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Insufficient balance");

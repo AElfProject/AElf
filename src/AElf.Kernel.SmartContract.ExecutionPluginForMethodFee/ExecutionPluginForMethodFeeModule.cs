@@ -24,8 +24,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
-            // TODO: Need to optimize.
-            //context.Services.AddSingleton<IBlockValidationProvider, ClaimTransactionFeesValidationProvider>();
+            context.Services.AddSingleton<IBlockValidationProvider, ClaimTransactionFeesValidationProvider>();
         }
     }
 }

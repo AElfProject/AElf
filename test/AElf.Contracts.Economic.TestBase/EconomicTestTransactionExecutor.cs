@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Economic.TestBase
 {
+    //TODO: should inherit from base class, not a new executor 
     public class EconomicTestTransactionExecutor : ITestTransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
@@ -24,7 +25,7 @@ namespace AElf.Contracts.Economic.TestBase
             _serviceProvider = serviceProvider;
         }
 
-        public async Task ExecuteAsync(Transaction transaction)
+        public async Task<TransactionResult> ExecuteAsync(Transaction transaction)
         {
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
             var txHub = _serviceProvider.GetRequiredService<ITxHub>();
@@ -37,11 +38,14 @@ namespace AElf.Contracts.Economic.TestBase
             var minerService = _serviceProvider.GetRequiredService<IMinerService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
-            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+            var blockExecutedSet = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var block = blockExecutedSet.Block;
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
+
+            return blockExecutedSet.TransactionResultMap[transaction.GetHash()];
         }
 
         public Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)

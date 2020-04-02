@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
@@ -119,14 +120,14 @@ namespace AElf.Benchmark
             {
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    Block = block
+                    BlockExecutedSet = new BlockExecutedSet() {Block = block}
                 });
 
                 await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);
                 await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
                     block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetDisambiguatingHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }

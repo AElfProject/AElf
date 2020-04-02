@@ -381,26 +381,13 @@ namespace AElf.Contracts.Election
             State.VoteWeightInterestList.Value = voteWeightSetting;
         }
 
-        private long GetElfAmount(long votingAmount)
-        {
-            var elfAmount = votingAmount;
-            for (var i = 0;
-                i < ElectionContractConstants.ElfTokenDecimals.Sub(ElectionContractConstants.VoteTokenDecimals);
-                i++)
-            {
-                elfAmount = elfAmount.Mul(10);
-            }
-
-            return elfAmount;
-        }
-
         private void UnlockTokensOfVoter(Hash input, long amount)
         {
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
-                Amount = GetElfAmount(amount),
+                Amount = amount,
                 LockId = input,
                 Usage = "Withdraw votes for Main Chain Miner Election."
             });
@@ -461,7 +448,7 @@ namespace AElf.Contracts.Election
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = Context.TransactionId,
-                Amount = GetElfAmount(amount),
+                Amount = amount,
                 Usage = "Voting for Main Chain Miner Election."
             });
         }
