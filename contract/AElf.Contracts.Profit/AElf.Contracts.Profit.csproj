@@ -5,7 +5,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Profit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
+        <IsSystemContract>true</IsSystemContract>
         <Description>Profit is a contract that enables the creation of schemes for profit distribution.</Description>
     </PropertyGroup>
 

@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
+        <IsSystemContract>true</IsSystemContract>
         <Description>CrossChain is a contract that implements cross-chain related features, especially 
             indexing.</Description>
     </PropertyGroup>

@@ -59,6 +59,9 @@
     </Target>
     <!-- Build patcher before building the contract -->
     <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <IsContract Condition="'$(IsSystemContract)' != '' AND '$(IsSystemContract)'">true</IsContract>
+        </PropertyGroup>
         <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
                  Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
     </Target>
@@ -69,9 +72,11 @@
             <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-w </CmdPatchOverwrite>
             <CmdSkipAudit></CmdSkipAudit>
             <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
+            <CmdTreatAsSystemContract></CmdTreatAsSystemContract>
+            <CmdTreatAsSystemContract Condition="'$(IsSystemContract)' != '' AND '$(IsSystemContract)'">-t </CmdTreatAsSystemContract>
         </PropertyGroup>
         <Exec WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)-p $(TargetDir)$(TargetName).dll"
+              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)$(CmdTreatAsSystemContract)-p $(TargetDir)$(TargetName).dll"
               ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput" />
         </Exec>

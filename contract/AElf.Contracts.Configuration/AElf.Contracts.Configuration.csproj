@@ -5,7 +5,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Configuration</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
+        <IsSystemContract>true</IsSystemContract>
         <Description>Configuration is a contract used for changing configurable aspects of the chain, like for example 
             the maximum amount of packable transactions.</Description>
     </PropertyGroup>
