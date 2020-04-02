@@ -160,7 +160,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, queuedTransaction);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    _validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                    if (!queuedTransaction.IsExecuted)
+                        _validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                     break;
             }
         }
