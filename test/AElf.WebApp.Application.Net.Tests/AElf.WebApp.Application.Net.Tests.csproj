@@ -5,7 +5,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.2.1" />
         <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="1.1.2" />
         <PackageReference Include="Volo.Abp.Autofac" Version="1.1.2" />
         <PackageReference Include="Volo.Abp.Core" Version="1.1.2" />
