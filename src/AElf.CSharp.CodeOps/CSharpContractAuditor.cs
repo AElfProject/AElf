@@ -6,7 +6,6 @@ using System.Threading;
 using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Options;
@@ -23,14 +22,14 @@ namespace AElf.CSharp.CodeOps
 
         public int Category { get; } = 0;
 
-        public IOptionsSnapshot<CSharpCodeOpsOptions> CodeOptions { get; set; }
+        public IOptionsMonitor<CSharpCodeOpsOptions> CodeOpsOptionsMonitor { get; set; }
 
         public void Audit(byte[] code, RequiredAcs requiredAcs)
         {
             var findings = new List<ValidationResult>();
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
-            var cts = new CancellationTokenSource(CodeOptions?.Value.AuditTimeoutDuration ??
+            var cts = new CancellationTokenSource(CodeOpsOptionsMonitor?.CurrentValue.AuditTimeoutDuration ??
                                                   Constants.DefaultAuditTimeoutDuration);
 
             // Check against whitelist
