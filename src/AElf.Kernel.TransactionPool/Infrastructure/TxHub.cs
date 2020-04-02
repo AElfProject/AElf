@@ -67,7 +67,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHeight = _bestChainHeight
             };
 
-            if (transactionCount <= 0)
+            if (transactionCount < 0)
             {
                 return output;
             }
@@ -82,7 +82,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
-                .Where(queuedTransaction => !queuedTransaction.IsExecuted).Take(transactionCount)
+                .Take(transactionCount == 0 ? int.MaxValue : transactionCount)
                 .Select(x => x.Transaction));
 
             return output;
@@ -160,8 +160,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, queuedTransaction);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    if (!queuedTransaction.IsExecuted)
-                        _validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                    _validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                     break;
             }
         }
@@ -175,14 +174,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void MarkTransactionExecuted(IEnumerable<Hash> txIdList)
-        {
-            foreach (var txId in txIdList)
-            {
-                if (_allTransactions.TryGetValue(txId, out var queuedTransaction))
-                    queuedTransaction.IsExecuted = true;
-            }
-        }
+        // private void MarkTransactionExecuted(IEnumerable<Hash> txIdList)
+        // {
+        //     foreach (var txId in txIdList)
+        //     {
+        //         if (_allTransactions.TryGetValue(txId, out var queuedTransaction))
+        //             queuedTransaction.IsExecuted = true;
+        //     }
+        // }
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
@@ -320,7 +319,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            MarkTransactionExecuted(eventData.Block.Body.TransactionIds.ToList());
+            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+
             return Task.CompletedTask;
         }
 

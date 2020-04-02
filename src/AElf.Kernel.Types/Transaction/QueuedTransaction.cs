@@ -18,6 +18,6 @@ namespace AElf.Kernel
         public Timestamp EnqueueTime { get; set; }
         public RefBlockStatus RefBlockStatus { get; set; }
         
-        public bool IsExecuted { get; set; }
+        // public bool IsExecuted { get; set; }
     }
 }
