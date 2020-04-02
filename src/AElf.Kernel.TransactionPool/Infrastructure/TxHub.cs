@@ -67,11 +67,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHeight = _bestChainHeight
             };
 
-            if (transactionCount == -1)
+            if (transactionCount <= 0)
             {
                 return output;
             }
 
+            // TODO: It does not make sense to compare _bestChainHash with chain, especially when it comes to parallel block execution. Branch hash through interface params should be used, but not chain. 
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
@@ -81,7 +82,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
-                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
+                .Where(queuedTransaction => !queuedTransaction.IsExecuted).Take(transactionCount)
+                .Select(x => x.Transaction));
 
             return output;
         }
@@ -172,6 +174,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private void MarkTransactionExecuted(IEnumerable<Hash> txIdList)
+        {
+            foreach (var txId in txIdList)
+            {
+                if (_allTransactions.TryGetValue(txId, out var queuedTransaction))
+                    queuedTransaction.IsExecuted = true;
+            }
+        }
+
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
@@ -179,7 +190,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 _allTransactions.TryRemove(transactionId, out _);
             }
         }
-        
+
         #endregion
 
         #region Data flow
@@ -216,14 +227,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             return bufferBlock;
         }
-        
+
         private Task<QueuedTransaction> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
             if (_allTransactions.Count > _transactionOptions.PoolLimit ||
                 _allTransactions.ContainsKey(queuedTransaction.TransactionId) ||
                 !queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
                 return null;
-            
+
             return Task.FromResult(queuedTransaction);
         }
 
@@ -251,7 +262,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
                 return null;
             }
-            
+
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             queuedTransaction.RefBlockStatus =
                 CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
@@ -308,8 +319,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
-
+            MarkTransactionExecuted(eventData.Block.Body.TransactionIds.ToList());
             return Task.CompletedTask;
         }
 
