@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
-using AElf.CSharp.CodeOps;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 
@@ -42,7 +39,7 @@ namespace AElf.Runtime.CSharp
 
             if (assembly == null)
             {
-                throw new CSharpCodeCheckException("Invalid binary code.");
+                throw new InvalidAssemblyException("Invalid binary code.");
             }
 
             ContractVersion = assembly.GetName().Version?.ToString();

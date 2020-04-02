@@ -30,7 +30,8 @@ namespace AElf.CSharp.CodeOps
             var findings = new List<ValidationResult>();
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
-            var cts = new CancellationTokenSource(CodeOptions.Value.AuditTimeoutDuration);
+            var cts = new CancellationTokenSource(CodeOptions?.Value.AuditTimeoutDuration ??
+                                                  Constants.DefaultAuditTimeoutDuration);
 
             // Check against whitelist
             findings.AddRange(_defaultPolicy.Whitelist.Validate(modDef, cts.Token));
