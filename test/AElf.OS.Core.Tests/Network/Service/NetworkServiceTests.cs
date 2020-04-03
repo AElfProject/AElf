@@ -49,7 +49,7 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public async Task RemovePeerByAddress_Test()
+        public async Task RemovePeerByEndpoint_Test()
         {
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
