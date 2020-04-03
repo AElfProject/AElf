@@ -8,7 +8,7 @@ namespace AElf.Contracts.TestKit
 {
     public interface ITestTransactionExecutor
     {
-        Task ExecuteAsync(Transaction transaction);
+        Task<TransactionResult> ExecuteAsync(Transaction transaction);
         Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction);
         Task<ByteString> ReadAsync(Transaction transaction);
         Task<StringValue> ReadWithExceptionAsync(Transaction transaction);

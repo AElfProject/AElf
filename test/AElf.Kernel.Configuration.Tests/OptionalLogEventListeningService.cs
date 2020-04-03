@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Configuration.Tests
 {
-    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T:ILogEventProcessor
+    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T : ILogEventProcessor
     {
         private LogEventListeningService<T> _inner;
 
@@ -15,11 +16,11 @@ namespace AElf.Kernel.Configuration.Tests
 
         public static bool Enabled { get; set; }
 
-        public async Task ProcessAsync(IEnumerable<Block> blocks)
+        public async Task ProcessAsync(List<BlockExecutedSet> blockExecutedSets)
         {
             if (Enabled)
             {
-                await _inner.ProcessAsync(blocks);
+                await _inner.ProcessAsync(blockExecutedSets);
             }
         }
     }

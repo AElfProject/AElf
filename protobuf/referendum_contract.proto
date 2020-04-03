@@ -11,8 +11,6 @@ service ReferendumContract {
     option (aelf.base) = "acs3.proto";
     option (aelf.base) = "acs1.proto";
     // Actions
-    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {

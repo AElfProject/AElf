@@ -1,5 +1,5 @@
 using System.Linq;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -8,11 +8,11 @@ namespace AElf.Contracts.MultiToken
         public static TransactionFeeBill operator +(TransactionFeeBill bill1, TransactionFeeBill bill2)
         {
             var result = new TransactionFeeBill();
-            foreach (var symbol in bill1.TokenToAmount.Keys.Union(bill2.TokenToAmount.Keys))
+            foreach (var symbol in bill1.FeesMap.Keys.Union(bill2.FeesMap.Keys))
             {
-                var amountInBill1 = bill1.TokenToAmount.ContainsKey(symbol) ? bill1.TokenToAmount[symbol] : 0;
-                var amountInBill2 = bill2.TokenToAmount.ContainsKey(symbol) ? bill2.TokenToAmount[symbol] : 0;
-                result.TokenToAmount.Add(symbol, amountInBill1.Add(amountInBill2));
+                var amountInBill1 = bill1.FeesMap.ContainsKey(symbol) ? bill1.FeesMap[symbol] : 0;
+                var amountInBill2 = bill2.FeesMap.ContainsKey(symbol) ? bill2.FeesMap[symbol] : 0;
+                result.FeesMap.Add(symbol, amountInBill1.Add(amountInBill2));
             }
 
             return result;

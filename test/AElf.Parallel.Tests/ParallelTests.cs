@@ -75,7 +75,7 @@ namespace AElf.Parallel.Tests
             await _parallelTestHelper.BroadcastTransactions(prepareTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 prepareTransactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions)).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -93,8 +93,8 @@ namespace AElf.Parallel.Tests
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransaction);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
 
@@ -127,7 +127,7 @@ namespace AElf.Parallel.Tests
             await _parallelTestHelper.BroadcastTransactions(prepareTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 prepareTransactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions)).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -135,7 +135,7 @@ namespace AElf.Parallel.Tests
             var transactions = await _parallelTestHelper.GenerateApproveTransactions(keyPairs, 1000000000);
             await _parallelTestHelper.BroadcastTransactions(transactions);
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, transactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -153,8 +153,8 @@ namespace AElf.Parallel.Tests
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height,
                 systemTransactions.Concat(cancellableTransactions));
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
 
@@ -190,8 +190,8 @@ namespace AElf.Parallel.Tests
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height,
                 systemTransactions.Concat(cancellableTransactions));
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
             
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -242,7 +242,7 @@ namespace AElf.Parallel.Tests
             await _parallelTestHelper.BroadcastTransactions(transactionList);
             
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, transactionList);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactionList);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactionList)).Block;
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(),block.Header);
@@ -268,8 +268,8 @@ namespace AElf.Parallel.Tests
             var prepareBlock =
                 _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, tokenTransactions);
             prepareBlock =
-                await _blockExecutingService.ExecuteBlockAsync(prepareBlock.Header,
-                    tokenTransactions);
+                (await _blockExecutingService.ExecuteBlockAsync(prepareBlock.Header,
+                    tokenTransactions)).Block;
             await _blockchainService.AddBlockAsync(prepareBlock);
             await _blockAttachService.AttachBlockAsync(prepareBlock);
 
@@ -318,7 +318,7 @@ namespace AElf.Parallel.Tests
             groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
 
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
             block.TransactionIds.Count().ShouldBe(_transactionCount + 1);
             
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
@@ -375,7 +375,6 @@ namespace AElf.Parallel.Tests
 
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBeGreaterThan(0);
-            blockStateSet.BlockExecutedData.Count.ShouldBe(1);
             var blockExecutedData = blockStateSet.BlockExecutedData.First();
             var versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
             versionedState.ShouldBeNull();
@@ -458,8 +457,8 @@ namespace AElf.Parallel.Tests
             transaction.GetHash().ShouldBe(transactionHash);
             
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, allTransactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
             await _blockchainService.AddTransactionsAsync(allTransactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -492,8 +491,8 @@ namespace AElf.Parallel.Tests
             transaction.GetHash().ShouldBe(transactionHash);
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransaction);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
             await _blockchainService.AddTransactionsAsync(allTransactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -535,8 +534,8 @@ namespace AElf.Parallel.Tests
             var allTransactions = systemTransactions.Concat(cancellableTransactions).ToList();
             await _parallelTestHelper.BroadcastTransactions(allTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, allTransactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
-                cancellableTransactions, CancellationToken.None);
+            block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None)).Block;
 
             var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
             var totalFee = transactionResults
@@ -555,11 +554,8 @@ namespace AElf.Parallel.Tests
             var transactionResults = new List<TransactionResult>();
             foreach (var transactionId in transactionIds)
             {
-                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetHash());
+                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetDisambiguatingHash());
                 if(result != null) transactionResults.Add(result);
-                result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    blockHeader.GetPreMiningHash());
-                if(result!=null) transactionResults.Add(result);
             }
 
             return transactionResults;

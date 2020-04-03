@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -270,20 +272,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="currentTermNumber"></param>
-        /// <param name="timeEachTerm"></param>
+        /// <param name="periodSeconds"></param>
         /// <returns></returns>
-        public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long timeEachTerm)
+        public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long periodSeconds)
         {
             return RealTimeMinersInformation.Values
                        .Where(m => m.ActualMiningTimes.Any())
                        .Select(m => m.ActualMiningTimes.Last())
                        .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp,
-                           t, currentTermNumber, timeEachTerm))
+                           t, currentTermNumber, periodSeconds))
                    >= MinersCountOfConsent;
         }
 
         /// <summary>
-        /// If timeEachTerm == 7:
+        /// If periodSeconds == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
         /// 1, 2, 1 => 0 != 1 - 1 => false
         /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
@@ -293,12 +295,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
-        /// <param name="timeEachTerm"></param>
+        /// <param name="periodSeconds"></param>
         /// <returns></returns>
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long timeEachTerm)
+            long termNumber, long periodSeconds)
         {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(periodSeconds) != termNumber - 1;
         }
 
         private static int GetAbsModulus(long longValue, int intValue)

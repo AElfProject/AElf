@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber.ShouldBe(2);
 
-            var roundInformation = await AEDPoSContractStub.GetRoundInformation.CallAsync(new SInt64Value
+            var roundInformation = await AEDPoSContractStub.GetRoundInformation.CallAsync(new Int64Value
             {
                 Value = 2
             });

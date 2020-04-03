@@ -35,7 +35,7 @@ message MethodFees {
 
 message MethodFee {
     string symbol = 1;
-    sint64 basic_fee = 2;
+    int64 basic_fee = 2;
 }
 
 // Events
@@ -43,8 +43,8 @@ message MethodFeeSet {
     option (aelf.is_event) = true;
     string method = 1;
     string symbol = 2;
-    sint64 old_fee = 3;
-    sint64 new_fee = 4;
+    int64 old_fee = 3;
+    int64 new_fee = 4;
 }
 
 message AuthorityInfo {

@@ -11,6 +11,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -185,7 +186,7 @@ namespace AElf.Contracts.Vote
             consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    TimeEachTerm = 604800L,
+                    PeriodSeconds = 604800L,
                     MinerIncreaseInterval = 31536000
                 });
 

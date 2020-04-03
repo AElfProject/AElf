@@ -110,7 +110,7 @@ namespace AElf.Kernel.Blockchain.Application
             var blockHash = chain.LastIrreversibleBlockHash;
             while (true)
             {
-                if (blockHeight < Constants.GenesisBlockHeight ||
+                if (blockHeight < AElfConstants.GenesisBlockHeight ||
                     blockHeight + KernelConstants.ReferenceBlockValidPeriod <= chain.LastIrreversibleBlockHeight)
                     break;
 
