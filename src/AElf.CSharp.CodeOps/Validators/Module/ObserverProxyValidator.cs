@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -21,7 +22,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
         }
 
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
+        public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var errors = new List<ValidationResult>();
             
@@ -46,7 +47,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 
             foreach (var typ in module.Types)
             {
-                CheckCallsFromTypes(errors, typ);
+                CheckCallsFromTypes(errors, typ, ct);
             }
             
             return errors;
@@ -89,7 +90,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 errors.Add(new ObserverProxyValidationResult("Observer type contains unusual number of methods."));
         }
 
-        private void CheckCallsFromTypes(List<ValidationResult> errors, TypeDefinition typ)
+        private void CheckCallsFromTypes(List<ValidationResult> errors, TypeDefinition typ, CancellationToken ct)
         {
             if (typ == _injProxyType) // Do not need to validate calls from the injected proxy
                 return;
@@ -97,18 +98,21 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                CheckCallsFromMethods(errors, method);
+                CheckCallsFromMethods(errors, method, ct);
             }
 
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                CheckCallsFromTypes(errors, nestedType);
+                CheckCallsFromTypes(errors, nestedType, ct);
             }
         }
 
-        private void CheckCallsFromMethods(List<ValidationResult> errors, MethodDefinition method)
+        private void CheckCallsFromMethods(List<ValidationResult> errors, MethodDefinition method, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             if (!method.HasBody)
                 return;
 

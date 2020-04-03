@@ -5,6 +5,9 @@ namespace AElf.CSharp.CodeOps
 {
     public static class Constants
     {
+        public const int DefaultAuditTimeoutDuration = 20000;
+        public const int MaxInheritanceThreshold = 5;
+        
         public static readonly HashSet<OpCode> JumpingOpCodes = new HashSet<OpCode>
         {
             OpCodes.Beq,

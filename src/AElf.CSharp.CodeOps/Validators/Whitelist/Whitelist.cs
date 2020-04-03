@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -38,7 +39,7 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
             return this;
         }
 
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
+        public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var results = new List<ValidationResult>();
             // Validate assembly references
@@ -49,20 +50,25 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
             }
             
             // Validate types in the module
-            results.AddRange(module.Types.SelectMany(Validate));
+            results.AddRange(module.Types.SelectMany(t => Validate(t, ct)));
             
             // Validate nested types
-            results.AddRange(module.Types.SelectMany(t => t.NestedTypes).SelectMany(Validate));
+            results.AddRange(module.Types
+                .SelectMany(t => t.NestedTypes)
+                .SelectMany(t => Validate(t, ct)));
 
             return results;
         }
 
-        private IEnumerable<ValidationResult> Validate(TypeDefinition type)
+        private IEnumerable<ValidationResult> Validate(TypeDefinition type, CancellationToken ct)
         {
             var results = new List<ValidationResult>();
 
             foreach (var method in type.Methods)
             {
+                if (ct.IsCancellationRequested)
+                    throw new ContractAuditTimeoutException();
+                
                 if (!method.HasBody)
                     continue;
 

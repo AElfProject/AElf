@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
@@ -24,14 +25,17 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             }
         }
 
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
+        public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             var structureError = ValidateStructure(module);
 
             if (structureError != null)
                 return new[] { structureError }.ToList();
 
-            return module.Types.SelectMany(ValidateType);
+            return module.Types.SelectMany(t => ValidateType(t, ct));
         }
 
         private ValidationResult ValidateStructure(ModuleDefinition module)
@@ -80,8 +84,11 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             return null;
         }
 
-        private IEnumerable<ValidationResult> ValidateType(TypeDefinition type)
+        private IEnumerable<ValidationResult> ValidateType(TypeDefinition type, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             var errors = new List<ValidationResult>();
             
             if (type.IsStateImplementation())
@@ -90,7 +97,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             }
             
             errors.AddRange(type.IsContractImplementation() ? ValidateContractType(type) : ValidateRegularType(type));
-            errors.AddRange(type.NestedTypes.SelectMany(ValidateType));
+            errors.AddRange(type.NestedTypes.SelectMany(t => ValidateType(t, ct)));
 
             return errors;
         }
