@@ -91,10 +91,7 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            var observer = IsSystemContract ? 
-                new ExecutionObserver(-1, -1) : // Counters are active but no threshold
-                new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, 
-                    CurrentTransactionContext.ExecutionBranchThreshold);
+            var observer = new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, CurrentTransactionContext.ExecutionBranchThreshold);
             
             try
             {
@@ -106,7 +103,8 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                _smartContractProxy.SetExecutionObserver(observer);
+                if (!IsSystemContract)
+                    _smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 
