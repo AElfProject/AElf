@@ -56,7 +56,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            _processTransactionJobs = CreateQueuedTransactionDataFlowBlock();
+            _processTransactionJobs = CreateQueuedTransactionBufferBlock();
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
@@ -173,7 +173,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 CleanTransactions(txIds.Value.Keys.ToList());
             }
         }
-        
+
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
@@ -186,28 +186,52 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Data flow
 
-        private TransformBlock<QueuedTransaction, QueuedTransaction> CreateQueuedTransactionDataFlowBlock()
+        private TransformBlock<QueuedTransaction, QueuedTransaction> CreateQueuedTransactionBufferBlock()
         {
             var executionDataFlowBlockOptions = new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree,
-                BoundedCapacity = _transactionOptions.PoolLimit
+                BoundedCapacity = _transactionOptions.PoolLimit,
+                MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
             };
             var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
-            var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
-                async queuedTransaction =>
-                    await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
-                executionDataFlowBlockOptions);
-            var acceptActionBlock = new ActionBlock<QueuedTransaction>(
-                async queuedTransaction =>
-                    await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
-                executionDataFlowBlockOptions);
 
-            validationTransformBlock.LinkTo(acceptActionBlock, linkOptions,
-                queuedTransaction => queuedTransaction != null);
-            validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+            var updateBucketIndexTransformBlock =
+                new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
+                    executionDataFlowBlockOptions);
+            var updateRefBlockStatusActionBlock = new ActionBlock<QueuedTransaction>(
+                async queuedTransaction =>
+                    await ProcessQueuedTransactionAsync(queuedTransaction, UpdateQueuedTransactionRefBlockStatusAsync),
+                executionDataFlowBlockOptions);
+            int i = 0;
+            while (i < _transactionOptions.PoolParallelismDegree)
+            {
+                var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
+                    async queuedTransaction =>
+                        await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        BoundedCapacity = _transactionOptions.PoolLimit
+                    });
+                var index = i;
+                updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
+                    queuedTransaction =>
+                        queuedTransaction.BucketIndex == index || queuedTransaction.BucketIndex == -index);
 
-            return validationTransformBlock;
+                validationTransformBlock.LinkTo(updateRefBlockStatusActionBlock, linkOptions,
+                    queuedTransaction => queuedTransaction != null);
+                validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+                i++;
+            }
+
+            updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+            return updateBucketIndexTransformBlock;
+        }
+
+        private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
+        {
+            queuedTransaction.BucketIndex =
+                queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree;
+            return queuedTransaction;
         }
 
         private bool VerifyTransactionAcceptable(QueuedTransaction queuedTransaction)
@@ -224,28 +248,27 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var validationResult =
                 await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
                     .Transaction);
-            if (validationResult)
-                return queuedTransaction;
-            Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
-            return null;
-        }
-
-        private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
-        {
-            if (!VerifyTransactionAcceptable(queuedTransaction))
+            if (!validationResult)
+            {
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
+            }
+
             var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
             if (hasTransaction)
                 return null;
 
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (!addSuccess)
-            {
-                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
-                return null;
-            }
+            if (addSuccess)
+                return queuedTransaction;
+            Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
+            return null;
+        }
 
+        private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(
+            QueuedTransaction queuedTransaction)
+        {
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             queuedTransaction.RefBlockStatus =
                 CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);

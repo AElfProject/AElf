@@ -10,7 +10,7 @@ namespace AElf.Kernel.TransactionPool
         /// <summary>
         /// Transaction processing data flow MaxDegreeOfParallelism for transaction pool.
         /// </summary>
-        public int PoolParallelismDegree { get; set; } = 2;
+        public int PoolParallelismDegree { get; set; } = 5;
 
         /// <summary>
         /// Bp Node can disable this flag to make best performance.
