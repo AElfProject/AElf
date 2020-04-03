@@ -1,11 +1,8 @@
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -69,8 +66,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Header.Height
+                    BlockHash = block.Header.PreviousBlockHash,
+                    BlockHeight = block.Header.Height - 1
                 });
             if (totalTransactionFeesMapFromProvider == null)
             {
