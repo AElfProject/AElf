@@ -28,7 +28,10 @@ service TreasuryContract {
     }
     rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
     }
-
+    rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){
+    }
+    rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){
+    }
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
@@ -46,6 +49,12 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDividendPoolWeightSetting (google.protobuf.Empty) returns (DividendPoolWeightSetting){
+        option (aelf.is_view) = true;
+    }
+    rpc GetMinerRewardWeightSetting (google.protobuf.Empty) returns (MinerRewardWeightSetting){
         option (aelf.is_view) = true;
     }
 }
@@ -91,6 +100,27 @@ message SymbolList {
     repeated string value = 1;
 }
 
+message VoteWeightInterest{
+    int32 day = 1;
+    int32 interest = 2;
+    int32 capital = 3;
+}
+
+message VoteWeightInterestList {
+    repeated VoteWeightInterest vote_weight_interest_infos = 1;
+}
+
+message DividendPoolWeightSetting {
+    int32 citizen_welfare_weight = 1;
+    int32 backup_subsidy_weight = 2;
+    int32 miner_reward_weight = 3;
+}
+
+message MinerRewardWeightSetting {
+    int32 basic_miner_reward_weight = 1;
+    int32 votes_weight_reward_weight = 2;
+    int32 re_election_reward_weight = 3;
+}
 // Events
 
 message DonationReceived {
@@ -100,14 +130,4 @@ message DonationReceived {
     string symbol = 3 [(aelf.is_indexed) = true];
     int64 amount = 4 [(aelf.is_indexed) = true];
     string memo = 5;
-}
-
-message VoteWeightInterest{
-    int32 day = 1;
-    int32 interest = 2;
-    int32 capital = 3;
-}
-
-message VoteWeightInterestList {
-    repeated VoteWeightInterest vote_weight_interest_infos = 1;
 }
