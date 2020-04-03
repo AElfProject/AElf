@@ -18,8 +18,7 @@ namespace AElf.CSharp.CodeOps
     {
         readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
         readonly AbstractPolicy _systemPolicy = new SystemPolicy();
-
-
+        
         private readonly AcsValidator _acsValidator = new AcsValidator();
 
         public int Category { get; } = 0;
