@@ -89,11 +89,11 @@ namespace AElf.OS.Network
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var aelfPeerEndpoint);
             var host = aelfPeerEndpoint.Host;
 
-            _blackListProvider.AddHostToBlackList(host, NetworkConstants.DefaultPeerRemovalSeconds);
+            _blackListProvider.AddHostToBlackList(host, 5000);
             
-            await _networkService.AddPeerAsync(endpoint);
+            await _networkService.AddTrustedPeerAsync(endpoint);
             
-            _blackListProvider.IsIpBlackListed(endpoint).ShouldBeFalse();
+            _blackListProvider.IsIpBlackListed(host).ShouldBeFalse();
         }
 
         #endregion Blacklisting

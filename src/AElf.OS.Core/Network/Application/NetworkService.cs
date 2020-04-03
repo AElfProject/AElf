@@ -44,13 +44,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string endpoint)
         {
-            if (!AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint))
-            {
-                Logger.LogWarning($"Could not parse endpoint {endpoint}.");
-                return false;
-            }
-
-            return await _networkServer.ConnectAsync(aelfPeerEndpoint);
+            return await TryAddPeerAsync(endpoint, false);
         }
 
         /// <summary>
@@ -60,13 +54,19 @@ namespace AElf.OS.Network.Application
         /// <returns></returns>
         public async Task<bool> AddTrustedPeerAsync(string endpoint)
         {
+            return await TryAddPeerAsync(endpoint, true);
+        }
+        
+        private async Task<bool> TryAddPeerAsync(string endpoint, bool isTrusted)
+        {
             if (!AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint))
             {
                 Logger.LogWarning($"Could not parse endpoint {endpoint}.");
                 return false;
             }
 
-            _blackListedPeerProvider.RemoveHostFromBlackList(aelfPeerEndpoint.Host);
+            if(isTrusted)
+                _blackListedPeerProvider.RemoveHostFromBlackList(aelfPeerEndpoint.Host);
 
             return await _networkServer.ConnectAsync(aelfPeerEndpoint);
         }
