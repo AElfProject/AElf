@@ -655,15 +655,35 @@ namespace AElf.Contracts.Treasury
         {
             return State.SymbolList.Value;
         }
-        
-        public override MinerRewardWeightSetting GetMinerRewardWeightSetting(Empty input)
+
+        public override MinerRewardWeightProportion GetMinerRewardWeightProportion(Empty input)
         {
-            return State.MinerRewardWeightSetting.Value??GetDefaultMinerRewardWeightSetting();
+            var weightSetting = State.MinerRewardWeightSetting.Value ?? GetDefaultMinerRewardWeightSetting();
+            var weightSum = weightSetting.BasicMinerRewardWeight.Add(weightSetting.ReElectionRewardWeight)
+                .Add(weightSetting.VotesWeightRewardWeight);
+            var weightProportion = new MinerRewardWeightProportion
+            {
+                BasicMinerRewardProportion = weightSetting.BasicMinerRewardWeight / weightSum,
+                ReElectionRewardProportion = weightSetting.ReElectionRewardWeight / weightSum,
+            };
+            weightProportion.VotesWeightRewardProportion = 100.Sub(weightProportion.BasicMinerRewardProportion)
+                .Sub(weightProportion.ReElectionRewardProportion);
+            return weightProportion;
         }
         
-        public override DividendPoolWeightSetting GetDividendPoolWeightSetting(Empty input)
+        public override DividendPoolWeightProportion GetDividendPoolWeightProportion(Empty input)
         {
-            return State.DividendPoolWeightSetting.Value ?? GetDefaultDividendPoolWeightSetting();
+            var weightSetting = State.DividendPoolWeightSetting.Value ?? GetDefaultDividendPoolWeightSetting();
+            var weightSum = weightSetting.BackupSubsidyWeight.Add(weightSetting.CitizenWelfareWeight)
+                .Add(weightSetting.MinerRewardWeight);
+            var weightProportion = new DividendPoolWeightProportion
+            {
+                BackupSubsidyProportion = weightSetting.BackupSubsidyWeight / weightSum,
+                CitizenWelfareProportion = weightSetting.CitizenWelfareWeight / weightSum,
+            };
+            weightProportion.MinerRewardProportion = 100.Sub(weightProportion.BackupSubsidyProportion)
+                .Sub(weightProportion.CitizenWelfareProportion);
+            return weightProportion;
         }
 
         private long GetVotesWeight(long votesAmount, long lockTime)
