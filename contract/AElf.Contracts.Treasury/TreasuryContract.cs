@@ -663,10 +663,11 @@ namespace AElf.Contracts.Treasury
                 .Add(weightSetting.VotesWeightRewardWeight);
             var weightProportion = new MinerRewardWeightProportion
             {
-                BasicMinerRewardProportion = weightSetting.BasicMinerRewardWeight / weightSum,
-                ReElectionRewardProportion = weightSetting.ReElectionRewardWeight / weightSum,
+                BasicMinerRewardProportion = weightSetting.BasicMinerRewardWeight.Div(weightSum),
+                ReElectionRewardProportion = weightSetting.ReElectionRewardWeight.Div(weightSum),
             };
-            weightProportion.VotesWeightRewardProportion = 100.Sub(weightProportion.BasicMinerRewardProportion)
+            weightProportion.VotesWeightRewardProportion = TreasuryContractConstants.OneHundredPercent
+                .Sub(weightProportion.BasicMinerRewardProportion)
                 .Sub(weightProportion.ReElectionRewardProportion);
             return weightProportion;
         }
@@ -678,10 +679,11 @@ namespace AElf.Contracts.Treasury
                 .Add(weightSetting.MinerRewardWeight);
             var weightProportion = new DividendPoolWeightProportion
             {
-                BackupSubsidyProportion = weightSetting.BackupSubsidyWeight / weightSum,
-                CitizenWelfareProportion = weightSetting.CitizenWelfareWeight / weightSum,
+                BackupSubsidyProportion = weightSetting.BackupSubsidyWeight.Div(weightSum),
+                CitizenWelfareProportion = weightSetting.CitizenWelfareWeight.Div(weightSum),
             };
-            weightProportion.MinerRewardProportion = 100.Sub(weightProportion.BackupSubsidyProportion)
+            weightProportion.MinerRewardProportion = TreasuryContractConstants.OneHundredPercent
+                .Sub(weightProportion.BackupSubsidyProportion)
                 .Sub(weightProportion.CitizenWelfareProportion);
             return weightProportion;
         }
