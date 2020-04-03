@@ -21,12 +21,14 @@ namespace AElf.Blockchains.SideChain
                         _consensusOptions.InitialMinerList.Select(p => p.ToByteString())
                     }
                 }
-                : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationData.ExtraInformation[0]).MinerList;
+                : MinerListWithRoundNumber.Parser
+                    .ParseFrom(chainInitializationData.ChainInitializationConsensusInfo.InitialMinerListData).MinerList;
             var timestamp = chainInitializationData?.CreationTimestamp ?? _consensusOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    IsSideChain = true
+                    IsSideChain = true,
+                    PeriodSeconds = _consensusOptions.PeriodSeconds
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp));

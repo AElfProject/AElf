@@ -9,14 +9,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
         private LogEvent _interestedEvent;
         private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return _interestedEvent;
             }
         }
-        
+
         public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
@@ -40,13 +40,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var eventData = new ExtraTokenListModified();
             eventData.MergeFrom(logEvent);
             if (eventData.SymbolListToPayTxSizeFee == null)
                 return;
-            
+
             var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
             foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
             {

@@ -1,6 +1,7 @@
 using System;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -178,21 +179,6 @@ namespace AElf.Contracts.Referendum
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
-        }
-
-        private void AddTokenWhitList()
-        {
-            RequireTokenContractStateSet();
-            State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-            {
-                TokenSymbol = Context.Variables.NativeSymbol, Address = Context.Self
-            });
-            var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
-            if (!string.IsNullOrEmpty(primaryTokenSymbol) && Context.Variables.NativeSymbol != primaryTokenSymbol)
-                State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = primaryTokenSymbol, Address = Context.Self
-                });
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -21,6 +22,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// 7 days.
         /// </summary>
-        internal const long TimeEachTerm = 120;// 7 * 60 * 60 * 24
+        internal const long PeriodSeconds = 120;// 7 * 60 * 60 * 24
     }
 }

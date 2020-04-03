@@ -73,6 +73,7 @@ message ExecutionReturnSet {
     bytes bloom = 5;
     bytes return_value = 6;
     map<string, bool> state_deletes = 7;
+    TransactionResult transaction_result = 8;
 }
 
 message BlockHeaderList {

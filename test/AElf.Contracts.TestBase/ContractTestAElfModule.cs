@@ -56,11 +56,6 @@ namespace AElf.Contracts.TestBase
             });
             
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            
-            Configure<ContractOptions>(options =>
-            {
-                options.ContractFeeStrategyAcsList = new List<string>{"acs1"};
-            });
         }
     }
 }

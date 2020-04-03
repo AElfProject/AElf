@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;

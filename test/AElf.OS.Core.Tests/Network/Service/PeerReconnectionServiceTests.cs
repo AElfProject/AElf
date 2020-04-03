@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -70,7 +71,8 @@ namespace AElf.OS.Network.Service
             _reconnectionService.SchedulePeerForReconnection(endpoint);
             _reconnectionService.CancelReconnection(endpoint);
             
-            var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().AddSeconds(1));
+            var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().
+                AddSeconds(1));
             peers.Count.ShouldBe(0);
         }
     }

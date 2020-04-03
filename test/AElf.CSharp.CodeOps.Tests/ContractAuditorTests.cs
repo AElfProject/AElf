@@ -20,6 +20,8 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
+using AElf.Kernel.CodeCheck;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using Mono.Cecil.Cil;
 using Shouldly;
@@ -30,13 +32,13 @@ namespace AElf.CSharp.CodeOps
 {
     public class ContractAuditorFixture : IDisposable
     {
-        private ContractAuditor _auditor;
-        private readonly RequiredAcsDto _requiredAcs;
+        private CSharpContractAuditor _auditor;
+        private readonly RequiredAcs _requiredAcs;
 
         public ContractAuditorFixture()
         {
-            _auditor = new ContractAuditor(null, null);
-            _requiredAcs = new RequiredAcsDto
+            _auditor = new CSharpContractAuditor(null, null);
+            _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
@@ -45,7 +47,7 @@ namespace AElf.CSharp.CodeOps
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, _requiredAcs, false);
+            _auditor.Audit(code, _requiredAcs);
         }
 
         public void Dispose()
@@ -109,7 +111,7 @@ namespace AElf.CSharp.CodeOps
         [Fact]
         public void CheckBadContract_ForFindings()
         {
-            var findings = Should.Throw<InvalidCodeException>(
+            var findings = Should.Throw<CSharpInvalidCodeException>(
                     () => _auditorFixture.Audit(ReadContractCode(typeof(BadContract))))
                 .Findings;
 
@@ -242,7 +244,7 @@ namespace AElf.CSharp.CodeOps
             var tamperedContract = new MemoryStream();
             module.Write(tamperedContract);
 
-            var findings = Should.Throw<InvalidCodeException>(
+            var findings = Should.Throw<CSharpInvalidCodeException>(
                     () => _auditorFixture.Audit(tamperedContract.ToArray()))
                 .Findings;
 
@@ -261,7 +263,7 @@ namespace AElf.CSharp.CodeOps
             // that iterates an array with foreach loop.
             var contractCode = ReadContractCode(typeof(TransactionFeesContract));
 
-            var findings = Should.Throw<InvalidCodeException>(
+            var findings = Should.Throw<CSharpInvalidCodeException>(
                     () => _auditorFixture.Audit(contractCode))
                 .Findings;
 
