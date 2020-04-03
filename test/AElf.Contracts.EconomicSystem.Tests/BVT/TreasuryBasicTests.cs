@@ -3,12 +3,10 @@ using Acs1;
 using Acs3;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -106,7 +104,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OwnerAddress = calculatedNewParliamentAddress,
                 ContractAddress = ParliamentContractAddress
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.ChangeVoteWeightInterestController), newAuthority);
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.ChangeTreasuryController), newAuthority);
             var proposalToUpdateInterest = new Acs3.CreateProposalInput
             {
                 OrganizationAddress = calculatedNewParliamentAddress,

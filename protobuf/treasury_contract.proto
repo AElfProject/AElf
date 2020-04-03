@@ -24,7 +24,7 @@ service TreasuryContract {
     }
     rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
     }
-    rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
     }
@@ -45,7 +45,7 @@ service TreasuryContract {
     rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
         option (aelf.is_view) = true;
     }
-    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {

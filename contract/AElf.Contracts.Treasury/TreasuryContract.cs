@@ -232,7 +232,7 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
         
-        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
+        public override Empty ChangeTreasuryController(AuthorityInfo input)
         {
             AssertPerformedByTreasuryController();
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
@@ -282,7 +282,7 @@ namespace AElf.Contracts.Treasury
             State.DividendPoolWeightSetting.Value = input;
             return new Empty();
         }
-        
+
         public override Empty SetMinerRewardWeightSetting(MinerRewardWeightSetting input)
         {
             AssertPerformedByTreasuryController();
@@ -565,12 +565,12 @@ namespace AElf.Contracts.Treasury
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
+                State.VoteWeightInterestController.Value = GetDefaultTreasuryController();
             }
             Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
         }
 
-        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        private AuthorityInfo GetDefaultTreasuryController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -642,11 +642,11 @@ namespace AElf.Contracts.Treasury
             return State.VoteWeightInterestList.Value;
         }
         
-        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
+        public override AuthorityInfo GetTreasuryController(Empty input)
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                return GetDefaultVoteWeightInterestController();
+                return GetDefaultTreasuryController();
             }
             return State.VoteWeightInterestController.Value;
         }
