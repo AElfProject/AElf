@@ -72,8 +72,12 @@ namespace AElf.CSharp.CodeOps
 
         private static GenericInstanceType FindGenericInstanceType(TypeDefinition type)
         {
+            var maxInheritance = Constants.MaxInheritanceThreshold;
             while (true)
             {
+                if (maxInheritance-- == 0)
+                    throw new MaxInheritanceExceededException();
+                
                 switch (type.BaseType)
                 {
                     case null:
@@ -108,8 +112,12 @@ namespace AElf.CSharp.CodeOps
 
         private static TypeDefinition GetBaseType(this TypeDefinition type)
         {
+            var maxInheritance = Constants.MaxInheritanceThreshold;
             while (true)
             {
+                if (maxInheritance-- == 0)
+                    throw new MaxInheritanceExceededException();
+
                 if (type.BaseType == null || type.BaseType.FullName == typeof(object).FullName) return type;
                 type = type.BaseType.Resolve();
             }
@@ -131,40 +139,6 @@ namespace AElf.CSharp.CodeOps
                    sourceType.Fields.All(sp => 
                        targetType.Fields.SingleOrDefault(tp => 
                            tp.Name == sp.Name && tp.FieldType.FullName == sp.FieldType.FullName) != null);
-        }
-
-        private static void PrintBody(this MethodDefinition method)
-        {
-            foreach (var instruction in method.Body.Instructions)
-            {
-                Console.WriteLine($"{instruction.OpCode.ToString()} {instruction.Operand}");
-            }
-        }
-
-        private static Instruction GetNextNonCoverletInstruction(Instruction instruction)
-        {
-            // check whether we are at the end of the method body first
-            if (instruction.Next == null) return instruction;
-            
-            // Sometimes coverlet is injecting twice, then next will be its counter value
-            var nextLine = instruction.Next;
-
-            // and next after that will be a coverlet call, then skip those 2 as well;
-            // if not, just return next line
-            return nextLine.Next?.IsCoverletInjectedInstruction() ?? false ? 
-                GetNextNonCoverletInstruction(nextLine.Next) 
-                : nextLine; // Otherwise, just return next line
-        }
-
-        private static bool IsMethodCoverletInjected(this MethodDefinition method)
-        {
-            return method.Body.Instructions.Any(i => i.IsCoverletInjectedInstruction());
-        }
-
-        private static bool IsCoverletInjectedInstruction(this Instruction instruction)
-        {
-            return instruction.OpCode == OpCodes.Call &&
-                   instruction.Operand.ToString().Contains("Coverlet.Core.Instrumentation.Tracker");
         }
 
         public static Type FindContractType(this Assembly assembly)
