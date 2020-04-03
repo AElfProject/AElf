@@ -60,6 +60,7 @@ Task("Test-with-Codecov")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -106,6 +107,7 @@ Task("Test-with-Codecov-N")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
