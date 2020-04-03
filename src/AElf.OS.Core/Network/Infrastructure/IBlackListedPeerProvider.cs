@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Net;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Infrastructure
