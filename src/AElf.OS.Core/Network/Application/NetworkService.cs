@@ -82,9 +82,7 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Remove peer failed. Peer address: {endpoint}");
                 return false;
             }
-
-            await _networkServer.DisconnectAsync(peer);
-
+            
             return true;
         }
         
