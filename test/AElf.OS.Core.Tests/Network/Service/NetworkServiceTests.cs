@@ -55,10 +55,10 @@ namespace AElf.OS.Network
             var host = endpoint.Host;
 
             //invalid address
-            var result = await _networkService.RemovePeerByAddressAsync("");
+            var result = await _networkService.RemovePeerByEndpointAsync("");
             result.ShouldBeFalse();
             
-            result = await _networkService.RemovePeerByAddressAsync("127.0.0.1:5000");
+            result = await _networkService.RemovePeerByEndpointAsync("127.0.0.1:5000");
             result.ShouldBeTrue();
             _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
         }

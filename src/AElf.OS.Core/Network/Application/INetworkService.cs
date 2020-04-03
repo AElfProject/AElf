@@ -8,8 +8,9 @@ namespace AElf.OS.Network.Application
 {
     public interface INetworkService
     {
-        Task<bool> AddPeerAsync(string address, bool isTrusted = false);
-        Task<bool> RemovePeerByAddressAsync(string address,
+        Task<bool> AddPeerAsync(string endpoint);
+        Task<bool> AddTrustedPeerAsync(string endpoint);
+        Task<bool> RemovePeerByEndpointAsync(string endpoint,
             int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);
         Task<bool> RemovePeerByPubkeyAsync(string peerPubkey,
             int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);

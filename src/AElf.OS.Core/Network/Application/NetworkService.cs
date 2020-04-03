@@ -42,31 +42,44 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        public async Task<bool> AddPeerAsync(string address, bool isTrusted = false)
+        public async Task<bool> AddPeerAsync(string endpoint)
         {
-            if (!AElfPeerEndpointHelper.TryParse(address, out var endpoint))
+            if (!AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint))
             {
-                Logger.LogWarning($"Could not parse endpoint {address}.");
+                Logger.LogWarning($"Could not parse endpoint {endpoint}.");
                 return false;
             }
 
-            if (isTrusted)
-            {
-                _blackListedPeerProvider.RemoveHostFromBlackList(endpoint.Host);
-            }
-
-            return await _networkServer.ConnectAsync(endpoint);
+            return await _networkServer.ConnectAsync(aelfPeerEndpoint);
         }
 
-        public async Task<bool> RemovePeerByAddressAsync(string address, int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds)
+        /// <summary>
+        /// Add trusted peer, will remove the host from blacklist first.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public async Task<bool> AddTrustedPeerAsync(string endpoint)
         {
-            if (!AElfPeerEndpointHelper.TryParse(address, out DnsEndPoint endpoint)) 
+            if (!AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint))
+            {
+                Logger.LogWarning($"Could not parse endpoint {endpoint}.");
+                return false;
+            }
+
+            _blackListedPeerProvider.RemoveHostFromBlackList(aelfPeerEndpoint.Host);
+
+            return await _networkServer.ConnectAsync(aelfPeerEndpoint);
+        }
+
+        public async Task<bool> RemovePeerByEndpointAsync(string endpoint, int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds)
+        {
+            if (!AElfPeerEndpointHelper.TryParse(endpoint, out DnsEndPoint aelfPeerEndpoint)) 
                 return false;
             
-            var peer = _peerPool.FindPeerByEndpoint(endpoint);
-            if (!await RemovePeerAsync(peer, removalSeconds))
+            var peer = _peerPool.FindPeerByEndpoint(aelfPeerEndpoint);
+            if (!await TryRemovePeerAsync(peer, removalSeconds))
             {
-                Logger.LogWarning($"Remove peer failed. Peer address: {address}");
+                Logger.LogWarning($"Remove peer failed. Peer address: {endpoint}");
                 return false;
             }
 
@@ -78,7 +91,7 @@ namespace AElf.OS.Network.Application
         public async Task<bool> RemovePeerByPubkeyAsync(string peerPubkey, int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            if (!await RemovePeerAsync(peer, removalSeconds))
+            if (!await TryRemovePeerAsync(peer, removalSeconds))
             {
                 Logger.LogWarning($"Remove peer failed. Peer pubkey: {peerPubkey}");
                 return false;
@@ -87,7 +100,13 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        private async Task<bool> RemovePeerAsync(IPeer peer, int removalSeconds)
+        /// <summary>
+        /// Try remove the peer, put the peer to blacklist, and disconnect.
+        /// </summary>
+        /// <param name="peer"></param>
+        /// <param name="removalSeconds"></param>
+        /// <returns>If the peer is null, return false.</returns>
+        private async Task<bool> TryRemovePeerAsync(IPeer peer, int removalSeconds)
         {
             if (peer == null)
             {
