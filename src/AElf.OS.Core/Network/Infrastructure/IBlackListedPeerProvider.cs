@@ -37,6 +37,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool IsIpBlackListed(string host)
         {
+            // TODO: It's weird to clean black listed peers while querying an ip is black listed.
             CleanBlackListed();
             return _blackListedPeers.ContainsKey(host);
         }
