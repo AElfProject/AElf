@@ -39,7 +39,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> _expiredByExpiryBlock =
             new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
 
-        private readonly BufferBlock<QueuedTransaction> _processTransactionJobs;
+        private readonly TransformBlock<QueuedTransaction, QueuedTransaction> _processTransactionJobs;
 
         private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
@@ -56,7 +56,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            _processTransactionJobs = CreateQueuedTransactionBufferBlock();
+            _processTransactionJobs = CreateQueuedTransactionDataFlowBlock();
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
@@ -195,7 +195,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Data flow
 
-        private BufferBlock<QueuedTransaction> CreateQueuedTransactionBufferBlock()
+        private TransformBlock<QueuedTransaction, QueuedTransaction> CreateQueuedTransactionDataFlowBlock()
         {
             var executionDataFlowBlockOptions = new ExecutionDataflowBlockOptions
             {
@@ -204,11 +204,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             };
             var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
 
-            var bufferBlock = new BufferBlock<QueuedTransaction>(executionDataFlowBlockOptions);
-            var acceptableVerificationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
-                async queuedTransaction =>
-                    await ProcessQueuedTransactionAsync(queuedTransaction, VerifyTransactionAcceptableAsync),
-                executionDataFlowBlockOptions);
+            // var bufferBlock = new BufferBlock<QueuedTransaction>(executionDataFlowBlockOptions);
+            // var acceptableVerificationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
+            //     async queuedTransaction =>
+            //         await ProcessQueuedTransactionAsync(queuedTransaction, VerifyTransactionAcceptableAsync),
+            //     executionDataFlowBlockOptions);
             var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
                 async queuedTransaction =>
                     await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
@@ -218,33 +218,30 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                 executionDataFlowBlockOptions);
 
-            bufferBlock.LinkTo(acceptableVerificationTransformBlock, linkOptions);
+            // bufferBlock.LinkTo(acceptableVerificationTransformBlock, linkOptions);
 
-            acceptableVerificationTransformBlock.LinkTo(validationTransformBlock, linkOptions,
-                queuedTransaction => queuedTransaction != null);
-            acceptableVerificationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+            // acceptableVerificationTransformBlock.LinkTo(validationTransformBlock, linkOptions,
+            //     queuedTransaction => queuedTransaction != null);
+            // acceptableVerificationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
 
             validationTransformBlock.LinkTo(acceptActionBlock, linkOptions,
                 queuedTransaction => queuedTransaction != null);
             validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
 
-            return bufferBlock;
+            return validationTransformBlock;
         }
 
-        private async Task<QueuedTransaction> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
+        private bool VerifyTransactionAcceptable(QueuedTransaction queuedTransaction)
         {
-            if (_allTransactions.Count > _transactionOptions.PoolLimit ||
-                _allTransactions.ContainsKey(queuedTransaction.TransactionId) ||
-                !queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
-            {
-                return null;
-            }
-
-            return queuedTransaction;
+            return _allTransactions.Count < _transactionOptions.PoolLimit &&
+                   !_allTransactions.ContainsKey(queuedTransaction.TransactionId) &&
+                   queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight);
         }
 
         private async Task<QueuedTransaction> ValidateTransactionAsync(QueuedTransaction queuedTransaction)
         {
+            if (!VerifyTransactionAcceptable(queuedTransaction))
+                return null;
             var validationResult =
                 await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
                     .Transaction);
@@ -256,6 +253,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
+            if (!VerifyTransactionAcceptable(queuedTransaction))
+                return null;
             var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
             if (hasTransaction)
                 return null;
