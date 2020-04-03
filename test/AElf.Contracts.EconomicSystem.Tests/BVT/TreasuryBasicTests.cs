@@ -157,7 +157,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Treasury_Dividend_Pool_Weight_Test()
+        public async Task Treasury_Dividend_Pool_Weight_Update_Test()
         {
             var defaultWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
             defaultWeightSetting.BackupSubsidyProportion.ShouldBe(5);
@@ -185,8 +185,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        // public async Task Miner_Reward_Weight_Test()
-        public async Task M2()
+        public async Task Miner_Reward_Weight_Update_Test()
         {
             var defaultWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             defaultWeightSetting.BasicMinerRewardProportion.ShouldBe(50);
