@@ -52,7 +52,7 @@ namespace AElf.OS.Network.Application
 
             if (isTrusted)
             {
-                _blackListedPeerProvider.RemoveHostFromBlackLis(endpoint.Host);
+                _blackListedPeerProvider.RemoveHostFromBlackList(endpoint.Host);
             }
 
             return await _networkServer.ConnectAsync(endpoint);

@@ -11,7 +11,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool AddHostToBlackList(string host, int limitSeconds);
         bool IsIpBlackListed(string host);
-        bool RemoveHostFromBlackLis(string host);
+        bool RemoveHostFromBlackList(string host);
     }
     
     public class BlackListedPeerProvider : IBlackListedPeerProvider, ISingletonDependency
@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Infrastructure
             return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow().AddSeconds(limitSeconds));
         }
 
-        public bool RemoveHostFromBlackLis(string host)
+        public bool RemoveHostFromBlackList(string host)
         {
             return _blackListedPeers.TryRemove(host, out _);
         }

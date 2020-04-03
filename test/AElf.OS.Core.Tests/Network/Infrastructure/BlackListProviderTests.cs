@@ -38,7 +38,7 @@ namespace AElf.OS.Network
             _blackListProvider.AddHostToBlackList(ipAddress, int.MaxValue);
             _blackListProvider.IsIpBlackListed(ipAddress).ShouldBeTrue();
 
-            _blackListProvider.RemoveHostFromBlackLis(ipAddress);
+            _blackListProvider.RemoveHostFromBlackList(ipAddress);
             
             _blackListProvider.IsIpBlackListed(ipAddress).ShouldBeFalse();
         }
