@@ -53,11 +53,6 @@ namespace AElf.OS.Network
         public int MaximumReconnectionTime { get; set; } = NetworkConstants.DefaultMaximumReconnectionTime;
 
         /// <summary>
-        /// Amount of time a peer will be placed in the networks blacklist.
-        /// </summary>
-        public int PeerBlackListTimeoutInSeconds { get; set; } = NetworkConstants.DefaultPeerBlackListTimeoutInSeconds;
-
-        /// <summary>
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
