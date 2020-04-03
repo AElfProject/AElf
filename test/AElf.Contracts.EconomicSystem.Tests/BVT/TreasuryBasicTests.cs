@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -62,7 +63,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Interest = 16,
                 Day = 400
             });
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetVoteWeightInterest), newInterest);
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+                nameof(TreasuryContractStub.SetVoteWeightInterest), newInterest);
             interestList = await TreasuryContractStub.GetVoteWeightSetting.CallAsync(new Empty());
             interestList.VoteWeightInterestInfos.Count.ShouldBe(1);
             interestList.VoteWeightInterestInfos[0].Capital.ShouldBe(1000);
@@ -152,6 +154,65 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var newMethodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
             newMethodFeeController.OwnerAddress.ShouldBe(organizationAddress);
+        }
+
+        [Fact]
+        public async Task Treasury_Dividend_Pool_Weight_Test()
+        {
+            var defaultWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
+            defaultWeightSetting.BackupSubsidyProportion.ShouldBe(5);
+            defaultWeightSetting.CitizenWelfareProportion.ShouldBe(75);
+            defaultWeightSetting.MinerRewardProportion.ShouldBe(20);
+            var newWeightSetting = new DividendPoolWeightSetting
+            {
+                BackupSubsidyWeight = 1,
+                CitizenWelfareWeight = 1,
+                MinerRewardWeight = 8
+            };
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            var updatedWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
+            updatedWeightSetting.BackupSubsidyProportion.ShouldBe(10);
+            updatedWeightSetting.CitizenWelfareProportion.ShouldBe(10);
+            updatedWeightSetting.MinerRewardProportion.ShouldBe(80);
+            
+            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+            var subSchemes = treasuryProfit.SubSchemes;
+            subSchemes.Count.ShouldBe(3);
+            var weightOneCount = subSchemes.Count(x => x.Shares == 1);
+            weightOneCount.ShouldBe(2);
+            var weightEightCount = subSchemes.Count(x => x.Shares == 8);
+            weightEightCount.ShouldBe(1);
+        }
+
+        [Fact]
+        // public async Task Miner_Reward_Weight_Test()
+        public async Task M2()
+        {
+            var defaultWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
+            defaultWeightSetting.BasicMinerRewardProportion.ShouldBe(50);
+            defaultWeightSetting.ReElectionRewardProportion.ShouldBe(25);
+            defaultWeightSetting.VotesWeightRewardProportion.ShouldBe(25);
+            var newWeightSetting = new MinerRewardWeightSetting
+            {
+                BasicMinerRewardWeight = 1,
+                ReElectionRewardWeight = 1,
+                VotesWeightRewardWeight = 8
+            };
+            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+                nameof(TreasuryContractStub.SetMinerRewardWeightSetting), newWeightSetting);
+            var updatedWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
+            updatedWeightSetting.BasicMinerRewardProportion.ShouldBe(10);
+            updatedWeightSetting.ReElectionRewardProportion.ShouldBe(10);
+            updatedWeightSetting.VotesWeightRewardProportion.ShouldBe(80);
+
+            var minerRewardProfit =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
+            var subSchemes = minerRewardProfit.SubSchemes;
+            subSchemes.Count.ShouldBe(3);
+            var weightOneCount = subSchemes.Count(x => x.Shares == 1);
+            weightOneCount.ShouldBe(2);
+            var weightEightCount = subSchemes.Count(x => x.Shares == 8);
+            weightEightCount.ShouldBe(1);
         }
     }
 }
