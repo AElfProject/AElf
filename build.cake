@@ -148,6 +148,7 @@ Task("Run-Unit-Tests")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
