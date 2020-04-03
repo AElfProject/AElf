@@ -81,6 +81,20 @@ namespace AElf.OS.Network
             
             (await _networkService.AddPeerAsync(endpoint.ToString())).ShouldBeFalse();
         }
+        
+        [Fact]
+        public async Task AddTrustedPeer_Test()
+        {
+            var endpoint = "127.0.0.1:5000";
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var aelfPeerEndpoint);
+            var host = aelfPeerEndpoint.Host;
+
+            _blackListProvider.AddHostToBlackList(host, NetworkConstants.DefaultPeerRemovalSeconds);
+            
+            await _networkService.AddPeerAsync(endpoint);
+            
+            _blackListProvider.IsIpBlackListed(endpoint).ShouldBeFalse();
+        }
 
         #endregion Blacklisting
 
