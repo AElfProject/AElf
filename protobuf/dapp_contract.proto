@@ -3,12 +3,14 @@ syntax = "proto3";
 import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
 import "acs1.proto";
+import "acs9.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.DApp";
 
 service DApp {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.DApp.DAppContractState";
     option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs9.proto";
     
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {

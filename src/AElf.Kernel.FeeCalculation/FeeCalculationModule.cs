@@ -27,6 +27,7 @@ namespace AElf.Kernel.FeeCalculation
             services
                 .AddSingleton<ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>,
                     CalculateFunctionExecutedDataService>();
+            services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
         }
     }
 }

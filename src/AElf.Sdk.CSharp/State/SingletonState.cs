@@ -7,6 +7,9 @@ namespace AElf.Sdk.CSharp.State
     {
     }
 
+    /// <summary>
+    /// Represents single values of a given type, for use in smart contract state.
+    /// </summary>
     public class SingletonState<TEntity> : SingletonState
     {
         internal bool Loaded;

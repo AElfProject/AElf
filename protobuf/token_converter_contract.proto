@@ -56,7 +56,7 @@ service TokenConverterContract {
 
 message Connector {
     string symbol = 1;
-    sint64 virtual_balance = 2;
+    int64 virtual_balance = 2;
     string weight = 3;
     bool is_virtual_balance_enabled = 4; // true if virtual balance is enabled, false if not
     bool is_purchase_enabled = 5;
@@ -76,14 +76,14 @@ message InitializeInput {
 
 message BuyInput {
     string symbol = 1;
-    sint64 amount = 2;
-    sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
+    int64 amount = 2;
+    int64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
 }
 
 message SellInput {
     string symbol = 1;
-    sint64 amount = 2;
-    sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+    int64 amount = 2;
+    int64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
 }
 
 message GetExchangeRateInput {
@@ -93,8 +93,8 @@ message GetExchangeRateInput {
 
 message SellWithInlineActionInput {
     string symbol = 1;
-    sint64 amount = 2;
-    sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+    int64 amount = 2;
+    int64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
     aelf.Address contract_address = 4;
     string method_name = 5;
     bytes params = 6;
@@ -104,32 +104,32 @@ message SellWithInlineActionInput {
 message TokenBought {
     option (aelf.is_event) = true;
     string symbol = 1 [(aelf.is_indexed) = true];
-    sint64 bought_amount = 2;
-    sint64 base_amount = 3;
-    sint64 fee_amount =4;
+    int64 bought_amount = 2;
+    int64 base_amount = 3;
+    int64 fee_amount =4;
 }
 
 message TokenSold {
     option (aelf.is_event) = true;
     string symbol = 1 [(aelf.is_indexed) = true];
-    sint64 sold_amount = 2;
-    sint64 base_amount = 3;
-    sint64 fee_amount =4;    
+    int64 sold_amount = 2;
+    int64 base_amount = 3;
+    int64 fee_amount =4;    
 }
 message PairConnectorParam {
     string resource_connector_symbol = 1;
     string resource_weight = 2;
-    sint64 native_virtual_balance = 3;
+    int64 native_virtual_balance = 3;
     string native_weight = 4;
 }
 
 message ToBeConnectedTokenInfo{
     string token_symbol = 1;
-    sint64 amount_to_token_convert = 2;
+    int64 amount_to_token_convert = 2;
 }
 message DepositInfo{
-    sint64 need_amount = 1;
-    sint64 amount_out_of_token_convert = 2;
+    int64 need_amount = 1;
+    int64 amount_out_of_token_convert = 2;
 }
 message PairConnector{
     Connector resource_connector = 1;

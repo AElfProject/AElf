@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -9,9 +10,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public override SInt32Value GetMaximumBlocksCount(Empty input)
+        public override Int32Value GetMaximumBlocksCount(Empty input)
         {
-            return new SInt32Value {Value = GetMaximumBlocksCount()};
+            return new Int32Value {Value = GetMaximumBlocksCount()};
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using Acs0;
 using Acs1;
 using Acs3;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -213,13 +214,13 @@ namespace AElf.Contracts.Genesis
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
         }
 
-        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        public static Address BuildContractAddress(int chainId, long serialNumber)
         {
             return BuildContractAddress(chainId.ToHash(), serialNumber);
         }

@@ -127,7 +127,7 @@ namespace AElf.Contract.TestContract
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
                 var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
-                        branchTwoBlock.Header.GetPreMiningHash());
+                        branchTwoBlock.Header.GetDisambiguatingHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Invalid contract address");
             }
@@ -239,7 +239,7 @@ namespace AElf.Contract.TestContract
             var block = await ExecuteAsync(transaction, blockHeight, blockHash);
             var transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(transaction.GetHash(),
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetDisambiguatingHash());
 
             var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
             await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
@@ -302,7 +302,7 @@ namespace AElf.Contract.TestContract
 
             transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(failedTransaction.GetHash(),
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetDisambiguatingHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Failed to find handler for UpdateStopBet.");
 
@@ -318,7 +318,7 @@ namespace AElf.Contract.TestContract
 //            
             transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(updateTransaction.GetHash(),
-                    updateBlock.Header.GetPreMiningHash());
+                    updateBlock.Header.GetDisambiguatingHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
 
@@ -334,7 +334,7 @@ namespace AElf.Contract.TestContract
 
             transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(updateTransaction.GetHash(),
-                    updateBlock.Header.GetPreMiningHash());
+                    updateBlock.Header.GetDisambiguatingHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
@@ -372,14 +372,14 @@ namespace AElf.Contract.TestContract
         {
             var transactionList = new List<Transaction>();
             if (transaction != null) transactionList.Add(transaction);
-            var block = await _miningService.MineAsync(
+            var block = (await _miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
                 },
                 transactionList,
-                DateTime.UtcNow.ToTimestamp());
+                DateTime.UtcNow.ToTimestamp())).Block;
 
             if (transaction != null)
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});

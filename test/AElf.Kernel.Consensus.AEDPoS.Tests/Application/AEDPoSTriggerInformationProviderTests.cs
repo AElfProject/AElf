@@ -41,27 +41,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public Task GetTriggerInformationForConsensusTransactions_ConsensusCommand_Test()
-        {
-            var result = _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(null);
-            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
-            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
-
-            result = _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(new ConsensusCommand
-            {
-                Hint = new AElfConsensusHint
-                {
-                    Behaviour = AElfConsensusBehaviour.UpdateValue
-                }.ToByteString()
-            }.ToBytesValue());
-            triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
-            triggerInformation.DecryptedPieces.Count.ShouldBe(1);
-            triggerInformation.EncryptedPieces.Count.ShouldBe(1);
-            triggerInformation.RevealedInValues.Count.ShouldBe(1);
-            return Task.CompletedTask;
-        }
-
-        [Fact]
         public async Task GetCurrentMinerList_Test()
         {
             var result = await _aedpoSInformationProvider.GetCurrentMinerList(new ChainContext());
