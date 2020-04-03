@@ -59,7 +59,7 @@ namespace AElf.OS.Network.Application
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogError(ex, $"Error during discover - {peer}.");
+                    Logger.LogInformation(ex, $"Error during discover - {peer}.");
                 }
             }
 
