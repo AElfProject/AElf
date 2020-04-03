@@ -173,16 +173,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 CleanTransactions(txIds.Value.Keys.ToList());
             }
         }
-
-        // private void MarkTransactionExecuted(IEnumerable<Hash> txIdList)
-        // {
-        //     foreach (var txId in txIdList)
-        //     {
-        //         if (_allTransactions.TryGetValue(txId, out var queuedTransaction))
-        //             queuedTransaction.IsExecuted = true;
-        //     }
-        // }
-
+        
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
@@ -203,12 +194,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 BoundedCapacity = _transactionOptions.PoolLimit
             };
             var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
-
-            // var bufferBlock = new BufferBlock<QueuedTransaction>(executionDataFlowBlockOptions);
-            // var acceptableVerificationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
-            //     async queuedTransaction =>
-            //         await ProcessQueuedTransactionAsync(queuedTransaction, VerifyTransactionAcceptableAsync),
-            //     executionDataFlowBlockOptions);
             var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
                 async queuedTransaction =>
                     await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
@@ -217,12 +202,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 async queuedTransaction =>
                     await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                 executionDataFlowBlockOptions);
-
-            // bufferBlock.LinkTo(acceptableVerificationTransformBlock, linkOptions);
-
-            // acceptableVerificationTransformBlock.LinkTo(validationTransformBlock, linkOptions,
-            //     queuedTransaction => queuedTransaction != null);
-            // acceptableVerificationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
 
             validationTransformBlock.LinkTo(acceptActionBlock, linkOptions,
                 queuedTransaction => queuedTransaction != null);
