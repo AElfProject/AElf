@@ -50,13 +50,7 @@ namespace AElf.OS.Network.Grpc
 
         private void CreateClientKeyCertificatePair()
         {
-            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
-            
-            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
-                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
-            
-            _clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            _clientKeyCertificatePair = TlsHelper.GenerateKeyCertificatePair();
         }
 
         /// <summary>
@@ -67,7 +61,10 @@ namespace AElf.OS.Network.Grpc
         public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint)
         {
             var client = await CreateClientAsync(remoteEndpoint);
-            
+
+            if (client == null)
+                return null;
+
             var handshake = await _handshakeProvider.GetHandshakeAsync();
             var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
@@ -93,8 +90,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
-                IsInbound = false,
-                IsSecure = client.IsSecure
+                IsInbound = false
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
@@ -140,6 +136,10 @@ namespace AElf.OS.Network.Grpc
         public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
             var client = await CreateClientAsync(remoteEndpoint);
+
+            if (client == null)
+                return null;
+            
             await PingNodeAsync(client, remoteEndpoint);
 
             var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
@@ -148,8 +148,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 SessionId = handshake.SessionId.ToByteArray(),
                 ProtocolVersion = handshake.HandshakeData.Version,
-                IsInbound = true,
-                IsSecure = client.IsSecure
+                IsInbound = true
             });
 
             peer.UpdateLastReceivedHandshake(handshake);
@@ -191,14 +190,12 @@ namespace AElf.OS.Network.Grpc
         {
             var certificate = await RetrieveServerCertificateAsync(remoteEndpoint);
 
-            ChannelCredentials credentials = ChannelCredentials.Insecure;
+            if (certificate == null)
+                return null;
 
-            if (certificate != null)
-            {
-                Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
-                credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
-            }
-            
+            Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
+            ChannelCredentials credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
+
             var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
@@ -222,11 +219,18 @@ namespace AElf.OS.Network.Grpc
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
-            
+
             TcpClient client = null;
             try
             {
-                client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
+                client = new TcpClient();
+
+                if (!client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port)
+                    .Wait(NetworkConstants.DefaultSslCertifFetchTimeout))
+                {
+                    Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+                    return null;
+                }
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {

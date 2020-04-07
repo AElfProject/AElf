@@ -718,5 +718,21 @@ namespace AElf.Kernel.Blockchain.Application
             hasTransaction = await _fullBlockchainService.HasTransactionAsync(transaction2.GetHash());
             hasTransaction.ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task RemoveLongestBranch_Test()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            var bestChainHash = chain.BestChainHash;
+            var bestChainHeight = chain.BestChainHeight;
+            chain.LongestChainHash.ShouldNotBe(bestChainHash);
+            chain.LongestChainHeight.ShouldNotBe(bestChainHeight);
+
+            await _fullBlockchainService.RemoveLongestBranchAsync(chain);
+            
+            chain.LongestChainHash.ShouldBe(bestChainHash);
+            chain.LongestChainHeight.ShouldBe(bestChainHeight);
+        }
+
     }
 }
