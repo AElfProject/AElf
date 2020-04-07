@@ -1,4 +1,4 @@
-using AElf.Contracts.Consensus.AEDPoS;
+/*using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 
@@ -35,4 +35,4 @@ namespace AElf.Kernel.Consensus.AEDPoS
             };
         }
     }
-}
+}*/
