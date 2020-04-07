@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
@@ -69,8 +68,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Header.Height
+                    BlockHash = block.Header.PreviousBlockHash,
+                    BlockHeight = block.Header.Height - 1
                 });
             if (totalResourceTokensMapsFromProvider == null)
             {

@@ -23,17 +23,14 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
-        private readonly ITransactionResultService _transactionResultService;
         public ILogger<PlainTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public PlainTransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService,
+        public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
             IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
             IInlineTransactionValidationService inlineTransactionValidationService)
         {
-            _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _inlineTransactionValidationService = inlineTransactionValidationService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
@@ -129,9 +126,6 @@ namespace AElf.Kernel.SmartContract.Application
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
                 }
-
-                await _transactionResultService.AddTransactionResultsAsync(transactionResults,
-                    transactionExecutingDto.BlockHeader);
                 return returnSets;
             }
             catch (Exception e)
@@ -450,7 +444,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = result.TransactionId,
                 Status = result.Status,
-                Bloom = result.Bloom
+                Bloom = result.Bloom,
+                TransactionResult = result
             };
 
             if (trace.IsSuccessful())
