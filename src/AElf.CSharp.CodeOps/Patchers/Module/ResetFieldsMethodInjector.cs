@@ -3,7 +3,6 @@ using System.Linq;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module
 {
