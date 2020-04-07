@@ -663,14 +663,26 @@ namespace AElf.Contracts.Treasury
                 .Add(weightSetting.VotesWeightRewardWeight);
             var weightProportion = new MinerRewardWeightProportion
             {
-                BasicMinerRewardProportion = weightSetting.BasicMinerRewardWeight
-                    .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum),
-                ReElectionRewardProportion = weightSetting.ReElectionRewardWeight
-                    .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum),
+                BasicMinerRewardProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.BasicRewardHash.Value,
+                    Proportion = weightSetting.BasicMinerRewardWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                },
+                ReElectionRewardProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    Proportion = weightSetting.ReElectionRewardWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                }
             };
-            weightProportion.VotesWeightRewardProportion = TreasuryContractConstants.OneHundredPercent
-                .Sub(weightProportion.BasicMinerRewardProportion)
-                .Sub(weightProportion.ReElectionRewardProportion);
+            weightProportion.VotesWeightRewardProportionInfo = new SchemeProportionInfo
+            {
+                SchemeId = State.VotesWeightRewardHash.Value,
+                Proportion = TreasuryContractConstants.OneHundredPercent
+                    .Sub(weightProportion.BasicMinerRewardProportionInfo.Proportion)
+                    .Sub(weightProportion.ReElectionRewardProportionInfo.Proportion)
+            };
             return weightProportion;
         }
         
@@ -681,14 +693,26 @@ namespace AElf.Contracts.Treasury
                 .Add(weightSetting.MinerRewardWeight);
             var weightProportion = new DividendPoolWeightProportion
             {
-                BackupSubsidyProportion = weightSetting.BackupSubsidyWeight
-                    .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum),
-                CitizenWelfareProportion = weightSetting.CitizenWelfareWeight
-                    .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum),
+                BackupSubsidyProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Proportion = weightSetting.BackupSubsidyWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                },
+                CitizenWelfareProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.WelfareHash.Value,
+                    Proportion =  weightSetting.CitizenWelfareWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                }
             };
-            weightProportion.MinerRewardProportion = TreasuryContractConstants.OneHundredPercent
-                .Sub(weightProportion.BackupSubsidyProportion)
-                .Sub(weightProportion.CitizenWelfareProportion);
+            weightProportion.MinerRewardProportionInfo = new SchemeProportionInfo
+            {
+                SchemeId = State.RewardHash.Value,
+                Proportion = TreasuryContractConstants.OneHundredPercent
+                    .Sub(weightProportion.BackupSubsidyProportionInfo.Proportion)
+                    .Sub(weightProportion.CitizenWelfareProportionInfo.Proportion)
+            };
             return weightProportion;
         }
 
