@@ -3,6 +3,7 @@ using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Types;
@@ -16,6 +17,7 @@ namespace AElf.Kernel.Consensus
 {
     [DependsOn(
         typeof(CoreConsensusAElfModule),
+        typeof(SmartContractAElfModule),
         typeof(KernelCoreWithChainTestAElfModule)
     )]
     public class ConsensusTestAElfModule : AElfModule
