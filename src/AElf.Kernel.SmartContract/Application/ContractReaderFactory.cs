@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.Application
             where T : ContractStubBase, new()
         {
             var methodStubFactory = new ReadOnlyMethodStubFactory(_transactionReadOnlyExecutionService);
-            methodStubFactory.SetContractReadContext(contractReaderContext);
+            methodStubFactory.SetContractReaderContext(contractReaderContext);
 
             return new T()
             {

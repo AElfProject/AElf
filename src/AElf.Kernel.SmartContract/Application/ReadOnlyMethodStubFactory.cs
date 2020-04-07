@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContract.Application
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction);
         }
 
-        public void SetContractReadContext(ContractReaderContext contractReaderContext)
+        public void SetContractReaderContext(ContractReaderContext contractReaderContext)
         {
             _contractReaderContext = contractReaderContext;
         }
