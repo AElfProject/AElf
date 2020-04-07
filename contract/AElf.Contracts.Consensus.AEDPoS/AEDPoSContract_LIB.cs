@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS

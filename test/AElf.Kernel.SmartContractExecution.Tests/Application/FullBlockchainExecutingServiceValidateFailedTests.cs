@@ -26,48 +26,35 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
         
         [Fact]
-        public async Task ExecuteBlocksAttachedToLongestChain_ValidateFailed()
+        public async Task ExecuteBlocks_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var bestChainHeight = chain.BestChainHeight;
-            var bestChainHash = chain.BestChainHash;
-            
+
             var previousHash = chain.BestChainHash;
             var previousHeight = chain.BestChainHeight;
 
-            BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
             var blockList = new List<Block>();
-//            Block lastBlock = null;
-            int count = 0;
-            while (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
+            for (var i = 0; i < 3; i++)
             {
                 var transactions = new List<Transaction> {_kernelTestHelper.GenerateTransaction() };
                 var lastBlock = _kernelTestHelper.GenerateBlock(previousHeight, previousHash, transactions);
             
                 await _blockchainService.AddBlockAsync(lastBlock);
                 await _blockchainService.AddTransactionsAsync(transactions);
-            
-                status = await _blockchainService.AttachBlockToChainAsync(chain, lastBlock);
-                count++;
+                
+                await _blockchainService.AttachBlockToChainAsync(chain, lastBlock);
+                
                 previousHash = lastBlock.GetHash();
                 previousHeight = lastBlock.Height;
                 blockList.Add(lastBlock);
             }
             
-            var attachResult =
-                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            var executionResult =
+                await _fullBlockchainExecutingService.ExecuteBlocksAsync(blockList);
             
-            attachResult.ShouldBeNull();
-
-            chain = await _blockchainService.GetChainAsync();
-            var newBlockLink = await _chainManager.GetChainBlockLinkAsync(blockList.First().GetHash());
-            
-            newBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-            chain.BestChainHash.ShouldBe(bestChainHash);
-            chain.BestChainHeight.ShouldBe(bestChainHeight);
-            chain.LongestChainHash.ShouldBe(bestChainHash);
-            chain.LongestChainHeight.ShouldBe(bestChainHeight);
-            chain.Branches.ShouldNotContainKey(previousHash.ToStorageKey());
+            executionResult.SuccessBlockExecutedSets.Count.ShouldBe(0);
+            executionResult.ExecutedFailedBlocks.Count.ShouldBe(1);
+            executionResult.ExecutedFailedBlocks[0].GetHash().ShouldBe(blockList[0].GetHash());
         }
     }
 }

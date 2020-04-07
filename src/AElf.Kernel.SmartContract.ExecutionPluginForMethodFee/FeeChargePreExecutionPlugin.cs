@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -56,7 +55,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 context.TransactionContext = transactionContext;
                 var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
 
-                if (context.CurrentHeight < Constants.GenesisBlockHeight + 1 || tokenContractAddress == null)
+                if (context.CurrentHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
                 {
                     return new List<Transaction>();
                 }
@@ -122,10 +121,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
         }
 
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
+        private static TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(Address sender,
             Address contractAddress)
         {
-            return new TokenContractContainer.TokenContractStub
+            return new TokenContractImplContainer.TokenContractImplStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {

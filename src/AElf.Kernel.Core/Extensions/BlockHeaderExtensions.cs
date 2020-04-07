@@ -1,3 +1,4 @@
+using System;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -10,18 +11,12 @@ namespace AElf.Kernel
             return blockHeader.MerkleTreeRootOfTransactions != null;
         }
 
-        public static Hash GetPreMiningHash(this BlockHeader blockHeader)
-        {
-            return Hash.FromRawBytes(new BlockHeader()
-            {
-                PreviousBlockHash = blockHeader.PreviousBlockHash,
-                Height = blockHeader.Height
-            }.ToByteArray());
-        }
-
         public static Hash GetDisambiguatingHash(this BlockHeader blockHeader)
         {
-            return blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
+            if(!blockHeader.IsMined())
+                throw new InvalidOperationException("GetDisambiguatingHash: should only get mined block's DisambiguatingHash");
+
+            return blockHeader.GetHash();
         }
     }
 }

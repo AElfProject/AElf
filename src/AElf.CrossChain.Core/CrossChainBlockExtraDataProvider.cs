@@ -17,7 +17,7 @@ namespace AElf.CrossChain
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == Constants.GenesisBlockHeight)
+            if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                 return ByteString.Empty;
 
             var bytes = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -108,11 +109,10 @@ namespace AElf.Contracts.MultiToken
         /// Currently for acs1, charge primary token, like ELF;
         /// for acs8, charge resource tokens including READ, STO, WRITE, TRAFFIC.
         /// </summary>
-        private void InitialCoefficientsAboutCharging()
+        public override Empty InitialCoefficients(Empty input)
         {
-            var allCalculateFeeCoefficients = State.AllCalculateFeeCoefficients.Value;
-            if (allCalculateFeeCoefficients == null)
-                allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
+            Assert(State.AllCalculateFeeCoefficients.Value == null, "Coefficient already initialized");
+            var allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
             if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Read))
                 allCalculateFeeCoefficients.Value.Add(GetReadFeeInitialCoefficient());
             if (allCalculateFeeCoefficients.Value.All(x => x.FeeTokenType != (int) FeeTypeEnum.Storage))
@@ -129,6 +129,8 @@ namespace AElf.Contracts.MultiToken
             {
                 AllTypeFeeCoefficients = allCalculateFeeCoefficients,
             });
+            
+            return new Empty();
         }
 
         private CalculateFeeCoefficients GetReadFeeInitialCoefficient()
@@ -292,14 +294,23 @@ namespace AElf.Contracts.MultiToken
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Interval (1000000, ∞): x / 800 + x^2 / 10000
+                        // Interval (1000000, ∞): x / 80
+                        Value =
+                        {
+                            5000000,
+                            1, 1, 80,
+                        }
+                    },
+                    new CalculateFeePieceCoefficients
+                    {
+                        // Interval (1000000, ∞): x / 80 + x^2 / 100000
                         Value =
                         {
                             int.MaxValue,
-                            1, 1, 800, 
-                            2, 1, 10000
+                            1, 1, 80, 
+                            2, 1, 100000
                         }
-                    }
+                    },
                 }
             };
         }

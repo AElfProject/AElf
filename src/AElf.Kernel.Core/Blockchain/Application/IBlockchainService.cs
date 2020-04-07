@@ -52,6 +52,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task CleanChainBranchAsync(DiscardedBranch discardedBranch);
 
         Task<Chain> ResetChainToLibAsync(Chain chain);
+        Task RemoveLongestBranchAsync(Chain chain);
     }
 
     public static class BlockchainServiceExtensions
@@ -276,6 +277,11 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
         {
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
+            await LocalEventBus.PublishAsync(new BestChainFoundEventData
+            {
+                BlockHash = bestChainHash,
+                BlockHeight = bestChainHeight
+            });
         }
 
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
@@ -423,6 +429,11 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await GetChainAsync();
             await _chainManager.CleanChainBranchAsync(chain, discardedBranch);
+        }
+
+        public async Task RemoveLongestBranchAsync(Chain chain)
+        {
+            await _chainManager.RemoveLongestBranchAsync(chain);
         }
     }
 }

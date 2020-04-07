@@ -33,7 +33,7 @@ namespace AElf.CrossChain.Indexing.Infrastructure
                 return true;
             var libIdHeight = await GetLastIrreversibleBlockHashAndHeightAsync();
             var lastIrreversibleBlockHeight = libIdHeight.BlockHeight;
-            _irreversibleBlockExists = lastIrreversibleBlockHeight > Constants.GenesisBlockHeight;
+            _irreversibleBlockExists = lastIrreversibleBlockHeight > AElfConstants.GenesisBlockHeight;
             return _irreversibleBlockExists;
         }
     }

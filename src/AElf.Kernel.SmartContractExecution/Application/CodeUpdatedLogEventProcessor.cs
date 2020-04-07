@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.CSharp.Core.Extension;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class CodeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<CodeUpdatedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -34,9 +35,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
 
-        public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService, 
-            ISmartContractRegistrationProvider smartContractRegistrationProvider, 
-            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider, 
+        public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
+            ISmartContractRegistrationProvider smartContractRegistrationProvider,
+            ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -47,17 +48,18 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<CodeUpdatedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var eventData = new CodeUpdated();
             eventData.MergeFrom(logEvent);
 
             var smartContractRegistration =
-                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                }, eventData.Address);
+                await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(
+                    new ChainContext
+                    {
+                        BlockHash = block.GetHash(),
+                        BlockHeight = block.Height
+                    }, eventData.Address);
             await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(new BlockIndex
             {
                 BlockHash = block.GetHash(),
