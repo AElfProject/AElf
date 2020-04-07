@@ -687,13 +687,11 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var transactionManager = Application.ServiceProvider.GetRequiredService<ITransactionManager>();
-            var blockchainExecutingService =
-                Application.ServiceProvider.GetRequiredService<IBlockchainExecutingService>();
+            var blockAttachService =
+                Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
             txs.ForEach(tx => AsyncHelper.RunSync(() => transactionManager.AddTransactionAsync(tx)));
             await blockchainService.AddBlockAsync(block);
-            var chain = await blockchainService.GetChainAsync();
-            var status = await blockchainService.AttachBlockToChainAsync(chain, block);
-            await blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            await blockAttachService.AttachBlockAsync(block);
         }
 
         /// <summary>
