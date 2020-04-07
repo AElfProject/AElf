@@ -8,7 +8,7 @@ namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusReaderContextService
     {
-        Task<ContractReaderContext> GetContractReaderContext(IChainContext chainContext);
+        Task<ContractReaderContext> GetContractReaderContextAsync(IChainContext chainContext);
     }
 
     public class ConsensusReaderContextService : IConsensusReaderContextService
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public async Task<ContractReaderContext> GetContractReaderContext(IChainContext chainContext)
+        public async Task<ContractReaderContext> GetContractReaderContextAsync(IChainContext chainContext)
         {
             var timestamp = _blockTimeProvider.GetBlockTime();
             var sender = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());

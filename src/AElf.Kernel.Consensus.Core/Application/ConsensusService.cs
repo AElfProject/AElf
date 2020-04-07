@@ -61,7 +61,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
 
             // Upload the consensus command.
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             _consensusCommand = await _contractReaderFactory
                 .Create<ConsensusContractContainer.ConsensusContractStub>(contractReaderContext).GetConsensusCommand
                 .CallAsync(triggerInformation);
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogTrace($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate Before.");
 
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var validationResult = await _contractReaderFactory
                 .Create<ConsensusContractContainer.ConsensusContractStub>(contractReaderContext)
                 .ValidateConsensusBeforeExecution
@@ -146,7 +146,7 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogTrace($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate After.");
 
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var validationResult = await _contractReaderFactory
                 .Create<ConsensusContractContainer.ConsensusContractStub>(contractReaderContext)
                 .ValidateConsensusAfterExecution
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace(
                 $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
 
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             return (await _contractReaderFactory
                     .Create<ConsensusContractContainer.ConsensusContractStub>(contractReaderContext)
                     .GetConsensusExtraData
@@ -205,7 +205,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace(
                 $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Txs.");
 
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var generatedTransactions =
                 (await _contractReaderFactory
                     .Create<ConsensusContractContainer.ConsensusContractStub>(contractReaderContext)

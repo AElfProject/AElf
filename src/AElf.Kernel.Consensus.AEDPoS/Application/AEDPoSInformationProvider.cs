@@ -23,7 +23,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<IEnumerable<string>> GetCurrentMinerList(ChainContext chainContext)
         {
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContext(chainContext);
+            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var minersWithRoundNumber =
                 await _contractReaderFactory
                     .Create<AEDPoSContractContainer.AEDPoSContractStub>(contractReaderContext).GetCurrentMinerList.CallAsync(new Empty());
