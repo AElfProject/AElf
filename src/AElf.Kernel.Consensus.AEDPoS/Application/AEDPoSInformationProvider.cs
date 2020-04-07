@@ -11,10 +11,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     // ReSharper disable once InconsistentNaming
     internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
     {
-        private readonly IContractReaderFactory _contractReaderFactory;
+        private readonly IContractReaderFactory<AEDPoSContractContainer.AEDPoSContractStub> _contractReaderFactory;
         private readonly IConsensusReaderContextService _consensusReaderContextService;
 
-        public AEDPoSInformationProvider(IContractReaderFactory contractReaderFactory,
+        public AEDPoSInformationProvider(
+            IContractReaderFactory<AEDPoSContractContainer.AEDPoSContractStub> contractReaderFactory,
             IConsensusReaderContextService consensusReaderContextService)
         {
             _contractReaderFactory = contractReaderFactory;
@@ -23,10 +24,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<IEnumerable<string>> GetCurrentMinerList(ChainContext chainContext)
         {
-            var contractReaderContext = await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
+            var contractReaderContext =
+                await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var minersWithRoundNumber =
                 await _contractReaderFactory
-                    .Create<AEDPoSContractContainer.AEDPoSContractStub>(contractReaderContext).GetCurrentMinerList.CallAsync(new Empty());
+                    .Create(contractReaderContext).GetCurrentMinerList.CallAsync(new Empty());
             return minersWithRoundNumber.Pubkeys.Select(k => k.ToHex());
         }
     }

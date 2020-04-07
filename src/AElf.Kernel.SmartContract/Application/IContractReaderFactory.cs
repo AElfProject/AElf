@@ -2,9 +2,9 @@ using AElf.CSharp.Core;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface IContractReaderFactory
+    public interface IContractReaderFactory<T>
+        where T : ContractStubBase, new()
     {
-        T Create<T>(ContractReaderContext contractReaderContext)
-            where T : ContractStubBase, new();
+        T Create(ContractReaderContext contractReaderContext);
     }
 }

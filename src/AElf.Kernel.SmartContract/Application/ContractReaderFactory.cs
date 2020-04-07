@@ -3,7 +3,8 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class ContractReaderFactory : IContractReaderFactory, ITransientDependency
+    public class ContractReaderFactory<T> : IContractReaderFactory<T>
+        where T : ContractStubBase, new()
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
@@ -12,8 +13,7 @@ namespace AElf.Kernel.SmartContract.Application
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-        public T Create<T>(ContractReaderContext contractReaderContext)
-            where T : ContractStubBase, new()
+        public T Create(ContractReaderContext contractReaderContext)
         {
             var methodStubFactory = new ReadOnlyMethodStubFactory(_transactionReadOnlyExecutionService);
             methodStubFactory.SetContractReaderContext(contractReaderContext);

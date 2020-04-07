@@ -17,7 +17,8 @@ namespace AElf.CrossChain
     {
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
         private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
-        private readonly IContractReaderFactory _contractReaderFactory;
+        private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
+            _contractReaderFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<CrossChainService> Logger { get; set; }
 
@@ -25,7 +26,8 @@ namespace AElf.CrossChain
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
         public CrossChainService(IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            ICrossChainCacheEntityService crossChainCacheEntityService, IContractReaderFactory contractReaderFactory,
+            ICrossChainCacheEntityService crossChainCacheEntityService,
+            IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
             ISmartContractAddressService smartContractAddressService)
         {
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
@@ -76,7 +78,7 @@ namespace AElf.CrossChain
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            return await _contractReaderFactory.Create<CrossChainContractContainer.CrossChainContractStub>(
+            return await _contractReaderFactory.Create(
                     new ContractReaderContext
                     {
                         BlockHash = libDto.BlockHash,
@@ -111,7 +113,7 @@ namespace AElf.CrossChain
 
         private async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAsync(Hash blockHash, long blockHeight)
         {
-            return await _contractReaderFactory.Create<CrossChainContractContainer.CrossChainContractStub>(
+            return await _contractReaderFactory.Create(
                     new ContractReaderContext
                     {
                         BlockHash = blockHash,

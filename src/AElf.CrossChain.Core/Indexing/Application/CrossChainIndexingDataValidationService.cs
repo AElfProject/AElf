@@ -16,14 +16,16 @@ namespace AElf.CrossChain.Indexing.Application
     {
         public ILogger<CrossChainIndexingDataValidationService> Logger { get; set; }
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
-        private readonly IContractReaderFactory _contractReaderFactory;
+        private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
+            _contractReaderFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         private Address CrossChainContractAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
         public CrossChainIndexingDataValidationService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
-            IContractReaderFactory contractReaderFactory, ISmartContractAddressService smartContractAddressService)
+            IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
+            ISmartContractAddressService smartContractAddressService)
         {
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _contractReaderFactory = contractReaderFactory;
@@ -55,13 +57,12 @@ namespace AElf.CrossChain.Indexing.Application
                 if (!sideChainValidatedHeightDict.TryGetValue(sideChainBlockData.ChainId, out var validatedHeight))
                 {
                     var height = await _contractReaderFactory
-                        .Create<CrossChainContractContainer.CrossChainContractStub>(
-                            new ContractReaderContext
-                            {
-                                BlockHash = blockHash,
-                                BlockHeight = blockHeight,
-                                ContractAddress = CrossChainContractAddress
-                            }).GetSideChainHeight
+                        .Create(new ContractReaderContext
+                        {
+                            BlockHash = blockHash,
+                            BlockHeight = blockHeight,
+                            ContractAddress = CrossChainContractAddress
+                        }).GetSideChainHeight
                         .CallAsync(
                             new Int32Value()
                             {
@@ -106,13 +107,12 @@ namespace AElf.CrossChain.Indexing.Application
             if (parentChainBlockDataList.Count == 0)
                 return true;
             var parentChainId = (await _contractReaderFactory
-                .Create<CrossChainContractContainer.CrossChainContractStub>(
-                    new ContractReaderContext
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight,
-                        ContractAddress = CrossChainContractAddress
-                    }).GetParentChainId
+                .Create(new ContractReaderContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetParentChainId
                 .CallAsync(new Empty())).Value;
             if (parentChainId == 0)
                 // no configured parent chain
@@ -120,13 +120,12 @@ namespace AElf.CrossChain.Indexing.Application
 
             var length = parentChainBlockDataList.Count;
             var i = 0;
-            var targetHeight = (await _contractReaderFactory.Create<CrossChainContractContainer.CrossChainContractStub>(
-                                       new ContractReaderContext
-                                       {
-                                           BlockHash = blockHash,
-                                           BlockHeight = blockHeight,
-                                           ContractAddress = CrossChainContractAddress
-                                       }).GetParentChainHeight
+            var targetHeight = (await _contractReaderFactory.Create(new ContractReaderContext
+                                   {
+                                       BlockHash = blockHash,
+                                       BlockHeight = blockHeight,
+                                       ContractAddress = CrossChainContractAddress
+                                   }).GetParentChainHeight
                                    .CallAsync(new Empty())).Value + 1;
             while (i < length)
             {
