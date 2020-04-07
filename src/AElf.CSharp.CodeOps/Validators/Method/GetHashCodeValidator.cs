@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -8,8 +9,11 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class GetHashCodeValidator : IValidator<MethodDefinition>
     {
-        public IEnumerable<ValidationResult> Validate(MethodDefinition method)
+        public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             if (!method.HasBody)
                 return Enumerable.Empty<ValidationResult>();
             

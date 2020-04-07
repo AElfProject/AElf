@@ -14,6 +14,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;

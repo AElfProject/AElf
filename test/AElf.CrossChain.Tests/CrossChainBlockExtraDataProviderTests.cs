@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp;

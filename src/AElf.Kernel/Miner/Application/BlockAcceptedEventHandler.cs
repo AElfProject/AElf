@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
@@ -10,14 +12,15 @@ namespace AElf.Kernel.Miner.Application
     {
         private readonly ILogEventListeningService<IBlockAcceptedLogEventProcessor> _logEventListeningService;
 
-        public BlockAcceptedEventHandler(ILogEventListeningService<IBlockAcceptedLogEventProcessor> logEventListeningService)
+        public BlockAcceptedEventHandler(
+            ILogEventListeningService<IBlockAcceptedLogEventProcessor> logEventListeningService)
         {
             _logEventListeningService = logEventListeningService;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            await _logEventListeningService.ProcessAsync(new[] {eventData.Block});
+            await _logEventListeningService.ProcessAsync(new List<BlockExecutedSet> {eventData.BlockExecutedSet});
         }
     }
 }

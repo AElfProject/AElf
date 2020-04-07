@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.CodeOps.Patchers.Module;
@@ -10,6 +11,8 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
+using AElf.Kernel.CodeCheck;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Mono.Cecil;
@@ -75,16 +78,16 @@ namespace AElf.CSharp.CodeOps
 
     public class ContractPolicyTests : CSharpCodeOpsTestBase
     {
-        private ContractAuditor _auditor;
+        private CSharpContractAuditor _auditor;
         private readonly byte[] _systemContractCode;
         private readonly byte[] _badContractCode;
-        private readonly RequiredAcsDto _requiredAcs;
+        private readonly RequiredAcs _requiredAcs;
 
         public ContractPolicyTests()
         {
             _systemContractCode = ReadPatchedContractCode(typeof(BasicContractZero));
             _badContractCode = ReadContractCode(typeof(BadContract));
-            _requiredAcs = new RequiredAcsDto
+            _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
@@ -152,51 +155,21 @@ namespace AElf.CSharp.CodeOps
         }
 
         [Fact]
-        public void ContractAuditor_Basic_Test()
-        {
-            var whiteList = new List<string>
-            {
-                "System.Collection",
-                "System.Linq"
-            };
-            var blackList = new List<string>
-            {
-                "System.Random",
-                "System.DateTime"
-            };
-
-            _auditor = new ContractAuditor(blackList, whiteList);
-
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs, true));
-        }
-
-        [Fact]
         public void ContractAuditor_AcsRequired_Test()
         {
-            var whiteList = new List<string>
-            {
-                "System.Collection",
-                "System.Linq"
-            };
-            var blackList = new List<string>
-            {
-                "System.Random",
-                "System.DateTime"
-            };
+            _auditor = new CSharpContractAuditor();
 
-            _auditor = new ContractAuditor(whiteList, blackList);
-
-            var requireAcs = new RequiredAcsDto();
+            var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs, true));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs));
 
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
             requireAcs.AcsList.Add("acs8");
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
             requireAcs.RequireAll = true;
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs));
         }
 
         [Fact]
@@ -207,7 +180,7 @@ namespace AElf.CSharp.CodeOps
             var md = ModuleDefinition.ReadModule(new MemoryStream(changedCode));
 
             var observerValidator = new ObserverProxyValidator();
-            var validateResult = observerValidator.Validate(md);
+            var validateResult = observerValidator.Validate(md, new CancellationToken());
             validateResult.Count().ShouldBeGreaterThan(0);
         }
         
@@ -219,7 +192,7 @@ namespace AElf.CSharp.CodeOps
             {
                 foreach (var method in typeInfo.Methods)
                 {
-                    var validateResult = validator.Validate(method).ToList();
+                    var validateResult = validator.Validate(method, new CancellationToken()).ToList();
                     var count = validateResult.Count();
                     if (count != 0)
                         validateList.AddRange(validateResult);

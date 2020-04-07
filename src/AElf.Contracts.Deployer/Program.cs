@@ -59,10 +59,10 @@ namespace AElf.Contracts.Deployer
             {
                 try
                 {
-                    var auditor = new ContractAuditor(null, null);
-                    auditor.Audit(patchedCode, null, false);
+                    var auditor = new CSharpContractAuditor();
+                    auditor.Audit(patchedCode, null);
                 }
-                catch (InvalidCodeException ex)
+                catch (CSharpCodeCheckException ex)
                 {
                     foreach (var finding in ex.Findings)
                     {

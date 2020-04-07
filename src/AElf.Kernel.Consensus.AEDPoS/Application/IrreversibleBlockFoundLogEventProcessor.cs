@@ -12,7 +12,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockFoundLogEventProcessor>.Instance;
         }
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -47,12 +47,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task ProcessAsync(Block block, TransactionResult result, LogEvent log)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var irreversibleBlockFound = new IrreversibleBlockFound();
-            irreversibleBlockFound.MergeFrom(log);
-            var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
-            return Task.CompletedTask;
+            irreversibleBlockFound.MergeFrom(logEvent);
+            await ProcessLogEventAsync(block, irreversibleBlockFound);
         }
 
         private async Task ProcessLogEventAsync(Block block, IrreversibleBlockFound irreversibleBlockFound)

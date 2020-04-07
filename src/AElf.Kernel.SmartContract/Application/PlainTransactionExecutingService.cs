@@ -23,17 +23,14 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
-        private readonly ITransactionResultService _transactionResultService;
         public ILogger<PlainTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public PlainTransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService,
+        public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
             IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
             IInlineTransactionValidationService inlineTransactionValidationService)
         {
-            _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _inlineTransactionValidationService = inlineTransactionValidationService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
@@ -129,9 +126,6 @@ namespace AElf.Kernel.SmartContract.Application
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
                 }
-
-                await _transactionResultService.AddTransactionResultsAsync(transactionResults,
-                    transactionExecutingDto.BlockHeader);
                 return returnSets;
             }
             catch (Exception e)
@@ -189,10 +183,6 @@ namespace AElf.Kernel.SmartContract.Application
                 #endregion
 
                 await executive.ApplyAsync(txContext);
-                
-                Logger.LogTrace($"Method: {singleTxExecutingDto.Transaction.MethodName}, " +
-                                            $"Call Count: {trace.ExecutionCallCount}, " +
-                                            $"Branch Count: {trace.ExecutionBranchCount}");
 
                 if (txContext.Trace.IsSuccessful())
                     await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
@@ -286,7 +276,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     var singleTxExecutingDto = new SingleTransactionExecutingDto
                     {
-                        Depth = 0,
+                        Depth = 0, //TODO: this 0 means it is possible that pre/post txs could have own pre/post txs
                         ChainContext = internalChainContext,
                         Transaction = preTx,
                         CurrentBlockTime = currentBlockTime
@@ -396,15 +386,17 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         // All pre-txs succeeded, but one plugin stopped tx execution.
                         // Need to add log events to tx result, as well as show the error message in this situation.
-                        return new TransactionResult
+                        var txResult = new TransactionResult
                         {
                             TransactionId = trace.TransactionId,
                             Status = TransactionResultStatus.Failed,
                             ReturnValue = trace.ReturnValue,
                             BlockNumber = blockHeight,
-                            Logs = {trace.FlattenedLogs},
+                            Logs = {trace.GetPluginLogs()},
                             Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
                         };
+                        txResult.UpdateBloom();
+                        return txResult;
                     }
 
                     return new TransactionResult
@@ -417,27 +409,33 @@ namespace AElf.Kernel.SmartContract.Application
                 }
 
                 // Just failed.
-                return new TransactionResult
                 {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Failed,
-                    BlockNumber = blockHeight,
-                    Error = trace.Error,
-                    Logs = {isContainLogEvents ? trace.PluginLogs : new List<LogEvent>()}
-                };
+                    var txResult = new TransactionResult
+                    {
+                        TransactionId = trace.TransactionId,
+                        Status = TransactionResultStatus.Failed,
+                        BlockNumber = blockHeight,
+                        Error = trace.Error,
+                        Logs = {trace.GetPluginLogs()}
+                    };
+                    txResult.UpdateBloom();
+                    return txResult;
+                }
             }
 
-            // Is successful.
-            var txRes = new TransactionResult
             {
-                TransactionId = trace.TransactionId,
-                Status = TransactionResultStatus.Mined,
-                ReturnValue = trace.ReturnValue,
-                BlockNumber = blockHeight,
-                Logs = {trace.FlattenedLogs}
-            };
-            txRes.UpdateBloom();
-            return txRes;
+                // Is successful.
+                var txResult = new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Mined,
+                    ReturnValue = trace.ReturnValue,
+                    BlockNumber = blockHeight,
+                    Logs = {trace.FlattenedLogs}
+                };
+                txResult.UpdateBloom();
+                return txResult;
+            }
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
@@ -446,7 +444,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = result.TransactionId,
                 Status = result.Status,
-                Bloom = result.Bloom
+                Bloom = result.Bloom,
+                TransactionResult = result
             };
 
             if (trace.IsSuccessful())

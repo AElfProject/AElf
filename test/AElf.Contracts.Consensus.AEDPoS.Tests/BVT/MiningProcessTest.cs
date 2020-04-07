@@ -5,6 +5,8 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
@@ -67,7 +69,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var changeTermTime = BlockchainStartTimestamp.ToDateTime()
-                .AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 1);
+                .AddMinutes(AEDPoSContractTestConstants.PeriodSeconds + 1);
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
@@ -95,7 +97,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(ValidationDataCenterKeyPairs[0]
                     .PublicKey.ToHex()));
 
-            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
+            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.PeriodSeconds + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
             var thirdRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
