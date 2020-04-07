@@ -1,4 +1,3 @@
-using System.Runtime.Intrinsics.X86;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -212,7 +211,7 @@ namespace AElf.Contracts.MultiToken
             var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainCreateToken),
                 crossChainCreateTokenInput);
-            result.Status.ShouldBe(TransactionResultStatus.Mined, ResultsFlag.Error);
+            result.Status.ShouldBe(TransactionResultStatus.Mined, result.Error);
         }
 
         [Fact]
