@@ -16,7 +16,7 @@ namespace AElf.CrossChain
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
 
             context.Services
-                .AddSingleton<IBestChainFoundLogEventProcessor, CrossChainIndexingDataProposedLogEventProcessor>();
+                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CrossChainIndexingDataProposedLogEventProcessor>();
             context.Services.AddSingleton<IIrreversibleBlockStateProvider, IrreversibleBlockStateProvider>();
         }
     }
