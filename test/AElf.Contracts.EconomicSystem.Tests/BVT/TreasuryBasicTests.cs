@@ -194,10 +194,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 MinerRewardWeight = 8
             };
             await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
-            var defaultWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
-            defaultWeightSetting.BasicMinerRewardProportion.ShouldBe(50);
-            defaultWeightSetting.ReElectionRewardProportion.ShouldBe(25);
-            defaultWeightSetting.VotesWeightRewardProportion.ShouldBe(25);
+            var minerRewardProfit =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
+            var subSchemes = minerRewardProfit.SubSchemes;
+            subSchemes.Count.ShouldBe(3);
+            var weightOneCount = subSchemes.Count(x => x.Shares == 2);
+            weightOneCount.ShouldBe(1);
+            var weightEightCount = subSchemes.Count(x => x.Shares == 1);
+            weightEightCount.ShouldBe(2);
         }
 
         [Fact]
