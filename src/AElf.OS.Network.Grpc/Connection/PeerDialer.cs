@@ -225,16 +225,17 @@ namespace AElf.OS.Network.Grpc
             {
                 client = new TcpClient();
 
-                
                 try
                 {
-                    var connectTask = client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port);
-                    await connectTask.WithCancellation(
-                        new CancellationTokenSource(NetworkConstants.DefaultSslCertifFetchTimeout).Token);
+                    using (var cts = new CancellationTokenSource())
+                    {
+                        cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
+                        await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
-                    Logger.LogWarning($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+                    Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
                     return null;
                 }
 
