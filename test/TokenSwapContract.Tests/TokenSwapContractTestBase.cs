@@ -7,7 +7,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.CodeOps;
-using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -111,9 +110,9 @@ namespace TokenSwapContract.Tests
         }
 
         internal async Task<Hash> CreateSwapAsync(string symbol = "ELF", int originTokenSizeInByte = 32,
-            SwapRatio ration = null, long depositAmount = 0, bool isBigEndian = true)
+            SwapRatio ratio = null, long depositAmount = 0, bool isBigEndian = true)
         {
-            var swapRatio = ration ?? new SwapRatio
+            var swapRatio = ratio ?? new SwapRatio
             {
                 OriginShare = 10_000_000_000, //1e18
                 TargetShare = 1 // 1e8
@@ -131,6 +130,23 @@ namespace TokenSwapContract.Tests
                         TargetTokenSymbol = symbol,
                         DepositAmount = depositAmount == 0 ? TotalSupply : depositAmount,
                     }
+                }
+            });
+            var swapId = addSwapPairTx.Output;
+            return swapId;
+        }
+        
+        internal async Task<Hash> CreateSwapWithMultiTargetTokenAsync(int originTokenSizeInByte = 32,
+            bool isBigEndian = true, params SwapTargetToken[] swapTargetTokens)
+        {
+            var addSwapPairTx = await TokenSwapContractStub.CreateSwap.SendAsync(new CreateSwapInput()
+            {
+                OriginTokenSizeInByte = originTokenSizeInByte,
+
+                OriginTokenNumericBigEndian = isBigEndian,
+                SwapTargetTokenList =
+                {
+                    swapTargetTokens
                 }
             });
             var swapId = addSwapPairTx.Output;
@@ -179,14 +195,17 @@ namespace TokenSwapContract.Tests
             return decimal.TryParse(amountInString, out amount);
         }
 
-        protected async Task CreatAndIssueDefaultToken()
+        protected async Task CreatAndIssueDefaultTokenAsync()
         {
-            await CreateAndApproveTokenAsync(TokenName, DefaultSymbol, 8, TotalSupply, TotalSupply);
+            await CreateAndApproveTokenAsync(TokenName1, DefaultSymbol1, 8, TotalSupply, TotalSupply);
+            await CreateAndApproveTokenAsync(TokenName2, DefaultSymbol2, 8, TotalSupply, TotalSupply);
         }
 
-        protected string DefaultSymbol { get; set; } = "ELF";
+        protected string DefaultSymbol1 { get; set; } = "ELF";
+        protected string DefaultSymbol2 { get; set; } = "ABC";
 
-        protected string TokenName { get; set; } = "ELF";
+        protected string TokenName1 { get; set; } = "ELF";
+        protected string TokenName2 { get; set; } = "ABC";
 
         protected long TotalSupply { get; set; } = 100_000_000_000_000_000;
     }
