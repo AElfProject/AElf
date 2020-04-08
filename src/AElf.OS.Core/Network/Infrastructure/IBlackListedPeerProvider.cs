@@ -1,26 +1,21 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Net;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Infrastructure
 {
     public interface IBlackListedPeerProvider
     {
-        bool AddHostToBlackList(string host);
+        bool AddHostToBlackList(string host, int limitSeconds);
         bool IsIpBlackListed(string host);
+        bool RemoveHostFromBlackList(string host);
     }
     
     public class BlackListedPeerProvider : IBlackListedPeerProvider, ISingletonDependency
     {
-        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-
         public ILogger<BlackListedPeerProvider> Logger { get; set; }
         
         private readonly ConcurrentDictionary<string, Timestamp> _blackListedPeers;
@@ -30,13 +25,19 @@ namespace AElf.OS.Network.Infrastructure
             _blackListedPeers = new ConcurrentDictionary<string, Timestamp>();
         }
 
-        public bool AddHostToBlackList(string host)
+        public bool AddHostToBlackList(string host, int limitSeconds)
         {
-            return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow());
+            return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow().AddSeconds(limitSeconds));
         }
-        
+
+        public bool RemoveHostFromBlackList(string host)
+        {
+            return _blackListedPeers.TryRemove(host, out _);
+        }
+
         public bool IsIpBlackListed(string host)
         {
+            // TODO: It's weird to clean black listed peers while querying an ip is black listed.
             CleanBlackListed();
             return _blackListedPeers.ContainsKey(host);
         }
@@ -45,7 +46,7 @@ namespace AElf.OS.Network.Infrastructure
         {
             foreach (var blackListedPeer in _blackListedPeers)
             {
-                if ((TimestampHelper.GetUtcNow() - blackListedPeer.Value).Seconds >= NetworkOptions.PeerBlackListTimeoutInSeconds 
+                if (TimestampHelper.GetUtcNow() > blackListedPeer.Value 
                     && _blackListedPeers.TryRemove(blackListedPeer.Key, out _))
                 {
                     Logger.LogDebug($"Removed blacklisted peer {blackListedPeer.Key}");
