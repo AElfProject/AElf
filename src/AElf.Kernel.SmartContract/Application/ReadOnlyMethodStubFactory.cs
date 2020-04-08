@@ -26,6 +26,9 @@ namespace AElf.Kernel.SmartContract.Application
 
             async Task<TOutput> CallAsync(TInput input)
             {
+                if (_contractReaderContext.ContractAddress == null)
+                    return default;
+
                 var chainContext = new ChainContext
                 {
                     BlockHash = _contractReaderContext.BlockHash,
@@ -47,7 +50,7 @@ namespace AElf.Kernel.SmartContract.Application
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())
                     : default;
             }
-            
+
             Transaction GetTransaction(TInput input)
             {
                 var transaction = new Transaction()

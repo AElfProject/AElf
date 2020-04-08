@@ -61,6 +61,7 @@ namespace AElf.Kernel.Proposal.Application
                     ContractAddress = ParliamentContractAddress
                 }).GetNotVotedPendingProposals
                 .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
+            
             if (result == null)
                 return;
 
