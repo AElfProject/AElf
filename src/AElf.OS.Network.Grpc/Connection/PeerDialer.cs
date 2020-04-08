@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;
@@ -15,7 +16,6 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.X509;
 using Volo.Abp.Threading;
 
@@ -225,10 +225,16 @@ namespace AElf.OS.Network.Grpc
             {
                 client = new TcpClient();
 
-                if (!client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port)
-                    .Wait(NetworkConstants.DefaultSslCertifFetchTimeout))
+                
+                try
                 {
-                    Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+                    var connectTask = client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port);
+                    await connectTask.WithCancellation(
+                        new CancellationTokenSource(NetworkConstants.DefaultSslCertifFetchTimeout).Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.LogWarning($"Certificate retrieval connection timeout for {remoteEndpoint}.");
                     return null;
                 }
 
