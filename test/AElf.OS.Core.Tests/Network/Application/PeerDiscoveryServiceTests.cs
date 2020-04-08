@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.OS.Network.Domain;
 using Google.Protobuf;
@@ -20,8 +21,18 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task DiscoverNodes_Test()
         {
-            var result = await _peerDiscoveryService.DiscoverNodesAsync();
-            result.Nodes.Count.ShouldBe(1);
+            var nodes = await _peerDiscoveryService.GetNodesAsync(1);
+            nodes.Nodes.Count().ShouldBe(0);
+            
+            var discoverResult = await _peerDiscoveryService.DiscoverNodesAsync();
+            discoverResult.Nodes.Count.ShouldBe(1);
+            
+            nodes = await _peerDiscoveryService.GetNodesAsync(1);
+            nodes.Nodes.Count().ShouldBe(1);
+            
+            //rediscovery node again
+            discoverResult = await _peerDiscoveryService.DiscoverNodesAsync();
+            discoverResult.Nodes.Count.ShouldBe(1);
         }
 
         [Fact]

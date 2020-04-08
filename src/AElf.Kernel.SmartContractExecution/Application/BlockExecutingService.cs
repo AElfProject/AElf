@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -19,25 +22,28 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainStateService _blockchainStateService;
+        private readonly ITransactionResultService _transactionResultService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
-            IBlockchainStateService blockchainStateService)
+            IBlockchainStateService blockchainStateService,
+            ITransactionResultService transactionResultService)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
+            _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
+        public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
 
-        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
+        public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
@@ -79,10 +85,30 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection);
-            return block;
+
+            var blockHash = block.GetHash();
+            //save all transaction results
+            
+            var results = returnSetCollection.ToList()
+                .Select(p =>
+                {
+                    p.TransactionResult.BlockHash = blockHash;
+                    return p.TransactionResult;
+                }).ToList();
+
+            await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
+
+            return new BlockExecutedSet()
+            {
+                Block = block,
+                TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
+                TransactionResultMap = returnSetCollection.ToList()
+                    .ToDictionary(p => p.TransactionId, p => p.TransactionResult)
+            };
         }
 
-        protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
+        protected virtual async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
+            List<Transaction> transactions,
             ReturnSetCollection returnSetCollection)
         {
             Logger.LogTrace("Start block field filling after execution.");
@@ -113,7 +139,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
 
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var orderedReturnSets = returnSetCollection.ToList().AsParallel()
+            var orderedReturnSets = returnSetCollection.ToList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
                 CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);

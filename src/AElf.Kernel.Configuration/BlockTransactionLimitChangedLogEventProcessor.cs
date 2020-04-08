@@ -10,13 +10,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Configuration
 {
-    public class BlockTransactionLimitChangedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class BlockTransactionLimitChangedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
-        public LogEvent InterestedEvent
+        public override LogEvent InterestedEvent
         {
             get
             {
@@ -43,7 +43,7 @@ namespace AElf.Kernel.Configuration
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var configurationSet = new ConfigurationSet();
             configurationSet.MergeFrom(logEvent);

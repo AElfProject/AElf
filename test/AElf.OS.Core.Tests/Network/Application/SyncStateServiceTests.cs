@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
@@ -14,12 +16,19 @@ namespace AElf.OS.Network.Application
     {
         private readonly ISyncStateService _syncStateService;
         private readonly IPeerPool _peerPool;
+        private readonly INodeSyncStateProvider _syncStateProvider;
+        private readonly IBlockchainService _blockchainService;
         private readonly ILocalEventBus _eventBus;
+
+        private readonly OSTestHelper _osTestHelper;
 
         public SyncStateServiceTests()
         {
             _syncStateService = GetRequiredService<ISyncStateService>();
             _peerPool = GetRequiredService<IPeerPool>();
+            _syncStateProvider = GetRequiredService<INodeSyncStateProvider>();
+            _osTestHelper = GetService<OSTestHelper>();
+            _blockchainService = GetRequiredService<IBlockchainService>();
             _eventBus = GetRequiredService<ILocalEventBus>();
         }
         
@@ -36,6 +45,33 @@ namespace AElf.OS.Network.Application
             await _syncStateService.UpdateSyncStateAsync();
             
             _syncStateService.SyncState.ShouldBe(SyncState.Finished);
+        }
+        
+        [Fact]
+        public async Task UpdateSyncState_Test()
+        {
+            _peerPool.TryAddPeer(CreatePeer(15));
+            _peerPool.TryAddPeer(CreatePeer(16));
+            
+            await _syncStateService.StartSyncAsync();
+            _syncStateService.SyncState.ShouldBe(SyncState.Syncing);
+            _syncStateProvider.SyncTarget.ShouldBe(15);
+            
+            await _syncStateService.UpdateSyncStateAsync();
+            _syncStateService.SyncState.ShouldBe(SyncState.Syncing);
+            _syncStateProvider.SyncTarget.ShouldBe(15);
+
+            for (var i = 0; i < 4; i++)
+            {
+                await _osTestHelper.MinedOneBlock();
+            }
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetIrreversibleBlockAsync(chain, _osTestHelper.BestBranchBlockList.Last().Height,
+                _osTestHelper.BestBranchBlockList.Last().GetHash());
+
+            await _syncStateService.UpdateSyncStateAsync();
+            _syncStateService.SyncState.ShouldBe(SyncState.Finished);
+            _syncStateProvider.SyncTarget.ShouldBe(-1);
         }
         
         [Fact]

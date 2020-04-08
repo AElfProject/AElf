@@ -12,6 +12,8 @@ namespace AElf.CSharp.CodeOps
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IContractAuditor, CSharpContractAuditor>();
+            var configuration = context.Services.GetConfiguration();
+            Configure<CSharpCodeOpsOptions>(configuration.GetSection("CSharpCodeOps"));
         }
     }
 }
