@@ -26,7 +26,7 @@ namespace AElf.OS.Handlers
             Logger.LogWarning(
                 $"Remove abnormal peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
-            await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
+            await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey);
         }
     }
 }
