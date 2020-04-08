@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
@@ -9,22 +10,26 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ResetFieldsValidator : IValidator<ModuleDefinition>
     {
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
+        public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var errors = module.Types
                 .Where(t => t.Name != nameof(ExecutionObserverProxy))
-                .SelectMany(t => ValidateResetFieldsMethod(t, t.IsContractImplementation()))
+                .SelectMany(t => ValidateResetFieldsMethod(t, t.IsContractImplementation(), ct))
                 .ToList();
 
             return errors;
         }
 
-        private IEnumerable<ValidationResult> ValidateResetFieldsMethod(TypeDefinition type, bool isContractImplementation = false)
+        private IEnumerable<ValidationResult> ValidateResetFieldsMethod(TypeDefinition type, bool isContractImplementation, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             var errors = new List<ValidationResult>();
             
-            // Validate nested types
-            errors.AddRange(type.NestedTypes.SelectMany(t => ValidateResetFieldsMethod(t)));
+            // Validate nested types (Do not consider any nested types as contract implementation)
+            errors.AddRange(type.NestedTypes.SelectMany(t => 
+                ValidateResetFieldsMethod(t, false, ct)));
 
             var fieldsToReset = new List<FieldDefinition>();
 

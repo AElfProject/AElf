@@ -117,6 +117,6 @@ message VoteWeightInterestList {
 }
 
 message AmountAndTimeProportion {
-    sint32 time_proportion = 1;
-    sint32 amount_proportion = 2;
+    int32 time_proportion = 1;
+    int32 amount_proportion = 2;
 }
