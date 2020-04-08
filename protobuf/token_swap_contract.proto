@@ -6,7 +6,7 @@ import "aelf/core.proto";
 import "acs1.proto";
 import "google/protobuf/timestamp.proto";
 
-service TokenSwapContract{
+service TokenSwapContract {
     option (aelf.csharp_state) = "TokenSwapContract.TokenSwapContractState";
     option (aelf.base) = "acs1.proto";
 
@@ -14,11 +14,11 @@ service TokenSwapContract{
     }
     rpc AddSwapRound(AddSwapRoundInput) returns (google.protobuf.Empty) {
     }
-    rpc SwapToken(SwapTokenInput) returns (google.protobuf.Empty) {
+    rpc SwapToken (SwapTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSwapRatio(ChainSwapRatioInput) returns (google.protobuf.Empty) {
+    rpc ChangeSwapRatio (ChangeSwapRatioInput) returns (google.protobuf.Empty) {
     }
-    rpc Deposit(DepositInput) returns (google.protobuf.Empty) {
+    rpc Deposit (DepositInput) returns (google.protobuf.Empty) {
     }
     rpc GetSwapPair(aelf.Hash) returns (SwapPair) {
     }
@@ -29,9 +29,13 @@ service TokenSwapContract{
 message AddSwapPairInput {
     int32 origin_token_size_in_byte = 1;
     bool origin_token_numeric_big_endian = 2;
-    string target_token_symbol = 3;
-    SwapRatio swap_ratio = 4;
-    int64 deposit_amount = 5;
+    repeated SwapTargetToken swap_target_token_list =3;
+}
+
+message SwapTargetToken{
+    string target_token_symbol = 1;
+    SwapRatio swap_ratio = 2;
+    int64 deposit_amount = 3;
 }
 
 message SwapPair{
@@ -47,17 +51,17 @@ message SwapPair{
     int64 deposit_amount = 10;
 }
 
-message SwapRatio{
+message SwapRatio {
     int64 origin_share = 1;
     int64 target_share = 2;
 }
 
-message ChainSwapRatioInput{
+message ChangeSwapRatioInput {
     aelf.Hash pair_id = 1;
     SwapRatio swap_ratio = 2;
 }
 
-message AddSwapRoundInput{
+message AddSwapRoundInput {
     aelf.Hash pair_id = 1;
     aelf.Hash merkle_tree_root = 2;
 }

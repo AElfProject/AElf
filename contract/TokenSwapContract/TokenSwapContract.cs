@@ -11,24 +11,26 @@ namespace TokenSwapContract
     {
         public override Hash AddSwapPair(AddSwapPairInput input)
         {
-            var tokenInfo = GetTokenInfo(input.TargetTokenSymbol);
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), "Token not found.");
-
             var pairId = Hash.FromTwoHashes(Context.TransactionId, Hash.FromMessage(input));
-            var swapPair = new SwapPair
-            {
-                PairId = pairId,
-                Controller = Context.Sender,
-                OriginTokenSizeInByte = input.OriginTokenSizeInByte,
-                OriginTokenNumericBigEndian = input.OriginTokenNumericBigEndian,
-                TargetTokenSymbol = input.TargetTokenSymbol,
-                SwapRatio = input.SwapRatio,
-                DepositAmount = input.DepositAmount
-            };
-            AssertValidSwapPair(swapPair);
-            State.SwapPairs[pairId] = swapPair;
 
-            TransferDepositFrom(input.TargetTokenSymbol, input.DepositAmount, Context.Sender);
+            foreach (var swapTargetToken in input.SwapTargetTokenList)
+            {
+                AssertSwapTargetToken(swapTargetToken.TargetTokenSymbol);
+                var swapPair = new SwapPair
+                {
+                    PairId = pairId,
+                    Controller = Context.Sender,
+                    OriginTokenSizeInByte = input.OriginTokenSizeInByte,
+                    OriginTokenNumericBigEndian = input.OriginTokenNumericBigEndian,
+                    TargetTokenSymbol = swapTargetToken.TargetTokenSymbol,
+                    SwapRatio = swapTargetToken.SwapRatio,
+                    DepositAmount = swapTargetToken.DepositAmount
+                };
+                AssertValidSwapPair(swapPair);
+                State.SwapPairs[pairId][swapTargetToken.TargetTokenSymbol] = swapPair;
+                TransferDepositFrom(swapTargetToken.TargetTokenSymbol, swapTargetToken.DepositAmount, Context.Sender);
+            }
+
             Context.Fire(new SwapPairAdded
             {
                 PairId = pairId

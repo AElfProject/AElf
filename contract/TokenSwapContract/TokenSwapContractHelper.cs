@@ -157,5 +157,11 @@ namespace TokenSwapContract
                 Memo = "Token swap contract deposit."
             });
         }
+
+        private void AssertSwapTargetToken(string symbol)
+        {
+            var tokenInfo = GetTokenInfo(symbol);
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), "Token not found.");
+        }
     }
 }
