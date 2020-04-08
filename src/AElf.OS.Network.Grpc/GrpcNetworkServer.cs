@@ -123,7 +123,7 @@ namespace AElf.OS.Network.Grpc
                     }
                     catch (Exception e)
                     {
-                        Logger.LogInformation(e, $"Connect peer failed.{node}");
+                        Logger.LogInformation(e, $"Connect peer failed {node}.");
                     }
 
                     if (!dialed)
