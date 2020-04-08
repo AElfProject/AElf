@@ -9,6 +9,7 @@ namespace TokenSwapContract
 {
     public class TokenSwapContractState : ContractState
     {
+        public MappedState<Hash, SwapInfo> SwapInfo { get; set; }
         public MappedState<Hash, string, SwapPair> SwapPairs { get; set; }
 
         public MappedState<Hash, Hash, long> Ledger { get; set; }
