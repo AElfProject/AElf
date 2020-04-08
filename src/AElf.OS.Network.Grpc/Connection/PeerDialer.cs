@@ -50,13 +50,7 @@ namespace AElf.OS.Network.Grpc
 
         private void CreateClientKeyCertificatePair()
         {
-            var commonCertifName = "CN=" + GrpcConstants.DefaultTlsCommonName;
-            
-            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
-            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name(commonCertifName),
-                new X509Name(commonCertifName), rsaKeyPair.Private, rsaKeyPair.Public);
-            
-            _clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            _clientKeyCertificatePair = TlsHelper.GenerateKeyCertificatePair();
         }
 
         /// <summary>
@@ -93,8 +87,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
-                IsInbound = false,
-                IsSecure = client.IsSecure
+                IsInbound = false
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
@@ -148,8 +141,7 @@ namespace AElf.OS.Network.Grpc
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 SessionId = handshake.SessionId.ToByteArray(),
                 ProtocolVersion = handshake.HandshakeData.Version,
-                IsInbound = true,
-                IsSecure = client.IsSecure
+                IsInbound = true
             });
 
             peer.UpdateLastReceivedHandshake(handshake);

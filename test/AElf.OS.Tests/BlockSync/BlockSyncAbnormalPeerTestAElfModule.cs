@@ -96,9 +96,9 @@ namespace AElf.OS.BlockSync
                         return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
 
-                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<string, bool>(
-                        (peerPubkey, blacklistPeer) =>
+                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<int>()))
+                    .Returns<string, int>(
+                        (peerPubkey,removalSeconds) =>
                         {
                             _peers.Remove(peerPubkey);
                             return Task.FromResult(true);
