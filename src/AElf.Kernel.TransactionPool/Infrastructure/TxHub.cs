@@ -255,7 +255,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
             }
-
+            
+            // double check
+            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+            if (hasTransaction)
+                return null;
+            
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (addSuccess)
