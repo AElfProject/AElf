@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;
@@ -233,8 +235,15 @@ namespace AElf.OS.Network.Grpc
             {
                 client = new TcpClient();
 
-                if (!client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port)
-                    .Wait(NetworkConstants.DefaultSslCertifFetchTimeout))
+                try
+                {
+                    using (var cts = new CancellationTokenSource())
+                    {
+                        cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
+                        await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
+                    }
+                }
+                catch (OperationCanceledException)
                 {
                     Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
                     return null;
