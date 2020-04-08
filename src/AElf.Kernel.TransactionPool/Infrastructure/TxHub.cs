@@ -207,7 +207,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
                     async queuedTransaction =>
-                        await ProcessQueuedTransactionAsync(queuedTransaction, ValidateTransactionAsync),
+                        await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                     new ExecutionDataflowBlockOptions
                     {
                         BoundedCapacity = _transactionOptions.PoolLimit
@@ -234,17 +234,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return queuedTransaction;
         }
 
-        private bool VerifyTransactionAcceptable(QueuedTransaction queuedTransaction)
+        private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
             return _allTransactions.Count < _transactionOptions.PoolLimit &&
                    !_allTransactions.ContainsKey(queuedTransaction.TransactionId) &&
-                   queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight);
+                   queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight) &&
+                   !await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
         }
 
-        private async Task<QueuedTransaction> ValidateTransactionAsync(QueuedTransaction queuedTransaction)
+        private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if (!VerifyTransactionAcceptable(queuedTransaction))
+            if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
                 return null;
+
             var validationResult =
                 await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
                     .Transaction);
@@ -253,10 +255,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
             }
-
-            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
-            if (hasTransaction)
-                return null;
 
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
