@@ -19,7 +19,7 @@ namespace TokenSwapContract.Tests
         }
 
         [Fact]
-        public async Task TestAddSwapPair()
+        public async Task TestCreatSwap()
         {
             await CreatAndIssueDefaultToken();
             var swapRatio = new SwapRatio
@@ -28,22 +28,34 @@ namespace TokenSwapContract.Tests
                 TargetShare = 1
             };
             var originTokenSizeInByte = 32;
-            var addSwapPairTx = await TokenSwapContractStub.AddSwapPair.SendAsync(new AddSwapPairInput
+            var addSwapPairTx = await TokenSwapContractStub.CreateSwap.SendAsync(new CreateSwapInput()
             {
                 OriginTokenSizeInByte = originTokenSizeInByte,
-                SwapRatio = swapRatio,
-                TargetTokenSymbol = DefaultSymbol,
-                DepositAmount = TotalSupply
+                SwapTargetTokenList =
+                {
+                    new SwapTargetToken
+                    {
+                        SwapRatio = swapRatio,
+                        TargetTokenSymbol = DefaultSymbol,
+                        DepositAmount = TotalSupply
+                    }
+                }
             });
-            var pairId = addSwapPairTx.Output;
-            var swapPair = await TokenSwapContractStub.GetSwapPair.CallAsync(pairId);
-            swapPair.Controller.ShouldBe(DefaultSenderAddress);
+            var swapId = addSwapPairTx.Output;
+            var swapInfo = await TokenSwapContractStub.GetSwapInfo.CallAsync(swapId);
+            swapInfo.SwapId.ShouldBe(swapId);
+            swapInfo.Controller.ShouldBe(DefaultSenderAddress);
+
+            var swapPair = await TokenSwapContractStub.GetSwapPair.CallAsync(new GetSwapPairInput
+            {
+                SwapId = swapId,
+                TargetTokenSymbol = DefaultSymbol
+            });
             swapPair.CurrentRound.ShouldBeNull();
             swapPair.SwappedAmount.ShouldBe(0);
             swapPair.SwappedTimes.ShouldBe(0);
             swapPair.SwapRatio.ShouldBe(swapRatio);
             swapPair.TargetTokenSymbol.ShouldBe(DefaultSymbol);
-            swapPair.PairId.ShouldBe(pairId);
             swapPair.OriginTokenSizeInByte.ShouldBe(originTokenSizeInByte);
         }
 
@@ -51,12 +63,12 @@ namespace TokenSwapContract.Tests
         public async Task TestAddSwapRound()
         {
             await CreatAndIssueDefaultToken();
-            var pairId = await AddSwapPairAsync();
+            var pairId = await CreateSwapAsync();
             var addSwapRoundInput = new AddSwapRoundInput
             {
                 MerkleTreeRoot =
                     HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850"),
-                PairId = pairId
+                SwapId = pairId
             };
             var blockTimeProvider = GetService<IBlockTimeProvider>();
             var utcNow = TimestampHelper.GetUtcNow();
@@ -72,10 +84,10 @@ namespace TokenSwapContract.Tests
         public async Task TestTokenSwap1()
         {
             await CreatAndIssueDefaultToken();
-            var pairId = await AddSwapPairAsync();
+            var swapId = await CreateSwapAsync();
             var merkleTreeRoot =
                 HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
-            await AddSwapRound(pairId, merkleTreeRoot);
+            await AddSwapRound(swapId, merkleTreeRoot);
             var receiverAddress =
                 AddressHelper.Base58StringToAddress("SkMGjviAAs9bnYvv6cKcafbhf6tbRGQGK93WgKvZoCoS5amMK");
             var amountInStr = "75900000000000000000";
@@ -109,7 +121,7 @@ namespace TokenSwapContract.Tests
                         }
                     }
                 },
-                PairId = pairId
+                SwapId = swapId
             };
             var swapTokenTx = await TokenSwapContractStub.SwapToken.SendAsync(swapTokenInput);
             var tokenSwapEvent = TokenSwapEvent.Parser.ParseFrom(swapTokenTx.TransactionResult.Logs
@@ -127,11 +139,19 @@ namespace TokenSwapContract.Tests
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[1]).To.ShouldBe(receiverAddress);
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[2]).Symbol.ShouldBe("ELF");
 
-            var swapPair = await TokenSwapContractStub.GetSwapPair.CallAsync(pairId);
+            var swapPair = await TokenSwapContractStub.GetSwapPair.CallAsync(new GetSwapPairInput
+            {
+                SwapId = swapId,
+                TargetTokenSymbol = DefaultSymbol
+            });
             swapPair.SwappedTimes.ShouldBe(1);
             swapPair.SwappedAmount.ShouldBe(expectedAmount);
 
-            var swapRound = await TokenSwapContractStub.GetCurrentSwapRound.CallAsync(pairId);
+            var swapRound = await TokenSwapContractStub.GetCurrentSwapRound.CallAsync(new GetCurrentSwapRoundInput
+            {
+                SwapId = swapId,
+                TargetTokenSymbol = DefaultSymbol
+            });
             swapRound.SwappedAmount.ShouldBe(expectedAmount);
             swapPair.SwappedTimes.ShouldBe(1);
 
@@ -145,7 +165,7 @@ namespace TokenSwapContract.Tests
         public async Task TestTokenSwap2()
         {
             await CreatAndIssueDefaultToken();
-            var pairId = await AddSwapPairAsync();
+            var pairId = await CreateSwapAsync();
             var merkleTreeRoot =
                 HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
             await AddSwapRound(pairId, merkleTreeRoot);
@@ -182,7 +202,7 @@ namespace TokenSwapContract.Tests
                         }
                     }
                 },
-                PairId = pairId
+                SwapId = pairId
             };
             var swapTokenTx = await TokenSwapContractStub.SwapToken.SendAsync(swapTokenInput);
             var tokenSwapEvent = TokenSwapEvent.Parser.ParseFrom(swapTokenTx.TransactionResult.Logs
@@ -198,7 +218,7 @@ namespace TokenSwapContract.Tests
 
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[1]).To.ShouldBe(receiverAddress);
             Transferred.Parser.ParseFrom(tokenTransferredEvent.Indexed[2]).Symbol.ShouldBe("ELF");
-            
+
             // swap twice
             var transactionResult = (await TokenSwapContractStub.SwapToken.SendWithExceptionAsync(swapTokenInput))
                 .TransactionResult;
@@ -210,10 +230,10 @@ namespace TokenSwapContract.Tests
         {
             await CreatAndIssueDefaultToken();
             var depositAmount = 550000000 - 1;
-            var pairId = await AddSwapPairAsync(DefaultSymbol, 32, null, depositAmount);
+            var swapId = await CreateSwapAsync(DefaultSymbol, 32, null, depositAmount);
             var merkleTreeRoot =
                 HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
-            await AddSwapRound(pairId, merkleTreeRoot);
+            await AddSwapRound(swapId, merkleTreeRoot);
             var receiverAddress =
                 AddressHelper.Base58StringToAddress("2ADXLcyKMGGrRe9aGC7XMXECv8cxz3Tos1z6PJHSfyXguSaVb5");
             var amountInStr = "5500000000000000000";
@@ -247,7 +267,7 @@ namespace TokenSwapContract.Tests
                         }
                     }
                 },
-                PairId = pairId
+                SwapId = swapId
             };
             var transactionResult = (await TokenSwapContractStub.SwapToken.SendWithExceptionAsync(swapTokenInput))
                 .TransactionResult;
@@ -259,56 +279,59 @@ namespace TokenSwapContract.Tests
         public async Task TestChangeSwapRatio()
         {
             await CreatAndIssueDefaultToken();
-            var pairId = await AddSwapPairAsync();
+            var swapId = await CreateSwapAsync();
             {
-                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChangeSwapRatioInput()
                 {
-                    PairId = pairId,
+                    SwapId = swapId,
                     SwapRatio = new SwapRatio
                     {
                         OriginShare = 1,
                         TargetShare = 0,
                     }
                 });
-                tx.TransactionResult.Error.ShouldContain("Invalid swap pair.");
+                tx.TransactionResult.Error.ShouldContain("Target token not registered.");
             }
 
             {
-                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                var tx = await TokenSwapContractStub.ChangeSwapRatio.SendWithExceptionAsync(new ChangeSwapRatioInput
                 {
-                    PairId = pairId,
+                    SwapId = swapId,
                     SwapRatio = new SwapRatio
                     {
                         OriginShare = 0,
                         TargetShare = 1,
-                    }
+                    },
+                    TargetTokenSymbol = DefaultSymbol
                 });
                 tx.TransactionResult.Error.ShouldContain("Invalid swap pair.");
             }
 
             {
                 var newStub = GetTokenSwapContractStub(NormalKeyPair);
-                var tx = await newStub.ChangeSwapRatio.SendWithExceptionAsync(new ChainSwapRatioInput
+                var tx = await newStub.ChangeSwapRatio.SendWithExceptionAsync(new ChangeSwapRatioInput()
                 {
-                    PairId = pairId,
+                    SwapId = swapId,
                     SwapRatio = new SwapRatio
                     {
                         OriginShare = 1,
                         TargetShare = 1,
-                    }
+                    },
+                    TargetTokenSymbol = DefaultSymbol
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
 
             {
-                await TokenSwapContractStub.ChangeSwapRatio.SendAsync(new ChainSwapRatioInput
+                await TokenSwapContractStub.ChangeSwapRatio.SendAsync(new ChangeSwapRatioInput()
                 {
-                    PairId = pairId,
+                    SwapId = swapId,
                     SwapRatio = new SwapRatio
                     {
                         OriginShare = 1,
                         TargetShare = 1,
-                    }
+                    },
+                    TargetTokenSymbol = DefaultSymbol
                 });
             }
         }
@@ -334,13 +357,13 @@ namespace TokenSwapContract.Tests
 
                 tokenLocker.GenerateMerkleTree();
 
-                var pairId = await AddSwapPairAsync(symbol, 4, new SwapRatio
+                var swapId = await CreateSwapAsync(symbol, 4, new SwapRatio
                 {
                     OriginShare = 1,
                     TargetShare = 1
                 }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
-                await AddSwapRound(pairId, merkleTreeRoot);
+                await AddSwapRound(swapId, merkleTreeRoot);
 
                 var amountInStr = int.MaxValue.ToString();
                 for (int i = 0; i < addressList.Count; ++i)
@@ -351,7 +374,7 @@ namespace TokenSwapContract.Tests
                         MerklePath = tokenLocker.GetMerklePath(i),
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
-                        PairId = pairId,
+                        SwapId = swapId,
                         UniqueId = i.ToHash()
                     };
 
@@ -385,13 +408,13 @@ namespace TokenSwapContract.Tests
 
                 tokenLocker.GenerateMerkleTree();
 
-                var pairId = await AddSwapPairAsync(symbol, 8, new SwapRatio
+                var swapId = await CreateSwapAsync(symbol, 8, new SwapRatio
                 {
                     OriginShare = SampleECKeyPairs.KeyPairs.Count,
                     TargetShare = 1
                 }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
-                await AddSwapRound(pairId, merkleTreeRoot);
+                await AddSwapRound(swapId, merkleTreeRoot);
 
                 var amountInStr = long.MaxValue.ToString();
                 for (int i = 0; i < addressList.Count; ++i)
@@ -402,7 +425,7 @@ namespace TokenSwapContract.Tests
                         MerklePath = tokenLocker.GetMerklePath(i),
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
-                        PairId = pairId,
+                        SwapId = swapId,
                         UniqueId = i.ToHash()
                     };
 
@@ -438,13 +461,13 @@ namespace TokenSwapContract.Tests
                 tokenLocker.GenerateMerkleTree();
 
                 var originShare = 10_000_000_000 * SampleECKeyPairs.KeyPairs.Count;
-                var pairId = await AddSwapPairAsync(symbol, bytesCount, new SwapRatio
+                var swapId = await CreateSwapAsync(symbol, bytesCount, new SwapRatio
                 {
                     OriginShare = originShare,
                     TargetShare = 1
                 }, totalSupply, false);
                 var merkleTreeRoot = tokenLocker.MerkleTreeRoot;
-                await AddSwapRound(pairId, merkleTreeRoot);
+                await AddSwapRound(swapId, merkleTreeRoot);
 
                 var amountInStr = decimal.MaxValue.ToString();
                 for (int i = 0; i < addressList.Count; ++i)
@@ -455,7 +478,7 @@ namespace TokenSwapContract.Tests
                         MerklePath = tokenLocker.GetMerklePath(i),
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
-                        PairId = pairId,
+                        SwapId = swapId,
                         UniqueId = i.ToHash()
                     };
 

@@ -35,7 +35,6 @@ namespace TokenSwapContract
                     DepositAmount = swapTargetToken.DepositAmount
                 };
                 AssertValidSwapPair(swapPair);
-                Assert(State.SwapPairs[swapId][swapTargetToken.TargetTokenSymbol] == null, "Invalid input.");
                 var pairId = Hash.FromTwoHashes(swapId, Hash.FromString(swapTargetToken.TargetTokenSymbol));
                 swapInfo.SwapTargetTokenMap.Add(swapTargetToken.TargetTokenSymbol, pairId);
                 State.SwapPairs[pairId] = swapPair;
@@ -56,16 +55,16 @@ namespace TokenSwapContract
         {
             var swapInfo = GetTokenSwapInfo(input.SwapId);
             Assert(swapInfo.Controller == Context.Sender, "No permission.");
-            foreach (var symbol in swapInfo.SwapTargetTokenMap.Keys)
+            foreach (var (_, pairId) in swapInfo.SwapTargetTokenMap)
             {
-                var swapPair = State.SwapPairs[input.SwapId][symbol];
+                var swapPair = State.SwapPairs[pairId];
                 swapPair.CurrentRound = new SwapRound
                 {
                     SwapId = swapInfo.SwapId,
                     MerkleTreeRoot = input.MerkleTreeRoot,
                     StartTime = Context.CurrentBlockTime
                 };
-                State.SwapPairs[input.SwapId][symbol] = swapPair;
+                State.SwapPairs[pairId] = swapPair;
             }
             
             Context.Fire(new SwapRoundUpdated
@@ -134,25 +133,36 @@ namespace TokenSwapContract
             return new Empty();
         }
 
+        public override SwapInfo GetSwapInfo(Hash input)
+        {
+            var swapInfo = State.SwapInfo[input];
+            return swapInfo;
+        }
+
         public override SwapPair GetSwapPair(GetSwapPairInput input)
         {
-            var swapInfo = State.SwapInfo[input.SwapId];
+            var swapInfo = GetTokenSwapInfo(input.SwapId);
             Assert(swapInfo.SwapTargetTokenMap.TryGetValue(input.TargetTokenSymbol, out var pairId),
                 "Target token not registered.");
             var swapPair = GetTokenSwapPair(pairId);
             return swapPair;
         }
 
-        public override SwapRound GetCurrentSwapRound(Hash input)
+        public override SwapRound GetCurrentSwapRound(GetCurrentSwapRoundInput input)
         {
-            var swapPair = GetTokenSwapPair(input);
+            var swapPair = GetSwapPair(new GetSwapPairInput
+            {
+                SwapId = input.SwapId,
+                TargetTokenSymbol = input.TargetTokenSymbol
+            });
             return swapPair.CurrentRound;
         }
 
         public override Empty Deposit(DepositInput input)
         {
+            var swapInfo = GetTokenSwapInfo(input.SwapId);
+            Assert(swapInfo.Controller == Context.Sender, "No permission.");
             var swapPair = GetTokenSwapPair(input.SwapId);
-            Assert(swapPair.Controller == Context.Sender, "No permission.");
             swapPair.DepositAmount = swapPair.DepositAmount.Add(input.Amount);
             AssertValidSwapPair(swapPair);
             State.SwapPairs[input.SwapId] = swapPair;

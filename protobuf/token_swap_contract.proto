@@ -20,9 +20,11 @@ service TokenSwapContract {
     }
     rpc Deposit (DepositInput) returns (google.protobuf.Empty) {
     }
+    rpc GetSwapInfo(aelf.Hash) returns (SwapInfo) {
+    }
     rpc GetSwapPair(GetSwapPairInput) returns (SwapPair) {
     }
-    rpc GetCurrentSwapRound(aelf.Hash) returns (SwapRound) {
+    rpc GetCurrentSwapRound(GetCurrentSwapRoundInput) returns (SwapRound) {
     }
 }
 
@@ -105,7 +107,8 @@ message SwapRoundUpdated{
 
 message DepositInput{
     aelf.Hash swap_id = 1;
-    int64 amount = 2; 
+    string target_token_symbol = 2;
+    int64 amount = 3; 
 }
 
 message SwapRatioChanged{
@@ -123,6 +126,11 @@ message TokenSwapEvent{
 }
 
 message GetSwapPairInput{
+    aelf.Hash swap_id = 1;
+    string target_token_symbol = 2;
+}
+
+message GetCurrentSwapRoundInput{
     aelf.Hash swap_id = 1;
     string target_token_symbol = 2;
 }

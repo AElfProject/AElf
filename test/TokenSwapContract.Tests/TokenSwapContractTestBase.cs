@@ -110,7 +110,7 @@ namespace TokenSwapContract.Tests
             await TokenContractStub.Approve.SendAsync(approveInput);
         }
 
-        internal async Task<Hash> AddSwapPairAsync(string symbol = "ELF", int originTokenSizeInByte = 32,
+        internal async Task<Hash> CreateSwapAsync(string symbol = "ELF", int originTokenSizeInByte = 32,
             SwapRatio ration = null, long depositAmount = 0, bool isBigEndian = true)
         {
             var swapRatio = ration ?? new SwapRatio
@@ -118,24 +118,31 @@ namespace TokenSwapContract.Tests
                 OriginShare = 10_000_000_000, //1e18
                 TargetShare = 1 // 1e8
             };
-            var addSwapPairTx = await TokenSwapContractStub.AddSwapPair.SendAsync(new AddSwapPairInput
+            var addSwapPairTx = await TokenSwapContractStub.CreateSwap.SendAsync(new CreateSwapInput()
             {
                 OriginTokenSizeInByte = originTokenSizeInByte,
-                SwapRatio = swapRatio,
-                TargetTokenSymbol = symbol,
-                DepositAmount = depositAmount == 0 ? TotalSupply : depositAmount,
-                OriginTokenNumericBigEndian = isBigEndian
+
+                OriginTokenNumericBigEndian = isBigEndian,
+                SwapTargetTokenList =
+                {
+                    new SwapTargetToken
+                    {
+                        SwapRatio = swapRatio,
+                        TargetTokenSymbol = symbol,
+                        DepositAmount = depositAmount == 0 ? TotalSupply : depositAmount,
+                    }
+                }
             });
-            var pairId = addSwapPairTx.Output;
-            return pairId;
+            var swapId = addSwapPairTx.Output;
+            return swapId;
         }
 
-        protected async Task AddSwapRound(Hash pairId, Hash merkleTreeRoot)
+        protected async Task AddSwapRound(Hash swapId, Hash merkleTreeRoot)
         {
             var addSwapRoundInput = new AddSwapRoundInput
             {
                 MerkleTreeRoot = merkleTreeRoot,
-                PairId = pairId
+                SwapId = swapId
             };
             await TokenSwapContractStub.AddSwapRound.SendAsync(addSwapRoundInput);
         }
