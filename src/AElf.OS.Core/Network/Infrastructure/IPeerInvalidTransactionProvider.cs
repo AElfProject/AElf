@@ -15,13 +15,13 @@ namespace AElf.OS.Network.Infrastructure
 
     public class PeerInvalidTransactionProvider : IPeerInvalidTransactionProvider, ISingletonDependency
     {
-        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
+        private readonly NetworkOptions _networkOptions;
 
         private readonly ConcurrentDictionary<string, ConcurrentQueue<Timestamp>> _invalidTransactionCache;
 
-        public PeerInvalidTransactionProvider()
+        public PeerInvalidTransactionProvider(IOptionsSnapshot<NetworkOptions> networkOptions)
         {
+            _networkOptions = networkOptions.Value;
             _invalidTransactionCache = new ConcurrentDictionary<string, ConcurrentQueue<Timestamp>>();
         }
 
@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             CleanCache(queue);
-            if (queue.Count >= NetworkOptions.PeerInvalidTransactionLimit)
+            if (queue.Count >= _networkOptions.PeerInvalidTransactionLimit)
                 return false;
 
             queue.Enqueue(TimestampHelper.GetUtcNow());
@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Infrastructure
         {
             while (!queue.IsEmpty
                    && queue.TryPeek(out var timestamp)
-                   && timestamp.AddMilliseconds(NetworkOptions.PeerInvalidTransactionTimeout) < TimestampHelper.GetUtcNow())
+                   && timestamp.AddMilliseconds(_networkOptions.PeerInvalidTransactionTimeout) < TimestampHelper.GetUtcNow())
             {
                 queue.TryDequeue(out _);
             }

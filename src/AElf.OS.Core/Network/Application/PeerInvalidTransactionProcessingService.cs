@@ -40,7 +40,7 @@ namespace AElf.OS.Network.Application
 
             foreach (var pubkey in toRemovePeerPubkey)
             {
-                await _networkService.RemovePeerByPubkeyAsync(pubkey, true);
+                await _networkService.RemovePeerByPubkeyAsync(pubkey);
             }
         }
     }
