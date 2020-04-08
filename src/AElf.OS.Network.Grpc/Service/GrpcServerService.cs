@@ -66,7 +66,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Handshake failed - {context.Peer}: ");
+                Logger.LogWarning(e, $"Handshake failed - {context.Peer}: ");
                 throw;
             }
         }
@@ -82,7 +82,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error - {context.GetPeerInfo()}: ");
+                Logger.LogWarning(e, $"Confirm handshake error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
@@ -336,7 +336,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Request block error: {context.GetPeerInfo()}");
+                Logger.LogWarning(e, $"Request block error: {context.GetPeerInfo()}");
                 throw;
             }
 
@@ -378,7 +378,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Request blocks error - {context.GetPeerInfo()} - request {request}: ");
+                Logger.LogWarning(e, $"Request blocks error - {context.GetPeerInfo()} - request {request}: ");
                 throw;
             }
 
@@ -399,7 +399,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Get nodes error: ");
+                Logger.LogWarning(e, "Get nodes error: ");
                 throw;
             }
 
