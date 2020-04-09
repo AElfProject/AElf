@@ -8,9 +8,12 @@ namespace AElf.OS.Network.Application
 {
     public interface INetworkService
     {
-        Task<bool> AddPeerAsync(string address);
-        Task<bool> RemovePeerAsync(string address);
-        Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false);
+        Task<bool> AddPeerAsync(string endpoint);
+        Task<bool> AddTrustedPeerAsync(string endpoint);
+        Task<bool> RemovePeerByEndpointAsync(string endpoint,
+            int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);
+        Task<bool> RemovePeerByPubkeyAsync(string peerPubkey,
+            int removalSeconds = NetworkConstants.DefaultPeerRemovalSeconds);
         List<PeerInfo> GetPeers(bool includeFailing = true);
         PeerInfo GetPeerByPubkey(string peerPubkey);
         Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peerPubkey = null);
