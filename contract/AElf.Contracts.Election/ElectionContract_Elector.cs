@@ -351,7 +351,7 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
         
-        public override Empty SetAmountAndTimeProportionOfVoteWeight(AmountAndTimeProportion input)
+        public override Empty SetVoteWeightProportion(VoteWeightProportion input)
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
@@ -396,14 +396,14 @@ namespace AElf.Contracts.Election
             };
         }
         
-        private AmountAndTimeProportion GetAmountAndTimeProportion()
+        private VoteWeightProportion GetAmountAndTimeProportion()
         {
             return State.AmountAndTimeProportion.Value ??
-                   (State.AmountAndTimeProportion.Value = GetDefaultAmountAndTimeProportion());
+                   (State.AmountAndTimeProportion.Value = GetDefaultVoteWeightProportion());
         }
-        private AmountAndTimeProportion GetDefaultAmountAndTimeProportion()
+        private VoteWeightProportion GetDefaultVoteWeightProportion()
         {
-            return new AmountAndTimeProportion
+            return new VoteWeightProportion
             {
                 TimeProportion = 2,
                 AmountProportion = 1

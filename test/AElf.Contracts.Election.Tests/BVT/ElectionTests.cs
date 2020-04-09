@@ -510,19 +510,19 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task Election_Amount_And_Time_For_Calculate_Vote_Weight_Update()
         {
-            var defaultSetting = await ElectionContractStub.GetAmountAndTimeProportionOfVoteWeight.CallAsync(
+            var defaultSetting = await ElectionContractStub.GetVoteWeightProportion.CallAsync(
                 new Empty());
             defaultSetting.TimeProportion.ShouldBe(2);
             defaultSetting.AmountProportion.ShouldBe(1);
-            defaultSetting = new AmountAndTimeProportion
+            defaultSetting = new VoteWeightProportion
             {
                 TimeProportion = 3,
                 AmountProportion = 3
             };
             await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
-                nameof(ElectionContractStub.SetAmountAndTimeProportionOfVoteWeight), defaultSetting);
+                nameof(ElectionContractStub.SetVoteWeightProportion), defaultSetting);
             
-            defaultSetting = await ElectionContractStub.GetAmountAndTimeProportionOfVoteWeight.CallAsync(
+            defaultSetting = await ElectionContractStub.GetVoteWeightProportion.CallAsync(
                 new Empty());
             defaultSetting.TimeProportion.ShouldBe(3);
             defaultSetting.AmountProportion.ShouldBe(3);
