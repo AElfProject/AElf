@@ -162,10 +162,11 @@ namespace TokenSwapContract
         {
             var swapInfo = GetTokenSwapInfo(input.SwapId);
             Assert(swapInfo.Controller == Context.Sender, "No permission.");
-            var swapPair = GetTokenSwapPair(input.SwapId);
+            var swapPairId = swapInfo.SwapTargetTokenMap[input.TargetTokenSymbol];
+            var swapPair = GetTokenSwapPair(swapPairId);
             swapPair.DepositAmount = swapPair.DepositAmount.Add(input.Amount);
             AssertValidSwapPair(swapPair);
-            State.SwapPairs[input.SwapId] = swapPair;
+            State.SwapPairs[swapPairId] = swapPair;
             TransferDepositFrom(swapPair.TargetTokenSymbol, input.Amount, Context.Sender);
             return new Empty();
         }
