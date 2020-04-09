@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;
@@ -15,7 +16,6 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.X509;
 using Volo.Abp.Threading;
 
@@ -61,7 +61,10 @@ namespace AElf.OS.Network.Grpc
         public async Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint)
         {
             var client = await CreateClientAsync(remoteEndpoint);
-            
+
+            if (client == null)
+                return null;
+
             var handshake = await _handshakeProvider.GetHandshakeAsync();
             var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
@@ -133,6 +136,10 @@ namespace AElf.OS.Network.Grpc
         public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
             var client = await CreateClientAsync(remoteEndpoint);
+
+            if (client == null)
+                return null;
+            
             await PingNodeAsync(client, remoteEndpoint);
 
             var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
@@ -183,14 +190,12 @@ namespace AElf.OS.Network.Grpc
         {
             var certificate = await RetrieveServerCertificateAsync(remoteEndpoint);
 
-            ChannelCredentials credentials = ChannelCredentials.Insecure;
+            if (certificate == null)
+                return null;
 
-            if (certificate != null)
-            {
-                Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
-                credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
-            }
-            
+            Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
+            ChannelCredentials credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
+
             var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
@@ -214,11 +219,25 @@ namespace AElf.OS.Network.Grpc
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
-            
+
             TcpClient client = null;
             try
             {
-                client = new TcpClient(remoteEndpoint.Host, remoteEndpoint.Port);
+                client = new TcpClient();
+
+                try
+                {
+                    using (var cts = new CancellationTokenSource())
+                    {
+                        cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
+                        await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+                    return null;
+                }
 
                 using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                 {

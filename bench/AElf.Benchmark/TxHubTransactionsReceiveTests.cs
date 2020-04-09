@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Types;
@@ -46,7 +47,7 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task HandleTransactionsReceivedTest()
         {
-            await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
             {
                 Transactions = _transactions
             });
