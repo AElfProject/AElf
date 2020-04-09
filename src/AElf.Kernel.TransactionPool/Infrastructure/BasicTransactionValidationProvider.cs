@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class BasicTransactionValidationProvider : ITransactionValidationProvider
     {

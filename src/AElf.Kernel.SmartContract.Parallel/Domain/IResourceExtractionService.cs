@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Parallel

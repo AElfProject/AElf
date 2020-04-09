@@ -19,6 +19,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
@@ -292,7 +293,7 @@ namespace AElf.OS
                 Transactions = transactions
             };
 
-            await _txHub.HandleTransactionsReceivedAsync(transactionsReceivedEvent);
+            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)
