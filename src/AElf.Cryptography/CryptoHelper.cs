@@ -17,6 +17,8 @@ namespace AElf.Cryptography
 
         // ReaderWriterLock for thread-safe with Secp256k1 APIs
         private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
+        
+        private const int LockTimeout = 2000;
 
         static CryptoHelper()
         {
@@ -33,7 +35,7 @@ namespace AElf.Cryptography
 
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(LockTimeout);
                 var secp256K1PubKey = new byte[64];
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
@@ -53,7 +55,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(LockTimeout);
                 var privateKey = new byte[32];
                 var secp256K1PubKey = new byte[64];
 
@@ -81,7 +83,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(LockTimeout);
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 if(!Secp256K1.SignRecoverable(recSig, hash, privateKey))
@@ -108,7 +110,7 @@ namespace AElf.Cryptography
             pubkey = null;
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(LockTimeout);
                 // Recover id should be greater than or equal to 0 and less than 4
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH || signature.Last() >= 4)
                     return false;
@@ -150,7 +152,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(LockTimeout);
                 var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
                     throw new PublicKeyOperationException("Parse public key failed.");
