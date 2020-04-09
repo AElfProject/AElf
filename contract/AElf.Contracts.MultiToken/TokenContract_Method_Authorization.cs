@@ -389,7 +389,8 @@ namespace AElf.Contracts.MultiToken
         
         private void AssertControllerForSideChainRental()
         {
-            Assert(State.SideChainRentalController.Value != null, "side chain creator dose not exist");
+            Assert(State.SideChainRentalController.Value != null, "controller does not initialize, call InitializeAuthorizedController first");
+            // ReSharper disable once PossibleNullReferenceException
             Assert(State.SideChainRentalController.Value.OwnerAddress == Context.Sender, "no permission");
         }
 
