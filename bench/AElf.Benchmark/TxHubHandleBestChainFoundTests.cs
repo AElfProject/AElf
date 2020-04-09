@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;
@@ -48,7 +49,7 @@ namespace AElf.Benchmark
         public async Task IterationSetup()
         {
             var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
-            await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
             {
                 Transactions = transactions
             });

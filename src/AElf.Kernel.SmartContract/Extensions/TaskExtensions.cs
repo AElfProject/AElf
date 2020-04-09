@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.SmartContract
 {
+    //TODO: Move TaskExtensions to lower level. 
     public static class TaskExtensions
     {
         private struct Void

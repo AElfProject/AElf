@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.Economic.TestBase
         {
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
             var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            await txHub.AddTransactionsAsync(new TransactionsReceivedEvent
             {
                 Transactions = new List<Transaction> {transaction}
             });
