@@ -257,7 +257,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ReleaseCrossChainIndexing(Hash input)
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
-            AssertValidCrossChainIndexingProposer(Context.Sender);
+            AssertAddressIsCurrentMiner(Context.Sender);
             var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
                 out var pendingCrossChainIndexingProposal);
             Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
