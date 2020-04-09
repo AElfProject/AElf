@@ -16,9 +16,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public interface ITxHub
     {
         Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0);
-        Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData);
+        
+        //TODO: should not accept event data
+        Task AddTransactionsAsync(TransactionsReceivedEvent eventData);
+        //TODO: should not accept event data
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
+        //TODO: should not accept event data
         Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);
+        //TODO: should not accept event data
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
         Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
         Task<int> GetAllTransactionCountAsync();

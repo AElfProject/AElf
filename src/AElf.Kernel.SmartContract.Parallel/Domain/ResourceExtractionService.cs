@@ -10,7 +10,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
