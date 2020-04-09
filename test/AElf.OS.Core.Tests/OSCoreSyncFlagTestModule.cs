@@ -11,7 +11,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
-    [DependsOn(typeof(OSCoreTestAElfModule))]
+    [DependsOn(typeof(OSCoreWithChainTestAElfModule))]
     public class OSCoreSyncFlagTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -30,18 +30,6 @@ namespace AElf.OS
                     .Callback<IPeer>(peer => peerList.Add(peer));
                 
                 return peerPoolMock.Object;
-            });
-            
-            context.Services.AddTransient(provider =>
-            {
-                var mockBlockChainService = new Mock<IBlockchainService>();
-                mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(() =>
-                {
-                    var chain = new Chain();
-                    chain.LastIrreversibleBlockHeight = 10;
-                    return Task.FromResult(chain);
-                });
-                return mockBlockChainService.Object;
             });
         }
     }

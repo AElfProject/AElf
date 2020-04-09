@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
@@ -40,7 +41,7 @@ namespace AElf.Contracts.TestBase
             return executableTransactionSet;
         }
 
-        public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
+        public async Task AddTransactionsAsync(TransactionsReceivedEvent eventData)
         {
             foreach (var transaction in eventData.Transactions)
             {
