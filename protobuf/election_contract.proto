@@ -116,6 +116,9 @@ service ElectionContract {
     rpc GetAmountAndTimeProportionOfVoteWeight (google.protobuf.Empty) returns (AmountAndTimeProportion) {
         option (aelf.is_view) = true;
     }
+    rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
@@ -279,4 +282,9 @@ message VoteWeightInterestList {
 message AmountAndTimeProportion {
     int32 time_proportion = 1;
     int32 amount_proportion = 2;
+}
+
+message VoteInformation{
+    int64 amount = 1;
+    int64 lock_time = 2;
 }

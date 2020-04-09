@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
@@ -231,46 +231,17 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
         
-        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
+        public override Empty ChangeSymbolListController(AuthorityInfo input)
         {
-            AssertPerformedByVoteWeightInterestController();
+            AssertPerformedBySymbolListController();
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
-            State.VoteWeightInterestController.Value = input;
-            return new Empty();
-        }
-        
-        public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
-        {
-            AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
-            // ReSharper disable once PossibleNullReferenceException
-            foreach (var info in input.VoteWeightInterestInfos)
-            {
-                Assert(info.Capital > 0, "invalid input");
-                Assert(info.Day > 0, "invalid input");
-                Assert(info.Interest > 0, "invalid input");
-            }
-
-            Assert(input.VoteWeightInterestInfos.GroupBy(x => x.Day).Count() == input.VoteWeightInterestInfos.Count,
-                "repeat day input");
-            var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
-            input.VoteWeightInterestInfos.Clear();
-            input.VoteWeightInterestInfos.AddRange(orderList);
-            State.VoteWeightInterestList.Value = input;
-            return new Empty();
-        }
-        
-        public override Empty SetAmountAndTimeProportionOfVoteWeight(AmountAndTimeProportion input)
-        {
-            AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
-            State.AmountAndTimeProportion.Value = input;
+            State.SymbolListController.Value = input;
             return new Empty();
         }
 
         public override Empty SetDistributingSymbolList(SymbolList input)
         {
-            AssertPerformedByVoteWeightInterestController();
+            AssertPerformedBySymbolListController();
             Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
             State.SymbolList.Value = input;
             return new Empty();
@@ -577,16 +548,16 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void AssertPerformedByVoteWeightInterestController()
+        private void AssertPerformedBySymbolListController()
         {
-            if (State.VoteWeightInterestController.Value == null)
+            if (State.SymbolListController.Value == null)
             {
-                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
+                State.SymbolListController.Value = GetDefaultSymbolListController();
             }
-            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+            Assert(Context.Sender == State.SymbolListController.Value.OwnerAddress, "no permission");
         }
 
-        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        private AuthorityInfo GetDefaultSymbolListController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -653,25 +624,15 @@ namespace AElf.Contracts.Treasury
             return State.TreasuryHash.Value ?? Hash.Empty;
         }
         
-        public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
+        public override AuthorityInfo GetSymbolListController(Empty input)
         {
-            return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
-        }
-        
-        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
-        {
-            if (State.VoteWeightInterestController.Value == null)
+            if (State.SymbolListController.Value == null)
             {
-                return GetDefaultVoteWeightInterestController();
+                return GetDefaultSymbolListController();
             }
-            return State.VoteWeightInterestController.Value;
+            return State.SymbolListController.Value;
         }
-        
-        public override AmountAndTimeProportion GetAmountAndTimeProportionOfVoteWeight(Empty input)
-        {
-            return State.AmountAndTimeProportion.Value ?? GetDefaultAmountAndTimeProportion();
-        }
-        
+
         public override SymbolList GetDistributingSymbolList(Empty input)
         {
             return State.SymbolList.Value;
@@ -679,85 +640,13 @@ namespace AElf.Contracts.Treasury
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
-            var timeAndAmountProportion = GetAmountAndTimeProportion();
-            if (State.VoteWeightInterestList.Value == null)
-                State.VoteWeightInterestList.Value = GetDefaultVoteWeightInterest();
-            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
+            RequireElectionContractStateSet();
+            var weight = State.ElectionContract.GetCalculateVoteWeight.Call(new VoteInformation
             {
-                if (lockDays > instMap.Day)
-                    continue;
-                var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount
-                    .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
-            }
-            var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
-            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount
-                .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
-        }
-
-        private static decimal Pow(decimal x, uint y)
-        {
-            if (y == 1)
-                return (long) x;
-            decimal a = 1m;
-            if (y == 0)
-                return a;
-            var e = new BitArray(y.ToBytes(false));
-            var t = e.Count;
-            for (var i = t - 1; i >= 0; --i)
-            {
-                a *= a;
-                if (e[i])
-                {
-                    a *= x;
-                }
-            }
-
-            return a;
-        }
-
-        private AmountAndTimeProportion GetAmountAndTimeProportion()
-        {
-            return State.AmountAndTimeProportion.Value ??
-                   (State.AmountAndTimeProportion.Value = GetDefaultAmountAndTimeProportion());
-        }
-        private AmountAndTimeProportion GetDefaultAmountAndTimeProportion()
-        {
-            return new AmountAndTimeProportion
-            {
-                TimeProportion = 2,
-                AmountProportion = 1
-            };
-        }
-
-        private VoteWeightInterestList GetDefaultVoteWeightInterest()
-        {
-            return new VoteWeightInterestList
-            {
-                VoteWeightInterestInfos =
-                {
-                    new VoteWeightInterest
-                    {
-                        Day = 365,
-                        Interest = 1,
-                        Capital = 1000
-                    },
-                    new VoteWeightInterest
-                    {
-                        Day = 730,
-                        Interest = 15,
-                        Capital = 10000
-                    },
-                    new VoteWeightInterest
-                    {
-                        Day = 1095,
-                        Interest = 2,
-                        Capital = 1000
-                    }
-                }
-            };
+                Amount = votesAmount,
+                LockTime = lockTime
+            });
+            return weight.Value;
         }
     }
 }
